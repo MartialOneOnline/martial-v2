@@ -276,7 +276,8 @@ e46f56c  feat: add Prisma schema connected to Supabase
 - Commits pequeños y frecuentes. Cada cambio que funciona, a GitHub.
 - No usar `git add .` si solo queremos subir archivos concretos.
 - Si no entiendo el código que generó la IA, no lo despliego.
-- El schema de Prisma no se cambia sin pensarlo bien.
+-
+ El schema de Prisma no se cambia sin pensarlo bien.
 - No mezclar Academy con la app principal todavía.
 - No construir pagos ni memberships en fases iniciales.
 - No migrar datos reales todavía.
