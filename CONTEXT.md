@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Fase 1 · Sesión 4 completada — Auth completa + Dashboard protegido funcionando
+**Estado:** Fase 1 · Sesión 5 completada — API segura + tipos compartidos + /me funcionando
 
 ---
 
@@ -259,10 +259,21 @@ e46f56c  feat: add Prisma schema connected to Supabase
 - `app/layout.tsx` — metadatos correctos, lang="es"
 - Flujo completo verificado en navegador: login → dashboard → logout
 
-### Sesión 5 — próxima ⏳
-- Auth middleware en la API (validar JWT de Supabase en cada request)
-- `packages/types/` — tipos TypeScript compartidos entre API y web
-- Primer endpoint real protegido
+### Sesión 5 — completada ✅
+- `packages/types/` — tipos compartidos: User, School, Role, ApiResponse
+- `apps/api/src/lib/supabase.ts` — cliente Supabase admin singleton
+- `apps/api/src/middleware/auth.ts` — valida JWT de Supabase, devuelve 401 si falta o es inválido
+- `apps/api/src/types/express.d.ts` — extiende Express Request con supabaseUser
+- `GET /me` — endpoint protegido, upsert de usuario en DB en primera llamada
+- Sin token → 401 MISSING_TOKEN ✅
+- Token inválido → 401 INVALID_TOKEN ✅
+- `apps/api/tsconfig.json` — eliminado rootDir para permitir import de Prisma desde raíz
+- `apps/api/src/lib/prisma.ts` — corregida extensión .js en import ESM
+
+### Sesión 6 — próxima ⏳
+- Llamar a `/me` desde el dashboard web con el token real del usuario
+- Vincular Supabase Auth con la tabla users de la DB
+- Primer CRUD real: escuelas
 
 ---
 
@@ -338,6 +349,11 @@ e46f56c  feat: add Prisma schema connected to Supabase
 **Hecho:** middleware.ts · app/dashboard (page + LogoutButton) · home limpia · layout metadata  
 **Funciona:** flujo completo login → dashboard → logout · /dashboard protegido (redirige sin sesión) · nombre del usuario leído de Supabase  
 **Notas:** dashboard muestra "Bienvenido, Pablo" leyendo user_metadata.name de Supabase Auth
+
+### 2026-05-28 — Sesión 5
+**Hecho:** packages/types · auth middleware API · express.d.ts · GET /me con upsert · fix tsconfig rootDir · fix prisma.ts import ESM  
+**Funciona:** GET /me sin token → 401 · GET /me token inválido → 401 · API completamente segura  
+**Notas:** GET /me con token real de Supabase aún no probado desde web — pendiente Sesión 6
 
 ---
 
