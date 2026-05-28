@@ -1,54 +1,74 @@
-import cors from "cors";
-import "dotenv/config";
-import express from "express";
-import { prisma } from "./lib/prisma";
+import cors from 'cors'
+import 'dotenv/config'
+import express from 'express'
+import { prisma } from './lib/prisma.js'
+import { auth } from './middleware/auth.js'
 
-const app = express();
+const app  = express()
+const port = process.env.PORT || 4000
 
-const port = process.env.PORT || 4000;
+app.use(cors())
+app.use(express.json())
 
-app.use(cors());
-app.use(express.json());
+// ─── Público ──────────────────────────────────────────────────────
 
-app.get("/health", (_req, res) => {
-  res.json({
-    status: "ok",
-    service: "martial-v2-api",
-  });
-});
+app.get('/health', (_req, res) => {
+  res.json({ success: true, data: { status: 'ok', service: 'martial-v2-api' } })
+})
 
-// Temporary endpoint to verify API → Prisma → Supabase connection.
-// Remove or protect this endpoint in a future session.
-app.get("/db-test", async (_req, res) => {
+// ─── Protegidos (requieren JWT de Supabase) ───────────────────────
+
+// GET /me — devuelve el usuario autenticado
+// Si es la primera vez que llama, lo crea en la base de datos
+app.get('/me', auth, async (req, res) => {
+  const supabaseUser = req.supabaseUser!
+
   try {
-    const users = await prisma.user.count();
-    const schools = await prisma.school.count();
+    const user = await prisma.user.upsert({
+      where:  { supabaseAuthId: supabaseUser.id },
+      update: {},   // no actualizamos nada en llamadas sucesivas
+      create: {
+        email:         supabaseUser.email!,
+        name:          supabaseUser.user_metadata?.name ?? null,
+        supabaseAuthId: supabaseUser.id,
+        role:          'STUDENT',
+      },
+      select: {
+        id:        true,
+        email:     true,
+        name:      true,
+        role:      true,
+        schoolId:  true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    })
 
-    res.json({
-      status: "connected",
-      users,
-      schools,
-    });
+    res.json({ success: true, data: user })
   } catch (error) {
-    console.error("DB TEST ERROR:", error);
-
-    const err = error as {
-      name?: string;
-      code?: string;
-      message?: string;
-      meta?: unknown;
-    };
-
+    console.error('GET /me error:', error)
     res.status(500).json({
-      status: "error",
-      name: err.name,
-      code: err.code,
-      message: err.message,
-      meta: err.meta,
-    });
+      success: false,
+      error: { code: 'INTERNAL_ERROR', message: 'Could not fetch user' },
+    })
   }
-});
+})
+
+// ─── Temporal ─────────────────────────────────────────────────────
+// TODO: eliminar antes del primer deploy
+app.get('/db-test', async (_req, res) => {
+  try {
+    const users   = await prisma.user.count()
+    const schools = await prisma.school.count()
+    res.json({ status: 'connected', users, schools })
+  } catch (error) {
+    console.error('DB TEST ERROR:', error)
+    res.status(500).json({ status: 'error', message: String(error) })
+  }
+})
+
+// ─────────────────────────────────────────────────────────────────
 
 app.listen(port, () => {
-  console.log(`Martial V2 API running on http://localhost:${port}`);
-});
+  console.log(`Martial V2 API running on http://localhost:${port}`)
+})
