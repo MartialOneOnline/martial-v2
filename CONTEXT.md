@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Fase 1 · Sesión 5 completada — API segura + tipos compartidos + /me funcionando
+**Estado:** Fase 1 · COMPLETA ✅ — Flujo end-to-end funcionando: web → API → DB
 
 ---
 
@@ -270,10 +270,19 @@ e46f56c  feat: add Prisma schema connected to Supabase
 - `apps/api/tsconfig.json` — eliminado rootDir para permitir import de Prisma desde raíz
 - `apps/api/src/lib/prisma.ts` — corregida extensión .js en import ESM
 
-### Sesión 6 — próxima ⏳
-- Llamar a `/me` desde el dashboard web con el token real del usuario
-- Vincular Supabase Auth con la tabla users de la DB
-- Primer CRUD real: escuelas
+### Sesión 6 — completada ✅
+- Dashboard llama a `GET /me` con el JWT real de Supabase
+- Primera llamada crea el usuario en la DB (upsert por supabaseAuthId)
+- Dashboard muestra datos de la DB: id, email, nombre, rol, escuela, fecha
+- `apps/web/.env.local` — añadido `API_URL=http://localhost:4000`
+- Flujo end-to-end verificado en navegador: login → dashboard → datos de DB
+- Nota: middleware.ts mantenido (proxy convention incompatible con @supabase/ssr en Next.js 16.2.0)
+
+### Fase 2 — próxima
+- Instalar Tailwind CSS + Shadcn/ui en apps/web
+- Diseño real de la interfaz
+- CRUD de escuelas: crear, listar, editar
+- Roles y permisos reales
 
 ---
 
@@ -349,6 +358,11 @@ e46f56c  feat: add Prisma schema connected to Supabase
 **Hecho:** middleware.ts · app/dashboard (page + LogoutButton) · home limpia · layout metadata  
 **Funciona:** flujo completo login → dashboard → logout · /dashboard protegido (redirige sin sesión) · nombre del usuario leído de Supabase  
 **Notas:** dashboard muestra "Bienvenido, Pablo" leyendo user_metadata.name de Supabase Auth
+
+### 2026-05-28 — Sesión 6
+**Hecho:** dashboard conectado a API · GET /me con JWT real · usuario creado en DB al primer login · ficha de usuario con datos de DB  
+**Funciona:** flujo completo web → API → DB verificado · p.cabomedina@gmail.com sincronizado en tabla users  
+**Notas:** API_URL faltaba en apps/web/.env.local · middleware.ts mantenido (proxy convention rompe con @supabase/ssr)
 
 ### 2026-05-28 — Sesión 5
 **Hecho:** packages/types · auth middleware API · express.d.ts · GET /me con upsert · fix tsconfig rootDir · fix prisma.ts import ESM  
