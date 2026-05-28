@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Fase 1 · Sesión 3 completada — Prisma + Supabase DB funcionando
+**Estado:** Fase 1 · Sesión 4 completada — Auth completa + Dashboard protegido funcionando
 
 ---
 
@@ -102,6 +102,9 @@ Arranca los tres servicios en paralelo con Turborepo:
 | apps/api | http://localhost:4000 | ✅ Responde |
 | apps/api /health | http://localhost:4000/health | ✅ `{ status: "ok" }` |
 | apps/api /db-test | http://localhost:4000/db-test | ✅ `{ status: "connected", users: 0, schools: 0 }` |
+| apps/web /login | http://localhost:3000/login | ✅ Login con Supabase Auth |
+| apps/web /register | http://localhost:3000/register | ✅ Registro con Supabase Auth |
+| apps/web /dashboard | http://localhost:3000/dashboard | ✅ Protegido — redirige a /login sin sesión |
 | apps/mobile | http://localhost:8081 | ✅ Metro Bundler |
 | apps/mobile | exp://192.168.1.44:8081 | ✅ QR Expo Go |
 
@@ -243,12 +246,23 @@ e46f56c  feat: add Prisma schema connected to Supabase
 - `/db-test` creado y probado correctamente
 - Conexión `API → Prisma → Supabase PostgreSQL` verificada
 
-### Sesión 4 — próxima ⏳
+### Sesión 4 — completada ✅
 - Supabase Auth en apps/web
-- Login básico
-- Register básico
-- Dashboard vacío protegido
-- Vinculación futura de Supabase Auth con `User.supabaseAuthId`
+- Login con `signInWithPassword`
+- Register con `signUp` + nombre de usuario
+- `lib/supabase/client.ts` — cliente browser
+- `lib/supabase/server.ts` — cliente servidor con cookies
+- `middleware.ts` — protección de rutas, refresh de token automático
+- `app/dashboard/page.tsx` — Server Component, lee usuario de Supabase
+- `app/dashboard/LogoutButton.tsx` — Client Component, cierra sesión
+- `app/page.tsx` — home limpia de Martial (fondo negro, links a login/register)
+- `app/layout.tsx` — metadatos correctos, lang="es"
+- Flujo completo verificado en navegador: login → dashboard → logout
+
+### Sesión 5 — próxima ⏳
+- Auth middleware en la API (validar JWT de Supabase en cada request)
+- `packages/types/` — tipos TypeScript compartidos entre API y web
+- Primer endpoint real protegido
 
 ---
 
@@ -319,6 +333,11 @@ e46f56c  feat: add Prisma schema connected to Supabase
 **Hecho:** Supabase creado · Prisma 7 configurado · User/School/Role schema · db push OK · prisma generate OK · endpoint /db-test OK  
 **Funciona:** API → Prisma → Supabase PostgreSQL  
 **Notas:** se resolvió un problema de `.env` por `DATABASE_URL` duplicada; `.env` no se sube a GitHub
+
+### 2026-05-28 — Sesión 4
+**Hecho:** middleware.ts · app/dashboard (page + LogoutButton) · home limpia · layout metadata  
+**Funciona:** flujo completo login → dashboard → logout · /dashboard protegido (redirige sin sesión) · nombre del usuario leído de Supabase  
+**Notas:** dashboard muestra "Bienvenido, Pablo" leyendo user_metadata.name de Supabase Auth
 
 ---
 
