@@ -25,9 +25,13 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[#006197] rounded-md flex items-center justify-center">
-              <span className="text-white font-bold text-sm">M</span>
-            </div>
+            <Image
+              src="/martial-logo.png"
+              alt="Martial"
+              width={48}
+              height={48}
+              className="object-contain"
+            />
             <span className="font-semibold text-[#061229] text-lg tracking-wide">MARTIAL</span>
           </Link>
 
@@ -111,7 +115,13 @@ export default function Home() {
             {/* App screenshot overlay card */}
             <div className="absolute bottom-5 right-5 w-28 h-52 bg-white/15 backdrop-blur-md rounded-2xl border border-white/30 shadow-xl flex items-center justify-center">
               <div className="text-white text-center">
-                <div className="text-3xl font-bold">M</div>
+                <Image
+                  src="/martial-logo.png"
+                  alt="Martial"
+                  width={48}
+                  height={48}
+                  className="object-contain mx-auto"
+                />
                 <div className="text-[9px] tracking-widest opacity-60 mt-1">MARTIAL</div>
               </div>
             </div>
@@ -177,7 +187,13 @@ export default function Home() {
         <div className="max-w-3xl mx-auto px-6 space-y-6">
           <div className="flex justify-center">
             <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center">
-              <span className="text-white font-bold text-2xl">M</span>
+              <Image
+                src="/martial-logo.png"
+                alt="Martial"
+                width={48}
+                height={48}
+                className="object-contain"
+              />
             </div>
           </div>
           <h2 className="text-3xl md:text-4xl font-bold leading-snug">
@@ -513,7 +529,13 @@ export default function Home() {
           <div className="flex justify-center">
             <div className="w-48 h-96 bg-[#061229] rounded-[2.5rem] shadow-xl border-4 border-gray-800 flex items-center justify-center">
               <div className="text-white text-center">
-                <div className="text-4xl font-bold">M</div>
+                <Image
+                  src="/martial-logo.png"
+                  alt="Martial"
+                  width={64}
+                  height={64}
+                  className="object-contain mx-auto"
+                />
                 <div className="text-[10px] tracking-widest opacity-50 mt-1">MARTIAL</div>
               </div>
             </div>
@@ -528,9 +550,13 @@ export default function Home() {
             {/* Brand */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-[#006197] rounded-md flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">M</span>
-                </div>
+                <Image
+                  src="/martial-logo.png"
+                  alt="Martial"
+                  width={48}
+                  height={48}
+                  className="object-contain"
+                />
                 <span className="font-semibold text-lg tracking-wide">MARTIAL</span>
               </div>
               <p className="text-white/50 text-sm leading-relaxed">
