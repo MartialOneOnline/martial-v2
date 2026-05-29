@@ -23,7 +23,8 @@
 | Producción actual (Laravel) | martialapp.com | ✅ No tocar |
 | Explore actual | martialapp.com/explore | ✅ No tocar |
 | Academy actual | academy.martialapp.com | ✅ No tocar |
-| Web V2 | martialapp.online | 🔧 Pendiente deploy |
+| Prototipo V2 (aistudio) | martialapp.online | ✅ Live en Hostinger |
+| Web V2 (Next.js real) | martialapp.online | 🔧 Pendiente deploy (reemplazará el prototipo) |
 | Dashboard V2 | app.martialapp.online | 🔧 Pendiente deploy |
 | API V2 | api.martialapp.online | 🔧 Pendiente deploy |
 
@@ -306,11 +307,81 @@ e46f56c  feat: add Prisma schema connected to Supabase
 - Pendiente: imágenes reales (ahora son placeholders azules)
 - Nota: frame 1:27 es demasiado grande para get_design_context — necesita node-ids de subsecciones
 
-### Fase 2 — próxima
-- Añadir imágenes reales al Hero (Unsplash o assets de Figma)
-- Login/Register con diseño real de Figma
+### Sesión 9 — completada ✅ (prototipo aistudio)
+- Prototipo visual completo desplegado en martialapp.online (Hostinger)
+- Stack: Vite 6.4.2 + React 19 + TypeScript + Tailwind v4 + Framer Motion + Lucide React
+- Proyecto local: /Users/pablocabo/Downloads/martial-app-aistudio/
+- Deploy: build → dist/ → zip → Hostinger public_html/ → Extract
+
+**Páginas implementadas en el prototipo:**
+
+| Página | Componente | Estado |
+|---|---|---|
+| Homepage | HeroSection + FeaturedSchools + PartnersSection + AppDownloadBanner + ... | ✅ |
+| Login popup | LoginModal.tsx | ✅ |
+| Login página | LoginPage.tsx | ✅ |
+| Register página | RegisterPage.tsx | ✅ |
+| Explore | ExploreDatabase.tsx | ✅ |
+| Academy | MartialOnlineLanding.tsx | ✅ |
+| Dashboard (owner) | MartialOnlineDashboard.tsx | ✅ |
+| Technology | AppDownloadBanner.tsx + FeaturesCloud.tsx | ✅ |
+| School public page | SchoolPublicPage.tsx | ✅ |
+
+**Funcionalidades del prototipo:**
+- LoginModal estilo NZZL: SSO (Google, Facebook, Apple) + Email + link a Register
+- RegisterPage con selector de rol: STUDENT / SCHOOL (campos distintos por rol)
+- SPA router con ViewType: `home | explore | school-detail | academy | academy-dashboard | login | register`
+- Selector de idioma: EN / ES / PT / FR (todas las secciones traducidas)
+- Hero slider con 3 slides y overlay de stats
+- ExploreDatabase con búsqueda por nombre/disciplina/ciudad + mapa visual
+- Academy con cursos, filtros por categoría, Patreon tiers, wallet simulado
+- Dashboard con sidebar, stats, creación de cursos, feed de comentarios
+
+**Fotos reales usadas (en public/):**
+
+| Archivo | Usado en |
+|---|---|
+| hero-1.jpg | Hero slide 1 |
+| hero-2.jpg | Hero slide 2 |
+| roger-gracie-dubai.jpg | Hero slide 3 |
+| app-promo.jpg | AppDownloadBanner |
+| roger-gracie-malaga.jpg | FeaturedSchools + ExploreDatabase + academyData |
+| rafael-pousada-jiu-jitsu.jpg | FeaturedSchools + ExploreDatabase |
+| carlson-peniche.png | FeaturedSchools + ExploreDatabase |
+| mathouse.jpg | FeaturedSchools + ExploreDatabase + academyData |
+| five-elements-jiu-jitsu.jpg | ExploreDatabase + academyData |
+| sanlucar-jiu-jitsu.jpg | ExploreDatabase |
+| centro-karate-mangualde.jpg | ExploreDatabase |
+| martial-logo.png | Header, Footer, LoginModal, LoginPage, RegisterPage, MissionSection |
+
+**Logos de equipos (en public/) — PartnersSection:**
+- logo-gracie-barra.png · logo-roger-gracie.png · logo-alliance.png
+- logo-carlson-gracie.png · logo-renzo-gracie.png · logo-gracie-humaita.png
+- logo-leogalati.png · logo-nova-uniao.png · logo-yogui-bjj-spain.png
+
+**Escuelas reales en el prototipo:**
+
+| Escuela | Ciudad | Aparece en |
+|---|---|---|
+| Roger Gracie Malaga | Málaga, España | FeaturedSchools + Explore |
+| Rafael Pousada Jiu-Jitsu | Jerez de la Frontera, España | FeaturedSchools + Explore |
+| Carlson Gracie Jiu-Jitsu Peniche | Peniche, Portugal | FeaturedSchools + Explore |
+| Mathouse BJJ Reading | Reading, UK | FeaturedSchools + Explore |
+| Five Elements Jiu-Jitsu Huelva | Huelva, España | Explore |
+| Jiu-Jitsu Brasileño Sanlucar | Sanlúcar de Barrameda, España | Explore |
+| Roger Gracie Dubai Academy | Dubai, UAE | Explore |
+| Centro de Karaté de Mangualde | Mangualde, Portugal | Explore |
+
+**Próximo paso del prototipo:** sirve como referencia visual para implementar `apps/web`.
+
+---
+
+### Fase 2 — próxima (apps/web Next.js real)
+- Implementar páginas con diseño del prototipo: /explore, /academy, /dashboard
+- Login/Register con diseño real del prototipo + Supabase Auth ya conectado
 - CRUD de escuelas: crear, listar, editar
-- Roles y permisos reales
+- Roles y permisos reales (student / school / instructor / business)
+- Imágenes reales ya disponibles en el prototipo — reutilizar en apps/web/public/
 
 ---
 
@@ -401,6 +472,19 @@ e46f56c  feat: add Prisma schema connected to Supabase
 **Hecho:** Figma MCP configurado · 3 archivos de diseño analizados · design system extraído · flujo Dev Mode aprendido  
 **Funciona:** Figma MCP con Pro plan · get_design_context para nodos individuales  
 **Notas:** frames grandes (>5000px altura) dan timeout — siempre usar node-id de sección específica · fuente EnnVisions es comercial · landing en 1 frame gigante 1:27 hay que explorar por subsecciones
+
+### 2026-05-29 / 2026-05-30 — Sesión 9 (prototipo aistudio)
+**Hecho:**
+- Prototipo visual completo en /Users/pablocabo/Downloads/martial-app-aistudio/
+- Todas las páginas del flujo implementadas: homepage · login popup · login · register · explore · academy · dashboard · technology
+- LoginModal estilo NZZL con SSO (Google, Facebook, Apple) + Email
+- RegisterPage con selector de rol STUDENT / SCHOOL
+- Selector de idioma EN/ES/PT/FR en todas las secciones
+- Todas las fotos Unsplash reemplazadas por fotos reales de academias
+- 9 logos reales de equipos BJJ en PartnersSection
+- Deploy funcionando en martialapp.online (Hostinger: build → zip → upload → extract)
+**Funciona:** martialapp.online live con datos y fotos reales  
+**Notas:** el prototipo es la referencia visual para implementar apps/web · las fotos y logos están en public/ del proyecto aistudio · deploy manual vía zip en Hostinger · caché del navegador: Cmd+Shift+R para ver cambios
 
 ---
 
