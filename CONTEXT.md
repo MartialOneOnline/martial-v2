@@ -278,9 +278,37 @@ e46f56c  feat: add Prisma schema connected to Supabase
 - Flujo end-to-end verificado en navegador: login → dashboard → datos de DB
 - Nota: middleware.ts mantenido (proxy convention incompatible con @supabase/ssr en Next.js 16.2.0)
 
+### Sesión 7 — completada ✅
+- Figma MCP conectado y funcionando (Pro plan, sin rate limits)
+- Analizados los 3 archivos Figma completos:
+  - `wLZEV2ENEGFDvNQNv2L532` — Web Landing Page (1 frame grande 1776×8812px)
+  - `CnmTRNGObXJeKJiXBagsPj` — School Portal / Dashboard owner
+  - `sSrSP43cOvx4d0MA1NKg8U` — Martial App Mobile (~60 pantallas: auth, explore, profile, booking, ranking...)
+- Design system extraído del mobile:
+  - Primary: #006197 · Primary mid: #3d86af · Background: #fafafa
+  - Title: #061229 · Subtitle: #333333 · Details: #4f4f4f
+  - Fuente: EnnVisions Regular/Medium (comercial — pendiente decisión)
+- Aprendido flujo Figma Dev Mode → URL con node-id → get_design_context
+- Pendiente: entrar dentro del frame 1:27 (landing) y extraer secciones individuales
+- Nota: frames grandes (>5000px) dan timeout en get_design_context — usar node-id de subsecciones
+
+### Sesión 8 — completada ✅
+- Tailwind CSS v4.3.0 instalado en apps/web
+- postcss.config.mjs creado con @tailwindcss/postcss
+- globals.css actualizado con @import "tailwindcss" + design tokens @theme
+- layout.tsx actualizado — Inter (Google Font), metadata en inglés
+- Landing page completa implementada en app/page.tsx:
+  - Navbar sticky · Hero · Free Platform bar · Dashboard mock
+  - Blue CTA · For Members/Academies · Featured Schools
+  - Stats · Disciplines · Mobile App · Testimonials
+  - Search CTA · Payment Methods · App Download · Footer
+- Build limpio ✅ · localhost:3000 respondiendo 200 OK
+- Pendiente: imágenes reales (ahora son placeholders azules)
+- Nota: frame 1:27 es demasiado grande para get_design_context — necesita node-ids de subsecciones
+
 ### Fase 2 — próxima
-- Instalar Tailwind CSS + Shadcn/ui en apps/web
-- Diseño real de la interfaz
+- Añadir imágenes reales al Hero (Unsplash o assets de Figma)
+- Login/Register con diseño real de Figma
 - CRUD de escuelas: crear, listar, editar
 - Roles y permisos reales
 
@@ -368,6 +396,11 @@ e46f56c  feat: add Prisma schema connected to Supabase
 **Hecho:** packages/types · auth middleware API · express.d.ts · GET /me con upsert · fix tsconfig rootDir · fix prisma.ts import ESM  
 **Funciona:** GET /me sin token → 401 · GET /me token inválido → 401 · API completamente segura  
 **Notas:** GET /me con token real de Supabase aún no probado desde web — pendiente Sesión 6
+
+### 2026-05-29 — Sesión 7
+**Hecho:** Figma MCP configurado · 3 archivos de diseño analizados · design system extraído · flujo Dev Mode aprendido  
+**Funciona:** Figma MCP con Pro plan · get_design_context para nodos individuales  
+**Notas:** frames grandes (>5000px altura) dan timeout — siempre usar node-id de sección específica · fuente EnnVisions es comercial · landing en 1 frame gigante 1:27 hay que explorar por subsecciones
 
 ---
 
