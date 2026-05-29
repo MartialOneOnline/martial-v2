@@ -377,8 +377,16 @@ e46f56c  feat: add Prisma schema connected to Supabase
 ---
 
 ### Fase 2 — próxima (apps/web Next.js real)
-- Implementar páginas con diseño del prototipo: /explore, /academy, /dashboard
-- Login/Register con diseño real del prototipo + Supabase Auth ya conectado
+
+**Próxima sesión — Sesión 10:**
+- `app/login/page.tsx` — aplicar diseño del prototipo (LoginPage.tsx de aistudio), mantener lógica Supabase existente
+- `app/register/page.tsx` — aplicar diseño del prototipo (RegisterPage.tsx de aistudio) + selector STUDENT/SCHOOL
+- `LoginModal` — popup en homepage (app/page.tsx) con SSO + Email
+- Nota: diseños ya implementados en aistudio — solo adaptar a Next.js (useRouter, rutas, Supabase calls)
+- SSO (Google, Apple, Facebook) — visualmente presentes, activar OAuth en Supabase en sesión futura
+
+**Sesiones siguientes:**
+- Implementar páginas: /explore, /academy, /dashboard con diseño del prototipo
 - CRUD de escuelas: crear, listar, editar
 - Roles y permisos reales (student / school / instructor / business)
 - Imágenes reales ya disponibles en el prototipo — reutilizar en apps/web/public/
