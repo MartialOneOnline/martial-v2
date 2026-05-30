@@ -2,7 +2,7 @@
   "name": "martial-v2",
   "private": true,
   "scripts": {
-    "build": "npx turbo run build --filter=web && cp -r apps/web/.next .next",
+    "build": "npx turbo run build --filter=web && cp -r apps/web/.next .next && cp apps/web/next.config.js next.config.js && cp -r apps/web/public public",
     "start": "node_modules/.bin/next start",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
