@@ -1,0 +1,6 @@
+{
+  "name": "Martial App",
+  "description": "A premium responsive landing page and management suite for Martial Arts Academies, Trainers, and Practitioners.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
