@@ -2,7 +2,8 @@
   "name": "martial-v2",
   "private": true,
   "scripts": {
-    "build": "npx turbo run build --filter=web && cp -r apps/web/.next .next",
+    "build": "npx turbo run build --filter=web && cp -r apps/web/.next .next && cp apps/web/package.json package.web.json",
+    "start": "cd apps/web && npm start",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
