@@ -2,7 +2,7 @@
   "name": "martial-v2",
   "private": true,
   "scripts": {
-    "build": "npx turbo run build",
+    "build": "npx turbo run build --filter=web",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
