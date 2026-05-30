@@ -2,7 +2,7 @@
   "name": "martial-v2",
   "private": true,
   "scripts": {
-    "build": "npx turbo run build --filter=web",
+    "build": "npx turbo run build --filter=web && cp -r apps/web/.next .next",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
