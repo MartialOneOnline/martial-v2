@@ -1,31 +1,30 @@
 {
   "name": "martial-v2",
+  "version": "0.1.0",
+  "type": "module",
   "private": true,
   "scripts": {
-    "build": "npx turbo run build --filter=web && cp -r apps/web/.next .next && cp apps/web/next.config.js next.config.js && cp -r apps/web/public public",
-    "start": "node_modules/.bin/next start",
-    "dev": "turbo run dev",
-    "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "check-types": "turbo run check-types"
+    "dev": "next dev --port 3000",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint --max-warnings 0"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.10.3",
+    "@supabase/supabase-js": "^2.106.2",
+    "@tailwindcss/postcss": "^4.3.0",
+    "tailwindcss": "^4.3.0",
     "next": "16.2.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "prettier": "^3.7.4",
-    "prisma": "^7.8.0",
-    "turbo": "^2.9.15",
+    "@types/node": "^22.15.3",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
     "typescript": "5.9.2"
   },
   "engines": {
-    "node": ">=18"
-  },
-  "packageManager": "npm@11.13.0",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ]
+    "node": ">=22"
+  }
 }
