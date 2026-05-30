@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "build": "npx turbo run build --filter=web && cp -r apps/web/.next .next",
-    "start": "node apps/web/node_modules/.bin/next start --port ${PORT:-3000}",
+    "start": "node_modules/.bin/next start",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
