@@ -1,9 +1,13 @@
+'use client'
+
+import { useState } from 'react'
 import Image from "next/image"
 import Link from "next/link"
+import LoginModal from '../components/LoginModal'
 
 // Unsplash martial arts images — replace with hosted assets before production
 const IMAGES = {
-  hero:     "https://images.unsplash.com/photo-1555597673-b21d5c935865?w=900&h=700&fit=crop&q=85",
+  hero:     "https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=900&h=700&fit=crop&q=85",
   school1:  "https://images.unsplash.com/photo-1564089651693-5d58e9c2b8b3?w=600&h=400&fit=crop&q=80",
   school2:  "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600&h=400&fit=crop&q=80",
   school3:  "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=400&fit=crop&q=80",
@@ -17,8 +21,12 @@ const IMAGES = {
 ───────────────────────────────────────────── */
 
 export default function Home() {
+  const [showModal, setShowModal] = useState(false)
+
   return (
     <div className="min-h-screen bg-white text-[#061229] font-sans">
+
+      {showModal && <LoginModal onClose={() => setShowModal(false)} />}
 
       {/* ── NAVBAR ─────────────────────────────── */}
       <nav className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
@@ -46,15 +54,18 @@ export default function Home() {
 
           {/* Auth buttons */}
           <div className="flex items-center gap-3">
-            <Link href="/login" className="text-sm text-[#006197] font-medium hover:underline px-3 py-2">
+            <button
+              onClick={() => setShowModal(true)}
+              className="text-sm text-[#006197] font-medium hover:underline px-3 py-2 cursor-pointer"
+            >
               Sign In
-            </Link>
-            <Link
-              href="/register"
-              className="text-sm bg-[#006197] text-white font-medium px-5 py-2 rounded-md hover:bg-[#004f7a] transition-colors"
+            </button>
+            <button
+              onClick={() => setShowModal(true)}
+              className="text-sm bg-[#006197] text-white font-medium px-5 py-2 rounded-md hover:bg-[#004f7a] transition-colors cursor-pointer"
             >
               Sign Up
-            </Link>
+            </button>
           </div>
         </div>
       </nav>
@@ -202,12 +213,12 @@ export default function Home() {
           <p className="text-white/80 text-lg max-w-xl mx-auto">
             Bringing technology to Martial Arts. Manage your academy, grow your community, and track your progress — all in one place.
           </p>
-          <Link
-            href="/register"
-            className="inline-block bg-white text-[#006197] font-semibold px-8 py-3 rounded-xl hover:bg-gray-100 transition-colors"
+          <button
+            onClick={() => setShowModal(true)}
+            className="inline-block bg-white text-[#006197] font-semibold px-8 py-3 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer"
           >
             Get Started — It&apos;s Free
-          </Link>
+          </button>
         </div>
       </section>
 
@@ -474,12 +485,12 @@ export default function Home() {
           <p className="text-white/80 text-lg">
             Everything a martial artist needs — completely free.
           </p>
-          <Link
-            href="/register"
-            className="inline-block bg-white text-[#006197] font-semibold px-8 py-3 rounded-xl hover:bg-gray-100 transition-colors"
+          <button
+            onClick={() => setShowModal(true)}
+            className="inline-block bg-white text-[#006197] font-semibold px-8 py-3 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer"
           >
             Get Started Free
-          </Link>
+          </button>
         </div>
       </section>
 
