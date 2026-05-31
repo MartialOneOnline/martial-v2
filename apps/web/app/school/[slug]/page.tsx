@@ -98,7 +98,7 @@ export default function SchoolProfile({ params }: { params: Promise<{ slug: stri
               className="relative h-[320px] sm:h-[420px] bg-slate-800 rounded-3xl overflow-hidden shadow-lg group"
             >
               <Image
-                src={photos[photoIndex] ?? ''}
+                src={photos[photoIndex] ?? photos[0]!}
                 alt={`${SCHOOL.name} photo ${photoIndex + 1}`}
                 fill
                 className="w-full h-full object-cover opacity-95 transition-all duration-500"

@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "--workspace=web"],
       "port": 3000
+    },
+    {
+      "name": "rogergraciemalaga",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "/Users/pablocabo/Projects/rogergraciemalaga", "run", "dev"],
+      "port": 3001
     }
   ]
 }
