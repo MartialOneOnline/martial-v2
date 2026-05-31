@@ -1,9 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
 import LoginModal        from '../components/LoginModal'
+import Header           from '../components/Header'
 import HeroSection       from '../components/HeroSection'
 import FeaturesCloud     from '../components/FeaturesCloud'
 import MissionSection    from '../components/MissionSection'
@@ -17,14 +16,6 @@ import PaymentMethods    from '../components/PaymentMethods'
 import AppDownloadBanner from '../components/AppDownloadBanner'
 import Footer            from '../components/Footer'
 
-const NAV_LINKS = [
-  { label: 'Home',       href: '/' },
-  { label: 'Explore',    href: '/explore' },
-  { label: 'Academy',    href: '#academy' },
-  { label: 'Dashboard',  href: '/dashboard' },
-  { label: 'Technology', href: '#technology' },
-  { label: 'Price',      href: '#pricing' },
-]
 
 export default function Home() {
   const [showModal, setShowModal] = useState(false)
@@ -36,34 +27,7 @@ export default function Home() {
       {showModal && <LoginModal onClose={() => setShowModal(false)} />}
 
       {/* ── NAVBAR ──────────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-40 bg-white border-b border-gray-100 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-12 h-12 overflow-hidden rounded-xl group-hover:scale-105 transition-transform shrink-0">
-              <Image src="/martial-logo.png" alt="Martial App" width={48} height={48} className="object-contain" />
-            </div>
-            <div className="flex flex-col leading-none">
-              <span className="font-black tracking-wider text-[#061229] text-base">MARTIAL</span>
-              <span className="text-[8px] font-bold tracking-[0.2em] text-[#0092ff] uppercase">Take Control</span>
-            </div>
-          </Link>
-
-          <div className="hidden md:flex items-center gap-6 text-sm font-semibold text-[#333]">
-            {NAV_LINKS.map(l => (
-              <Link key={l.label} href={l.href} className="hover:text-[#0092ff] transition-colors">{l.label}</Link>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button onClick={openModal} className="text-sm text-[#006197] font-semibold hover:underline px-3 py-2 cursor-pointer">
-              Sign In
-            </button>
-            <button onClick={openModal} className="text-sm bg-[#006197] text-white font-semibold px-5 py-2 rounded-md hover:bg-[#004f7a] transition-colors cursor-pointer">
-              Dashboard
-            </button>
-          </div>
-        </div>
-      </nav>
+      <Header onOpenLoginModal={openModal} />
 
       {/* 1. Hero */}
       <HeroSection onOpenLoginModal={openModal} />
