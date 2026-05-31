@@ -68,10 +68,11 @@ function SSOButton({ icon, label, onClick }: {
 // ── Props ─────────────────────────────────────────────────────────────────────
 interface LoginModalProps {
   onClose: () => void
+  onOpenRegister?: () => void
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
-export default function LoginModal({ onClose }: LoginModalProps) {
+export default function LoginModal({ onClose, onOpenRegister }: LoginModalProps) {
   const router = useRouter()
 
   return (
@@ -153,7 +154,7 @@ export default function LoginModal({ onClose }: LoginModalProps) {
           <p className="text-[13px] text-[#6b7280] text-center mt-6">
             Don&apos;t have an account?{' '}
             <span
-              onClick={() => { onClose(); router.push('/register') }}
+              onClick={() => { onClose(); onOpenRegister?.() }}
               className="text-[#006197] font-semibold underline cursor-pointer hover:text-[#004e7c] transition-colors"
             >
               Register
