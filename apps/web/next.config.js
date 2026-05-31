@@ -1,8 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Standalone output bundles everything needed for deployment
-  // (resolves workspace packages — no monorepo needed on the server)
-  output: 'standalone',
+  // Vercel handles Next.js natively — no standalone output needed
   images: {
     remotePatterns: [
       {
