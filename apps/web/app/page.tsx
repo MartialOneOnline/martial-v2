@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import LoginModal        from '../components/LoginModal'
 import RegisterModal     from '../components/RegisterModal'
 import Header           from '../components/Header'
@@ -19,10 +20,18 @@ import Footer            from '../components/Footer'
 
 
 export default function Home() {
-  const [showModal, setShowModal]             = useState(false)
+  const searchParams = useSearchParams()
+  const [showModal, setShowModal]                 = useState(false)
   const [showRegisterModal, setShowRegisterModal] = useState(false)
   const openModal    = () => setShowModal(true)
   const openRegister = () => setShowRegisterModal(true)
+
+  // Auto-open register modal when redirected from /register
+  useEffect(() => {
+    if (searchParams.get('register') === 'true') {
+      setShowRegisterModal(true)
+    }
+  }, [searchParams])
 
   return (
     <div className="min-h-screen bg-white text-[#061229] font-sans">
