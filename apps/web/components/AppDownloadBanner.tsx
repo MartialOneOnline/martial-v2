@@ -3,8 +3,8 @@ import { Download, Users, Navigation } from 'lucide-react'
 
 export default function AppDownloadBanner() {
   return (
-    <section className="bg-slate-50 py-16 sm:py-20 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="bg-white py-20 sm:py-28 relative overflow-hidden border-t border-gray-100">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden grid lg:grid-cols-12 gap-8 items-center">
 
           {/* Left image */}

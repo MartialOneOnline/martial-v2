@@ -18,8 +18,8 @@ export default function FeaturedSchools() {
   const [bookingSuccess, setBookingSuccess] = useState(false)
 
   return (
-    <section className="bg-white py-20 border-b border-gray-100" id="schools">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="bg-white py-20 sm:py-28 border-b border-gray-100" id="schools">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
 
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-12">

@@ -11,8 +11,8 @@ const TESTIMONIALS = [
 
 export default function Testimonials() {
   return (
-    <section className="bg-slate-50 py-20 border-t border-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="bg-slate-50 py-20 sm:py-28 border-t border-gray-100">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="text-xs font-black text-sky-500 uppercase tracking-widest block mb-1">Success Stories</span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight">

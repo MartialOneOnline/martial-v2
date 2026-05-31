@@ -23,11 +23,11 @@ export default function HeroSection({ onOpenLoginModal }: HeroSectionProps) {
   const slide = HERO_SLIDES[activeIndex]!
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-sky-50/70 via-white to-white py-16 lg:py-24">
+    <section className="relative overflow-hidden bg-gradient-to-b from-sky-50/70 via-white to-white py-20 lg:py-28">
       <div className="absolute top-0 right-0 -z-10 w-[600px] h-[600px] bg-sky-200/20 rounded-full blur-3xl" />
       <div className="absolute bottom-10 left-10 -z-10 w-[400px] h-[400px] bg-indigo-100/30 rounded-full blur-3xl" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="grid lg:grid-cols-12 gap-12 lg:gap-8 items-center">
 
           {/* Left — Text */}

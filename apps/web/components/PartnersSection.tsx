@@ -7,8 +7,8 @@ import { PARTNER_LOGOS } from '../lib/data'
 
 export default function PartnersSection() {
   return (
-    <section className="bg-slate-50/50 py-20 relative overflow-hidden" id="learning">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="bg-slate-50 py-20 sm:py-28 relative overflow-hidden border-t border-gray-100" id="learning">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="grid lg:grid-cols-12 gap-12 lg:gap-8 items-center">
 
           {/* Left */}
