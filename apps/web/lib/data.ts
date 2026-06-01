@@ -47,6 +47,59 @@ export const FEATURED_SCHOOLS: School[] = [
   },
 ]
 
+export const ALL_SCHOOLS: School[] = [
+  ...FEATURED_SCHOOLS,
+  {
+    id: 'school-5',
+    name: 'Five Elements Jiu-Jitsu',
+    location: 'Lisboa, Portugal',
+    rating: 4.7,
+    reviewCount: 310,
+    image: '/five-elements-jiu-jitsu.jpg',
+    description: 'Academia de Jiu-Jitsu Brasileiro em Lisboa. Programas para adultos, crianças e self-defense. Equipa competitiva activa.',
+  },
+  {
+    id: 'school-6',
+    name: 'Centro de Karate Mangualde',
+    location: 'Mangualde, Portugal',
+    rating: 4.6,
+    reviewCount: 180,
+    image: '/centro-karate-mangualde.jpg',
+    description: 'Traditional Karate academy with over 20 years of history. Shotokan and Kyokushin programs for all ages.',
+  },
+  {
+    id: 'school-7',
+    name: 'Roger Gracie Dubai',
+    location: 'Dubai, UAE',
+    rating: 4.9,
+    reviewCount: 650,
+    image: '/roger-gracie-dubai.jpg',
+    description: 'Official Roger Gracie Academy in Dubai. World-class BJJ instruction in a state-of-the-art facility.',
+  },
+  {
+    id: 'school-8',
+    name: 'Sanlucar Jiu-Jitsu',
+    location: 'Sanlúcar de Barrameda, Spain',
+    rating: 4.7,
+    reviewCount: 220,
+    image: '/sanlucar-jiu-jitsu.jpg',
+    description: 'Brazilian Jiu-Jitsu academy in the heart of Andalusia. Friendly environment for beginners and advanced practitioners.',
+  },
+]
+
+export const DISCIPLINES = [
+  'All',
+  'Brazilian Jiu-Jitsu',
+  'Karate',
+  'Muay Thai',
+  'Wrestling',
+  'Judo',
+  'MMA',
+  'Boxing',
+  'Self Defence',
+  'Kids Classes',
+]
+
 export const PARTNER_LOGOS = [
   { id: 1, name: 'Gracie Barra',    img: '/logo-gracie-barra.png' },
   { id: 2, name: 'Roger Gracie',    img: '/logo-roger-gracie.png' },

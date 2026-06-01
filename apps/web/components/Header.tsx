@@ -53,7 +53,7 @@ function FlagIcon({ lang }: { lang: string }) {
 const NAV_LINKS = [
   { label: 'HOME',       href: '/' },
   { label: 'EXPLORE',    href: '/explore' },
-  { label: 'ACADEMY',    href: '#academy' },
+  { label: 'ACADEMY',    href: '/academy' },
   { label: 'DASHBOARD',  href: '/dashboard' },
   { label: 'TECHNOLOGY', href: '#technology' },
   { label: 'PRICE',      href: '#payment-methods-section' },
