@@ -27,11 +27,10 @@ function HomeContent() {
   const openModal    = () => setShowModal(true)
   const openRegister = () => setShowRegisterModal(true)
 
-  // Auto-open register modal when redirected from /register
+  // Auto-open modals when redirected from /login or /register
   useEffect(() => {
-    if (searchParams.get('register') === 'true') {
-      setShowRegisterModal(true)
-    }
+    if (searchParams.get('login') === 'true')    setShowModal(true)
+    if (searchParams.get('register') === 'true') setShowRegisterModal(true)
   }, [searchParams])
 
   return (
