@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import LoginModal        from '../components/LoginModal'
 import RegisterModal     from '../components/RegisterModal'
@@ -19,7 +19,8 @@ import AppDownloadBanner from '../components/AppDownloadBanner'
 import Footer            from '../components/Footer'
 
 
-export default function Home() {
+// Inner component — uses useSearchParams (must be inside Suspense)
+function HomeContent() {
   const searchParams = useSearchParams()
   const [showModal, setShowModal]                 = useState(false)
   const [showRegisterModal, setShowRegisterModal] = useState(false)
@@ -92,5 +93,14 @@ export default function Home() {
       <Footer />
 
     </div>
+  )
+}
+
+// Outer export — wraps HomeContent in Suspense (required by useSearchParams)
+export default function Home() {
+  return (
+    <Suspense>
+      <HomeContent />
+    </Suspense>
   )
 }
