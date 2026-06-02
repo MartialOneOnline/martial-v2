@@ -352,61 +352,83 @@ export default function DashboardClient({ userName, userEmail }: Props) {
       {/* ── Main ────────────────────────────────────────────────────────────── */}
       <div className="flex flex-1 min-w-0 md:ml-[232px]">
       <main style={{ flex: 1, minWidth: 0 }}>
-        <div className="px-8 py-8 flex flex-col gap-8 min-h-screen">
 
-          {/* Header */}
-          <div>
-            <h1 style={{ fontSize: 26, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em' }}>
-              {greeting}, {firstName}
-            </h1>
-            <p style={{ fontSize: 14, color: '#6B7280', marginTop: 4 }}>
-              Platform overview and key metrics
-            </p>
+        {/* ── Top bar ───────────────────────────────────────────────────────── */}
+        <div
+          className="flex items-center gap-3 px-8 py-4 sticky top-0 z-20"
+          style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}
+        >
+          {/* Search */}
+          <div className="flex-1 max-w-sm flex items-center gap-2 px-3 py-2 rounded-xl"
+            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
+            <Filter size={14} style={{ color: '#9CA3AF', flexShrink: 0 }} />
+            <input
+              type="text"
+              placeholder="Search..."
+              style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }}
+            />
           </div>
 
-          {/* Time filter + actions */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1">
-              {(['All time', '12 months', '30 days', '7 days'] as Period[]).map(p => (
-                <button
-                  key={p}
-                  onClick={() => setPeriod(p)}
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 500,
-                    color: period === p ? '#111827' : '#6B7280',
-                    background: period === p ? '#fff' : 'transparent',
-                    border: period === p ? '1px solid #E5E7EB' : '1px solid transparent',
-                    borderRadius: 8,
-                    padding: '6px 14px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  {p}
-                </button>
-              ))}
+          {/* Period pills */}
+          <div className="flex items-center gap-1 ml-2">
+            {(['All time', '12 months', '30 days', '7 days'] as Period[]).map(p => (
+              <button key={p} onClick={() => setPeriod(p)} style={{
+                fontSize: 12, fontWeight: 500, cursor: 'pointer',
+                color: period === p ? '#111827' : '#6B7280',
+                background: period === p ? '#F3F4F6' : 'transparent',
+                border: 'none', borderRadius: 8, padding: '5px 12px',
+              }}>{p}</button>
+            ))}
+          </div>
+
+          {/* Spacer */}
+          <div className="flex-1" />
+
+          {/* Date + time */}
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl"
+            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', fontSize: 13, color: '#374151', whiteSpace: 'nowrap' }}>
+            <Clock size={13} style={{ color: '#9CA3AF' }} />
+            {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+          </div>
+
+          {/* Bell */}
+          <button className="relative w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
+            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
+            <Bell size={15} style={{ color: '#374151' }} />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: '#DC2626' }} />
+          </button>
+
+          {/* Language */}
+          <button className="w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer text-lg"
+            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
+            🇬🇧
+          </button>
+
+          {/* User avatar + name */}
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0"
+              style={{ background: '#111827', fontSize: 12, fontWeight: 700 }}>
+              {firstName[0]?.toUpperCase()}
             </div>
-            <div className="flex items-center gap-2">
-              <button style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                fontSize: 13, fontWeight: 500, color: '#374151',
-                background: '#fff', border: '1px solid #E5E7EB',
-                borderRadius: 8, padding: '7px 14px', cursor: 'pointer',
-              }}>
-                <Filter size={14} style={{ color: '#6B7280' }} />
-                Filters
-              </button>
-              <button style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                fontSize: 13, fontWeight: 500, color: '#374151',
-                background: '#fff', border: '1px solid #E5E7EB',
-                borderRadius: 8, padding: '7px 14px', cursor: 'pointer',
-              }}>
-                <Download size={14} style={{ color: '#6B7280' }} />
-                Export data
-              </button>
+            <div className="hidden lg:block">
+              <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', lineHeight: 1.2 }}>{firstName}</p>
+              <p style={{ fontSize: 11, color: '#9CA3AF', lineHeight: 1.2 }}>Academy Owner</p>
             </div>
           </div>
+
+          {/* Export */}
+          <button style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            fontSize: 13, fontWeight: 500, color: '#374151',
+            background: '#fff', border: '1px solid #E5E7EB',
+            borderRadius: 8, padding: '7px 14px', cursor: 'pointer',
+          }}>
+            <Download size={13} style={{ color: '#6B7280' }} />
+            Export
+          </button>
+        </div>
+
+        <div className="px-8 py-6 flex flex-col gap-6 min-h-screen">
 
           {/* Stat cards — no icons */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -537,7 +559,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
 
       {/* ── Right Panel ─────────────────────────────────────────────────────── */}
       <aside
-        className="hidden xl:flex shrink-0 flex-col gap-5 p-5 overflow-y-auto"
+        className="hidden lg:flex shrink-0 flex-col gap-5 p-5 overflow-y-auto"
         style={{
           width: 280,
           borderLeft: '1px solid #E5E7EB',
