@@ -35,12 +35,8 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname
 
-  // Rutas protegidas: si no hay sesión, redirigir a login
-  if (!user && pathname.startsWith('/dashboard') && pathname !== '/dashboard/preview') {
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
-  }
+  // /dashboard es público (preview sin auth) — solo rutas internas tipo /dashboard/settings requieren auth
+  // (sin restricciones por ahora, el page.tsx decide qué mostrar según el estado de sesión)
 
   // Si ya tiene sesión y va a login o register, redirigir al dashboard
   if (user && (pathname === '/login' || pathname === '/register')) {

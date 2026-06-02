@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Martial App Website Integration Guide</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      color: #111827;
+      line-height: 1.45;
+      max-width: 840px;
+      margin: 40px auto;
+      padding: 0 32px;
+    }
+    h1 {
+      font-size: 30px;
+      margin: 0 0 8px;
+      color: #111827;
+    }
+    h2 {
+      font-size: 20px;
+      margin: 28px 0 10px;
+      color: #111827;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 6px;
+    }
+    h3 {
+      font-size: 16px;
+      margin: 20px 0 8px;
+    }
+    p {
+      margin: 8px 0 12px;
+    }
+    .meta {
+      color: #4b5563;
+      font-size: 13px;
+      margin-bottom: 24px;
+    }
+    .callout {
+      background: #f3f4f6;
+      border-left: 4px solid #111827;
+      padding: 12px 14px;
+      margin: 16px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 18px;
+      font-size: 13px;
+    }
+    th {
+      background: #f3f4f6;
+      text-align: left;
+      font-weight: 700;
+    }
+    th, td {
+      border: 1px solid #d1d5db;
+      padding: 8px 10px;
+      vertical-align: top;
+    }
+    code {
+      font-family: Menlo, Consolas, monospace;
+      background: #f3f4f6;
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+    pre {
+      background: #111827;
+      color: #f9fafb;
+      padding: 14px;
+      border-radius: 8px;
+      overflow: auto;
+      font-size: 11px;
+      line-height: 1.35;
+      white-space: pre-wrap;
+    }
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+    }
+    ul, ol {
+      margin-top: 8px;
+      padding-left: 24px;
+    }
+    li {
+      margin: 4px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Martial App Website Integration Guide</h1>
+  <p class="meta">
+    Guia para que una escuela pueda copiar y pegar un formulario de captacion en su web y enviar leads directamente a Martial App.<br>
+    Fecha: 2026-06-01<br>
+    Endpoint: <code>https://martialapp.com/api/createlead</code>
+  </p>
+
+  <h2>Objetivo</h2>
+  <p>
+    Permitir que cada escuela incluya en su propia web un formulario de clase de prueba,
+    alta de interesado o solicitud de informacion. Cuando el alumno complete el formulario,
+    Martial App recibira los datos, creara el lead/alumno y enviara la invitacion correspondiente.
+  </p>
+
+  <h2>Datos que Martial App debe entregar a cada escuela</h2>
+  <p>Cada escuela necesita recibir estos datos desde Martial App:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Campo</th>
+        <th>Ejemplo</th>
+        <th>Descripcion</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>school_id</code></td>
+        <td><code>798</code></td>
+        <td>ID interno de la escuela en Martial App.</td>
+      </tr>
+      <tr>
+        <td><code>language</code></td>
+        <td><code>es</code></td>
+        <td>Idioma por defecto para el lead y las comunicaciones. Valores recomendados: <code>es</code> o <code>en</code>.</td>
+      </tr>
+      <tr>
+        <td><code>endpoint</code></td>
+        <td><code>https://martialapp.com/api/createlead</code></td>
+        <td>URL de la API donde se envia el formulario.</td>
+      </tr>
+      <tr>
+        <td><code>academy_name</code></td>
+        <td><code>Roger Gracie Malaga</code></td>
+        <td>Nombre visible de la escuela. Opcional si el backend ya lo obtiene desde <code>school_id</code>.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <strong>Ejemplo para entregar a una escuela:</strong>
+    <pre><code>School name: Roger Gracie Malaga
+school_id: 798
+language: es
+endpoint: https://martialapp.com/api/createlead</code></pre>
+  </div>
+
+  <h2>Payload requerido</h2>
+  <p>El formulario debe enviar un JSON como este:</p>
+
+  <pre><code>{
+  "school_id": 798,
+  "first_name": "Pablo",
+  "last_name": "Cabo",
+  "email": "pablo@email.com",
+  "phone": "+34600000000",
+  "gender": "male",
+  "register_on": "2026-06-01",
+  "dob": "2026-06-01",
+  "address": "Malaga",
+  "language": "es"
+}</code></pre>
+
+  <h2>Campos del formulario</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Campo</th>
+        <th>Obligatorio</th>
+        <th>Ejemplo</th>
+        <th>Notas</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><code>school_id</code></td><td>Si</td><td><code>798</code></td><td>Lo proporciona Martial App.</td></tr>
+      <tr><td><code>first_name</code></td><td>Si</td><td><code>Pablo</code></td><td>Nombre del alumno/interesado.</td></tr>
+      <tr><td><code>last_name</code></td><td>Si</td><td><code>Cabo</code></td><td>Apellidos.</td></tr>
+      <tr><td><code>email</code></td><td>Si</td><td><code>pablo@email.com</code></td><td>Debe tener formato email valido.</td></tr>
+      <tr><td><code>phone</code></td><td>Recomendado</td><td><code>+34600000000</code></td><td>Recomendado para contacto por WhatsApp/telefono.</td></tr>
+      <tr><td><code>gender</code></td><td>Si</td><td><code>male</code></td><td>Valores recomendados: <code>male</code>, <code>female</code>.</td></tr>
+      <tr><td><code>register_on</code></td><td>Si</td><td><code>2026-06-01</code></td><td>Fecha de registro en formato <code>YYYY-MM-DD</code>.</td></tr>
+      <tr><td><code>dob</code></td><td>Si</td><td><code>2026-06-01</code></td><td>Si la web no pregunta fecha de nacimiento, se puede enviar la fecha del dia.</td></tr>
+      <tr><td><code>address</code></td><td>Recomendado</td><td><code>Malaga</code></td><td>Ciudad o direccion basica.</td></tr>
+      <tr><td><code>language</code></td><td>Si</td><td><code>es</code></td><td>Campo obligatorio. Define idioma de comunicaciones.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Codigo listo para copiar y pegar</h2>
+  <p>
+    Este ejemplo funciona en una web normal con HTML y JavaScript. La escuela solo debe cambiar
+    <code>MARTIAL_APP_SCHOOL_ID</code>, <code>MARTIAL_APP_LANGUAGE</code> y los textos si quiere personalizarlos.
+  </p>
+
+  <pre><code>&lt;form id="martialapp-lead-form"&gt;
+  &lt;label&gt;
+    Nombre
+    &lt;input name="first_name" placeholder="Nombre" required /&gt;
+  &lt;/label&gt;
+
+  &lt;label&gt;
+    Apellidos
+    &lt;input name="last_name" placeholder="Apellidos" required /&gt;
+  &lt;/label&gt;
+
+  &lt;label&gt;
+    Email
+    &lt;input name="email" type="email" placeholder="Email" required /&gt;
+  &lt;/label&gt;
+
+  &lt;label&gt;
+    Telefono
+    &lt;input name="phone" placeholder="+34 600 000 000" /&gt;
+  &lt;/label&gt;
+
+  &lt;label&gt;
+    Genero
+    &lt;select name="gender" required&gt;
+      &lt;option value="male"&gt;Masculino&lt;/option&gt;
+      &lt;option value="female"&gt;Femenino&lt;/option&gt;
+    &lt;/select&gt;
+  &lt;/label&gt;
+
+  &lt;button type="submit"&gt;Reservar clase de prueba&lt;/button&gt;
+  &lt;p id="martialapp-form-message" aria-live="polite"&gt;&lt;/p&gt;
+&lt;/form&gt;
+
+&lt;script&gt;
+  const MARTIAL_APP_SCHOOL_ID = 798;
+  const MARTIAL_APP_LANGUAGE = "es"; // "es" o "en"
+  const MARTIAL_APP_ENDPOINT = "https://martialapp.com/api/createlead";
+
+  document
+    .getElementById("martialapp-lead-form")
+    .addEventListener("submit", async function (event) {
+      event.preventDefault();
+
+      const form = event.target;
+      const message = document.getElementById("martialapp-form-message");
+      const today = new Date().toISOString().split("T")[0];
+
+      message.textContent = "Enviando solicitud...";
+
+      const payload = {
+        school_id: MARTIAL_APP_SCHOOL_ID,
+        first_name: form.first_name.value.trim(),
+        last_name: form.last_name.value.trim(),
+        email: form.email.value.trim(),
+        phone: form.phone.value.trim(),
+        gender: form.gender.value,
+        register_on: today,
+        dob: today,
+        address: "",
+        language: MARTIAL_APP_LANGUAGE
+      };
+
+      try {
+        const response = await fetch(MARTIAL_APP_ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success !== false) {
+          message.textContent = "Solicitud enviada correctamente. Revisa tu email.";
+          form.reset();
+        } else {
+          message.textContent = "No se pudo enviar la solicitud. Revisa los datos.";
+          console.error("Martial App validation error:", result);
+        }
+      } catch (error) {
+        message.textContent = "No se pudo conectar con Martial App. Intentalo de nuevo.";
+        console.error("Martial App connection error:", error);
+      }
+    });
+&lt;/script&gt;</code></pre>
+
+  <h2>Version compacta para desarrolladores</h2>
+  <pre><code>const payload = {
+  school_id: 798,
+  first_name: firstName,
+  last_name: lastName,
+  email,
+  phone,
+  gender,
+  register_on: new Date().toISOString().split("T")[0],
+  dob: new Date().toISOString().split("T")[0],
+  address: "",
+  language: "es"
+};
+
+await fetch("https://martialapp.com/api/createlead", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(payload)
+});</code></pre>
+
+  <h2>Idioma</h2>
+  <p>El campo <code>language</code> es obligatorio.</p>
+  <p>Valores recomendados:</p>
+  <pre><code>es = Espanol
+en = Ingles</code></pre>
+
+  <p>Ejemplos:</p>
+  <pre><code>{ "language": "es" }</code></pre>
+  <pre><code>{ "language": "en" }</code></pre>
+
+  <p>Si el campo <code>language</code> no se envia, Martial App puede responder:</p>
+  <pre><code>{
+  "success": false,
+  "message": "Validation failed",
+  "errors": {
+    "language": ["The language field is required."]
+  }
+}</code></pre>
+
+  <h2>Respuesta esperada</h2>
+  <p>Una respuesta correcta deberia indicar que el lead se ha creado correctamente:</p>
+  <pre><code>{
+  "success": true,
+  "message": "Lead created successfully",
+  "user_id": 798
+}</code></pre>
+
+  <p>Una respuesta con error de validacion puede tener este formato:</p>
+  <pre><code>{
+  "success": false,
+  "message": "Validation failed",
+  "errors": {
+    "email": ["The email field is required."],
+    "language": ["The language field is required."]
+  }
+}</code></pre>
+
+  <h2>Recomendacion de producto en Martial App</h2>
+  <p>Crear una seccion dentro del panel:</p>
+  <pre><code>Ajustes &gt; Website Integration</code></pre>
+
+  <p>Contenido recomendado:</p>
+  <ol>
+    <li>Nombre de la escuela.</li>
+    <li><code>school_id</code>.</li>
+    <li>Idioma por defecto.</li>
+    <li>Endpoint de produccion.</li>
+    <li>Snippet HTML listo para copiar.</li>
+    <li>Boton "Copiar codigo".</li>
+    <li>Boton "Enviar prueba".</li>
+    <li>Ultimos errores recibidos desde la API, para facilitar soporte.</li>
+  </ol>
+
+  <h2>Checklist para soporte</h2>
+  <ul>
+    <li>La web esta enviando una peticion <code>POST</code> a <code>https://martialapp.com/api/createlead</code>.</li>
+    <li>El header incluye <code>Content-Type: application/json</code>.</li>
+    <li>El JSON incluye <code>school_id</code>.</li>
+    <li>El JSON incluye <code>language</code>.</li>
+    <li>El email tiene formato valido.</li>
+    <li>El backend responde <code>success: true</code>.</li>
+    <li>La escuela recibe el lead dentro de Martial App.</li>
+    <li>El alumno recibe la comunicacion en el idioma correcto.</li>
+  </ul>
+
+  <h2>Notas tecnicas</h2>
+  <ul>
+    <li>No se debe exponer ningun token privado en el codigo de la web.</li>
+    <li>El endpoint debe aceptar peticiones desde dominios externos autorizados.</li>
+    <li>Martial App deberia validar <code>school_id</code> y <code>language</code> en backend.</li>
+    <li>Para evitar spam, se recomienda anadir rate limiting, captcha o validacion por dominio si el formulario se usa publicamente.</li>
+    <li>Si una escuela usa WordPress, Webflow, Wix o Shopify, este snippet se puede pegar normalmente en un bloque HTML personalizado.</li>
+  </ul>
+</body>
+</html>

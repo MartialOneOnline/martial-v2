@@ -7,21 +7,22 @@ import {
   LayoutDashboard, Users, Calendar, CreditCard, Award,
   BarChart2, Settings, Bell, HelpCircle, LogOut,
   MessageSquare, Clock, TrendingUp, TrendingDown,
-  ChevronRight, ChevronLeft, MoreHorizontal,
-  GraduationCap, UserPlus, Send, Grid3x3,
-  MapPin, Mail, Phone,
+  ChevronRight, ChevronLeft, ChevronDown, MoreHorizontal,
+  GraduationCap, Filter, Download, ShoppingBag,
+  BookOpen, UserCheck, FileText, ShieldCheck,
+  Flame, School, Receipt, Star,
 } from 'lucide-react'
 
-// ── Design tokens (Apple-inspired) ────────────────────────────────────────────
-// bg:       #F5F5F7  (Apple signature off-white)
+// ── Design tokens ──────────────────────────────────────────────────────────────
+// bg:       #F9FAFB
 // card:     #FFFFFF
-// text-1:   #1D1D1F  (Apple near-black)
-// text-2:   #6E6E73  (Apple secondary gray)
-// border:   #E5E5EA  (Apple separator)
-// blue:     #0071E3  (Apple blue)
-// green:    #30D158  (Apple green)
-// red:      #FF3B30  (Apple red)
-// amber:    #FF9F0A  (Apple amber)
+// border:   #E5E7EB
+// text-1:   #111827  (near-black)
+// text-2:   #6B7280  (secondary gray)
+// blue:     #0071E3  (Apple blue — primary / active icon)
+// green:    #16A34A
+// red:      #DC2626
+// amber:    #D97706
 
 interface Props {
   userName: string
@@ -32,53 +33,21 @@ interface Props {
 // ── Simulated data ─────────────────────────────────────────────────────────────
 
 const STATS = [
-  {
-    label: 'Total Students',
-    value: '665',
-    trend: '+14%',
-    trendUp: true,
-    sub: 'vs last month',
-    icon: Users,
-    color: '#0071E3',
-  },
-  {
-    label: 'Active Classes',
-    value: '67',
-    trend: '+3',
-    trendUp: true,
-    sub: 'this week',
-    icon: Calendar,
-    color: '#30D158',
-  },
-  {
-    label: 'Revenue',
-    value: '€3,586',
-    trend: '+8%',
-    trendUp: true,
-    sub: 'vs last month',
-    icon: CreditCard,
-    color: '#FF9F0A',
-  },
-  {
-    label: 'Total Bookings',
-    value: '29,466',
-    trend: '+2%',
-    trendUp: true,
-    sub: 'all time',
-    icon: GraduationCap,
-    color: '#BF5AF2',
-  },
+  { label: 'Total Students',  value: '665',    trend: '+14%', trendUp: true,  sub: 'vs last month'   },
+  { label: 'Active Classes',  value: '67',     trend: '+3',   trendUp: true,  sub: 'this week'       },
+  { label: 'Revenue',         value: '€3,586', trend: '+8%',  trendUp: true,  sub: 'vs last month'   },
+  { label: 'Total Bookings',  value: '29,466', trend: '+2%',  trendUp: true,  sub: 'all time'        },
 ]
 
 const TRANSACTIONS = [
-  { id: 1, initials: 'FN', color: '#0071E3', name: 'Fernanda Neves',   method: 'Free',   price: '€ 0.00',  date: '01 Jun 2026', status: 'Paid',      statusColor: 'text-[#30D158] bg-[#F0FFF4]' },
-  { id: 2, initials: 'PM', color: '#30D158', name: 'Patricia Mancera', method: 'Free',   price: '€ 0.00',  date: '28 May 2026', status: 'Paid',      statusColor: 'text-[#30D158] bg-[#F0FFF4]' },
-  { id: 3, initials: 'MT', color: '#FF9F0A', name: 'Matias Toloza',    method: 'Free',   price: '€ 0.00',  date: '27 May 2026', status: 'Paid',      statusColor: 'text-[#30D158] bg-[#F0FFF4]' },
-  { id: 4, initials: 'FW', color: '#BF5AF2', name: 'Florian Walter',   method: 'Stripe', price: '€ 65.00', date: '27 May 2026', status: 'Paid',      statusColor: 'text-[#30D158] bg-[#F0FFF4]' },
-  { id: 5, initials: 'AD', color: '#FF3B30', name: 'Alejandro DB',     method: 'Cash',   price: '€ 65.00', date: '26 May 2026', status: 'Paid',      statusColor: 'text-[#30D158] bg-[#F0FFF4]' },
+  { id: 1, avatar: 'https://i.pravatar.cc/32?u=fn', name: 'Fernanda Neves',   method: 'Free',   price: '€ 0.00',  date: '01 Jun 2026', status: 'Paid'    },
+  { id: 2, avatar: 'https://i.pravatar.cc/32?u=pm', name: 'Patricia Mancera', method: 'Free',   price: '€ 0.00',  date: '28 May 2026', status: 'Paid'    },
+  { id: 3, avatar: 'https://i.pravatar.cc/32?u=mt', name: 'Matias Toloza',    method: 'Free',   price: '€ 0.00',  date: '27 May 2026', status: 'Pending' },
+  { id: 4, avatar: 'https://i.pravatar.cc/32?u=fw', name: 'Florian Walter',   method: 'Stripe', price: '€ 65.00', date: '27 May 2026', status: 'Paid'    },
+  { id: 5, avatar: 'https://i.pravatar.cc/32?u=ad', name: 'Alejandro DB',     method: 'Cash',   price: '€ 65.00', date: '26 May 2026', status: 'Failed'  },
+  { id: 6, avatar: 'https://i.pravatar.cc/32?u=rg', name: 'Rafael Gonzalez',  method: 'Stripe', price: '€ 65.00', date: '25 May 2026', status: 'Paid'    },
 ]
 
-// Monthly chart data (Jan–Jun)
 const CHART_DATA = [
   { month: 'JAN', value: 28 },
   { month: 'FEB', value: 42 },
@@ -89,37 +58,107 @@ const CHART_DATA = [
 ]
 
 const TODAY_CLASSES = [
-  { id: 1, name: 'Jiu Jitsu — All Levels', time: '10:00–11:30', enrolled: 8,  cap: 30, image: '/roger-gracie-malaga.jpg' },
-  { id: 2, name: 'Jiu Jitsu — Advanced',   time: '19:00–20:30', enrolled: 12, cap: 30, image: '/mathouse.jpg' },
-  { id: 3, name: 'Jiu Jitsu — Beginners',  time: '20:30–21:30', enrolled: 1,  cap: 30, image: '/five-elements-jiu-jitsu.jpg' },
+  { id: 1,  name: 'BJJ All Levels',    time: '07:00–08:30', enrolled: 8,  cap: 20, status: 'Open', image: '/roger-gracie-malaga.jpg'     },
+  { id: 2,  name: 'NOGI',             time: '08:30–09:30', enrolled: 15, cap: 15, status: 'Full', image: '/mathouse.jpg'                },
+  { id: 3,  name: 'Kids BJJ',         time: '09:30–10:30', enrolled: 10, cap: 20, status: 'Open', image: '/five-elements-jiu-jitsu.jpg' },
+  { id: 4,  name: 'BJJ Beginners',    time: '10:00–11:30', enrolled: 5,  cap: 25, status: 'Open', image: '/roger-gracie-malaga.jpg'     },
+  { id: 5,  name: 'Open Mat',         time: '11:30–13:00', enrolled: 22, cap: 25, status: 'Open', image: '/mathouse.jpg'                },
+  { id: 6,  name: 'BJJ Advanced',     time: '12:00–13:30', enrolled: 18, cap: 20, status: 'Open', image: '/five-elements-jiu-jitsu.jpg' },
+  { id: 7,  name: 'Wrestling',        time: '17:00–18:00', enrolled: 12, cap: 15, status: 'Open', image: '/roger-gracie-malaga.jpg'     },
+  { id: 8,  name: 'NOGI Advanced',    time: '18:00–19:30', enrolled: 14, cap: 15, status: 'Open', image: '/mathouse.jpg'                },
+  { id: 9,  name: 'BJJ Competition',  time: '19:00–20:30', enrolled: 15, cap: 15, status: 'Full', image: '/five-elements-jiu-jitsu.jpg' },
+  { id: 10, name: 'BJJ Beginners',    time: '19:30–20:30', enrolled: 3,  cap: 25, status: 'Open', image: '/roger-gracie-malaga.jpg'     },
+  { id: 11, name: 'Open Mat',         time: '20:00–21:30', enrolled: 20, cap: 25, status: 'Open', image: '/mathouse.jpg'                },
+  { id: 12, name: 'BJJ All Levels',   time: '20:30–21:30', enrolled: 1,  cap: 30, status: 'Open', image: '/five-elements-jiu-jitsu.jpg' },
 ]
 
-const DAYS = [
-  { short: 'M', long: 'MON' },
-  { short: 'T', long: 'TUE' },
-  { short: 'W', long: 'WED' },
-  { short: 'T', long: 'THU' },
-  { short: 'F', long: 'FRI' },
-  { short: 'S', long: 'SAT' },
-  { short: 'S', long: 'SUN' },
+const DAY_LABELS = ['MON','TUE','WED','THU','FRI','SAT','SUN']
+// Generate 14 days starting from today's Monday
+const DAYS = Array.from({ length: 14 }, (_, i) => {
+  const d = new Date(2026, 5, 1 + i) // June 2026
+  return { long: DAY_LABELS[d.getDay() === 0 ? 6 : d.getDay() - 1]!, num: d.getDate() }
+})
+
+type NavItem = {
+  label: string
+  icon: React.ElementType
+  href?: string
+  active?: boolean
+  children?: { label: string; href: string }[]
+}
+
+const NAV_MAIN: NavItem[] = [
+  { label: 'Dashboard', icon: Flame,          href: '/dashboard', active: true },
+  { label: 'Users',     icon: Users,          href: '#' },
+  { label: 'Classes',   icon: Calendar,       children: [
+    { label: 'Classes',   href: '#' },
+    { label: 'Events',    href: '#' },
+    { label: 'Calendar',  href: '#' },
+    { label: 'Timetable', href: '#' },
+  ]},
+  { label: 'Memberships', icon: Award,        href: '#' },
+  { label: 'Payments',    icon: CreditCard,   children: [
+    { label: 'Transactions',  href: '#' },
+    { label: 'Subscriptions', href: '#' },
+  ]},
+  { label: 'School',    icon: School,         children: [
+    { label: 'Leads',      href: '#' },
+    { label: 'Store',      href: '#' },
+    { label: 'Curriculum', href: '#' },
+    { label: 'Affiliates', href: '#' },
+    { label: 'Staff',      href: '#' },
+    { label: 'Waivers',    href: '#' },
+    { label: 'Gradings',   href: '#' },
+  ]},
+  { label: 'Reports',   icon: BarChart2,      children: [
+    { label: 'Bookings',  href: '#' },
+    { label: 'Gradings',  href: '#' },
+    { label: 'Payments',  href: '#' },
+    { label: 'Balance',   href: '#' },
+    { label: 'Absents',   href: '#' },
+    { label: 'Users',     href: '#' },
+  ]},
+  { label: 'Settings',  icon: Settings,       children: [
+    { label: 'Payments',       href: '#' },
+    { label: 'Staff',          href: '#' },
+    { label: 'Profile',        href: '#' },
+    { label: 'School',         href: '#' },
+    { label: 'Delete Account', href: '#' },
+    { label: 'Password',       href: '#' },
+    { label: 'Grading',        href: '#' },
+  ]},
 ]
 
-const NAV = [
-  { label: 'Dashboard',    icon: LayoutDashboard, href: '/dashboard', active: true },
-  { label: 'Students',     icon: Users,            href: '#' },
-  { label: 'Classes',      icon: Calendar,         href: '#' },
-  { label: 'Schedule',     icon: Clock,            href: '#' },
-  { label: 'Memberships',  icon: Award,            href: '#' },
-  { label: 'Payments',     icon: CreditCard,       href: '#' },
-  { label: 'Reports',      icon: BarChart2,        href: '#' },
-  { label: 'Messages',     icon: MessageSquare,    href: '#' },
-  { label: 'Settings',     icon: Settings,         href: '#' },
+const NAV_BOTTOM: NavItem[] = [
+  { label: 'Subscription',  icon: ShoppingBag, href: '#' },
+  { label: 'Notifications', icon: Bell,        href: '#' },
+  { label: 'Support',       icon: HelpCircle,  href: '#' },
 ]
+
+type Period = 'All time' | '12 months' | '30 days' | '7 days'
+
+// ── Status badge ───────────────────────────────────────────────────────────────
+
+function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, { bg: string; color: string }> = {
+    Paid:    { bg: '#F0FDF4', color: '#16A34A' },
+    Pending: { bg: '#FFFBEB', color: '#D97706' },
+    Failed:  { bg: '#FEF2F2', color: '#DC2626' },
+    Open:    { bg: '#EFF6FF', color: '#2563EB' },
+    Full:    { bg: '#FEF2F2', color: '#DC2626' },
+  }
+  const { bg, color } = map[status] ?? { bg: '#F3F4F6', color: '#6B7280' }
+  return (
+    <span style={{ background: bg, color, fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 999, whiteSpace: 'nowrap' }}>
+      {status}
+    </span>
+  )
+}
 
 // ── SVG Area Chart ─────────────────────────────────────────────────────────────
 
 function AreaChart() {
-  const W = 540; const H = 160; const PAD = { t: 16, r: 16, b: 32, l: 40 }
+  const W = 560; const H = 160; const PAD = { t: 16, r: 16, b: 32, l: 40 }
   const innerW = W - PAD.l - PAD.r
   const innerH = H - PAD.t - PAD.b
   const max = Math.max(...CHART_DATA.map(d => d.value))
@@ -128,7 +167,6 @@ function AreaChart() {
     y: PAD.t + (1 - d.value / max) * innerH,
   }))
 
-  // Smooth bezier path
   const linePath = points.reduce((acc, p, i) => {
     if (i === 0) return `M ${p.x} ${p.y}`
     const prev = points[i - 1]!
@@ -139,78 +177,98 @@ function AreaChart() {
   const lastPt  = points[points.length - 1]!
   const firstPt = points[0]!
   const areaPath = `${linePath} L ${lastPt.x} ${H - PAD.b} L ${firstPt.x} ${H - PAD.b} Z`
-
-  // Y-axis grid lines (3 lines)
   const gridLines = [0.25, 0.5, 0.75].map(t => PAD.t + t * innerH)
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="xMidYMid meet">
       <defs>
         <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="#0071E3" stopOpacity="0.12" />
-          <stop offset="100%" stopColor="#0071E3" stopOpacity="0" />
+          <stop offset="0%"   stopColor="#0071E3" stopOpacity="0.1" />
+          <stop offset="100%" stopColor="#0071E3" stopOpacity="0"   />
         </linearGradient>
       </defs>
-
-      {/* Grid lines */}
       {gridLines.map((y, i) => (
         <line key={i} x1={PAD.l} y1={y} x2={W - PAD.r} y2={y}
-          stroke="#E5E5EA" strokeWidth="1" strokeDasharray="4 4" />
+          stroke="#E5E7EB" strokeWidth="1" strokeDasharray="4 4" />
       ))}
-
-      {/* Area fill */}
       <path d={areaPath} fill="url(#areaGrad)" />
-
-      {/* Line */}
-      <path d={linePath} fill="none" stroke="#0071E3" strokeWidth="2.5"
+      <path d={linePath} fill="none" stroke="#0071E3" strokeWidth="2"
         strokeLinecap="round" strokeLinejoin="round" />
-
-      {/* Data points */}
       {points.map((p, i) => (
-        <g key={i}>
-          <circle cx={p.x} cy={p.y} r="4" fill="#fff" stroke="#0071E3" strokeWidth="2.5" />
-        </g>
+        <circle key={i} cx={p.x} cy={p.y} r="3.5" fill="#fff" stroke="#0071E3" strokeWidth="2" />
       ))}
-
-      {/* X-axis labels */}
       {CHART_DATA.map((d, i) => (
-        <text key={i}
-          x={points[i]!.x} y={H - 8}
-          textAnchor="middle"
-          fontSize="10" fontWeight="500" fill="#6E6E73"
+        <text key={i} x={points[i]!.x} y={H - 8} textAnchor="middle"
+          fontSize="10" fontWeight="500" fill="#6B7280"
           style={{ fontFamily: '-apple-system, BlinkMacSystemFont, Inter, sans-serif' }}
         >
           {d.month}
         </text>
       ))}
-
-      {/* Peak label */}
-      {(() => {
-        const maxIdx  = CHART_DATA.findIndex(d => d.value === max)
-        const p       = points[maxIdx]!
-        const peakVal = CHART_DATA[maxIdx]?.value ?? 0
-        return (
-          <g>
-            <rect x={p.x - 28} y={p.y - 26} width={56} height={18}
-              rx="5" fill="#1D1D1F" />
-            <text x={p.x} y={p.y - 13}
-              textAnchor="middle" fontSize="10" fontWeight="600" fill="#fff"
-              style={{ fontFamily: '-apple-system, BlinkMacSystemFont, Inter, sans-serif' }}
-            >
-              {peakVal} bookings
-            </text>
-          </g>
-        )
-      })()}
     </svg>
   )
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// ── Component ──────────────────────────────────────────────────────────────────
+
+function NavGroup({ item }: { item: NavItem }) {
+  const [open, setOpen] = useState(false)
+  const hasChildren = !!item.children
+
+  if (!hasChildren) {
+    return (
+      <Link
+        href={item.href ?? '#'}
+        className="flex items-center gap-3 px-3 py-2.5 rounded-xl no-underline transition-colors"
+        style={{ color: '#374151', fontSize: 14, fontWeight: item.active ? 600 : 400 }}
+        onMouseEnter={e => { if (!item.active) (e.currentTarget as HTMLElement).style.background = '#F9FAFB' }}
+        onMouseLeave={e => { if (!item.active) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+      >
+        <item.icon size={16} style={{ color: item.active ? '#0071E3' : '#9CA3AF', flexShrink: 0 }} />
+        {item.label}
+      </Link>
+    )
+  }
+
+  return (
+    <div>
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors cursor-pointer text-left"
+        style={{ color: '#374151', fontSize: 14, fontWeight: 400, background: 'transparent', border: 'none' }}
+        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#F9FAFB' }}
+        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+      >
+        <item.icon size={16} style={{ color: '#9CA3AF', flexShrink: 0 }} />
+        <span className="flex-1">{item.label}</span>
+        {open
+          ? <ChevronDown size={13} style={{ color: '#9CA3AF' }} />
+          : <ChevronRight size={13} style={{ color: '#9CA3AF' }} />
+        }
+      </button>
+      {open && (
+        <div className="ml-7 mt-0.5 space-y-0.5">
+          {item.children!.map(child => (
+            <Link
+              key={child.label}
+              href={child.href}
+              className="flex items-center px-3 py-2 rounded-lg no-underline transition-colors"
+              style={{ fontSize: 13, color: '#6B7280' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#F9FAFB'; (e.currentTarget as HTMLElement).style.color = '#111827' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = '#6B7280' }}
+            >
+              {child.label}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function DashboardClient({ userName, userEmail }: Props) {
-  const [period, setPeriod]       = useState<'Today' | 'This Week' | 'This Month'>('This Month')
-  const [activeDay, setActiveDay] = useState(0)
+  const [period, setPeriod]   = useState<Period>('12 months')
+  const [activeDay, setActiveDay] = useState(1)
 
   const firstName = userName.split(' ')[0] ?? 'there'
   const hour      = new Date().getHours()
@@ -219,127 +277,108 @@ export default function DashboardClient({ userName, userEmail }: Props) {
   return (
     <div
       className="min-h-screen flex"
-      style={{ background: '#F5F5F7', fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" }}
+      style={{ background: '#F9FAFB', fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" }}
     >
-      {/* ── Sidebar ─────────────────────────────────────────────────────── */}
+      {/* ── Sidebar ─────────────────────────────────────────────────────────── */}
       <aside
-        className="fixed top-0 left-0 h-full flex flex-col z-30"
-        style={{ width: 240, background: '#fff', borderRight: '1px solid #E5E5EA' }}
+        className="hidden md:flex fixed top-0 left-0 h-full flex-col z-30"
+        style={{ width: 232, background: '#fff', borderRight: '1px solid #E5E7EB' }}
       >
         {/* Logo */}
-        <div className="flex items-center gap-3 px-6 py-5" style={{ borderBottom: '1px solid #E5E5EA' }}>
-          <div className="w-8 h-8 rounded-[10px] overflow-hidden shrink-0">
-            <Image src="/martial-logo.png" alt="Martial" width={32} height={32} className="object-contain" />
+        <div className="flex items-center gap-3 px-5 py-5" style={{ borderBottom: '1px solid #E5E7EB' }}>
+          <div className="w-7 h-7 rounded-lg overflow-hidden shrink-0">
+            <Image src="/martial-logo.png" alt="Martial" width={28} height={28} className="object-contain" />
           </div>
           <div>
-            <p style={{ fontSize: 14, fontWeight: 700, color: '#1D1D1F', letterSpacing: '-0.01em', lineHeight: 1.2 }}>MARTIAL</p>
-            <p style={{ fontSize: 10, fontWeight: 500, color: '#6E6E73', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Academy</p>
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>MARTIAL</p>
+            <p style={{ fontSize: 10, fontWeight: 500, color: '#9CA3AF', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Academy</p>
           </div>
         </div>
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-0.5">
-          {NAV.map(item => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group no-underline"
-              style={{
-                background: item.active ? '#EBF5FF' : 'transparent',
-                color: item.active ? '#0071E3' : '#1D1D1F',
-                fontSize: 14,
-                fontWeight: item.active ? 600 : 500,
-              }}
-              onMouseEnter={e => { if (!item.active) (e.currentTarget as HTMLElement).style.background = '#F5F5F7' }}
-              onMouseLeave={e => { if (!item.active) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
-            >
-              <item.icon
-                size={16}
-                style={{ color: item.active ? '#0071E3' : '#6E6E73', flexShrink: 0 }}
-              />
-              {item.label}
-            </Link>
+          {NAV_MAIN.map(item => (
+            <NavGroup key={item.label} item={item} />
           ))}
         </nav>
 
-        {/* Divider + Support + Sign out */}
-        <div style={{ borderTop: '1px solid #E5E5EA' }} className="px-3 py-3 space-y-0.5">
-          <Link href="#"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl no-underline"
-            style={{ color: '#1D1D1F', fontSize: 14, fontWeight: 500 }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#F5F5F7' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
-          >
-            <HelpCircle size={16} style={{ color: '#6E6E73' }} />
-            Support
-          </Link>
-          <form action="/auth/logout" method="post">
-            <button
-              type="submit"
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer text-left"
-              style={{ color: '#FF3B30', fontSize: 14, fontWeight: 500, background: 'transparent', border: 'none' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#FFF5F5' }}
+        {/* Bottom nav + Sign out */}
+        <div style={{ borderTop: '1px solid #E5E7EB' }} className="px-3 py-3 space-y-0.5">
+          {NAV_BOTTOM.map(item => (
+            <Link
+              key={item.label}
+              href={item.href ?? '#'}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl no-underline transition-colors"
+              style={{ color: '#374151', fontSize: 14 }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#F9FAFB' }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
             >
-              <LogOut size={16} style={{ color: '#FF3B30' }} />
+              <item.icon size={16} style={{ color: '#9CA3AF' }} />
+              {item.label}
+            </Link>
+          ))}
+          <form action="/auth/logout" method="post">
+            <button type="submit"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors text-left cursor-pointer"
+              style={{ color: '#374151', fontSize: 14, background: 'transparent', border: 'none' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#F9FAFB' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+            >
+              <LogOut size={16} style={{ color: '#9CA3AF' }} />
               Sign out
             </button>
           </form>
         </div>
 
         {/* User */}
-        <div className="px-4 py-4 flex items-center gap-3" style={{ borderTop: '1px solid #E5E5EA' }}>
+        <div className="px-4 py-4 flex items-center gap-3" style={{ borderTop: '1px solid #E5E7EB' }}>
           <div
             className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-white"
-            style={{ background: '#0071E3', fontSize: 12, fontWeight: 700 }}
+            style={{ background: '#111827', fontSize: 12, fontWeight: 700 }}
           >
             {firstName[0]?.toUpperCase()}
           </div>
           <div className="min-w-0">
-            <p style={{ fontSize: 13, fontWeight: 600, color: '#1D1D1F', lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {userName}
             </p>
-            <p style={{ fontSize: 11, color: '#6E6E73', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <p style={{ fontSize: 11, color: '#9CA3AF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               Academy Owner
             </p>
           </div>
         </div>
       </aside>
 
-      {/* ── Main + Right ─────────────────────────────────────────────────── */}
-      <div className="flex flex-1" style={{ marginLeft: 240 }}>
-
-        {/* Main content */}
-        <main className="flex-1 min-w-0 p-8 space-y-6">
+      {/* ── Main ────────────────────────────────────────────────────────────── */}
+      <div className="flex flex-1 min-w-0 md:ml-[232px]">
+      <main style={{ flex: 1, minWidth: 0 }}>
+        <div className="px-8 py-8 flex flex-col gap-8 min-h-screen">
 
           {/* Header */}
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 style={{ fontSize: 28, fontWeight: 700, color: '#1D1D1F', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
-                {greeting}, {firstName} 👋
-              </h1>
-              <p style={{ fontSize: 14, color: '#6E6E73', marginTop: 4 }}>
-                Here's what's happening at your academy today.
-              </p>
-            </div>
+          <div>
+            <h1 style={{ fontSize: 26, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em' }}>
+              {greeting}, {firstName}
+            </h1>
+            <p style={{ fontSize: 14, color: '#6B7280', marginTop: 4 }}>
+              Platform overview and key metrics
+            </p>
+          </div>
 
-            {/* Period selector — Apple segmented control */}
-            <div
-              className="flex items-center p-1 rounded-xl"
-              style={{ background: '#E5E5EA', gap: 2 }}
-            >
-              {(['Today', 'This Week', 'This Month'] as const).map(p => (
+          {/* Time filter + actions */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              {(['All time', '12 months', '30 days', '7 days'] as Period[]).map(p => (
                 <button
                   key={p}
                   onClick={() => setPeriod(p)}
-                  className="px-4 py-2 rounded-[10px] cursor-pointer transition-all"
                   style={{
                     fontSize: 13,
-                    fontWeight: period === p ? 600 : 500,
-                    color: period === p ? '#1D1D1F' : '#6E6E73',
+                    fontWeight: 500,
+                    color: period === p ? '#111827' : '#6B7280',
                     background: period === p ? '#fff' : 'transparent',
-                    boxShadow: period === p ? '0 1px 3px rgba(0,0,0,0.12)' : 'none',
-                    border: 'none',
+                    border: period === p ? '1px solid #E5E7EB' : '1px solid transparent',
+                    borderRadius: 8,
+                    padding: '6px 14px',
                     cursor: 'pointer',
                   }}
                 >
@@ -347,178 +386,104 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                 </button>
               ))}
             </div>
+            <div className="flex items-center gap-2">
+              <button style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                fontSize: 13, fontWeight: 500, color: '#374151',
+                background: '#fff', border: '1px solid #E5E7EB',
+                borderRadius: 8, padding: '7px 14px', cursor: 'pointer',
+              }}>
+                <Filter size={14} style={{ color: '#6B7280' }} />
+                Filters
+              </button>
+              <button style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                fontSize: 13, fontWeight: 500, color: '#374151',
+                background: '#fff', border: '1px solid #E5E7EB',
+                borderRadius: 8, padding: '7px 14px', cursor: 'pointer',
+              }}>
+                <Download size={14} style={{ color: '#6B7280' }} />
+                Export data
+              </button>
+            </div>
           </div>
 
-          {/* Stat cards */}
-          <div className="grid grid-cols-4 gap-4">
+          {/* Stat cards — no icons */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {STATS.map(stat => (
               <div
                 key={stat.label}
-                className="rounded-2xl p-5 flex flex-col gap-3"
-                style={{ background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)' }}
+                className="rounded-2xl"
+                style={{ background: '#fff', border: '1px solid #E5E7EB', padding: '20px 22px 18px' }}
               >
-                {/* Icon + trend */}
-                <div className="flex items-center justify-between">
-                  <div
-                    className="w-9 h-9 rounded-xl flex items-center justify-center"
-                    style={{ background: `${stat.color}15` }}
-                  >
-                    <stat.icon size={18} style={{ color: stat.color }} />
-                  </div>
-                  <span
-                    className="flex items-center gap-0.5 px-2 py-0.5 rounded-full"
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 600,
-                      background: stat.trendUp ? '#F0FFF4' : '#FFF5F5',
-                      color: stat.trendUp ? '#30D158' : '#FF3B30',
-                    }}
-                  >
+                {/* Label + trend */}
+                <div className="flex items-center justify-between mb-3">
+                  <span style={{ fontSize: 13, color: '#6B7280', whiteSpace: 'nowrap' }}>{stat.label}</span>
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 2,
+                    fontSize: 12, fontWeight: 600,
+                    background: stat.trendUp ? '#F0FDF4' : '#FEF2F2',
+                    color: stat.trendUp ? '#16A34A' : '#DC2626',
+                    padding: '2px 8px', borderRadius: 999,
+                  }}>
                     {stat.trendUp ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
                     {stat.trend}
                   </span>
                 </div>
 
                 {/* Value */}
-                <div>
-                  <p
-                    style={{
-                      fontSize: 30,
-                      fontWeight: 700,
-                      color: '#1D1D1F',
-                      letterSpacing: '-0.03em',
-                      lineHeight: 1.1,
-                    }}
-                  >
-                    {stat.value}
-                  </p>
-                  <p style={{ fontSize: 12, fontWeight: 500, color: '#6E6E73', marginTop: 4, letterSpacing: '0.01em' }}>
-                    {stat.label}
-                  </p>
-                </div>
+                <p style={{ fontSize: 36, fontWeight: 700, color: '#111827', letterSpacing: '-0.03em', lineHeight: 1 }}>
+                  {stat.value}
+                </p>
 
-                {/* Footer */}
-                <div className="flex items-center justify-between" style={{ paddingTop: 8, borderTop: '1px solid #F5F5F7' }}>
-                  <span style={{ fontSize: 11, color: '#6E6E73' }}>{stat.sub}</span>
-                  <Link href="#" className="flex items-center gap-0.5 no-underline" style={{ fontSize: 12, fontWeight: 600, color: '#0071E3' }}>
-                    View all <ChevronRight size={12} />
-                  </Link>
-                </div>
+                {/* Sub-text */}
+                <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 8 }}>
+                  {stat.sub}
+                </p>
               </div>
             ))}
           </div>
 
-          {/* Chart + Today's Classes */}
-          <div className="grid grid-cols-3 gap-4">
-
-            {/* Revenue chart */}
-            <div
-              className="col-span-2 rounded-2xl p-6"
-              style={{ background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)' }}
-            >
-              <div className="flex items-center justify-between mb-5">
-                <div>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: '#6E6E73', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                    Bookings Overview
-                  </p>
-                  <p style={{ fontSize: 20, fontWeight: 700, color: '#1D1D1F', letterSpacing: '-0.02em', marginTop: 2 }}>
-                    Jan – Jun 2026
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span
-                    className="px-3 py-1 rounded-full"
-                    style={{ fontSize: 12, fontWeight: 600, color: '#0071E3', background: '#EBF5FF' }}
-                  >
-                    +18% vs last period
-                  </span>
-                </div>
-              </div>
-              <AreaChart />
+          {/* Bookings chart — full width */}
+          <div
+            className="rounded-2xl"
+            style={{ background: '#fff', border: '1px solid #E5E7EB', padding: '22px 26px' }}
+          >
+            <div className="flex items-center justify-between mb-1">
+              <p style={{ fontSize: 14, color: '#6B7280' }}>Bookings Overview</p>
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#0071E3', background: '#EFF6FF', padding: '3px 10px', borderRadius: 999 }}>
+                +18% vs last period
+              </span>
             </div>
-
-            {/* Today's classes */}
-            <div
-              className="rounded-2xl p-5 flex flex-col"
-              style={{ background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)' }}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <p style={{ fontSize: 15, fontWeight: 700, color: '#1D1D1F' }}>Today's Classes</p>
-                <Link href="#" style={{ fontSize: 12, fontWeight: 600, color: '#0071E3' }} className="no-underline">View all</Link>
-              </div>
-
-              {/* Day selector */}
-              <div className="flex justify-between mb-4">
-                {DAYS.map((d, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setActiveDay(i)}
-                    className="flex flex-col items-center justify-center rounded-xl py-1.5 px-1 cursor-pointer transition-all"
-                    style={{
-                      background: activeDay === i ? '#0071E3' : 'transparent',
-                      border: 'none',
-                      minWidth: 28,
-                    }}
-                  >
-                    <span style={{ fontSize: 9, fontWeight: 600, color: activeDay === i ? 'rgba(255,255,255,0.7)' : '#6E6E73', letterSpacing: '0.04em', lineHeight: 1.4 }}>
-                      {d.long}
-                    </span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: activeDay === i ? '#fff' : '#1D1D1F', lineHeight: 1.3 }}>
-                      {i + 1}
-                    </span>
-                  </button>
-                ))}
-              </div>
-
-              <p style={{ fontSize: 11, color: '#6E6E73', marginBottom: 12, fontWeight: 500 }}>
-                {TODAY_CLASSES.length} classes scheduled
-              </p>
-
-              {/* Class list */}
-              <div className="space-y-3 flex-1">
-                {TODAY_CLASSES.map(cls => (
-                  <div key={cls.id} className="flex items-center gap-3">
-                    <div
-                      className="w-10 h-10 rounded-xl overflow-hidden shrink-0 relative"
-                      style={{ background: '#F5F5F7' }}
-                    >
-                      <Image src={cls.image} alt={cls.name} fill className="object-cover" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p style={{ fontSize: 13, fontWeight: 600, color: '#1D1D1F', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {cls.name}
-                      </p>
-                      <p style={{ fontSize: 11, color: '#6E6E73' }}>{cls.time}</p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p style={{ fontSize: 12, fontWeight: 600, color: '#0071E3' }}>{cls.enrolled}</p>
-                      <p style={{ fontSize: 10, color: '#6E6E73' }}>/{cls.cap}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <p style={{ fontSize: 24, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', marginBottom: 20 }}>
+              Jan – Jun 2026
+            </p>
+            <AreaChart />
           </div>
 
           {/* Transactions */}
           <div
-            className="rounded-2xl overflow-hidden"
-            style={{ background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)' }}
+            className="rounded-2xl overflow-hidden flex flex-col flex-1"
+            style={{ background: '#fff', border: '1px solid #E5E7EB' }}
           >
-            <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #F5F5F7' }}>
-              <p style={{ fontSize: 15, fontWeight: 700, color: '#1D1D1F' }}>Latest Transactions</p>
-              <Link href="#" style={{ fontSize: 12, fontWeight: 600, color: '#0071E3' }} className="no-underline">View all</Link>
+            <div className="flex items-center justify-between px-7 py-5" style={{ borderBottom: '1px solid #F3F4F6' }}>
+              <div>
+                <p style={{ fontSize: 14, color: '#6B7280' }}>Latest Transactions</p>
+                <p style={{ fontSize: 24, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em' }}>
+                  {TRANSACTIONS.length} recent
+                </p>
+              </div>
+              <Link href="#" style={{ fontSize: 12, fontWeight: 600, color: '#0071E3' }} className="no-underline flex items-center gap-1">
+                View all <ChevronRight size={12} />
+              </Link>
             </div>
 
             <table className="w-full">
               <thead>
-                <tr style={{ borderBottom: '1px solid #F5F5F7' }}>
+                <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
                   {['Member', 'Method', 'Amount', 'Date', 'Status', ''].map(h => (
-                    <th
-                      key={h}
-                      className="px-6 py-3 text-left"
-                      style={{ fontSize: 11, fontWeight: 600, color: '#6E6E73', textTransform: 'uppercase', letterSpacing: '0.06em' }}
-                    >
+                    <th key={h} className="px-7 py-3 text-left"
+                      style={{ fontSize: 12, fontWeight: 500, color: '#9CA3AF' }}>
                       {h}
                     </th>
                   ))}
@@ -528,50 +493,37 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                 {TRANSACTIONS.map((tx, idx) => (
                   <tr
                     key={tx.id}
-                    style={{ borderBottom: idx < TRANSACTIONS.length - 1 ? '1px solid #F5F5F7' : 'none' }}
+                    style={{ borderBottom: idx < TRANSACTIONS.length - 1 ? '1px solid #F9FAFB' : 'none' }}
                     className="hover:bg-[#FAFAFA] transition-colors"
                   >
-                    {/* Member */}
-                    <td className="px-6 py-4">
+                    <td className="px-7 py-4">
                       <div className="flex items-center gap-3">
-                        <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-white"
-                          style={{ background: tx.color, fontSize: 11, fontWeight: 700 }}
-                        >
-                          {tx.initials}
+                        <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-[#E5E7EB]">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={tx.avatar} alt={tx.name} width={32} height={32} style={{ width: 32, height: 32, objectFit: 'cover' }} />
                         </div>
-                        <span style={{ fontSize: 14, fontWeight: 500, color: '#1D1D1F' }}>{tx.name}</span>
+                        <span style={{ fontSize: 14, color: '#111827', whiteSpace: 'nowrap' }}>{tx.name}</span>
                       </div>
                     </td>
-                    {/* Method */}
-                    <td className="px-6 py-4">
-                      <span style={{ fontSize: 14, color: '#6E6E73' }}>{tx.method}</span>
+                    <td className="px-7 py-4">
+                      <span style={{ fontSize: 14, color: '#6B7280' }}>{tx.method}</span>
                     </td>
-                    {/* Amount */}
-                    <td className="px-6 py-4">
-                      <span style={{ fontSize: 14, fontWeight: 600, color: '#1D1D1F' }}>{tx.price}</span>
+                    <td className="px-7 py-4" style={{ whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{tx.price}</span>
                     </td>
-                    {/* Date */}
-                    <td className="px-6 py-4">
-                      <span style={{ fontSize: 13, color: '#6E6E73' }}>{tx.date}</span>
+                    <td className="px-7 py-4" style={{ whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: 13, color: '#6B7280' }}>{tx.date}</span>
                     </td>
-                    {/* Status */}
-                    <td className="px-6 py-4">
-                      <span
-                        className={`px-2.5 py-1 rounded-full text-[12px] font-semibold ${tx.statusColor}`}
-                      >
-                        {tx.status}
-                      </span>
+                    <td className="px-7 py-4">
+                      <StatusBadge status={tx.status} />
                     </td>
-                    {/* Actions */}
-                    <td className="px-6 py-4">
-                      <button
-                        className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer transition-colors"
-                        style={{ color: '#6E6E73', background: 'transparent', border: 'none' }}
-                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#F5F5F7' }}
+                    <td className="px-7 py-4">
+                      <button className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
+                        style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#F9FAFB' }}
                         onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
                       >
-                        <MoreHorizontal size={16} />
+                        <MoreHorizontal size={15} />
                       </button>
                     </td>
                   </tr>
@@ -580,120 +532,161 @@ export default function DashboardClient({ userName, userEmail }: Props) {
             </table>
           </div>
 
-        </main>
+        </div>
+      </main>
 
-        {/* ── Right Panel ─────────────────────────────────────────────── */}
-        <aside
-          className="shrink-0 flex flex-col gap-4 p-5 overflow-y-auto"
-          style={{
-            width: 272,
-            background: '#F5F5F7',
-            borderLeft: '1px solid #E5E5EA',
-            position: 'sticky',
-            top: 0,
-            height: '100vh',
-          }}
-        >
-          {/* Bell */}
-          <div className="flex items-center justify-between mb-1">
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#1D1D1F' }}>Overview</p>
-            <button
-              className="relative w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer transition-colors"
-              style={{ background: '#fff', border: '1px solid #E5E5EA' }}
-            >
-              <Bell size={16} style={{ color: '#1D1D1F' }} />
-              <span
-                className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
-                style={{ background: '#FF3B30' }}
-              />
-            </button>
-          </div>
-
-          {/* Academy card */}
-          <div
-            className="rounded-2xl overflow-hidden"
-            style={{ background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
-          >
-            {/* Top banner */}
+      {/* ── Right Panel ─────────────────────────────────────────────────────── */}
+      <aside
+        className="hidden xl:flex shrink-0 flex-col gap-5 p-5 overflow-y-auto"
+        style={{
+          width: 280,
+          borderLeft: '1px solid #E5E7EB',
+          background: '#F9FAFB',
+          position: 'sticky',
+          top: 0,
+          height: '100vh',
+        }}
+      >
+        {/* Academy card */}
+        <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #E5E7EB' }}>
+          {/* Banner — school photo */}
+          <div className="relative overflow-visible" style={{ height: 100 }}>
+            <div className="absolute inset-0 overflow-hidden rounded-t-2xl">
+              <Image src="/roger-gracie-malaga.jpg" alt="Roger Gracie Malaga" fill className="object-cover" />
+            </div>
+            {/* Logo overlapping bottom edge */}
             <div
-              className="h-20 relative"
-              style={{ background: 'linear-gradient(135deg, #0071E3 0%, #0051A2 100%)' }}
+              className="absolute left-1/2 -translate-x-1/2 rounded-full overflow-hidden border-[3px] border-white"
+              style={{ width: 72, height: 72, bottom: -36, background: '#fff', boxShadow: '0 2px 12px rgba(0,0,0,0.2)', zIndex: 10 }}
             >
-              <div
-                className="absolute -bottom-5 left-1/2 -translate-x-1/2 w-12 h-12 rounded-2xl overflow-hidden border-2 border-white"
-                style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
-              >
-                <Image src="/martial-logo.png" alt="Academy" width={48} height={48} className="object-contain p-1" />
-              </div>
-            </div>
-
-            <div className="pt-8 pb-5 px-5 text-center">
-              <p style={{ fontSize: 15, fontWeight: 700, color: '#1D1D1F' }}>Roger Gracie Malaga</p>
-              <p style={{ fontSize: 12, color: '#6E6E73', marginTop: 2 }}>Jiu Jitsu Academy</p>
-            </div>
-
-            {/* Info */}
-            <div className="px-5 pb-4 space-y-2.5" style={{ borderTop: '1px solid #F5F5F7', paddingTop: 14 }}>
-              {[
-                { icon: Mail,    text: userEmail,          truncate: true },
-                { icon: Phone,   text: '+34 654 804 155',  truncate: false },
-                { icon: MapPin,  text: 'Calle Polifemo 3, Málaga', truncate: false },
-              ].map(({ icon: Icon, text, truncate }) => (
-                <div key={text} className="flex items-center gap-2">
-                  <Icon size={13} style={{ color: '#0071E3', flexShrink: 0 }} />
-                  <span
-                    style={{
-                      fontSize: 12,
-                      color: '#6E6E73',
-                      ...(truncate ? { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } : {}),
-                    }}
-                  >
-                    {text}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {/* Action buttons */}
-            <div className="px-5 pb-5 flex gap-2" style={{ paddingTop: 12, borderTop: '1px solid #F5F5F7' }}>
-              {[UserPlus, Send, Grid3x3, MoreHorizontal].map((Icon, i) => (
-                <button
-                  key={i}
-                  className="flex-1 h-9 flex items-center justify-center rounded-xl cursor-pointer transition-all"
-                  style={{ background: '#F5F5F7', border: '1px solid #E5E5EA' }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#EBF5FF'; (e.currentTarget as HTMLElement).style.borderColor = '#0071E3'; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#F5F5F7'; (e.currentTarget as HTMLElement).style.borderColor = '#E5E5EA'; }}
-                >
-                  <Icon size={15} style={{ color: '#6E6E73' }} />
-                </button>
-              ))}
+              <Image src="/logo-roger-gracie.png" alt="Roger Gracie" width={72} height={72} className="object-contain" />
             </div>
           </div>
-
-          {/* Quick stats */}
-          <div
-            className="rounded-2xl p-4 space-y-3"
-            style={{ background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
-          >
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#1D1D1F' }}>Quick Stats</p>
+          <div className="pt-12 pb-4 px-4 text-center">
+            <p style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>Roger Gracie Malaga</p>
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>Jiu Jitsu Academy</p>
+          </div>
+          {/* Action buttons */}
+          <div className="px-4 pb-4 flex gap-2" style={{ borderTop: '1px solid #F3F4F6', paddingTop: 12 }}>
             {[
-              { label: 'Avg Attendance', value: '78%',  color: '#30D158' },
-              { label: 'Open Leads',     value: '4',    color: '#FF9F0A' },
-              { label: 'Gradings',       value: '167',  color: '#BF5AF2' },
-              { label: 'Notifications',  value: '35',   color: '#0071E3' },
+              { icon: Users,       title: 'Add student' },
+              { icon: MessageSquare, title: 'Message' },
+              { icon: BarChart2,   title: 'Stats' },
+              { icon: MoreHorizontal, title: 'More' },
+            ].map(({ icon: Icon, title }) => (
+              <button
+                key={title}
+                title={title}
+                className="flex-1 h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all"
+                style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#EFF6FF'; (e.currentTarget as HTMLElement).style.borderColor = '#0071E3' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#F9FAFB'; (e.currentTarget as HTMLElement).style.borderColor = '#E5E7EB' }}
+              >
+                <Icon size={14} style={{ color: '#0071E3' }} />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Quick Stats */}
+        <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #E5E7EB' }}>
+          <div className="px-4 pt-4 pb-3" style={{ borderBottom: '1px solid #F3F4F6' }}>
+            <p style={{ fontSize: 12, color: '#9CA3AF' }}>Quick Stats</p>
+            <p style={{ fontSize: 16, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>Today</p>
+          </div>
+          <div className="grid grid-cols-2" style={{ gap: 1, background: '#F3F4F6' }}>
+            {[
+              { label: 'Avg Attendance', value: '78%', color: '#0071E3' },
+              { label: 'Open Leads',     value: '4',   color: '#D97706' },
+              { label: 'Gradings',       value: '167', color: '#16A34A' },
+              { label: 'Notifications',  value: '35',  color: '#DC2626' },
             ].map(s => (
-              <div key={s.label} className="flex items-center justify-between">
-                <span style={{ fontSize: 13, color: '#6E6E73' }}>{s.label}</span>
-                <span style={{ fontSize: 14, fontWeight: 700, color: s.color }}>{s.value}</span>
+              <div key={s.label} className="flex flex-col gap-1 px-4 py-3" style={{ background: '#fff' }}>
+                <p style={{ fontSize: 11, color: '#9CA3AF' }}>{s.label}</p>
+                <p style={{ fontSize: 22, fontWeight: 700, color: s.color, letterSpacing: '-0.02em', lineHeight: 1 }}>{s.value}</p>
               </div>
             ))}
           </div>
+        </div>
 
-          {/* Joined */}
-          <p style={{ fontSize: 11, color: '#6E6E73', textAlign: 'center' }}>
-            Academy since January 2021
-          </p>
-        </aside>
+        {/* Upcoming Classes */}
+        <div className="rounded-2xl" style={{ border: '1px solid #E5E7EB' }}>
+
+          {/* Header */}
+          <div className="px-4 pt-4 pb-3" style={{ borderBottom: '1px solid #F3F4F6' }}>
+            <p style={{ fontSize: 12, color: '#9CA3AF' }}>Upcoming Classes</p>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <p style={{ fontSize: 16, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>
+                {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
+              </p>
+              <Calendar size={14} style={{ color: '#9CA3AF', flexShrink: 0 }} />
+            </div>
+          </div>
+
+          {/* Day carousel — horizontal scroll */}
+          <div
+            className="flex gap-1 px-3 py-2"
+            style={{ borderBottom: '1px solid #F3F4F6', overflowX: 'auto', scrollbarWidth: 'none' }}
+          >
+            {DAYS.map((d, i) => (
+              <button
+                key={i}
+                onClick={() => setActiveDay(i)}
+                className="flex flex-col items-center justify-center py-1.5 cursor-pointer shrink-0 transition-all"
+                style={{ background: 'none', border: 'none', minWidth: 32 }}
+              >
+                <span style={{ fontSize: 9, fontWeight: 500, color: activeDay === i ? '#0071E3' : '#9CA3AF', letterSpacing: '0.04em' }}>
+                  {d.long}
+                </span>
+                <span style={{
+                  fontSize: 13, fontWeight: 700,
+                  color: activeDay === i ? '#0071E3' : '#374151',
+                  borderBottom: activeDay === i ? '2px solid #0071E3' : '2px solid transparent',
+                  paddingBottom: 1,
+                }}>
+                  {d.num}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {/* Class list — vertical scroll */}
+          <div className="px-4 py-3 space-y-3" style={{ maxHeight: 320, overflowY: 'auto', scrollbarWidth: 'none' }}>
+            {TODAY_CLASSES.map((cls, i) => {
+              const pct = cls.enrolled / cls.cap
+              const capacityColor = pct >= 1 ? '#DC2626' : pct > 0.7 ? '#D97706' : '#16A34A'
+              return (
+                <div key={cls.id} className="flex items-center gap-3"
+                  style={{ paddingBottom: i < TODAY_CLASSES.length - 1 ? 12 : 0, borderBottom: i < TODAY_CLASSES.length - 1 ? '1px solid #F9FAFB' : 'none' }}
+                >
+                  <div className="shrink-0 rounded-xl overflow-hidden relative" style={{ width: 44, height: 44 }}>
+                    <Image src={cls.image} alt={cls.name} fill className="object-cover" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <p style={{ fontSize: 11, fontWeight: 600, color: '#111827', lineHeight: 1.3, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {cls.name}
+                      </p>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: capacityColor, whiteSpace: 'nowrap' }}>
+                        {cls.enrolled}/{cls.cap}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 mt-1">
+                      <p style={{ fontSize: 10, color: '#9CA3AF' }}>{cls.time}</p>
+                      <StatusBadge status={cls.status} />
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Placeholder card */}
+        <div className="rounded-2xl flex-1" style={{ border: '1px solid #E5E7EB', background: '#fff' }} />
+
+      </aside>
+
       </div>
     </div>
   )
