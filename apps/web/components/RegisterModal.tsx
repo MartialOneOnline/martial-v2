@@ -1,12 +1,164 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, ArrowLeft, ChevronDown } from 'lucide-react'
+import { ArrowLeft, ChevronDown, Search } from 'lucide-react'
 import { createClient } from '../lib/supabase/client'
 
 type UserRole = 'student' | 'school'
+
+// ── Country codes ─────────────────────────────────────────────────────────────
+const COUNTRIES = [
+  { code: 'GB', flag: '🇬🇧', dial: '+44',  name: 'United Kingdom' },
+  { code: 'US', flag: '🇺🇸', dial: '+1',   name: 'United States' },
+  { code: 'ES', flag: '🇪🇸', dial: '+34',  name: 'Spain' },
+  { code: 'PT', flag: '🇵🇹', dial: '+351', name: 'Portugal' },
+  { code: 'FR', flag: '🇫🇷', dial: '+33',  name: 'France' },
+  { code: 'DE', flag: '🇩🇪', dial: '+49',  name: 'Germany' },
+  { code: 'IT', flag: '🇮🇹', dial: '+39',  name: 'Italy' },
+  { code: 'NL', flag: '🇳🇱', dial: '+31',  name: 'Netherlands' },
+  { code: 'BE', flag: '🇧🇪', dial: '+32',  name: 'Belgium' },
+  { code: 'CH', flag: '🇨🇭', dial: '+41',  name: 'Switzerland' },
+  { code: 'AT', flag: '🇦🇹', dial: '+43',  name: 'Austria' },
+  { code: 'PL', flag: '🇵🇱', dial: '+48',  name: 'Poland' },
+  { code: 'SE', flag: '🇸🇪', dial: '+46',  name: 'Sweden' },
+  { code: 'NO', flag: '🇳🇴', dial: '+47',  name: 'Norway' },
+  { code: 'DK', flag: '🇩🇰', dial: '+45',  name: 'Denmark' },
+  { code: 'FI', flag: '🇫🇮', dial: '+358', name: 'Finland' },
+  { code: 'IE', flag: '🇮🇪', dial: '+353', name: 'Ireland' },
+  { code: 'AU', flag: '🇦🇺', dial: '+61',  name: 'Australia' },
+  { code: 'CA', flag: '🇨🇦', dial: '+1',   name: 'Canada' },
+  { code: 'NZ', flag: '🇳🇿', dial: '+64',  name: 'New Zealand' },
+  { code: 'BR', flag: '🇧🇷', dial: '+55',  name: 'Brazil' },
+  { code: 'AR', flag: '🇦🇷', dial: '+54',  name: 'Argentina' },
+  { code: 'MX', flag: '🇲🇽', dial: '+52',  name: 'Mexico' },
+  { code: 'CO', flag: '🇨🇴', dial: '+57',  name: 'Colombia' },
+  { code: 'CL', flag: '🇨🇱', dial: '+56',  name: 'Chile' },
+  { code: 'JP', flag: '🇯🇵', dial: '+81',  name: 'Japan' },
+  { code: 'KR', flag: '🇰🇷', dial: '+82',  name: 'South Korea' },
+  { code: 'CN', flag: '🇨🇳', dial: '+86',  name: 'China' },
+  { code: 'IN', flag: '🇮🇳', dial: '+91',  name: 'India' },
+  { code: 'PH', flag: '🇵🇭', dial: '+63',  name: 'Philippines' },
+  { code: 'TH', flag: '🇹🇭', dial: '+66',  name: 'Thailand' },
+  { code: 'SG', flag: '🇸🇬', dial: '+65',  name: 'Singapore' },
+  { code: 'MY', flag: '🇲🇾', dial: '+60',  name: 'Malaysia' },
+  { code: 'ID', flag: '🇮🇩', dial: '+62',  name: 'Indonesia' },
+  { code: 'AE', flag: '🇦🇪', dial: '+971', name: 'UAE' },
+  { code: 'SA', flag: '🇸🇦', dial: '+966', name: 'Saudi Arabia' },
+  { code: 'ZA', flag: '🇿🇦', dial: '+27',  name: 'South Africa' },
+  { code: 'NG', flag: '🇳🇬', dial: '+234', name: 'Nigeria' },
+  { code: 'MA', flag: '🇲🇦', dial: '+212', name: 'Morocco' },
+  { code: 'EG', flag: '🇪🇬', dial: '+20',  name: 'Egypt' },
+  { code: 'RU', flag: '🇷🇺', dial: '+7',   name: 'Russia' },
+  { code: 'UA', flag: '🇺🇦', dial: '+380', name: 'Ukraine' },
+  { code: 'TR', flag: '🇹🇷', dial: '+90',  name: 'Turkey' },
+  { code: 'GR', flag: '🇬🇷', dial: '+30',  name: 'Greece' },
+  { code: 'RO', flag: '🇷🇴', dial: '+40',  name: 'Romania' },
+  { code: 'CZ', flag: '🇨🇿', dial: '+420', name: 'Czech Republic' },
+  { code: 'HU', flag: '🇭🇺', dial: '+36',  name: 'Hungary' },
+  { code: 'SK', flag: '🇸🇰', dial: '+421', name: 'Slovakia' },
+  { code: 'HR', flag: '🇭🇷', dial: '+385', name: 'Croatia' },
+  { code: 'RS', flag: '🇷🇸', dial: '+381', name: 'Serbia' },
+]
+
+// ── Country Picker Component ───────────────────────────────────────────────────
+function CountryPicker({ value, onChange }: { value: typeof COUNTRIES[0]; onChange: (c: typeof COUNTRIES[0]) => void }) {
+  const [open, setOpen]       = useState(false)
+  const [query, setQuery]     = useState('')
+  const [dropPos, setDropPos] = useState({ top: 0, left: 0, width: 0 })
+  const btnRef                = useRef<HTMLButtonElement>(null)
+  const ref                   = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node) &&
+          btnRef.current && !btnRef.current.contains(e.target as Node)) {
+        setOpen(false)
+        setQuery('')
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  const handleOpen = () => {
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect()
+      setDropPos({ top: rect.bottom + 4, left: rect.left, width: 256 })
+    }
+    setOpen(v => !v)
+    setQuery('')
+  }
+
+  const filtered = COUNTRIES.filter(c =>
+    c.name.toLowerCase().includes(query.toLowerCase()) ||
+    c.dial.includes(query) ||
+    c.code.toLowerCase().includes(query.toLowerCase())
+  )
+
+  return (
+    <div className="relative shrink-0">
+      <button
+        ref={btnRef}
+        type="button"
+        onClick={handleOpen}
+        className="flex items-center gap-1 px-2 h-full border-r border-[#e0e0e0] cursor-pointer hover:bg-gray-50 transition-colors"
+      >
+        <span className="text-[15px]">{value.flag}</span>
+        <span className="text-[13px] font-semibold text-black">{value.dial}</span>
+        <ChevronDown className={`w-3 h-3 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            ref={ref}
+            initial={{ opacity: 0, y: -4, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.97 }}
+            transition={{ duration: 0.15 }}
+            style={{ position: 'fixed', top: dropPos.top, left: dropPos.left, width: dropPos.width, zIndex: 9999 }}
+            className="bg-white border border-[#e0e0e0] rounded-[10px] shadow-2xl overflow-hidden"
+          >
+            {/* Search */}
+            <div className="p-2 border-b border-[#f0f0f0]">
+              <div className="flex items-center gap-2 bg-[#f5f5f5] rounded-[7px] px-2.5 py-1.5">
+                <Search className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                <input
+                  autoFocus
+                  suppressHydrationWarning
+                  type="text"
+                  value={query}
+                  onChange={e => setQuery(e.target.value)}
+                  placeholder="Search country..."
+                  className="flex-1 bg-transparent text-[12px] text-[#4f4f4f] placeholder:text-[#b0b0b0] focus:outline-none"
+                />
+              </div>
+            </div>
+            {/* List */}
+            <div className="max-h-52 overflow-y-auto">
+              {filtered.length === 0 ? (
+                <p className="text-[12px] text-[#9ca3af] text-center py-4">No results</p>
+              ) : filtered.map(c => (
+                <button
+                  key={c.code}
+                  type="button"
+                  onClick={() => { onChange(c); setOpen(false); setQuery('') }}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-[#f0f8ff] transition-colors cursor-pointer ${value.code === c.code ? 'bg-[#f0f8ff]' : ''}`}
+                >
+                  <span className="text-[15px] shrink-0">{c.flag}</span>
+                  <span className="text-[12px] text-[#4f4f4f] flex-1 truncate">{c.name}</span>
+                  <span className="text-[12px] font-semibold text-[#006197] shrink-0">{c.dial}</span>
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 function UserIcon() {
@@ -90,6 +242,10 @@ export default function RegisterModal({ onClose, onOpenLogin }: RegisterModalPro
   const [contactName, setContactName] = useState('')
   const [schoolPhone, setSchoolPhone] = useState('')
   const [city, setCity]               = useState('')
+  type Country = typeof COUNTRIES[number]
+  const GB = COUNTRIES.find(c => c.code === 'GB')!
+  const [dialCode, setDialCode]             = useState<Country>(GB)
+  const [schoolDialCode, setSchoolDialCode] = useState<Country>(GB)
   const [errors, setErrors]           = useState<Record<string, string>>({})
   const [loading, setLoading]         = useState(false)
   const [success, setSuccess]         = useState(false)
@@ -122,8 +278,8 @@ export default function RegisterModal({ onClose, onOpenLogin }: RegisterModalPro
     setApiError('')
 
     const metadata = role === 'student'
-      ? { name: fullName, username, phone, role: 'student' }
-      : { name: contactName, school_name: schoolName, city, phone: schoolPhone, role: 'school' }
+      ? { name: fullName, username, phone: phone ? `${dialCode?.dial}${phone}` : '', role: 'student' }
+      : { name: contactName, school_name: schoolName, city, phone: schoolPhone ? `${schoolDialCode?.dial}${schoolPhone}` : '', role: 'school' }
 
     const { error } = await supabase.auth.signUp({
       email, password,
@@ -200,7 +356,7 @@ export default function RegisterModal({ onClose, onOpenLogin }: RegisterModalPro
                 {role === r && (
                   <motion.div layoutId="role-indicator" className="absolute inset-x-0 bottom-0 h-[2.5px] bg-[#0092ff] rounded-full" />
                 )}
-                {r === 'student' ? '🥋  Student' : '🏫  School'}
+                {r === 'student' ? '🥋  Student' : '🏛️  Academy'}
               </button>
             ))}
           </div>
@@ -235,19 +391,16 @@ export default function RegisterModal({ onClose, onOpenLogin }: RegisterModalPro
                   <div>
                     <label className="block text-[14px] font-semibold text-[#061229] mb-1.5">Mobile <span className="text-[#9ca3af] font-normal">(optional)</span></label>
                     <div className="flex items-center h-[46px] border rounded-[8px] overflow-hidden bg-white focus-within:border-[#3d86af] transition-colors border-[#e0e0e0]">
-                      <div className="pl-3 pr-2 pointer-events-none shrink-0"><PhoneIcon /></div>
-                      <div className="flex items-center gap-1 pr-2 border-r border-[#e0e0e0] h-full shrink-0">
-                        <span className="text-[13px] font-semibold text-black pl-1">🇬🇧 +44</span>
-                        <ChevronDown className="w-3 h-3 text-gray-400" />
-                      </div>
-                      <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="786 786004"
+                      <div className="pl-3 pr-1 pointer-events-none shrink-0"><PhoneIcon /></div>
+                      <CountryPicker value={dialCode} onChange={setDialCode} />
+                      <input suppressHydrationWarning type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="786 786004"
                         className="flex-1 h-full px-3 text-[14px] text-[#4f4f4f] placeholder:text-[#b0b0b0] bg-transparent focus:outline-none" />
                     </div>
                   </div>
                 </motion.div>
               ) : (
                 <motion.div key="school" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }} className="space-y-3">
-                  <Field label="School / Academy Name" placeholder="e.g. Roger Gracie Academy" value={schoolName}
+                  <Field label="Academy Name" placeholder="e.g. Roger Gracie Academy" value={schoolName}
                     leftIcon={<SchoolIcon />} onChange={v => { setSchoolName(v); clearError('schoolName') }} error={errors.schoolName} />
                   <Field label="Owner / Contact Name" placeholder="Full name" value={contactName}
                     leftIcon={<UserIcon />} onChange={v => { setContactName(v); clearError('contactName') }} error={errors.contactName} />
@@ -256,12 +409,9 @@ export default function RegisterModal({ onClose, onOpenLogin }: RegisterModalPro
                   <div>
                     <label className="block text-[14px] font-semibold text-[#061229] mb-1.5">Phone <span className="text-[#9ca3af] font-normal">(optional)</span></label>
                     <div className="flex items-center h-[46px] border rounded-[8px] overflow-hidden bg-white focus-within:border-[#3d86af] transition-colors border-[#e0e0e0]">
-                      <div className="pl-3 pr-2 pointer-events-none shrink-0"><PhoneIcon /></div>
-                      <div className="flex items-center gap-1 pr-2 border-r border-[#e0e0e0] h-full shrink-0">
-                        <span className="text-[13px] font-semibold text-black pl-1">🇬🇧 +44</span>
-                        <ChevronDown className="w-3 h-3 text-gray-400" />
-                      </div>
-                      <input type="tel" value={schoolPhone} onChange={e => setSchoolPhone(e.target.value)} placeholder="Contact number"
+                      <div className="pl-3 pr-1 pointer-events-none shrink-0"><PhoneIcon /></div>
+                      <CountryPicker value={schoolDialCode} onChange={setSchoolDialCode} />
+                      <input suppressHydrationWarning type="tel" value={schoolPhone} onChange={e => setSchoolPhone(e.target.value)} placeholder="Contact number"
                         className="flex-1 h-full px-3 text-[14px] text-[#4f4f4f] placeholder:text-[#b0b0b0] bg-transparent focus:outline-none" />
                     </div>
                   </div>
