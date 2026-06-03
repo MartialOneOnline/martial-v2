@@ -4,8 +4,8 @@ import DashboardClient from './DashboardClient'
 
 // Demo data shown to non-authenticated visitors
 const DEMO_USER = {
-  userName: 'Pablo Cabo',
-  userEmail: 'pablo@rogergraciemalaga.com',
+  userName: 'Academy Owner',
+  userEmail: 'demo@martial.app',
   userRole: 'academy',
 }
 

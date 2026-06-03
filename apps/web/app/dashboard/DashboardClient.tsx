@@ -372,23 +372,6 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           </form>
         </div>
 
-        {/* User */}
-        <div className="px-4 py-4 flex items-center gap-3" style={{ borderTop: '1px solid #E5E7EB' }}>
-          <div
-            className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-white"
-            style={{ background: '#111827', fontSize: 12, fontWeight: 700 }}
-          >
-            {firstName[0]?.toUpperCase()}
-          </div>
-          <div className="min-w-0">
-            <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {userName}
-            </p>
-            <p style={{ fontSize: 11, color: '#9CA3AF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              Academy Owner
-            </p>
-          </div>
-        </div>
       </aside>
 
       {/* ── Main ────────────────────────────────────────────────────────────── */}
@@ -593,18 +576,18 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                 const capacityColor = pct >= 1 ? '#DC2626' : pct > 0.7 ? '#D97706' : '#16A34A'
                 return (
                   <div key={cls.id} className="flex items-center gap-3" style={{ paddingBottom: i < 4 ? 12 : 0, borderBottom: i < 4 ? '1px solid #F9FAFB' : 'none' }}>
-                    <div className="shrink-0 rounded-xl overflow-hidden relative" style={{ width: 44, height: 44 }}>
+                    <div className="shrink-0 rounded-xl overflow-hidden relative" style={{ width: 52, height: 52 }}>
                       <Image src={cls.image} alt={cls.name} fill className="object-cover" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cls.name}</p>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: capacityColor, whiteSpace: 'nowrap' }}>{cls.enrolled}/{cls.cap}</span>
-                      </div>
-                      <div className="flex items-center justify-between gap-2 mt-1">
-                        <p style={{ fontSize: 11, color: '#9CA3AF' }}>{cls.time}</p>
-                        <StatusBadge status={cls.status} />
-                      </div>
+                    {/* Name + time */}
+                    <div className="flex-1 min-w-0 pl-1">
+                      <p style={{ fontSize: 14, fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cls.name}</p>
+                      <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 3 }}>{cls.time}</p>
+                    </div>
+                    {/* Capacity + badge stacked, centered */}
+                    <div className="shrink-0 flex flex-col items-center gap-1.5">
+                      <span style={{ fontSize: 13, fontWeight: 700, color: capacityColor }}>{cls.enrolled}/{cls.cap}</span>
+                      <StatusBadge status={cls.status} />
                     </div>
                   </div>
                 )
@@ -627,8 +610,8 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                 { label: 'Active Members', value: '421', color: '#6366F1' },
                 { label: 'Classes Today',  value: '12',  color: '#0071E3' },
               ].map(s => (
-                <div key={s.label} className="flex flex-col gap-1 px-3 py-3" style={{ background: '#fff' }}>
-                  <p style={{ fontSize: 10, color: '#9CA3AF' }}>{s.label}</p>
+                <div key={s.label} className="flex flex-col items-center gap-1.5 px-3 pt-3 pb-5" style={{ background: '#fff' }}>
+                  <p style={{ fontSize: 10, color: '#9CA3AF', textAlign: 'center' }}>{s.label}</p>
                   <p style={{ fontSize: 20, fontWeight: 700, color: s.color, letterSpacing: '-0.02em', lineHeight: 1 }}>{s.value}</p>
                 </div>
               ))}
@@ -736,7 +719,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
 
       {/* ── Right Panel ─────────────────────────────────────────────────────── */}
       <aside
-        className="hidden lg:flex shrink-0 flex-col gap-5 p-5 overflow-y-auto"
+        className="hidden lg:flex shrink-0 flex-col gap-3 p-4 overflow-y-auto"
         style={{
           width: 280,
           borderLeft: '1px solid #E5E7EB',
@@ -749,21 +732,21 @@ export default function DashboardClient({ userName, userEmail }: Props) {
         {/* Academy card */}
         <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #E5E7EB' }}>
           {/* Banner — school photo */}
-          <div className="relative overflow-visible" style={{ height: 100 }}>
+          <div className="relative overflow-visible" style={{ height: 72 }}>
             <div className="absolute inset-0 overflow-hidden rounded-t-2xl">
               <Image src="/roger-gracie-malaga.jpg" alt="Roger Gracie Malaga" fill className="object-cover" />
             </div>
             {/* Logo overlapping bottom edge */}
             <div
               className="absolute left-1/2 -translate-x-1/2 rounded-full overflow-hidden border-[3px] border-white"
-              style={{ width: 72, height: 72, bottom: -36, background: '#fff', boxShadow: '0 2px 12px rgba(0,0,0,0.2)', zIndex: 10 }}
+              style={{ width: 52, height: 52, bottom: -26, background: '#fff', boxShadow: '0 2px 10px rgba(0,0,0,0.18)', zIndex: 10 }}
             >
-              <Image src="/logo-roger-gracie.png" alt="Roger Gracie" width={72} height={72} className="object-contain" />
+              <Image src="/logo-roger-gracie.png" alt="Roger Gracie" width={52} height={52} className="object-contain" />
             </div>
           </div>
-          <div className="pt-12 pb-4 px-4 text-center">
-            <p style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>Roger Gracie Malaga</p>
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>Jiu Jitsu Academy</p>
+          <div className="pt-8 pb-3 px-4 text-center">
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>Roger Gracie Malaga</p>
+            <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 1 }}>Jiu Jitsu Academy</p>
           </div>
           {/* Action buttons */}
           <div className="px-4 pb-4 flex gap-2" style={{ borderTop: '1px solid #F3F4F6', paddingTop: 12 }}>
@@ -802,7 +785,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           </div>
 
           {/* Suggested Actions */}
-          <div className="px-4 py-3" style={{ maxHeight: 200, overflowY: 'auto', scrollbarWidth: 'none' }}>
+          <div className="px-4 py-3">
             <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
               Suggested Actions
             </p>
@@ -811,9 +794,6 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                 { insight: '12 students haven\'t attended in 3+ weeks.', action: 'Send re-engagement message' },
                 { insight: 'BJJ Advanced is 93% full every session.',    action: 'Add an extra class this week' },
                 { insight: '4 leads haven\'t been contacted in 7 days.', action: 'Follow up before they go cold' },
-                { insight: 'Attendance up 14% — students are engaged.',  action: 'Good time to schedule a grading' },
-                { insight: 'Revenue down 5% vs last month.',             action: 'Review membership pricing' },
-                { insight: '3 students birthday this week.',             action: 'Send a birthday message' },
               ].map((r, i, arr) => (
                 <div key={i} style={{ paddingBottom: i < arr.length - 1 ? 12 : 0, borderBottom: i < arr.length - 1 ? '1px solid #F3F4F6' : 'none' }}>
                   <p style={{ fontSize: 12, fontWeight: 500, color: '#111827', lineHeight: 1.4 }}>{r.insight}</p>
@@ -874,7 +854,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           </div>
 
           {/* Class list — vertical scroll */}
-          <div className="px-4 py-3 space-y-3" style={{ maxHeight: 320, overflowY: 'auto', scrollbarWidth: 'none' }}>
+          <div className="px-4 py-3 space-y-3" style={{ maxHeight: 200, overflowY: 'auto', scrollbarWidth: 'none' }}>
             {TODAY_CLASSES.map((cls, i) => {
               const pct = cls.enrolled / cls.cap
               const capacityColor = pct >= 1 ? '#DC2626' : pct > 0.7 ? '#D97706' : '#16A34A'
