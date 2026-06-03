@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 10 completada ✅ — Login/Register diseñados + deploy en Vercel
+**Estado:** Sesión 11 completada ✅ — Dashboard móvil "Acción primero" + AI Suggested Actions
 
 ---
 
@@ -167,12 +167,13 @@ Tablas en Supabase: `users`, `schools`
 
 ---
 
-## Próximos pasos (Sesión 11)
+## Próximos pasos (Sesión 12)
 
 1. **LoginModal** — popup en homepage (`app/page.tsx`) con SSO + Email
 2. **Differenciación Practitioner vs Business** en el registro (selector de rol)
 3. **Homepage** — ajustes finales diseño AI Studio → Next.js
 4. **SSO OAuth** — configurar Google en Supabase (Apple/Facebook después)
+5. **Dashboard móvil** — Quick Stats: evaluar si eliminar o fusionar con AI context
 
 ---
 
@@ -224,6 +225,16 @@ Prototipo movido a apps/prototype/ en el monorepo
 - Hosting cambiado de Hostinger a Vercel
 - output: standalone eliminado de next.config.js (no necesario en Vercel)
 - CONTEXT.md actualizado completo
+
+### Sesión 11 — 2026-06-03 ✅
+- Dashboard móvil reordenado: "Acción primero" (Academy Info → AI → KPIs → Classes → Quick Stats → Bookings → Transactions)
+- AI Suggested Actions añadido a móvil (antes solo en panel desktop)
+- CTAs del AI: de texto plano a píldoras tapeables con fondo indigo (#EEF2FF)
+- Día activo Upcoming Classes: calculado dinámicamente desde `new Date()` (bug fix)
+- Botones Academy Info actualizados: Invite / Send / QR code / Edit (icon-only con title para accesibilidad)
+- KPI cards rediseñados: label top-left, badge de trend top-right, número grande, sub text abajo
+- Labels KPI acortados para evitar wrapping en grid 2 columnas móvil
+- Commit: 251dc85
 
 ---
 
