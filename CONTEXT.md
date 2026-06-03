@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 11 completada ✅ — Dashboard móvil "Acción primero" + AI Suggested Actions
+**Estado:** Sesión 12 completada ✅ — Classes page + Timetable page (calendar + list + drawer)
 
 ---
 
@@ -167,13 +167,13 @@ Tablas en Supabase: `users`, `schools`
 
 ---
 
-## Próximos pasos (Sesión 12)
+## Próximos pasos (Sesión 13)
 
 1. **LoginModal** — popup en homepage (`app/page.tsx`) con SSO + Email
 2. **Differenciación Practitioner vs Business** en el registro (selector de rol)
 3. **Homepage** — ajustes finales diseño AI Studio → Next.js
 4. **SSO OAuth** — configurar Google en Supabase (Apple/Facebook después)
-5. **Dashboard móvil** — Quick Stats: evaluar si eliminar o fusionar con AI context
+5. **Memberships page** — siguiente módulo del dashboard
 
 ---
 
@@ -235,6 +235,14 @@ Prototipo movido a apps/prototype/ en el monorepo
 - KPI cards rediseñados: label top-left, badge de trend top-right, número grande, sub text abajo
 - Labels KPI acortados para evitar wrapping en grid 2 columnas móvil
 - Commit: 251dc85
+
+### Sesión 12 — 2026-06-03 ✅
+- **Classes page** (`/dashboard/classes`): tabla con stats, filtros All/Active/Full/Inactive, búsqueda, paginación, drawer "Create Class" con banner upload + legal checkboxes + success modal
+- **Timetable page** (`/dashboard/classes/timetable`): vista calendario (weekly, 6–22h, class blocks clicables con popup de acciones) + vista lista con paginación y stats
+- Timetable drawer "Add Timetable": banner upload drag-and-drop, toggles de días funcionales (Mon–Fri on, Sat–Sun off), inputs de tiempo deshabilitados en días inactivos, success modal al confirmar
+- Filtro por location en la vista calendario (All / Main Academy / Branch Malaga)
+- Color coding por actividad (BJJ, NOGI, Wrestling, Kids BJJ, Yoga, Open Mat, Competition)
+- Commits: b8b9623, c3bbe37
 
 ---
 
