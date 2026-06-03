@@ -623,15 +623,15 @@ export default function DashboardClient({ userName, userEmail }: Props) {
             className="rounded-2xl"
             style={{ background: '#fff', border: '1px solid #E5E7EB', padding: '22px 26px' }}
           >
-            <div className="flex items-center justify-between mb-1">
-              <p style={{ fontSize: 14, color: '#6B7280' }}>Bookings Overview</p>
-              <span style={{ fontSize: 12, fontWeight: 600, color: '#0071E3', background: '#EFF6FF', padding: '3px 10px', borderRadius: 999 }}>
-                +18% vs last period
-              </span>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <p style={{ fontSize: 16, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>Jan – Jun 2026</p>
+                <span style={{ fontSize: 11, fontWeight: 600, color: '#0071E3', background: '#EFF6FF', padding: '2px 8px', borderRadius: 999 }}>
+                  +18% vs last period
+                </span>
+              </div>
+              <p style={{ fontSize: 12, color: '#6B7280' }}>Bookings Overview</p>
             </div>
-            <p style={{ fontSize: 24, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', marginBottom: 20 }}>
-              Jan – Jun 2026
-            </p>
             <AreaChart />
           </div>
 
@@ -640,12 +640,10 @@ export default function DashboardClient({ userName, userEmail }: Props) {
             className="rounded-2xl overflow-hidden flex flex-col flex-1"
             style={{ background: '#fff', border: '1px solid #E5E7EB' }}
           >
-            <div className="flex items-center justify-between px-7 py-5" style={{ borderBottom: '1px solid #F3F4F6' }}>
-              <div>
-                <p style={{ fontSize: 14, color: '#6B7280' }}>Latest Transactions</p>
-                <p style={{ fontSize: 24, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em' }}>
-                  {TRANSACTIONS.length} recent
-                </p>
+            <div className="flex items-center justify-between px-7 py-4" style={{ borderBottom: '1px solid #F3F4F6' }}>
+              <div className="flex items-center gap-3">
+                <p style={{ fontSize: 16, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>{TRANSACTIONS.length} recent</p>
+                <p style={{ fontSize: 12, color: '#6B7280' }}>Latest Transactions</p>
               </div>
               <Link href="#" style={{ fontSize: 12, fontWeight: 600, color: '#0071E3' }} className="no-underline flex items-center gap-1">
                 View all <ChevronRight size={12} />
@@ -729,30 +727,24 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           height: '100vh',
         }}
       >
-        {/* Academy card */}
-        <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #E5E7EB' }}>
-          {/* Banner — school photo */}
-          <div className="relative overflow-visible" style={{ height: 72 }}>
+        {/* 1. Academy card — full design, fixed height */}
+        <div className="shrink-0 rounded-2xl overflow-hidden" style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
+          <div className="relative overflow-visible" style={{ height: 80 }}>
             <div className="absolute inset-0 overflow-hidden rounded-t-2xl">
               <Image src="/roger-gracie-malaga.jpg" alt="Roger Gracie Malaga" fill className="object-cover" />
             </div>
-            {/* Logo overlapping bottom edge */}
-            <div
-              className="absolute left-1/2 -translate-x-1/2 rounded-full overflow-hidden border-[3px] border-white"
-              style={{ width: 52, height: 52, bottom: -26, background: '#fff', boxShadow: '0 2px 10px rgba(0,0,0,0.18)', zIndex: 10 }}
-            >
-              <Image src="/logo-roger-gracie.png" alt="Roger Gracie" width={52} height={52} className="object-contain" />
+            <div className="absolute left-1/2 -translate-x-1/2 rounded-full overflow-hidden border-[3px] border-white"
+              style={{ width: 60, height: 60, bottom: -30, background: '#fff', boxShadow: '0 2px 12px rgba(0,0,0,0.2)', zIndex: 10 }}>
+              <Image src="/logo-roger-gracie.png" alt="Roger Gracie" width={60} height={60} className="object-contain" />
             </div>
           </div>
-          <div className="pt-8 pb-3 px-4 text-center">
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>Roger Gracie Malaga</p>
-            <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 1 }}>Jiu Jitsu Academy</p>
+          <div className="pt-10 pb-3 px-4 text-center">
+            <p style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>Roger Gracie Malaga</p>
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>Jiu Jitsu Academy</p>
           </div>
-          {/* Action buttons */}
           <div className="px-4 pb-4 flex gap-2" style={{ borderTop: '1px solid #F3F4F6', paddingTop: 12 }}>
             {ACADEMY_ACTIONS.map(({ icon: Icon, label }) => (
-              <button
-                key={label}
+              <button key={label} title={label}
                 className="flex-1 h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all"
                 style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#EFF6FF'; (e.currentTarget as HTMLElement).style.borderColor = '#0071E3' }}
@@ -764,10 +756,8 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           </div>
         </div>
 
-        {/* AI Assistant */}
-        <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
-
-          {/* Header */}
+        {/* 2. AI Assistant — full design, fixed height */}
+        <div className="shrink-0 rounded-2xl overflow-hidden" style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
           <div className="flex items-center justify-between px-4 pt-4 pb-3" style={{ borderBottom: '1px solid #F3F4F6' }}>
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg flex items-center justify-center"
@@ -783,96 +773,63 @@ export default function DashboardClient({ userName, userEmail }: Props) {
               Online
             </span>
           </div>
-
-          {/* Suggested Actions */}
-          <div className="px-4 py-3">
-            <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
-              Suggested Actions
-            </p>
-            <div className="space-y-3">
-              {[
-                { insight: '12 students haven\'t attended in 3+ weeks.', action: 'Send re-engagement message' },
-                { insight: 'BJJ Advanced is 93% full every session.',    action: 'Add an extra class this week' },
-                { insight: '4 leads haven\'t been contacted in 7 days.', action: 'Follow up before they go cold' },
-              ].map((r, i, arr) => (
-                <div key={i} style={{ paddingBottom: i < arr.length - 1 ? 12 : 0, borderBottom: i < arr.length - 1 ? '1px solid #F3F4F6' : 'none' }}>
-                  <p style={{ fontSize: 12, fontWeight: 500, color: '#111827', lineHeight: 1.4 }}>{r.insight}</p>
-                  <button style={{
-                    marginTop: 6, display: 'inline-flex', alignItems: 'center', gap: 4,
-                    fontSize: 11, fontWeight: 600, color: '#6366F1',
-                    background: '#EEF2FF', border: 'none', borderRadius: 7,
-                    padding: '4px 9px', cursor: 'pointer',
-                  }}>
-                    {r.action} →
-                  </button>
-                </div>
-              ))}
-            </div>
+          <div className="px-4 py-3 space-y-3">
+            {[
+              { insight: '12 students haven\'t attended in 3+ weeks.', action: 'Send re-engagement message' },
+              { insight: 'BJJ Advanced is 93% full every session.',    action: 'Add an extra class this week' },
+            ].map((r, i, arr) => (
+              <div key={i} style={{ paddingBottom: i < arr.length - 1 ? 12 : 0, borderBottom: i < arr.length - 1 ? '1px solid #F3F4F6' : 'none' }}>
+                <p style={{ fontSize: 12, fontWeight: 500, color: '#111827', lineHeight: 1.4 }}>{r.insight}</p>
+                <button style={{
+                  marginTop: 6, display: 'inline-flex', alignItems: 'center', gap: 4,
+                  fontSize: 11, fontWeight: 600, color: '#6366F1',
+                  background: '#EEF2FF', border: 'none', borderRadius: 7,
+                  padding: '4px 9px', cursor: 'pointer',
+                }}>
+                  {r.action} →
+                </button>
+              </div>
+            ))}
           </div>
-
         </div>
 
-        {/* Upcoming Classes */}
-        <div className="rounded-2xl" style={{ border: '1px solid #E5E7EB' }}>
-
-          {/* Header */}
-          <div className="px-4 pt-4 pb-3" style={{ borderBottom: '1px solid #F3F4F6' }}>
+        {/* 3. Upcoming Classes — flex: 1, fills all remaining space */}
+        <div className="rounded-2xl flex flex-col" style={{ flex: 1, minHeight: 280, border: '1px solid #E5E7EB', background: '#fff' }}>
+          <div className="shrink-0 px-4 pt-4 pb-3" style={{ borderBottom: '1px solid #F3F4F6' }}>
             <p style={{ fontSize: 12, color: '#9CA3AF' }}>Upcoming Classes</p>
             <div className="flex items-center gap-1.5 mt-0.5">
-              <p style={{ fontSize: 16, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>
+              <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>
                 {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
               </p>
-              <Calendar size={14} style={{ color: '#9CA3AF', flexShrink: 0 }} />
+              <Calendar size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
             </div>
           </div>
-
-          {/* Day carousel — horizontal scroll */}
-          <div
-            className="flex gap-1 px-3 py-2"
-            style={{ borderBottom: '1px solid #F3F4F6', overflowX: 'auto', scrollbarWidth: 'none' }}
-          >
+          <div className="shrink-0 flex gap-1 px-3 py-2"
+            style={{ borderBottom: '1px solid #F3F4F6', overflowX: 'auto', scrollbarWidth: 'none' }}>
             {DAYS.map((d, i) => (
-              <button
-                key={i}
-                onClick={() => setActiveDay(i)}
+              <button key={i} onClick={() => setActiveDay(i)}
                 className="flex flex-col items-center justify-center py-1.5 cursor-pointer shrink-0 transition-all"
-                style={{ background: 'none', border: 'none', minWidth: 32 }}
-              >
-                <span style={{ fontSize: 9, fontWeight: 500, color: activeDay === i ? '#0071E3' : '#9CA3AF', letterSpacing: '0.04em' }}>
-                  {d.long}
-                </span>
-                <span style={{
-                  fontSize: 13, fontWeight: 700,
-                  color: activeDay === i ? '#0071E3' : '#374151',
-                  borderBottom: activeDay === i ? '2px solid #0071E3' : '2px solid transparent',
-                  paddingBottom: 1,
-                }}>
-                  {d.num}
-                </span>
+                style={{ background: 'none', border: 'none', minWidth: 32 }}>
+                <span style={{ fontSize: 9, fontWeight: 500, color: activeDay === i ? '#0071E3' : '#9CA3AF', letterSpacing: '0.04em' }}>{d.long}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: activeDay === i ? '#0071E3' : '#374151', borderBottom: activeDay === i ? '2px solid #0071E3' : '2px solid transparent', paddingBottom: 1 }}>{d.num}</span>
               </button>
             ))}
           </div>
-
-          {/* Class list — vertical scroll */}
-          <div className="px-4 py-3 space-y-3" style={{ maxHeight: 200, overflowY: 'auto', scrollbarWidth: 'none' }}>
+          {/* Class list — fills all remaining space in the card */}
+          <div className="px-4 py-3 space-y-3 overflow-y-auto" style={{ flex: 1, scrollbarWidth: 'none' }}>
             {TODAY_CLASSES.map((cls, i) => {
               const pct = cls.enrolled / cls.cap
               const capacityColor = pct >= 1 ? '#DC2626' : pct > 0.7 ? '#D97706' : '#16A34A'
               return (
                 <div key={cls.id} className="flex items-center gap-3"
-                  style={{ paddingBottom: i < TODAY_CLASSES.length - 1 ? 12 : 0, borderBottom: i < TODAY_CLASSES.length - 1 ? '1px solid #F9FAFB' : 'none' }}
-                >
+                  style={{ paddingBottom: i < TODAY_CLASSES.length - 1 ? 12 : 0, borderBottom: i < TODAY_CLASSES.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
                   <div className="shrink-0 rounded-xl overflow-hidden relative" style={{ width: 44, height: 44 }}>
                     <Image src={cls.image} alt={cls.name} fill className="object-cover" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <p style={{ fontSize: 11, fontWeight: 600, color: '#111827', lineHeight: 1.3, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {cls.name}
-                      </p>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: capacityColor, whiteSpace: 'nowrap' }}>
-                        {cls.enrolled}/{cls.cap}
-                      </span>
+                      <p style={{ fontSize: 11, fontWeight: 600, color: '#111827', lineHeight: 1.3, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cls.name}</p>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: capacityColor, whiteSpace: 'nowrap' }}>{cls.enrolled}/{cls.cap}</span>
                     </div>
                     <div className="flex items-center justify-between gap-2 mt-1">
                       <p style={{ fontSize: 10, color: '#9CA3AF' }}>{cls.time}</p>
@@ -885,13 +842,13 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           </div>
         </div>
 
-        {/* Quick Stats */}
-        <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #E5E7EB' }}>
-          <div className="px-4 pt-4 pb-3" style={{ borderBottom: '1px solid #F3F4F6' }}>
-            <p style={{ fontSize: 12, color: '#9CA3AF' }}>Quick Stats</p>
-            <p style={{ fontSize: 16, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>Today</p>
+        {/* 4. Quick Stats — fixed, at bottom */}
+        <div className="shrink-0 rounded-2xl overflow-hidden" style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
+          <div className="px-4 pt-3 pb-2" style={{ borderBottom: '1px solid #F3F4F6' }}>
+            <p style={{ fontSize: 11, color: '#9CA3AF' }}>Quick Stats</p>
+            <p style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>Today</p>
           </div>
-          <div className="grid grid-cols-2" style={{ gap: 1, background: '#F3F4F6' }}>
+          <div className="grid grid-cols-3" style={{ gap: 1, background: '#F3F4F6' }}>
             {[
               { label: 'Avg Attendance', value: '78%', color: '#0071E3' },
               { label: 'Open Leads',     value: '4',   color: '#D97706' },
@@ -900,9 +857,9 @@ export default function DashboardClient({ userName, userEmail }: Props) {
               { label: 'Active Members', value: '421', color: '#6366F1' },
               { label: 'Classes Today',  value: '12',  color: '#0071E3' },
             ].map(s => (
-              <div key={s.label} className="flex flex-col gap-1 px-4 py-3" style={{ background: '#fff' }}>
-                <p style={{ fontSize: 11, color: '#9CA3AF' }}>{s.label}</p>
-                <p style={{ fontSize: 22, fontWeight: 700, color: s.color, letterSpacing: '-0.02em', lineHeight: 1 }}>{s.value}</p>
+              <div key={s.label} className="flex flex-col gap-1 px-2 py-2.5" style={{ background: '#fff' }}>
+                <p style={{ fontSize: 9, color: '#9CA3AF', lineHeight: 1.2 }}>{s.label}</p>
+                <p style={{ fontSize: 16, fontWeight: 700, color: s.color, letterSpacing: '-0.02em', lineHeight: 1 }}>{s.value}</p>
               </div>
             ))}
           </div>
