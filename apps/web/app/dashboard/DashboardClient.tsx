@@ -97,7 +97,7 @@ type NavItem = {
 
 const NAV_MAIN: NavItem[] = [
   { label: 'Dashboard', icon: Flame,          href: '/dashboard', active: true },
-  { label: 'Users',     icon: Users,          href: '#' },
+  { label: 'Users',     icon: Users,          href: '/dashboard/users' },
   { label: 'Classes',   icon: Calendar,       children: [
     { label: 'Classes',   href: '#' },
     { label: 'Events',    href: '#' },

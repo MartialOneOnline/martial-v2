@@ -297,3 +297,6 @@ Prototipo movido a apps/prototype/ en el monorepo
 - Figma mobile: sSrSP43cOvx4d0MA1NKg8U (login: 3:83 · register: 3:138)
 - Figma web landing: wLZEV2ENEGFDvNQNv2L532
 - Figma dashboard: CnmTRNGObXJeKJiXBagsPj
+- Figma referencia NZZL UI: i13PsZZiuRJ3sxSsRDs3RB
+  - Users page (Option 3): node 8460:12431 — tabla limpia, tabs underline, search dentro tabla, paginación, acción ojo+menú, bloque "User verification" al pie
+  - Dashboard: node 2502:30216 — KPI cards con progress bar, multi-line revenue chart, "Issues & disputes" + "Change log" en 2 columnas, date picker en topbar
