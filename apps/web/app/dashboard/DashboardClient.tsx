@@ -10,7 +10,8 @@ import {
   ChevronRight, ChevronLeft, ChevronDown, MoreHorizontal,
   GraduationCap, Filter, Download, ShoppingBag,
   BookOpen, UserCheck, FileText, ShieldCheck,
-  Flame, School, Receipt, Star,
+  Flame, School, Receipt, Star, Sparkles, Send, Lightbulb,
+  Menu, X, UserPlus, QrCode, Pencil,
 } from 'lucide-react'
 
 // ── Design tokens ──────────────────────────────────────────────────────────────
@@ -33,10 +34,10 @@ interface Props {
 // ── Simulated data ─────────────────────────────────────────────────────────────
 
 const STATS = [
-  { label: 'Total Students',  value: '665',    trend: '+14%', trendUp: true,  sub: 'vs last month'   },
-  { label: 'Active Classes',  value: '67',     trend: '+3',   trendUp: true,  sub: 'this week'       },
-  { label: 'Revenue',         value: '€3,586', trend: '+8%',  trendUp: true,  sub: 'vs last month'   },
-  { label: 'Total Bookings',  value: '29,466', trend: '+2%',  trendUp: true,  sub: 'all time'        },
+  { label: 'Students',     value: '665',    trend: '+14%', trendUp: true,  sub: 'vs last month'   },
+  { label: 'Active Classes', value: '67',   trend: '+3',   trendUp: true,  sub: 'this week'       },
+  { label: 'Revenue',      value: '€3,586', trend: '+8%',  trendUp: true,  sub: 'vs last month'   },
+  { label: 'Bookings',     value: '29,466', trend: '+2%',  trendUp: true,  sub: 'all time'        },
 ]
 
 const TRANSACTIONS = [
@@ -78,6 +79,13 @@ const DAYS = Array.from({ length: 14 }, (_, i) => {
   const d = new Date(2026, 5, 1 + i) // June 2026
   return { long: DAY_LABELS[d.getDay() === 0 ? 6 : d.getDay() - 1]!, num: d.getDate() }
 })
+
+const ACADEMY_ACTIONS = [
+  { icon: UserPlus, label: 'Invite'   },
+  { icon: Send,     label: 'Send'     },
+  { icon: QrCode,   label: 'QR code'  },
+  { icon: Pencil,   label: 'Edit'     },
+]
 
 type NavItem = {
   label: string
@@ -267,8 +275,17 @@ function NavGroup({ item }: { item: NavItem }) {
 }
 
 export default function DashboardClient({ userName, userEmail }: Props) {
-  const [period, setPeriod]   = useState<Period>('12 months')
-  const [activeDay, setActiveDay] = useState(1)
+  const [period, setPeriod]         = useState<Period>('12 months')
+  const [activeDay, setActiveDay]   = useState(() => {
+    const todayNum = new Date().getDate()
+    const idx = DAYS.findIndex(d => d.num === todayNum)
+    return idx >= 0 ? idx : 0
+  })
+  const [menuOpen, setMenuOpen]     = useState(false)
+  const [aiInput, setAiInput]       = useState('')
+  const [aiMessages, setAiMessages] = useState<{ role: 'ai' | 'user'; text: string }[]>([
+    { role: 'ai', text: '👋 I can help you manage your academy. Ask me anything.' },
+  ])
 
   const firstName = userName.split(' ')[0] ?? 'there'
   const hour      = new Date().getHours()
@@ -279,20 +296,45 @@ export default function DashboardClient({ userName, userEmail }: Props) {
       className="min-h-screen flex"
       style={{ background: '#F9FAFB', fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" }}
     >
-      {/* ── Sidebar ─────────────────────────────────────────────────────────── */}
+      <style>{`@media (min-width: 768px) { .dashboard-sidebar { transform: translateX(0) !important; } }`}</style>
+      {/* ── Mobile overlay ──────────────────────────────────────────────────── */}
+      {menuOpen && (
+        <div
+          className="fixed inset-0 z-40 md:hidden"
+          style={{ background: 'rgba(0,0,0,0.4)' }}
+          onClick={() => setMenuOpen(false)}
+        />
+      )}
+
+      {/* ── Sidebar (desktop: always visible / mobile: drawer) ──────────────── */}
       <aside
-        className="hidden md:flex fixed top-0 left-0 h-full flex-col z-30"
-        style={{ width: 232, background: '#fff', borderRight: '1px solid #E5E7EB' }}
+        className="dashboard-sidebar fixed top-0 left-0 h-full flex flex-col z-50"
+        style={{
+          width: 232,
+          background: '#fff',
+          borderRight: '1px solid #E5E7EB',
+          transform: menuOpen ? 'translateX(0)' : 'translateX(-232px)',
+          transition: 'transform 0.28s cubic-bezier(0.4,0,0.2,1)',
+        }}
       >
-        {/* Logo */}
-        <div className="flex items-center gap-3 px-5 py-5" style={{ borderBottom: '1px solid #E5E7EB' }}>
-          <div className="w-7 h-7 rounded-lg overflow-hidden shrink-0">
-            <Image src="/martial-logo.png" alt="Martial" width={28} height={28} className="object-contain" />
+        {/* Logo + close (mobile) */}
+        <div className="flex items-center justify-between px-5 py-5" style={{ borderBottom: '1px solid #E5E7EB' }}>
+          <div className="flex items-center gap-3">
+            <div className="w-7 h-7 rounded-lg overflow-hidden shrink-0">
+              <Image src="/martial-logo.png" alt="Martial" width={28} height={28} className="object-contain" />
+            </div>
+            <div>
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>MARTIAL</p>
+              <p style={{ fontSize: 10, fontWeight: 500, color: '#9CA3AF', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Academy</p>
+            </div>
           </div>
-          <div>
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>MARTIAL</p>
-            <p style={{ fontSize: 10, fontWeight: 500, color: '#9CA3AF', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Academy</p>
-          </div>
+          <button
+            className="md:hidden flex items-center justify-center w-7 h-7 rounded-lg cursor-pointer"
+            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}
+            onClick={() => setMenuOpen(false)}
+          >
+            <X size={14} style={{ color: '#6B7280' }} />
+          </button>
         </div>
 
         {/* Nav */}
@@ -355,37 +397,43 @@ export default function DashboardClient({ userName, userEmail }: Props) {
 
         {/* ── Top bar ───────────────────────────────────────────────────────── */}
         <div
-          className="flex items-center gap-3 px-8 py-4 sticky top-0 z-20"
+          className="flex items-center gap-2 px-4 md:px-8 py-3 sticky top-0 z-20"
           style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}
         >
-          {/* Search */}
-          <div className="flex-1 max-w-sm flex items-center gap-2 px-3 py-2 rounded-xl"
+          {/* Burger — mobile/tablet only */}
+          <button
+            id="burger-btn"
+            className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
+            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}
+            onClick={() => setMenuOpen(o => !o)}
+          >
+            <Menu size={16} style={{ color: '#374151' }} />
+          </button>
+
+          {/* Search — hidden on mobile */}
+          <div className="hidden sm:flex flex-1 max-w-xs items-center gap-2 px-3 py-2 rounded-xl"
             style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-            <Filter size={14} style={{ color: '#9CA3AF', flexShrink: 0 }} />
-            <input
-              type="text"
-              placeholder="Search..."
-              style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }}
-            />
+            <Filter size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
+            <input type="text" placeholder="Search..."
+              style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
           </div>
 
-          {/* Period pills */}
-          <div className="flex items-center gap-1 ml-2">
+          {/* Period pills — hidden on mobile */}
+          <div className="hidden md:flex items-center gap-1">
             {(['All time', '12 months', '30 days', '7 days'] as Period[]).map(p => (
               <button key={p} onClick={() => setPeriod(p)} style={{
                 fontSize: 12, fontWeight: 500, cursor: 'pointer',
                 color: period === p ? '#111827' : '#6B7280',
                 background: period === p ? '#F3F4F6' : 'transparent',
-                border: 'none', borderRadius: 8, padding: '5px 12px',
+                border: 'none', borderRadius: 8, padding: '5px 10px',
               }}>{p}</button>
             ))}
           </div>
 
-          {/* Spacer */}
           <div className="flex-1" />
 
-          {/* Date + time */}
-          <div className="flex items-center gap-2 px-3 py-2 rounded-xl"
+          {/* Date — hidden on mobile */}
+          <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl"
             style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', fontSize: 13, color: '#374151', whiteSpace: 'nowrap' }}>
             <Clock size={13} style={{ color: '#9CA3AF' }} />
             {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
@@ -399,26 +447,14 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           </button>
 
           {/* Language */}
-          <button className="w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer text-lg"
+          <button className="w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer text-base"
             style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
             🇬🇧
           </button>
 
-          {/* User avatar + name */}
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0"
-              style={{ background: '#111827', fontSize: 12, fontWeight: 700 }}>
-              {firstName[0]?.toUpperCase()}
-            </div>
-            <div className="hidden lg:block">
-              <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', lineHeight: 1.2 }}>{firstName}</p>
-              <p style={{ fontSize: 11, color: '#9CA3AF', lineHeight: 1.2 }}>Academy Owner</p>
-            </div>
-          </div>
-
           {/* Export */}
-          <button style={{
-            display: 'flex', alignItems: 'center', gap: 6,
+          <button className="hidden sm:flex" style={{
+            alignItems: 'center', gap: 6,
             fontSize: 13, fontWeight: 500, color: '#374151',
             background: '#fff', border: '1px solid #E5E7EB',
             borderRadius: 8, padding: '7px 14px', cursor: 'pointer',
@@ -428,45 +464,178 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           </button>
         </div>
 
-        <div className="px-8 py-6 flex flex-col gap-6 min-h-screen">
+        <div className="px-4 md:px-8 py-5 md:py-6 flex flex-col gap-5 md:gap-6 min-h-screen">
 
-          {/* Stat cards — no icons */}
+          {/* 1. Academy Info — mobile only */}
+          <div className="lg:hidden rounded-2xl overflow-hidden" style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
+            <div className="relative overflow-visible" style={{ height: 90 }}>
+              <div className="absolute inset-0 overflow-hidden rounded-t-2xl">
+                <Image src="/roger-gracie-malaga.jpg" alt="Roger Gracie Malaga" fill className="object-cover" />
+              </div>
+              <div className="absolute left-1/2 -translate-x-1/2 rounded-full overflow-hidden border-[3px] border-white"
+                style={{ width: 64, height: 64, bottom: -32, background: '#fff', boxShadow: '0 2px 10px rgba(0,0,0,0.18)', zIndex: 10 }}>
+                <Image src="/logo-roger-gracie.png" alt="Roger Gracie" width={64} height={64} className="object-contain" />
+              </div>
+            </div>
+            <div className="pt-10 pb-4 px-4 text-center">
+              <p style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>Roger Gracie Malaga</p>
+              <p style={{ fontSize: 12, color: '#9CA3AF' }}>Jiu Jitsu Academy</p>
+            </div>
+            <div className="px-4 pb-4 flex gap-2" style={{ borderTop: '1px solid #F3F4F6', paddingTop: 12 }}>
+              {ACADEMY_ACTIONS.map(({ icon: Icon, label }) => (
+                <button key={label} title={label} className="flex-1 h-9 flex items-center justify-center rounded-xl cursor-pointer"
+                  style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
+                  <Icon size={15} style={{ color: '#0071E3' }} />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 2. AI Suggested Actions — mobile only */}
+          <div className="lg:hidden rounded-2xl overflow-hidden" style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
+            <div className="flex items-center justify-between px-4 pt-4 pb-3" style={{ borderBottom: '1px solid #F3F4F6' }}>
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+                  style={{ background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)' }}>
+                  <Sparkles size={13} style={{ color: '#fff' }} />
+                </div>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', lineHeight: 1.2 }}>AI Assistant</p>
+                  <p style={{ fontSize: 10, color: '#9CA3AF', lineHeight: 1.2 }}>Powered by Martial AI</p>
+                </div>
+              </div>
+              <span style={{ fontSize: 10, fontWeight: 600, color: '#16A34A', background: '#F0FDF4', padding: '2px 8px', borderRadius: 999 }}>
+                Online
+              </span>
+            </div>
+            <div className="px-4 py-3">
+              <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+                Suggested Actions
+              </p>
+              <div className="space-y-3">
+                {[
+                  { insight: '12 students haven\'t attended in 3+ weeks.', action: 'Send re-engagement message' },
+                  { insight: 'BJJ Advanced is 93% full every session.',    action: 'Add an extra class this week' },
+                  { insight: '4 leads haven\'t been contacted in 7 days.', action: 'Follow up before they go cold' },
+                ].map((r, i, arr) => (
+                  <div key={i} style={{ paddingBottom: i < arr.length - 1 ? 12 : 0, borderBottom: i < arr.length - 1 ? '1px solid #F3F4F6' : 'none' }}>
+                    <p style={{ fontSize: 12, fontWeight: 500, color: '#111827', lineHeight: 1.4 }}>{r.insight}</p>
+                    <button style={{
+                      marginTop: 6, display: 'inline-flex', alignItems: 'center', gap: 4,
+                      fontSize: 12, fontWeight: 600, color: '#6366F1',
+                      background: '#EEF2FF', border: 'none', borderRadius: 8,
+                      padding: '5px 10px', cursor: 'pointer',
+                    }}>
+                      {r.action} →
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* 3. Stat cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {STATS.map(stat => (
               <div
                 key={stat.label}
                 className="rounded-2xl"
-                style={{ background: '#fff', border: '1px solid #E5E7EB', padding: '20px 22px 18px' }}
+                style={{ background: '#fff', border: '1px solid #E5E7EB', padding: '14px 14px 12px' }}
               >
                 {/* Label + trend */}
-                <div className="flex items-center justify-between mb-3">
-                  <span style={{ fontSize: 13, color: '#6B7280', whiteSpace: 'nowrap' }}>{stat.label}</span>
+                <div className="flex items-start justify-between gap-2 mb-3">
+                  <span style={{ fontSize: 11, color: '#9CA3AF', lineHeight: 1.3 }}>{stat.label}</span>
                   <span style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 2,
-                    fontSize: 12, fontWeight: 600,
+                    display: 'inline-flex', alignItems: 'center', gap: 2, flexShrink: 0,
+                    fontSize: 11, fontWeight: 600,
                     background: stat.trendUp ? '#F0FDF4' : '#FEF2F2',
                     color: stat.trendUp ? '#16A34A' : '#DC2626',
-                    padding: '2px 8px', borderRadius: 999,
+                    padding: '2px 7px', borderRadius: 999,
                   }}>
-                    {stat.trendUp ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+                    {stat.trendUp ? <TrendingUp size={9} /> : <TrendingDown size={9} />}
                     {stat.trend}
                   </span>
                 </div>
 
                 {/* Value */}
-                <p style={{ fontSize: 36, fontWeight: 700, color: '#111827', letterSpacing: '-0.03em', lineHeight: 1 }}>
+                <p className="text-3xl lg:text-4xl" style={{ fontWeight: 700, color: '#111827', letterSpacing: '-0.03em', lineHeight: 1 }}>
                   {stat.value}
                 </p>
 
                 {/* Sub-text */}
-                <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 8 }}>
-                  {stat.sub}
-                </p>
+                <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 8 }}>{stat.sub}</p>
               </div>
             ))}
           </div>
 
-          {/* Bookings chart — full width */}
+          {/* 4. Upcoming Classes — mobile only */}
+          <div className="lg:hidden rounded-2xl" style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
+            <div className="px-4 pt-4 pb-3" style={{ borderBottom: '1px solid #F3F4F6' }}>
+              <p style={{ fontSize: 12, color: '#9CA3AF' }}>Upcoming Classes</p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <p style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>
+                  {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
+                </p>
+                <Calendar size={13} style={{ color: '#9CA3AF' }} />
+              </div>
+            </div>
+            <div className="flex gap-1 px-3 py-2" style={{ borderBottom: '1px solid #F3F4F6', overflowX: 'auto', scrollbarWidth: 'none' }}>
+              {DAYS.map((d, i) => (
+                <button key={i} onClick={() => setActiveDay(i)} className="flex flex-col items-center shrink-0 py-1.5 cursor-pointer" style={{ background: 'none', border: 'none', minWidth: 36 }}>
+                  <span style={{ fontSize: 9, fontWeight: 500, color: activeDay === i ? '#0071E3' : '#9CA3AF', letterSpacing: '0.04em' }}>{d.long}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: activeDay === i ? '#0071E3' : '#374151', borderBottom: activeDay === i ? '2px solid #0071E3' : '2px solid transparent', paddingBottom: 1 }}>{d.num}</span>
+                </button>
+              ))}
+            </div>
+            <div className="px-4 py-3 space-y-3">
+              {TODAY_CLASSES.slice(0, 5).map((cls, i) => {
+                const pct = cls.enrolled / cls.cap
+                const capacityColor = pct >= 1 ? '#DC2626' : pct > 0.7 ? '#D97706' : '#16A34A'
+                return (
+                  <div key={cls.id} className="flex items-center gap-3" style={{ paddingBottom: i < 4 ? 12 : 0, borderBottom: i < 4 ? '1px solid #F9FAFB' : 'none' }}>
+                    <div className="shrink-0 rounded-xl overflow-hidden relative" style={{ width: 44, height: 44 }}>
+                      <Image src={cls.image} alt={cls.name} fill className="object-cover" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cls.name}</p>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: capacityColor, whiteSpace: 'nowrap' }}>{cls.enrolled}/{cls.cap}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-2 mt-1">
+                        <p style={{ fontSize: 11, color: '#9CA3AF' }}>{cls.time}</p>
+                        <StatusBadge status={cls.status} />
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* 5. Quick Stats — mobile only */}
+          <div className="lg:hidden rounded-2xl overflow-hidden" style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
+            <div className="px-4 pt-4 pb-3" style={{ borderBottom: '1px solid #F3F4F6' }}>
+              <p style={{ fontSize: 12, color: '#9CA3AF' }}>Quick Stats</p>
+              <p style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>Today</p>
+            </div>
+            <div className="grid grid-cols-3" style={{ gap: 1, background: '#F3F4F6' }}>
+              {[
+                { label: 'Avg Attendance', value: '78%', color: '#0071E3' },
+                { label: 'Open Leads',     value: '4',   color: '#D97706' },
+                { label: 'Gradings',       value: '167', color: '#16A34A' },
+                { label: 'Notifications',  value: '35',  color: '#DC2626' },
+                { label: 'Active Members', value: '421', color: '#6366F1' },
+                { label: 'Classes Today',  value: '12',  color: '#0071E3' },
+              ].map(s => (
+                <div key={s.label} className="flex flex-col gap-1 px-3 py-3" style={{ background: '#fff' }}>
+                  <p style={{ fontSize: 10, color: '#9CA3AF' }}>{s.label}</p>
+                  <p style={{ fontSize: 20, fontWeight: 700, color: s.color, letterSpacing: '-0.02em', lineHeight: 1 }}>{s.value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 6. Bookings chart — full width */}
           <div
             className="rounded-2xl"
             style={{ background: '#fff', border: '1px solid #E5E7EB', padding: '22px 26px' }}
@@ -483,7 +652,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
             <AreaChart />
           </div>
 
-          {/* Transactions */}
+          {/* 7. Transactions */}
           <div
             className="rounded-2xl overflow-hidden flex flex-col flex-1"
             style={{ background: '#fff', border: '1px solid #E5E7EB' }}
@@ -503,10 +672,17 @@ export default function DashboardClient({ userName, userEmail }: Props) {
             <table className="w-full">
               <thead>
                 <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
-                  {['Member', 'Method', 'Amount', 'Date', 'Status', ''].map(h => (
-                    <th key={h} className="px-7 py-3 text-left"
+                  {[
+                    { label: 'Member',  cls: '' },
+                    { label: 'Method',  cls: 'hidden sm:table-cell' },
+                    { label: 'Amount',  cls: '' },
+                    { label: 'Date',    cls: 'hidden md:table-cell' },
+                    { label: 'Status',  cls: 'hidden sm:table-cell' },
+                    { label: '',        cls: 'hidden sm:table-cell' },
+                  ].map(h => (
+                    <th key={h.label} className={`px-4 md:px-7 py-3 text-left ${h.cls}`}
                       style={{ fontSize: 12, fontWeight: 500, color: '#9CA3AF' }}>
-                      {h}
+                      {h.label}
                     </th>
                   ))}
                 </tr>
@@ -518,7 +694,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                     style={{ borderBottom: idx < TRANSACTIONS.length - 1 ? '1px solid #F9FAFB' : 'none' }}
                     className="hover:bg-[#FAFAFA] transition-colors"
                   >
-                    <td className="px-7 py-4">
+                    <td className="px-4 md:px-7 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-[#E5E7EB]">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -527,19 +703,19 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                         <span style={{ fontSize: 14, color: '#111827', whiteSpace: 'nowrap' }}>{tx.name}</span>
                       </div>
                     </td>
-                    <td className="px-7 py-4">
+                    <td className="hidden sm:table-cell px-4 md:px-7 py-4">
                       <span style={{ fontSize: 14, color: '#6B7280' }}>{tx.method}</span>
                     </td>
-                    <td className="px-7 py-4" style={{ whiteSpace: 'nowrap' }}>
+                    <td className="px-4 md:px-7 py-4" style={{ whiteSpace: 'nowrap' }}>
                       <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{tx.price}</span>
                     </td>
-                    <td className="px-7 py-4" style={{ whiteSpace: 'nowrap' }}>
+                    <td className="hidden md:table-cell px-4 md:px-7 py-4" style={{ whiteSpace: 'nowrap' }}>
                       <span style={{ fontSize: 13, color: '#6B7280' }}>{tx.date}</span>
                     </td>
-                    <td className="px-7 py-4">
+                    <td className="hidden sm:table-cell px-4 md:px-7 py-4">
                       <StatusBadge status={tx.status} />
                     </td>
-                    <td className="px-7 py-4">
+                    <td className="hidden sm:table-cell px-4 md:px-7 py-4">
                       <button className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
                         style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
                         onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#F9FAFB' }}
@@ -553,6 +729,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
               </tbody>
             </table>
           </div>
+
 
         </div>
       </main>
@@ -590,15 +767,9 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           </div>
           {/* Action buttons */}
           <div className="px-4 pb-4 flex gap-2" style={{ borderTop: '1px solid #F3F4F6', paddingTop: 12 }}>
-            {[
-              { icon: Users,       title: 'Add student' },
-              { icon: MessageSquare, title: 'Message' },
-              { icon: BarChart2,   title: 'Stats' },
-              { icon: MoreHorizontal, title: 'More' },
-            ].map(({ icon: Icon, title }) => (
+            {ACADEMY_ACTIONS.map(({ icon: Icon, label }) => (
               <button
-                key={title}
-                title={title}
+                key={label}
                 className="flex-1 h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all"
                 style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#EFF6FF'; (e.currentTarget as HTMLElement).style.borderColor = '#0071E3' }}
@@ -610,25 +781,55 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           </div>
         </div>
 
-        {/* Quick Stats */}
-        <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #E5E7EB' }}>
-          <div className="px-4 pt-4 pb-3" style={{ borderBottom: '1px solid #F3F4F6' }}>
-            <p style={{ fontSize: 12, color: '#9CA3AF' }}>Quick Stats</p>
-            <p style={{ fontSize: 16, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>Today</p>
-          </div>
-          <div className="grid grid-cols-2" style={{ gap: 1, background: '#F3F4F6' }}>
-            {[
-              { label: 'Avg Attendance', value: '78%', color: '#0071E3' },
-              { label: 'Open Leads',     value: '4',   color: '#D97706' },
-              { label: 'Gradings',       value: '167', color: '#16A34A' },
-              { label: 'Notifications',  value: '35',  color: '#DC2626' },
-            ].map(s => (
-              <div key={s.label} className="flex flex-col gap-1 px-4 py-3" style={{ background: '#fff' }}>
-                <p style={{ fontSize: 11, color: '#9CA3AF' }}>{s.label}</p>
-                <p style={{ fontSize: 22, fontWeight: 700, color: s.color, letterSpacing: '-0.02em', lineHeight: 1 }}>{s.value}</p>
+        {/* AI Assistant */}
+        <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
+
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 pt-4 pb-3" style={{ borderBottom: '1px solid #F3F4F6' }}>
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+                style={{ background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)' }}>
+                <Sparkles size={13} style={{ color: '#fff' }} />
               </div>
-            ))}
+              <div>
+                <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', lineHeight: 1.2 }}>AI Assistant</p>
+                <p style={{ fontSize: 10, color: '#9CA3AF', lineHeight: 1.2 }}>Powered by Martial AI</p>
+              </div>
+            </div>
+            <span style={{ fontSize: 10, fontWeight: 600, color: '#16A34A', background: '#F0FDF4', padding: '2px 8px', borderRadius: 999 }}>
+              Online
+            </span>
           </div>
+
+          {/* Suggested Actions */}
+          <div className="px-4 py-3" style={{ maxHeight: 200, overflowY: 'auto', scrollbarWidth: 'none' }}>
+            <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+              Suggested Actions
+            </p>
+            <div className="space-y-3">
+              {[
+                { insight: '12 students haven\'t attended in 3+ weeks.', action: 'Send re-engagement message' },
+                { insight: 'BJJ Advanced is 93% full every session.',    action: 'Add an extra class this week' },
+                { insight: '4 leads haven\'t been contacted in 7 days.', action: 'Follow up before they go cold' },
+                { insight: 'Attendance up 14% — students are engaged.',  action: 'Good time to schedule a grading' },
+                { insight: 'Revenue down 5% vs last month.',             action: 'Review membership pricing' },
+                { insight: '3 students birthday this week.',             action: 'Send a birthday message' },
+              ].map((r, i, arr) => (
+                <div key={i} style={{ paddingBottom: i < arr.length - 1 ? 12 : 0, borderBottom: i < arr.length - 1 ? '1px solid #F3F4F6' : 'none' }}>
+                  <p style={{ fontSize: 12, fontWeight: 500, color: '#111827', lineHeight: 1.4 }}>{r.insight}</p>
+                  <button style={{
+                    marginTop: 6, display: 'inline-flex', alignItems: 'center', gap: 4,
+                    fontSize: 11, fontWeight: 600, color: '#6366F1',
+                    background: '#EEF2FF', border: 'none', borderRadius: 7,
+                    padding: '4px 9px', cursor: 'pointer',
+                  }}>
+                    {r.action} →
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
         </div>
 
         {/* Upcoming Classes */}
@@ -704,8 +905,28 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           </div>
         </div>
 
-        {/* Placeholder card */}
-        <div className="rounded-2xl flex-1" style={{ border: '1px solid #E5E7EB', background: '#fff' }} />
+        {/* Quick Stats */}
+        <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #E5E7EB' }}>
+          <div className="px-4 pt-4 pb-3" style={{ borderBottom: '1px solid #F3F4F6' }}>
+            <p style={{ fontSize: 12, color: '#9CA3AF' }}>Quick Stats</p>
+            <p style={{ fontSize: 16, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>Today</p>
+          </div>
+          <div className="grid grid-cols-2" style={{ gap: 1, background: '#F3F4F6' }}>
+            {[
+              { label: 'Avg Attendance', value: '78%', color: '#0071E3' },
+              { label: 'Open Leads',     value: '4',   color: '#D97706' },
+              { label: 'Gradings',       value: '167', color: '#16A34A' },
+              { label: 'Notifications',  value: '35',  color: '#DC2626' },
+              { label: 'Active Members', value: '421', color: '#6366F1' },
+              { label: 'Classes Today',  value: '12',  color: '#0071E3' },
+            ].map(s => (
+              <div key={s.label} className="flex flex-col gap-1 px-4 py-3" style={{ background: '#fff' }}>
+                <p style={{ fontSize: 11, color: '#9CA3AF' }}>{s.label}</p>
+                <p style={{ fontSize: 22, fontWeight: 700, color: s.color, letterSpacing: '-0.02em', lineHeight: 1 }}>{s.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
 
       </aside>
 
