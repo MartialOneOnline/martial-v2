@@ -100,7 +100,7 @@ const NAV_MAIN: NavItem[] = [
     { label: 'Calendar',  href: '/dashboard/classes/calendar' },
     { label: 'Timetable', href: '/dashboard/classes/timetable' },
   ]},
-  { label: 'Memberships', icon: Award,      href: '#' },
+  { label: 'Memberships', icon: Award,      href: '/dashboard/memberships' },
   { label: 'Payments',    icon: CreditCard, children: [
     { label: 'Transactions', href: '#' }, { label: 'Subscriptions', href: '#' },
   ]},

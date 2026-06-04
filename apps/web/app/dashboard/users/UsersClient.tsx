@@ -70,7 +70,7 @@ const NAV_MAIN: NavItem[] = [
     { label: 'Classes', href: '/dashboard/classes' }, { label: 'Events', href: '#' },
     { label: 'Calendar', href: '#' }, { label: 'Timetable', href: '#' },
   ]},
-  { label: 'Memberships', icon: Award,      href: '#' },
+  { label: 'Memberships', icon: Award,      href: '/dashboard/memberships' },
   { label: 'Payments',    icon: CreditCard, children: [
     { label: 'Transactions', href: '#' }, { label: 'Subscriptions', href: '#' },
   ]},
