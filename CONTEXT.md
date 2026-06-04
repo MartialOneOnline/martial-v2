@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 12 completada ✅ — Classes page + Timetable page (calendar + list + drawer)
+**Estado:** Sesión 13 completada ✅ — Timetable corregido + Calendar page + Events page
 
 ---
 
@@ -121,6 +121,10 @@ npm run dev
 | apps/web /login | http://localhost:3000/login | ✅ Diseño Figma + Supabase |
 | apps/web /register | http://localhost:3000/register | ✅ Diseño Figma + Supabase |
 | apps/web /dashboard | http://localhost:3000/dashboard | ✅ Protegido |
+| apps/web /dashboard/classes | http://localhost:3000/dashboard/classes | ✅ Implementado |
+| apps/web /dashboard/classes/events | http://localhost:3000/dashboard/classes/events | ✅ Implementado |
+| apps/web /dashboard/classes/calendar | http://localhost:3000/dashboard/classes/calendar | ✅ Implementado |
+| apps/web /dashboard/classes/timetable | http://localhost:3000/dashboard/classes/timetable | ✅ Implementado |
 | apps/mobile | exp://localhost:8081 | ✅ Expo Go |
 
 ---
@@ -167,13 +171,13 @@ Tablas en Supabase: `users`, `schools`
 
 ---
 
-## Próximos pasos (Sesión 13)
+## Próximos pasos (Sesión 14)
 
-1. **LoginModal** — popup en homepage (`app/page.tsx`) con SSO + Email
-2. **Differenciación Practitioner vs Business** en el registro (selector de rol)
-3. **Homepage** — ajustes finales diseño AI Studio → Next.js
-4. **SSO OAuth** — configurar Google en Supabase (Apple/Facebook después)
-5. **Memberships page** — siguiente módulo del dashboard
+1. **Memberships page** — siguiente módulo del dashboard (`/dashboard/memberships`)
+2. **Payments > Transactions** — tabla de transacciones con filtros y exportar
+3. **LoginModal** — popup en homepage con SSO + Email
+4. **SSO OAuth** — configurar Google en Supabase
+5. **Homepage** — ajustes finales diseño AI Studio → Next.js
 
 ---
 
@@ -243,6 +247,39 @@ Prototipo movido a apps/prototype/ en el monorepo
 - Filtro por location en la vista calendario (All / Main Academy / Branch Malaga)
 - Color coding por actividad (BJJ, NOGI, Wrestling, Kids BJJ, Yoga, Open Mat, Competition)
 - Commits: b8b9623, c3bbe37
+
+### Sesión 13 — 2026-06-04 ✅
+**Timetable — correcciones completas:**
+- TODAY fijado a June 4 2026 (Thu) — antes hardcoded a June 1 (Mon) → today incorrecto
+- `todayIdx` dinámico (ya no hardcodeado) → columna de hoy correcta (Thu=3)
+- Indicador de hora actual (línea roja + círculo) en columna de hoy
+- Auto-scroll al montar: posiciona en 10:30 AM automáticamente
+- `TIMETABLE_LIST` corregida: fechas únicas reales, añadidos campos `days`, `time`, `instructor`
+- Lista view: columnas rediseñadas (Schedule, Instructor, Period en vez de dos fechas iguales)
+- Lista view: búsqueda + chips de filtro por actividad + empty state
+- Drawer: campo Activity y Capacity añadidos; form se resetea al reabrir
+- Commits: varios (606d346, 9e4bcff…)
+
+**Calendar page** (`/dashboard/classes/calendar`):
+- Vista **Mes** (default): grid 5–6 semanas, chips de clases por día con color coding, +N more expandible, hoy resaltado en azul, clic en número de día → salta a vista semana
+- Vista **Semana**: idéntica a Timetable (time grid, class blocks, indicador hora actual, auto-scroll)
+- **Date Picker**: popover compacto al clicar "📅 June 2026", mini calendario con nav de meses, "Go to today", seleccionar fecha cierra el picker y actualiza la vista
+- Filtro por location (All / Main Academy / Branch Malaga)
+- Drawer "Add Class to Calendar" + success modal
+- Nav link `Calendar` actualizado de `#` → `/dashboard/classes/calendar` en todos los clientes
+- Commit: 77b63fc
+
+**Events page** (`/dashboard/classes/events`):
+- 12 eventos mock: Seminars, Competitions, Gradings, Open Mats, Camps, Socials
+- Stats: Total Events, Upcoming, This Month, Sold Out
+- Filtros: All / Upcoming / Past / Sold Out / Cancelled
+- Búsqueda por título, instructor, tipo, location
+- Tabla: imagen + título + type badge color-coded + ⭐ featured, fecha+hora, host, location (pin), barra de spots (rojo cuando full), precio (verde si Free), status badge, actions menu
+- Actions: View registrations / Edit / Duplicate / Cancel event
+- Create Event drawer: banner, tipo, fecha+horas, instructor libre+datalist, precio+toggle Free, deadline registro, max registros/persona, toggle Featured, descripción, checkboxes legales → "Publish Event"
+- Success modal "Event Published!"
+- Nav link `Events` actualizado de `#` → `/dashboard/classes/events` en todos los clientes
+- Commit: bc79fb1
 
 ---
 
