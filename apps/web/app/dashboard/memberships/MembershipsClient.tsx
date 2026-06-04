@@ -9,7 +9,7 @@ import {
   School, ShoppingBag, ChevronRight, ChevronDown,
   Menu, X, Plus, MoreHorizontal, Search,
   ChevronLeft, TrendingUp, Check, Upload, Eye,
-  Clock, Zap, RefreshCw, ToggleLeft,
+  Clock, Zap, RefreshCw, ToggleLeft, Infinity, Hash,
 } from 'lucide-react'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -51,11 +51,16 @@ const TRIAL_MEMBERSHIPS: Membership[] = [
   { id:2, image:'/five-elements-jiu-jitsu.jpg', name:'30-Day Trial',     classes:['BJJ','NOGI'],            price:'€29.00', billing:'30 Days', members:7,  status:'Active', public:true  },
 ]
 
-// Classes available for access config (from V1 design)
-const ALL_CLASSES = [
-  'Graduación', 'Graduación 6 J', 'Jiu Jitsu Avanzado', 'Jiu Jitsu Iniciación',
-  'Jiu Jitsu Todos', 'NOGI', 'Open Mat', 'Seminario Bruno', 'Seminario Mestr',
-  'Seminario y Graduación',
+// Activity types for class access selection
+const ACTIVITY_TYPES = [
+  { key: 'BJJ',          bg: '#EFF6FF', color: '#1D4ED8', border: '#BFDBFE' },
+  { key: 'NOGI',         bg: '#F5F3FF', color: '#6D28D9', border: '#DDD6FE' },
+  { key: 'Wrestling',    bg: '#FFF7ED', color: '#C2410C', border: '#FED7AA' },
+  { key: 'BJJ Kids',     bg: '#F0FDF4', color: '#15803D', border: '#BBF7D0' },
+  { key: 'Yoga',         bg: '#F0FDFA', color: '#0F766E', border: '#99F6E4' },
+  { key: 'Open Mat',     bg: '#F9FAFB', color: '#374151', border: '#E5E7EB' },
+  { key: 'BJJ Comp',     bg: '#FEF2F2', color: '#B91C1C', border: '#FECACA' },
+  { key: 'Self Defence', bg: '#FFFBEB', color: '#B45309', border: '#FDE68A' },
 ]
 
 const CLASS_COLORS: Record<string, { bg: string; color: string; border: string }> = {
@@ -202,253 +207,260 @@ function StatusBadge({ status }: { status: MembershipStatus }) {
 }
 
 // ── Create Membership Drawer ───────────────────────────────────────────────────
-interface DrawerClassRow { enabled: boolean; unlimited: boolean; frequency: string; type: string }
+type AccessMode = 'unlimited' | 'limited' | 'single'
 
 function CreateMembershipDrawer({ open, onClose, onSuccess }: {
   open: boolean; onClose: () => void; onSuccess: () => void
 }) {
-  const [classRows, setClassRows] = useState<DrawerClassRow[]>(
-    ALL_CLASSES.map(() => ({ enabled: true, unlimited: true, frequency: '0', type: 'None' }))
+  const [selectedClasses, setSelectedClasses] = useState<string[]>(
+    ACTIVITY_TYPES.map(a => a.key)  // all selected by default
   )
-  const [isPublic, setIsPublic] = useState(true)
-  const [bannerDrag, setBannerDrag] = useState(false)
-  const [freqUnit, setFreqUnit] = useState('Month')
-  const [bookFreqUnit, setBookFreqUnit] = useState('Week')
+  const [accessMode, setAccessMode]   = useState<AccessMode>('unlimited')
+  const [limitN, setLimitN]           = useState('4')
+  const [limitPer, setLimitPer]       = useState('Week')
+  const [freqUnit, setFreqUnit]       = useState('Month')
+  const [bannerDrag, setBannerDrag]   = useState(false)
+  const [legalChecked, setLegalChecked] = useState({ terms: false, privacy: false })
 
-  const iStyle: React.CSSProperties = {
-    border: '1px solid #E5E7EB', borderRadius: 8, padding: '8px 10px',
-    fontSize: 13, color: '#111827', background: '#fff', outline: 'none', width: '100%',
+  const inputStyle: React.CSSProperties = {
+    width: '100%', border: '1px solid #E5E7EB', borderRadius: 10, padding: '9px 12px',
+    fontSize: 13, color: '#111827', background: '#fff', outline: 'none',
   }
-  const lStyle: React.CSSProperties = { display: 'block', fontSize: 11, fontWeight: 600, color: '#374151', marginBottom: 4 }
-
-  function toggleClass(idx: number) {
-    setClassRows(prev => prev.map((r, i) => i === idx ? { ...r, enabled: !r.enabled } : r))
-  }
-  function toggleUnlimited(idx: number) {
-    setClassRows(prev => prev.map((r, i) => i === idx ? { ...r, unlimited: !r.unlimited } : r))
-  }
-  function setFreq(idx: number, v: string) {
-    setClassRows(prev => prev.map((r, i) => i === idx ? { ...r, frequency: v } : r))
-  }
-  function setType(idx: number, v: string) {
-    setClassRows(prev => prev.map((r, i) => i === idx ? { ...r, type: v } : r))
+  const labelStyle: React.CSSProperties = {
+    display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 5,
   }
 
-  const Toggle = ({ on, onToggle }: { on: boolean; onToggle: () => void }) => (
-    <div onClick={onToggle} className="cursor-pointer select-none flex items-center"
-      style={{ width: 40, height: 22, borderRadius: 99, background: on ? '#0071E3' : '#E5E7EB',
-        padding: '2px', justifyContent: on ? 'flex-end' : 'flex-start',
-        transition: 'background 0.18s', display: 'flex' }}>
-      <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#fff',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'all 0.18s' }} />
-    </div>
-  )
+  function toggleClass(key: string) {
+    setSelectedClasses(prev =>
+      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+    )
+  }
+
+  const ACCESS_OPTIONS: { id: AccessMode; icon: React.ElementType; label: string; sub: string }[] = [
+    { id: 'unlimited', icon: Infinity,  label: 'Unlimited',   sub: 'No session limit'            },
+    { id: 'limited',   icon: Hash,      label: 'Limited',     sub: 'N sessions per week / month' },
+    { id: 'single',    icon: Zap,       label: 'Single use',  sub: 'One session only'             },
+  ]
 
   return (
     <>
       <div className="fixed inset-0 z-40 transition-opacity"
         style={{ background: 'rgba(0,0,0,0.35)', opacity: open ? 1 : 0, pointerEvents: open ? 'auto' : 'none' }}
         onClick={onClose} />
-      <div className="fixed top-0 right-0 h-full z-50 flex flex-col"
-        style={{ width: 'min(800px,96vw)', background: '#F9FAFB',
+
+      <div className="fixed top-0 right-0 h-full z-50 flex flex-col overflow-hidden"
+        style={{ width: 'min(900px,96vw)', background: '#F9FAFB',
           boxShadow: '-4px 0 32px rgba(0,0,0,0.12)',
           transform: open ? 'translateX(0)' : 'translateX(100%)',
           transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)' }}>
 
-        {/* Header */}
-        <div className="flex items-center justify-between px-7 py-5 shrink-0"
+        {/* Header — same as other drawers */}
+        <div className="flex items-center justify-between px-8 py-5 shrink-0"
           style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
           <div>
-            <h2 style={{ fontSize: 17, fontWeight: 700, color: '#111827', margin: 0, letterSpacing: '-0.02em' }}>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111827', margin: 0, letterSpacing: '-0.02em' }}>
               Create Membership
             </h2>
             <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>
-              Configure a new subscription plan or pass
+              Configure a new subscription plan, pass or trial
             </p>
           </div>
-          <button onClick={onClose} className="w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
+          <button onClick={onClose}
+            className="w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
             style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
             <X size={15} style={{ color: '#6B7280' }} />
           </button>
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-7 py-6 flex flex-col gap-6">
+        <div className="flex-1 overflow-y-auto px-8 py-6">
+          <div className="flex gap-8" style={{ alignItems: 'flex-start' }}>
 
-          {/* Name + Public */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label style={lStyle}>Name</label>
-              <input type="text" placeholder="e.g. Jiu Jitsu Mensual" style={iStyle} />
-            </div>
-            <div>
-              <label style={lStyle}>Public</label>
-              <div className="flex items-center gap-3 mt-1">
-                <Toggle on={isPublic} onToggle={() => setIsPublic(v => !v)} />
-                <span style={{ fontSize: 13, color: isPublic ? '#111827' : '#9CA3AF', fontWeight: 500 }}>
-                  {isPublic ? 'Yes — visible to members' : 'No — hidden'}
-                </span>
+            {/* Left — form */}
+            <div className="flex-1 min-w-0 flex flex-col gap-5">
+
+              {/* Name + Public */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label style={labelStyle}>Membership Name</label>
+                  <input type="text" placeholder="e.g. Jiu Jitsu Mensual" style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Visibility</label>
+                  <select style={inputStyle}>
+                    <option value="yes">Public — visible to members</option>
+                    <option value="no">Private — hidden</option>
+                  </select>
+                </div>
               </div>
-            </div>
-          </div>
 
-          {/* Description */}
-          <div>
-            <label style={lStyle}>Description</label>
-            <textarea rows={3} placeholder="Describe what's included in this membership…"
-              style={{ ...iStyle, resize: 'vertical', lineHeight: 1.6 }} />
-          </div>
+              {/* Description */}
+              <div>
+                <label style={labelStyle}>Description</label>
+                <textarea rows={3} placeholder="What's included in this plan…"
+                  style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }} />
+              </div>
 
-          {/* Price + Billing */}
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label style={lStyle}>Price (€)</label>
-              <input type="number" placeholder="65.00" min={0} step={0.01} style={iStyle} />
-            </div>
-            <div>
-              <label style={lStyle}>Billing Every</label>
-              <input type="number" placeholder="1" min={1} style={iStyle} />
-            </div>
-            <div>
-              <label style={lStyle}>Frequency</label>
-              <select value={freqUnit} onChange={e => setFreqUnit(e.target.value)} style={iStyle}>
-                {['Day', 'Week', 'Month', 'Year'].map(u => <option key={u}>{u}</option>)}
-              </select>
-            </div>
-          </div>
+              {/* Price + Billing */}
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label style={labelStyle}>Price (€)</label>
+                  <input type="number" placeholder="65.00" min={0} step={0.01} style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Billing Every</label>
+                  <input type="number" placeholder="1" min={1} style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Frequency</label>
+                  <select value={freqUnit} onChange={e => setFreqUnit(e.target.value)} style={inputStyle}>
+                    {['Day', 'Week', 'Month', 'Year'].map(u => <option key={u}>{u}</option>)}
+                  </select>
+                </div>
+              </div>
 
-          {/* Image + Stripe */}
-          <div className="grid grid-cols-2 gap-4">
-            {/* Image upload */}
-            <div>
-              <label style={lStyle}>Image (325 × 261)</label>
-              <div onDragEnter={() => setBannerDrag(true)} onDragLeave={() => setBannerDrag(false)}
+              {/* Allowed class types */}
+              <div>
+                <label style={labelStyle}>Allowed Class Types</label>
+                <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 10, marginTop: -2 }}>
+                  Select which types of classes this membership gives access to
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {ACTIVITY_TYPES.map(({ key, bg, color, border }) => {
+                    const on = selectedClasses.includes(key)
+                    return (
+                      <button key={key} onClick={() => toggleClass(key)}
+                        className="cursor-pointer transition-all"
+                        style={{ fontSize: 12, fontWeight: 600, padding: '6px 14px', borderRadius: 99,
+                          background: on ? bg : '#F9FAFB',
+                          color: on ? color : '#9CA3AF',
+                          border: '1.5px solid ' + (on ? border : '#E5E7EB'),
+                          transition: 'all 0.15s' }}>
+                        {key}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Training access mode */}
+              <div>
+                <label style={labelStyle}>Training Access</label>
+                <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 10, marginTop: -2 }}>
+                  How many sessions can the member attend per billing period?
+                </p>
+
+                {/* 3 option cards */}
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                  {ACCESS_OPTIONS.map(({ id, icon: Icon, label, sub }) => {
+                    const on = accessMode === id
+                    return (
+                      <button key={id} onClick={() => setAccessMode(id)}
+                        className="flex flex-col items-start gap-1.5 rounded-xl p-4 cursor-pointer text-left"
+                        style={{ border: '1.5px solid ' + (on ? '#0071E3' : '#E5E7EB'),
+                          background: on ? '#EFF6FF' : '#fff',
+                          transition: 'all 0.15s' }}>
+                        <div className="flex items-center justify-between w-full">
+                          <Icon size={16} style={{ color: on ? '#0071E3' : '#9CA3AF' }} />
+                          {on && (
+                            <div className="w-4 h-4 rounded-full flex items-center justify-center"
+                              style={{ background: '#0071E3' }}>
+                              <Check size={9} style={{ color: '#fff' }} strokeWidth={3} />
+                            </div>
+                          )}
+                        </div>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: on ? '#0071E3' : '#374151' }}>{label}</p>
+                        <p style={{ fontSize: 11, color: '#9CA3AF', lineHeight: 1.3 }}>{sub}</p>
+                      </button>
+                    )
+                  })}
+                </div>
+
+                {/* Limited config — only shown when mode = limited */}
+                {accessMode === 'limited' && (
+                  <div className="flex items-center gap-3 rounded-xl px-4 py-3"
+                    style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
+                    <span style={{ fontSize: 13, color: '#6B7280', whiteSpace: 'nowrap' }}>Allow</span>
+                    <input type="number" value={limitN} min={1} onChange={e => setLimitN(e.target.value)}
+                      style={{ ...inputStyle, width: 72, textAlign: 'center', fontWeight: 700,
+                        fontSize: 16, color: '#111827' }} />
+                    <span style={{ fontSize: 13, color: '#6B7280', whiteSpace: 'nowrap' }}>sessions per</span>
+                    <select value={limitPer} onChange={e => setLimitPer(e.target.value)}
+                      style={{ ...inputStyle, width: 'auto', flex: 1 }}>
+                      {['Day', 'Week', 'Month'].map(u => <option key={u}>{u}</option>)}
+                    </select>
+                  </div>
+                )}
+              </div>
+
+            </div>
+
+            {/* Right — image */}
+            <div style={{ width: 240, flexShrink: 0 }}>
+              <label style={labelStyle}>Membership Image</label>
+              <div
+                onDragEnter={() => setBannerDrag(true)}
+                onDragLeave={() => setBannerDrag(false)}
                 onDrop={() => setBannerDrag(false)}
-                className="flex items-center gap-3 rounded-xl cursor-pointer"
-                style={{ border: `2px dashed ${bannerDrag ? '#0071E3' : '#D1D5DB'}`,
-                  background: bannerDrag ? '#EFF6FF' : '#fff', padding: '10px 14px' }}>
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                className="flex flex-col items-center justify-center gap-3 rounded-2xl cursor-pointer"
+                style={{ height: 180, border: `2px dashed ${bannerDrag ? '#0071E3' : '#D1D5DB'}`,
+                  background: bannerDrag ? '#EFF6FF' : '#fff' }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center"
                   style={{ background: '#F3F4F6' }}>
-                  <Upload size={14} style={{ color: '#9CA3AF' }} />
+                  <Upload size={18} style={{ color: '#9CA3AF' }} />
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className="text-center">
                   <p style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>Drop image here</p>
-                  <p style={{ fontSize: 11, color: '#9CA3AF' }}>PNG, JPG — max 5 MB</p>
+                  <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>PNG, JPG up to 5 MB</p>
                 </div>
-                <label className="px-3 py-1.5 rounded-lg cursor-pointer shrink-0"
-                  style={{ fontSize: 12, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
+                <label className="px-3 py-1.5 rounded-lg cursor-pointer"
+                  style={{ fontSize: 12, fontWeight: 500, border: '1px solid #E5E7EB',
+                    background: '#fff', color: '#374151' }}>
                   Browse<input type="file" accept="image/*" className="hidden" />
                 </label>
               </div>
-            </div>
-
-            {/* Stripe + Method */}
-            <div className="flex flex-col gap-4">
-              <div>
-                <label style={lStyle}>Stripe Price ID</label>
-                <input type="text" placeholder="price_1P2abc…" style={iStyle} />
-              </div>
-              <div>
-                <label style={lStyle}>Method</label>
-                <select style={iStyle}>
-                  <option value="">Select payment method…</option>
-                  <option>Card</option>
-                  <option>SEPA Direct Debit</option>
-                  <option>Cash</option>
-                  <option>Transfer</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Class access table */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <p style={{ fontSize: 13, fontWeight: 700, color: '#0071E3' }}>Class Access</p>
-              <p style={{ fontSize: 11, color: '#9CA3AF' }}>Toggle which classes are included in this plan</p>
-            </div>
-            <div className="rounded-xl overflow-hidden" style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
-              <table className="w-full">
-                <thead>
-                  <tr style={{ borderBottom: '1px solid #F3F4F6', background: '#F9FAFB' }}>
-                    {['Class Name', 'Include', 'Limited / Unlimited', 'Frequency', 'Type'].map(h => (
-                      <th key={h} className="px-4 py-2.5 text-left"
-                        style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF',
-                          textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {ALL_CLASSES.map((cls, idx) => {
-                    const row = classRows[idx]!
-                    return (
-                      <tr key={cls}
-                        style={{ borderBottom: idx < ALL_CLASSES.length - 1 ? '1px solid #F9FAFB' : 'none',
-                          opacity: row.enabled ? 1 : 0.4, transition: 'opacity 0.15s' }}>
-                        <td className="px-4 py-2.5">
-                          <span style={{ fontSize: 13, fontWeight: 500, color: '#374151' }}>{cls}</span>
-                        </td>
-                        <td className="px-4 py-2.5">
-                          <Toggle on={row.enabled} onToggle={() => toggleClass(idx)} />
-                        </td>
-                        <td className="px-4 py-2.5">
-                          <Toggle on={row.unlimited} onToggle={() => toggleUnlimited(idx)} />
-                        </td>
-                        <td className="px-4 py-2.5">
-                          <input type="number" value={row.frequency} min={0}
-                            disabled={!row.enabled || row.unlimited}
-                            onChange={e => setFreq(idx, e.target.value)}
-                            style={{ ...iStyle, width: 72, padding: '5px 8px', fontSize: 12,
-                              opacity: (!row.enabled || row.unlimited) ? 0.4 : 1,
-                              cursor: (!row.enabled || row.unlimited) ? 'not-allowed' : 'text' }} />
-                        </td>
-                        <td className="px-4 py-2.5">
-                          <select disabled={!row.enabled} value={row.type}
-                            onChange={e => setType(idx, e.target.value)}
-                            style={{ ...iStyle, width: 100, padding: '5px 8px', fontSize: 12,
-                              opacity: row.enabled ? 1 : 0.4,
-                              cursor: row.enabled ? 'pointer' : 'not-allowed' }}>
-                            {['None', 'Book', 'Drop-in', 'Unlimited'].map(t => <option key={t}>{t}</option>)}
-                          </select>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Total max bookings */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label style={lStyle}>Total Maximum Bookings</label>
-              <input type="number" placeholder="Leave empty for unlimited" min={0} style={iStyle} />
-            </div>
-            <div>
-              <label style={lStyle}>Booking Frequency</label>
-              <select value={bookFreqUnit} onChange={e => setBookFreqUnit(e.target.value)} style={iStyle}>
-                {['Day', 'Week', 'Month', 'Year'].map(u => <option key={u}>{u}</option>)}
-              </select>
+              <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 8 }}>Recommended: 325 × 261px</p>
             </div>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="px-7 py-4 flex items-center justify-end gap-3 shrink-0"
+        {/* Footer — same as other drawers */}
+        <div className="px-8 py-5 flex flex-col gap-4 shrink-0"
           style={{ background: '#fff', borderTop: '1px solid #E5E7EB' }}>
-          <button onClick={onClose}
-            className="px-5 py-2.5 rounded-xl cursor-pointer"
-            style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
-            Cancel
-          </button>
-          <button onClick={onSuccess}
-            className="px-6 py-2.5 rounded-xl cursor-pointer"
-            style={{ fontSize: 13, fontWeight: 600, border: 'none', background: '#0071E3', color: '#fff' }}>
-            Create Membership
-          </button>
+          <div className="flex flex-col gap-2">
+            {([
+              { key: 'terms',   label: 'I confirm the membership details are accurate and agree to the Terms & Conditions' },
+              { key: 'privacy', label: 'Member data will be handled in accordance with the Privacy Policy' },
+            ] as const).map(({ key, label }) => (
+              <label key={key} className="flex items-center gap-2 cursor-pointer">
+                <div onClick={() => setLegalChecked(p => ({ ...p, [key]: !p[key] }))}
+                  className="flex items-center justify-center rounded-md flex-shrink-0"
+                  style={{ width: 16, height: 16,
+                    border: `1.5px solid ${legalChecked[key] ? '#0071E3' : '#D1D5DB'}`,
+                    background: legalChecked[key] ? '#0071E3' : '#fff', cursor: 'pointer' }}>
+                  {legalChecked[key] && <Check size={10} style={{ color: '#fff' }} strokeWidth={3} />}
+                </div>
+                <span style={{ fontSize: 12, color: '#6B7280' }}>{label}</span>
+              </label>
+            ))}
+          </div>
+          <div className="flex items-center gap-3 justify-end">
+            <button onClick={onClose}
+              className="px-5 py-2.5 rounded-xl cursor-pointer"
+              style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB',
+                background: '#fff', color: '#374151' }}>
+              Cancel
+            </button>
+            <button onClick={onSuccess}
+              disabled={!legalChecked.terms || !legalChecked.privacy}
+              className="px-6 py-2.5 rounded-xl cursor-pointer"
+              style={{ fontSize: 13, fontWeight: 600, border: 'none',
+                background: legalChecked.terms && legalChecked.privacy ? '#0071E3' : '#93C5FD',
+                color: '#fff',
+                cursor: legalChecked.terms && legalChecked.privacy ? 'pointer' : 'not-allowed' }}>
+              Create Membership
+            </button>
+          </div>
         </div>
       </div>
     </>
