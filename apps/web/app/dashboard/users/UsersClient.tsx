@@ -67,7 +67,7 @@ const NAV_MAIN: NavItem[] = [
   { label: 'Dashboard',   icon: Flame,      href: '/dashboard'       },
   { label: 'Users',       icon: Users,      href: '/dashboard/users', active: true },
   { label: 'Classes',     icon: Calendar,   children: [
-    { label: 'Classes', href: '#' }, { label: 'Events', href: '#' },
+    { label: 'Classes', href: '/dashboard/classes' }, { label: 'Events', href: '#' },
     { label: 'Calendar', href: '#' }, { label: 'Timetable', href: '#' },
   ]},
   { label: 'Memberships', icon: Award,      href: '#' },

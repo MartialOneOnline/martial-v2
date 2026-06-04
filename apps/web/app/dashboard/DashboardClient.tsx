@@ -99,7 +99,7 @@ const NAV_MAIN: NavItem[] = [
   { label: 'Dashboard', icon: Flame,          href: '/dashboard', active: true },
   { label: 'Users',     icon: Users,          href: '/dashboard/users' },
   { label: 'Classes',   icon: Calendar,       children: [
-    { label: 'Classes',   href: '#' },
+    { label: 'Classes',   href: '/dashboard/classes' },
     { label: 'Events',    href: '#' },
     { label: 'Calendar',  href: '#' },
     { label: 'Timetable', href: '#' },
