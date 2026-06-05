@@ -114,11 +114,7 @@ const NAV_MAIN: NavItem[] = [
     { label: 'Payments', href: '#' }, { label: 'Balance', href: '#' },
     { label: 'Absents', href: '#' }, { label: 'Users', href: '#' },
   ]},
-  { label: 'Settings',    icon: Settings,   children: [
-    { label: 'Payments', href: '#' }, { label: 'Staff', href: '#' },
-    { label: 'Profile', href: '#' }, { label: 'School', href: '#' },
-    { label: 'Delete Account', href: '#' }, { label: 'Password', href: '#' }, { label: 'Grading', href: '#' },
-  ]},
+  { label: 'Settings', icon: Settings, href: '/dashboard/settings' },
 ]
 const NAV_BOTTOM: NavItem[] = [
   { label: 'Subscription',  icon: ShoppingBag, href: '#' },

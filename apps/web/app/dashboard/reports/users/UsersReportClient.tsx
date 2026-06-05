@@ -49,11 +49,7 @@ const NAV_MAIN: NavItem[] = [
     { label: 'Absents',  href: '/dashboard/reports/absents' },
     { label: 'Users',    href: '/dashboard/reports/users' },
   ]},
-  { label: 'Settings',    icon: Settings,   children: [
-    { label: 'Payments', href: '#' }, { label: 'Staff', href: '#' },
-    { label: 'Profile', href: '#' }, { label: 'School', href: '#' },
-    { label: 'Delete Account', href: '#' }, { label: 'Password', href: '#' }, { label: 'Grading', href: '#' },
-  ]},
+  { label: 'Settings', icon: Settings, href: '/dashboard/settings' },
 ]
 const NAV_BOTTOM: NavItem[] = [
   { label: 'Subscription',  icon: ShoppingBag, href: '#' },

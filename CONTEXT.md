@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 14 completada ✅ — Memberships page + drawer unificado
+**Estado:** Sesión 15 en curso 🔄 — Settings page
 
 ---
 
@@ -174,11 +174,16 @@ Tablas en Supabase: `users`, `schools`
 
 ## Próximos pasos (Sesión 15)
 
-1. **Payments > Transactions** — tabla de transacciones con filtros y exportar
-2. **Payments > Subscriptions** — lista de suscripciones activas de miembros
-3. **LoginModal** — popup en homepage con SSO + Email
-4. **SSO OAuth** — configurar Google en Supabase
-5. **Homepage** — ajustes finales diseño AI Studio → Next.js
+1. **Settings page** — en construcción ahora mismo
+   - General: nombre escuela, logo, dirección, zona horaria
+   - Billing: plan activo, método de pago
+   - Notifications: preferencias email/push
+   - Integrations: Stripe, GoCardless
+   - Team / Roles: permisos por rol
+   - Danger Zone
+2. **LoginModal** — popup en homepage con SSO + Email
+3. **SSO OAuth** — configurar Google en Supabase
+4. **Homepage** — ajustes finales diseño AI Studio → Next.js
 
 ---
 
