@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 13 completada ✅ — Timetable corregido + Calendar page + Events page
+**Estado:** Sesión 14 completada ✅ — Memberships page + drawer unificado
 
 ---
 
@@ -125,6 +125,7 @@ npm run dev
 | apps/web /dashboard/classes/events | http://localhost:3000/dashboard/classes/events | ✅ Implementado |
 | apps/web /dashboard/classes/calendar | http://localhost:3000/dashboard/classes/calendar | ✅ Implementado |
 | apps/web /dashboard/classes/timetable | http://localhost:3000/dashboard/classes/timetable | ✅ Implementado |
+| apps/web /dashboard/memberships | http://localhost:3000/dashboard/memberships | ✅ Implementado |
 | apps/mobile | exp://localhost:8081 | ✅ Expo Go |
 
 ---
@@ -171,10 +172,10 @@ Tablas en Supabase: `users`, `schools`
 
 ---
 
-## Próximos pasos (Sesión 14)
+## Próximos pasos (Sesión 15)
 
-1. **Memberships page** — siguiente módulo del dashboard (`/dashboard/memberships`)
-2. **Payments > Transactions** — tabla de transacciones con filtros y exportar
+1. **Payments > Transactions** — tabla de transacciones con filtros y exportar
+2. **Payments > Subscriptions** — lista de suscripciones activas de miembros
 3. **LoginModal** — popup en homepage con SSO + Email
 4. **SSO OAuth** — configurar Google en Supabase
 5. **Homepage** — ajustes finales diseño AI Studio → Next.js
@@ -247,6 +248,21 @@ Prototipo movido a apps/prototype/ en el monorepo
 - Filtro por location en la vista calendario (All / Main Academy / Branch Malaga)
 - Color coding por actividad (BJJ, NOGI, Wrestling, Kids BJJ, Yoga, Open Mat, Competition)
 - Commits: b8b9623, c3bbe37
+
+### Sesión 14 — 2026-06-04 ✅
+**Memberships page** (`/dashboard/memberships`):
+- KPI stat cards estilo Stripe+NZZL (mayor tamaño): Total Plans, Active Plans, MRR, Active Members
+- 3 tabs underline NZZL: Subscriptions · Single Passes · Trial Memberships
+- Filter chips Stripe: All · Active · Inactive con conteos
+- Tabla: imagen, nombre+Stripe ID, class chips, precio bold, billing+icono, miembros+icono, status badge ✓/✗, acciones Eye+⋯
+- Nav link Memberships actualizado de `#` → `/dashboard/memberships` en 6 clientes
+- **Create Membership drawer** — refactorizado para unificar estilo con Classes/Events/Timetable:
+  - Layout dos columnas: formulario + imagen a la derecha
+  - Allowed Class Types: chips de colores por tipo de actividad (BJJ, NOGI, Wrestling…)
+  - Training Access: 3 cards seleccionables (Unlimited ∞ / Limited # / Single use ⚡)
+    con config inline al seleccionar Limited (N sesiones por semana/mes)
+  - Footer con legal checkboxes + botón deshabilitado hasta aceptar
+- Commits: 4b03c76, a8e34c1
 
 ### Sesión 13 — 2026-06-04 ✅
 **Timetable — correcciones completas:**
