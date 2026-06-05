@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 15 en curso 🔄 — Settings page
+**Estado:** Sesión 16 completada ✅ — Dashboard UI completo (todas las páginas)
 
 ---
 
@@ -106,6 +106,41 @@ generated/prisma/
 
 ---
 
+## Páginas del dashboard implementadas
+
+| Módulo | Ruta | Estado |
+|---|---|---|
+| Dashboard home | `/dashboard` | ✅ Live |
+| Classes | `/dashboard/classes` | ✅ Live |
+| Events | `/dashboard/classes/events` | ✅ Live |
+| Calendar | `/dashboard/classes/calendar` | ✅ Live |
+| Timetable | `/dashboard/classes/timetable` | ✅ Live |
+| Memberships | `/dashboard/memberships` | ✅ Live |
+| Users | `/dashboard/users` | ✅ Live |
+| Payments / Transactions | `/dashboard/payments/transactions` | ✅ Live |
+| Payments / Subscriptions | `/dashboard/payments/subscriptions` | ✅ Live |
+| School / Leads | `/dashboard/school/leads` | ✅ Live |
+| School / Store | `/dashboard/school/store` | ✅ Live |
+| School / Curriculum | `/dashboard/school/curriculum` | ✅ Live |
+| School / Affiliates | `/dashboard/school/affiliates` | ✅ Live |
+| School / Staff | `/dashboard/school/staff` | ✅ Live |
+| School / Waivers | `/dashboard/school/waivers` | ✅ Live |
+| School / Gradings | `/dashboard/school/gradings` | ✅ Live |
+| Reports / Bookings | `/dashboard/reports/bookings` | ✅ Live |
+| Reports / Gradings | `/dashboard/reports/gradings` | ✅ Live |
+| Reports / Payments | `/dashboard/reports/payments` | ✅ Live |
+| Reports / Balance | `/dashboard/reports/balance` | ✅ Live |
+| Reports / Absents | `/dashboard/reports/absents` | ✅ Live |
+| Reports / Users | `/dashboard/reports/users` | ✅ Live |
+| Settings | `/dashboard/settings` | ✅ Live |
+| Notifications | `/dashboard/notifications` | ✅ Live |
+| Subscription | `/dashboard/subscription` | ✅ Live |
+| Support | `/dashboard/support` | ✅ Live |
+
+**Navegación:** todos los links del sidebar están correctamente conectados en todos los clientes.
+
+---
+
 ## Lo que funciona ahora mismo
 
 ```bash
@@ -121,11 +156,6 @@ npm run dev
 | apps/web /login | http://localhost:3000/login | ✅ Diseño Figma + Supabase |
 | apps/web /register | http://localhost:3000/register | ✅ Diseño Figma + Supabase |
 | apps/web /dashboard | http://localhost:3000/dashboard | ✅ Protegido |
-| apps/web /dashboard/classes | http://localhost:3000/dashboard/classes | ✅ Implementado |
-| apps/web /dashboard/classes/events | http://localhost:3000/dashboard/classes/events | ✅ Implementado |
-| apps/web /dashboard/classes/calendar | http://localhost:3000/dashboard/classes/calendar | ✅ Implementado |
-| apps/web /dashboard/classes/timetable | http://localhost:3000/dashboard/classes/timetable | ✅ Implementado |
-| apps/web /dashboard/memberships | http://localhost:3000/dashboard/memberships | ✅ Implementado |
 | apps/mobile | exp://localhost:8081 | ✅ Expo Go |
 
 ---
@@ -172,28 +202,16 @@ Tablas en Supabase: `users`, `schools`
 
 ---
 
-## Próximos pasos (Sesión 15)
+## Próximos pasos
 
-1. **Settings page** — en construcción ahora mismo
-   - General: nombre escuela, logo, dirección, zona horaria
-   - Billing: plan activo, método de pago
-   - Notifications: preferencias email/push
-   - Integrations: Stripe, GoCardless
-   - Team / Roles: permisos por rol
-   - Danger Zone
-2. **LoginModal** — popup en homepage con SSO + Email
-3. **SSO OAuth** — configurar Google en Supabase
-4. **Homepage** — ajustes finales diseño AI Studio → Next.js
-
----
-
-## Sesiones siguientes
-
-5. **Dashboard Business** — mínimo viable
-6. **Explore** — escuelas reales desde DB
-7. **School public page** — perfil público de cada escuela
-8. **API deploy** — Railway o Render
-9. **Dominio propio** — conectar martialapp.online a Vercel
+1. **LoginModal** — popup en homepage con SSO + Email
+2. **SSO OAuth** — configurar Google en Supabase
+3. **Homepage** — ajustes finales diseño AI Studio → Next.js
+4. **Explore** — escuelas reales desde DB
+5. **School public page** — perfil público de cada escuela
+6. **API deploy** — Railway o Render
+7. **Dominio propio** — conectar app.martialapp.online a Vercel
+8. **Conectar dashboard a datos reales** — reemplazar mocks por API calls
 
 ---
 
@@ -254,53 +272,44 @@ Prototipo movido a apps/prototype/ en el monorepo
 - Color coding por actividad (BJJ, NOGI, Wrestling, Kids BJJ, Yoga, Open Mat, Competition)
 - Commits: b8b9623, c3bbe37
 
-### Sesión 14 — 2026-06-04 ✅
-**Memberships page** (`/dashboard/memberships`):
-- KPI stat cards estilo Stripe+NZZL (mayor tamaño): Total Plans, Active Plans, MRR, Active Members
-- 3 tabs underline NZZL: Subscriptions · Single Passes · Trial Memberships
-- Filter chips Stripe: All · Active · Inactive con conteos
-- Tabla: imagen, nombre+Stripe ID, class chips, precio bold, billing+icono, miembros+icono, status badge ✓/✗, acciones Eye+⋯
-- Nav link Memberships actualizado de `#` → `/dashboard/memberships` en 6 clientes
-- **Create Membership drawer** — refactorizado para unificar estilo con Classes/Events/Timetable:
-  - Layout dos columnas: formulario + imagen a la derecha
-  - Allowed Class Types: chips de colores por tipo de actividad (BJJ, NOGI, Wrestling…)
-  - Training Access: 3 cards seleccionables (Unlimited ∞ / Limited # / Single use ⚡)
-    con config inline al seleccionar Limited (N sesiones por semana/mes)
-  - Footer con legal checkboxes + botón deshabilitado hasta aceptar
-- Commits: 4b03c76, a8e34c1
-
 ### Sesión 13 — 2026-06-04 ✅
 **Timetable — correcciones completas:**
-- TODAY fijado a June 4 2026 (Thu) — antes hardcoded a June 1 (Mon) → today incorrecto
-- `todayIdx` dinámico (ya no hardcodeado) → columna de hoy correcta (Thu=3)
-- Indicador de hora actual (línea roja + círculo) en columna de hoy
-- Auto-scroll al montar: posiciona en 10:30 AM automáticamente
-- `TIMETABLE_LIST` corregida: fechas únicas reales, añadidos campos `days`, `time`, `instructor`
-- Lista view: columnas rediseñadas (Schedule, Instructor, Period en vez de dos fechas iguales)
-- Lista view: búsqueda + chips de filtro por actividad + empty state
+- TODAY fijado dinámicamente · todayIdx dinámico · indicador hora actual (línea roja)
+- Auto-scroll al montar en 10:30 AM
+- TIMETABLE_LIST corregida: fechas únicas reales, campos days/time/instructor
+- Lista view: columnas rediseñadas, búsqueda + filtro por actividad + empty state
 - Drawer: campo Activity y Capacity añadidos; form se resetea al reabrir
-- Commits: varios (606d346, 9e4bcff…)
 
 **Calendar page** (`/dashboard/classes/calendar`):
-- Vista **Mes** (default): grid 5–6 semanas, chips de clases por día con color coding, +N more expandible, hoy resaltado en azul, clic en número de día → salta a vista semana
-- Vista **Semana**: idéntica a Timetable (time grid, class blocks, indicador hora actual, auto-scroll)
-- **Date Picker**: popover compacto al clicar "📅 June 2026", mini calendario con nav de meses, "Go to today", seleccionar fecha cierra el picker y actualiza la vista
-- Filtro por location (All / Main Academy / Branch Malaga)
+- Vista Mes (default) + Vista Semana · Date Picker popover · Filtro por location
 - Drawer "Add Class to Calendar" + success modal
-- Nav link `Calendar` actualizado de `#` → `/dashboard/classes/calendar` en todos los clientes
 - Commit: 77b63fc
 
 **Events page** (`/dashboard/classes/events`):
-- 12 eventos mock: Seminars, Competitions, Gradings, Open Mats, Camps, Socials
-- Stats: Total Events, Upcoming, This Month, Sold Out
-- Filtros: All / Upcoming / Past / Sold Out / Cancelled
-- Búsqueda por título, instructor, tipo, location
-- Tabla: imagen + título + type badge color-coded + ⭐ featured, fecha+hora, host, location (pin), barra de spots (rojo cuando full), precio (verde si Free), status badge, actions menu
-- Actions: View registrations / Edit / Duplicate / Cancel event
-- Create Event drawer: banner, tipo, fecha+horas, instructor libre+datalist, precio+toggle Free, deadline registro, max registros/persona, toggle Featured, descripción, checkboxes legales → "Publish Event"
-- Success modal "Event Published!"
-- Nav link `Events` actualizado de `#` → `/dashboard/classes/events` en todos los clientes
+- 12 eventos mock · Stats · Filtros · Búsqueda · Tabla completa · Create Event drawer
 - Commit: bc79fb1
+
+### Sesión 14 — 2026-06-04 ✅
+**Memberships page** (`/dashboard/memberships`):
+- KPI stat cards estilo Stripe+NZZL · 3 tabs underline · Filter chips · Tabla completa
+- Create Membership drawer: dos columnas, class chips, Training Access cards
+- Commits: 4b03c76, a8e34c1
+
+### Sesión 15 — 2026-06-04 ✅
+- **Settings page** (`/dashboard/settings`): 7 tabs — Profile, School, Staff, Payments, Grading, Password, Delete Account
+- **Nav fix**: Settings correctamente enlazado en los 22 clientes del dashboard
+- **Reports**: 6 páginas con charts (Bookings, Gradings, Payments, Balance, Absents, Users)
+- **Payments**: Transactions + Subscriptions con drawers de entrada manual
+- **School section**: 7 páginas (Leads, Store, Curriculum, Affiliates, Staff, Waivers, Gradings)
+- **Users page**: tabla completa estilo NZZL
+
+### Sesión 16 — 2026-06-05 ✅
+- **Notifications page** (`/dashboard/notifications`): preferencias y listado
+- **Subscription page** (`/dashboard/subscription`): plan activo, billing
+- **Support page** (`/dashboard/support`): tickets y contacto
+- **Nav fix School**: los 7 links de School section apuntaban a `#` en 9 clientes → corregidos a `/dashboard/school/*`
+- turbo.json: añadido `dist/**` a build outputs
+- Commits: c5c01f6, eb69ad9
 
 ---
 
@@ -340,12 +349,11 @@ Prototipo movido a apps/prototype/ en el monorepo
 ## Lo que NO se construye todavía
 
 - Pagos reales / Stripe webhooks
-- Memberships y trials
 - GoCardless / Redsys
 - Módulo de Academy integrado
 - Login unificado con Academy
-- Reports avanzados
-- Notificaciones push / SMS
+- Reports avanzados con datos reales
+- Notificaciones push / SMS reales
 - Migración de datos reales de Laravel
 - Cualquier cambio en martialapp.com — no tocar
 - NativeWind
