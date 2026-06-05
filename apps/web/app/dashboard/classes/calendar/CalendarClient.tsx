@@ -723,7 +723,7 @@ export default function CalendarClient() {
           style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
           <div className="flex items-center gap-3 min-w-0">
             <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
-              style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(o => !o)}>
+              style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(!menuOpen)}>
               <Menu size={16} style={{ color: '#374151' }} />
             </button>
             <h1 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0, letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>

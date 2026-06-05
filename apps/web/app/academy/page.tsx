@@ -12,6 +12,7 @@ import Header from '../../components/Header'
 import Footer from '../../components/Footer'
 import LoginModal from '../../components/LoginModal'
 import RegisterModal from '../../components/RegisterModal'
+import { useT } from '../../lib/i18n/LanguageContext'
 
 // ── Types & Data ──────────────────────────────────────────────────────────────
 
@@ -129,6 +130,7 @@ const CATEGORIES = ['All', 'BJJ', 'Striking', 'MMA', 'Fitness']
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function AcademyPage() {
+  const t = useT()
   const [category, setCategory]         = useState('All')
   const [searchQuery, setSearchQuery]   = useState('')
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
@@ -276,7 +278,7 @@ export default function AcademyPage() {
             <input
               suppressHydrationWarning
               type="text"
-              placeholder="Search courses or instructors..."
+              placeholder={t.academy.search}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               className="w-full bg-white text-slate-800 text-sm pl-11 pr-20 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-sky-500 tracking-tight transition-all shadow-xs"

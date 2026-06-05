@@ -255,7 +255,7 @@ export default function BalanceReportClient() {
           <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20 flex-wrap"
             style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
             <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
-              style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(o => !o)}>
+              style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(!menuOpen)}>
               <Menu size={16} style={{ color: '#374151' }} />
             </button>
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 max-w-xs"

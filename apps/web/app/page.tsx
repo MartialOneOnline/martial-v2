@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { useT } from '../lib/i18n/LanguageContext'
 import LoginModal        from '../components/LoginModal'
 import RegisterModal     from '../components/RegisterModal'
 import Header           from '../components/Header'
@@ -22,6 +23,7 @@ import Footer            from '../components/Footer'
 // Inner component — uses useSearchParams (must be inside Suspense)
 function HomeContent() {
   const searchParams = useSearchParams()
+  const t = useT()
   const [showModal, setShowModal]                 = useState(false)
   const [showRegisterModal, setShowRegisterModal] = useState(false)
   const openModal    = () => setShowModal(true)
@@ -49,11 +51,10 @@ function HomeContent() {
       <section className="bg-sky-950 py-16 sm:py-20">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="text-sm font-semibold text-sky-400 uppercase tracking-widest mb-3">
-            Enterprise Cloud Architecture
+            {t.platform.badge}
           </p>
           <h2 className="text-2xl md:text-3xl font-bold text-white leading-snug">
-            A <span className="text-sky-400">FREE</span> to user Platform for{' '}
-            <span className="text-sky-400">Martial Arts Businesses &amp; Practitioners</span>
+            {t.platform.title}
           </h2>
         </div>
       </section>

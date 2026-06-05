@@ -1,18 +1,26 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
-  LayoutDashboard, Users, Calendar, CreditCard, Award,
-  BarChart2, Settings, Bell, HelpCircle, LogOut,
-  MessageSquare, Clock, TrendingUp, TrendingDown,
-  ChevronRight, ChevronLeft, ChevronDown, MoreHorizontal,
-  GraduationCap, Filter, Download, ShoppingBag,
-  BookOpen, UserCheck, FileText, ShieldCheck,
-  Flame, School, Receipt, Star, Sparkles, Send, Lightbulb,
-  Menu, X, UserPlus, QrCode, Pencil,
+  Bell, Clock, TrendingUp, TrendingDown,
+  ChevronRight, MoreHorizontal,
+  Filter, Download,
+  Star, Sparkles, Send,
+  Calendar,
+  Menu, UserPlus, QrCode, Pencil,
 } from 'lucide-react'
+import { useDashboard } from '../../components/DashboardShell'
+import NotificationsPopup       from '../../components/popups/NotificationsPopup'
+import InviteUserModal           from '../../components/popups/InviteUserModal'
+import SendModal                 from '../../components/popups/SendModal'
+import QRCodeModal               from '../../components/popups/QRCodeModal'
+import EditSchoolModal           from '../../components/popups/EditSchoolModal'
+import AIMessagesModal           from '../../components/popups/AIMessagesModal'
+import ClassCapacityPopup        from '../../components/popups/ClassCapacityPopup'
+import { TransactionActionsButton } from '../../components/popups/TransactionActionsPopup'
+import { useT }                  from '../../lib/i18n/LanguageContext'
 
 // ── Design tokens ──────────────────────────────────────────────────────────────
 // bg:       #F9FAFB
@@ -85,54 +93,6 @@ const ACADEMY_ACTIONS = [
   { icon: Send,     label: 'Send'     },
   { icon: QrCode,   label: 'QR code'  },
   { icon: Pencil,   label: 'Edit'     },
-]
-
-type NavItem = {
-  label: string
-  icon: React.ElementType
-  href?: string
-  active?: boolean
-  children?: { label: string; href: string }[]
-}
-
-const NAV_MAIN: NavItem[] = [
-  { label: 'Dashboard', icon: Flame,          href: '/dashboard', active: true },
-  { label: 'Users',     icon: Users,          href: '/dashboard/users' },
-  { label: 'Classes',   icon: Calendar,       children: [
-    { label: 'Classes',   href: '/dashboard/classes' },
-    { label: 'Events',    href: '/dashboard/classes/events' },
-    { label: 'Calendar',  href: '/dashboard/classes/calendar' },
-    { label: 'Timetable', href: '#' },
-  ]},
-  { label: 'Memberships', icon: Award,        href: '/dashboard/memberships' },
-  { label: 'Payments',    icon: CreditCard,   children: [
-    { label: 'Transactions',  href: '/dashboard/payments/transactions' },
-    { label: 'Subscriptions', href: '/dashboard/payments/subscriptions' },
-  ]},
-  { label: 'School',    icon: School,         children: [
-    { label: 'Leads',      href: '/dashboard/school/leads' },
-    { label: 'Store',      href: '/dashboard/school/store' },
-    { label: 'Curriculum', href: '/dashboard/school/curriculum' },
-    { label: 'Affiliates', href: '/dashboard/school/affiliates' },
-    { label: 'Staff',      href: '/dashboard/school/staff' },
-    { label: 'Waivers',    href: '/dashboard/school/waivers' },
-    { label: 'Gradings',   href: '/dashboard/school/gradings' },
-  ]},
-  { label: 'Reports',   icon: BarChart2,      children: [
-    { label: 'Bookings',  href: '#' },
-    { label: 'Gradings',  href: '#' },
-    { label: 'Payments',  href: '#' },
-    { label: 'Balance',   href: '#' },
-    { label: 'Absents',   href: '#' },
-    { label: 'Users',     href: '#' },
-  ]},
-  { label: 'Settings', icon: Settings, href: '/dashboard/settings' },
-]
-
-const NAV_BOTTOM: NavItem[] = [
-  { label: 'Subscription',  icon: ShoppingBag, href: '#' },
-  { label: 'Notifications', icon: Bell,        href: '#' },
-  { label: 'Support',       icon: HelpCircle,  href: '#' },
 ]
 
 type Period = 'All time' | '12 months' | '30 days' | '7 days'
@@ -209,165 +169,36 @@ function AreaChart() {
   )
 }
 
-// ── Component ──────────────────────────────────────────────────────────────────
-
-function NavGroup({ item }: { item: NavItem }) {
-  const [open, setOpen] = useState(false)
-  const hasChildren = !!item.children
-
-  if (!hasChildren) {
-    return (
-      <Link
-        href={item.href ?? '#'}
-        className="flex items-center gap-3 px-3 py-2.5 rounded-xl no-underline transition-colors"
-        style={{ color: '#374151', fontSize: 14, fontWeight: item.active ? 600 : 400 }}
-        onMouseEnter={e => { if (!item.active) (e.currentTarget as HTMLElement).style.background = '#F9FAFB' }}
-        onMouseLeave={e => { if (!item.active) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
-      >
-        <item.icon size={16} style={{ color: item.active ? '#0071E3' : '#9CA3AF', flexShrink: 0 }} />
-        {item.label}
-      </Link>
-    )
-  }
-
-  return (
-    <div>
-      <button
-        onClick={() => setOpen(v => !v)}
-        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors cursor-pointer text-left"
-        style={{ color: '#374151', fontSize: 14, fontWeight: 400, background: 'transparent', border: 'none' }}
-        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#F9FAFB' }}
-        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
-      >
-        <item.icon size={16} style={{ color: '#9CA3AF', flexShrink: 0 }} />
-        <span className="flex-1">{item.label}</span>
-        {open
-          ? <ChevronDown size={13} style={{ color: '#9CA3AF' }} />
-          : <ChevronRight size={13} style={{ color: '#9CA3AF' }} />
-        }
-      </button>
-      {open && (
-        <div className="ml-7 mt-0.5 space-y-0.5">
-          {item.children!.map(child => (
-            <Link
-              key={child.label}
-              href={child.href}
-              className="flex items-center px-3 py-2 rounded-lg no-underline transition-colors"
-              style={{ fontSize: 13, color: '#6B7280' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#F9FAFB'; (e.currentTarget as HTMLElement).style.color = '#111827' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = '#6B7280' }}
-            >
-              {child.label}
-            </Link>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
 export default function DashboardClient({ userName, userEmail }: Props) {
+  const t = useT()
   const [period, setPeriod]         = useState<Period>('12 months')
   const [activeDay, setActiveDay]   = useState(() => {
     const todayNum = new Date().getDate()
     const idx = DAYS.findIndex(d => d.num === todayNum)
     return idx >= 0 ? idx : 0
   })
-  const [menuOpen, setMenuOpen]     = useState(false)
+  const { menuOpen, setMenuOpen } = useDashboard()
   const [aiInput, setAiInput]       = useState('')
   const [aiMessages, setAiMessages] = useState<{ role: 'ai' | 'user'; text: string }[]>([
     { role: 'ai', text: '👋 I can help you manage your academy. Ask me anything.' },
   ])
+
+  // ── Popup state ────────────────────────────────────────────────────────────
+  const [showNotifications, setShowNotifications] = useState(false)
+  const [showInvite, setShowInvite]               = useState(false)
+  const [showSend, setShowSend]                   = useState(false)
+  const [showQR, setShowQR]                       = useState(false)
+  const [showEditSchool, setShowEditSchool]        = useState(false)
+  const [showAIMessages, setShowAIMessages]        = useState(false)
+  const [selectedClass, setSelectedClass]         = useState<typeof TODAY_CLASSES[0] | null>(null)
+  const bellRef                                    = useRef<HTMLDivElement>(null)
 
   const firstName = userName.split(' ')[0] ?? 'there'
   const hour      = new Date().getHours()
   const greeting  = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
 
   return (
-    <div
-      className="min-h-screen flex"
-      style={{ background: '#F9FAFB', fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" }}
-    >
-      <style>{`@media (min-width: 768px) { .dashboard-sidebar { transform: translateX(0) !important; } }`}</style>
-      {/* ── Mobile overlay ──────────────────────────────────────────────────── */}
-      {menuOpen && (
-        <div
-          className="fixed inset-0 z-40 md:hidden"
-          style={{ background: 'rgba(0,0,0,0.4)' }}
-          onClick={() => setMenuOpen(false)}
-        />
-      )}
-
-      {/* ── Sidebar (desktop: always visible / mobile: drawer) ──────────────── */}
-      <aside
-        className="dashboard-sidebar fixed top-0 left-0 h-full flex flex-col z-50"
-        style={{
-          width: 232,
-          background: '#fff',
-          borderRight: '1px solid #E5E7EB',
-          transform: menuOpen ? 'translateX(0)' : 'translateX(-232px)',
-          transition: 'transform 0.28s cubic-bezier(0.4,0,0.2,1)',
-        }}
-      >
-        {/* Logo + close (mobile) */}
-        <div className="flex items-center justify-between px-5 py-5" style={{ borderBottom: '1px solid #E5E7EB' }}>
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-lg overflow-hidden shrink-0">
-              <Image src="/martial-logo.png" alt="Martial" width={28} height={28} className="object-contain" />
-            </div>
-            <div>
-              <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>MARTIAL</p>
-              <p style={{ fontSize: 10, fontWeight: 500, color: '#9CA3AF', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Academy</p>
-            </div>
-          </div>
-          <button
-            className="md:hidden flex items-center justify-center w-7 h-7 rounded-lg cursor-pointer"
-            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}
-            onClick={() => setMenuOpen(false)}
-          >
-            <X size={14} style={{ color: '#6B7280' }} />
-          </button>
-        </div>
-
-        {/* Nav */}
-        <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-0.5">
-          {NAV_MAIN.map(item => (
-            <NavGroup key={item.label} item={item} />
-          ))}
-        </nav>
-
-        {/* Bottom nav + Sign out */}
-        <div style={{ borderTop: '1px solid #E5E7EB' }} className="px-3 py-3 space-y-0.5">
-          {NAV_BOTTOM.map(item => (
-            <Link
-              key={item.label}
-              href={item.href ?? '#'}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl no-underline transition-colors"
-              style={{ color: '#374151', fontSize: 14 }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#F9FAFB' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
-            >
-              <item.icon size={16} style={{ color: '#9CA3AF' }} />
-              {item.label}
-            </Link>
-          ))}
-          <form action="/auth/logout" method="post">
-            <button type="submit"
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors text-left cursor-pointer"
-              style={{ color: '#374151', fontSize: 14, background: 'transparent', border: 'none' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#F9FAFB' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
-            >
-              <LogOut size={16} style={{ color: '#9CA3AF' }} />
-              Sign out
-            </button>
-          </form>
-        </div>
-
-      </aside>
-
-      {/* ── Main ────────────────────────────────────────────────────────────── */}
-      <div className="flex flex-1 min-w-0 md:ml-[232px]">
+    <>
       <main style={{ flex: 1, minWidth: 0 }}>
 
         {/* ── Top bar ───────────────────────────────────────────────────────── */}
@@ -380,7 +211,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
             id="burger-btn"
             className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
             style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}
-            onClick={() => setMenuOpen(o => !o)}
+            onClick={() => setMenuOpen(!menuOpen)}
           >
             <Menu size={16} style={{ color: '#374151' }} />
           </button>
@@ -414,12 +245,20 @@ export default function DashboardClient({ userName, userEmail }: Props) {
             {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
           </div>
 
-          {/* Bell */}
-          <button className="relative w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
-            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-            <Bell size={15} style={{ color: '#374151' }} />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: '#DC2626' }} />
-          </button>
+          {/* Bell + Notifications popup */}
+          <div ref={bellRef} className="relative">
+            <button
+              onClick={() => setShowNotifications(v => !v)}
+              className="relative w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
+              style={{ background: showNotifications ? '#EFF6FF' : '#F9FAFB', border: '1px solid #E5E7EB' }}
+            >
+              <Bell size={15} style={{ color: '#374151' }} />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: '#DC2626' }} />
+            </button>
+            {showNotifications && (
+              <NotificationsPopup onClose={() => setShowNotifications(false)} />
+            )}
+          </div>
 
           {/* Language */}
           <button className="w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer text-base"
@@ -457,12 +296,10 @@ export default function DashboardClient({ userName, userEmail }: Props) {
               <p style={{ fontSize: 12, color: '#9CA3AF' }}>Jiu Jitsu Academy</p>
             </div>
             <div className="px-4 pb-4 flex gap-2" style={{ borderTop: '1px solid #F3F4F6', paddingTop: 12 }}>
-              {ACADEMY_ACTIONS.map(({ icon: Icon, label }) => (
-                <button key={label} title={label} className="flex-1 h-9 flex items-center justify-center rounded-xl cursor-pointer"
-                  style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-                  <Icon size={15} style={{ color: '#0071E3' }} />
-                </button>
-              ))}
+              <button onClick={() => setShowInvite(true)} title={t.dashboard.inviteUser} className="flex-1 h-9 flex items-center justify-center rounded-xl cursor-pointer" style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}><UserPlus size={15} style={{ color: '#0071E3' }} /></button>
+              <button onClick={() => setShowSend(true)} title={t.dashboard.send} className="flex-1 h-9 flex items-center justify-center rounded-xl cursor-pointer" style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}><Send size={15} style={{ color: '#0071E3' }} /></button>
+              <button onClick={() => setShowQR(true)} title={t.dashboard.qrCode} className="flex-1 h-9 flex items-center justify-center rounded-xl cursor-pointer" style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}><QrCode size={15} style={{ color: '#0071E3' }} /></button>
+              <button onClick={() => setShowEditSchool(true)} title={t.dashboard.edit} className="flex-1 h-9 flex items-center justify-center rounded-xl cursor-pointer" style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}><Pencil size={15} style={{ color: '#0071E3' }} /></button>
             </div>
           </div>
 
@@ -489,18 +326,20 @@ export default function DashboardClient({ userName, userEmail }: Props) {
               </p>
               <div className="space-y-3">
                 {[
-                  { insight: '12 students haven\'t attended in 3+ weeks.', action: 'Send re-engagement message' },
-                  { insight: 'BJJ Advanced is 93% full every session.',    action: 'Add an extra class this week' },
-                  { insight: '4 leads haven\'t been contacted in 7 days.', action: 'Follow up before they go cold' },
+                  { insight: '12 students haven\'t attended in 3+ weeks.', action: 'Send re-engagement message', openAI: true  },
+                  { insight: 'BJJ Advanced is 93% full every session.',    action: 'Add an extra class this week', openAI: false },
+                  { insight: '4 leads haven\'t been contacted in 7 days.', action: 'Follow up before they go cold', openAI: false },
                 ].map((r, i, arr) => (
                   <div key={i} style={{ paddingBottom: i < arr.length - 1 ? 12 : 0, borderBottom: i < arr.length - 1 ? '1px solid #F3F4F6' : 'none' }}>
                     <p style={{ fontSize: 12, fontWeight: 500, color: '#111827', lineHeight: 1.4 }}>{r.insight}</p>
-                    <button style={{
-                      marginTop: 6, display: 'inline-flex', alignItems: 'center', gap: 4,
-                      fontSize: 12, fontWeight: 600, color: '#6366F1',
-                      background: '#EEF2FF', border: 'none', borderRadius: 8,
-                      padding: '5px 10px', cursor: 'pointer',
-                    }}>
+                    <button
+                      onClick={() => r.openAI && setShowAIMessages(true)}
+                      style={{
+                        marginTop: 6, display: 'inline-flex', alignItems: 'center', gap: 4,
+                        fontSize: 12, fontWeight: 600, color: '#6366F1',
+                        background: '#EEF2FF', border: 'none', borderRadius: 8,
+                        padding: '5px 10px', cursor: 'pointer',
+                      }}>
                       {r.action} →
                     </button>
                   </div>
@@ -689,13 +528,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                       <StatusBadge status={tx.status} />
                     </td>
                     <td className="hidden sm:table-cell px-4 md:px-7 py-4">
-                      <button className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
-                        style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
-                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#F9FAFB' }}
-                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
-                      >
-                        <MoreHorizontal size={15} />
-                      </button>
+                      <TransactionActionsButton transaction={{ id: tx.id, name: tx.name, status: tx.status, price: tx.price }} />
                     </td>
                   </tr>
                 ))}
@@ -735,8 +568,13 @@ export default function DashboardClient({ userName, userEmail }: Props) {
             <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>Jiu Jitsu Academy</p>
           </div>
           <div className="px-4 pb-4 flex gap-2" style={{ borderTop: '1px solid #F3F4F6', paddingTop: 12 }}>
-            {ACADEMY_ACTIONS.map(({ icon: Icon, label }) => (
-              <button key={label} title={label}
+            {[
+              { icon: UserPlus, label: t.dashboard.inviteUser,  action: () => setShowInvite(true)     },
+              { icon: Send,     label: t.dashboard.send,         action: () => setShowSend(true)       },
+              { icon: QrCode,   label: t.dashboard.qrCode,       action: () => setShowQR(true)         },
+              { icon: Pencil,   label: t.dashboard.edit,         action: () => setShowEditSchool(true) },
+            ].map(({ icon: Icon, label, action }) => (
+              <button key={label} title={label} onClick={action}
                 className="flex-1 h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all"
                 style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#EFF6FF'; (e.currentTarget as HTMLElement).style.borderColor = '#0071E3' }}
@@ -767,17 +605,19 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           </div>
           <div className="px-4 py-3 space-y-3">
             {[
-              { insight: '12 students haven\'t attended in 3+ weeks.', action: 'Send re-engagement message' },
-              { insight: 'BJJ Advanced is 93% full every session.',    action: 'Add an extra class this week' },
+              { insight: '12 students haven\'t attended in 3+ weeks.', action: 'Send re-engagement message', openAI: true },
+              { insight: 'BJJ Advanced is 93% full every session.',    action: 'Add an extra class this week', openAI: false },
             ].map((r, i, arr) => (
               <div key={i} style={{ paddingBottom: i < arr.length - 1 ? 12 : 0, borderBottom: i < arr.length - 1 ? '1px solid #F3F4F6' : 'none' }}>
                 <p style={{ fontSize: 12, fontWeight: 500, color: '#111827', lineHeight: 1.4 }}>{r.insight}</p>
-                <button style={{
-                  marginTop: 6, display: 'inline-flex', alignItems: 'center', gap: 4,
-                  fontSize: 11, fontWeight: 600, color: '#6366F1',
-                  background: '#EEF2FF', border: 'none', borderRadius: 7,
-                  padding: '4px 9px', cursor: 'pointer',
-                }}>
+                <button
+                  onClick={() => r.openAI && setShowAIMessages(true)}
+                  style={{
+                    marginTop: 6, display: 'inline-flex', alignItems: 'center', gap: 4,
+                    fontSize: 11, fontWeight: 600, color: '#6366F1',
+                    background: '#EEF2FF', border: 'none', borderRadius: 7,
+                    padding: '4px 9px', cursor: 'pointer',
+                  }}>
                   {r.action} →
                 </button>
               </div>
@@ -821,7 +661,10 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
                       <p style={{ fontSize: 11, fontWeight: 600, color: '#111827', lineHeight: 1.3, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cls.name}</p>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: capacityColor, whiteSpace: 'nowrap' }}>{cls.enrolled}/{cls.cap}</span>
+                      <button
+                        onClick={() => setSelectedClass(cls)}
+                        style={{ fontSize: 11, fontWeight: 700, color: capacityColor, whiteSpace: 'nowrap', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                      >{cls.enrolled}/{cls.cap}</button>
                     </div>
                     <div className="flex items-center justify-between gap-2 mt-1">
                       <p style={{ fontSize: 10, color: '#9CA3AF' }}>{cls.time}</p>
@@ -842,12 +685,12 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           </div>
           <div className="grid grid-cols-3" style={{ gap: 1, background: '#F3F4F6' }}>
             {[
-              { label: 'Avg Attendance', value: '78%', color: '#0071E3' },
-              { label: 'Open Leads',     value: '4',   color: '#D97706' },
-              { label: 'Gradings',       value: '167', color: '#16A34A' },
-              { label: 'Notifications',  value: '35',  color: '#DC2626' },
-              { label: 'Active Members', value: '421', color: '#6366F1' },
-              { label: 'Classes Today',  value: '12',  color: '#0071E3' },
+              { label: t.dashboard.avgAttendance, value: '78%', color: '#0071E3' },
+              { label: t.dashboard.openLeads,     value: '4',   color: '#D97706' },
+              { label: t.dashboard.gradings,      value: '167', color: '#16A34A' },
+              { label: t.dashboard.notifications, value: '35',  color: '#DC2626' },
+              { label: t.dashboard.activeMembers, value: '421', color: '#6366F1' },
+              { label: t.dashboard.classesToday,  value: '12',  color: '#0071E3' },
             ].map(s => (
               <div key={s.label} className="flex flex-col gap-1 px-2 py-2.5" style={{ background: '#fff' }}>
                 <p style={{ fontSize: 9, color: '#9CA3AF', lineHeight: 1.2 }}>{s.label}</p>
@@ -859,7 +702,18 @@ export default function DashboardClient({ userName, userEmail }: Props) {
 
       </aside>
 
-      </div>
-    </div>
+      {/* ── Popups ──────────────────────────────────────────────────────────── */}
+      {showInvite     && <InviteUserModal   onClose={() => setShowInvite(false)} />}
+      {showSend       && <SendModal         onClose={() => setShowSend(false)} />}
+      {showQR         && <QRCodeModal       onClose={() => setShowQR(false)} />}
+      {showEditSchool && <EditSchoolModal   onClose={() => setShowEditSchool(false)} />}
+      {showAIMessages && <AIMessagesModal   onClose={() => setShowAIMessages(false)} />}
+      {selectedClass  && (
+        <ClassCapacityPopup
+          cls={selectedClass}
+          onClose={() => setSelectedClass(null)}
+        />
+      )}
+    </>
   )
 }

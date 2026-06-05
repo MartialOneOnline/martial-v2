@@ -11,6 +11,7 @@ import Header from '../../components/Header'
 import Footer from '../../components/Footer'
 import LoginModal from '../../components/LoginModal'
 import RegisterModal from '../../components/RegisterModal'
+import { useT } from '../../lib/i18n/LanguageContext'
 
 // ── Data ─────────────────────────────────────────────────────────────────────
 
@@ -66,6 +67,7 @@ const CLASSES: ExploreClass[] = [
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function ExplorePage() {
+  const t = useT()
   const [mode, setMode]                 = useState<'schools' | 'classes'>('schools')
   const [search, setSearch]             = useState('')
   const [location, setLocation]         = useState('')
@@ -135,7 +137,7 @@ export default function ExplorePage() {
               }`}
             >
               <ListFilter className="w-5 h-5" />
-              <span className="hidden sm:inline">Filters</span>
+              <span className="hidden sm:inline">{t.explore.filters}</span>
             </button>
 
             {/* What? */}
@@ -235,7 +237,7 @@ export default function ExplorePage() {
                     mode === m ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
                   }`}
                 >
-                  {m === 'schools' ? 'Schools' : 'Classes'}
+                  {m === 'schools' ? t.explore.schools : t.explore.classes}
                 </button>
               ))}
             </div>

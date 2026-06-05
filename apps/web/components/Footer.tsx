@@ -3,13 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { Share2, Globe, ArrowUp, Dumbbell, HelpCircle } from 'lucide-react'
-
-const NAV_LINKS = [
-  { label: 'Explore',    href: '/explore' },
-  { label: 'Technology', href: '#technology' },
-  { label: 'Dashboard',  href: '/dashboard' },
-  { label: 'Academy',    href: '#academy' },
-]
+import { useT } from '../lib/i18n/LanguageContext'
 
 const SOCIAL_ICONS = [
   { name: 'Facebook',  icon: <Share2 className="w-4 h-4" />, href: '#' },
@@ -19,6 +13,15 @@ const SOCIAL_ICONS = [
 ]
 
 export default function Footer() {
+  const t = useT()
+
+  const NAV_LINKS = [
+    { label: t.nav.explore,    href: '/explore' },
+    { label: t.nav.technology, href: '#technology' },
+    { label: t.nav.dashboard,  href: '/dashboard' },
+    { label: t.nav.academy,    href: '#academy' },
+  ]
+
   return (
     <footer className="bg-slate-900 border-t border-slate-800 text-slate-400 font-sans">
 
@@ -38,7 +41,7 @@ export default function Footer() {
             </Link>
 
             <p className="text-sm font-semibold leading-relaxed max-w-sm text-slate-400">
-              Discover a World of Martial Arts Experiences. Search Academies, Book Classes, Chat with instructors, designed to connect the world of Martial Arts.
+              {t.footer.tagline}
             </p>
 
             <div className="flex items-center gap-2.5">
@@ -54,7 +57,7 @@ export default function Footer() {
           {/* Navigate */}
           <div className="md:col-span-3 text-left">
             <h4 className="text-white text-sm font-black uppercase tracking-wider mb-5 flex items-center gap-1.5">
-              <Dumbbell className="w-4 h-4 text-cyan-400" />Navigate
+              <Dumbbell className="w-4 h-4 text-cyan-400" />{t.footer.navigate}
             </h4>
             <ul className="space-y-3.5 text-sm font-semibold">
               {NAV_LINKS.map(link => (
@@ -70,7 +73,7 @@ export default function Footer() {
           {/* Support */}
           <div className="md:col-span-3 text-left">
             <h4 className="text-white text-sm font-black uppercase tracking-wider mb-5 flex items-center gap-1.5">
-              <HelpCircle className="w-4 h-4 text-cyan-400" />Support
+              <HelpCircle className="w-4 h-4 text-cyan-400" />{t.sidebar.support}
             </h4>
             <ul className="space-y-3.5 text-sm font-semibold">
               {['About Us', 'Contact Us', 'FAQs', 'Terms & Conditions', 'Privacy Policy'].map(item => (
@@ -99,11 +102,11 @@ export default function Footer() {
       <div className="bg-slate-950 border-t border-slate-800 text-slate-500 text-[11px] font-bold">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
-            <span>© MartialApp. 2026 All Rights Reserved</span>
+            <span>© MartialApp. 2026 {t.footer.rights}</span>
             <span className="hidden sm:inline text-slate-800">|</span>
             <div className="flex items-center gap-4">
-              <a href="#" className="hover:text-slate-300 transition-colors">Terms &amp; Conditions</a>
-              <a href="#" className="hover:text-slate-300 transition-colors">Privacy Policy</a>
+              <a href="#" className="hover:text-slate-300 transition-colors">{t.footer.terms}</a>
+              <a href="#" className="hover:text-slate-300 transition-colors">{t.footer.privacy}</a>
             </div>
           </div>
           <div className="flex items-center gap-3 flex-wrap opacity-60 hover:opacity-90 transition-opacity">

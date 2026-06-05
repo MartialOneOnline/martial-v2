@@ -5,6 +5,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, ChevronDown } from 'lucide-react'
+import { useLanguage, useT } from '../lib/i18n/LanguageContext'
+import type { Locale } from '../lib/i18n/translations'
 
 // ── Flag icons ────────────────────────────────────────────────────────────────
 function FlagIcon({ lang }: { lang: string }) {
@@ -32,7 +34,6 @@ function FlagIcon({ lang }: { lang: string }) {
       <div className="w-1/3 bg-red-600 h-full" />
     </div>
   )
-  // EN / default
   return (
     <div className="w-5 h-3.5 bg-blue-800 relative overflow-hidden rounded-sm border border-gray-200 shrink-0">
       <div className="absolute inset-0 flex items-center justify-center">
@@ -49,36 +50,34 @@ function FlagIcon({ lang }: { lang: string }) {
   )
 }
 
-// ── Nav links ─────────────────────────────────────────────────────────────────
-const NAV_LINKS = [
-  { label: 'HOME',       href: '/' },
-  { label: 'EXPLORE',    href: '/explore' },
-  { label: 'ACADEMY',    href: '/academy' },
-  { label: 'DASHBOARD',  href: '/dashboard' },
-  { label: 'TECHNOLOGY', href: '#technology' },
-  { label: 'PRICE',      href: '#payment-methods-section' },
-]
-
 const LANGUAGES = [
-  { code: 'en', name: 'English' },
-  { code: 'es', name: 'Español' },
-  { code: 'pt', name: 'Português' },
-  { code: 'fr', name: 'Français' },
+  { code: 'en' as Locale, name: 'English' },
+  { code: 'es' as Locale, name: 'Español' },
+  { code: 'pt' as Locale, name: 'Português' },
+  { code: 'fr' as Locale, name: 'Français' },
 ]
 
-// ── Props ─────────────────────────────────────────────────────────────────────
 interface HeaderProps {
   onOpenLoginModal?: () => void
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
 export default function Header({ onOpenLoginModal }: HeaderProps) {
-  const [mobileOpen, setMobileOpen]       = useState(false)
-  const [langOpen, setLangOpen]           = useState(false)
-  const [activeLang, setActiveLang]       = useState('en')
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const [langOpen, setLangOpen]     = useState(false)
+  const { locale, setLocale }       = useLanguage()
+  const t                           = useT()
 
-  const selectLang = (code: string) => {
-    setActiveLang(code)
+  const NAV_LINKS = [
+    { label: t.nav.home,       href: '/' },
+    { label: t.nav.explore,    href: '/explore' },
+    { label: t.nav.academy,    href: '/academy' },
+    { label: t.nav.dashboard,  href: '/dashboard' },
+    { label: t.nav.technology, href: '#technology' },
+    { label: t.nav.price,      href: '#payment-methods-section' },
+  ]
+
+  const selectLang = (code: Locale) => {
+    setLocale(code)
     setLangOpen(false)
   }
 
@@ -124,8 +123,8 @@ export default function Header({ onOpenLoginModal }: HeaderProps) {
                 onClick={() => setLangOpen(!langOpen)}
                 className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-extrabold text-[12.5px] py-2 cursor-pointer focus:outline-none"
               >
-                <FlagIcon lang={activeLang} />
-                <span className="uppercase">{activeLang}</span>
+                <FlagIcon lang={locale} />
+                <span className="uppercase">{locale}</span>
                 <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${langOpen ? 'rotate-180' : ''}`} />
               </button>
 
@@ -143,7 +142,7 @@ export default function Header({ onOpenLoginModal }: HeaderProps) {
                         key={lang.code}
                         onClick={() => selectLang(lang.code)}
                         className={`w-full px-4 py-2.5 text-left text-xs font-bold flex items-center gap-2.5 transition-colors cursor-pointer ${
-                          activeLang === lang.code ? 'bg-sky-50 text-sky-600' : 'text-slate-700 hover:bg-slate-50'
+                          locale === lang.code ? 'bg-sky-50 text-sky-600' : 'text-slate-700 hover:bg-slate-50'
                         }`}
                       >
                         <FlagIcon lang={lang.code} />
@@ -161,13 +160,13 @@ export default function Header({ onOpenLoginModal }: HeaderProps) {
                 onClick={() => window.location.href = '/dashboard'}
                 className="relative bg-[#0092ff] text-white font-black text-[11px] uppercase tracking-wider py-2.5 px-6 rounded-l-md hover:bg-[#007cd7] shadow-sm -skew-x-[15deg] transition-all cursor-pointer"
               >
-                <span className="skew-x-[15deg] inline-block">Dashboard</span>
+                <span className="skew-x-[15deg] inline-block">{t.nav.dashboard}</span>
               </button>
               <button
                 onClick={() => onOpenLoginModal?.()}
                 className="relative bg-slate-800 text-slate-200 font-extrabold text-[11px] uppercase tracking-widest py-2.5 px-6 rounded-r-md hover:bg-slate-900 border-l border-slate-700 -skew-x-[15deg] transition-all cursor-pointer"
               >
-                <span className="skew-x-[15deg] inline-block">Sign In</span>
+                <span className="skew-x-[15deg] inline-block">{t.nav.login}</span>
               </button>
             </div>
 
@@ -202,9 +201,9 @@ export default function Header({ onOpenLoginModal }: HeaderProps) {
                   {LANGUAGES.map(lang => (
                     <button
                       key={lang.code}
-                      onClick={() => setActiveLang(lang.code)}
+                      onClick={() => selectLang(lang.code)}
                       className={`px-2.5 py-1 text-[11px] font-black rounded uppercase border transition-all ${
-                        activeLang === lang.code
+                        locale === lang.code
                           ? 'border-sky-500 bg-sky-500 text-white'
                           : 'border-gray-200 bg-white text-slate-600 hover:bg-slate-50'
                       }`}
@@ -231,13 +230,13 @@ export default function Header({ onOpenLoginModal }: HeaderProps) {
                   href="/dashboard"
                   className="w-full text-center py-3 bg-[#0092ff] hover:bg-[#007cd7] text-white font-black text-xs uppercase tracking-wider rounded-lg transition-colors"
                 >
-                  Dashboard
+                  {t.nav.dashboard}
                 </Link>
                 <button
                   onClick={() => { setMobileOpen(false); onOpenLoginModal?.() }}
                   className="w-full text-center py-3 bg-slate-800 hover:bg-slate-900 text-slate-200 font-black text-xs uppercase tracking-wider rounded-lg transition-colors cursor-pointer"
                 >
-                  Sign In
+                  {t.nav.login}
                 </button>
               </div>
             </div>
