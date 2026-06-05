@@ -105,9 +105,9 @@ const NAV_MAIN: NavItem[] = [
     { label: 'Transactions', href: '/dashboard/payments/transactions' }, { label: 'Subscriptions', href: '/dashboard/payments/subscriptions' },
   ]},
   { label: 'School',      icon: School,     children: [
-    { label: 'Leads', href: '#' }, { label: 'Store', href: '#' },
-    { label: 'Curriculum', href: '#' }, { label: 'Affiliates', href: '#' },
-    { label: 'Staff', href: '#' }, { label: 'Waivers', href: '#' }, { label: 'Gradings', href: '#' },
+    { label: 'Leads', href: '/dashboard/school/leads' }, { label: 'Store', href: '/dashboard/school/store' },
+    { label: 'Curriculum', href: '/dashboard/school/curriculum' }, { label: 'Affiliates', href: '/dashboard/school/affiliates' },
+    { label: 'Staff', href: '/dashboard/school/staff' }, { label: 'Waivers', href: '/dashboard/school/waivers' }, { label: 'Gradings', href: '/dashboard/school/gradings' },
   ]},
   { label: 'Reports',     icon: BarChart2,  children: [
     { label: 'Bookings', href: '#' }, { label: 'Gradings', href: '#' },
