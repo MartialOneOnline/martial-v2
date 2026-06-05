@@ -206,20 +206,21 @@ function StatusBadge({ status }: { status: MembershipStatus }) {
   )
 }
 
-// ── Create Membership Drawer ───────────────────────────────────────────────────
-type AccessMode = 'unlimited' | 'limited' | 'single'
+// ── Per-activity access config ─────────────────────────────────────────────────
+type ActivityAccess = 'off' | 'unlimited' | 'limited'
+interface ActivityRow { key: string; bg: string; color: string; border: string; access: ActivityAccess; n: string; per: string }
 
+const DEFAULT_ACTIVITY_ROWS: ActivityRow[] = ACTIVITY_TYPES.map(a => ({
+  ...a, access: 'off', n: '4', per: 'Week',
+}))
+
+// ── Create Membership Drawer ───────────────────────────────────────────────────
 function CreateMembershipDrawer({ open, onClose, onSuccess }: {
   open: boolean; onClose: () => void; onSuccess: () => void
 }) {
-  const [selectedClasses, setSelectedClasses] = useState<string[]>(
-    ACTIVITY_TYPES.map(a => a.key)  // all selected by default
-  )
-  const [accessMode, setAccessMode]   = useState<AccessMode>('unlimited')
-  const [limitN, setLimitN]           = useState('4')
-  const [limitPer, setLimitPer]       = useState('Week')
-  const [freqUnit, setFreqUnit]       = useState('Month')
-  const [bannerDrag, setBannerDrag]   = useState(false)
+  const [rows, setRows]             = useState<ActivityRow[]>(DEFAULT_ACTIVITY_ROWS.map(r => ({ ...r })))
+  const [freqUnit, setFreqUnit]     = useState('Month')
+  const [bannerDrag, setBannerDrag] = useState(false)
   const [legalChecked, setLegalChecked] = useState({ terms: false, privacy: false })
 
   const inputStyle: React.CSSProperties = {
@@ -230,17 +231,15 @@ function CreateMembershipDrawer({ open, onClose, onSuccess }: {
     display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 5,
   }
 
-  function toggleClass(key: string) {
-    setSelectedClasses(prev =>
-      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
-    )
+  function setAccess(key: string, access: ActivityAccess) {
+    setRows(prev => prev.map(r => r.key === key ? { ...r, access } : r))
   }
-
-  const ACCESS_OPTIONS: { id: AccessMode; icon: React.ElementType; label: string; sub: string }[] = [
-    { id: 'unlimited', icon: Infinity,  label: 'Unlimited',   sub: 'No session limit'            },
-    { id: 'limited',   icon: Hash,      label: 'Limited',     sub: 'N sessions per week / month' },
-    { id: 'single',    icon: Zap,       label: 'Single use',  sub: 'One session only'             },
-  ]
+  function setN(key: string, n: string) {
+    setRows(prev => prev.map(r => r.key === key ? { ...r, n } : r))
+  }
+  function setPer(key: string, per: string) {
+    setRows(prev => prev.map(r => r.key === key ? { ...r, per } : r))
+  }
 
   return (
     <>
@@ -254,7 +253,7 @@ function CreateMembershipDrawer({ open, onClose, onSuccess }: {
           transform: open ? 'translateX(0)' : 'translateX(100%)',
           transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)' }}>
 
-        {/* Header — same as other drawers */}
+        {/* Header */}
         <div className="flex items-center justify-between px-8 py-5 shrink-0"
           style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
           <div>
@@ -279,7 +278,7 @@ function CreateMembershipDrawer({ open, onClose, onSuccess }: {
             {/* Left — form */}
             <div className="flex-1 min-w-0 flex flex-col gap-5">
 
-              {/* Name + Public */}
+              {/* Name + Visibility */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label style={labelStyle}>Membership Name</label>
@@ -319,80 +318,119 @@ function CreateMembershipDrawer({ open, onClose, onSuccess }: {
                 </div>
               </div>
 
-              {/* Allowed class types */}
+              {/* Per-activity class access */}
               <div>
-                <label style={labelStyle}>Allowed Class Types</label>
-                <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 10, marginTop: -2 }}>
-                  Select which types of classes this membership gives access to
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {ACTIVITY_TYPES.map(({ key, bg, color, border }) => {
-                    const on = selectedClasses.includes(key)
-                    return (
-                      <button key={key} onClick={() => toggleClass(key)}
-                        className="cursor-pointer transition-all"
-                        style={{ fontSize: 12, fontWeight: 600, padding: '6px 14px', borderRadius: 99,
-                          background: on ? bg : '#F9FAFB',
-                          color: on ? color : '#9CA3AF',
-                          border: '1.5px solid ' + (on ? border : '#E5E7EB'),
-                          transition: 'all 0.15s' }}>
-                        {key}
-                      </button>
-                    )
-                  })}
+                <div className="flex items-end justify-between mb-3">
+                  <div>
+                    <label style={{ ...labelStyle, marginBottom: 2 }}>Class Access</label>
+                    <p style={{ fontSize: 12, color: '#9CA3AF' }}>
+                      Set access rules per activity type
+                    </p>
+                  </div>
+                  {/* Quick actions */}
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => setRows(prev => prev.map(r => ({ ...r, access: 'unlimited' })))}
+                      className="cursor-pointer"
+                      style={{ fontSize: 11, fontWeight: 500, padding: '4px 10px', borderRadius: 7,
+                        border: '1px solid #E5E7EB', background: '#fff', color: '#6B7280' }}
+                      onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
+                      onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = '#fff'}>
+                      All unlimited
+                    </button>
+                    <button onClick={() => setRows(prev => prev.map(r => ({ ...r, access: 'off' })))}
+                      className="cursor-pointer"
+                      style={{ fontSize: 11, fontWeight: 500, padding: '4px 10px', borderRadius: 7,
+                        border: '1px solid #E5E7EB', background: '#fff', color: '#6B7280' }}
+                      onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
+                      onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = '#fff'}>
+                      Clear all
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              {/* Training access mode */}
-              <div>
-                <label style={labelStyle}>Training Access</label>
-                <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 10, marginTop: -2 }}>
-                  How many sessions can the member attend per billing period?
-                </p>
-
-                {/* 3 option cards */}
-                <div className="grid grid-cols-3 gap-3 mb-4">
-                  {ACCESS_OPTIONS.map(({ id, icon: Icon, label, sub }) => {
-                    const on = accessMode === id
+                <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
+                  {rows.map((row, idx) => {
+                    const isOn = row.access !== 'off'
                     return (
-                      <button key={id} onClick={() => setAccessMode(id)}
-                        className="flex flex-col items-start gap-1.5 rounded-xl p-4 cursor-pointer text-left"
-                        style={{ border: '1.5px solid ' + (on ? '#0071E3' : '#E5E7EB'),
-                          background: on ? '#EFF6FF' : '#fff',
-                          transition: 'all 0.15s' }}>
-                        <div className="flex items-center justify-between w-full">
-                          <Icon size={16} style={{ color: on ? '#0071E3' : '#9CA3AF' }} />
-                          {on && (
-                            <div className="w-4 h-4 rounded-full flex items-center justify-center"
-                              style={{ background: '#0071E3' }}>
-                              <Check size={9} style={{ color: '#fff' }} strokeWidth={3} />
+                      <div key={row.key}
+                        style={{ borderBottom: idx < rows.length - 1 ? '1px solid #F3F4F6' : 'none',
+                          padding: '12px 16px', opacity: isOn ? 1 : 0.55, transition: 'opacity 0.15s' }}>
+                        <div className="flex items-center gap-3 flex-wrap">
+
+                          {/* Activity chip */}
+                          <div style={{ width: 110, flexShrink: 0 }}>
+                            <span style={{ fontSize: 12, fontWeight: 700, padding: '4px 10px',
+                              borderRadius: 99, background: isOn ? row.bg : '#F3F4F6',
+                              color: isOn ? row.color : '#9CA3AF',
+                              border: '1.5px solid ' + (isOn ? row.border : '#E5E7EB'),
+                              display: 'inline-block', transition: 'all 0.15s' }}>
+                              {row.key}
+                            </span>
+                          </div>
+
+                          {/* Access mode selector — 3 pill buttons */}
+                          <div className="flex items-center rounded-lg overflow-hidden shrink-0"
+                            style={{ border: '1px solid #E5E7EB', background: '#F9FAFB' }}>
+                            {([
+                              { id: 'off' as ActivityAccess,       label: 'Off'       },
+                              { id: 'unlimited' as ActivityAccess, label: 'Unlimited' },
+                              { id: 'limited' as ActivityAccess,   label: 'Limited'   },
+                            ]).map(({ id, label }) => {
+                              const active = row.access === id
+                              return (
+                                <button key={id} onClick={() => setAccess(row.key, id)}
+                                  className="cursor-pointer"
+                                  style={{ fontSize: 12, fontWeight: active ? 600 : 400,
+                                    padding: '5px 12px', border: 'none',
+                                    background: active
+                                      ? id === 'off' ? '#F3F4F6'
+                                        : id === 'unlimited' ? '#EFF6FF'
+                                        : '#EFF6FF'
+                                      : 'transparent',
+                                    color: active
+                                      ? id === 'off' ? '#374151' : '#0071E3'
+                                      : '#9CA3AF',
+                                    boxShadow: active ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                                    transition: 'all 0.12s' }}>
+                                  {label}
+                                </button>
+                              )
+                            })}
+                          </div>
+
+                          {/* Limited config — inline, only when limited */}
+                          {row.access === 'limited' && (
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <input type="number" value={row.n} min={1}
+                                onChange={e => setN(row.key, e.target.value)}
+                                style={{ border: '1px solid #E5E7EB', borderRadius: 8,
+                                  padding: '5px 8px', fontSize: 13, fontWeight: 700,
+                                  color: '#111827', background: '#fff', outline: 'none',
+                                  width: 56, textAlign: 'center' }} />
+                              <span style={{ fontSize: 12, color: '#9CA3AF', whiteSpace: 'nowrap' }}>per</span>
+                              <select value={row.per} onChange={e => setPer(row.key, e.target.value)}
+                                style={{ border: '1px solid #E5E7EB', borderRadius: 8,
+                                  padding: '5px 10px', fontSize: 12, color: '#374151',
+                                  background: '#fff', outline: 'none' }}>
+                                {['Day', 'Week', 'Month'].map(u => <option key={u}>{u}</option>)}
+                              </select>
                             </div>
                           )}
+
+                          {/* Unlimited label */}
+                          {row.access === 'unlimited' && (
+                            <span className="flex items-center gap-1"
+                              style={{ fontSize: 12, color: '#16A34A', fontWeight: 500 }}>
+                              <Infinity size={13} />
+                              No session limit
+                            </span>
+                          )}
                         </div>
-                        <p style={{ fontSize: 13, fontWeight: 600, color: on ? '#0071E3' : '#374151' }}>{label}</p>
-                        <p style={{ fontSize: 11, color: '#9CA3AF', lineHeight: 1.3 }}>{sub}</p>
-                      </button>
+                      </div>
                     )
                   })}
                 </div>
-
-                {/* Limited config — only shown when mode = limited */}
-                {accessMode === 'limited' && (
-                  <div className="flex items-center gap-3 rounded-xl px-4 py-3"
-                    style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-                    <span style={{ fontSize: 13, color: '#6B7280', whiteSpace: 'nowrap' }}>Allow</span>
-                    <input type="number" value={limitN} min={1} onChange={e => setLimitN(e.target.value)}
-                      style={{ ...inputStyle, width: 72, textAlign: 'center', fontWeight: 700,
-                        fontSize: 16, color: '#111827' }} />
-                    <span style={{ fontSize: 13, color: '#6B7280', whiteSpace: 'nowrap' }}>sessions per</span>
-                    <select value={limitPer} onChange={e => setLimitPer(e.target.value)}
-                      style={{ ...inputStyle, width: 'auto', flex: 1 }}>
-                      {['Day', 'Week', 'Month'].map(u => <option key={u}>{u}</option>)}
-                    </select>
-                  </div>
-                )}
               </div>
-
             </div>
 
             {/* Right — image */}
@@ -420,11 +458,32 @@ function CreateMembershipDrawer({ open, onClose, onSuccess }: {
                 </label>
               </div>
               <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 8 }}>Recommended: 325 × 261px</p>
+
+              {/* Summary of selected classes */}
+              {rows.some(r => r.access !== 'off') && (
+                <div className="mt-5 rounded-xl p-4"
+                  style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#374151',
+                    textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>
+                    Access Summary
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    {rows.filter(r => r.access !== 'off').map(r => (
+                      <div key={r.key} className="flex items-center justify-between">
+                        <span style={{ fontSize: 11, fontWeight: 600, color: r.color }}>{r.key}</span>
+                        <span style={{ fontSize: 11, color: '#6B7280' }}>
+                          {r.access === 'unlimited' ? '∞ Unlimited' : `${r.n}× / ${r.per}`}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Footer — same as other drawers */}
+        {/* Footer */}
         <div className="px-8 py-5 flex flex-col gap-4 shrink-0"
           style={{ background: '#fff', borderTop: '1px solid #E5E7EB' }}>
           <div className="flex flex-col gap-2">
