@@ -21,6 +21,7 @@ import AIMessagesModal           from '../../components/popups/AIMessagesModal'
 import ClassCapacityPopup        from '../../components/popups/ClassCapacityPopup'
 import { TransactionActionsButton } from '../../components/popups/TransactionActionsPopup'
 import { useT }                  from '../../lib/i18n/LanguageContext'
+import DashboardLanguageSelector  from '../../components/DashboardLanguageSelector'
 
 // ── Design tokens ──────────────────────────────────────────────────────────────
 // bg:       #F9FAFB
@@ -261,10 +262,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           </div>
 
           {/* Language */}
-          <button className="w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer text-base"
-            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-            🇬🇧
-          </button>
+          <DashboardLanguageSelector />
 
           {/* Export */}
           <button className="hidden sm:flex" style={{

@@ -9,6 +9,7 @@ import {
   TrendingUp, Clock, Users,
 } from 'lucide-react'
 import { useDashboard } from '../../../components/DashboardShell'
+import DashboardLanguageSelector from '../../../components/DashboardLanguageSelector'
 
 // ── Design tokens (same as dashboard) ─────────────────────────────────────────
 // bg: #F9FAFB | card: #fff | border: #E5E7EB | text-1: #111827 | text-2: #6B7280
@@ -153,9 +154,8 @@ export default function UsersClient() {
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: '#DC2626' }} />
             </button>
 
-            {/* Flag */}
-            <button className="w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer text-base"
-              style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>🇬🇧</button>
+            {/* Language */}
+            <DashboardLanguageSelector />
 
             {/* Add student */}
             <button className="hidden sm:flex items-center gap-2 cursor-pointer"

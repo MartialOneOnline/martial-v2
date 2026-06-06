@@ -9,6 +9,7 @@ import {
   Clock,
 } from 'lucide-react'
 import { useDashboard } from '../../../components/DashboardShell'
+import DashboardLanguageSelector from '../../../components/DashboardLanguageSelector'
 
 // ── Mock data ──────────────────────────────────────────────────────────────────
 
@@ -442,8 +443,7 @@ export default function ClassesClient() {
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: '#DC2626' }} />
             </button>
 
-            <button className="w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer text-base"
-              style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>🇬🇧</button>
+            <DashboardLanguageSelector />
 
             <button onClick={() => setDrawerOpen(true)}
               className="flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer"
