@@ -1,99 +1,10 @@
 'use client'
 
+import { useDashboard } from '../../../components/DashboardShell'
 import { useState } from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
-import {
-  Flame, Users, Calendar, CreditCard, Award,
-  BarChart2, Settings, Bell, HelpCircle, LogOut,
-  School, ShoppingBag, ChevronRight, ChevronDown,
-  Menu, Search, MessageSquare, MessageCircle, BookOpen,
-  Mail, Check, Plus, ExternalLink,
-} from 'lucide-react'
+import {Users, Calendar, CreditCard, BarChart2, Settings, Bell, ChevronRight, ChevronDown, Menu, Search, MessageSquare, MessageCircle, BookOpen, Mail, Check, Plus, ExternalLink} from 'lucide-react'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import type { Translations } from '../../../lib/i18n/translations'
-
-type NavItem = { label: string; icon: React.ElementType; href?: string; children?: { label: string; href: string }[] }
-
-const buildNavMain = (s: Translations['sidebar']): NavItem[] => [
-  { label: s.dashboard,   icon: Flame,      href: '/dashboard' },
-  { label: s.users,       icon: Users,      href: '/dashboard/users' },
-  { label: s.classes,     icon: Calendar,   children: [
-    { label: s.classes,   href: '/dashboard/classes' },
-    { label: s.events,    href: '/dashboard/classes/events' },
-    { label: s.calendar,  href: '/dashboard/classes/calendar' },
-    { label: s.timetable, href: '/dashboard/classes/timetable' },
-  ]},
-  { label: s.memberships, icon: Award,      href: '/dashboard/memberships' },
-  { label: s.payments,    icon: CreditCard, children: [
-    { label: s.transactions,  href: '/dashboard/payments/transactions' },
-    { label: s.subscriptions, href: '/dashboard/payments/subscriptions' },
-  ]},
-  { label: s.school,      icon: School,     children: [
-    { label: s.leads,      href: '/dashboard/school/leads' },
-    { label: s.store,      href: '/dashboard/school/store' },
-    { label: s.curriculum, href: '/dashboard/school/curriculum' },
-    { label: s.affiliates, href: '/dashboard/school/affiliates' },
-    { label: s.staff,      href: '/dashboard/school/staff' },
-    { label: s.waivers,    href: '/dashboard/school/waivers' },
-    { label: s.gradings,   href: '/dashboard/school/gradings' },
-  ]},
-  { label: s.reports,     icon: BarChart2,  children: [
-    { label: s.bookings, href: '/dashboard/reports/bookings' },
-    { label: s.gradings, href: '/dashboard/reports/gradings' },
-    { label: s.payments, href: '/dashboard/reports/payments' },
-    { label: s.balance,  href: '/dashboard/reports/balance' },
-    { label: s.absents,  href: '/dashboard/reports/absents' },
-    { label: s.users,    href: '/dashboard/reports/users' },
-  ]},
-  { label: s.settings, icon: Settings, href: '/dashboard/settings' },
-]
-const buildNavBottom = (s: Translations['sidebar']): NavItem[] => [
-  { label: s.subscription,  icon: ShoppingBag, href: '/dashboard/subscription' },
-  { label: s.notifications, icon: Bell,        href: '/dashboard/notifications' },
-  { label: s.support,       icon: HelpCircle,  href: '/dashboard/support' },
-]
-const ACTIVE_HREF = '/dashboard/support'
-
-function NavGroup({ item }: { item: NavItem }) {
-  const isActive = item.href === ACTIVE_HREF || item.children?.some(c => c.href === ACTIVE_HREF)
-  const [open, setOpen] = useState(isActive ?? false)
-  if (!item.children) return (
-    <Link href={item.href ?? '#'}
-      className="flex items-center gap-3 px-3 py-2.5 rounded-xl no-underline transition-colors"
-      style={{ color: '#374151', fontSize: 14, background: item.href === ACTIVE_HREF ? '#EFF6FF' : 'transparent' }}
-      onMouseEnter={e => { if (item.href !== ACTIVE_HREF) (e.currentTarget as HTMLElement).style.background = '#F9FAFB' }}
-      onMouseLeave={e => { if (item.href !== ACTIVE_HREF) (e.currentTarget as HTMLElement).style.background = 'transparent' }}>
-      <item.icon size={16} style={{ color: item.href === ACTIVE_HREF ? '#0071E3' : '#9CA3AF', flexShrink: 0 }} />
-      {item.label}
-    </Link>
-  )
-  return (
-    <div>
-      <button onClick={() => setOpen(v => !v)}
-        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors cursor-pointer text-left"
-        style={{ color: '#374151', fontSize: 14, background: isActive ? '#EFF6FF' : 'transparent', border: 'none' }}
-        onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = '#F9FAFB' }}
-        onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = isActive ? '#EFF6FF' : 'transparent' }}>
-        <item.icon size={16} style={{ color: isActive ? '#0071E3' : '#9CA3AF', flexShrink: 0 }} />
-        <span className="flex-1">{item.label}</span>
-        {open ? <ChevronDown size={13} style={{ color: '#9CA3AF' }} /> : <ChevronRight size={13} style={{ color: '#9CA3AF' }} />}
-      </button>
-      {open && (
-        <div className="ml-7 mt-0.5 space-y-0.5">
-          {item.children!.map(child => (
-            <Link key={child.label} href={child.href}
-              className="flex items-center px-3 py-2 rounded-lg no-underline transition-colors"
-              style={{ fontSize: 13, color: child.href === ACTIVE_HREF ? '#0071E3' : '#6B7280', fontWeight: child.href === ACTIVE_HREF ? 600 : 400 }}
-              onMouseEnter={e => { if (child.href !== ACTIVE_HREF) { (e.currentTarget as HTMLElement).style.background = '#F9FAFB'; (e.currentTarget as HTMLElement).style.color = '#111827' }}}
-              onMouseLeave={e => { if (child.href !== ACTIVE_HREF) { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = '#6B7280' }}}
-            >{child.label}</Link>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
 
 const FAQ_SECTIONS = [
   {
@@ -197,42 +108,12 @@ function FaqSection({ title, items }: { title: string; items: { q: string; a: st
 }
 
 export default function SupportClient() {
+  const { setMenuOpen } = useDashboard()
   const t = useT()
-  const NAV_MAIN = buildNavMain(t.sidebar)
-  const NAV_BOTTOM = buildNavBottom(t.sidebar)
-  const [menuOpen, setMenuOpen] = useState(false)
   const [search, setSearch] = useState('')
 
   return (
-    <div className="min-h-screen flex" style={{ background: '#F9FAFB', fontFamily: "-apple-system,BlinkMacSystemFont,'Inter',sans-serif" }}>
-      <style>{`@media(min-width:768px){.dashboard-sidebar{transform:translateX(0)!important}}`}</style>
-      {menuOpen && <div className="fixed inset-0 z-40 md:hidden" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={() => setMenuOpen(false)} />}
-
-      <aside className="dashboard-sidebar fixed top-0 left-0 h-full flex flex-col z-50"
-        style={{ width: 232, background: '#fff', borderRight: '1px solid #E5E7EB', transform: menuOpen ? 'translateX(0)' : 'translateX(-232px)', transition: 'transform 0.28s cubic-bezier(0.4,0,0.2,1)' }}>
-        <div className="flex items-center gap-2.5 px-5 py-4" style={{ borderBottom: '1px solid #F3F4F6', minHeight: 60 }}>
-          <Image src="/martial-logo.png" alt="Martial" width={28} height={28} className="object-contain" />
-          <span style={{ fontWeight: 700, fontSize: 16, color: '#111827', letterSpacing: '-0.3px' }}>Martial</span>
-        </div>
-        <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
-          {NAV_MAIN.map(item => <NavGroup key={item.label} item={item} />)}
-        </nav>
-        <div className="px-3 py-3 space-y-0.5" style={{ borderTop: '1px solid #F3F4F6' }}>
-          {NAV_BOTTOM.map(item => <NavGroup key={item.label} item={item} />)}
-          <form action="/auth/logout" method="post">
-            <button type="submit" className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors cursor-pointer text-left"
-              style={{ color: '#374151', fontSize: 14, background: 'transparent', border: 'none' }}
-              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#FEF2F2'}
-              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-              <LogOut size={16} style={{ color: '#9CA3AF', flexShrink: 0 }} />
-              {t.sidebar.signOut}
-            </button>
-          </form>
-        </div>
-      </aside>
-
-      <div className="flex flex-1 min-w-0 md:ml-[232px]">
-        <main style={{ flex: 1, minWidth: 0 }}>
+        <main style={{ flex: 1, minWidth: 0, width: "100%", overflow: "auto" }}>
           <div style={{ background: '#fff', borderBottom: '1px solid #E5E7EB', padding: '0 32px', height: 60, display: 'flex', alignItems: 'center', gap: 12 }}>
             <button className="md:hidden" onClick={() => setMenuOpen(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
               <Menu size={20} style={{ color: '#374151' }} />
@@ -384,7 +265,5 @@ export default function SupportClient() {
 
           </div>
         </main>
-      </div>
-    </div>
   )
 }

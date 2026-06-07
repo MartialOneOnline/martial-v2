@@ -1,102 +1,13 @@
 'use client'
 
+import { useDashboard } from '../../../../components/DashboardShell'
 import { useState } from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
-import {
-  Flame, Users, Calendar, CreditCard, Award,
-  BarChart2, Settings, Bell, HelpCircle, LogOut,
-  School, ShoppingBag, ChevronRight, ChevronDown,
-  Menu, X, Search, ChevronLeft, AlertTriangle,
-} from 'lucide-react'
+import {Users, Calendar, CreditCard, BarChart2, Settings, Bell, ChevronRight, ChevronDown, Menu, X, Search, ChevronLeft, AlertTriangle} from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import {
   BarChart, Bar, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
-
-type NavItem = { label: string; icon: React.ElementType; href?: string; children?: { label: string; href: string }[] }
-
-const ACTIVE_HREF = '/dashboard/reports/absents'
-
-const NAV_MAIN: NavItem[] = [
-  { label: 'Dashboard',   icon: Flame,      href: '/dashboard' },
-  { label: 'Users',       icon: Users,      href: '/dashboard/users' },
-  { label: 'Classes',     icon: Calendar,   children: [
-    { label: 'Classes',   href: '/dashboard/classes' },
-    { label: 'Events',    href: '/dashboard/classes/events' },
-    { label: 'Calendar',  href: '/dashboard/classes/calendar' },
-    { label: 'Timetable', href: '/dashboard/classes/timetable' },
-  ]},
-  { label: 'Memberships', icon: Award,      href: '/dashboard/memberships' },
-  { label: 'Payments',    icon: CreditCard, children: [
-    { label: 'Transactions',  href: '/dashboard/payments/transactions' },
-    { label: 'Subscriptions', href: '/dashboard/payments/subscriptions' },
-  ]},
-  { label: 'School',      icon: School,     children: [
-    { label: 'Leads',      href: '/dashboard/school/leads' },
-    { label: 'Store',      href: '/dashboard/school/store' },
-    { label: 'Curriculum', href: '/dashboard/school/curriculum' },
-    { label: 'Affiliates', href: '/dashboard/school/affiliates' },
-    { label: 'Staff',      href: '/dashboard/school/staff' },
-    { label: 'Waivers',    href: '/dashboard/school/waivers' },
-    { label: 'Gradings',   href: '/dashboard/school/gradings' },
-  ]},
-  { label: 'Reports',     icon: BarChart2,  children: [
-    { label: 'Bookings', href: '/dashboard/reports/bookings' },
-    { label: 'Gradings', href: '/dashboard/reports/gradings' },
-    { label: 'Payments', href: '/dashboard/reports/payments' },
-    { label: 'Balance',  href: '/dashboard/reports/balance' },
-    { label: 'Absents',  href: '/dashboard/reports/absents' },
-    { label: 'Users',    href: '/dashboard/reports/users' },
-  ]},
-  { label: 'Settings', icon: Settings, href: '/dashboard/settings' },
-]
-const NAV_BOTTOM: NavItem[] = [
-  { label: 'Subscription',  icon: ShoppingBag, href: '#' },
-  { label: 'Notifications', icon: Bell,        href: '#' },
-  { label: 'Support',       icon: HelpCircle,  href: '#' },
-]
-
-function NavGroup({ item }: { item: NavItem }) {
-  const isActive = item.href === ACTIVE_HREF || item.children?.some(c => c.href === ACTIVE_HREF)
-  const [open, setOpen] = useState(isActive ?? false)
-  if (!item.children) return (
-    <Link href={item.href ?? '#'}
-      className="flex items-center gap-3 px-3 py-2.5 rounded-xl no-underline transition-colors"
-      style={{ color: '#374151', fontSize: 14, background: item.href === ACTIVE_HREF ? '#EFF6FF' : 'transparent' }}
-      onMouseEnter={e => { if (item.href !== ACTIVE_HREF) (e.currentTarget as HTMLElement).style.background = '#F9FAFB' }}
-      onMouseLeave={e => { if (item.href !== ACTIVE_HREF) (e.currentTarget as HTMLElement).style.background = 'transparent' }}>
-      <item.icon size={16} style={{ color: item.href === ACTIVE_HREF ? '#0071E3' : '#9CA3AF', flexShrink: 0 }} />
-      {item.label}
-    </Link>
-  )
-  return (
-    <div>
-      <button onClick={() => setOpen(v => !v)}
-        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors cursor-pointer text-left"
-        style={{ color: '#374151', fontSize: 14, background: isActive ? '#EFF6FF' : 'transparent', border: 'none' }}
-        onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = '#F9FAFB' }}
-        onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = isActive ? '#EFF6FF' : 'transparent' }}>
-        <item.icon size={16} style={{ color: isActive ? '#0071E3' : '#9CA3AF', flexShrink: 0 }} />
-        <span className="flex-1">{item.label}</span>
-        {open ? <ChevronDown size={13} style={{ color: '#9CA3AF' }} /> : <ChevronRight size={13} style={{ color: '#9CA3AF' }} />}
-      </button>
-      {open && (
-        <div className="ml-7 mt-0.5 space-y-0.5">
-          {item.children!.map(child => (
-            <Link key={child.label} href={child.href}
-              className="flex items-center px-3 py-2 rounded-lg no-underline transition-colors"
-              style={{ fontSize: 13, color: child.href === ACTIVE_HREF ? '#0071E3' : '#6B7280', fontWeight: child.href === ACTIVE_HREF ? 600 : 400 }}
-              onMouseEnter={e => { if (child.href !== ACTIVE_HREF) { (e.currentTarget as HTMLElement).style.background = '#F9FAFB'; (e.currentTarget as HTMLElement).style.color = '#111827' }}}
-              onMouseLeave={e => { if (child.href !== ACTIVE_HREF) { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = '#6B7280' }}}
-            >{child.label}</Link>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
 
 const ITEMS_PER_PAGE = 10
 
@@ -174,8 +85,8 @@ const CLASS_COLORS: Record<string, { bg: string; color: string; border: string }
 }
 
 export default function AbsentsReportClient() {
+  const { setMenuOpen } = useDashboard()
   const t = useT()
-  const [menuOpen, setMenuOpen] = useState(false)
   const [period, setPeriod] = useState<'7d' | '30d' | '90d' | '12m'>('30d')
   const [filterTab, setFilterTab] = useState<'All' | 'At Risk' | 'Occasional'>('All')
   const [page, setPage] = useState(1)
@@ -201,60 +112,11 @@ export default function AbsentsReportClient() {
   ]
 
   return (
-    <div className="min-h-screen flex" style={{ background: '#F9FAFB', fontFamily: "-apple-system,BlinkMacSystemFont,'Inter',sans-serif" }}>
-      <style>{`@media(min-width:768px){.dashboard-sidebar{transform:translateX(0)!important}}`}</style>
-      {menuOpen && <div className="fixed inset-0 z-40 md:hidden" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={() => setMenuOpen(false)} />}
-
-      <aside className="dashboard-sidebar fixed top-0 left-0 h-full flex flex-col z-50"
-        style={{ width: 232, background: '#fff', borderRight: '1px solid #E5E7EB',
-          transform: menuOpen ? 'translateX(0)' : 'translateX(-232px)',
-          transition: 'transform 0.28s cubic-bezier(0.4,0,0.2,1)' }}>
-        <div className="flex items-center justify-between px-5 py-5" style={{ borderBottom: '1px solid #E5E7EB' }}>
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-lg overflow-hidden shrink-0">
-              <Image src="/martial-logo.png" alt="Martial" width={28} height={28} className="object-contain" />
-            </div>
-            <div>
-              <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>MARTIAL</p>
-              <p style={{ fontSize: 10, fontWeight: 500, color: '#9CA3AF', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Academy</p>
-            </div>
-          </div>
-          <button className="md:hidden flex items-center justify-center w-7 h-7 rounded-lg cursor-pointer"
-            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(false)}>
-            <X size={14} style={{ color: '#6B7280' }} />
-          </button>
-        </div>
-        <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-0.5">
-          {NAV_MAIN.map(item => <NavGroup key={item.label} item={item} />)}
-        </nav>
-        <div style={{ borderTop: '1px solid #E5E7EB' }} className="px-3 py-3 space-y-0.5">
-          {NAV_BOTTOM.map(item => (
-            <Link key={item.label} href={item.href ?? '#'}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl no-underline transition-colors"
-              style={{ color: '#374151', fontSize: 14 }}
-              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
-              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-              <item.icon size={16} style={{ color: '#9CA3AF' }} />{item.label}
-            </Link>
-          ))}
-          <form action="/auth/logout" method="post">
-            <button type="submit"
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left cursor-pointer"
-              style={{ color: '#374151', fontSize: 14, background: 'transparent', border: 'none' }}
-              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
-              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-              <LogOut size={16} style={{ color: '#9CA3AF' }} />Sign out
-            </button>
-          </form>
-        </div>
-      </aside>
-
-      <div className="flex flex-1 min-w-0 md:ml-[232px]">
-        <main style={{ flex: 1, minWidth: 0 }}>
+        <main style={{ flex: 1, minWidth: 0, width: "100%", overflow: "auto" }}>
           <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20 flex-wrap"
             style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
             <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
-              style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(!menuOpen)}>
+              style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(true)}>
               <Menu size={16} style={{ color: '#374151' }} />
             </button>
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 max-w-xs"
@@ -430,7 +292,5 @@ export default function AbsentsReportClient() {
             </div>
           </div>
         </main>
-      </div>
-    </div>
   )
 }

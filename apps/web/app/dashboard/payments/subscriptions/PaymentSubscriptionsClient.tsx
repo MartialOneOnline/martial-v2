@@ -410,7 +410,7 @@ export default function PaymentSubscriptionsClient() {
 
   return (
     <>
-    <main style={{ flex: 1, minWidth: 0 }}>
+    <main style={{ flex: 1, minWidth: 0, width: "100%", overflow: "auto" }}>
 
           {/* Topbar */}
           <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20 flex-wrap"
