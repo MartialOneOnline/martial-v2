@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useDashboard } from '../../../components/DashboardShell'
+import { useT } from '../../../lib/i18n/LanguageContext'
 
 // ── Reusable primitives ────────────────────────────────────────────────────────
 function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
@@ -893,6 +894,7 @@ const TABS: { id: TabId; label: string; icon: React.ElementType; danger?: boolea
 // ── Main ───────────────────────────────────────────────────────────────────────
 export default function SettingsClient() {
   const { menuOpen, setMenuOpen } = useDashboard()
+  const t = useT()
   const [activeTab, setActiveTab] = useState<TabId>('profile')
 
   const content: Record<TabId, React.ReactNode> = {
@@ -928,10 +930,10 @@ export default function SettingsClient() {
             {/* Page header */}
             <div>
               <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>
-                Settings
+                {t.settings.title}
               </h1>
               <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>
-                Manage your profile, academy and platform preferences
+                {t.settings.subtitle}
               </p>
             </div>
 

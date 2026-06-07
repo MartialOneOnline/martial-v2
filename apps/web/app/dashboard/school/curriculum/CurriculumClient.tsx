@@ -10,6 +10,7 @@ import {
   Menu, X, Search, Check, TrendingUp, TrendingDown,
   Plus, BookOpen,
 } from 'lucide-react'
+import { useT } from '../../../../lib/i18n/LanguageContext'
 
 type Belt = 'White' | 'Blue' | 'Purple' | 'Brown' | 'Black'
 type TechniqueStatus = 'Published' | 'Draft'
@@ -270,6 +271,7 @@ function NavGroup({ item }: { item: NavItem }) {
 const BELTS: Belt[] = ['White', 'Blue', 'Purple', 'Brown', 'Black']
 
 export default function CurriculumClient() {
+  const t = useT()
   const [menuOpen, setMenuOpen]       = useState(false)
   const [selectedBelt, setSelectedBelt] = useState<Belt>('White')
   const [drawerOpen, setDrawerOpen]   = useState(false)
@@ -283,10 +285,10 @@ export default function CurriculumClient() {
   const beltsCovered    = BELTS.length
 
   const STATS = [
-    { label: 'Total Techniques', value: String(totalTechniques), icon: BookOpen,   color: '#0071E3', bg: '#EFF6FF', trend: '+3', trendUp: true  },
-    { label: 'Published',        value: String(published),       icon: Check,      color: '#16A34A', bg: '#F0FDF4', trend: '+2', trendUp: true  },
-    { label: 'Drafts',           value: String(drafts),          icon: TrendingDown, color: '#D97706', bg: '#FFFBEB', trend: String(drafts), trendUp: false },
-    { label: 'Belts Covered',    value: String(beltsCovered),    icon: Award,      color: '#6D28D9', bg: '#F5F3FF', trend: '5', trendUp: true  },
+    { label: t.school.totalModules,  value: String(totalTechniques), icon: BookOpen,   color: '#0071E3', bg: '#EFF6FF', trend: '+3', trendUp: true  },
+    { label: t.common.active,        value: String(published),       icon: Check,      color: '#16A34A', bg: '#F0FDF4', trend: '+2', trendUp: true  },
+    { label: 'Drafts',               value: String(drafts),          icon: TrendingDown, color: '#D97706', bg: '#FFFBEB', trend: String(drafts), trendUp: false },
+    { label: t.school.techniques,    value: String(beltsCovered),    icon: Award,      color: '#6D28D9', bg: '#F5F3FF', trend: '5', trendUp: true  },
   ]
 
   return (
@@ -358,14 +360,14 @@ export default function CurriculumClient() {
             <button onClick={() => setDrawerOpen(true)}
               className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
               style={{ background: '#0071E3', border: 'none', color: '#fff', fontSize: 13, fontWeight: 600 }}>
-              <Plus size={15} />Add Technique
+              <Plus size={15} />{t.school.addModule}
             </button>
           </div>
 
           <div className="px-4 md:px-8 py-6 flex flex-col gap-6">
             <div>
-              <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>Curriculum</h1>
-              <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>BJJ techniques organized by belt level</p>
+              <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>{t.school.curriculumTitle}</h1>
+              <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>{t.school.curriculumSubtitle}</p>
             </div>
 
             <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
@@ -444,7 +446,7 @@ export default function CurriculumClient() {
                   {techniques.length === 0 && (
                     <div style={{ textAlign: 'center', padding: '48px 0' }}>
                       <BookOpen size={28} style={{ color: '#E5E7EB', margin: '0 auto 10px' }} />
-                      <p style={{ fontSize: 14, color: '#9CA3AF' }}>No techniques for this belt</p>
+                      <p style={{ fontSize: 14, color: '#9CA3AF' }}>{t.school.noCurriculum}</p>
                     </div>
                   )}
                 </div>

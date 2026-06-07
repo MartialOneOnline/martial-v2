@@ -9,6 +9,7 @@ import {
   School, ShoppingBag, ChevronRight, ChevronDown,
   Menu, X, Search, ChevronLeft,
 } from 'lucide-react'
+import { useT } from '../../../../lib/i18n/LanguageContext'
 import {
   BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -164,6 +165,7 @@ const PROMOTIONS: Promotion[] = [
 ]
 
 export default function GradingsReportClient() {
+  const t = useT()
   const [menuOpen, setMenuOpen] = useState(false)
   const [period, setPeriod] = useState<'7d' | '30d' | '90d' | '12m'>('12m')
   const [filterBelt, setFilterBelt] = useState<'All' | string>('All')
@@ -270,7 +272,7 @@ export default function GradingsReportClient() {
 
           <div className="px-4 md:px-8 py-6 flex flex-col gap-6">
             <div>
-              <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>Gradings Report</h1>
+              <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>{t.reports.gradingsTitle}</h1>
               <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>Belt promotions and grading history</p>
             </div>
 

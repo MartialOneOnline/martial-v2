@@ -9,6 +9,7 @@ import {
   School, ShoppingBag, ChevronRight, ChevronDown,
   Menu, X, Search, ChevronLeft, AlertTriangle,
 } from 'lucide-react'
+import { useT } from '../../../../lib/i18n/LanguageContext'
 import {
   BarChart, Bar, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -173,6 +174,7 @@ const CLASS_COLORS: Record<string, { bg: string; color: string; border: string }
 }
 
 export default function AbsentsReportClient() {
+  const t = useT()
   const [menuOpen, setMenuOpen] = useState(false)
   const [period, setPeriod] = useState<'7d' | '30d' | '90d' | '12m'>('30d')
   const [filterTab, setFilterTab] = useState<'All' | 'At Risk' | 'Occasional'>('All')
@@ -282,7 +284,7 @@ export default function AbsentsReportClient() {
 
           <div className="px-4 md:px-8 py-6 flex flex-col gap-6">
             <div>
-              <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>Absents Report</h1>
+              <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>{t.reports.absentsTitle}</h1>
               <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>Absence patterns, at-risk members and day-of-week trends</p>
             </div>
 

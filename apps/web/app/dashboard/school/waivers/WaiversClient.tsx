@@ -10,6 +10,7 @@ import {
   Menu, X, Search, Check, TrendingUp, TrendingDown,
   MoreHorizontal, Eye, Plus, FileText, Download, Send,
 } from 'lucide-react'
+import { useT } from '../../../../lib/i18n/LanguageContext'
 
 type WaiverType = 'Liability' | 'Medical' | 'Photo Release' | 'Minor'
 type WaiverStatus = 'Signed' | 'Pending' | 'Expired'
@@ -325,6 +326,7 @@ function NavGroup({ item }: { item: NavItem }) {
 type Filter = 'All' | WaiverStatus
 
 export default function WaiversClient() {
+  const t = useT()
   const [menuOpen, setMenuOpen]         = useState(false)
   const [activeFilter, setActiveFilter] = useState<Filter>('All')
   const [search, setSearch]             = useState('')
@@ -351,17 +353,17 @@ export default function WaiversClient() {
   const pages      = getPaginationPages(safePage, totalPages)
 
   const STATS = [
-    { label: 'Total Waivers', value: String(totalWaivers), icon: FileText,    color: '#0071E3', bg: '#EFF6FF', trend: '+4',  trendUp: true  },
-    { label: 'Signed',        value: String(signed),       icon: Check,       color: '#16A34A', bg: '#F0FDF4', trend: '+3',  trendUp: true  },
-    { label: 'Pending',       value: String(pending),      icon: TrendingDown, color: '#D97706', bg: '#FFFBEB', trend: String(pending), trendUp: false },
-    { label: 'Expired',       value: String(expired),      icon: TrendingDown, color: '#DC2626', bg: '#FEF2F2', trend: String(expired), trendUp: false },
+    { label: t.school.totalWaivers, value: String(totalWaivers), icon: FileText,    color: '#0071E3', bg: '#EFF6FF', trend: '+4',  trendUp: true  },
+    { label: t.school.signed,       value: String(signed),       icon: Check,       color: '#16A34A', bg: '#F0FDF4', trend: '+3',  trendUp: true  },
+    { label: t.common.pending,      value: String(pending),      icon: TrendingDown, color: '#D97706', bg: '#FFFBEB', trend: String(pending), trendUp: false },
+    { label: 'Expired',             value: String(expired),      icon: TrendingDown, color: '#DC2626', bg: '#FEF2F2', trend: String(expired), trendUp: false },
   ]
 
   const FILTERS: { id: Filter; label: string }[] = [
-    { id: 'All',     label: 'All' },
-    { id: 'Signed',  label: 'Signed' },
-    { id: 'Pending', label: 'Pending' },
-    { id: 'Expired', label: 'Expired' },
+    { id: 'All',     label: t.common.all     },
+    { id: 'Signed',  label: t.school.signed  },
+    { id: 'Pending', label: t.common.pending },
+    { id: 'Expired', label: 'Expired'        },
   ]
 
   return (
@@ -427,7 +429,7 @@ export default function WaiversClient() {
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 max-w-xs"
               style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
               <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
-              <input type="text" placeholder="Search waivers…" value={search}
+              <input type="text" placeholder={t.school.searchWaivers} value={search}
                 onChange={e => { setSearch(e.target.value); setCurrentPage(1) }}
                 style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
             </div>
@@ -446,7 +448,7 @@ export default function WaiversClient() {
 
           <div className="px-4 md:px-8 py-6 flex flex-col gap-6">
             <div>
-              <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>Waivers</h1>
+              <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>{t.school.waiversTitle}</h1>
               <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>Track member waivers and signatures</p>
             </div>
 
@@ -602,7 +604,7 @@ export default function WaiversClient() {
                     <tr>
                       <td colSpan={6} style={{ textAlign: 'center', padding: '48px 0' }}>
                         <FileText size={28} style={{ color: '#E5E7EB', margin: '0 auto 10px' }} />
-                        <p style={{ fontSize: 14, color: '#9CA3AF' }}>No waivers found</p>
+                        <p style={{ fontSize: 14, color: '#9CA3AF' }}>{t.school.noWaivers}</p>
                       </td>
                     </tr>
                   )}
@@ -610,7 +612,7 @@ export default function WaiversClient() {
               </table>
               <div className="flex items-center justify-between px-6 py-3" style={{ borderTop: '1px solid #F3F4F6' }}>
                 <p style={{ fontSize: 13, color: '#6B7280' }}>
-                  Showing{' '}
+                  {t.common.showing}{' '}
                   <span style={{ fontWeight: 600, color: '#111827' }}>
                     {filtered.length === 0 ? 0 : (safePage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(safePage * ITEMS_PER_PAGE, filtered.length)}
                   </span>
@@ -621,7 +623,7 @@ export default function WaiversClient() {
                   <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={safePage === 1}
                     style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff',
                       color: safePage === 1 ? '#D1D5DB' : '#374151', cursor: safePage === 1 ? 'not-allowed' : 'pointer',
-                      borderRadius: 8, padding: '6px 12px' }}>Prev</button>
+                      borderRadius: 8, padding: '6px 12px' }}>{t.common.prev}</button>
                   <div className="flex items-center gap-1 mx-1">
                     {pages.map((p, i) =>
                       p === '...'
@@ -640,7 +642,7 @@ export default function WaiversClient() {
                   <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages}
                     style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff',
                       color: safePage === totalPages ? '#D1D5DB' : '#374151', cursor: safePage === totalPages ? 'not-allowed' : 'pointer',
-                      borderRadius: 8, padding: '6px 12px' }}>Next</button>
+                      borderRadius: 8, padding: '6px 12px' }}>{t.common.next}</button>
                 </div>
               </div>
             </div>

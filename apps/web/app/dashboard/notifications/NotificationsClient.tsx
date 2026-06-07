@@ -6,6 +6,8 @@ import {
   Bell, Menu, Check, CheckCheck, Trash2, Info, AlertTriangle, CheckCircle, MessageSquare, Settings,
 } from 'lucide-react'
 import { useDashboard } from '../../../components/DashboardShell'
+import { useT } from '../../../lib/i18n/LanguageContext'
+import type { Translations } from '../../../lib/i18n/translations'
 
 type FilterTab = 'All' | 'Unread' | 'Payments' | 'Members' | 'Classes' | 'System'
 
@@ -23,12 +25,13 @@ const NOTIF_ICONS: Record<string, React.ElementType> = {
   System:   Settings,
 }
 
-const PREF_GROUPS = [
-  { label: 'Payments', group: 'Payments', items: [{ key: 'pay_success', label: 'Successful payment', desc: 'When a payment is received' }, { key: 'pay_failed', label: 'Failed payment', desc: 'When a payment fails' }, { key: 'pay_refund', label: 'Refunds', desc: 'When a refund is issued' }] },
-  { label: 'Members',  group: 'Members',  items: [{ key: 'mem_new', label: 'New member', desc: 'When someone registers' }, { key: 'mem_absent', label: 'Attendance alerts', desc: 'Inactive students' }, { key: 'mem_expiry', label: 'Membership expiry', desc: 'Memberships expiring soon' }] },
-  { label: 'Classes',  group: 'Classes',  items: [{ key: 'cls_full', label: 'Class full', desc: 'When a class reaches capacity' }, { key: 'cls_cancel', label: 'Cancellations', desc: 'When a class is cancelled' }] },
-  { label: 'System',   group: 'System',   items: [{ key: 'sys_update', label: 'Platform updates', desc: 'New features and fixes' }, { key: 'sys_backup', label: 'Backup confirmations', desc: 'Daily backup status' }] },
+const buildPrefGroups = (t: Translations) => [
+  { label: t.notifications.tabPayments, group: 'Payments', items: [{ key: 'pay_success', label: t.notifications.paySuccess, desc: t.notifications.paySuccessDesc }, { key: 'pay_failed', label: t.notifications.payFailed, desc: t.notifications.payFailedDesc }, { key: 'pay_refund', label: t.notifications.payRefund, desc: t.notifications.payRefundDesc }] },
+  { label: t.notifications.tabMembers,  group: 'Members',  items: [{ key: 'mem_new', label: t.notifications.memNew, desc: t.notifications.memNewDesc }, { key: 'mem_absent', label: t.notifications.memAbsent, desc: t.notifications.memAbsentDesc }, { key: 'mem_expiry', label: t.notifications.memExpiry, desc: t.notifications.memExpiryDesc }] },
+  { label: t.notifications.tabClasses,  group: 'Classes',  items: [{ key: 'cls_full', label: t.notifications.clsFull, desc: t.notifications.clsFullDesc }, { key: 'cls_cancel', label: t.notifications.clsCancel, desc: t.notifications.clsCancelDesc }] },
+  { label: t.notifications.tabSystem,   group: 'System',   items: [{ key: 'sys_update', label: t.notifications.sysUpdate, desc: t.notifications.sysUpdateDesc }, { key: 'sys_backup', label: t.notifications.sysBackup, desc: t.notifications.sysBackupDesc }] },
 ]
+const PREF_KEYS = ['pay_success','pay_failed','pay_refund','mem_new','mem_absent','mem_expiry','cls_full','cls_cancel','sys_update','sys_backup']
 
 interface Notif {
   id: number
@@ -75,10 +78,16 @@ const TABS: FilterTab[] = ['All', 'Unread', 'Payments', 'Members', 'Classes', 'S
 
 export default function NotificationsClient() {
   const { menuOpen, setMenuOpen } = useDashboard()
+  const t = useT()
+  const PREF_GROUPS = buildPrefGroups(t)
+  const tabLabels: Record<FilterTab, string> = {
+    All: t.notifications.tabAll, Unread: t.notifications.tabUnread, Payments: t.notifications.tabPayments,
+    Members: t.notifications.tabMembers, Classes: t.notifications.tabClasses, System: t.notifications.tabSystem,
+  }
   const [notifs, setNotifs] = useState<Notif[]>(INITIAL_NOTIFS)
   const [activeTab, setActiveTab] = useState<FilterTab>('All')
   const [prefs, setPrefs] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(PREF_GROUPS.flatMap(g => g.items.map(i => [i.key, true])))
+    Object.fromEntries(PREF_KEYS.map(k => [k, true]))
   )
 
   const unreadCount = notifs.filter(n => !n.read).length
@@ -105,7 +114,7 @@ export default function NotificationsClient() {
             <button className="md:hidden" onClick={() => setMenuOpen(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
               <Menu size={20} style={{ color: '#374151' }} />
             </button>
-            <span style={{ fontWeight: 600, fontSize: 15, color: '#111827' }}>Notifications</span>
+            <span style={{ fontWeight: 600, fontSize: 15, color: '#111827' }}>{t.notifications.title}</span>
             <div style={{ flex: 1 }} />
             <Link href="/dashboard/notifications" style={{ position: 'relative', color: '#374151', display: 'flex', alignItems: 'center' }}>
               <Bell size={18} style={{ color: '#6B7280' }} />
@@ -121,15 +130,15 @@ export default function NotificationsClient() {
 
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <h1 style={{ fontWeight: 700, fontSize: 20, color: '#111827', margin: 0 }}>Notifications</h1>
+                <h1 style={{ fontWeight: 700, fontSize: 20, color: '#111827', margin: 0 }}>{t.notifications.title}</h1>
                 {unreadCount > 0 && (
                   <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 999, background: '#EFF6FF', color: '#0071E3', border: '1px solid #BFDBFE' }}>
-                    {unreadCount} unread
+                    {unreadCount} {t.notifications.unread}
                   </span>
                 )}
               </div>
               <button onClick={markAllRead} style={{ padding: '7px 14px', borderRadius: 9, background: 'transparent', border: '1px solid #E5E7EB', fontSize: 13, fontWeight: 500, color: '#374151', cursor: 'pointer' }}>
-                Mark all as read
+                {t.notifications.markAllRead}
               </button>
             </div>
 
@@ -142,7 +151,7 @@ export default function NotificationsClient() {
                     borderBottom: activeTab === tab ? '2px solid #0071E3' : '2px solid transparent',
                     marginBottom: -2, display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap',
                   }}>
-                  {tab}
+                  {tabLabels[tab]}
                   <span style={{ fontSize: 11, padding: '1px 6px', borderRadius: 999, background: activeTab === tab ? '#EFF6FF' : '#F3F4F6', color: activeTab === tab ? '#0071E3' : '#9CA3AF', fontWeight: 600 }}>
                     {tabCount(tab)}
                   </span>
@@ -173,7 +182,7 @@ export default function NotificationsClient() {
                       <div style={{ fontSize: 12, color: '#6B7280', marginTop: 2 }}>{n.description}</div>
                       <div style={{ marginTop: 6 }}>
                         <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 999, background: catStyle.bg, color: catStyle.color, border: `1px solid ${catStyle.border}` }}>
-                          {n.category}
+                          {tabLabels[n.category as FilterTab] ?? n.category}
                         </span>
                       </div>
                     </div>
@@ -181,14 +190,14 @@ export default function NotificationsClient() {
                 )
               })}
               {filtered.length === 0 && (
-                <div style={{ padding: '40px 0', textAlign: 'center', color: '#9CA3AF', fontSize: 14 }}>No notifications</div>
+                <div style={{ padding: '40px 0', textAlign: 'center', color: '#9CA3AF', fontSize: 14 }}>{t.notifications.noNotifications}</div>
               )}
             </div>
 
             <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #E5E7EB', overflow: 'hidden' }}>
               <div style={{ padding: '16px 24px', borderBottom: '1px solid #F3F4F6' }}>
-                <div style={{ fontWeight: 700, fontSize: 15, color: '#111827' }}>Preferences</div>
-                <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>Choose which notifications you receive</div>
+                <div style={{ fontWeight: 700, fontSize: 15, color: '#111827' }}>{t.notifications.preferences}</div>
+                <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{t.notifications.preferencesDesc}</div>
               </div>
               <div style={{ padding: '0 24px' }}>
                 {PREF_GROUPS.map(group => (

@@ -9,46 +9,48 @@ import {
   School, ShoppingBag, ChevronRight, ChevronDown,
   Menu, X, Check, Download,
 } from 'lucide-react'
+import { useT } from '../../../lib/i18n/LanguageContext'
+import type { Translations } from '../../../lib/i18n/translations'
 
 type NavItem = { label: string; icon: React.ElementType; href?: string; children?: { label: string; href: string }[] }
 
-const NAV_MAIN: NavItem[] = [
-  { label: 'Dashboard',   icon: Flame,      href: '/dashboard' },
-  { label: 'Users',       icon: Users,      href: '/dashboard/users' },
-  { label: 'Classes',     icon: Calendar,   children: [
-    { label: 'Classes',   href: '/dashboard/classes' },
-    { label: 'Events',    href: '/dashboard/classes/events' },
-    { label: 'Calendar',  href: '/dashboard/classes/calendar' },
-    { label: 'Timetable', href: '/dashboard/classes/timetable' },
+const buildNavMain = (s: Translations['sidebar']): NavItem[] => [
+  { label: s.dashboard,   icon: Flame,      href: '/dashboard' },
+  { label: s.users,       icon: Users,      href: '/dashboard/users' },
+  { label: s.classes,     icon: Calendar,   children: [
+    { label: s.classes,   href: '/dashboard/classes' },
+    { label: s.events,    href: '/dashboard/classes/events' },
+    { label: s.calendar,  href: '/dashboard/classes/calendar' },
+    { label: s.timetable, href: '/dashboard/classes/timetable' },
   ]},
-  { label: 'Memberships', icon: Award,      href: '/dashboard/memberships' },
-  { label: 'Payments',    icon: CreditCard, children: [
-    { label: 'Transactions',  href: '/dashboard/payments/transactions' },
-    { label: 'Subscriptions', href: '/dashboard/payments/subscriptions' },
+  { label: s.memberships, icon: Award,      href: '/dashboard/memberships' },
+  { label: s.payments,    icon: CreditCard, children: [
+    { label: s.transactions,  href: '/dashboard/payments/transactions' },
+    { label: s.subscriptions, href: '/dashboard/payments/subscriptions' },
   ]},
-  { label: 'School',      icon: School,     children: [
-    { label: 'Leads',      href: '/dashboard/school/leads' },
-    { label: 'Store',      href: '/dashboard/school/store' },
-    { label: 'Curriculum', href: '/dashboard/school/curriculum' },
-    { label: 'Affiliates', href: '/dashboard/school/affiliates' },
-    { label: 'Staff',      href: '/dashboard/school/staff' },
-    { label: 'Waivers',    href: '/dashboard/school/waivers' },
-    { label: 'Gradings',   href: '/dashboard/school/gradings' },
+  { label: s.school,      icon: School,     children: [
+    { label: s.leads,      href: '/dashboard/school/leads' },
+    { label: s.store,      href: '/dashboard/school/store' },
+    { label: s.curriculum, href: '/dashboard/school/curriculum' },
+    { label: s.affiliates, href: '/dashboard/school/affiliates' },
+    { label: s.staff,      href: '/dashboard/school/staff' },
+    { label: s.waivers,    href: '/dashboard/school/waivers' },
+    { label: s.gradings,   href: '/dashboard/school/gradings' },
   ]},
-  { label: 'Reports',     icon: BarChart2,  children: [
-    { label: 'Bookings', href: '/dashboard/reports/bookings' },
-    { label: 'Gradings', href: '/dashboard/reports/gradings' },
-    { label: 'Payments', href: '/dashboard/reports/payments' },
-    { label: 'Balance',  href: '/dashboard/reports/balance' },
-    { label: 'Absents',  href: '/dashboard/reports/absents' },
-    { label: 'Users',    href: '/dashboard/reports/users' },
+  { label: s.reports,     icon: BarChart2,  children: [
+    { label: s.bookings, href: '/dashboard/reports/bookings' },
+    { label: s.gradings, href: '/dashboard/reports/gradings' },
+    { label: s.payments, href: '/dashboard/reports/payments' },
+    { label: s.balance,  href: '/dashboard/reports/balance' },
+    { label: s.absents,  href: '/dashboard/reports/absents' },
+    { label: s.users,    href: '/dashboard/reports/users' },
   ]},
-  { label: 'Settings', icon: Settings, href: '/dashboard/settings' },
+  { label: s.settings, icon: Settings, href: '/dashboard/settings' },
 ]
-const NAV_BOTTOM: NavItem[] = [
-  { label: 'Subscription',  icon: ShoppingBag, href: '/dashboard/subscription' },
-  { label: 'Notifications', icon: Bell,        href: '/dashboard/notifications' },
-  { label: 'Support',       icon: HelpCircle,  href: '/dashboard/support' },
+const buildNavBottom = (s: Translations['sidebar']): NavItem[] => [
+  { label: s.subscription,  icon: ShoppingBag, href: '/dashboard/subscription' },
+  { label: s.notifications, icon: Bell,        href: '/dashboard/notifications' },
+  { label: s.support,       icon: HelpCircle,  href: '/dashboard/support' },
 ]
 const ACTIVE_HREF = '/dashboard/subscription'
 
@@ -141,6 +143,9 @@ const PLANS = [
 ]
 
 export default function SubscriptionClient() {
+  const t = useT()
+  const NAV_MAIN = buildNavMain(t.sidebar)
+  const NAV_BOTTOM = buildNavBottom(t.sidebar)
   const [menuOpen, setMenuOpen] = useState(false)
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly')
 
@@ -166,7 +171,7 @@ export default function SubscriptionClient() {
               onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#FEF2F2'}
               onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
               <LogOut size={16} style={{ color: '#9CA3AF', flexShrink: 0 }} />
-              Sign out
+              {t.sidebar.signOut}
             </button>
           </form>
         </div>
@@ -178,7 +183,7 @@ export default function SubscriptionClient() {
             <button className="md:hidden" onClick={() => setMenuOpen(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
               <Menu size={20} style={{ color: '#374151' }} />
             </button>
-            <span style={{ fontWeight: 600, fontSize: 15, color: '#111827' }}>Subscription</span>
+            <span style={{ fontWeight: 600, fontSize: 15, color: '#111827' }}>{t.subscription.title}</span>
           </div>
 
           <div className="px-4 md:px-8 py-6 flex flex-col gap-6">
@@ -189,15 +194,15 @@ export default function SubscriptionClient() {
                 <div className="flex flex-col gap-1.5">
                   <div className="flex items-center gap-2">
                     <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 999, background: '#EFF6FF', color: '#0071E3', border: '1px solid #BFDBFE' }}>STARTER</span>
-                    <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>Martial Academy</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{t.subscription.academy}</span>
                   </div>
-                  <span style={{ fontSize: 13, color: '#6B7280' }}>Billed monthly · Next charge €49 on 01 Jul 2026</span>
+                  <span style={{ fontSize: 13, color: '#6B7280' }}>{t.subscription.billedMonthly}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <button style={{ padding: '8px 18px', borderRadius: 10, background: '#0071E3', color: '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-                    Upgrade
+                    {t.subscription.upgrade}
                   </button>
-                  <Link href="#" style={{ fontSize: 13, color: '#0071E3', fontWeight: 500, textDecoration: 'none' }}>Manage billing</Link>
+                  <Link href="#" style={{ fontSize: 13, color: '#0071E3', fontWeight: 500, textDecoration: 'none' }}>{t.subscription.manageBilling}</Link>
                 </div>
               </div>
             </div>
@@ -210,14 +215,14 @@ export default function SubscriptionClient() {
                     background: billing === 'monthly' ? '#fff' : 'transparent',
                     color: billing === 'monthly' ? '#111827' : '#6B7280',
                     boxShadow: billing === 'monthly' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}>
-                  Monthly
+                  {t.subscription.monthly}
                 </button>
                 <button onClick={() => setBilling('yearly')}
                   style={{ padding: '6px 18px', borderRadius: 9, border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
                     background: billing === 'yearly' ? '#fff' : 'transparent',
                     color: billing === 'yearly' ? '#111827' : '#6B7280',
                     boxShadow: billing === 'yearly' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}>
-                  Yearly
+                  {t.subscription.yearly}
                   <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 999, background: '#ECFDF5', color: '#16A34A', border: '1px solid #BBF7D0' }}>-20%</span>
                 </button>
               </div>
@@ -244,18 +249,18 @@ export default function SubscriptionClient() {
                         color: isCurrent ? '#0071E3' : '#6D28D9',
                         border: `1px solid ${isCurrent ? '#BFDBFE' : '#DDD6FE'}`,
                       }}>
-                        {isCurrent ? 'CURRENT' : 'POPULAR'}
+                        {isCurrent ? t.subscription.current : t.subscription.popular}
                       </span>
                     )}
                     <div>
                       <div style={{ fontWeight: 700, fontSize: 15, color: '#111827', marginBottom: 8 }}>{plan.name}</div>
                       <div className="flex items-baseline gap-1">
                         <span style={{ fontSize: 28, fontWeight: 800, color: '#111827', letterSpacing: '-1px' }}>
-                          {price === 0 ? 'Free' : `€${price}`}
+                          {price === 0 ? t.subscription.free : `€${price}`}
                         </span>
-                        {price > 0 && <span style={{ fontSize: 13, color: '#9CA3AF' }}>/mo</span>}
+                        {price > 0 && <span style={{ fontSize: 13, color: '#9CA3AF' }}>{t.subscription.perMonth}</span>}
                       </div>
-                      {price === 0 && <span style={{ fontSize: 13, color: '#9CA3AF' }}>Forever free</span>}
+                      {price === 0 && <span style={{ fontSize: 13, color: '#9CA3AF' }}>{t.subscription.foreverFree}</span>}
                     </div>
                     <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
                       {plan.features.map(f => (
@@ -272,7 +277,7 @@ export default function SubscriptionClient() {
                       border: plan.key === 'enterprise' ? '1px solid #E5E7EB' : 'none',
                       width: '100%',
                     }}>
-                      {isCurrent ? 'Current plan' : plan.key === 'enterprise' ? 'Contact sales' : 'Upgrade'}
+                      {isCurrent ? t.subscription.currentPlan : plan.key === 'enterprise' ? t.subscription.contactSales : t.subscription.upgrade}
                     </button>
                   </div>
                 )
@@ -282,12 +287,12 @@ export default function SubscriptionClient() {
             {/* Invoice History */}
             <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #E5E7EB', overflow: 'hidden' }}>
               <div style={{ padding: '16px 24px', borderBottom: '1px solid #F3F4F6' }}>
-                <span style={{ fontWeight: 700, fontSize: 15, color: '#111827' }}>Invoice history</span>
+                <span style={{ fontWeight: 700, fontSize: 15, color: '#111827' }}>{t.subscription.invoiceHistory}</span>
               </div>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ background: '#F9FAFB' }}>
-                    {['Date', 'Description', 'Amount', 'Status', 'Download'].map(h => (
+                    {[t.common.date, t.common.description, t.common.amount, t.common.status, t.subscription.colDownload].map(h => (
                       <th key={h} style={{ padding: '10px 16px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: '#6B7280', letterSpacing: '0.05em', borderBottom: '1px solid #E5E7EB' }}>{h}</th>
                     ))}
                   </tr>
@@ -299,7 +304,7 @@ export default function SubscriptionClient() {
                       <td style={{ padding: '12px 16px', fontSize: 13, color: '#111827', fontWeight: 500 }}>{inv.desc}</td>
                       <td style={{ padding: '12px 16px', fontSize: 13, color: '#111827', fontWeight: 600 }}>{inv.amount}</td>
                       <td style={{ padding: '12px 16px' }}>
-                        <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999, background: '#F0FDF4', color: '#16A34A', border: '1px solid #BBF7D0' }}>Paid</span>
+                        <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999, background: '#F0FDF4', color: '#16A34A', border: '1px solid #BBF7D0' }}>{t.common.paid}</span>
                       </td>
                       <td style={{ padding: '12px 16px' }}>
                         <button style={{ background: 'none', border: '1px solid #E5E7EB', borderRadius: 8, padding: '5px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: '#6B7280', fontSize: 12 }}>

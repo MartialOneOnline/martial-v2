@@ -9,6 +9,7 @@ import {
   Eye, PauseCircle, XCircle, Zap, Plus,
 } from 'lucide-react'
 import { useDashboard } from '../../../../components/DashboardShell'
+import { useT } from '../../../../lib/i18n/LanguageContext'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type SubStatus = 'Active' | 'Paused' | 'Cancelled' | 'Trial'
@@ -98,6 +99,7 @@ const PLAN_OPTIONS = [
 function AddSubscriptionDrawer({ open, onClose, onSuccess }: {
   open: boolean; onClose: () => void; onSuccess: () => void
 }) {
+  const t = useT()
   const [memberQuery, setMemberQuery]       = useState('')
   const [selectedMember, setSelectedMember] = useState<typeof MEMBERS[0] | null>(null)
   const [showDropdown, setShowDropdown]     = useState(false)
@@ -155,10 +157,10 @@ function AddSubscriptionDrawer({ open, onClose, onSuccess }: {
           style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
           <div>
             <h2 style={{ fontSize: 17, fontWeight: 700, color: '#111827', margin: 0, letterSpacing: '-0.02em' }}>
-              Add Subscription
+              {t.paymentsPage.subscriptionsTitle}
             </h2>
             <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>
-              Manually assign a plan to a member
+              {t.paymentsPage.subscriptionsSubtitle}
             </p>
           </div>
           <button onClick={handleClose}
@@ -173,7 +175,7 @@ function AddSubscriptionDrawer({ open, onClose, onSuccess }: {
 
           {/* Member picker */}
           <div className="relative">
-            <label style={labelStyle}>Member</label>
+            <label style={labelStyle}>{t.paymentsPage.member}</label>
             {selectedMember ? (
               <div className="flex items-center justify-between px-3 py-2.5 rounded-xl"
                 style={{ border: '1px solid #0071E3', background: '#EFF6FF' }}>
@@ -204,7 +206,7 @@ function AddSubscriptionDrawer({ open, onClose, onSuccess }: {
                   style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
                   <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
                   <input
-                    type="text" placeholder="Search by name or email…"
+                    type="text" placeholder={t.paymentsPage.searchMember}
                     value={memberQuery}
                     onChange={e => { setMemberQuery(e.target.value); setShowDropdown(true) }}
                     onFocus={() => setShowDropdown(true)}
@@ -248,9 +250,9 @@ function AddSubscriptionDrawer({ open, onClose, onSuccess }: {
 
           {/* Plan */}
           <div>
-            <label style={labelStyle}>Membership Plan</label>
+            <label style={labelStyle}>{t.paymentsPage.membershipPlan}</label>
             <select value={planName} onChange={e => handlePlanChange(e.target.value)} style={inputStyle}>
-              <option value="">Select a plan…</option>
+              <option value="">{t.paymentsPage.selectPlan}</option>
               {PLAN_OPTIONS.map(p => (
                 <option key={p.name} value={p.name}>{p.name} — {p.price} / {p.billing}</option>
               ))}
@@ -260,12 +262,12 @@ function AddSubscriptionDrawer({ open, onClose, onSuccess }: {
           {/* Amount + Status */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label style={labelStyle}>Amount (€)</label>
+              <label style={labelStyle}>{t.common.amount} (€)</label>
               <input type="number" placeholder="65.00" min={0} step={0.01}
                 value={amount} onChange={e => setAmount(e.target.value)} style={inputStyle} />
             </div>
             <div>
-              <label style={labelStyle}>Status</label>
+              <label style={labelStyle}>{t.common.status}</label>
               <select value={subStatus} onChange={e => setSubStatus(e.target.value as SubStatus)} style={inputStyle}>
                 {(['Active', 'Trial', 'Paused'] as SubStatus[]).map(s => (
                   <option key={s} value={s}>{s}</option>
@@ -276,13 +278,13 @@ function AddSubscriptionDrawer({ open, onClose, onSuccess }: {
 
           {/* Start Date */}
           <div>
-            <label style={labelStyle}>Start Date</label>
+            <label style={labelStyle}>{t.common.startDate}</label>
             <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={inputStyle} />
           </div>
 
           {/* Notes */}
           <div>
-            <label style={labelStyle}>Notes <span style={{ fontWeight: 400, color: '#9CA3AF' }}>(optional)</span></label>
+            <label style={labelStyle}>{t.paymentsPage.notes} <span style={{ fontWeight: 400, color: '#9CA3AF' }}>({t.common.optional})</span></label>
             <textarea rows={3} placeholder="Internal notes…"
               value={notes} onChange={e => setNotes(e.target.value)}
               style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }} />
@@ -293,7 +295,7 @@ function AddSubscriptionDrawer({ open, onClose, onSuccess }: {
             <div className="rounded-xl p-4" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
               <p style={{ fontSize: 11, fontWeight: 700, color: '#374151',
                 textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>
-                Summary
+                {t.paymentsPage.summary}
               </p>
               <div className="flex flex-col gap-2">
                 {[
@@ -319,7 +321,7 @@ function AddSubscriptionDrawer({ open, onClose, onSuccess }: {
           <button onClick={handleClose}
             className="px-5 py-2.5 rounded-xl cursor-pointer"
             style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
-            Cancel
+            {t.common.cancel}
           </button>
           <button onClick={handleSuccess} disabled={!canSubmit}
             className="px-6 py-2.5 rounded-xl cursor-pointer flex items-center gap-2"
@@ -327,7 +329,7 @@ function AddSubscriptionDrawer({ open, onClose, onSuccess }: {
               background: canSubmit ? '#0071E3' : '#93C5FD', color: '#fff',
               cursor: canSubmit ? 'pointer' : 'not-allowed' }}>
             <Plus size={14} />
-            Add Subscription
+            {t.paymentsPage.subscriptionsTitle}
           </button>
         </div>
       </div>
@@ -366,6 +368,7 @@ type Filter = 'All' | SubStatus
 
 export default function PaymentSubscriptionsClient() {
   const { menuOpen, setMenuOpen } = useDashboard()
+  const t = useT()
   const [activeFilter, setActiveFilter] = useState<Filter>('All')
   const [search, setSearch]             = useState('')
   const [currentPage, setCurrentPage]   = useState(1)
@@ -386,18 +389,18 @@ export default function PaymentSubscriptionsClient() {
   const churned  = SUBSCRIPTIONS.filter(s => s.status === 'Cancelled').length
 
   const STATS = [
-    { label: 'Active Subscriptions', value: String(active),   icon: Check,      color: '#16A34A', bg: '#F0FDF4', trend: '+3',  trendUp: true  },
-    { label: 'MRR',                  value: '€' + mrr.toLocaleString(), icon: TrendingUp, color: '#0071E3', bg: '#EFF6FF', trend: '+8%', trendUp: true  },
-    { label: 'Trials',               value: String(trials),   icon: Zap,        color: '#6D28D9', bg: '#F5F3FF', trend: String(trials), trendUp: true  },
-    { label: 'Churned this month',   value: String(churned),  icon: TrendingDown,color: '#DC2626', bg: '#FEF2F2', trend: '-1',  trendUp: false },
+    { label: t.paymentsPage.activeNow,  value: String(active),   icon: Check,      color: '#16A34A', bg: '#F0FDF4', trend: '+3',  trendUp: true  },
+    { label: t.paymentsPage.mrrLabel,   value: '€' + mrr.toLocaleString(), icon: TrendingUp, color: '#0071E3', bg: '#EFF6FF', trend: '+8%', trendUp: true  },
+    { label: 'Trials',                  value: String(trials),   icon: Zap,        color: '#6D28D9', bg: '#F5F3FF', trend: String(trials), trendUp: true  },
+    { label: t.paymentsPage.churn,      value: String(churned),  icon: TrendingDown,color: '#DC2626', bg: '#FEF2F2', trend: '-1',  trendUp: false },
   ]
 
   const FILTERS: { id: Filter; label: string }[] = [
-    { id: 'All',       label: 'All'       },
-    { id: 'Active',    label: 'Active'    },
-    { id: 'Trial',     label: 'Trial'     },
-    { id: 'Paused',    label: 'Paused'    },
-    { id: 'Cancelled', label: 'Cancelled' },
+    { id: 'All',       label: t.common.all       },
+    { id: 'Active',    label: t.common.active     },
+    { id: 'Trial',     label: 'Trial'             },
+    { id: 'Paused',    label: t.common.pending    },
+    { id: 'Cancelled', label: t.common.cancelled  },
   ]
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE))
@@ -420,7 +423,7 @@ export default function PaymentSubscriptionsClient() {
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 max-w-xs"
               style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
               <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
-              <input type="text" placeholder="Search by name, email or plan…" value={search}
+              <input type="text" placeholder={t.paymentsPage.searchSubs} value={search}
                 onChange={e => { setSearch(e.target.value); setCurrentPage(1) }}
                 style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
             </div>
@@ -439,7 +442,7 @@ export default function PaymentSubscriptionsClient() {
             <button onClick={() => setDrawerOpen(true)}
               className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
               style={{ background: '#0071E3', border: 'none', color: '#fff', fontSize: 13, fontWeight: 600 }}>
-              <Plus size={15} />Add Subscription
+              <Plus size={15} />{t.paymentsPage.subscriptionsTitle}
             </button>
           </div>
 
@@ -448,10 +451,10 @@ export default function PaymentSubscriptionsClient() {
             {/* Header */}
             <div>
               <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>
-                Subscriptions
+                {t.paymentsPage.subscriptionsTitle}
               </h1>
               <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>
-                Active membership subscriptions across all members
+                {t.paymentsPage.subscriptionsSubtitle}
               </p>
             </div>
 
@@ -515,13 +518,13 @@ export default function PaymentSubscriptionsClient() {
                 <thead>
                   <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
                     {[
-                      { label: 'Member',       cls: '' },
-                      { label: 'Plan',         cls: 'hidden md:table-cell' },
-                      { label: 'Amount',       cls: 'hidden sm:table-cell' },
-                      { label: 'Started',      cls: 'hidden lg:table-cell' },
-                      { label: 'Next Billing', cls: 'hidden lg:table-cell' },
-                      { label: 'Status',       cls: '' },
-                      { label: 'Actions',      cls: '' },
+                      { label: t.common.member,                   cls: '' },
+                      { label: t.paymentsPage.colPlan,            cls: 'hidden md:table-cell' },
+                      { label: t.common.amount,                   cls: 'hidden sm:table-cell' },
+                      { label: t.paymentsPage.colStarted,         cls: 'hidden lg:table-cell' },
+                      { label: t.paymentsPage.colNextBilling,     cls: 'hidden lg:table-cell' },
+                      { label: t.common.status,                   cls: '' },
+                      { label: t.common.actions,                  cls: '' },
                     ].map(h => (
                       <th key={h.label} className={`px-5 py-3 text-left ${h.cls}`}
                         style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF',
@@ -660,7 +663,7 @@ export default function PaymentSubscriptionsClient() {
                     <tr>
                       <td colSpan={7} style={{ textAlign: 'center', padding: '48px 0' }}>
                         <RefreshCw size={28} style={{ color: '#E5E7EB', margin: '0 auto 10px' }} />
-                        <p style={{ fontSize: 14, color: '#9CA3AF' }}>No subscriptions found</p>
+                        <p style={{ fontSize: 14, color: '#9CA3AF' }}>{t.paymentsPage.noSubscriptions}</p>
                       </td>
                     </tr>
                   )}
@@ -670,7 +673,7 @@ export default function PaymentSubscriptionsClient() {
               {/* Pagination */}
               <div className="flex items-center justify-between px-6 py-3" style={{ borderTop: '1px solid #F3F4F6' }}>
                 <p style={{ fontSize: 13, color: '#6B7280' }}>
-                  Showing{' '}
+                  {t.common.showing}{' '}
                   <span style={{ fontWeight: 600, color: '#111827' }}>
                     {filtered.length === 0 ? 0 : (safePage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(safePage * ITEMS_PER_PAGE, filtered.length)}
                   </span>
@@ -681,7 +684,7 @@ export default function PaymentSubscriptionsClient() {
                   <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={safePage === 1}
                     style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff',
                       color: safePage === 1 ? '#D1D5DB' : '#374151', cursor: safePage === 1 ? 'not-allowed' : 'pointer',
-                      borderRadius: 8, padding: '6px 12px' }}>Prev</button>
+                      borderRadius: 8, padding: '6px 12px' }}>{t.common.prev}</button>
                   <div className="flex items-center gap-1 mx-1">
                     {pages.map((p, i) =>
                       p === '...'
@@ -698,7 +701,7 @@ export default function PaymentSubscriptionsClient() {
                   <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages}
                     style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff',
                       color: safePage === totalPages ? '#D1D5DB' : '#374151', cursor: safePage === totalPages ? 'not-allowed' : 'pointer',
-                      borderRadius: 8, padding: '6px 12px' }}>Next</button>
+                      borderRadius: 8, padding: '6px 12px' }}>{t.common.next}</button>
                 </div>
               </div>
             </div>
@@ -710,7 +713,7 @@ export default function PaymentSubscriptionsClient() {
       onClose={() => setDrawerOpen(false)}
       onSuccess={() => { setDrawerOpen(false); setToast(true); setTimeout(() => setToast(false), 3500) }}
     />
-    {toast && <SuccessToast message="Subscription added successfully" onClose={() => setToast(false)} />}
+    {toast && <SuccessToast message={t.paymentsPage.txRecorded} onClose={() => setToast(false)} />}
     </>
   )
 }

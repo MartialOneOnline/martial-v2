@@ -7,6 +7,7 @@ import {
   MoreHorizontal, Eye, Plus, Users, Award,
 } from 'lucide-react'
 import { useDashboard } from '../../../../components/DashboardShell'
+import { useT } from '../../../../lib/i18n/LanguageContext'
 type Filter = string
 
 type StaffRole = 'Head Instructor' | 'Instructor' | 'Assistant' | 'Admin' | 'Receptionist'
@@ -261,6 +262,7 @@ function getPaginationPages(current: number, total: number): (number | '...')[] 
 
 export default function StaffClient() {
   const { menuOpen, setMenuOpen } = useDashboard()
+  const t = useT()
   const [activeFilter, setActiveFilter] = useState<Filter>('All')
   const [search, setSearch]             = useState('')
   const [currentPage, setCurrentPage]   = useState(1)
@@ -290,16 +292,16 @@ export default function StaffClient() {
   const pages      = getPaginationPages(safePage, totalPages)
 
   const STATS = [
-    { label: 'Total Staff',        value: String(totalStaff),  icon: Users,       color: '#0071E3', bg: '#EFF6FF', trend: '+1',  trendUp: true  },
-    { label: 'Instructors',        value: String(instructors), icon: Award,       color: '#6D28D9', bg: '#F5F3FF', trend: '+1',  trendUp: true  },
-    { label: 'Active',             value: String(activeCount), icon: Check,       color: '#16A34A', bg: '#F0FDF4', trend: '+1',  trendUp: true  },
-    { label: 'Avg Classes/Week',   value: String(avgClasses),  icon: TrendingUp,  color: '#D97706', bg: '#FFFBEB', trend: '~3',  trendUp: true  },
+    { label: t.school.totalStaff,   value: String(totalStaff),  icon: Users,       color: '#0071E3', bg: '#EFF6FF', trend: '+1',  trendUp: true  },
+    { label: t.school.instructors,  value: String(instructors), icon: Award,       color: '#6D28D9', bg: '#F5F3FF', trend: '+1',  trendUp: true  },
+    { label: t.common.active,       value: String(activeCount), icon: Check,       color: '#16A34A', bg: '#F0FDF4', trend: '+1',  trendUp: true  },
+    { label: 'Avg Classes/Week',    value: String(avgClasses),  icon: TrendingUp,  color: '#D97706', bg: '#FFFBEB', trend: '~3',  trendUp: true  },
   ]
 
   const FILTERS: { id: Filter; label: string }[] = [
-    { id: 'All',         label: 'All' },
-    { id: 'Instructors', label: 'Instructors' },
-    { id: 'Admin',       label: 'Admin' },
+    { id: 'All',         label: t.common.all          },
+    { id: 'Instructors', label: t.school.instructors  },
+    { id: 'Admin',       label: t.school.admin        },
   ]
 
   return (
@@ -314,7 +316,7 @@ export default function StaffClient() {
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 max-w-xs"
               style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
               <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
-              <input type="text" placeholder="Search staff…" value={search}
+              <input type="text" placeholder={t.school.searchStaff} value={search}
                 onChange={e => { setSearch(e.target.value); setCurrentPage(1) }}
                 style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
             </div>
@@ -327,14 +329,14 @@ export default function StaffClient() {
             <button onClick={() => setDrawerOpen(true)}
               className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
               style={{ background: '#0071E3', border: 'none', color: '#fff', fontSize: 13, fontWeight: 600 }}>
-              <Plus size={15} />Add Staff
+              <Plus size={15} />{t.school.addStaff}
             </button>
           </div>
 
           <div className="px-4 md:px-8 py-6 flex flex-col gap-6">
             <div>
-              <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>Staff</h1>
-              <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>Manage your academy team</p>
+              <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>{t.school.staffTitle}</h1>
+              <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>{t.school.staffSubtitle}</p>
             </div>
 
             <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
@@ -392,13 +394,13 @@ export default function StaffClient() {
                 <thead>
                   <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
                     {[
-                      { label: 'Member',  cls: '' },
-                      { label: 'Role',    cls: '' },
-                      { label: 'Belt',    cls: 'hidden sm:table-cell' },
-                      { label: 'Classes', cls: 'hidden lg:table-cell' },
-                      { label: 'Since',   cls: 'hidden md:table-cell' },
-                      { label: 'Status',  cls: '' },
-                      { label: 'Actions', cls: '' },
+                      { label: t.common.member,       cls: '' },
+                      { label: t.school.colRole,      cls: '' },
+                      { label: 'Belt',                cls: 'hidden sm:table-cell' },
+                      { label: t.school.colClasses,   cls: 'hidden lg:table-cell' },
+                      { label: t.common.startDate,    cls: 'hidden md:table-cell' },
+                      { label: t.common.status,       cls: '' },
+                      { label: t.common.actions,      cls: '' },
                     ].map(h => (
                       <th key={h.label} className={`px-5 py-3 text-left ${h.cls}`}
                         style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
@@ -508,7 +510,7 @@ export default function StaffClient() {
                     <tr>
                       <td colSpan={7} style={{ textAlign: 'center', padding: '48px 0' }}>
                         <Users size={28} style={{ color: '#E5E7EB', margin: '0 auto 10px' }} />
-                        <p style={{ fontSize: 14, color: '#9CA3AF' }}>No staff found</p>
+                        <p style={{ fontSize: 14, color: '#9CA3AF' }}>{t.school.noStaff}</p>
                       </td>
                     </tr>
                   )}
@@ -516,7 +518,7 @@ export default function StaffClient() {
               </table>
               <div className="flex items-center justify-between px-6 py-3" style={{ borderTop: '1px solid #F3F4F6' }}>
                 <p style={{ fontSize: 13, color: '#6B7280' }}>
-                  Showing{' '}
+                  {t.common.showing}{' '}
                   <span style={{ fontWeight: 600, color: '#111827' }}>
                     {filtered.length === 0 ? 0 : (safePage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(safePage * ITEMS_PER_PAGE, filtered.length)}
                   </span>
@@ -527,7 +529,7 @@ export default function StaffClient() {
                   <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={safePage === 1}
                     style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff',
                       color: safePage === 1 ? '#D1D5DB' : '#374151', cursor: safePage === 1 ? 'not-allowed' : 'pointer',
-                      borderRadius: 8, padding: '6px 12px' }}>Prev</button>
+                      borderRadius: 8, padding: '6px 12px' }}>{t.common.prev}</button>
                   <div className="flex items-center gap-1 mx-1">
                     {pages.map((p, i) =>
                       p === '...'
@@ -546,7 +548,7 @@ export default function StaffClient() {
                   <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages}
                     style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff',
                       color: safePage === totalPages ? '#D1D5DB' : '#374151', cursor: safePage === totalPages ? 'not-allowed' : 'pointer',
-                      borderRadius: 8, padding: '6px 12px' }}>Next</button>
+                      borderRadius: 8, padding: '6px 12px' }}>{t.common.next}</button>
                 </div>
               </div>
             </div>

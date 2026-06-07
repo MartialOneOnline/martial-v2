@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { useDashboard } from '../../../components/DashboardShell'
 import DashboardLanguageSelector from '../../../components/DashboardLanguageSelector'
+import { useT } from '../../../lib/i18n/LanguageContext'
 
 // ── Design tokens (same as dashboard) ─────────────────────────────────────────
 // bg: #F9FAFB | card: #fff | border: #E5E7EB | text-1: #111827 | text-2: #6B7280
@@ -34,12 +35,7 @@ const STUDENTS = [
   { id: 14, avatar: 'https://i.pravatar.cc/40?u=hr',  name: 'Hannah Richter',    email: 'hannah@email.com',     belt: 'Blue',   stripes: 2, membership: 'Basic',      classes: 19,  lastSeen: '3w ago',  status: 'Archived' },
 ]
 
-const STATS = [
-  { label: 'Total Students',  value: '665',  trend: '+14%', trendUp: true,  sub: 'vs last month' },
-  { label: 'Active Members',  value: '421',  trend: '+8%',  trendUp: true,  sub: 'this month'    },
-  { label: 'New This Month',  value: '23',   trend: '+5',   trendUp: true,  sub: 'vs last month' },
-  { label: 'Avg Attendance',  value: '78%',  trend: '+3%',  trendUp: true,  sub: 'this week'     },
-]
+// STATS built inside component from t.*
 
 const BELT_COLORS: Record<string, { bg: string; color: string; dot: string }> = {
   White:      { bg: '#F9FAFB', color: '#374151',   dot: '#9CA3AF' },
@@ -99,6 +95,13 @@ type Filter = 'All' | 'Active' | 'Inactive' | 'Pending' | 'Lead' | 'Archived'
 
 export default function UsersClient() {
   const { menuOpen, setMenuOpen } = useDashboard()
+  const t = useT()
+  const STATS = [
+    { label: t.users.totalStudents, value: '665', trend: '+14%', trendUp: true, sub: t.common.vsLastMonth },
+    { label: t.users.activeMembers, value: '421', trend: '+8%',  trendUp: true, sub: t.common.thisMonth   },
+    { label: t.users.newThisMonth,  value: '23',  trend: '+5',   trendUp: true, sub: t.common.vsLastMonth },
+    { label: t.users.avgAttendance, value: '78%', trend: '+3%',  trendUp: true, sub: t.common.thisWeek    },
+  ]
   const [activeFilter, setActiveFilter] = useState<Filter>('All')
   const [search, setSearch]             = useState('')
   const [currentPage, setCurrentPage]   = useState(1)
@@ -133,7 +136,7 @@ export default function UsersClient() {
             <div className="flex flex-1 max-w-sm items-center gap-2 px-3 py-2 rounded-xl"
               style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
               <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
-              <input type="text" placeholder="Search students..." value={search}
+              <input type="text" placeholder={t.users.searchPlaceholder} value={search}
                 onChange={e => handleSearch(e.target.value)}
                 style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
             </div>
@@ -162,7 +165,7 @@ export default function UsersClient() {
               style={{ fontSize: 13, fontWeight: 600, color: '#fff', background: '#0071E3',
                 border: 'none', borderRadius: 8, padding: '7px 14px' }}>
               <Plus size={14} />
-              Add student
+              {t.users.addStudent}
             </button>
           </div>
 
@@ -172,17 +175,17 @@ export default function UsersClient() {
             <div className="flex items-center justify-between">
               <div>
                 <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>
-                  Students
+                  {t.users.title}
                 </h1>
                 <p style={{ fontSize: 13, color: '#6B7280', marginTop: 2 }}>
-                  {filtered.length} of {STUDENTS.length} members
+                  {filtered.length} {t.common.of} {STUDENTS.length} {t.users.ofMembers}
                 </p>
               </div>
               <button className="hidden sm:flex items-center gap-2 cursor-pointer"
                 style={{ fontSize: 13, fontWeight: 500, color: '#374151', background: '#fff',
                   border: '1px solid #E5E7EB', borderRadius: 8, padding: '7px 14px' }}>
                 <Download size={13} style={{ color: '#6B7280' }} />
-                Export
+                {t.common.export}
               </button>
             </div>
 
@@ -212,7 +215,12 @@ export default function UsersClient() {
 
             {/* Filter tabs */}
             <div className="flex items-center gap-2">
-              {(['All', 'Active', 'Pending', 'Lead', 'Inactive', 'Archived'] as Filter[]).map(f => (
+              {(['All', 'Active', 'Pending', 'Lead', 'Inactive', 'Archived'] as Filter[]).map(f => {
+                const filterLabels: Record<Filter, string> = {
+                  All: t.common.all, Active: t.common.active, Pending: t.common.pending,
+                  Lead: t.common.lead, Inactive: t.common.inactive, Archived: t.common.archived,
+                }
+                return (
                 <button key={f} onClick={() => handleFilter(f)}
                   className="cursor-pointer transition-all"
                   style={{
@@ -221,14 +229,14 @@ export default function UsersClient() {
                     background: activeFilter === f ? '#fff' : 'transparent',
                     boxShadow: activeFilter === f ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                   }}>
-                  {f}
+                  {filterLabels[f]}
                   <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 600,
                     color: activeFilter === f ? '#0071E3' : '#9CA3AF' }}>
                     {f === 'All' ? STUDENTS.length
                       : STUDENTS.filter(s => s.status === f).length}
                   </span>
                 </button>
-              ))}
+              )})}
             </div>
 
             {/* Table */}
@@ -237,12 +245,12 @@ export default function UsersClient() {
                 <thead>
                   <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
                     {[
-                      { label: 'Member',     cls: '' },
-                      { label: 'Belt',       cls: 'hidden md:table-cell' },
-                      { label: 'Membership', cls: 'hidden lg:table-cell' },
-                      { label: 'Classes',    cls: 'hidden lg:table-cell' },
-                      { label: 'Last seen',  cls: 'hidden md:table-cell' },
-                      { label: 'Status',     cls: '' },
+                      { label: t.common.member,     cls: '' },
+                      { label: t.users.belt,       cls: 'hidden md:table-cell' },
+                      { label: t.users.membership, cls: 'hidden lg:table-cell' },
+                      { label: t.common.classes,    cls: 'hidden lg:table-cell' },
+                      { label: t.users.lastSeen,  cls: 'hidden md:table-cell' },
+                      { label: t.common.status,     cls: '' },
                       { label: '',           cls: '' },
                     ].map(h => (
                       <th key={h.label} className={`px-6 py-3 text-left ${h.cls}`}
@@ -286,7 +294,7 @@ export default function UsersClient() {
                       {/* Classes */}
                       <td className="hidden lg:table-cell px-6 py-4">
                         <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{student.classes}</span>
-                        <span style={{ fontSize: 11, color: '#9CA3AF', marginLeft: 3 }}>classes</span>
+                        <span style={{ fontSize: 11, color: '#9CA3AF', marginLeft: 3 }}>{t.common.classes}</span>
                       </td>
 
                       {/* Last seen */}
@@ -316,7 +324,7 @@ export default function UsersClient() {
               {paginated.length === 0 && (
                 <div className="py-16 text-center">
                   <Users size={32} style={{ color: '#E5E7EB', margin: '0 auto 12px' }} />
-                  <p style={{ fontSize: 14, color: '#9CA3AF' }}>No students found</p>
+                  <p style={{ fontSize: 14, color: '#9CA3AF' }}>{t.users.noStudents}</p>
                 </div>
               )}
 
@@ -325,7 +333,7 @@ export default function UsersClient() {
                 <div className="flex items-center justify-between px-6 py-4" style={{ borderTop: '1px solid #F3F4F6' }}>
                   {/* Info */}
                   <p style={{ fontSize: 13, color: '#6B7280' }}>
-                    Showing <span style={{ fontWeight: 600, color: '#111827' }}>{(safePage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(safePage * ITEMS_PER_PAGE, filtered.length)}</span> of <span style={{ fontWeight: 600, color: '#111827' }}>{filtered.length}</span> students
+                    {t.common.showing} <span style={{ fontWeight: 600, color: '#111827' }}>{(safePage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(safePage * ITEMS_PER_PAGE, filtered.length)}</span> {t.common.of} <span style={{ fontWeight: 600, color: '#111827' }}>{filtered.length}</span> {t.users.students}
                   </p>
 
                   {/* Controls */}
@@ -340,7 +348,7 @@ export default function UsersClient() {
                         color: safePage === 1 ? '#D1D5DB' : '#374151',
                         background: '#fff', cursor: safePage === 1 ? 'not-allowed' : 'pointer',
                       }}>
-                      ← Previous
+                      ← {t.common.previous}
                     </button>
 
                     {/* Page numbers */}
@@ -372,7 +380,7 @@ export default function UsersClient() {
                         color: safePage === totalPages ? '#D1D5DB' : '#374151',
                         background: '#fff', cursor: safePage === totalPages ? 'not-allowed' : 'pointer',
                       }}>
-                      Next →
+                      {t.common.next} →
                     </button>
                   </div>
                 </div>

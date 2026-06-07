@@ -9,6 +9,8 @@ import {
   Clock, MapPin, Star, Ticket, Calendar,
 } from 'lucide-react'
 import { useDashboard } from '../../../../components/DashboardShell'
+import { useT } from '../../../../lib/i18n/LanguageContext'
+import type { Translations } from '../../../../lib/i18n/translations'
 
 // ── Mock data ──────────────────────────────────────────────────────────────────
 
@@ -45,13 +47,6 @@ const EVENTS: MartialEvent[] = [
   { id:10, image:'/roger-gracie-malaga.jpg',     title:'Gordon Ryan Seminar',           type:'Seminar',     date:'05 Apr 2026', time:'10:00–14:00', instructor:'Gordon Ryan',   location:'Main Academy',    capacity:50,  enrolled:50, price:'€130', status:'Past',      featured:true  },
   { id:11, image:'/mathouse.jpg',                title:'Spring Open Mat',               type:'Open Mat',    date:'20 Apr 2026', time:'11:00–14:00', instructor:'—',             location:'Branch Malaga',   capacity:40,  enrolled:35, price:'Free', status:'Past',      featured:false },
   { id:12, image:'/five-elements-jiu-jitsu.jpg', title:'Regional Competition Malaga',   type:'Competition', date:'10 May 2026', time:'09:00–17:00', instructor:'—',             location:'Branch Malaga',   capacity:120, enrolled:98, price:'€40',  status:'Past',      featured:false },
-]
-
-const STATS = [
-  { label: 'Total Events',  value: '12', trend: '+4',  trendUp: true,  sub: 'vs last quarter' },
-  { label: 'Upcoming',      value: '8',  trend: '+3',  trendUp: true,  sub: 'scheduled'       },
-  { label: 'This Month',    value: '3',  trend: '+1',  trendUp: true,  sub: 'June 2026'       },
-  { label: 'Sold Out',      value: '1',  trend: '',    trendUp: false, sub: 'Kids Camp'       },
 ]
 
 const STATUS_MAP: Record<EventStatus, { bg: string; color: string }> = {
@@ -106,6 +101,7 @@ function CapacityBar({ enrolled, capacity }: { enrolled: number; capacity: numbe
 function CreateEventDrawer({ open, onClose, onSuccess }: {
   open: boolean; onClose: () => void; onSuccess: () => void
 }) {
+  const t = useT()
   const [bannerDrag, setBannerDrag] = useState(false)
   const [isFree, setIsFree]         = useState(false)
   const [legalChecked, setLegalChecked] = useState({ terms: false, privacy: false })
@@ -135,9 +131,9 @@ function CreateEventDrawer({ open, onClose, onSuccess }: {
           style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
           <div>
             <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111827', margin: 0, letterSpacing: '-0.02em' }}>
-              Create Event
+              {t.classes.createEvent}
             </h2>
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>Fill in the details to publish a new event</p>
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{t.classes.publishEventDesc}</p>
           </div>
           <button onClick={onClose}
             className="w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
@@ -156,14 +152,14 @@ function CreateEventDrawer({ open, onClose, onSuccess }: {
               {/* Title + Type */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label style={labelStyle}>Event Title</label>
-                  <input type="text" placeholder="e.g. Roger Gracie Seminar" style={inputStyle} />
+                  <label style={labelStyle}>{t.classes.eventTitle}</label>
+                  <input type="text" placeholder={t.classes.eventTitlePlaceholder} style={inputStyle} />
                 </div>
                 <div>
-                  <label style={labelStyle}>Event Type</label>
+                  <label style={labelStyle}>{t.classes.eventType}</label>
                   <select style={inputStyle}>
-                    <option value="">Select type…</option>
-                    {EVENT_TYPES.map(t => <option key={t}>{t}</option>)}
+                    <option value="">{t.classes.selectType}</option>
+                    {EVENT_TYPES.map(et => <option key={et}>{et}</option>)}
                   </select>
                 </div>
               </div>
@@ -171,15 +167,15 @@ function CreateEventDrawer({ open, onClose, onSuccess }: {
               {/* Date + Time */}
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label style={labelStyle}>Date</label>
+                  <label style={labelStyle}>{t.common.date}</label>
                   <input type="date" style={inputStyle} />
                 </div>
                 <div>
-                  <label style={labelStyle}>Start Time</label>
+                  <label style={labelStyle}>{t.classes.startTime}</label>
                   <input type="time" style={inputStyle} />
                 </div>
                 <div>
-                  <label style={labelStyle}>End Time</label>
+                  <label style={labelStyle}>{t.classes.endTime}</label>
                   <input type="time" style={inputStyle} />
                 </div>
               </div>
@@ -187,16 +183,16 @@ function CreateEventDrawer({ open, onClose, onSuccess }: {
               {/* Instructor + Location */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label style={labelStyle}>Instructor / Host</label>
-                  <input type="text" placeholder="e.g. Roger Gracie" list="instructors-list" style={inputStyle} />
+                  <label style={labelStyle}>{t.classes.instructorHost}</label>
+                  <input type="text" placeholder={t.classes.hostPlaceholder} list="instructors-list" style={inputStyle} />
                   <datalist id="instructors-list">
                     {INSTRUCTORS.map(i => <option key={i} value={i} />)}
                   </datalist>
                 </div>
                 <div>
-                  <label style={labelStyle}>Location</label>
+                  <label style={labelStyle}>{t.common.location}</label>
                   <select style={inputStyle}>
-                    <option value="">Select location…</option>
+                    <option value="">{t.classes.selectLocation}</option>
                     {LOCATIONS_LIST.map(l => <option key={l}>{l}</option>)}
                   </select>
                 </div>
@@ -205,12 +201,12 @@ function CreateEventDrawer({ open, onClose, onSuccess }: {
               {/* Capacity + Price */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label style={labelStyle}>Capacity (max attendees)</label>
+                  <label style={labelStyle}>{t.classes.capacityMax}</label>
                   <input type="number" placeholder="40" min={1} style={inputStyle} />
                 </div>
                 <div>
                   <label style={labelStyle}>
-                    Price
+                    {t.common.price}
                     {/* Free toggle */}
                     <span
                       onClick={() => setIsFree(v => !v)}
@@ -220,11 +216,11 @@ function CreateEventDrawer({ open, onClose, onSuccess }: {
                         padding: '1px 7px', borderRadius: 999,
                         background: isFree ? '#F0FDF4' : '#F3F4F6',
                         border: '1px solid ' + (isFree ? '#BBF7D0' : '#E5E7EB') }}>
-                      {isFree ? '✓ Free' : 'Free?'}
+                      {isFree ? t.classes.freeChecked : t.classes.freeToggle}
                     </span>
                   </label>
                   <input type="text" placeholder="€120" disabled={isFree}
-                    value={isFree ? 'Free' : undefined}
+                    value={isFree ? t.subscription.free : undefined}
                     style={{ ...inputStyle, opacity: isFree ? 0.5 : 1, cursor: isFree ? 'not-allowed' : 'text' }} />
                 </div>
               </div>
@@ -232,11 +228,11 @@ function CreateEventDrawer({ open, onClose, onSuccess }: {
               {/* Registration deadline */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label style={labelStyle}>Registration Deadline</label>
+                  <label style={labelStyle}>{t.classes.registrationDeadline}</label>
                   <input type="date" style={inputStyle} />
                 </div>
                 <div>
-                  <label style={labelStyle}>Max Registrations / Person</label>
+                  <label style={labelStyle}>{t.classes.maxRegistrations}</label>
                   <input type="number" placeholder="1" min={1} max={10} style={inputStyle} />
                 </div>
               </div>
@@ -245,8 +241,8 @@ function CreateEventDrawer({ open, onClose, onSuccess }: {
               <div className="flex items-center justify-between rounded-xl px-4 py-3"
                 style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
                 <div>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>Featured Event</p>
-                  <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 1 }}>Show this event highlighted on the homepage</p>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>{t.classes.featuredEvent}</p>
+                  <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 1 }}>{t.classes.featuredEventDesc}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <Star size={14} style={{ color: '#D97706' }} />
@@ -256,15 +252,15 @@ function CreateEventDrawer({ open, onClose, onSuccess }: {
 
               {/* Description */}
               <div>
-                <label style={labelStyle}>Description</label>
-                <textarea rows={4} placeholder="Describe the event, what to bring, what to expect…"
+                <label style={labelStyle}>{t.common.description}</label>
+                <textarea rows={4} placeholder={t.classes.describeEvent}
                   style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }} />
               </div>
             </div>
 
             {/* Right — banner */}
             <div style={{ width: 260, flexShrink: 0 }}>
-              <label style={labelStyle}>Event Banner</label>
+              <label style={labelStyle}>{t.classes.eventBanner}</label>
               <div
                 onDragEnter={() => setBannerDrag(true)}
                 onDragLeave={() => setBannerDrag(false)}
@@ -276,27 +272,27 @@ function CreateEventDrawer({ open, onClose, onSuccess }: {
                   <Upload size={18} style={{ color: '#9CA3AF' }} />
                 </div>
                 <div className="text-center">
-                  <p style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>Drop image here</p>
-                  <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>PNG, JPG up to 5 MB</p>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>{t.common.dropImage}</p>
+                  <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>{t.common.pngJpg}</p>
                 </div>
                 <label className="px-3 py-1.5 rounded-lg cursor-pointer"
                   style={{ fontSize: 12, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
-                  Browse<input type="file" accept="image/*" className="hidden" />
+                  {t.common.browse}<input type="file" accept="image/*" className="hidden" />
                 </label>
               </div>
-              <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 8 }}>Recommended: 1200×600px</p>
+              <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 8 }}>{t.classes.recommendedSize}</p>
 
               {/* Quick info preview */}
               <div className="mt-6 rounded-xl p-4 flex flex-col gap-2"
                 style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
                 <p style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 4 }}>
-                  Preview
+                  {t.classes.preview}
                 </p>
                 {[
-                  { icon: Calendar, label: 'Date TBD' },
-                  { icon: Clock,    label: 'Time TBD' },
-                  { icon: MapPin,   label: 'Location TBD' },
-                  { icon: Ticket,   label: 'Price TBD' },
+                  { icon: Calendar, label: t.classes.dateTbd },
+                  { icon: Clock,    label: t.classes.timeTbd },
+                  { icon: MapPin,   label: t.classes.locationTbd },
+                  { icon: Ticket,   label: t.classes.priceTbd },
                 ].map(({ icon: Icon, label }) => (
                   <div key={label} className="flex items-center gap-2">
                     <Icon size={12} style={{ color: '#9CA3AF', flexShrink: 0 }} />
@@ -313,8 +309,8 @@ function CreateEventDrawer({ open, onClose, onSuccess }: {
           style={{ background: '#fff', borderTop: '1px solid #E5E7EB' }}>
           <div className="flex flex-col gap-2">
             {([
-              { key: 'terms',   label: 'I confirm the event details are accurate and agree to the Terms & Conditions' },
-              { key: 'privacy', label: 'Attendee data will be handled according to the Privacy Policy' },
+              { key: 'terms',   label: t.classes.eventTermsLabel },
+              { key: 'privacy', label: t.classes.eventPrivacyLabel },
             ] as const).map(({ key, label }) => (
               <label key={key} className="flex items-center gap-2 cursor-pointer">
                 <div
@@ -333,7 +329,7 @@ function CreateEventDrawer({ open, onClose, onSuccess }: {
             <button onClick={onClose}
               className="px-5 py-2.5 rounded-xl cursor-pointer"
               style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
-              Cancel
+              {t.common.cancel}
             </button>
             <button
               onClick={onSuccess}
@@ -342,7 +338,7 @@ function CreateEventDrawer({ open, onClose, onSuccess }: {
               style={{ fontSize: 13, fontWeight: 600, border: 'none',
                 background: legalChecked.terms && legalChecked.privacy ? '#0071E3' : '#93C5FD',
                 color: '#fff', cursor: legalChecked.terms && legalChecked.privacy ? 'pointer' : 'not-allowed' }}>
-              Publish Event
+              {t.classes.publishEvent}
             </button>
           </div>
         </div>
@@ -353,6 +349,7 @@ function CreateEventDrawer({ open, onClose, onSuccess }: {
 
 // ── Success modal ──────────────────────────────────────────────────────────────
 function SuccessModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const t = useT()
   if (!open) return null
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4"
@@ -364,15 +361,15 @@ function SuccessModal({ open, onClose }: { open: boolean; onClose: () => void })
           <Check size={32} style={{ color: '#16A34A' }} strokeWidth={2.5} />
         </div>
         <div>
-          <h3 style={{ fontSize: 18, fontWeight: 700, color: '#111827', margin: 0 }}>Event Published!</h3>
+          <h3 style={{ fontSize: 18, fontWeight: 700, color: '#111827', margin: 0 }}>{t.classes.eventPublished}</h3>
           <p style={{ fontSize: 13, color: '#6B7280', marginTop: 6 }}>
-            Your event is now live and visible to students.
+            {t.classes.eventPublishedDesc}
           </p>
         </div>
         <button onClick={onClose}
           className="w-full py-2.5 rounded-xl cursor-pointer"
           style={{ fontSize: 13, fontWeight: 600, border: 'none', background: '#0071E3', color: '#fff' }}>
-          Done
+          {t.common.done}
         </button>
       </div>
     </div>
@@ -382,6 +379,17 @@ function SuccessModal({ open, onClose }: { open: boolean; onClose: () => void })
 // ── Main ───────────────────────────────────────────────────────────────────────
 export default function EventsClient() {
   const { menuOpen, setMenuOpen } = useDashboard()
+  const t = useT()
+  const STATS = [
+    { label: t.classes.totalEvents, value: '12', trend: '+4',  trendUp: true,  sub: t.classes.vsLastQuarter },
+    { label: t.classes.upcoming,    value: '8',  trend: '+3',  trendUp: true,  sub: t.classes.scheduled     },
+    { label: t.common.thisMonth,    value: '3',  trend: '+1',  trendUp: true,  sub: 'June 2026'             },
+    { label: t.classes.soldOut,     value: '1',  trend: '',    trendUp: false, sub: 'Kids Camp'             },
+  ]
+  const statusLabels: Record<EventStatus, string> = {
+    Upcoming: t.classes.upcoming, Past: t.classes.past, Cancelled: t.common.cancelled, 'Sold Out': t.classes.soldOut,
+  }
+  const filterLabels: Record<Filter, string> = { All: t.common.all, ...statusLabels }
   const [activeFilter, setActiveFilter] = useState<Filter>('All')
   const [search, setSearch]           = useState('')
   const [currentPage, setCurrentPage] = useState(1)
@@ -426,7 +434,7 @@ export default function EventsClient() {
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl"
               style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', minWidth: 200 }}>
               <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
-              <input type="text" placeholder="Search events…" value={search}
+              <input type="text" placeholder={t.classes.eventsSearchPlaceholder} value={search}
                 onChange={e => handleSearch(e.target.value)}
                 style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: 150 }} />
             </div>
@@ -449,7 +457,7 @@ export default function EventsClient() {
               className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
               style={{ background: '#0071E3', border: 'none', color: '#fff', fontSize: 13, fontWeight: 600 }}>
               <Plus size={15} />
-              Create Event
+              {t.classes.createEvent}
             </button>
           </div>
 
@@ -458,10 +466,10 @@ export default function EventsClient() {
             {/* Header */}
             <div>
               <h1 style={{ fontSize: 18, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>
-                Events
+                {t.classes.eventsTitle}
               </h1>
               <p style={{ fontSize: 12, color: '#6B7280', marginTop: 1 }}>
-                {filtered.length} of {EVENTS.length} events
+                {filtered.length} {t.common.of} {EVENTS.length} {t.classes.ofEvents}
               </p>
             </div>
 
@@ -503,7 +511,7 @@ export default function EventsClient() {
                       color: activeFilter === f ? '#111827' : '#6B7280',
                       background: activeFilter === f ? '#fff' : 'transparent',
                       boxShadow: activeFilter === f ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}>
-                    {f}
+                    {filterLabels[f]}
                     <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 600,
                       color: activeFilter === f ? '#0071E3' : '#9CA3AF' }}>
                       {count}
@@ -519,14 +527,14 @@ export default function EventsClient() {
                 <thead>
                   <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
                     {[
-                      { label: 'Event',      cls: '' },
-                      { label: 'Date',       cls: 'hidden sm:table-cell' },
-                      { label: 'Host',       cls: 'hidden lg:table-cell' },
-                      { label: 'Location',   cls: 'hidden lg:table-cell' },
-                      { label: 'Spots',      cls: 'hidden md:table-cell' },
-                      { label: 'Price',      cls: 'hidden md:table-cell' },
-                      { label: 'Status',     cls: '' },
-                      { label: 'Actions',    cls: '' },
+                      { label: t.classes.colEvent,      cls: '' },
+                      { label: t.common.date,       cls: 'hidden sm:table-cell' },
+                      { label: t.classes.colHost,       cls: 'hidden lg:table-cell' },
+                      { label: t.common.location,   cls: 'hidden lg:table-cell' },
+                      { label: t.classes.colSpots,      cls: 'hidden md:table-cell' },
+                      { label: t.common.price,      cls: 'hidden md:table-cell' },
+                      { label: t.common.status,     cls: '' },
+                      { label: t.common.actions,    cls: '' },
                     ].map(h => (
                       <th key={h.label} className={`px-5 py-3 text-left ${h.cls}`}
                         style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF',
@@ -594,7 +602,7 @@ export default function EventsClient() {
                         <td className="hidden md:table-cell px-5 py-3">
                           <span style={{ fontSize: 13, fontWeight: 600,
                             color: ev.price === 'Free' ? '#16A34A' : '#111827' }}>
-                            {ev.price}
+                            {ev.price === 'Free' ? t.subscription.free : ev.price}
                           </span>
                         </td>
 
@@ -603,7 +611,7 @@ export default function EventsClient() {
                           <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px',
                             borderRadius: 999, background: sc.bg, color: sc.color,
                             whiteSpace: 'nowrap' }}>
-                            {ev.status}
+                            {statusLabels[ev.status]}
                           </span>
                         </td>
 
@@ -623,15 +631,20 @@ export default function EventsClient() {
                               <div className="absolute right-6 mt-1 rounded-xl z-20 py-1 overflow-hidden"
                                 style={{ background: '#fff', border: '1px solid #E5E7EB',
                                   boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 150, top: '100%' }}>
-                                {['View registrations', 'Edit', 'Duplicate', 'Cancel event'].map(action => (
-                                  <button key={action} onClick={() => setOpenMenuId(null)}
+                                {([
+                                  { key: 'view', label: t.classes.viewRegistrations },
+                                  { key: 'edit', label: t.common.edit },
+                                  { key: 'dup', label: t.common.duplicate },
+                                  { key: 'cancel', label: t.classes.cancelEvent },
+                                ]).map(action => (
+                                  <button key={action.key} onClick={() => setOpenMenuId(null)}
                                     className="w-full text-left px-4 py-2 transition-colors cursor-pointer"
                                     style={{ fontSize: 13,
-                                      color: action === 'Cancel event' ? '#DC2626' : '#374151',
+                                      color: action.key === 'cancel' ? '#DC2626' : '#374151',
                                       background: 'transparent', border: 'none' }}
                                     onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
                                     onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                                    {action}
+                                    {action.label}
                                   </button>
                                 ))}
                               </div>
@@ -647,18 +660,18 @@ export default function EventsClient() {
               {paginated.length === 0 && (
                 <div className="py-16 text-center">
                   <Calendar size={32} style={{ color: '#E5E7EB', margin: '0 auto 12px' }} />
-                  <p style={{ fontSize: 14, color: '#9CA3AF' }}>No events found</p>
+                  <p style={{ fontSize: 14, color: '#9CA3AF' }}>{t.classes.noEvents}</p>
                 </div>
               )}
 
               {/* Pagination */}
               <div className="flex items-center justify-between px-6 py-3" style={{ borderTop: '1px solid #F3F4F6' }}>
                 <p style={{ fontSize: 13, color: '#6B7280' }}>
-                  Showing{' '}
+                  {t.common.showing}{' '}
                   <span style={{ fontWeight: 600, color: '#111827' }}>
                     {filtered.length === 0 ? 0 : (safePage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(safePage * ITEMS_PER_PAGE, filtered.length)}
                   </span>
-                  {' of '}
+                  {' '}{t.common.of}{' '}
                   <span style={{ fontWeight: 600, color: '#111827' }}>{filtered.length}</span>
                 </p>
                 <div className="flex items-center gap-1">
@@ -666,7 +679,7 @@ export default function EventsClient() {
                     style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff',
                       color: safePage === 1 ? '#D1D5DB' : '#374151', cursor: safePage === 1 ? 'not-allowed' : 'pointer',
                       borderRadius: 8, padding: '6px 12px' }}>
-                    Prev
+                    {t.common.prev}
                   </button>
                   <div className="flex items-center gap-1 mx-1">
                     {pages.map((p, i) =>
@@ -687,7 +700,7 @@ export default function EventsClient() {
                     style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff',
                       color: safePage === totalPages ? '#D1D5DB' : '#374151', cursor: safePage === totalPages ? 'not-allowed' : 'pointer',
                       borderRadius: 8, padding: '6px 12px' }}>
-                    Next
+                    {t.common.next}
                   </button>
                 </div>
               </div>

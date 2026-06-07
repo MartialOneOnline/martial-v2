@@ -11,6 +11,8 @@ import {
   CalendarDays, LayoutList, MoreHorizontal,
   Pencil, Copy, Trash2, Eye, Check, Upload,
 } from 'lucide-react'
+import { useT } from '../../../../lib/i18n/LanguageContext'
+import type { Translations } from '../../../../lib/i18n/translations'
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 const HOUR_HEIGHT = 64
@@ -18,9 +20,6 @@ const START_HOUR  = 6
 const END_HOUR    = 22
 const HOURS       = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => i + START_HOUR)
 const WEEK_DAYS   = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-const MONTH_DAYS  = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-const MONTH_NAMES = ['January','February','March','April','May','June',
-                     'July','August','September','October','November','December']
 
 // Simulated today: June 4 2026 (Thursday)
 const TODAY = new Date(2026, 5, 4)
@@ -154,35 +153,35 @@ type NavItem = {
   label: string; icon: React.ElementType; href?: string
   children?: { label: string; href: string }[]
 }
-const NAV_MAIN: NavItem[] = [
-  { label: 'Dashboard',   icon: Flame,      href: '/dashboard' },
-  { label: 'Users',       icon: Users,      href: '/dashboard/users' },
-  { label: 'Classes',     icon: Calendar,   children: [
-    { label: 'Classes',   href: '/dashboard/classes' },
-    { label: 'Events',    href: '/dashboard/classes/events' },
-    { label: 'Calendar',  href: '/dashboard/classes/calendar' },
-    { label: 'Timetable', href: '/dashboard/classes/timetable' },
+const buildNavMain = (s: Translations['sidebar']): NavItem[] => [
+  { label: s.dashboard,   icon: Flame,      href: '/dashboard' },
+  { label: s.users,       icon: Users,      href: '/dashboard/users' },
+  { label: s.classes,     icon: Calendar,   children: [
+    { label: s.classes,   href: '/dashboard/classes' },
+    { label: s.events,    href: '/dashboard/classes/events' },
+    { label: s.calendar,  href: '/dashboard/classes/calendar' },
+    { label: s.timetable, href: '/dashboard/classes/timetable' },
   ]},
-  { label: 'Memberships', icon: Award,      href: '/dashboard/memberships' },
-  { label: 'Payments',    icon: CreditCard, children: [
-    { label: 'Transactions', href: '/dashboard/payments/transactions' }, { label: 'Subscriptions', href: '/dashboard/payments/subscriptions' },
+  { label: s.memberships, icon: Award,      href: '/dashboard/memberships' },
+  { label: s.payments,    icon: CreditCard, children: [
+    { label: s.transactions, href: '/dashboard/payments/transactions' }, { label: s.subscriptions, href: '/dashboard/payments/subscriptions' },
   ]},
-  { label: 'School',      icon: School,     children: [
-    { label: 'Leads', href: '/dashboard/school/leads' }, { label: 'Store', href: '/dashboard/school/store' },
-    { label: 'Curriculum', href: '/dashboard/school/curriculum' }, { label: 'Affiliates', href: '/dashboard/school/affiliates' },
-    { label: 'Staff', href: '/dashboard/school/staff' }, { label: 'Waivers', href: '/dashboard/school/waivers' }, { label: 'Gradings', href: '/dashboard/school/gradings' },
+  { label: s.school,      icon: School,     children: [
+    { label: s.leads, href: '/dashboard/school/leads' }, { label: s.store, href: '/dashboard/school/store' },
+    { label: s.curriculum, href: '/dashboard/school/curriculum' }, { label: s.affiliates, href: '/dashboard/school/affiliates' },
+    { label: s.staff, href: '/dashboard/school/staff' }, { label: s.waivers, href: '/dashboard/school/waivers' }, { label: s.gradings, href: '/dashboard/school/gradings' },
   ]},
-  { label: 'Reports',     icon: BarChart2,  children: [
-    { label: 'Bookings', href: '#' }, { label: 'Gradings', href: '#' },
-    { label: 'Payments', href: '#' }, { label: 'Balance', href: '#' },
-    { label: 'Absents', href: '#' }, { label: 'Users', href: '#' },
+  { label: s.reports,     icon: BarChart2,  children: [
+    { label: s.bookings, href: '#' }, { label: s.gradings, href: '#' },
+    { label: s.payments, href: '#' }, { label: s.balance, href: '#' },
+    { label: s.absents, href: '#' }, { label: s.users, href: '#' },
   ]},
-  { label: 'Settings', icon: Settings, href: '/dashboard/settings' },
+  { label: s.settings, icon: Settings, href: '/dashboard/settings' },
 ]
-const NAV_BOTTOM: NavItem[] = [
-  { label: 'Subscription',  icon: ShoppingBag, href: '#' },
-  { label: 'Notifications', icon: Bell,        href: '#' },
-  { label: 'Support',       icon: HelpCircle,  href: '#' },
+const buildNavBottom = (s: Translations['sidebar']): NavItem[] => [
+  { label: s.subscription,  icon: ShoppingBag, href: '#' },
+  { label: s.notifications, icon: Bell,        href: '#' },
+  { label: s.support,       icon: HelpCircle,  href: '#' },
 ]
 
 const ACTIVE_HREF = '/dashboard/classes/calendar'
@@ -230,6 +229,7 @@ function NavGroup({ item }: { item: NavItem }) {
 
 // ── Class popup ────────────────────────────────────────────────────────────────
 function ClassPopup({ slot, onClose }: { slot: ClassSlot; onClose: () => void }) {
+  const t = useT()
   const colors = ACTIVITY_COLORS[slot.activity] ?? ACTIVITY_COLORS['Open Mat']!
   const endMin = slot.startH * 60 + slot.startM + slot.durationM
   const time   = fmtTime(slot.startH, slot.startM) + ' – ' + fmtTime(Math.floor(endMin / 60), endMin % 60)
@@ -263,18 +263,18 @@ function ClassPopup({ slot, onClose }: { slot: ClassSlot; onClose: () => void })
             <div style={{ height: '100%', borderRadius: 99, background: barClr, width: pct + '%' }} />
           </div>
           <div className="flex items-center justify-between mt-1">
-            <p style={{ fontSize: 10, color: '#9CA3AF' }}>{slot.enrolled} / {slot.capacity} students</p>
+            <p style={{ fontSize: 10, color: '#9CA3AF' }}>{slot.enrolled} / {slot.capacity} {t.classes.students}</p>
             <span style={{ fontSize: 10, fontWeight: 600, color: barClr }}>
-              {isFull ? 'Full' : pct >= 80 ? 'Almost full' : 'Open'}
+              {isFull ? t.common.full : pct >= 80 ? t.classes.almostFull : t.common.open}
             </span>
           </div>
         </div>
         <div className="py-1">
           {[
-            { icon: Eye,    label: 'View students', color: '#374151' },
-            { icon: Pencil, label: 'Edit class',    color: '#374151' },
-            { icon: Copy,   label: 'Duplicate',     color: '#374151' },
-            { icon: Trash2, label: 'Delete',        color: '#DC2626' },
+            { icon: Eye,    label: t.classes.viewStudentsAction, color: '#374151' },
+            { icon: Pencil, label: t.classes.editClass,    color: '#374151' },
+            { icon: Copy,   label: t.common.duplicate,     color: '#374151' },
+            { icon: Trash2, label: t.common.delete,        color: '#DC2626' },
           ].map(({ icon: Icon, label, color }) => (
             <button key={label} onClick={onClose}
               className="w-full flex items-center gap-2.5 px-4 py-2.5 cursor-pointer"
@@ -294,6 +294,8 @@ function ClassPopup({ slot, onClose }: { slot: ClassSlot; onClose: () => void })
 function DatePicker({
   selected, onSelect, onClose,
 }: { selected: Date; onSelect: (d: Date) => void; onClose: () => void }) {
+  const t = useT()
+  const monthNames = t.classes.monthNames.split(',')
   const [pickerYear,  setPickerYear]  = useState(selected.getFullYear())
   const [pickerMonth, setPickerMonth] = useState(selected.getMonth())
 
@@ -326,7 +328,7 @@ function DatePicker({
             <ChevronLeft size={13} style={{ color: '#374151' }} />
           </button>
           <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>
-            {MONTH_NAMES[pickerMonth]} {pickerYear}
+            {monthNames[pickerMonth]} {pickerYear}
           </span>
           <button onClick={nextMonth}
             className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
@@ -339,8 +341,8 @@ function DatePicker({
 
         {/* Weekday labels */}
         <div className="grid grid-cols-7 mb-1">
-          {MONTH_DAYS.map(d => (
-            <div key={d} className="flex items-center justify-center"
+          {t.classes.weekDays.split(',').map((d, di) => (
+            <div key={di} className="flex items-center justify-center"
               style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', padding: '3px 0', letterSpacing: '0.04em' }}>
               {d[0]}
             </div>
@@ -374,7 +376,7 @@ function DatePicker({
             style={{ fontSize: 12, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}
             onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
             onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = '#fff'}>
-            Go to today
+            {t.classes.goToToday}
           </button>
         </div>
       </div>
@@ -418,9 +420,10 @@ function WeekClassBlock({ slot, onSelect }: { slot: ClassSlot; onSelect: (s: Cla
 const INSTRUCTORS_LIST = ['Carlos Silva', 'Monti', 'Ana Torres', 'Jorge Sanchez', 'Laura M.']
 const ACTIVITIES_LIST  = Object.keys(ACTIVITY_COLORS)
 const DEFAULT_DAYS     = [true, true, true, true, true, false, false]
-const DAYS_OF_WEEK     = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 function AddClassDrawer({ open, onClose, onSuccess }: { open: boolean; onClose: () => void; onSuccess: () => void }) {
+  const t = useT()
+  const daysOfWeek = t.classes.daysOfWeek.split(',')
   const [selLocId, setSelLocId]     = useState<number | ''>('')
   const [dayEnabled, setDayEnabled] = useState<boolean[]>([...DEFAULT_DAYS])
   const [bannerDrag, setBannerDrag] = useState(false)
@@ -449,8 +452,8 @@ function AddClassDrawer({ open, onClose, onSuccess }: { open: boolean; onClose: 
           transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)' }}>
         <div className="flex items-center justify-between px-6 py-4 shrink-0" style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
           <div>
-            <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>Add Class to Calendar</h2>
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>Schedule a new class or event</p>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>{t.classes.addClassToCalendar}</h2>
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{t.classes.scheduleNewClass}</p>
           </div>
           <button onClick={onClose} className="w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
             style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
@@ -460,7 +463,7 @@ function AddClassDrawer({ open, onClose, onSuccess }: { open: boolean; onClose: 
         <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-5">
           {/* Banner */}
           <div>
-            <label style={lStyle}>Class Banner</label>
+            <label style={lStyle}>{t.classes.classBanner}</label>
             <div onDragEnter={() => setBannerDrag(true)} onDragLeave={() => setBannerDrag(false)} onDrop={() => setBannerDrag(false)}
               className="flex items-center gap-4 rounded-xl"
               style={{ border: `2px dashed ${bannerDrag ? '#0071E3' : '#D1D5DB'}`,
@@ -469,60 +472,60 @@ function AddClassDrawer({ open, onClose, onSuccess }: { open: boolean; onClose: 
                 <Upload size={15} style={{ color: '#9CA3AF' }} />
               </div>
               <div className="flex-1 min-w-0">
-                <p style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>Drop image here</p>
-                <p style={{ fontSize: 11, color: '#9CA3AF' }}>PNG, JPG up to 5 MB</p>
+                <p style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>{t.common.dropImage}</p>
+                <p style={{ fontSize: 11, color: '#9CA3AF' }}>{t.common.pngJpg}</p>
               </div>
               <label className="px-3 py-1.5 rounded-lg cursor-pointer shrink-0"
                 style={{ fontSize: 12, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
-                Browse<input type="file" accept="image/*" className="hidden" />
+                {t.common.browse}<input type="file" accept="image/*" className="hidden" />
               </label>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div><label style={lStyle}>Title</label><input type="text" placeholder="e.g. BJJ All Levels" style={iStyle} /></div>
+            <div><label style={lStyle}>{t.common.title}</label><input type="text" placeholder={t.classes.classTitlePlaceholder} style={iStyle} /></div>
             <div>
-              <label style={lStyle}>Instructor</label>
-              <select style={iStyle}><option value="">Select instructor...</option>{INSTRUCTORS_LIST.map(i => <option key={i}>{i}</option>)}</select>
+              <label style={lStyle}>{t.common.instructor}</label>
+              <select style={iStyle}><option value="">{t.classes.selectInstructor.replace('…','...')}</option>{INSTRUCTORS_LIST.map(i => <option key={i}>{i}</option>)}</select>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label style={lStyle}>Activity</label>
-              <select style={iStyle}><option value="">Select activity...</option>{ACTIVITIES_LIST.map(a => <option key={a}>{a}</option>)}</select>
+              <label style={lStyle}>{t.common.activity}</label>
+              <select style={iStyle}><option value="">{t.classes.selectActivity.replace('…','...')}</option>{ACTIVITIES_LIST.map(a => <option key={a}>{a}</option>)}</select>
             </div>
-            <div><label style={lStyle}>Capacity</label><input type="number" placeholder="20" min={1} style={iStyle} /></div>
+            <div><label style={lStyle}>{t.common.capacity}</label><input type="number" placeholder="20" min={1} style={iStyle} /></div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label style={lStyle}>Location</label>
+              <label style={lStyle}>{t.common.location}</label>
               <select style={iStyle} value={selLocId} onChange={e => setSelLocId(e.target.value === '' ? '' : Number(e.target.value))}>
-                <option value="">Select location...</option>{LOCATIONS.map(l => <option key={l.id} value={l.id}>{l.name} — {l.city}</option>)}
+                <option value="">{t.classes.selectLocation.replace('…','...')}</option>{LOCATIONS.map(l => <option key={l.id} value={l.id}>{l.name} — {l.city}</option>)}
               </select>
             </div>
             <div>
-              <label style={lStyle}>Room</label>
+              <label style={lStyle}>{t.classes.room}</label>
               <select style={{ ...iStyle, opacity: selLocId === '' ? 0.5 : 1 }} disabled={selLocId === ''}>
-                <option value="">{selLocId === '' ? 'Select location first' : 'Select room...'}</option>
-                {availableRooms.map(r => <option key={r.id} value={r.id}>{r.name} (cap. {r.capacity})</option>)}
+                <option value="">{selLocId === '' ? t.classes.selectLocationFirst : t.classes.selectRoom}</option>
+                {availableRooms.map(r => <option key={r.id} value={r.id}>{r.name} ({t.classes.cap} {r.capacity})</option>)}
               </select>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label style={lStyle}>Repeat</label>
-              <select value={repeat} onChange={e => setRepeat(e.target.value)} style={iStyle}><option>Yes</option><option>No</option></select>
+              <label style={lStyle}>{t.classes.repeat}</label>
+              <select value={repeat} onChange={e => setRepeat(e.target.value)} style={iStyle}><option value="Yes">{t.common.yes}</option><option value="No">{t.common.no}</option></select>
             </div>
-            <div><label style={lStyle}>Start Date</label><input type="date" style={iStyle} /></div>
-            <div><label style={lStyle}>{repeat === 'Yes' ? 'Repeat End Date' : 'End Date'}</label><input type="date" style={iStyle} /></div>
+            <div><label style={lStyle}>{t.common.startDate}</label><input type="date" style={iStyle} /></div>
+            <div><label style={lStyle}>{repeat === 'Yes' ? t.classes.repeatEndDate : t.common.endDate}</label><input type="date" style={iStyle} /></div>
           </div>
           {/* Session timings */}
           <div>
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#0071E3', marginBottom: 12 }}>Session Timings by Day</p>
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#0071E3', marginBottom: 12 }}>{t.classes.sessionTimings}</p>
             <div className="rounded-xl overflow-hidden" style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
               <table className="w-full">
                 <thead>
                   <tr style={{ borderBottom: '1px solid #F3F4F6', background: '#F9FAFB' }}>
-                    {['Day', 'Start Time', 'End Time', 'Break Start', 'Break End', 'Active'].map(h => (
+                    {[t.classes.day, t.classes.startTimeCol, t.classes.endTimeCol, t.classes.breakStart, t.classes.breakEnd, t.common.active].map(h => (
                       <th key={h} className="px-3 py-2 text-left"
                         style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
                         {h}
@@ -531,10 +534,10 @@ function AddClassDrawer({ open, onClose, onSuccess }: { open: boolean; onClose: 
                   </tr>
                 </thead>
                 <tbody>
-                  {DAYS_OF_WEEK.map((day, idx) => {
+                  {daysOfWeek.map((day, idx) => {
                     const on = dayEnabled[idx] ?? false
                     return (
-                      <tr key={day} style={{ borderBottom: idx < DAYS_OF_WEEK.length - 1 ? '1px solid #F9FAFB' : 'none', opacity: on ? 1 : 0.4, transition: 'opacity 0.15s' }}>
+                      <tr key={day} style={{ borderBottom: idx < daysOfWeek.length - 1 ? '1px solid #F9FAFB' : 'none', opacity: on ? 1 : 0.4, transition: 'opacity 0.15s' }}>
                         <td className="px-3 py-2">
                           <span style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{day.slice(0, 3)}</span>
                         </td>
@@ -562,11 +565,11 @@ function AddClassDrawer({ open, onClose, onSuccess }: { open: boolean; onClose: 
         <div className="px-6 py-4 flex items-center justify-end gap-3 shrink-0" style={{ background: '#fff', borderTop: '1px solid #E5E7EB' }}>
           <button onClick={onClose} className="px-5 py-2.5 rounded-xl cursor-pointer"
             style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
-            Cancel
+            {t.common.cancel}
           </button>
           <button onClick={onSuccess} className="px-6 py-2.5 rounded-xl cursor-pointer"
             style={{ fontSize: 13, fontWeight: 600, border: 'none', background: '#0071E3', color: '#fff' }}>
-            Add to Calendar
+            {t.classes.addToCalendar}
           </button>
         </div>
       </div>
@@ -575,6 +578,7 @@ function AddClassDrawer({ open, onClose, onSuccess }: { open: boolean; onClose: 
 }
 
 function SuccessModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const t = useT()
   if (!open) return null
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4"
@@ -586,11 +590,11 @@ function SuccessModal({ open, onClose }: { open: boolean; onClose: () => void })
           <Check size={32} style={{ color: '#16A34A' }} strokeWidth={2.5} />
         </div>
         <div>
-          <h3 style={{ fontSize: 18, fontWeight: 700, color: '#111827', margin: 0 }}>Class Added!</h3>
-          <p style={{ fontSize: 13, color: '#6B7280', marginTop: 6 }}>The class has been added to the calendar.</p>
+          <h3 style={{ fontSize: 18, fontWeight: 700, color: '#111827', margin: 0 }}>{t.classes.classAdded}</h3>
+          <p style={{ fontSize: 13, color: '#6B7280', marginTop: 6 }}>{t.classes.classAddedDesc}</p>
         </div>
         <button onClick={onClose} className="w-full py-2.5 rounded-xl cursor-pointer"
-          style={{ fontSize: 13, fontWeight: 600, border: 'none', background: '#0071E3', color: '#fff' }}>Done</button>
+          style={{ fontSize: 13, fontWeight: 600, border: 'none', background: '#0071E3', color: '#fff' }}>{t.common.done}</button>
       </div>
     </div>
   )
@@ -598,6 +602,11 @@ function SuccessModal({ open, onClose }: { open: boolean; onClose: () => void })
 
 // ── Main ───────────────────────────────────────────────────────────────────────
 export default function CalendarClient() {
+  const t = useT()
+  const NAV_MAIN = buildNavMain(t.sidebar)
+  const NAV_BOTTOM = buildNavBottom(t.sidebar)
+  const monthNames = t.classes.monthNames.split(',')
+  const weekDayLabels = t.classes.weekDays.split(',')
   const [menuOpen, setMenuOpen]           = useState(false)
   const [view, setView]                   = useState<'month' | 'week'>('month')
   const [selectedDate, setSelectedDate]   = useState<Date>(TODAY)
@@ -660,7 +669,7 @@ export default function CalendarClient() {
   const MAX_CHIPS = 3
 
   const periodLabel = view === 'month'
-    ? `${MONTH_NAMES[viewMonth]} ${viewYear}`
+    ? `${monthNames[viewMonth]} ${viewYear}`
     : formatWeekLabel(weekMonday)
 
   return (
@@ -682,7 +691,7 @@ export default function CalendarClient() {
             </div>
             <div>
               <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>MARTIAL</p>
-              <p style={{ fontSize: 10, fontWeight: 500, color: '#9CA3AF', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Academy</p>
+              <p style={{ fontSize: 10, fontWeight: 500, color: '#9CA3AF', letterSpacing: '0.04em', textTransform: 'uppercase' }}>{t.classes.academyLabel}</p>
             </div>
           </div>
           <button className="md:hidden flex items-center justify-center w-7 h-7 rounded-lg cursor-pointer"
@@ -709,7 +718,7 @@ export default function CalendarClient() {
               style={{ color: '#374151', fontSize: 14, background: 'transparent', border: 'none' }}
               onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
               onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-              <LogOut size={16} style={{ color: '#9CA3AF' }} />Sign out
+              <LogOut size={16} style={{ color: '#9CA3AF' }} />{t.sidebar.signOut}
             </button>
           </form>
         </div>
@@ -727,7 +736,7 @@ export default function CalendarClient() {
               <Menu size={16} style={{ color: '#374151' }} />
             </button>
             <h1 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0, letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>
-              Calendar
+              {t.classes.calendarTitle}
             </h1>
 
             {/* View toggle: Month / Week */}
@@ -741,7 +750,7 @@ export default function CalendarClient() {
                     color: view === v ? '#111827' : '#9CA3AF',
                     boxShadow: view === v ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}>
                   {v === 'month' ? <LayoutList size={13} /> : <CalendarDays size={13} />}
-                  {v === 'month' ? 'Month' : 'Week'}
+                  {v === 'month' ? t.classes.month : t.classes.week}
                 </button>
               ))}
             </div>
@@ -791,7 +800,7 @@ export default function CalendarClient() {
                   color: isCurrentPeriod() ? '#0071E3' : '#374151' }}
                 onMouseEnter={e => { if (!isCurrentPeriod()) (e.currentTarget as HTMLElement).style.background = '#F9FAFB' }}
                 onMouseLeave={e => { if (!isCurrentPeriod()) (e.currentTarget as HTMLElement).style.background = '#fff' }}>
-                Today
+                {t.common.today}
               </button>
             </div>
           </div>
@@ -820,13 +829,13 @@ export default function CalendarClient() {
         <div className="flex items-center gap-2 px-4 md:px-6 py-2 shrink-0"
           style={{ background: '#fff', borderBottom: '1px solid #F3F4F6' }}>
           <span style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF',
-            textTransform: 'uppercase', letterSpacing: '0.04em', marginRight: 4 }}>Location</span>
+            textTransform: 'uppercase', letterSpacing: '0.04em', marginRight: 4 }}>{t.classes.location}</span>
           <button onClick={() => setFilterLocId(null)}
             className="px-3 py-1 rounded-lg cursor-pointer"
             style={{ fontSize: 12, fontWeight: filterLocId === null ? 600 : 400, border: 'none',
               background: filterLocId === null ? '#111827' : '#F3F4F6',
               color: filterLocId === null ? '#fff' : '#374151' }}>
-            All locations
+            {t.classes.allLocations}
           </button>
           {LOCATIONS.map(loc => (
             <button key={loc.id} onClick={() => setFilterLocId(loc.id)}
@@ -849,8 +858,8 @@ export default function CalendarClient() {
             {/* Weekday header */}
             <div className="grid grid-cols-7 sticky top-0 z-10"
               style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
-              {MONTH_DAYS.map((d, i) => (
-                <div key={d} className="py-2 flex items-center justify-center"
+              {weekDayLabels.map((d, i) => (
+                <div key={i} className="py-2 flex items-center justify-center"
                   style={{ borderLeft: i > 0 ? '1px solid #F3F4F6' : 'none' }}>
                   <span style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF',
                     textTransform: 'uppercase', letterSpacing: '0.06em' }}>{d}</span>
@@ -888,7 +897,7 @@ export default function CalendarClient() {
                       <button
                         onClick={() => { setSelectedDate(date); setView('week') }}
                         className="flex items-center justify-center w-6 h-6 rounded-full cursor-pointer"
-                        title="View this week"
+                        title={t.classes.viewThisWeek}
                         style={{ fontSize: 12, fontWeight: isToday ? 700 : 500, border: 'none',
                           background: isToday ? '#0071E3' : 'transparent',
                           color: isToday ? '#fff' : isThisMonth ? '#374151' : '#9CA3AF' }}
@@ -897,7 +906,7 @@ export default function CalendarClient() {
                         {date.getDate()}
                       </button>
                       {classes.length > 0 && (
-                        <span style={{ fontSize: 9, color: '#9CA3AF' }}>{classes.length} class{classes.length !== 1 ? 'es' : ''}</span>
+                        <span style={{ fontSize: 9, color: '#9CA3AF' }}>{classes.length} {classes.length !== 1 ? t.classes.classCountPlural : t.classes.classCount}</span>
                       )}
                     </div>
 
@@ -931,7 +940,7 @@ export default function CalendarClient() {
                             background: '#F3F4F6', border: 'none' }}
                           onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#E5E7EB'}
                           onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = '#F3F4F6'}>
-                          +{overflow} more
+                          +{overflow} {t.classes.more}
                         </button>
                       )}
                       {/* Expanded overflow */}
@@ -954,7 +963,7 @@ export default function CalendarClient() {
                         <button onClick={() => setExpandedDay(null)}
                           className="w-full text-left rounded px-1.5 py-0.5 cursor-pointer"
                           style={{ fontSize: 10, color: '#9CA3AF', background: 'transparent', border: 'none' }}>
-                          Show less
+                          {t.classes.showLess}
                         </button>
                       )}
                     </div>
@@ -979,7 +988,7 @@ export default function CalendarClient() {
                     style={{ borderColor: '#F3F4F6', minWidth: 0 }}>
                     <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.06em',
                       textTransform: 'uppercase', color: isToday ? '#0071E3' : '#9CA3AF' }}>
-                      {day}
+                      {weekDayLabels[i]}
                     </span>
                     <div className="flex items-center justify-center mt-0.5"
                       style={{ width: 26, height: 26, borderRadius: '50%', background: isToday ? '#0071E3' : 'transparent' }}>

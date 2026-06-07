@@ -9,6 +9,7 @@ import {
   AlertCircle, RefreshCw, MoreHorizontal, Eye, Plus,
 } from 'lucide-react'
 import { useDashboard } from '../../../../components/DashboardShell'
+import { useT } from '../../../../lib/i18n/LanguageContext'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type TxStatus = 'Paid' | 'Pending' | 'Failed' | 'Refunded'
@@ -93,6 +94,7 @@ const PLAN_OPTIONS = [
 function AddTransactionDrawer({ open, onClose, onSuccess }: {
   open: boolean; onClose: () => void; onSuccess: () => void
 }) {
+  const t = useT()
   const [memberQuery, setMemberQuery]   = useState('')
   const [selectedMember, setSelectedMember] = useState<typeof MEMBERS[0] | null>(null)
   const [showDropdown, setShowDropdown] = useState(false)
@@ -143,10 +145,10 @@ function AddTransactionDrawer({ open, onClose, onSuccess }: {
           style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
           <div>
             <h2 style={{ fontSize: 17, fontWeight: 700, color: '#111827', margin: 0, letterSpacing: '-0.02em' }}>
-              Add Transaction
+              {t.paymentsPage.addTransaction}
             </h2>
             <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>
-              Record a payment manually for any member
+              {t.paymentsPage.recordPayment}
             </p>
           </div>
           <button onClick={handleClose}
@@ -161,7 +163,7 @@ function AddTransactionDrawer({ open, onClose, onSuccess }: {
 
           {/* Member picker */}
           <div className="relative">
-            <label style={labelStyle}>Member</label>
+            <label style={labelStyle}>{t.paymentsPage.member}</label>
             {selectedMember ? (
               <div className="flex items-center justify-between px-3 py-2.5 rounded-xl"
                 style={{ border: '1px solid #0071E3', background: '#EFF6FF' }}>
@@ -185,7 +187,7 @@ function AddTransactionDrawer({ open, onClose, onSuccess }: {
                   style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
                   <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
                   <input
-                    type="text" placeholder="Search by name or email…"
+                    type="text" placeholder={t.paymentsPage.searchMember}
                     value={memberQuery}
                     onChange={e => { setMemberQuery(e.target.value); setShowDropdown(true) }}
                     onFocus={() => setShowDropdown(true)}
@@ -222,9 +224,9 @@ function AddTransactionDrawer({ open, onClose, onSuccess }: {
 
           {/* Plan */}
           <div>
-            <label style={labelStyle}>Membership Plan</label>
+            <label style={labelStyle}>{t.paymentsPage.membershipPlan}</label>
             <select value={plan} onChange={e => setPlan(e.target.value)} style={inputStyle}>
-              <option value="">Select a plan…</option>
+              <option value="">{t.paymentsPage.selectPlan}</option>
               {PLAN_OPTIONS.map(p => <option key={p} value={p}>{p}</option>)}
             </select>
           </div>
@@ -232,12 +234,12 @@ function AddTransactionDrawer({ open, onClose, onSuccess }: {
           {/* Amount + Method */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label style={labelStyle}>Amount (€)</label>
+              <label style={labelStyle}>{t.common.amount} (€)</label>
               <input type="number" placeholder="65.00" min={0} step={0.01}
                 value={amount} onChange={e => setAmount(e.target.value)} style={inputStyle} />
             </div>
             <div>
-              <label style={labelStyle}>Payment Method</label>
+              <label style={labelStyle}>{t.paymentsPage.paymentMethod}</label>
               <select value={method} onChange={e => setMethod(e.target.value as TxMethod)} style={inputStyle}>
                 {(['Stripe', 'Cash', 'Transfer', 'Free'] as TxMethod[]).map(m => (
                   <option key={m} value={m}>{m}</option>
@@ -249,11 +251,11 @@ function AddTransactionDrawer({ open, onClose, onSuccess }: {
           {/* Date + Status */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label style={labelStyle}>Date</label>
+              <label style={labelStyle}>{t.common.date}</label>
               <input type="date" value={date} onChange={e => setDate(e.target.value)} style={inputStyle} />
             </div>
             <div>
-              <label style={labelStyle}>Status</label>
+              <label style={labelStyle}>{t.common.status}</label>
               <select value={status} onChange={e => setStatus(e.target.value as TxStatus)} style={inputStyle}>
                 {(['Paid', 'Pending', 'Failed', 'Refunded'] as TxStatus[]).map(s => (
                   <option key={s} value={s}>{s}</option>
@@ -264,8 +266,8 @@ function AddTransactionDrawer({ open, onClose, onSuccess }: {
 
           {/* Notes */}
           <div>
-            <label style={labelStyle}>Notes <span style={{ fontWeight: 400, color: '#9CA3AF' }}>(optional)</span></label>
-            <textarea rows={3} placeholder="Internal notes about this payment…"
+            <label style={labelStyle}>{t.paymentsPage.notes} <span style={{ fontWeight: 400, color: '#9CA3AF' }}>({t.common.optional})</span></label>
+            <textarea rows={3} placeholder={t.paymentsPage.notesPlaceholder}
               value={notes} onChange={e => setNotes(e.target.value)}
               style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }} />
           </div>
@@ -275,7 +277,7 @@ function AddTransactionDrawer({ open, onClose, onSuccess }: {
             <div className="rounded-xl p-4" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
               <p style={{ fontSize: 11, fontWeight: 700, color: '#374151',
                 textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>
-                Summary
+                {t.paymentsPage.summary}
               </p>
               <div className="flex flex-col gap-2">
                 {[
@@ -301,7 +303,7 @@ function AddTransactionDrawer({ open, onClose, onSuccess }: {
           <button onClick={handleClose}
             className="px-5 py-2.5 rounded-xl cursor-pointer"
             style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
-            Cancel
+            {t.common.cancel}
           </button>
           <button onClick={handleSuccess} disabled={!canSubmit}
             className="px-6 py-2.5 rounded-xl cursor-pointer flex items-center gap-2"
@@ -309,7 +311,7 @@ function AddTransactionDrawer({ open, onClose, onSuccess }: {
               background: canSubmit ? '#0071E3' : '#93C5FD', color: '#fff',
               cursor: canSubmit ? 'pointer' : 'not-allowed' }}>
             <Plus size={14} />
-            Add Transaction
+            {t.paymentsPage.addTransaction}
           </button>
         </div>
       </div>
@@ -348,6 +350,7 @@ type Filter = 'All' | TxStatus
 
 export default function TransactionsClient() {
   const { menuOpen, setMenuOpen } = useDashboard()
+  const t = useT()
   const [activeFilter, setActiveFilter] = useState<Filter>('All')
   const [search, setSearch]             = useState('')
   const [currentPage, setCurrentPage]   = useState(1)
@@ -373,18 +376,18 @@ export default function TransactionsClient() {
   const pages      = getPaginationPages(safePage, totalPages)
 
   const STATS = [
-    { label: 'Total Revenue',  value: '€' + totalRevenue.toLocaleString('es-ES', { minimumFractionDigits: 2 }), icon: TrendingUp,  color: '#16A34A', bg: '#F0FDF4', trend: '+8%',  trendUp: true  },
-    { label: 'Paid',           value: String(totalPaid),    icon: Check,        color: '#0071E3', bg: '#EFF6FF', trend: '+12',  trendUp: true  },
-    { label: 'Pending',        value: String(totalPending), icon: Clock,        color: '#D97706', bg: '#FFFBEB', trend: '2',    trendUp: false },
-    { label: 'Failed',         value: String(totalFailed),  icon: AlertCircle,  color: '#DC2626', bg: '#FEF2F2', trend: '2',    trendUp: false },
+    { label: t.paymentsPage.totalRevenue, value: '€' + totalRevenue.toLocaleString('es-ES', { minimumFractionDigits: 2 }), icon: TrendingUp,  color: '#16A34A', bg: '#F0FDF4', trend: '+8%',  trendUp: true  },
+    { label: t.common.paid,               value: String(totalPaid),    icon: Check,        color: '#0071E3', bg: '#EFF6FF', trend: '+12',  trendUp: true  },
+    { label: t.common.pending,            value: String(totalPending), icon: Clock,        color: '#D97706', bg: '#FFFBEB', trend: '2',    trendUp: false },
+    { label: t.common.failed,             value: String(totalFailed),  icon: AlertCircle,  color: '#DC2626', bg: '#FEF2F2', trend: '2',    trendUp: false },
   ]
 
   const FILTERS: { id: Filter; label: string }[] = [
-    { id: 'All',      label: 'All' },
-    { id: 'Paid',     label: 'Paid' },
-    { id: 'Pending',  label: 'Pending' },
-    { id: 'Failed',   label: 'Failed' },
-    { id: 'Refunded', label: 'Refunded' },
+    { id: 'All',      label: t.common.all },
+    { id: 'Paid',     label: t.common.paid },
+    { id: 'Pending',  label: t.common.pending },
+    { id: 'Failed',   label: t.common.failed },
+    { id: 'Refunded', label: t.common.refunded },
   ]
 
   return (
@@ -402,7 +405,7 @@ export default function TransactionsClient() {
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 max-w-xs"
               style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
               <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
-              <input type="text" placeholder="Search by name, ref or plan…" value={search}
+              <input type="text" placeholder={t.paymentsPage.searchTx} value={search}
                 onChange={e => { setSearch(e.target.value); setCurrentPage(1) }}
                 style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
             </div>
@@ -420,12 +423,12 @@ export default function TransactionsClient() {
             </button>
             <button className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
               style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', fontSize: 13, fontWeight: 500, color: '#374151' }}>
-              <Download size={14} />Export
+              <Download size={14} />{t.common.export}
             </button>
             <button onClick={() => setDrawerOpen(true)}
               className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
               style={{ background: '#0071E3', border: 'none', color: '#fff', fontSize: 13, fontWeight: 600 }}>
-              <Plus size={15} />Add Transaction
+              <Plus size={15} />{t.paymentsPage.addTransaction}
             </button>
           </div>
 
@@ -434,10 +437,10 @@ export default function TransactionsClient() {
             {/* Header */}
             <div>
               <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>
-                Transactions
+                {t.paymentsPage.transactionsTitle}
               </h1>
               <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>
-                All payment activity for your academy
+                {t.paymentsPage.transactionsSubtitle}
               </p>
             </div>
 
@@ -501,14 +504,14 @@ export default function TransactionsClient() {
                 <thead>
                   <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
                     {[
-                      { label: 'Member',      cls: '' },
-                      { label: 'Plan',        cls: 'hidden md:table-cell' },
-                      { label: 'Method',      cls: 'hidden sm:table-cell' },
-                      { label: 'Amount',      cls: '' },
-                      { label: 'Date',        cls: 'hidden lg:table-cell' },
-                      { label: 'Ref',         cls: 'hidden xl:table-cell' },
-                      { label: 'Status',      cls: '' },
-                      { label: 'Actions',     cls: '' },
+                      { label: t.common.member,           cls: '' },
+                      { label: t.paymentsPage.colPlan,    cls: 'hidden md:table-cell' },
+                      { label: t.paymentsPage.colMethod,  cls: 'hidden sm:table-cell' },
+                      { label: t.common.amount,           cls: '' },
+                      { label: t.common.date,             cls: 'hidden lg:table-cell' },
+                      { label: t.paymentsPage.colRef,     cls: 'hidden xl:table-cell' },
+                      { label: t.common.status,           cls: '' },
+                      { label: t.common.actions,          cls: '' },
                     ].map(h => (
                       <th key={h.label} className={`px-5 py-3 text-left ${h.cls}`}
                         style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF',
@@ -631,7 +634,7 @@ export default function TransactionsClient() {
                     <tr>
                       <td colSpan={8} style={{ textAlign: 'center', padding: '48px 0' }}>
                         <CreditCard size={28} style={{ color: '#E5E7EB', margin: '0 auto 10px' }} />
-                        <p style={{ fontSize: 14, color: '#9CA3AF' }}>No transactions found</p>
+                        <p style={{ fontSize: 14, color: '#9CA3AF' }}>{t.paymentsPage.noTransactions}</p>
                       </td>
                     </tr>
                   )}
@@ -641,7 +644,7 @@ export default function TransactionsClient() {
               {/* Pagination */}
               <div className="flex items-center justify-between px-6 py-3" style={{ borderTop: '1px solid #F3F4F6' }}>
                 <p style={{ fontSize: 13, color: '#6B7280' }}>
-                  Showing{' '}
+                  {t.common.showing}{' '}
                   <span style={{ fontWeight: 600, color: '#111827' }}>
                     {filtered.length === 0 ? 0 : (safePage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(safePage * ITEMS_PER_PAGE, filtered.length)}
                   </span>
@@ -653,7 +656,7 @@ export default function TransactionsClient() {
                     style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff',
                       color: safePage === 1 ? '#D1D5DB' : '#374151', cursor: safePage === 1 ? 'not-allowed' : 'pointer',
                       borderRadius: 8, padding: '6px 12px' }}>
-                    Prev
+                    {t.common.prev}
                   </button>
                   <div className="flex items-center gap-1 mx-1">
                     {pages.map((p, i) =>
@@ -674,7 +677,7 @@ export default function TransactionsClient() {
                     style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff',
                       color: safePage === totalPages ? '#D1D5DB' : '#374151', cursor: safePage === totalPages ? 'not-allowed' : 'pointer',
                       borderRadius: 8, padding: '6px 12px' }}>
-                    Next
+                    {t.common.next}
                   </button>
                 </div>
               </div>
@@ -687,7 +690,7 @@ export default function TransactionsClient() {
       onClose={() => setDrawerOpen(false)}
       onSuccess={() => { setDrawerOpen(false); setToast(true); setTimeout(() => setToast(false), 3500) }}
     />
-    {toast && <SuccessToast message="Transaction recorded successfully" onClose={() => setToast(false)} />}
+    {toast && <SuccessToast message={t.paymentsPage.txRecorded} onClose={() => setToast(false)} />}
     </>
   )
 }

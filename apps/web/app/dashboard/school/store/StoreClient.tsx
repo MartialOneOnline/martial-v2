@@ -10,6 +10,7 @@ import {
   Menu, X, Search, Check, TrendingUp, TrendingDown,
   MoreHorizontal, Eye, Plus, Package,
 } from 'lucide-react'
+import { useT } from '../../../../lib/i18n/LanguageContext'
 
 type ProductCategory = 'Gi' | 'No-Gi' | 'Accessories' | 'Supplements' | 'Apparel'
 type ProductStatus = 'Active' | 'Out of Stock' | 'Archived'
@@ -250,6 +251,7 @@ function NavGroup({ item }: { item: NavItem }) {
 type Filter = 'All' | ProductStatus
 
 export default function StoreClient() {
+  const t = useT()
   const [menuOpen, setMenuOpen]         = useState(false)
   const [activeFilter, setActiveFilter] = useState<Filter>('All')
   const [search, setSearch]             = useState('')
@@ -276,17 +278,17 @@ export default function StoreClient() {
   const pages      = getPaginationPages(safePage, totalPages)
 
   const STATS = [
-    { label: 'Total Products', value: String(totalProducts),  icon: Package,     color: '#0071E3', bg: '#EFF6FF', trend: '+2',   trendUp: true  },
-    { label: 'Active',         value: String(activeProducts), icon: Check,       color: '#16A34A', bg: '#F0FDF4', trend: '+1',   trendUp: true  },
-    { label: 'Total Revenue',  value: '€' + totalRevenue.toLocaleString('es-ES'), icon: TrendingUp, color: '#6D28D9', bg: '#F5F3FF', trend: '+12%', trendUp: true },
-    { label: 'Low Stock',      value: String(lowStock),       icon: TrendingDown, color: '#DC2626', bg: '#FEF2F2', trend: String(lowStock), trendUp: false },
+    { label: t.school.totalProducts, value: String(totalProducts),  icon: Package,     color: '#0071E3', bg: '#EFF6FF', trend: '+2',   trendUp: true  },
+    { label: t.school.inStock,       value: String(activeProducts), icon: Check,       color: '#16A34A', bg: '#F0FDF4', trend: '+1',   trendUp: true  },
+    { label: t.paymentsPage.totalRevenue, value: '€' + totalRevenue.toLocaleString('es-ES'), icon: TrendingUp, color: '#6D28D9', bg: '#F5F3FF', trend: '+12%', trendUp: true },
+    { label: t.school.outOfStock,    value: String(lowStock),       icon: TrendingDown, color: '#DC2626', bg: '#FEF2F2', trend: String(lowStock), trendUp: false },
   ]
 
   const FILTERS: { id: Filter; label: string }[] = [
-    { id: 'All',          label: 'All' },
-    { id: 'Active',       label: 'Active' },
-    { id: 'Out of Stock', label: 'Out of Stock' },
-    { id: 'Archived',     label: 'Archived' },
+    { id: 'All',          label: t.common.all          },
+    { id: 'Active',       label: t.common.active       },
+    { id: 'Out of Stock', label: t.school.outOfStock   },
+    { id: 'Archived',     label: t.common.archived     },
   ]
 
   return (
@@ -352,7 +354,7 @@ export default function StoreClient() {
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 max-w-xs"
               style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
               <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
-              <input type="text" placeholder="Search products…" value={search}
+              <input type="text" placeholder={t.school.searchProducts} value={search}
                 onChange={e => { setSearch(e.target.value); setCurrentPage(1) }}
                 style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
             </div>
@@ -365,14 +367,14 @@ export default function StoreClient() {
             <button onClick={() => setDrawerOpen(true)}
               className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
               style={{ background: '#0071E3', border: 'none', color: '#fff', fontSize: 13, fontWeight: 600 }}>
-              <Plus size={15} />Add Product
+              <Plus size={15} />{t.school.addProduct}
             </button>
           </div>
 
           <div className="px-4 md:px-8 py-6 flex flex-col gap-6">
             <div>
-              <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>Store</h1>
-              <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>Manage your academy store products</p>
+              <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>{t.school.storeTitle}</h1>
+              <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>{t.school.storeSubtitle}</p>
             </div>
 
             <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
@@ -519,7 +521,7 @@ export default function StoreClient() {
                     <tr>
                       <td colSpan={6} style={{ textAlign: 'center', padding: '48px 0' }}>
                         <Package size={28} style={{ color: '#E5E7EB', margin: '0 auto 10px' }} />
-                        <p style={{ fontSize: 14, color: '#9CA3AF' }}>No products found</p>
+                        <p style={{ fontSize: 14, color: '#9CA3AF' }}>{t.school.noProducts}</p>
                       </td>
                     </tr>
                   )}
@@ -527,7 +529,7 @@ export default function StoreClient() {
               </table>
               <div className="flex items-center justify-between px-6 py-3" style={{ borderTop: '1px solid #F3F4F6' }}>
                 <p style={{ fontSize: 13, color: '#6B7280' }}>
-                  Showing{' '}
+                  {t.common.showing}{' '}
                   <span style={{ fontWeight: 600, color: '#111827' }}>
                     {filtered.length === 0 ? 0 : (safePage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(safePage * ITEMS_PER_PAGE, filtered.length)}
                   </span>
@@ -538,7 +540,7 @@ export default function StoreClient() {
                   <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={safePage === 1}
                     style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff',
                       color: safePage === 1 ? '#D1D5DB' : '#374151', cursor: safePage === 1 ? 'not-allowed' : 'pointer',
-                      borderRadius: 8, padding: '6px 12px' }}>Prev</button>
+                      borderRadius: 8, padding: '6px 12px' }}>{t.common.prev}</button>
                   <div className="flex items-center gap-1 mx-1">
                     {pages.map((p, i) =>
                       p === '...'
@@ -557,7 +559,7 @@ export default function StoreClient() {
                   <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages}
                     style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff',
                       color: safePage === totalPages ? '#D1D5DB' : '#374151', cursor: safePage === totalPages ? 'not-allowed' : 'pointer',
-                      borderRadius: 8, padding: '6px 12px' }}>Next</button>
+                      borderRadius: 8, padding: '6px 12px' }}>{t.common.next}</button>
                 </div>
               </div>
             </div>

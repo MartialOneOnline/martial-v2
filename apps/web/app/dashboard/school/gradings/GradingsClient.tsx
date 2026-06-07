@@ -10,6 +10,7 @@ import {
   Menu, X, Search, Check, TrendingUp, TrendingDown,
   MoreHorizontal, Eye, Plus, ArrowRight,
 } from 'lucide-react'
+import { useT } from '../../../../lib/i18n/LanguageContext'
 
 type GradingStatus = 'Scheduled' | 'Completed' | 'Cancelled'
 type Belt = 'White' | 'Blue' | 'Purple' | 'Brown' | 'Black'
@@ -418,6 +419,7 @@ type MainTab = 'Events' | 'Results'
 const BELTS: Belt[] = ['White', 'Blue', 'Purple', 'Brown', 'Black']
 
 export default function GradingsClient() {
+  const t = useT()
   const [menuOpen, setMenuOpen]         = useState(false)
   const [mainTab, setMainTab]           = useState<MainTab>('Events')
   const [search, setSearch]             = useState('')
@@ -452,10 +454,10 @@ export default function GradingsClient() {
   const pages            = getPaginationPages(safePage, totalPages)
 
   const STATS = [
-    { label: 'Total Gradings',    value: String(totalGradings),   icon: Award,       color: '#0071E3', bg: '#EFF6FF', trend: '+2',  trendUp: true  },
-    { label: 'This Year',         value: String(thisYear),        icon: TrendingUp,  color: '#16A34A', bg: '#F0FDF4', trend: '+2',  trendUp: true  },
-    { label: 'Total Promotions',  value: String(totalPromotions), icon: Check,       color: '#6D28D9', bg: '#F5F3FF', trend: '+5',  trendUp: true  },
-    { label: 'Upcoming',          value: String(upcoming),        icon: TrendingDown, color: '#D97706', bg: '#FFFBEB', trend: String(upcoming), trendUp: true },
+    { label: t.school.totalGradings,   value: String(totalGradings),   icon: Award,       color: '#0071E3', bg: '#EFF6FF', trend: '+2',  trendUp: true  },
+    { label: t.common.thisMonth,       value: String(thisYear),        icon: TrendingUp,  color: '#16A34A', bg: '#F0FDF4', trend: '+2',  trendUp: true  },
+    { label: t.school.completed,       value: String(totalPromotions), icon: Check,       color: '#6D28D9', bg: '#F5F3FF', trend: '+5',  trendUp: true  },
+    { label: t.school.upcoming,        value: String(upcoming),        icon: TrendingDown, color: '#D97706', bg: '#FFFBEB', trend: String(upcoming), trendUp: true },
   ]
 
   return (
@@ -521,7 +523,7 @@ export default function GradingsClient() {
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 max-w-xs"
               style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
               <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
-              <input type="text" placeholder="Search gradings…" value={search}
+              <input type="text" placeholder={t.school.searchGradings} value={search}
                 onChange={e => { setSearch(e.target.value); setCurrentPage(1) }}
                 style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
             </div>
@@ -534,13 +536,13 @@ export default function GradingsClient() {
             <button onClick={() => setDrawerOpen(true)}
               className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
               style={{ background: '#0071E3', border: 'none', color: '#fff', fontSize: 13, fontWeight: 600 }}>
-              <Plus size={15} />Add Grading
+              <Plus size={15} />{t.school.addGrading}
             </button>
           </div>
 
           <div className="px-4 md:px-8 py-6 flex flex-col gap-6">
             <div>
-              <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>Gradings</h1>
+              <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>{t.school.gradingsTitle}</h1>
               <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>Manage belt promotions and grading events</p>
             </div>
 
@@ -821,7 +823,7 @@ export default function GradingsClient() {
               )}
               <div className="flex items-center justify-between px-6 py-3" style={{ borderTop: '1px solid #F3F4F6' }}>
                 <p style={{ fontSize: 13, color: '#6B7280' }}>
-                  Showing{' '}
+                  {t.common.showing}{' '}
                   <span style={{ fontWeight: 600, color: '#111827' }}>
                     {activeData.length === 0 ? 0 : (safePage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(safePage * ITEMS_PER_PAGE, activeData.length)}
                   </span>
@@ -832,7 +834,7 @@ export default function GradingsClient() {
                   <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={safePage === 1}
                     style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff',
                       color: safePage === 1 ? '#D1D5DB' : '#374151', cursor: safePage === 1 ? 'not-allowed' : 'pointer',
-                      borderRadius: 8, padding: '6px 12px' }}>Prev</button>
+                      borderRadius: 8, padding: '6px 12px' }}>{t.common.prev}</button>
                   <div className="flex items-center gap-1 mx-1">
                     {pages.map((p, i) =>
                       p === '...'
@@ -851,7 +853,7 @@ export default function GradingsClient() {
                   <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages}
                     style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff',
                       color: safePage === totalPages ? '#D1D5DB' : '#374151', cursor: safePage === totalPages ? 'not-allowed' : 'pointer',
-                      borderRadius: 8, padding: '6px 12px' }}>Next</button>
+                      borderRadius: 8, padding: '6px 12px' }}>{t.common.next}</button>
                 </div>
               </div>
             </div>

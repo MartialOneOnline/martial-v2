@@ -9,6 +9,7 @@ import {
   School, ShoppingBag, ChevronRight, ChevronDown,
   Menu, X, Search, ChevronLeft,
 } from 'lucide-react'
+import { useT } from '../../../../lib/i18n/LanguageContext'
 import {
   AreaChart, Area, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -190,6 +191,7 @@ const CLASS_COLORS: Record<string, { bg: string; color: string; border: string }
 }
 
 export default function BookingsReportClient() {
+  const t = useT()
   const [menuOpen, setMenuOpen] = useState(false)
   const [period, setPeriod] = useState<'7d' | '30d' | '90d' | '12m'>('30d')
   const [filterTab, setFilterTab] = useState<'All' | BookingStatus>('All')
@@ -209,10 +211,10 @@ export default function BookingsReportClient() {
   const attendanceRate = Math.round((confirmed / BOOKINGS.length) * 100)
 
   const STATS = [
-    { label: 'Total Bookings',   value: String(totalBookings), sub: 'this period',     color: '#0071E3', bg: '#EFF6FF' },
-    { label: 'Avg per Day',      value: String(avgPerDay),     sub: 'daily average',   color: '#6D28D9', bg: '#F5F3FF' },
-    { label: 'Cancellations',    value: String(cancellations), sub: 'this period',     color: '#DC2626', bg: '#FEF2F2' },
-    { label: 'Attendance Rate',  value: attendanceRate + '%',  sub: 'of bookings',     color: '#16A34A', bg: '#F0FDF4' },
+    { label: t.reports.totalBookings,   value: String(totalBookings), sub: t.common.thisMonth,     color: '#0071E3', bg: '#EFF6FF' },
+    { label: 'Avg per Day',             value: String(avgPerDay),     sub: 'daily average',        color: '#6D28D9', bg: '#F5F3FF' },
+    { label: t.common.cancelled,        value: String(cancellations), sub: t.common.thisMonth,     color: '#DC2626', bg: '#FEF2F2' },
+    { label: t.reports.attendanceRate,  value: attendanceRate + '%',  sub: 'of bookings',          color: '#16A34A', bg: '#F0FDF4' },
   ]
 
   return (
@@ -302,8 +304,8 @@ export default function BookingsReportClient() {
 
           <div className="px-4 md:px-8 py-6 flex flex-col gap-6">
             <div>
-              <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>Bookings Report</h1>
-              <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>Class bookings, attendance and cancellations over time</p>
+              <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>{t.reports.bookingsTitle}</h1>
+              <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>{t.reports.bookingsSubtitle}</p>
             </div>
 
             <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">

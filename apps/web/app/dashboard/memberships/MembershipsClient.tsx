@@ -10,6 +10,7 @@ import {
   Clock, Zap, RefreshCw, ToggleLeft, Infinity,
 } from 'lucide-react'
 import { useDashboard } from '../../../components/DashboardShell'
+import { useT } from '../../../lib/i18n/LanguageContext'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type MembershipStatus = 'Active' | 'Inactive'
@@ -140,6 +141,7 @@ function CreateMembershipDrawer({ open, onClose, onSuccess }: {
   const [freqUnit, setFreqUnit]     = useState('Month')
   const [bannerDrag, setBannerDrag] = useState(false)
   const [legalChecked, setLegalChecked] = useState({ terms: false, privacy: false })
+  const t = useT()
 
   const inputStyle: React.CSSProperties = {
     width: '100%', border: '1px solid #E5E7EB', borderRadius: 10, padding: '9px 12px',
@@ -176,10 +178,10 @@ function CreateMembershipDrawer({ open, onClose, onSuccess }: {
           style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
           <div>
             <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111827', margin: 0, letterSpacing: '-0.02em' }}>
-              Create Membership
+              {t.memberships.createMembership}
             </h2>
             <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>
-              Configure a new subscription plan, pass or trial
+              {t.memberships.createMembershipDesc}
             </p>
           </div>
           <button onClick={onClose}
@@ -199,39 +201,39 @@ function CreateMembershipDrawer({ open, onClose, onSuccess }: {
               {/* Name + Visibility */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label style={labelStyle}>Membership Name</label>
-                  <input type="text" placeholder="e.g. Jiu Jitsu Mensual" style={inputStyle} />
+                  <label style={labelStyle}>{t.memberships.membershipName}</label>
+                  <input type="text" placeholder={t.memberships.namePlaceholder} style={inputStyle} />
                 </div>
                 <div>
-                  <label style={labelStyle}>Visibility</label>
+                  <label style={labelStyle}>{t.memberships.visibility}</label>
                   <select style={inputStyle}>
-                    <option value="yes">Public — visible to members</option>
-                    <option value="no">Private — hidden</option>
+                    <option value="yes">{t.memberships.publicOption}</option>
+                    <option value="no">{t.memberships.privateOption}</option>
                   </select>
                 </div>
               </div>
 
               {/* Description */}
               <div>
-                <label style={labelStyle}>Description</label>
-                <textarea rows={3} placeholder="What's included in this plan…"
+                <label style={labelStyle}>{t.common.description}</label>
+                <textarea rows={3} placeholder={t.memberships.descPlaceholder}
                   style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }} />
               </div>
 
               {/* Price + Billing */}
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label style={labelStyle}>Price (€)</label>
+                  <label style={labelStyle}>{t.common.price} (€)</label>
                   <input type="number" placeholder="65.00" min={0} step={0.01} style={inputStyle} />
                 </div>
                 <div>
-                  <label style={labelStyle}>Billing Every</label>
+                  <label style={labelStyle}>{t.memberships.billingEvery}</label>
                   <input type="number" placeholder="1" min={1} style={inputStyle} />
                 </div>
                 <div>
-                  <label style={labelStyle}>Frequency</label>
+                  <label style={labelStyle}>{t.memberships.frequency}</label>
                   <select value={freqUnit} onChange={e => setFreqUnit(e.target.value)} style={inputStyle}>
-                    {['Day', 'Week', 'Month', 'Year'].map(u => <option key={u}>{u}</option>)}
+                    {[['Day', t.memberships.day], ['Week', t.memberships.week], ['Month', t.memberships.month], ['Year', t.memberships.year]].map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                   </select>
                 </div>
               </div>

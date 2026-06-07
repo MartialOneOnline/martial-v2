@@ -11,6 +11,8 @@ import {
   LayoutList, CalendarDays, MoreHorizontal, TrendingUp,
   Pencil, Copy, Trash2, Eye, Check, Upload,
 } from 'lucide-react'
+import { useT } from '../../../../lib/i18n/LanguageContext'
+import type { Translations } from '../../../../lib/i18n/translations'
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 const HOUR_HEIGHT = 64
@@ -145,36 +147,36 @@ type NavItem = {
   children?: { label: string; href: string }[]
 }
 
-const NAV_MAIN: NavItem[] = [
-  { label: 'Dashboard',   icon: Flame,      href: '/dashboard' },
-  { label: 'Users',       icon: Users,      href: '/dashboard/users' },
-  { label: 'Classes',     icon: Calendar,   children: [
-    { label: 'Classes',   href: '/dashboard/classes' },
-    { label: 'Events',    href: '/dashboard/classes/events' },
-    { label: 'Calendar',  href: '/dashboard/classes/calendar' },
-    { label: 'Timetable', href: '/dashboard/classes/timetable' },
+const buildNavMain = (s: Translations['sidebar']): NavItem[] => [
+  { label: s.dashboard,   icon: Flame,      href: '/dashboard' },
+  { label: s.users,       icon: Users,      href: '/dashboard/users' },
+  { label: s.classes,     icon: Calendar,   children: [
+    { label: s.classes,   href: '/dashboard/classes' },
+    { label: s.events,    href: '/dashboard/classes/events' },
+    { label: s.calendar,  href: '/dashboard/classes/calendar' },
+    { label: s.timetable, href: '/dashboard/classes/timetable' },
   ]},
-  { label: 'Memberships', icon: Award,      href: '/dashboard/memberships' },
-  { label: 'Payments',    icon: CreditCard, children: [
-    { label: 'Transactions', href: '/dashboard/payments/transactions' }, { label: 'Subscriptions', href: '/dashboard/payments/subscriptions' },
+  { label: s.memberships, icon: Award,      href: '/dashboard/memberships' },
+  { label: s.payments,    icon: CreditCard, children: [
+    { label: s.transactions, href: '/dashboard/payments/transactions' }, { label: s.subscriptions, href: '/dashboard/payments/subscriptions' },
   ]},
-  { label: 'School',      icon: School,     children: [
-    { label: 'Leads', href: '/dashboard/school/leads' }, { label: 'Store', href: '/dashboard/school/store' },
-    { label: 'Curriculum', href: '/dashboard/school/curriculum' }, { label: 'Affiliates', href: '/dashboard/school/affiliates' },
-    { label: 'Staff', href: '/dashboard/school/staff' }, { label: 'Waivers', href: '/dashboard/school/waivers' }, { label: 'Gradings', href: '/dashboard/school/gradings' },
+  { label: s.school,      icon: School,     children: [
+    { label: s.leads, href: '/dashboard/school/leads' }, { label: s.store, href: '/dashboard/school/store' },
+    { label: s.curriculum, href: '/dashboard/school/curriculum' }, { label: s.affiliates, href: '/dashboard/school/affiliates' },
+    { label: s.staff, href: '/dashboard/school/staff' }, { label: s.waivers, href: '/dashboard/school/waivers' }, { label: s.gradings, href: '/dashboard/school/gradings' },
   ]},
-  { label: 'Reports',     icon: BarChart2,  children: [
-    { label: 'Bookings', href: '#' }, { label: 'Gradings', href: '#' },
-    { label: 'Payments', href: '#' }, { label: 'Balance', href: '#' },
-    { label: 'Absents', href: '#' }, { label: 'Users', href: '#' },
+  { label: s.reports,     icon: BarChart2,  children: [
+    { label: s.bookings, href: '#' }, { label: s.gradings, href: '#' },
+    { label: s.payments, href: '#' }, { label: s.balance, href: '#' },
+    { label: s.absents, href: '#' }, { label: s.users, href: '#' },
   ]},
-  { label: 'Settings', icon: Settings, href: '/dashboard/settings' },
+  { label: s.settings, icon: Settings, href: '/dashboard/settings' },
 ]
 
-const NAV_BOTTOM: NavItem[] = [
-  { label: 'Subscription',  icon: ShoppingBag, href: '#' },
-  { label: 'Notifications', icon: Bell,        href: '#' },
-  { label: 'Support',       icon: HelpCircle,  href: '#' },
+const buildNavBottom = (s: Translations['sidebar']): NavItem[] => [
+  { label: s.subscription,  icon: ShoppingBag, href: '#' },
+  { label: s.notifications, icon: Bell,        href: '#' },
+  { label: s.support,       icon: HelpCircle,  href: '#' },
 ]
 
 function NavGroup({ item }: { item: NavItem }) {
@@ -254,6 +256,7 @@ function fmtTime(h: number, m: number): string {
 
 // ── Class popup ────────────────────────────────────────────────────────────────
 function ClassPopup({ slot, onClose }: { slot: ClassSlot; onClose: () => void }) {
+  const t = useT()
   const colors  = ACTIVITY_COLORS[slot.activity] ?? ACTIVITY_COLORS['Open Mat']!
   const endMin  = slot.startH * 60 + slot.startM + slot.durationM
   const endH    = Math.floor(endMin / 60)
@@ -262,7 +265,7 @@ function ClassPopup({ slot, onClose }: { slot: ClassSlot; onClose: () => void })
   const pct     = Math.round((slot.enrolled / slot.capacity) * 100)
   const isFull  = slot.enrolled >= slot.capacity
   const barColor = isFull ? '#DC2626' : pct >= 80 ? '#D97706' : '#16A34A'
-  const capLabel = isFull ? 'Full' : pct >= 80 ? 'Almost full' : 'Open'
+  const capLabel = isFull ? t.common.full : pct >= 80 ? t.classes.almostFull : t.common.open
 
   return (
     <>
@@ -290,16 +293,16 @@ function ClassPopup({ slot, onClose }: { slot: ClassSlot; onClose: () => void })
             <div style={{ height: '100%', borderRadius: 99, background: barColor, width: pct + '%', transition: 'width 0.3s' }} />
           </div>
           <div className="flex items-center justify-between mt-1">
-            <p style={{ fontSize: 10, color: '#9CA3AF' }}>{slot.enrolled} / {slot.capacity} students</p>
+            <p style={{ fontSize: 10, color: '#9CA3AF' }}>{slot.enrolled} / {slot.capacity} {t.classes.students}</p>
             <span style={{ fontSize: 10, fontWeight: 600, color: barColor }}>{capLabel}</span>
           </div>
         </div>
         <div className="py-1">
           {[
-            { icon: Eye,    label: 'View students', color: '#374151' },
-            { icon: Pencil, label: 'Edit class',    color: '#374151' },
-            { icon: Copy,   label: 'Duplicate',     color: '#374151' },
-            { icon: Trash2, label: 'Delete',        color: '#DC2626' },
+            { icon: Eye,    label: t.classes.viewStudentsAction, color: '#374151' },
+            { icon: Pencil, label: t.classes.editClass,    color: '#374151' },
+            { icon: Copy,   label: t.common.duplicate,     color: '#374151' },
+            { icon: Trash2, label: t.common.delete,        color: '#DC2626' },
           ].map(({ icon: Icon, label, color }) => (
             <button key={label} onClick={onClose}
               className="w-full flex items-center gap-2.5 px-4 py-2.5 cursor-pointer"
@@ -358,6 +361,8 @@ const DEFAULT_DAYS = [true, true, true, true, true, false, false]
 function AddTimetableDrawer({ open, onClose, onSuccess }: {
   open: boolean; onClose: () => void; onSuccess: () => void
 }) {
+  const t = useT()
+  const daysOfWeek = t.classes.daysOfWeek.split(',')
   const [repeat, setRepeat]         = useState('Yes')
   const [selLocId, setSelLocId]     = useState<number | ''>('')
   const [dayEnabled, setDayEnabled] = useState<boolean[]>([...DEFAULT_DAYS])
@@ -395,8 +400,8 @@ function AddTimetableDrawer({ open, onClose, onSuccess }: {
         <div className="flex items-center justify-between px-6 py-4 shrink-0"
           style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
           <div>
-            <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>Add Timetable</h2>
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>Configure recurring or one-off schedule</p>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>{t.classes.addTimetable}</h2>
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{t.classes.timetableDesc}</p>
           </div>
           <button onClick={onClose} className="w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
             style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
@@ -409,7 +414,7 @@ function AddTimetableDrawer({ open, onClose, onSuccess }: {
 
           {/* Banner upload */}
           <div>
-            <label style={lStyle}>Timetable Banner</label>
+            <label style={lStyle}>{t.classes.timetableBanner}</label>
             <div onDragEnter={() => setBannerDrag(true)} onDragLeave={() => setBannerDrag(false)} onDrop={() => setBannerDrag(false)}
               className="flex items-center gap-4 rounded-xl"
               style={{ border: `2px dashed ${bannerDrag ? '#0071E3' : '#D1D5DB'}`,
@@ -418,12 +423,12 @@ function AddTimetableDrawer({ open, onClose, onSuccess }: {
                 <Upload size={15} style={{ color: '#9CA3AF' }} />
               </div>
               <div className="flex-1 min-w-0">
-                <p style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>Drop image here</p>
-                <p style={{ fontSize: 11, color: '#9CA3AF' }}>PNG, JPG up to 5 MB — recommended 1200×600px</p>
+                <p style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>{t.common.dropImage}</p>
+                <p style={{ fontSize: 11, color: '#9CA3AF' }}>{t.common.pngJpg} — 1200×600px</p>
               </div>
               <label className="px-3 py-1.5 rounded-lg cursor-pointer shrink-0"
                 style={{ fontSize: 12, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
-                Browse<input type="file" accept="image/*" className="hidden" />
+                {t.common.browse}<input type="file" accept="image/*" className="hidden" />
               </label>
             </div>
           </div>
@@ -601,6 +606,9 @@ function SuccessModal({ open, onClose }: { open: boolean; onClose: () => void })
 
 // ── Main ───────────────────────────────────────────────────────────────────────
 export default function TimetableClient() {
+  const t = useT()
+  const NAV_MAIN   = buildNavMain(t.sidebar)
+  const NAV_BOTTOM = buildNavBottom(t.sidebar)
   const [menuOpen, setMenuOpen]         = useState(false)
   const [weekOffset, setWeekOffset]     = useState(0)
   const [view, setView]                 = useState<'calendar' | 'list'>('calendar')

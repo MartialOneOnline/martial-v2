@@ -7,6 +7,7 @@ import {
   MoreHorizontal, Eye, Plus, UserPlus,
 } from 'lucide-react'
 import { useDashboard } from '../../../../components/DashboardShell'
+import { useT } from '../../../../lib/i18n/LanguageContext'
 
 type Filter = 'All' | LeadStatus
 type LeadStatus = 'New' | 'Contacted' | 'Trial' | 'Converted' | 'Lost'
@@ -70,6 +71,7 @@ const MEMBERS = [
 ]
 
 function AddLeadDrawer({ open, onClose, onSuccess }: { open: boolean; onClose: () => void; onSuccess: () => void }) {
+  const t = useT()
   const [name, setName]     = useState('')
   const [email, setEmail]   = useState('')
   const [phone, setPhone]   = useState('')
@@ -103,8 +105,8 @@ function AddLeadDrawer({ open, onClose, onSuccess }: { open: boolean; onClose: (
         <div className="flex items-center justify-between px-6 py-5 shrink-0"
           style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
           <div>
-            <h2 style={{ fontSize: 17, fontWeight: 700, color: '#111827', margin: 0, letterSpacing: '-0.02em' }}>Add Lead</h2>
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>Track a new prospective member</p>
+            <h2 style={{ fontSize: 17, fontWeight: 700, color: '#111827', margin: 0, letterSpacing: '-0.02em' }}>{t.school.addLead}</h2>
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{t.school.leadsSubtitle}</p>
           </div>
           <button onClick={handleClose} className="w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
             style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
@@ -145,13 +147,13 @@ function AddLeadDrawer({ open, onClose, onSuccess }: { open: boolean; onClose: (
           style={{ background: '#fff', borderTop: '1px solid #E5E7EB' }}>
           <button onClick={handleClose} className="px-5 py-2.5 rounded-xl cursor-pointer"
             style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
-            Cancel
+            {t.common.cancel}
           </button>
           <button onClick={handleSuccess} disabled={!canSubmit} className="px-6 py-2.5 rounded-xl cursor-pointer flex items-center gap-2"
             style={{ fontSize: 13, fontWeight: 600, border: 'none',
               background: canSubmit ? '#0071E3' : '#93C5FD', color: '#fff',
               cursor: canSubmit ? 'pointer' : 'not-allowed' }}>
-            <Plus size={14} />Add Lead
+            <Plus size={14} />{t.school.addLead}
           </button>
         </div>
       </div>
@@ -184,6 +186,7 @@ function getPaginationPages(current: number, total: number): (number | '...')[] 
 
 export default function LeadsClient() {
   const { menuOpen, setMenuOpen } = useDashboard()
+  const t = useT()
   const [activeFilter, setActiveFilter] = useState<Filter>('All')
   const [search, setSearch]             = useState('')
   const [currentPage, setCurrentPage]   = useState(1)
@@ -209,19 +212,19 @@ export default function LeadsClient() {
   const pages      = getPaginationPages(safePage, totalPages)
 
   const STATS = [
-    { label: 'Total Leads',      value: String(totalLeads),    icon: UserPlus,    color: '#0071E3', bg: '#EFF6FF', trend: '+5',   trendUp: true  },
-    { label: 'New This Month',   value: String(newThisMonth),  icon: TrendingUp,  color: '#6D28D9', bg: '#F5F3FF', trend: '+3',   trendUp: true  },
-    { label: 'Converted',        value: String(converted),     icon: Check,       color: '#16A34A', bg: '#F0FDF4', trend: '+2',   trendUp: true  },
-    { label: 'Conversion Rate',  value: convRate + '%',         icon: TrendingUp,  color: '#D97706', bg: '#FFFBEB', trend: '+4%',  trendUp: true  },
+    { label: t.school.totalLeads,   value: String(totalLeads),    icon: UserPlus,    color: '#0071E3', bg: '#EFF6FF', trend: '+5',   trendUp: true  },
+    { label: t.school.newLead,      value: String(newThisMonth),  icon: TrendingUp,  color: '#6D28D9', bg: '#F5F3FF', trend: '+3',   trendUp: true  },
+    { label: t.school.won,          value: String(converted),     icon: Check,       color: '#16A34A', bg: '#F0FDF4', trend: '+2',   trendUp: true  },
+    { label: t.school.conversion,   value: convRate + '%',         icon: TrendingUp,  color: '#D97706', bg: '#FFFBEB', trend: '+4%',  trendUp: true  },
   ]
 
   const FILTERS: { id: Filter; label: string }[] = [
-    { id: 'All',       label: 'All' },
-    { id: 'New',       label: 'New' },
-    { id: 'Contacted', label: 'Contacted' },
-    { id: 'Trial',     label: 'Trial' },
-    { id: 'Converted', label: 'Converted' },
-    { id: 'Lost',      label: 'Lost' },
+    { id: 'All',       label: t.common.all        },
+    { id: 'New',       label: t.school.newLead    },
+    { id: 'Contacted', label: t.school.contacted  },
+    { id: 'Trial',     label: t.school.trial      },
+    { id: 'Converted', label: t.school.won        },
+    { id: 'Lost',      label: t.school.lost       },
   ]
 
   return (
@@ -236,7 +239,7 @@ export default function LeadsClient() {
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 max-w-xs"
               style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
               <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
-              <input type="text" placeholder="Search leads…" value={search}
+              <input type="text" placeholder={t.school.searchLeads} value={search}
                 onChange={e => { setSearch(e.target.value); setCurrentPage(1) }}
                 style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
             </div>
@@ -249,14 +252,14 @@ export default function LeadsClient() {
             <button onClick={() => setDrawerOpen(true)}
               className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
               style={{ background: '#0071E3', border: 'none', color: '#fff', fontSize: 13, fontWeight: 600 }}>
-              <Plus size={15} />Add Lead
+              <Plus size={15} />{t.school.addLead}
             </button>
           </div>
 
           <div className="px-4 md:px-8 py-6 flex flex-col gap-6">
             <div>
-              <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>Leads</h1>
-              <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>Track and manage prospective members</p>
+              <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>{t.school.leadsTitle}</h1>
+              <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>{t.school.leadsSubtitle}</p>
             </div>
 
             <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
@@ -312,10 +315,17 @@ export default function LeadsClient() {
               <table className="w-full">
                 <thead>
                   <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
-                    {['Member','Phone','Source','Date','Status','Actions'].map(h => (
-                      <th key={h} className={`px-5 py-3 text-left ${h === 'Phone' ? 'hidden md:table-cell' : ''}`}
+                    {[
+                      { label: t.common.member,       cls: '' },
+                      { label: t.common.phone,        cls: 'hidden md:table-cell' },
+                      { label: t.school.colSource,    cls: '' },
+                      { label: t.common.date,         cls: '' },
+                      { label: t.common.status,       cls: '' },
+                      { label: t.common.actions,      cls: '' },
+                    ].map(h => (
+                      <th key={h.label} className={`px-5 py-3 text-left ${h.cls}`}
                         style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                        {h}
+                        {h.label}
                       </th>
                     ))}
                   </tr>
@@ -398,7 +408,7 @@ export default function LeadsClient() {
                     <tr>
                       <td colSpan={6} style={{ textAlign: 'center', padding: '48px 0' }}>
                         <UserPlus size={28} style={{ color: '#E5E7EB', margin: '0 auto 10px' }} />
-                        <p style={{ fontSize: 14, color: '#9CA3AF' }}>No leads found</p>
+                        <p style={{ fontSize: 14, color: '#9CA3AF' }}>{t.school.noLeads}</p>
                       </td>
                     </tr>
                   )}
@@ -406,7 +416,7 @@ export default function LeadsClient() {
               </table>
               <div className="flex items-center justify-between px-6 py-3" style={{ borderTop: '1px solid #F3F4F6' }}>
                 <p style={{ fontSize: 13, color: '#6B7280' }}>
-                  Showing{' '}
+                  {t.common.showing}{' '}
                   <span style={{ fontWeight: 600, color: '#111827' }}>
                     {filtered.length === 0 ? 0 : (safePage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(safePage * ITEMS_PER_PAGE, filtered.length)}
                   </span>
@@ -417,7 +427,7 @@ export default function LeadsClient() {
                   <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={safePage === 1}
                     style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff',
                       color: safePage === 1 ? '#D1D5DB' : '#374151', cursor: safePage === 1 ? 'not-allowed' : 'pointer',
-                      borderRadius: 8, padding: '6px 12px' }}>Prev</button>
+                      borderRadius: 8, padding: '6px 12px' }}>{t.common.prev}</button>
                   <div className="flex items-center gap-1 mx-1">
                     {pages.map((p, i) =>
                       p === '...'
@@ -436,7 +446,7 @@ export default function LeadsClient() {
                   <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages}
                     style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff',
                       color: safePage === totalPages ? '#D1D5DB' : '#374151', cursor: safePage === totalPages ? 'not-allowed' : 'pointer',
-                      borderRadius: 8, padding: '6px 12px' }}>Next</button>
+                      borderRadius: 8, padding: '6px 12px' }}>{t.common.next}</button>
                 </div>
               </div>
             </div>
@@ -448,7 +458,7 @@ export default function LeadsClient() {
       onClose={() => setDrawerOpen(false)}
       onSuccess={() => { setDrawerOpen(false); setToast(true); setTimeout(() => setToast(false), 3500) }}
     />
-    {toast && <SuccessToast message="Lead added successfully" onClose={() => setToast(false)} />}
+    {toast && <SuccessToast message={t.school.addLead} onClose={() => setToast(false)} />}
     </>
   )
 }

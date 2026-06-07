@@ -10,6 +10,7 @@ import {
   Menu, X, Search, Check, TrendingUp, TrendingDown,
   MoreHorizontal, Eye, Plus, Globe,
 } from 'lucide-react'
+import { useT } from '../../../../lib/i18n/LanguageContext'
 
 type AffiliateStatus = 'Active' | 'Inactive' | 'Pending'
 
@@ -45,6 +46,7 @@ const STATUS_MAP: Record<AffiliateStatus, { bg: string; color: string; border: s
 }
 
 function AddAffiliateDrawer({ open, onClose, onSuccess }: { open: boolean; onClose: () => void; onSuccess: () => void }) {
+  const t = useT()
   const [name, setName]       = useState('')
   const [city, setCity]       = useState('')
   const [country, setCountry] = useState('')
@@ -79,8 +81,8 @@ function AddAffiliateDrawer({ open, onClose, onSuccess }: { open: boolean; onClo
         <div className="flex items-center justify-between px-6 py-5 shrink-0"
           style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
           <div>
-            <h2 style={{ fontSize: 17, fontWeight: 700, color: '#111827', margin: 0, letterSpacing: '-0.02em' }}>Add Affiliate</h2>
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>Register a new affiliate school</p>
+            <h2 style={{ fontSize: 17, fontWeight: 700, color: '#111827', margin: 0, letterSpacing: '-0.02em' }}>{t.school.addAffiliate}</h2>
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{t.school.affiliatesSubtitle}</p>
           </div>
           <button onClick={handleClose} className="w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
             style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
@@ -122,13 +124,13 @@ function AddAffiliateDrawer({ open, onClose, onSuccess }: { open: boolean; onClo
           style={{ background: '#fff', borderTop: '1px solid #E5E7EB' }}>
           <button onClick={handleClose} className="px-5 py-2.5 rounded-xl cursor-pointer"
             style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
-            Cancel
+            {t.common.cancel}
           </button>
           <button onClick={handleSuccess} disabled={!canSubmit} className="px-6 py-2.5 rounded-xl cursor-pointer flex items-center gap-2"
             style={{ fontSize: 13, fontWeight: 600, border: 'none',
               background: canSubmit ? '#0071E3' : '#93C5FD', color: '#fff',
               cursor: canSubmit ? 'pointer' : 'not-allowed' }}>
-            <Plus size={14} />Add Affiliate
+            <Plus size={14} />{t.school.addAffiliate}
           </button>
         </div>
       </div>
@@ -241,6 +243,7 @@ function NavGroup({ item }: { item: NavItem }) {
 type Filter = 'All' | AffiliateStatus
 
 export default function AffiliatesClient() {
+  const t = useT()
   const [menuOpen, setMenuOpen]         = useState(false)
   const [activeFilter, setActiveFilter] = useState<Filter>('All')
   const [search, setSearch]             = useState('')
@@ -267,17 +270,17 @@ export default function AffiliatesClient() {
   const pages      = getPaginationPages(safePage, totalPages)
 
   const STATS = [
-    { label: 'Total Affiliates', value: String(totalAffiliates), icon: Globe,      color: '#0071E3', bg: '#EFF6FF', trend: '+1',  trendUp: true  },
-    { label: 'Active',           value: String(activeCount),     icon: Check,      color: '#16A34A', bg: '#F0FDF4', trend: '+1',  trendUp: true  },
-    { label: 'Pending',          value: String(pendingCount),    icon: TrendingDown, color: '#D97706', bg: '#FFFBEB', trend: String(pendingCount), trendUp: false },
-    { label: 'Total Students',   value: String(totalStudents),   icon: Users,      color: '#6D28D9', bg: '#F5F3FF', trend: '+12', trendUp: true  },
+    { label: t.school.totalAffiliates, value: String(totalAffiliates), icon: Globe,      color: '#0071E3', bg: '#EFF6FF', trend: '+1',  trendUp: true  },
+    { label: t.common.active,          value: String(activeCount),     icon: Check,      color: '#16A34A', bg: '#F0FDF4', trend: '+1',  trendUp: true  },
+    { label: t.common.pending,         value: String(pendingCount),    icon: TrendingDown, color: '#D97706', bg: '#FFFBEB', trend: String(pendingCount), trendUp: false },
+    { label: 'Total Students',         value: String(totalStudents),   icon: Users,      color: '#6D28D9', bg: '#F5F3FF', trend: '+12', trendUp: true  },
   ]
 
   const FILTERS: { id: Filter; label: string }[] = [
-    { id: 'All',      label: 'All' },
-    { id: 'Active',   label: 'Active' },
-    { id: 'Pending',  label: 'Pending' },
-    { id: 'Inactive', label: 'Inactive' },
+    { id: 'All',      label: t.common.all      },
+    { id: 'Active',   label: t.common.active   },
+    { id: 'Pending',  label: t.common.pending  },
+    { id: 'Inactive', label: t.common.inactive },
   ]
 
   return (
@@ -343,7 +346,7 @@ export default function AffiliatesClient() {
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 max-w-xs"
               style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
               <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
-              <input type="text" placeholder="Search affiliates…" value={search}
+              <input type="text" placeholder={t.school.searchAffiliates} value={search}
                 onChange={e => { setSearch(e.target.value); setCurrentPage(1) }}
                 style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
             </div>
@@ -356,14 +359,14 @@ export default function AffiliatesClient() {
             <button onClick={() => setDrawerOpen(true)}
               className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
               style={{ background: '#0071E3', border: 'none', color: '#fff', fontSize: 13, fontWeight: 600 }}>
-              <Plus size={15} />Add Affiliate
+              <Plus size={15} />{t.school.addAffiliate}
             </button>
           </div>
 
           <div className="px-4 md:px-8 py-6 flex flex-col gap-6">
             <div>
-              <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>Affiliates</h1>
-              <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>Manage your network of affiliate schools</p>
+              <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>{t.school.affiliatesTitle}</h1>
+              <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>{t.school.affiliatesSubtitle}</p>
             </div>
 
             <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
@@ -419,10 +422,17 @@ export default function AffiliatesClient() {
               <table className="w-full">
                 <thead>
                   <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
-                    {['School','Contact','Students','Since','Status','Actions'].map(h => (
-                      <th key={h} className={`px-5 py-3 text-left ${h === 'Contact' ? 'hidden md:table-cell' : ''}`}
+                    {[
+                      { label: t.school.colSchool,   cls: '' },
+                      { label: t.common.email,       cls: 'hidden md:table-cell' },
+                      { label: 'Students',           cls: '' },
+                      { label: t.common.startDate,   cls: '' },
+                      { label: t.common.status,      cls: '' },
+                      { label: t.common.actions,     cls: '' },
+                    ].map(h => (
+                      <th key={h.label} className={`px-5 py-3 text-left ${h.cls}`}
                         style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                        {h}
+                        {h.label}
                       </th>
                     ))}
                   </tr>
@@ -505,7 +515,7 @@ export default function AffiliatesClient() {
                     <tr>
                       <td colSpan={6} style={{ textAlign: 'center', padding: '48px 0' }}>
                         <Globe size={28} style={{ color: '#E5E7EB', margin: '0 auto 10px' }} />
-                        <p style={{ fontSize: 14, color: '#9CA3AF' }}>No affiliates found</p>
+                        <p style={{ fontSize: 14, color: '#9CA3AF' }}>{t.school.noAffiliates}</p>
                       </td>
                     </tr>
                   )}
@@ -513,7 +523,7 @@ export default function AffiliatesClient() {
               </table>
               <div className="flex items-center justify-between px-6 py-3" style={{ borderTop: '1px solid #F3F4F6' }}>
                 <p style={{ fontSize: 13, color: '#6B7280' }}>
-                  Showing{' '}
+                  {t.common.showing}{' '}
                   <span style={{ fontWeight: 600, color: '#111827' }}>
                     {filtered.length === 0 ? 0 : (safePage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(safePage * ITEMS_PER_PAGE, filtered.length)}
                   </span>
@@ -524,7 +534,7 @@ export default function AffiliatesClient() {
                   <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={safePage === 1}
                     style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff',
                       color: safePage === 1 ? '#D1D5DB' : '#374151', cursor: safePage === 1 ? 'not-allowed' : 'pointer',
-                      borderRadius: 8, padding: '6px 12px' }}>Prev</button>
+                      borderRadius: 8, padding: '6px 12px' }}>{t.common.prev}</button>
                   <div className="flex items-center gap-1 mx-1">
                     {pages.map((p, i) =>
                       p === '...'
@@ -543,7 +553,7 @@ export default function AffiliatesClient() {
                   <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages}
                     style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff',
                       color: safePage === totalPages ? '#D1D5DB' : '#374151', cursor: safePage === totalPages ? 'not-allowed' : 'pointer',
-                      borderRadius: 8, padding: '6px 12px' }}>Next</button>
+                      borderRadius: 8, padding: '6px 12px' }}>{t.common.next}</button>
                 </div>
               </div>
             </div>

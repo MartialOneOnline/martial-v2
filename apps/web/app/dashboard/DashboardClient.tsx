@@ -42,12 +42,7 @@ interface Props {
 
 // ── Simulated data ─────────────────────────────────────────────────────────────
 
-const STATS = [
-  { label: 'Students',     value: '665',    trend: '+14%', trendUp: true,  sub: 'vs last month'   },
-  { label: 'Active Classes', value: '67',   trend: '+3',   trendUp: true,  sub: 'this week'       },
-  { label: 'Revenue',      value: '€3,586', trend: '+8%',  trendUp: true,  sub: 'vs last month'   },
-  { label: 'Bookings',     value: '29,466', trend: '+2%',  trendUp: true,  sub: 'all time'        },
-]
+// STATS labels/sub are resolved at render via t.*
 
 const TRANSACTIONS = [
   { id: 1, avatar: 'https://i.pravatar.cc/32?u=fn', name: 'Fernanda Neves',   method: 'Free',   price: '€ 0.00',  date: '01 Jun 2026', status: 'Paid'    },
@@ -181,7 +176,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
   const { menuOpen, setMenuOpen } = useDashboard()
   const [aiInput, setAiInput]       = useState('')
   const [aiMessages, setAiMessages] = useState<{ role: 'ai' | 'user'; text: string }[]>([
-    { role: 'ai', text: '👋 I can help you manage your academy. Ask me anything.' },
+    { role: 'ai', text: t.dashboard.aiGreeting },
   ])
 
   // ── Popup state ────────────────────────────────────────────────────────────
@@ -196,7 +191,19 @@ export default function DashboardClient({ userName, userEmail }: Props) {
 
   const firstName = userName.split(' ')[0] ?? 'there'
   const hour      = new Date().getHours()
-  const greeting  = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
+  const greeting  = hour < 12 ? t.dashboard.goodMorning : hour < 18 ? t.dashboard.goodAfternoon : t.dashboard.goodEvening
+
+  const STATS = [
+    { label: t.dashboard.students,      value: '665',    trend: '+14%', trendUp: true,  sub: t.common.vsLastMonth },
+    { label: t.dashboard.activeClasses, value: '67',     trend: '+3',   trendUp: true,  sub: t.common.thisWeek    },
+    { label: t.dashboard.revenue,       value: '€3,586', trend: '+8%',  trendUp: true,  sub: t.common.vsLastMonth },
+    { label: t.dashboard.bookings,      value: '29,466', trend: '+2%',  trendUp: true,  sub: t.common.allTime     },
+  ]
+  const AI_INSIGHTS = [
+    { insight: t.dashboard.insight1, action: t.dashboard.action1, openAI: true  },
+    { insight: t.dashboard.insight2, action: t.dashboard.action2, openAI: false },
+    { insight: t.dashboard.insight3, action: t.dashboard.action3, openAI: false },
+  ]
 
   return (
     <>
@@ -221,20 +228,25 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           <div className="hidden sm:flex flex-1 max-w-xs items-center gap-2 px-3 py-2 rounded-xl"
             style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
             <Filter size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
-            <input type="text" placeholder="Search..."
+            <input type="text" placeholder={t.dashboard.searchPlaceholder}
               style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
           </div>
 
           {/* Period pills — hidden on mobile */}
           <div className="hidden md:flex items-center gap-1">
-            {(['All time', '12 months', '30 days', '7 days'] as Period[]).map(p => (
+            {(['All time', '12 months', '30 days', '7 days'] as Period[]).map(p => {
+              const periodLabels: Record<Period, string> = {
+                'All time': t.dashboard.periodAllTime, '12 months': t.dashboard.period12Months,
+                '30 days': t.dashboard.period30Days, '7 days': t.dashboard.period7Days,
+              }
+              return (
               <button key={p} onClick={() => setPeriod(p)} style={{
                 fontSize: 12, fontWeight: 500, cursor: 'pointer',
                 color: period === p ? '#111827' : '#6B7280',
                 background: period === p ? '#F3F4F6' : 'transparent',
                 border: 'none', borderRadius: 8, padding: '5px 10px',
-              }}>{p}</button>
-            ))}
+              }}>{periodLabels[p]}</button>
+            )})}
           </div>
 
           <div className="flex-1" />
@@ -272,7 +284,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
             borderRadius: 8, padding: '7px 14px', cursor: 'pointer',
           }}>
             <Download size={13} style={{ color: '#6B7280' }} />
-            Export
+            {t.common.export}
           </button>
         </div>
 
@@ -291,7 +303,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
             </div>
             <div className="pt-10 pb-4 px-4 text-center">
               <p style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>Roger Gracie Malaga</p>
-              <p style={{ fontSize: 12, color: '#9CA3AF' }}>Jiu Jitsu Academy</p>
+              <p style={{ fontSize: 12, color: '#9CA3AF' }}>{t.dashboard.jiuJitsuAcademy}</p>
             </div>
             <div className="px-4 pb-4 flex gap-2" style={{ borderTop: '1px solid #F3F4F6', paddingTop: 12 }}>
               <button onClick={() => setShowInvite(true)} title={t.dashboard.inviteUser} className="flex-1 h-9 flex items-center justify-center rounded-xl cursor-pointer" style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}><UserPlus size={15} style={{ color: '#0071E3' }} /></button>
@@ -315,19 +327,15 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                 </div>
               </div>
               <span style={{ fontSize: 10, fontWeight: 600, color: '#16A34A', background: '#F0FDF4', padding: '2px 8px', borderRadius: 999 }}>
-                Online
+                {t.dashboard.online}
               </span>
             </div>
             <div className="px-4 py-3">
               <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
-                Suggested Actions
+                {t.dashboard.suggestedActions}
               </p>
               <div className="space-y-3">
-                {[
-                  { insight: '12 students haven\'t attended in 3+ weeks.', action: 'Send re-engagement message', openAI: true  },
-                  { insight: 'BJJ Advanced is 93% full every session.',    action: 'Add an extra class this week', openAI: false },
-                  { insight: '4 leads haven\'t been contacted in 7 days.', action: 'Follow up before they go cold', openAI: false },
-                ].map((r, i, arr) => (
+                {AI_INSIGHTS.map((r, i, arr) => (
                   <div key={i} style={{ paddingBottom: i < arr.length - 1 ? 12 : 0, borderBottom: i < arr.length - 1 ? '1px solid #F3F4F6' : 'none' }}>
                     <p style={{ fontSize: 12, fontWeight: 500, color: '#111827', lineHeight: 1.4 }}>{r.insight}</p>
                     <button
@@ -383,7 +391,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           {/* 4. Upcoming Classes — mobile only */}
           <div className="lg:hidden rounded-2xl" style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
             <div className="px-4 pt-4 pb-3" style={{ borderBottom: '1px solid #F3F4F6' }}>
-              <p style={{ fontSize: 12, color: '#9CA3AF' }}>Upcoming Classes</p>
+              <p style={{ fontSize: 12, color: '#9CA3AF' }}>{t.dashboard.upcomingClasses}</p>
               <div className="flex items-center gap-1.5 mt-0.5">
                 <p style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>
                   {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
@@ -427,17 +435,17 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           {/* 5. Quick Stats — mobile only */}
           <div className="lg:hidden rounded-2xl overflow-hidden" style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
             <div className="px-4 pt-4 pb-3" style={{ borderBottom: '1px solid #F3F4F6' }}>
-              <p style={{ fontSize: 12, color: '#9CA3AF' }}>Quick Stats</p>
-              <p style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>Today</p>
+              <p style={{ fontSize: 12, color: '#9CA3AF' }}>{t.dashboard.quickStats}</p>
+              <p style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>{t.dashboard.today}</p>
             </div>
             <div className="grid grid-cols-3" style={{ gap: 1, background: '#F3F4F6' }}>
               {[
-                { label: 'Avg Attendance', value: '78%', color: '#0071E3' },
-                { label: 'Open Leads',     value: '4',   color: '#D97706' },
-                { label: 'Gradings',       value: '167', color: '#16A34A' },
-                { label: 'Notifications',  value: '35',  color: '#DC2626' },
-                { label: 'Active Members', value: '421', color: '#6366F1' },
-                { label: 'Classes Today',  value: '12',  color: '#0071E3' },
+                { label: t.dashboard.avgAttendance, value: '78%', color: '#0071E3' },
+                { label: t.dashboard.openLeads,     value: '4',   color: '#D97706' },
+                { label: t.dashboard.gradings,      value: '167', color: '#16A34A' },
+                { label: t.dashboard.notifications, value: '35',  color: '#DC2626' },
+                { label: t.dashboard.activeMembers, value: '421', color: '#6366F1' },
+                { label: t.dashboard.classesToday,  value: '12',  color: '#0071E3' },
               ].map(s => (
                 <div key={s.label} className="flex flex-col items-center gap-1.5 px-3 pt-3 pb-5" style={{ background: '#fff' }}>
                   <p style={{ fontSize: 10, color: '#9CA3AF', textAlign: 'center' }}>{s.label}</p>
@@ -459,7 +467,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                   +18% vs last period
                 </span>
               </div>
-              <p style={{ fontSize: 12, color: '#6B7280' }}>Bookings Overview</p>
+              <p style={{ fontSize: 12, color: '#6B7280' }}>{t.dashboard.bookingsOverview}</p>
             </div>
             <AreaChart />
           </div>
@@ -471,11 +479,11 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           >
             <div className="flex items-center justify-between px-7 py-4" style={{ borderBottom: '1px solid #F3F4F6' }}>
               <div className="flex items-center gap-3">
-                <p style={{ fontSize: 16, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>{TRANSACTIONS.length} recent</p>
-                <p style={{ fontSize: 12, color: '#6B7280' }}>Latest Transactions</p>
+                <p style={{ fontSize: 16, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>{TRANSACTIONS.length} {t.dashboard.recent}</p>
+                <p style={{ fontSize: 12, color: '#6B7280' }}>{t.dashboard.latestTransactions}</p>
               </div>
               <Link href="#" style={{ fontSize: 12, fontWeight: 600, color: '#0071E3' }} className="no-underline flex items-center gap-1">
-                View all <ChevronRight size={12} />
+                {t.dashboard.viewAllLink} <ChevronRight size={12} />
               </Link>
             </div>
 
@@ -483,11 +491,11 @@ export default function DashboardClient({ userName, userEmail }: Props) {
               <thead>
                 <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
                   {[
-                    { label: 'Member',  cls: '' },
-                    { label: 'Method',  cls: 'hidden sm:table-cell' },
-                    { label: 'Amount',  cls: '' },
-                    { label: 'Date',    cls: 'hidden md:table-cell' },
-                    { label: 'Status',  cls: 'hidden sm:table-cell' },
+                    { label: t.common.member,  cls: '' },
+                    { label: t.dashboard.method,  cls: 'hidden sm:table-cell' },
+                    { label: t.dashboard.amount,  cls: '' },
+                    { label: t.dashboard.date,    cls: 'hidden md:table-cell' },
+                    { label: t.dashboard.status,  cls: 'hidden sm:table-cell' },
                     { label: '',        cls: 'hidden sm:table-cell' },
                   ].map(h => (
                     <th key={h.label} className={`px-4 md:px-7 py-3 text-left ${h.cls}`}
@@ -563,7 +571,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           </div>
           <div className="pt-10 pb-3 px-4 text-center">
             <p style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>Roger Gracie Malaga</p>
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>Jiu Jitsu Academy</p>
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{t.dashboard.jiuJitsuAcademy}</p>
           </div>
           <div className="px-4 pb-4 flex gap-2" style={{ borderTop: '1px solid #F3F4F6', paddingTop: 12 }}>
             {[
@@ -593,19 +601,16 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                 <Sparkles size={13} style={{ color: '#fff' }} />
               </div>
               <div>
-                <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', lineHeight: 1.2 }}>AI Assistant</p>
-                <p style={{ fontSize: 10, color: '#9CA3AF', lineHeight: 1.2 }}>Powered by Martial AI</p>
+                <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', lineHeight: 1.2 }}>{t.dashboard.aiAssistant}</p>
+                <p style={{ fontSize: 10, color: '#9CA3AF', lineHeight: 1.2 }}>{t.dashboard.poweredBy}</p>
               </div>
             </div>
             <span style={{ fontSize: 10, fontWeight: 600, color: '#16A34A', background: '#F0FDF4', padding: '2px 8px', borderRadius: 999 }}>
-              Online
+              {t.dashboard.online}
             </span>
           </div>
           <div className="px-4 py-3 space-y-3">
-            {[
-              { insight: '12 students haven\'t attended in 3+ weeks.', action: 'Send re-engagement message', openAI: true },
-              { insight: 'BJJ Advanced is 93% full every session.',    action: 'Add an extra class this week', openAI: false },
-            ].map((r, i, arr) => (
+            {AI_INSIGHTS.slice(0, 2).map((r, i, arr) => (
               <div key={i} style={{ paddingBottom: i < arr.length - 1 ? 12 : 0, borderBottom: i < arr.length - 1 ? '1px solid #F3F4F6' : 'none' }}>
                 <p style={{ fontSize: 12, fontWeight: 500, color: '#111827', lineHeight: 1.4 }}>{r.insight}</p>
                 <button
@@ -626,7 +631,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
         {/* 3. Upcoming Classes — flex: 1, fills all remaining space */}
         <div className="rounded-2xl flex flex-col" style={{ flex: 1, minHeight: 280, border: '1px solid #E5E7EB', background: '#fff' }}>
           <div className="shrink-0 px-4 pt-4 pb-3" style={{ borderBottom: '1px solid #F3F4F6' }}>
-            <p style={{ fontSize: 12, color: '#9CA3AF' }}>Upcoming Classes</p>
+            <p style={{ fontSize: 12, color: '#9CA3AF' }}>{t.dashboard.upcomingClasses}</p>
             <div className="flex items-center gap-1.5 mt-0.5">
               <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>
                 {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
@@ -678,8 +683,8 @@ export default function DashboardClient({ userName, userEmail }: Props) {
         {/* 4. Quick Stats — fixed, at bottom */}
         <div className="shrink-0 rounded-2xl overflow-hidden" style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
           <div className="px-4 pt-3 pb-2" style={{ borderBottom: '1px solid #F3F4F6' }}>
-            <p style={{ fontSize: 11, color: '#9CA3AF' }}>Quick Stats</p>
-            <p style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>Today</p>
+            <p style={{ fontSize: 11, color: '#9CA3AF' }}>{t.dashboard.quickStats}</p>
+            <p style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{t.dashboard.today}</p>
           </div>
           <div className="grid grid-cols-3" style={{ gap: 1, background: '#F3F4F6' }}>
             {[

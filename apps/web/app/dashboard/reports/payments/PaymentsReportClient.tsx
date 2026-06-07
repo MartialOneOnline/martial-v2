@@ -9,6 +9,7 @@ import {
   School, ShoppingBag, ChevronRight, ChevronDown,
   Menu, X, Search, ChevronLeft,
 } from 'lucide-react'
+import { useT } from '../../../../lib/i18n/LanguageContext'
 import {
   AreaChart, Area, BarChart, Bar, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -183,6 +184,7 @@ const TRANSACTIONS: Transaction[] = [
 ]
 
 export default function PaymentsReportClient() {
+  const t = useT()
   const [menuOpen, setMenuOpen] = useState(false)
   const [period, setPeriod] = useState<'7d' | '30d' | '90d' | '12m'>('30d')
   const [filterTab, setFilterTab] = useState<'All' | TxStatus>('All')
@@ -292,7 +294,7 @@ export default function PaymentsReportClient() {
 
           <div className="px-4 md:px-8 py-6 flex flex-col gap-6">
             <div>
-              <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>Payments Report</h1>
+              <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>{t.reports.paymentsTitle}</h1>
               <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>Revenue, transactions and payment method breakdown</p>
             </div>
 

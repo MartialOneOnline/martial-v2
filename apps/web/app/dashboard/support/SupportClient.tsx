@@ -10,46 +10,48 @@ import {
   Menu, Search, MessageSquare, MessageCircle, BookOpen,
   Mail, Check, Plus, ExternalLink,
 } from 'lucide-react'
+import { useT } from '../../../lib/i18n/LanguageContext'
+import type { Translations } from '../../../lib/i18n/translations'
 
 type NavItem = { label: string; icon: React.ElementType; href?: string; children?: { label: string; href: string }[] }
 
-const NAV_MAIN: NavItem[] = [
-  { label: 'Dashboard',   icon: Flame,      href: '/dashboard' },
-  { label: 'Users',       icon: Users,      href: '/dashboard/users' },
-  { label: 'Classes',     icon: Calendar,   children: [
-    { label: 'Classes',   href: '/dashboard/classes' },
-    { label: 'Events',    href: '/dashboard/classes/events' },
-    { label: 'Calendar',  href: '/dashboard/classes/calendar' },
-    { label: 'Timetable', href: '/dashboard/classes/timetable' },
+const buildNavMain = (s: Translations['sidebar']): NavItem[] => [
+  { label: s.dashboard,   icon: Flame,      href: '/dashboard' },
+  { label: s.users,       icon: Users,      href: '/dashboard/users' },
+  { label: s.classes,     icon: Calendar,   children: [
+    { label: s.classes,   href: '/dashboard/classes' },
+    { label: s.events,    href: '/dashboard/classes/events' },
+    { label: s.calendar,  href: '/dashboard/classes/calendar' },
+    { label: s.timetable, href: '/dashboard/classes/timetable' },
   ]},
-  { label: 'Memberships', icon: Award,      href: '/dashboard/memberships' },
-  { label: 'Payments',    icon: CreditCard, children: [
-    { label: 'Transactions',  href: '/dashboard/payments/transactions' },
-    { label: 'Subscriptions', href: '/dashboard/payments/subscriptions' },
+  { label: s.memberships, icon: Award,      href: '/dashboard/memberships' },
+  { label: s.payments,    icon: CreditCard, children: [
+    { label: s.transactions,  href: '/dashboard/payments/transactions' },
+    { label: s.subscriptions, href: '/dashboard/payments/subscriptions' },
   ]},
-  { label: 'School',      icon: School,     children: [
-    { label: 'Leads',      href: '/dashboard/school/leads' },
-    { label: 'Store',      href: '/dashboard/school/store' },
-    { label: 'Curriculum', href: '/dashboard/school/curriculum' },
-    { label: 'Affiliates', href: '/dashboard/school/affiliates' },
-    { label: 'Staff',      href: '/dashboard/school/staff' },
-    { label: 'Waivers',    href: '/dashboard/school/waivers' },
-    { label: 'Gradings',   href: '/dashboard/school/gradings' },
+  { label: s.school,      icon: School,     children: [
+    { label: s.leads,      href: '/dashboard/school/leads' },
+    { label: s.store,      href: '/dashboard/school/store' },
+    { label: s.curriculum, href: '/dashboard/school/curriculum' },
+    { label: s.affiliates, href: '/dashboard/school/affiliates' },
+    { label: s.staff,      href: '/dashboard/school/staff' },
+    { label: s.waivers,    href: '/dashboard/school/waivers' },
+    { label: s.gradings,   href: '/dashboard/school/gradings' },
   ]},
-  { label: 'Reports',     icon: BarChart2,  children: [
-    { label: 'Bookings', href: '/dashboard/reports/bookings' },
-    { label: 'Gradings', href: '/dashboard/reports/gradings' },
-    { label: 'Payments', href: '/dashboard/reports/payments' },
-    { label: 'Balance',  href: '/dashboard/reports/balance' },
-    { label: 'Absents',  href: '/dashboard/reports/absents' },
-    { label: 'Users',    href: '/dashboard/reports/users' },
+  { label: s.reports,     icon: BarChart2,  children: [
+    { label: s.bookings, href: '/dashboard/reports/bookings' },
+    { label: s.gradings, href: '/dashboard/reports/gradings' },
+    { label: s.payments, href: '/dashboard/reports/payments' },
+    { label: s.balance,  href: '/dashboard/reports/balance' },
+    { label: s.absents,  href: '/dashboard/reports/absents' },
+    { label: s.users,    href: '/dashboard/reports/users' },
   ]},
-  { label: 'Settings', icon: Settings, href: '/dashboard/settings' },
+  { label: s.settings, icon: Settings, href: '/dashboard/settings' },
 ]
-const NAV_BOTTOM: NavItem[] = [
-  { label: 'Subscription',  icon: ShoppingBag, href: '/dashboard/subscription' },
-  { label: 'Notifications', icon: Bell,        href: '/dashboard/notifications' },
-  { label: 'Support',       icon: HelpCircle,  href: '/dashboard/support' },
+const buildNavBottom = (s: Translations['sidebar']): NavItem[] => [
+  { label: s.subscription,  icon: ShoppingBag, href: '/dashboard/subscription' },
+  { label: s.notifications, icon: Bell,        href: '/dashboard/notifications' },
+  { label: s.support,       icon: HelpCircle,  href: '/dashboard/support' },
 ]
 const ACTIVE_HREF = '/dashboard/support'
 
@@ -195,6 +197,9 @@ function FaqSection({ title, items }: { title: string; items: { q: string; a: st
 }
 
 export default function SupportClient() {
+  const t = useT()
+  const NAV_MAIN = buildNavMain(t.sidebar)
+  const NAV_BOTTOM = buildNavBottom(t.sidebar)
   const [menuOpen, setMenuOpen] = useState(false)
   const [search, setSearch] = useState('')
 
@@ -220,7 +225,7 @@ export default function SupportClient() {
               onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#FEF2F2'}
               onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
               <LogOut size={16} style={{ color: '#9CA3AF', flexShrink: 0 }} />
-              Sign out
+              {t.sidebar.signOut}
             </button>
           </form>
         </div>
@@ -232,20 +237,20 @@ export default function SupportClient() {
             <button className="md:hidden" onClick={() => setMenuOpen(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
               <Menu size={20} style={{ color: '#374151' }} />
             </button>
-            <span style={{ fontWeight: 600, fontSize: 15, color: '#111827' }}>Support</span>
+            <span style={{ fontWeight: 600, fontSize: 15, color: '#111827' }}>{t.support.title}</span>
           </div>
 
           <div className="px-4 md:px-8 py-6 flex flex-col gap-6">
 
             {/* Hero Search */}
             <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #E5E7EB', padding: '32px 28px', textAlign: 'center' }}>
-              <h1 style={{ fontWeight: 800, fontSize: 22, color: '#111827', margin: '0 0 6px' }}>How can we help you?</h1>
-              <p style={{ fontSize: 14, color: '#6B7280', margin: '0 0 20px' }}>Search our knowledge base for quick answers</p>
+              <h1 style={{ fontWeight: 800, fontSize: 22, color: '#111827', margin: '0 0 6px' }}>{t.support.heroTitle}</h1>
+              <p style={{ fontSize: 14, color: '#6B7280', margin: '0 0 20px' }}>{t.support.heroSubtitle}</p>
               <div style={{ maxWidth: 480, margin: '0 auto', position: 'relative' }}>
                 <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF' }} />
                 <input
                   type="text"
-                  placeholder="Search articles, FAQs…"
+                  placeholder={t.support.searchPlaceholder}
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   style={{ width: '100%', paddingLeft: 40, paddingRight: 16, paddingTop: 10, paddingBottom: 10, borderRadius: 10, border: '1px solid #E5E7EB', fontSize: 14, color: '#111827', outline: 'none', boxSizing: 'border-box', background: '#F9FAFB' }}
@@ -261,11 +266,11 @@ export default function SupportClient() {
                   <MessageSquare size={20} style={{ color: '#0071E3' }} />
                 </div>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: '#111827', marginBottom: 4 }}>Submit a ticket</div>
-                  <div style={{ fontSize: 12, color: '#6B7280' }}>Report an issue or ask a question</div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: '#111827', marginBottom: 4 }}>{t.support.submitTicket}</div>
+                  <div style={{ fontSize: 12, color: '#6B7280' }}>{t.support.submitTicketDesc}</div>
                 </div>
                 <button style={{ marginTop: 'auto', padding: '8px 0', borderRadius: 9, background: '#0071E3', color: '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-                  Open ticket
+                  {t.support.openTicket}
                 </button>
               </div>
 
@@ -274,12 +279,12 @@ export default function SupportClient() {
                   <MessageCircle size={20} style={{ color: '#16A34A' }} />
                 </div>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: '#111827', marginBottom: 4 }}>Live chat</div>
-                  <div style={{ fontSize: 12, color: '#6B7280' }}>Chat with our support team · Usually replies in &lt; 5 min</div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: '#111827', marginBottom: 4 }}>{t.support.liveChat}</div>
+                  <div style={{ fontSize: 12, color: '#6B7280' }}>{t.support.liveChatDesc}</div>
                 </div>
                 <button style={{ marginTop: 'auto', padding: '8px 0', borderRadius: 9, background: '#16A34A', color: '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                   <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#86EFAC', display: 'inline-block' }} />
-                  Start chat
+                  {t.support.startChat}
                 </button>
               </div>
 
@@ -288,11 +293,11 @@ export default function SupportClient() {
                   <BookOpen size={20} style={{ color: '#6D28D9' }} />
                 </div>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: '#111827', marginBottom: 4 }}>Documentation</div>
-                  <div style={{ fontSize: 12, color: '#6B7280' }}>Guides, tutorials and API reference</div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: '#111827', marginBottom: 4 }}>{t.support.documentation}</div>
+                  <div style={{ fontSize: 12, color: '#6B7280' }}>{t.support.documentationDesc}</div>
                 </div>
                 <button style={{ marginTop: 'auto', padding: '8px 0', borderRadius: 9, background: '#6D28D9', color: '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-                  Browse docs
+                  {t.support.browseDocs}
                   <ExternalLink size={12} />
                 </button>
               </div>
@@ -302,11 +307,11 @@ export default function SupportClient() {
                   <Mail size={20} style={{ color: '#D97706' }} />
                 </div>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: '#111827', marginBottom: 4 }}>Email us</div>
-                  <div style={{ fontSize: 12, color: '#6B7280' }}>support@martial.app · We reply within 24h</div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: '#111827', marginBottom: 4 }}>{t.support.emailUs}</div>
+                  <div style={{ fontSize: 12, color: '#6B7280' }}>{t.support.emailUsDesc}</div>
                 </div>
                 <a href="mailto:support@martial.app" style={{ marginTop: 'auto', padding: '8px 0', borderRadius: 9, background: '#D97706', color: '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer', textAlign: 'center', textDecoration: 'none', display: 'block' }}>
-                  Send email
+                  {t.support.sendEmail}
                 </a>
               </div>
 
@@ -315,8 +320,8 @@ export default function SupportClient() {
             {/* FAQ */}
             <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #E5E7EB', overflow: 'hidden' }}>
               <div style={{ padding: '16px 24px', borderBottom: '1px solid #F3F4F6' }}>
-                <div style={{ fontWeight: 700, fontSize: 15, color: '#111827' }}>Frequently asked questions</div>
-                <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>Click a section to expand</div>
+                <div style={{ fontWeight: 700, fontSize: 15, color: '#111827' }}>{t.support.faqTitle}</div>
+                <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{t.support.faqSubtitle}</div>
               </div>
               <div style={{ padding: '0 24px' }}>
                 {FAQ_SECTIONS.map(section => (
@@ -329,43 +334,43 @@ export default function SupportClient() {
             {/* Open Tickets */}
             <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #E5E7EB', overflow: 'hidden' }}>
               <div style={{ padding: '16px 24px', borderBottom: '1px solid #F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontWeight: 700, fontSize: 15, color: '#111827' }}>Your tickets</span>
+                <span style={{ fontWeight: 700, fontSize: 15, color: '#111827' }}>{t.support.yourTickets}</span>
                 <button style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 14px', borderRadius: 9, background: '#0071E3', color: '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                   <Plus size={14} />
-                  New ticket
+                  {t.support.newTicket}
                 </button>
               </div>
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 640 }}>
                   <thead>
                     <tr style={{ background: '#F9FAFB' }}>
-                      {['#ID', 'Subject', 'Category', 'Status', 'Last updated', 'Actions'].map(h => (
+                      {[t.support.colId, t.support.colSubject, t.common.category, t.common.status, t.support.colLastUpdated, t.common.actions].map(h => (
                         <th key={h} style={{ padding: '10px 16px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: '#6B7280', letterSpacing: '0.05em', borderBottom: '1px solid #E5E7EB', whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {TICKETS.map((t, i) => {
-                      const statusStyle = TICKET_STATUS_STYLE[t.status]
-                      const catStyle = CATEGORY_CHIP_STYLE[t.category] ?? { bg: '#F3F4F6', color: '#6B7280', border: '#E5E7EB' }
+                    {TICKETS.map((tk, i) => {
+                      const statusStyle = TICKET_STATUS_STYLE[tk.status]
+                      const catStyle = CATEGORY_CHIP_STYLE[tk.category] ?? { bg: '#F3F4F6', color: '#6B7280', border: '#E5E7EB' }
                       return (
-                        <tr key={t.id} style={{ borderBottom: i < TICKETS.length - 1 ? '1px solid #F3F4F6' : 'none' }}>
-                          <td style={{ padding: '12px 16px', fontSize: 12, color: '#9CA3AF', fontWeight: 600, fontFamily: 'monospace' }}>{t.id}</td>
-                          <td style={{ padding: '12px 16px', fontSize: 13, color: '#111827', fontWeight: 500, maxWidth: 240 }}>{t.subject}</td>
+                        <tr key={tk.id} style={{ borderBottom: i < TICKETS.length - 1 ? '1px solid #F3F4F6' : 'none' }}>
+                          <td style={{ padding: '12px 16px', fontSize: 12, color: '#9CA3AF', fontWeight: 600, fontFamily: 'monospace' }}>{tk.id}</td>
+                          <td style={{ padding: '12px 16px', fontSize: 13, color: '#111827', fontWeight: 500, maxWidth: 240 }}>{tk.subject}</td>
                           <td style={{ padding: '12px 16px' }}>
                             <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999, background: catStyle.bg, color: catStyle.color, border: `1px solid ${catStyle.border}` }}>
-                              {t.category}
+                              {tk.category}
                             </span>
                           </td>
                           <td style={{ padding: '12px 16px' }}>
                             <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999, background: statusStyle.bg, color: statusStyle.color }}>
-                              {t.status}
+                              {tk.status}
                             </span>
                           </td>
-                          <td style={{ padding: '12px 16px', fontSize: 13, color: '#6B7280' }}>{t.updated}</td>
+                          <td style={{ padding: '12px 16px', fontSize: 13, color: '#6B7280' }}>{tk.updated}</td>
                           <td style={{ padding: '12px 16px' }}>
                             <button style={{ background: 'none', border: '1px solid #E5E7EB', borderRadius: 8, padding: '5px 10px', cursor: 'pointer', fontSize: 12, color: '#6B7280', display: 'flex', alignItems: 'center', gap: 4 }}>
-                              View
+                              {t.common.view}
                               <ChevronRight size={12} />
                             </button>
                           </td>

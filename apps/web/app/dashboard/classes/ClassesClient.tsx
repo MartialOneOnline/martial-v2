@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { useDashboard } from '../../../components/DashboardShell'
 import DashboardLanguageSelector from '../../../components/DashboardLanguageSelector'
+import { useT } from '../../../lib/i18n/LanguageContext'
 
 // ── Mock data ──────────────────────────────────────────────────────────────────
 
@@ -26,13 +27,6 @@ const CLASSES = [
   { id: 10, image: '/roger-gracie-malaga.jpg',     title: 'BJJ Iniciación',    activity: 'BJJ',         instructor: 'Ana Torres',    startDate: '08 Sep 2026', endDate: '08 Dec 2026', fees: '€65',  status: 'Active'   },
   { id: 11, image: '/mathouse.jpg',                title: 'Yoga & Stretching', activity: 'Yoga',        instructor: 'Laura M.',      startDate: '10 Sep 2026', endDate: '10 Dec 2026', fees: '€45',  status: 'Active'   },
   { id: 12, image: '/five-elements-jiu-jitsu.jpg', title: 'Self Defence',      activity: 'Self Defence', instructor: 'Jorge Sanchez', startDate: '20 Sep 2026', endDate: '20 Nov 2026', fees: '€55',  status: 'Inactive' },
-]
-
-const STATS = [
-  { label: 'Total Classes',   value: '12',  trend: '+3',   trendUp: true,  sub: 'this month'    },
-  { label: 'Active Classes',  value: '10',  trend: '+2',   trendUp: true,  sub: 'right now'     },
-  { label: 'Full Classes',    value: '2',   trend: '+1',   trendUp: false, sub: 'vs last week'  },
-  { label: 'Avg Capacity',    value: '74%', trend: '+6%',  trendUp: true,  sub: 'vs last month' },
 ]
 
 const STATUS_MAP: Record<string, { bg: string; color: string }> = {
@@ -56,10 +50,12 @@ function getPaginationPages(current: number, total: number): (number | '...')[] 
 type Filter = 'All' | 'Active' | 'Full' | 'Inactive'
 
 function StatusBadge({ status }: { status: string }) {
+  const t = useT()
+  const labels: Record<string, string> = { Active: t.common.active, Full: t.common.full, Inactive: t.common.inactive }
   const { bg, color } = STATUS_MAP[status] ?? { bg: '#F3F4F6', color: '#6B7280' }
   return (
     <span style={{ background: bg, color, fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 999 }}>
-      {status}
+      {labels[status] ?? status}
     </span>
   )
 }
@@ -74,6 +70,7 @@ const RANGE_WEEKS = [
 ]
 
 function DateRangePicker({ idx, onChange }: { idx: number; onChange: (n: number) => void }) {
+  const t = useT()
   return (
     <div className="flex items-center gap-1">
       <button onClick={() => onChange(Math.max(0, idx - 1))}
@@ -103,7 +100,7 @@ function DateRangePicker({ idx, onChange }: { idx: number; onChange: (n: number)
         onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
         onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = '#fff'}
       >
-        Today
+        {t.common.today}
       </button>
     </div>
   )
@@ -118,6 +115,7 @@ interface CreateClassDrawerProps {
 }
 
 function CreateClassDrawer({ open, onClose, onSuccess }: CreateClassDrawerProps) {
+  const t = useT()
   const [bannerDrag, setBannerDrag] = useState(false)
   const [legalChecked, setLegalChecked] = useState({ terms: false, privacy: false })
 
@@ -162,9 +160,9 @@ function CreateClassDrawer({ open, onClose, onSuccess }: CreateClassDrawerProps)
           style={{ background: '#fff', borderBottom: '1px solid #E5E7EB', flexShrink: 0 }}>
           <div>
             <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111827', margin: 0, letterSpacing: '-0.02em' }}>
-              Create Class
+              {t.classes.createClass}
             </h2>
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>Fill in the details to create a new class</p>
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{t.classes.createClassDesc}</p>
           </div>
           <button onClick={onClose}
             className="w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
@@ -180,89 +178,89 @@ function CreateClassDrawer({ open, onClose, onSuccess }: CreateClassDrawerProps)
             {/* Left — Form */}
             <div className="flex-1 min-w-0 flex flex-col gap-5">
 
-              <Field label="Class Title">
-                <input type="text" placeholder="e.g. BJJ All Levels" style={inputStyle} />
+              <Field label={t.classes.classTitle}>
+                <input type="text" placeholder={t.classes.classTitlePlaceholder} style={inputStyle} />
               </Field>
 
               <div className="grid grid-cols-2 gap-4">
-                <Field label="Start Date">
+                <Field label={t.common.startDate}>
                   <input type="date" style={inputStyle} />
                 </Field>
-                <Field label="End Date">
+                <Field label={t.common.endDate}>
                   <input type="date" style={inputStyle} />
                 </Field>
               </div>
 
-              <Field label="Instructors">
+              <Field label={t.classes.instructors}>
                 <select style={inputStyle}>
-                  <option value="">Select instructor…</option>
+                  <option value="">{t.classes.selectInstructor}</option>
                   {INSTRUCTORS.map(i => <option key={i} value={i}>{i}</option>)}
                 </select>
               </Field>
 
               <div className="grid grid-cols-2 gap-4">
-                <Field label="Class Fees (€)">
+                <Field label={t.classes.classFees}>
                   <input type="number" placeholder="0" style={inputStyle} />
                 </Field>
-                <Field label="Activity">
+                <Field label={t.common.activity}>
                   <select style={inputStyle}>
-                    <option value="">Select activity…</option>
+                    <option value="">{t.classes.selectActivity}</option>
                     {ACTIVITIES.map(a => <option key={a} value={a}>{a}</option>)}
                   </select>
                 </Field>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <Field label="Capacity">
+                <Field label={t.common.capacity}>
                   <input type="number" placeholder="20" style={inputStyle} />
                 </Field>
-                <Field label="Min Students">
+                <Field label={t.classes.minStudents}>
                   <input type="number" placeholder="1" style={inputStyle} />
                 </Field>
               </div>
 
               <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: 20 }}>
-                <p style={{ fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 14 }}>QR Attendance</p>
+                <p style={{ fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 14 }}>{t.classes.qrAttendance}</p>
                 <div className="grid grid-cols-2 gap-4">
-                  <Field label="QR Start Time">
+                  <Field label={t.classes.qrStartTime}>
                     <input type="time" style={inputStyle} />
                   </Field>
-                  <Field label="QR End Time">
+                  <Field label={t.classes.qrEndTime}>
                     <input type="time" style={inputStyle} />
                   </Field>
                 </div>
               </div>
 
               <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: 20 }}>
-                <p style={{ fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 14 }}>Booking Window</p>
+                <p style={{ fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 14 }}>{t.classes.bookingWindow}</p>
                 <div className="grid grid-cols-2 gap-4">
-                  <Field label="Booking Opens">
+                  <Field label={t.classes.bookingOpens}>
                     <input type="datetime-local" style={inputStyle} />
                   </Field>
-                  <Field label="Booking Closes">
+                  <Field label={t.classes.bookingCloses}>
                     <input type="datetime-local" style={inputStyle} />
                   </Field>
                 </div>
               </div>
 
-              <Field label="Cancellation Policy">
+              <Field label={t.classes.cancellationPolicy}>
                 <select style={inputStyle}>
-                  <option>24h notice required</option>
-                  <option>48h notice required</option>
-                  <option>No cancellations</option>
-                  <option>Free cancellation</option>
+                  <option>{t.classes.policy24h}</option>
+                  <option>{t.classes.policy48h}</option>
+                  <option>{t.classes.policyNone}</option>
+                  <option>{t.classes.policyFree}</option>
                 </select>
               </Field>
 
-              <Field label="Description">
-                <textarea rows={3} placeholder="Describe this class…"
+              <Field label={t.common.description}>
+                <textarea rows={3} placeholder={t.classes.describeClass}
                   style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.5 }} />
               </Field>
             </div>
 
             {/* Right — Banner upload */}
             <div style={{ width: 260, flexShrink: 0 }}>
-              <label style={labelStyle}>Class Banner</label>
+              <label style={labelStyle}>{t.classes.classBanner}</label>
               <div
                 onDragEnter={() => setBannerDrag(true)}
                 onDragLeave={() => setBannerDrag(false)}
@@ -277,19 +275,19 @@ function CreateClassDrawer({ open, onClose, onSuccess }: CreateClassDrawerProps)
                   <Upload size={18} style={{ color: '#9CA3AF' }} />
                 </div>
                 <div className="text-center">
-                  <p style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>Drop image here</p>
-                  <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>PNG, JPG up to 5MB</p>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>{t.common.dropImage}</p>
+                  <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>{t.common.pngJpg}</p>
                 </div>
                 <label className="px-3 py-1.5 rounded-lg cursor-pointer"
                   style={{ fontSize: 12, fontWeight: 500, border: '1px solid #E5E7EB',
                     background: '#fff', color: '#374151' }}>
-                  Browse
+                  {t.common.browse}
                   <input type="file" accept="image/*" className="hidden" />
                 </label>
               </div>
 
               <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 8 }}>
-                Recommended: 1200 × 600px
+                {t.classes.recommendedSize}
               </p>
             </div>
           </div>
@@ -300,8 +298,8 @@ function CreateClassDrawer({ open, onClose, onSuccess }: CreateClassDrawerProps)
           {/* Legal checkboxes */}
           <div className="flex flex-col gap-2">
             {([
-              { key: 'terms',   label: 'I agree to the Terms & Conditions' },
-              { key: 'privacy', label: 'I have read the Privacy Policy' },
+              { key: 'terms',   label: t.classes.agreeTerms },
+              { key: 'privacy', label: t.classes.readPrivacy },
             ] as const).map(({ key, label }) => (
               <label key={key} className="flex items-center gap-2 cursor-pointer">
                 <div
@@ -321,7 +319,7 @@ function CreateClassDrawer({ open, onClose, onSuccess }: CreateClassDrawerProps)
               className="px-5 py-2.5 rounded-xl cursor-pointer"
               style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB',
                 background: '#fff', color: '#374151' }}>
-              Cancel
+              {t.common.cancel}
             </button>
             <button
               onClick={onSuccess}
@@ -330,7 +328,7 @@ function CreateClassDrawer({ open, onClose, onSuccess }: CreateClassDrawerProps)
               style={{ fontSize: 13, fontWeight: 600, border: 'none',
                 background: legalChecked.terms && legalChecked.privacy ? '#0071E3' : '#93C5FD',
                 color: '#fff', cursor: legalChecked.terms && legalChecked.privacy ? 'pointer' : 'not-allowed' }}>
-              Create Class
+              {t.classes.createClass}
             </button>
           </div>
         </div>
@@ -342,6 +340,7 @@ function CreateClassDrawer({ open, onClose, onSuccess }: CreateClassDrawerProps)
 // ── Success modal ───────────────────────────────────────────────────────────────
 
 function SuccessModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const t = useT()
   if (!open) return null
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4"
@@ -355,16 +354,16 @@ function SuccessModal({ open, onClose }: { open: boolean; onClose: () => void })
         </div>
         <div>
           <h3 style={{ fontSize: 18, fontWeight: 700, color: '#111827', margin: 0 }}>
-            Class Created Successfully!
+            {t.classes.classCreated}
           </h3>
           <p style={{ fontSize: 13, color: '#6B7280', marginTop: 6 }}>
-            Your new class has been added and is now visible to students.
+            {t.classes.classCreatedDesc}
           </p>
         </div>
         <button onClick={onClose}
           className="w-full py-2.5 rounded-xl cursor-pointer"
           style={{ fontSize: 13, fontWeight: 600, border: 'none', background: '#0071E3', color: '#fff' }}>
-          Done
+          {t.common.done}
         </button>
       </div>
     </div>
@@ -375,6 +374,16 @@ function SuccessModal({ open, onClose }: { open: boolean; onClose: () => void })
 
 export default function ClassesClient() {
   const { menuOpen, setMenuOpen } = useDashboard()
+  const t = useT()
+  const STATS = [
+    { label: t.classes.totalClasses,  value: '12',  trend: '+3',   trendUp: true,  sub: t.common.thisMonth   },
+    { label: t.classes.activeClasses, value: '10',  trend: '+2',   trendUp: true,  sub: t.common.rightNow    },
+    { label: t.classes.fullClasses,   value: '2',   trend: '+1',   trendUp: false, sub: t.common.vsLastWeek  },
+    { label: t.classes.avgCapacity,   value: '74%', trend: '+6%',  trendUp: true,  sub: t.common.vsLastMonth },
+  ]
+  const filterLabels: Record<Filter, string> = {
+    All: t.common.all, Active: t.common.active, Full: t.common.full, Inactive: t.common.inactive,
+  }
   const [activeFilter, setActiveFilter] = useState<Filter>('All')
   const [search, setSearch]             = useState('')
   const [currentPage, setCurrentPage]   = useState(1)
@@ -419,7 +428,7 @@ export default function ClassesClient() {
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl"
               style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', minWidth: 180 }}>
               <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
-              <input type="text" placeholder="Search classes…" value={search}
+              <input type="text" placeholder={t.classes.searchPlaceholder} value={search}
                 onChange={e => handleSearch(e.target.value)}
                 style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: 140 }} />
             </div>
@@ -458,10 +467,10 @@ export default function ClassesClient() {
             <div className="flex items-center justify-between">
               <div>
                 <h1 style={{ fontSize: 18, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>
-                  Classes
+                  {t.classes.title}
                 </h1>
                 <p style={{ fontSize: 12, color: '#6B7280', marginTop: 1 }}>
-                  {filtered.length} of {CLASSES.length} classes
+                  {filtered.length} {t.common.of} {CLASSES.length} {t.classes.ofClasses}
                 </p>
               </div>
             </div>
@@ -500,7 +509,7 @@ export default function ClassesClient() {
                     background: activeFilter === f ? '#fff' : 'transparent',
                     boxShadow: activeFilter === f ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                   }}>
-                  {f}
+                  {filterLabels[f]}
                   <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 600,
                     color: activeFilter === f ? '#0071E3' : '#9CA3AF' }}>
                     {f === 'All' ? CLASSES.length : CLASSES.filter(c => c.status === f).length}
@@ -515,12 +524,12 @@ export default function ClassesClient() {
                 <thead>
                   <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
                     {[
-                      { label: 'Class',        cls: '' },
-                      { label: 'Instructor',   cls: 'hidden md:table-cell' },
-                      { label: 'Start Date',   cls: 'hidden lg:table-cell' },
-                      { label: 'End Date',     cls: 'hidden lg:table-cell' },
-                      { label: 'Status',       cls: '' },
-                      { label: 'Actions',      cls: '' },
+                      { label: t.classes.colClass,        cls: '' },
+                      { label: t.common.instructor,   cls: 'hidden md:table-cell' },
+                      { label: t.common.startDate,   cls: 'hidden lg:table-cell' },
+                      { label: t.common.endDate,     cls: 'hidden lg:table-cell' },
+                      { label: t.common.status,       cls: '' },
+                      { label: t.common.actions,      cls: '' },
                     ].map(h => (
                       <th key={h.label} className={`px-5 py-3 text-left ${h.cls}`}
                         style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
@@ -584,15 +593,20 @@ export default function ClassesClient() {
                             <div className="absolute right-6 mt-1 rounded-xl z-20 py-1 overflow-hidden"
                               style={{ background: '#fff', border: '1px solid #E5E7EB',
                                 boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 140, top: '100%' }}>
-                              {['Edit', 'Duplicate', 'View Students', 'Delete'].map(action => (
-                                <button key={action} onClick={() => setOpenMenuId(null)}
+                              {([
+                                { key: 'Edit', label: t.common.edit },
+                                { key: 'Duplicate', label: t.common.duplicate },
+                                { key: 'View Students', label: t.common.viewStudents },
+                                { key: 'Delete', label: t.common.delete },
+                              ]).map(action => (
+                                <button key={action.key} onClick={() => setOpenMenuId(null)}
                                   className="w-full text-left px-4 py-2 transition-colors cursor-pointer"
-                                  style={{ fontSize: 13, color: action === 'Delete' ? '#DC2626' : '#374151',
+                                  style={{ fontSize: 13, color: action.key === 'Delete' ? '#DC2626' : '#374151',
                                     background: 'transparent', border: 'none' }}
                                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
                                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
                                 >
-                                  {action}
+                                  {action.label}
                                 </button>
                               ))}
                             </div>
@@ -607,24 +621,24 @@ export default function ClassesClient() {
               {paginated.length === 0 && (
                 <div className="py-16 text-center">
                   <Calendar size={32} style={{ color: '#E5E7EB', margin: '0 auto 12px' }} />
-                  <p style={{ fontSize: 14, color: '#9CA3AF' }}>No classes found</p>
+                  <p style={{ fontSize: 14, color: '#9CA3AF' }}>{t.classes.noClasses}</p>
                 </div>
               )}
               {/* Pagination */}
               <div className="flex items-center justify-between px-6 py-3" style={{ borderTop: '1px solid #F3F4F6' }}>
                 <p style={{ fontSize: 13, color: '#6B7280' }}>
-                  Showing{' '}
+                  {t.common.showing}{' '}
                   <span style={{ fontWeight: 600, color: '#111827' }}>
                     {(safePage - 1) * ITEMS_PER_PAGE + 1}{' – '}{Math.min(safePage * ITEMS_PER_PAGE, filtered.length)}
                   </span>{' '}
-                  of <span style={{ fontWeight: 600, color: '#111827' }}>{filtered.length}</span> classes
+                  {t.common.of} <span style={{ fontWeight: 600, color: '#111827' }}>{filtered.length}</span> {t.classes.ofClasses}
                 </p>
                 <div className="flex items-center gap-1">
                   <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={safePage === 1}
                     style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff',
                       color: safePage === 1 ? '#D1D5DB' : '#374151', cursor: safePage === 1 ? 'not-allowed' : 'pointer',
                       borderRadius: 8, padding: '6px 12px' }}>
-                    Prev
+                    {t.common.prev}
                   </button>
                   <div className="flex items-center gap-1 mx-1">
                     {pages.map((p, i) =>
@@ -645,7 +659,7 @@ export default function ClassesClient() {
                     style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff',
                       color: safePage === totalPages ? '#D1D5DB' : '#374151', cursor: safePage === totalPages ? 'not-allowed' : 'pointer',
                       borderRadius: 8, padding: '6px 12px' }}>
-                    Next
+                    {t.common.next}
                   </button>
                 </div>
               </div>
