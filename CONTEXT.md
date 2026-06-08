@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 19 completada ✅ — School public page conectada a DB real (clases, planes, instructores)
+**Estado:** Sesión 20 completada ✅ — Booking flow completo (auth check → membership → free trial → booking)
 
 ---
 
@@ -204,7 +204,10 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 
 ## Próximos pasos
 
-1. **School public page — diseño** — mejorar UI/UX de `/school/[slug]` (Figma o iteración directa)
+1. **Booking flow — test logged in** — probar flujo completo con usuario real logueado
+2. **"Book a Trial Class"** del sidebar → conectar al mismo modal de booking
+3. **Explore → clases clicables** — misma lógica de booking desde Explore
+4. **School page — diseño** — mejorar UI/UX (facilities/disciplines icons, hero, etc.)
 2. **LoginModal** — popup en homepage con SSO + Email
 3. **SSO OAuth** — configurar Google en Supabase
 4. **Homepage** — ajustes finales diseño AI Studio → Next.js
@@ -302,6 +305,18 @@ Prototipo movido a apps/prototype/ en el monorepo
 - **Payments**: Transactions + Subscriptions con drawers de entrada manual
 - **School section**: 7 páginas (Leads, Store, Curriculum, Affiliates, Staff, Waivers, Gradings)
 - **Users page**: tabla completa estilo NZZL
+
+### Sesión 20 — 2026-06-09 ✅
+- **Booking flow completo** — clases clicables en WeeklyTimetable
+- `ClassBookingModal` con 4 estados: loading / unauthenticated / no_membership / has_membership
+- Sin login: CTAs "Log In to Book" + "Create Free Account" con return URL
+- Sin membresía: muestra planes + Free Trial CTA prominente
+- Con membresía: confirma booking con resumen (clase, día, hora, precio)
+- `POST /api/bookings` — crea `Booking` en DB
+- `POST /api/memberships/trial` — activa free trial (`SchoolMember` + `Membership`)
+- `GET /api/schools/[slug]/membership-check` — check auth + membresía en Supabase
+- `MembershipSection` rediseñada con tabs (Subscriptions / Passes / Private)
+- Commit: c9f7768
 
 ### Sesión 19 — 2026-06-08 ✅
 - **School public page** (`/school/[slug]`): server component con datos reales de DB
