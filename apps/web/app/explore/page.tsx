@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
@@ -218,8 +218,30 @@ function SchoolQuickView({ school, onClose }: { school: Academy; onClose: () => 
 
 // ── Page ────────────────────────────────────────────────────────────────────--
 
+function dbSchoolToAcademy(s: any): Academy {
+  const disciplines = s.disciplines?.map((d: any) => d.discipline.name.toUpperCase()) ?? []
+  return {
+    id: s.slug,
+    slug: s.slug,
+    name: s.name,
+    location: s.address ?? `${s.city}, ${s.country}`,
+    city: `${s.city}, ${s.country}`,
+    coordinates: { x: 44.5, y: 76.5 }, // default map position — real coords coming later
+    rating: s.googleRating ?? 0,
+    reviewCount: s.googleReviews ?? 0,
+    priceFrom: s.priceFrom ? `from €${s.priceFrom}/mo` : 'Contact us',
+    tags: disciplines.length ? disciplines : ['BJJ'],
+    features: s.facilities ?? [],
+    description: s.description ?? '',
+    image: s.coverUrl ?? FALLBACK_IMAGES[0],
+    images: s.coverUrl ? [s.coverUrl] : FALLBACK_IMAGES,
+    nextClass: '',
+  }
+}
+
 export default function ExplorePage() {
   const t = useT()
+  const [dbAcademies, setDbAcademies] = useState<Academy[]>([])
   const [mode, setMode]                 = useState<'schools' | 'classes'>('schools')
   const [search, setSearch]             = useState('')
   const [location, setLocation]         = useState('')
@@ -232,6 +254,20 @@ export default function ExplorePage() {
   const [showLogin, setShowLogin]       = useState(false)
   const [showRegister, setShowRegister] = useState(false)
 
+  useEffect(() => {
+    fetch('/api/schools')
+      .then(r => r.json())
+      .then((data: any[]) => setDbAcademies(data.map(dbSchoolToAcademy)))
+      .catch(() => {}) // fall back to mocks silently
+  }, [])
+
+  // Merge: DB schools replace their mock counterpart (matched by slug)
+  const allAcademies = useMemo(() => {
+    const dbSlugs = new Set(dbAcademies.map(a => a.slug))
+    const mocks = ACADEMIES.filter(a => !dbSlugs.has(a.slug))
+    return [...dbAcademies, ...mocks]
+  }, [dbAcademies])
+
   const sortFn = (a: Academy, b: Academy) => {
     if (sort === 'Rating') return b.rating - a.rating
     if (sort === 'Distance') return a.coordinates.y - b.coordinates.y
@@ -243,14 +279,14 @@ export default function ExplorePage() {
     return price(a) - price(b)
   }
 
-  const filteredSchools = useMemo(() => ACADEMIES.filter(s => {
+  const filteredSchools = useMemo(() => allAcademies.filter(s => {
     const q = search.toLowerCase()
     const l = location.toLowerCase()
     const d = discipline === 'All' || s.tags.some(tag => tag.toLowerCase() === discipline.toLowerCase())
     return d
         && (!q || s.name.toLowerCase().includes(q) || s.tags.some(tag => tag.toLowerCase().includes(q)) || s.description.toLowerCase().includes(q))
         && (!l || s.location.toLowerCase().includes(l))
-  }).sort(sortFn), [search, location, discipline, sort])
+  }).sort(sortFn), [allAcademies, search, location, discipline, sort])
 
   const filteredClasses = useMemo(() => CLASSES.filter(c => {
     const q = search.toLowerCase()
@@ -263,9 +299,9 @@ export default function ExplorePage() {
 
   const mapItems = mode === 'schools'
     ? filteredSchools
-    : ACADEMIES.filter(s => filteredClasses.some(c => c.schoolId === s.id))
+    : allAcademies.filter(s => filteredClasses.some(c => c.schoolId === s.id))
 
-  const academyById = (id: string) => ACADEMIES.find(s => s.id === id)
+  const academyById = (id: string) => allAcademies.find(s => s.id === id)
   const openQuickView = (id: string) => {
     const a = academyById(id)
     if (a) { setSelected(id); setQuickView(a) }

@@ -38,6 +38,26 @@ enum PaymentMethod {
   BANK_TRANSFER
 }
 
+enum SchoolMemberRole {
+  OWNER
+  INSTRUCTOR
+  STUDENT
+  LEAD        // Interested but not yet a member
+}
+
+enum SchoolMemberStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+  ARCHIVED
+}
+
+enum ClaimStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum BookingStatus {
   PENDING
   CONFIRMED
@@ -77,6 +97,8 @@ model User {
   memberships    Membership[]
   campBookings   CampBooking[]
   reviews        Review[]      // Reviews written by this user
+  schoolMembers  SchoolMember[]
+  schoolClaims   SchoolClaim[]
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -177,6 +199,8 @@ model School {
   instructors     Instructor[]
   membershipPlans MembershipPlan[]
   reviews         Review[]
+  members         SchoolMember[]
+  claims          SchoolClaim[]
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -406,6 +430,56 @@ model CampBooking {
   updatedAt       DateTime @updatedAt
 
   @@map("camp_bookings")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SCHOOL MEMBER
+// Relationship between a user and a school with explicit role + status
+// Replaces the simple User.schoolId for multi-school and student tracking
+// ─────────────────────────────────────────────────────────────────────────────
+
+model SchoolMember {
+  id        String             @id @default(cuid())
+  schoolId  String
+  school    School             @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  role      SchoolMemberRole   @default(STUDENT)
+  status    SchoolMemberStatus @default(PENDING)
+  joinedAt  DateTime?
+  notes     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolId, userId])
+  @@map("school_members")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SCHOOL CLAIM
+// Ownership verification audit trail
+// When a school is imported (UNVERIFIED), owners can submit a claim
+// ─────────────────────────────────────────────────────────────────────────────
+
+model SchoolClaim {
+  id         String      @id @default(cuid())
+  schoolId   String
+  school     School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User        @relation(fields: [userId], references: [id])
+
+  status     ClaimStatus @default(PENDING)
+  evidence   String?     // URL or description of proof (website, email, document)
+  notes      String?     // Internal Martial notes
+  reviewedBy String?     // Superadmin user ID who reviewed
+  reviewedAt DateTime?
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("school_claims")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
