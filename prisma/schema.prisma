@@ -4,9 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -74,10 +72,11 @@ model User {
   // Schools this user claimed ownership of
   claimedSchools School[] @relation("SchoolClaimer")
 
-  // Bookings and memberships as practitioner
+  // Bookings, memberships and reviews
   bookings       Booking[]
   memberships    Membership[]
   campBookings   CampBooking[]
+  reviews        Review[]      // Reviews written by this user
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -120,7 +119,7 @@ model School {
   source      SchoolSource @default(SELF_REGISTERED)
 
   // Location
-  country     String?      // UK, ES, PT, etc.
+  country     String?
   city        String?
   address     String?
   postcode    String?
@@ -140,9 +139,21 @@ model School {
 
   // Profile
   description String?
+  tagline     String?   // Short one-liner: "Elite BJJ training in the heart of Málaga"
   logoUrl     String?
   coverUrl    String?
-  photos      String[]     // Array of Cloudinary URLs
+  photos      String[]  // Array of image URLs (Cloudinary)
+
+  // Public listing extras
+  priceFrom       Float?    // Lowest monthly price shown on listing card
+  hasFreeTrialCls Boolean   @default(false)
+  facilities      String[]  // ["Tatami mats 200m²", "Showers", "Pro shop", "Parking"]
+  foundedYear     Int?
+  totalStudents   Int?      // Manually set by school owner (approximate)
+
+  // Affiliation
+  affiliationName String?   // "Roger Gracie Academy", "Checkmat", "Alliance"
+  affiliationUrl  String?
 
   // Google / Vonsel data
   googleRating   Float?
@@ -152,16 +163,20 @@ model School {
   // Stripe
   stripeAccountId String?
 
-  // Relations
-  staff          User[]           @relation("SchoolStaff")
+  // Ownership
   claimedBy      User?            @relation("SchoolClaimer", fields: [claimedById], references: [id])
   claimedById    String?
   claimedAt      DateTime?
 
-  disciplines    SchoolDiscipline[]
-  classes        Class[]
-  memberships    Membership[]
-  camps          Camp[]
+  // Relations
+  staff           User[]             @relation("SchoolStaff")
+  disciplines     SchoolDiscipline[]
+  classes         Class[]
+  memberships     Membership[]
+  camps           Camp[]
+  instructors     Instructor[]
+  membershipPlans MembershipPlan[]
+  reviews         Review[]
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -170,26 +185,121 @@ model School {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// INSTRUCTOR
+// Public-facing instructor profile — separate from User (internal login)
+// An instructor can exist without a Martial account (important for imported schools)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Instructor {
+  id          String   @id @default(cuid())
+  schoolId    String
+  school      School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  // Optional link to a User account
+  userId      String?  @unique
+
+  name        String
+  role        String   // "Head Instructor", "Instructor", "Assistant", "Kids Coach"
+  belt        String?  // Free text: "Black Belt", "Brown Belt", "4th Dan" — flexible for all martial arts
+  bio         String?
+  photoUrl    String?
+  instagram   String?
+  isHead      Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+
+  classes     Class[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("instructors")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MEMBERSHIP PLAN
+// The catalogue of plans a school offers publicly (e.g. on their profile page)
+// Different from Membership — which is a student's active subscription
+// ─────────────────────────────────────────────────────────────────────────────
+
+model MembershipPlan {
+  id           String   @id @default(cuid())
+  schoolId     String
+  school       School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  name         String   // "Monthly BJJ", "Unlimited Access", "10-class Pack"
+  description  String?
+  price        Float
+  currency     String   @default("EUR")
+  billingCycle String   // "monthly", "quarterly", "annual", "one-off"
+  features     String[] // ["Unlimited classes", "Free Gi", "Competition team access"]
+  isPopular    Boolean  @default(false)  // Highlights the recommended plan
+  isActive     Boolean  @default(true)
+  sortOrder    Int      @default(0)
+
+  // Stripe (Phase 5)
+  stripePriceId String?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("membership_plans")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// REVIEW
+// Student reviews of schools
+// isVerified = true when the user has an active Membership at this school
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Review {
+  id          String   @id @default(cuid())
+  schoolId    String
+  school      School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  rating      Int      // 1–5
+  title       String?
+  text        String?
+  isVerified  Boolean  @default(false)  // Auto-set when user has active membership
+  isPublished Boolean  @default(true)
+
+  // School reply
+  reply       String?
+  repliedAt   DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("reviews")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // CLASS
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Class {
-  id           String   @id @default(cuid())
+  id           String      @id @default(cuid())
   schoolId     String
-  school       School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  name         String   // e.g. "BJJ Adults", "Kids No-Gi"
+  school       School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  name         String      // e.g. "BJJ Adults", "Kids No-Gi"
   description  String?
   disciplineId String?
-  level        String?  // Beginner, Intermediate, Advanced, All levels
-  duration     Int?     // minutes
+  level        String?     // Beginner, Intermediate, Advanced, All levels
+  duration     Int?        // minutes
   capacity     Int?
-  price        Float?   // Price per class (0 = included in membership)
-  currency     String   @default("GBP")
-  isTrial      Boolean  @default(false)
-  isActive     Boolean  @default(true)
+  price        Float?      // Price per class (0 = included in membership)
+  currency     String      @default("GBP")
+  isTrial      Boolean     @default(false)
+  isActive     Boolean     @default(true)
 
-  // Schedule stored as JSON: [{ dayOfWeek: 1, startTime: "18:00" }]
+  // Schedule: [{ dayOfWeek: 1, startTime: "18:00" }]
   schedule     Json?
+
+  // Instructor who teaches this class
+  instructorId String?
+  instructor   Instructor? @relation(fields: [instructorId], references: [id])
 
   bookings     Booking[]
 
@@ -204,27 +314,28 @@ model Class {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Booking {
-  id            String        @id @default(cuid())
-  userId        String
-  user          User          @relation(fields: [userId], references: [id])
-  classId       String
-  class         Class         @relation(fields: [classId], references: [id])
-  scheduledAt   DateTime
-  status        BookingStatus @default(PENDING)
-  paymentMethod PaymentMethod @default(STRIPE)
-  amountPaid    Float?
-  currency      String        @default("GBP")
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  classId         String
+  class           Class         @relation(fields: [classId], references: [id])
+  scheduledAt     DateTime
+  status          BookingStatus @default(PENDING)
+  paymentMethod   PaymentMethod @default(STRIPE)
+  amountPaid      Float?
+  currency        String        @default("GBP")
   stripePaymentId String?
-  notes         String?
+  notes           String?
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   @@map("bookings")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MEMBERSHIP
+// A student's active subscription at a school
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Membership {
@@ -240,8 +351,8 @@ model Membership {
   status        MembershipStatus @default(ACTIVE)
   startDate     DateTime
   endDate       DateTime?
-  stripeSubId   String?          // Stripe subscription ID if paid via Stripe
-  notes         String?          // For manual cash/transfer payments
+  stripeSubId   String?
+  notes         String?
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -257,7 +368,7 @@ model Camp {
   id          String   @id @default(cuid())
   schoolId    String?
   school      School?  @relation(fields: [schoolId], references: [id])
-  name        String   // e.g. "Roger Gracie Summer Camp Scotland 2026"
+  name        String
   description String?
   location    String?
   country     String?
@@ -269,8 +380,8 @@ model Camp {
   coverUrl    String?
   isPublished Boolean  @default(false)
 
-  // Instructors (stored as JSON array of names/roles for flexibility)
-  instructors Json?    // [{ name: "Roger Gracie", role: "Head Instructor" }]
+  // Instructors as JSON: [{ name: "Roger Gracie", role: "Head Instructor" }]
+  instructors Json?
 
   bookings    CampBooking[]
 
