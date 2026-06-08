@@ -105,9 +105,7 @@ function SchoolQuickView({ school, onClose }: { school: Academy; onClose: () => 
       {/* Sheet / Modal */}
       <div
         onClick={e => e.stopPropagation()}
-        className="relative w-full md:w-[680px] md:max-w-[92vw] bg-white rounded-t-3xl md:rounded-3xl shadow-2xl
-                   max-h-[85vh] md:max-h-[90vh] overflow-y-auto
-                   animate-[slideUp_.28s_cubic-bezier(.22,1,.36,1)] md:animate-[scaleIn_.2s_ease]"
+        className="relative w-full md:w-[680px] md:max-w-[92vw] bg-white rounded-t-3xl md:rounded-3xl shadow-2xl max-h-[85vh] md:max-h-[90vh] overflow-y-auto"
         style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" }}
       >
         {/* Drag handle (mobile) */}
