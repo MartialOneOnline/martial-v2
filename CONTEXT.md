@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 18 completada ✅ — DB estructura completa + Roger Gracie Málaga en producción + Explore conectado a datos reales
+**Estado:** Sesión 19 completada ✅ — School public page conectada a DB real (clases, planes, instructores)
 
 ---
 
@@ -204,7 +204,7 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 
 ## Próximos pasos
 
-1. **School public page** — `/schools/[slug]` con datos reales de DB
+1. **School public page — diseño** — mejorar UI/UX de `/school/[slug]` (Figma o iteración directa)
 2. **LoginModal** — popup en homepage con SSO + Email
 3. **SSO OAuth** — configurar Google en Supabase
 4. **Homepage** — ajustes finales diseño AI Studio → Next.js
@@ -302,6 +302,15 @@ Prototipo movido a apps/prototype/ en el monorepo
 - **Payments**: Transactions + Subscriptions con drawers de entrada manual
 - **School section**: 7 páginas (Leads, Store, Curriculum, Affiliates, Staff, Waivers, Gradings)
 - **Users page**: tabla completa estilo NZZL
+
+### Sesión 19 — 2026-06-08 ✅
+- **School public page** (`/school/[slug]`): server component con datos reales de DB
+- Clases con horario real de V1 (timetable.csv parseado)
+- 11 membership plans insertados (2 privados con isActive=false)
+- Instructores Pablo Cabo (4th degree) + Jose Luis Montiel (1st degree)
+- Prisma client generado dentro de `apps/web/lib/prisma-client`
+- DATABASE_URL configurado en `apps/web/.env.local`
+- Commits: 0c0b446, 13916b9
 
 ### Sesión 18 — 2026-06-08 ✅
 - **DB Strategy Review** — documento revisado, decisión confirmada: V1 solo como fuente de migración
