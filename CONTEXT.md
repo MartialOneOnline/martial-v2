@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 16 completada ✅ — Dashboard UI completo (todas las páginas)
+**Estado:** Sesión 18 completada ✅ — DB estructura completa + Roger Gracie Málaga en producción + Explore conectado a datos reales
 
 ---
 
@@ -197,21 +197,21 @@ prisma.config.ts
 apps/api/src/lib/prisma.ts
 ```
 
-Modelos: `User`, `School`, `Role`  
-Tablas en Supabase: `users`, `schools`
+Modelos: `User`, `School`, `Discipline`, `SchoolDiscipline`, `Instructor`, `MembershipPlan`, `Review`, `Class`, `Booking`, `Membership`, `Camp`, `CampBooking`, `SchoolMember`, `SchoolClaim`, `Partner`
+Tablas en Supabase: todas sincronizadas con `prisma db push`
 
 ---
 
 ## Próximos pasos
 
-1. **LoginModal** — popup en homepage con SSO + Email
-2. **SSO OAuth** — configurar Google en Supabase
-3. **Homepage** — ajustes finales diseño AI Studio → Next.js
-4. **Explore** — escuelas reales desde DB
-5. **School public page** — perfil público de cada escuela
-6. **API deploy** — Railway o Render
-7. **Dominio propio** — conectar app.martialapp.online a Vercel
-8. **Conectar dashboard a datos reales** — reemplazar mocks por API calls
+1. **School public page** — `/schools/[slug]` con datos reales de DB
+2. **LoginModal** — popup en homepage con SSO + Email
+3. **SSO OAuth** — configurar Google en Supabase
+4. **Homepage** — ajustes finales diseño AI Studio → Next.js
+5. **API deploy** — Railway o Render
+6. **Dominio propio** — conectar app.martialapp.online a Vercel
+7. **Conectar dashboard a datos reales** — reemplazar mocks por API calls
+8. **Importar más escuelas** — usar seed-schools.xlsx + import-from-v1.mjs
 
 ---
 
@@ -302,6 +302,16 @@ Prototipo movido a apps/prototype/ en el monorepo
 - **Payments**: Transactions + Subscriptions con drawers de entrada manual
 - **School section**: 7 páginas (Leads, Store, Curriculum, Affiliates, Staff, Waivers, Gradings)
 - **Users page**: tabla completa estilo NZZL
+
+### Sesión 18 — 2026-06-08 ✅
+- **DB Strategy Review** — documento revisado, decisión confirmada: V1 solo como fuente de migración
+- **Schema expandido**: `SchoolMember` + `SchoolClaim` + enums `SchoolMemberRole`, `SchoolMemberStatus`, `ClaimStatus`
+- **prisma db push** — schema sincronizado con Supabase (nueva contraseña configurada)
+- **seed.ts** — Roger Gracie Málaga insertado con datos reales de V1: coords, email, web, Instagram, teléfono, disciplinas (BJJ + Grappling), 9 facilities, instructores Pablo Cabo (4th degree) + Jose Luis Montiel (1st degree)
+- **`scripts/seed-schools.xlsx`** — Excel con 3 pestañas (Schools, Instructors, Disciplines) para futuros imports
+- **`GET /api/schools`** — API route Next.js con filtros q, city, discipline
+- **Explore** — conectado a DB real, Roger Gracie Málaga aparece primero con datos reales
+- Commit: 7c0af22
 
 ### Sesión 16 — 2026-06-05 ✅
 - **Notifications page** (`/dashboard/notifications`): preferencias y listado
