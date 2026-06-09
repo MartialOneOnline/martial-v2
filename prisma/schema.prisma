@@ -24,10 +24,10 @@ enum Role {
 }
 
 enum SchoolStatus {
-  UNVERIFIED  // Imported from Vonsel, not confirmed
-  CLAIMED     // Academy signed up and confirmed listing
-  VERIFIED    // Stripe connected, fully active
-  PARTNER     // Roger Gracie / Buchecha affiliated
+  UNVERIFIED   // Imported/seeded, not yet confirmed by owner
+  CLAIMED      // Owner signed up and confirmed listing
+  VERIFIED     // Stripe connected, fully operational
+  PARTNER      // Affiliated (Roger Gracie, Checkmat, etc.) — premium listing
   SUSPENDED
 }
 
@@ -35,25 +35,28 @@ enum SchoolSource {
   VONSEL          // Imported via Vonsel CSV
   MANUAL          // Added by Superadmin
   SELF_REGISTERED // Academy registered themselves
+  AFFILIATE       // Added via affiliation import (e.g. Roger Gracie Association)
 }
 
 enum PaymentMethod {
   STRIPE
   CASH
   BANK_TRANSFER
+  DIRECT_DEBIT
+  OTHER
 }
 
 enum SchoolMemberRole {
   OWNER
   INSTRUCTOR
   STUDENT
-  LEAD        // Interested but not yet a member
 }
 
 enum SchoolMemberStatus {
   ACTIVE
   INACTIVE
-  PENDING
+  PENDING     // Trial or awaiting approval
+  FROZEN      // Paused by student (injury, holiday)
   ARCHIVED
 }
 
@@ -67,7 +70,8 @@ enum BookingStatus {
   PENDING
   CONFIRMED
   CANCELLED
-  COMPLETED
+  COMPLETED   // Class happened; see attendedAt for check-in timestamp
+  NO_SHOW
 }
 
 enum MembershipStatus {
@@ -75,6 +79,180 @@ enum MembershipStatus {
   PAUSED
   CANCELLED
   EXPIRED
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  TRIAL_BOOKED
+  CONVERTED   // Became a SchoolMember
+  LOST
+}
+
+enum LeadSource {
+  WEBSITE
+  INSTAGRAM
+  FACEBOOK
+  WALK_IN
+  REFERRAL
+  PHONE
+  OTHER
+}
+
+enum EventType {
+  SEMINAR
+  COMPETITION
+  OPEN_MAT
+  WORKSHOP
+  SOCIAL
+  CAMP
+  OTHER
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum TransactionCategory {
+  MEMBERSHIP
+  CLASS_BOOKING
+  PRODUCT_SALE
+  SALARY
+  RENT
+  EQUIPMENT
+  MARKETING
+  OTHER
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AFFILIATION
+// Martial arts organizations / associations that affiliate academies
+// First use case: Roger Gracie Association (~50 academies worldwide)
+// Can have a content platform (e.g. Roger Gracie TV)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Affiliation {
+  id          String  @id @default(cuid())
+  name        String  // "Roger Gracie Association"
+  slug        String  @unique // "roger-gracie"
+  description String?
+  logoUrl     String?
+  website     String?
+  instagram   String?
+  country     String? // HQ country
+
+  // Optional link to content platform (e.g. Roger Gracie TV)
+  // Resolved via ContentPlatform.affiliationId — no FK here to avoid circular
+  // Access: affiliation.contentPlatforms
+
+  schools         School[]
+  contentPlatforms ContentPlatform[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("affiliations")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONTENT PLATFORM  (Roger Gracie TV, future: Checkmat TV, etc.)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ContentPlatform {
+  id            String      @id @default(cuid())
+  affiliationId String
+  affiliation   Affiliation @relation(fields: [affiliationId], references: [id], onDelete: Cascade)
+
+  name        String  // "Roger Gracie TV"
+  slug        String  @unique // "rg-tv"
+  description String?
+  logoUrl     String?
+  bannerUrl   String?
+  isActive    Boolean @default(true)
+
+  series       ContentSeries[]
+  accesses     ContentAccess[]
+  membershipPlans MembershipPlan[] // Plans that include access to this platform
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("content_platforms")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONTENT SERIES  (e.g. "BJJ Fundamentals", "Guard Passing Masterclass")
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ContentSeries {
+  id          String          @id @default(cuid())
+  platformId  String
+  platform    ContentPlatform @relation(fields: [platformId], references: [id], onDelete: Cascade)
+
+  title        String
+  description  String?
+  level        String?  // "Beginner", "Intermediate", "Advanced", "All levels"
+  thumbnailUrl String?
+  sortOrder    Int     @default(0)
+  isPublished  Boolean @default(false)
+
+  videos      ContentVideo[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("content_series")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONTENT VIDEO  (individual lesson/video within a series)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ContentVideo {
+  id        String        @id @default(cuid())
+  seriesId  String
+  series    ContentSeries @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+
+  title        String
+  description  String?
+  durationMin  Int?     // minutes
+  videoUrl     String?  // Vimeo / YouTube / S3 signed URL
+  thumbnailUrl String?
+  sortOrder    Int     @default(0)
+  isPublished  Boolean @default(false)
+  isFreePreview Boolean @default(false) // Visible without subscription
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("content_videos")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONTENT ACCESS
+// Granted when a user activates a Membership that includes a ContentPlatform
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ContentAccess {
+  id          String          @id @default(cuid())
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platformId  String
+  platform    ContentPlatform @relation(fields: [platformId], references: [id], onDelete: Cascade)
+  membershipId String          @unique
+  membership  Membership      @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+
+  startDate   DateTime
+  endDate     DateTime?  // null = active while membership is active
+  isActive    Boolean    @default(true)
+  revokedAt   DateTime?  // set when membership expires or is cancelled
+
+  @@unique([userId, platformId]) // one active access per platform per user
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("content_accesses")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -86,6 +264,7 @@ model User {
   email          String   @unique
   name           String?
   phone          String?
+  dateOfBirth    DateTime?
   avatarUrl      String?
   supabaseAuthId String?  @unique @db.Uuid
   role           Role     @default(STUDENT)
@@ -97,13 +276,20 @@ model User {
   // Schools this user claimed ownership of
   claimedSchools School[] @relation("SchoolClaimer")
 
-  // Bookings, memberships and reviews
-  bookings       Booking[]
-  memberships    Membership[]
-  campBookings   CampBooking[]
-  reviews        Review[]      // Reviews written by this user
-  schoolMembers  SchoolMember[]
-  schoolClaims   SchoolClaim[]
+  // Relations
+  bookings         Booking[]
+  memberships      Membership[]
+  contentAccesses  ContentAccess[]
+  campBookings     CampBooking[]
+  reviews          Review[]
+  schoolMembers    SchoolMember[]
+  schoolClaims     SchoolClaim[]
+  gradings         Grading[]       @relation("GradingStudent")
+  gradingsGiven    Grading[]       @relation("GradingPromoter")
+  leads            Lead[]          @relation("LeadConvertedUser")
+  leadNotes        LeadNote[]
+  transactions     Transaction[]   @relation("TransactionUser")
+  userWaivers      UserWaiver[]
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -116,9 +302,9 @@ model User {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Discipline {
-  id      String              @id @default(cuid())
-  name    String              @unique // BJJ, MMA, Muay Thai, Boxing, Wrestling, Judo, Karate, etc.
-  slug    String              @unique
+  id      String             @id @default(cuid())
+  name    String             @unique // "BJJ", "MMA", "Muay Thai", etc.
+  slug    String             @unique
   schools SchoolDiscipline[]
 
   @@map("disciplines")
@@ -145,6 +331,10 @@ model School {
   status      SchoolStatus @default(UNVERIFIED)
   source      SchoolSource @default(SELF_REGISTERED)
 
+  // Affiliation (Roger Gracie, Checkmat, Alliance, etc.)
+  affiliationId   String?
+  affiliation     Affiliation? @relation(fields: [affiliationId], references: [id])
+
   // Location
   country     String?
   city        String?
@@ -165,40 +355,37 @@ model School {
   tiktok      String?
 
   // Profile
-  description String?
-  tagline     String?   // Short one-liner: "Elite BJJ training in the heart of Málaga"
-  logoUrl     String?
-  coverUrl    String?
-  photos      String[]  // Array of image URLs (Cloudinary)
+  description     String?
+  tagline         String?  // "Elite BJJ training in the heart of Málaga"
+  logoUrl         String?
+  coverUrl        String?
+  photos          String[] // Array of image URLs
 
-  // Public listing extras
-  priceFrom       Float?    // Lowest monthly price shown on listing card
-  hasFreeTrialCls Boolean   @default(false)
-  facilities      String[]  // ["Tatami mats 200m²", "Showers", "Pro shop", "Parking"]
+  // Public listing
+  priceFrom       Float?
+  hasFreeTrialCls Boolean  @default(false)
+  facilities      String[]
   foundedYear     Int?
-  totalStudents   Int?      // Manually set by school owner (approximate)
+  totalStudents   Int?
 
-  // Affiliation
-  affiliationName String?   // "Roger Gracie Academy", "Checkmat", "Alliance"
-  affiliationUrl  String?
-
-  // Google / Vonsel data
-  googleRating   Float?
-  googleReviews  Int?
-  googlePlaceId  String?
+  // Google
+  googleRating    Float?
+  googleReviews   Int?
+  googlePlaceId   String?
 
   // Stripe
   stripeAccountId String?
 
   // Ownership
-  claimedBy      User?            @relation("SchoolClaimer", fields: [claimedById], references: [id])
-  claimedById    String?
-  claimedAt      DateTime?
+  claimedBy    User?     @relation("SchoolClaimer", fields: [claimedById], references: [id])
+  claimedById  String?
+  claimedAt    DateTime?
 
   // Relations
   staff           User[]             @relation("SchoolStaff")
   disciplines     SchoolDiscipline[]
   classes         Class[]
+  events          Event[]
   memberships     Membership[]
   camps           Camp[]
   instructors     Instructor[]
@@ -206,30 +393,31 @@ model School {
   reviews         Review[]
   members         SchoolMember[]
   claims          SchoolClaim[]
+  gradings        Grading[]
+  leads           Lead[]
+  waivers         Waiver[]
+  transactions    Transaction[]
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@map("schools")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // INSTRUCTOR
-// Public-facing instructor profile — separate from User (internal login)
-// An instructor can exist without a Martial account (important for imported schools)
+// Public-facing profile — can exist without a Martial user account
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Instructor {
   id          String   @id @default(cuid())
   schoolId    String
   school      School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-
-  // Optional link to a User account
-  userId      String?  @unique
+  userId      String?  @unique // Optional link to User account
 
   name        String
-  role        String   // "Head Instructor", "Instructor", "Assistant", "Kids Coach"
-  belt        String?  // Free text: "Black Belt", "Brown Belt", "4th Dan" — flexible for all martial arts
+  role        String   // "Head Instructor", "Instructor", "Kids Coach"
+  belt        String?  // "Black Belt 4th Degree" — free text, works for all arts
   bio         String?
   photoUrl    String?
   instagram   String?
@@ -238,6 +426,7 @@ model Instructor {
   sortOrder   Int      @default(0)
 
   classes     Class[]
+  events      Event[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -247,8 +436,7 @@ model Instructor {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MEMBERSHIP PLAN
-// The catalogue of plans a school offers publicly (e.g. on their profile page)
-// Different from Membership — which is a student's active subscription
+// Catalogue of plans a school offers publicly
 // ─────────────────────────────────────────────────────────────────────────────
 
 model MembershipPlan {
@@ -256,18 +444,28 @@ model MembershipPlan {
   schoolId     String
   school       School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
-  name         String   // "Monthly BJJ", "Unlimited Access", "10-class Pack"
+  name         String
   description  String?
   price        Float
   currency     String   @default("EUR")
-  billingCycle String   // "monthly", "quarterly", "annual", "one-off"
-  features     String[] // ["Unlimited classes", "Free Gi", "Competition team access"]
-  isPopular    Boolean  @default(false)  // Highlights the recommended plan
+  billingCycle String   // "monthly" | "quarterly" | "annual" | "one-off"
+  features     String[]
+  isPopular    Boolean  @default(false)
   isActive     Boolean  @default(true)
   sortOrder    Int      @default(0)
 
+  // Class-limited plans (e.g. "Bono 8 clases")
+  // null = unlimited classes included
+  classLimit   Int?
+
+  // Content platform access (e.g. Roger Gracie TV)
+  contentPlatformId String?
+  contentPlatform   ContentPlatform? @relation(fields: [contentPlatformId], references: [id])
+
   // Stripe (Phase 5)
   stripePriceId String?
+
+  memberships  Membership[] // Memberships created from this plan
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -277,8 +475,6 @@ model MembershipPlan {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // REVIEW
-// Student reviews of schools
-// isVerified = true when the user has an active Membership at this school
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Review {
@@ -291,10 +487,9 @@ model Review {
   rating      Int      // 1–5
   title       String?
   text        String?
-  isVerified  Boolean  @default(false)  // Auto-set when user has active membership
+  isVerified  Boolean  @default(false) // true when user has active membership
   isPublished Boolean  @default(true)
 
-  // School reply
   reply       String?
   repliedAt   DateTime?
 
@@ -306,27 +501,28 @@ model Review {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CLASS
+// Recurring class definition. Schedule stored as JSON array.
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Class {
-  id           String      @id @default(cuid())
+  id           String     @id @default(cuid())
   schoolId     String
-  school       School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  name         String      // e.g. "BJJ Adults", "Kids No-Gi"
+  school       School     @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  name         String
   description  String?
   disciplineId String?
-  level        String?     // Beginner, Intermediate, Advanced, All levels
-  duration     Int?        // minutes
+  level        String?    // "Beginner" | "Intermediate" | "Advanced" | "All levels"
+  duration     Int?       // minutes
   capacity     Int?
-  price        Float?      // Price per class (0 = included in membership)
-  currency     String      @default("GBP")
-  isTrial      Boolean     @default(false)
-  isActive     Boolean     @default(true)
+  price        Float?     // 0 = included in membership
+  currency     String     @default("EUR")
+  isTrial      Boolean    @default(false)
+  isActive     Boolean    @default(true)
 
-  // Schedule: [{ dayOfWeek: 1, startTime: "18:00" }]
+  // Weekly schedule: [{ dayOfWeek: 1, startTime: "18:00", endTime: "19:30" }]
   schedule     Json?
 
-  // Instructor who teaches this class
   instructorId String?
   instructor   Instructor? @relation(fields: [instructorId], references: [id])
 
@@ -339,7 +535,42 @@ model Class {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// EVENT
+// One-off events: seminars, competitions, open mats, social events
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Event {
+  id          String    @id @default(cuid())
+  schoolId    String
+  school      School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+  type        EventType @default(OTHER)
+  location    String?   // May differ from school address
+  startAt     DateTime
+  endAt       DateTime?
+  capacity    Int?
+  price       Float     @default(0)
+  currency    String    @default("EUR")
+  coverUrl    String?
+  isPublished Boolean   @default(false)
+  externalUrl String?   // e.g. competition registration link
+
+  instructorId String?
+  instructor   Instructor? @relation(fields: [instructorId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("events")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // BOOKING
+// A student's reservation for a specific class occurrence.
+// attendedAt = check-in timestamp (null = not yet / no-show)
+// membershipId = which active membership covers this booking
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Booking {
@@ -348,11 +579,17 @@ model Booking {
   user            User          @relation(fields: [userId], references: [id])
   classId         String
   class           Class         @relation(fields: [classId], references: [id])
+
+  // Which membership covers this booking (optional: drop-ins can be paid directly)
+  membershipId    String?
+  membership      Membership?   @relation(fields: [membershipId], references: [id])
+
   scheduledAt     DateTime
+  attendedAt      DateTime?     // null = pending / no-show; set = checked in
   status          BookingStatus @default(PENDING)
   paymentMethod   PaymentMethod @default(STRIPE)
   amountPaid      Float?
-  currency        String        @default("GBP")
+  currency        String        @default("EUR")
   stripePaymentId String?
   notes           String?
 
@@ -364,7 +601,8 @@ model Booking {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MEMBERSHIP
-// A student's active subscription at a school
+// A student's active subscription at a school.
+// classesUsed tracks consumption for class-limited plans.
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Membership {
@@ -373,15 +611,29 @@ model Membership {
   user          User             @relation(fields: [userId], references: [id])
   schoolId      String
   school        School           @relation(fields: [schoolId], references: [id])
-  planName      String           // e.g. "Monthly BJJ", "Unlimited"
+
+  // Link to the plan that originated this membership (optional for legacy/manual)
+  planId        String?
+  plan          MembershipPlan?  @relation(fields: [planId], references: [id])
+
+  planName      String           // Denormalised name for display / history
   price         Float
-  currency      String           @default("GBP")
+  currency      String           @default("EUR")
   paymentMethod PaymentMethod    @default(STRIPE)
   status        MembershipStatus @default(ACTIVE)
   startDate     DateTime
   endDate       DateTime?
+
+  // For class-limited plans (bono 8 clases, etc.)
+  classesUsed   Int              @default(0)
+
   stripeSubId   String?
   notes         String?
+
+  // Content platform access granted by this membership
+  contentAccess ContentAccess?
+
+  bookings      Booking[]
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -390,13 +642,14 @@ model Membership {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CAMP (Martial Camps)
+// CAMP  (Martial Camps — multi-day training camps)
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Camp {
   id          String   @id @default(cuid())
   schoolId    String?
   school      School?  @relation(fields: [schoolId], references: [id])
+
   name        String
   description String?
   location    String?
@@ -405,11 +658,11 @@ model Camp {
   endDate     DateTime
   capacity    Int?
   price       Float
-  currency    String   @default("GBP")
+  currency    String   @default("EUR")
   coverUrl    String?
   isPublished Boolean  @default(false)
 
-  // Instructors as JSON: [{ name: "Roger Gracie", role: "Head Instructor" }]
+  // Instructors as JSON (may include external guests)
   instructors Json?
 
   bookings    CampBooking[]
@@ -428,7 +681,7 @@ model CampBooking {
   user            User          @relation(fields: [userId], references: [id])
   status          BookingStatus @default(PENDING)
   amountPaid      Float?
-  currency        String        @default("GBP")
+  currency        String        @default("EUR")
   stripePaymentId String?
 
   createdAt       DateTime @default(now())
@@ -439,8 +692,8 @@ model CampBooking {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SCHOOL MEMBER
-// Relationship between a user and a school with explicit role + status
-// Replaces the simple User.schoolId for multi-school and student tracking
+// Student/instructor relationship with a school.
+// Tracks belt rank, emergency contact, medical info.
 // ─────────────────────────────────────────────────────────────────────────────
 
 model SchoolMember {
@@ -453,7 +706,17 @@ model SchoolMember {
   role      SchoolMemberRole   @default(STUDENT)
   status    SchoolMemberStatus @default(PENDING)
   joinedAt  DateTime?
-  notes     String?
+
+  // Belt / rank (current)
+  belt      String?    // "White Belt", "Blue Belt", "Purple Belt"
+  beltDegree Int?      // stripes/degrees: 0–4
+  beltDate  DateTime?  // date current belt was awarded
+
+  // Emergency & medical
+  emergencyContact String?  // "María García — +34 666 123 456"
+  medicalNotes     String?  // "Right knee injury, penicillin allergy"
+
+  notes     String?   // Internal school notes
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -464,8 +727,6 @@ model SchoolMember {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SCHOOL CLAIM
-// Ownership verification audit trail
-// When a school is imported (UNVERIFIED), owners can submit a claim
 // ─────────────────────────────────────────────────────────────────────────────
 
 model SchoolClaim {
@@ -476,9 +737,9 @@ model SchoolClaim {
   user       User        @relation(fields: [userId], references: [id])
 
   status     ClaimStatus @default(PENDING)
-  evidence   String?     // URL or description of proof (website, email, document)
-  notes      String?     // Internal Martial notes
-  reviewedBy String?     // Superadmin user ID who reviewed
+  evidence   String?
+  notes      String?
+  reviewedBy String?
   reviewedAt DateTime?
 
   createdAt  DateTime @default(now())
@@ -488,14 +749,233 @@ model SchoolClaim {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PARTNER (Roger Gracie, Buchecha, etc.)
+// GRADING
+// Belt promotion records. Maps V1 promote_students + studnet_grading_notes.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Grading {
+  id           String   @id @default(cuid())
+  schoolId     String
+  school       School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  userId       String
+  user         User     @relation("GradingStudent", fields: [userId], references: [id])
+
+  promotedById String?
+  promotedBy   User?    @relation("GradingPromoter", fields: [promotedById], references: [id])
+
+  fromBelt     String?  // "White Belt"
+  toBelt       String   // "Blue Belt"
+  toDegree     Int?     // 0 = plain belt, 1–4 = stripes/degrees
+  gradedAt     DateTime
+  notes        String?
+  isPublic     Boolean  @default(true) // show on student profile
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("gradings")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LEAD + LEAD NOTE
+// Prospective students. Maps V1 leads (865 rows) + lead_notes (36 rows).
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Lead {
+  id       String     @id @default(cuid())
+  schoolId String
+  school   School     @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  name         String
+  email        String?
+  phone        String?
+  source       LeadSource @default(OTHER)
+  status       LeadStatus @default(NEW)
+  message      String?    // Initial enquiry message
+  interestedIn String?    // "BJJ Adults", "Kids Class", "Private Lessons"
+
+  // If they converted to a member
+  convertedUserId String?
+  convertedUser   User?    @relation("LeadConvertedUser", fields: [convertedUserId], references: [id])
+  convertedAt     DateTime?
+
+  notes       LeadNote[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("leads")
+}
+
+model LeadNote {
+  id       String @id @default(cuid())
+  leadId   String
+  lead     Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+
+  text      String
+  createdAt DateTime @default(now())
+
+  @@map("lead_notes")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WAIVER + USER WAIVER
+// Legal agreements. Maps V1 user_waivers (48 rows).
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Waiver {
+  id        String  @id @default(cuid())
+  schoolId  String
+  school    School  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  title     String   // "Liability Waiver & Informed Consent"
+  content   String   // HTML or Markdown legal text
+  version   String   @default("1.0")
+  isActive  Boolean  @default(true)
+
+  signedBy  UserWaiver[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("waivers")
+}
+
+model UserWaiver {
+  id        String  @id @default(cuid())
+  waiverId  String
+  waiver    Waiver  @relation(fields: [waiverId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+
+  signedAt  DateTime @default(now())
+  ipAddress String?
+  signature String?  // base64 or typed name
+
+  @@unique([waiverId, userId])
+  @@map("user_waivers")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TRANSACTION
+// School financial records: income + expenses in one table.
+// Maps V1 expenses (119) + incomes (6) + orders (43).
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Transaction {
+  id          String              @id @default(cuid())
+  schoolId    String
+  school      School              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  type        TransactionType
+  category    TransactionCategory @default(OTHER)
+  amount      Float
+  currency    String              @default("EUR")
+  description String?
+  date        DateTime
+
+  // Optional links to source record
+  membershipId String?
+  bookingId    String?
+  userId       String?
+  user         User?   @relation("TransactionUser", fields: [userId], references: [id])
+
+  // Stripe (Phase 5)
+  stripePaymentIntentId String?
+
+  notes       String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("transactions")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STORE  (Phase future — schema defined, not connected yet)
+// Maps V1 products (15) + orders (43)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ProductCategory {
+  id        String    @id @default(cuid())
+  schoolId  String
+  name      String
+  slug      String
+
+  products  Product[]
+
+  @@unique([schoolId, slug])
+  @@map("product_categories")
+}
+
+model Product {
+  id          String          @id @default(cuid())
+  schoolId    String
+  categoryId  String?
+  category    ProductCategory? @relation(fields: [categoryId], references: [id])
+
+  name        String
+  description String?
+  price       Float
+  currency    String   @default("EUR")
+  stock       Int?     // null = unlimited (e.g. digital products)
+  imageUrl    String?
+  isActive    Boolean  @default(true)
+
+  orderItems  OrderItem[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("products")
+}
+
+model Order {
+  id        String  @id @default(cuid())
+  schoolId  String
+  userId    String
+
+  status    String  @default("PENDING") // PENDING | PAID | CANCELLED | REFUNDED
+  total     Float
+  currency  String  @default("EUR")
+
+  stripePaymentIntentId String?
+
+  items     OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id         String  @id @default(cuid())
+  orderId    String
+  order      Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product @relation(fields: [productId], references: [id])
+
+  quantity   Int
+  unitPrice  Float
+  currency   String @default("EUR")
+
+  @@map("order_items")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PARTNER  (Brand ambassadors: Roger Gracie the person, Buchecha, etc.)
+// Different from Affiliation (the organization)
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Partner {
   id          String   @id @default(cuid())
   name        String   // "Roger Gracie", "Marcus Almeida Buchecha"
   slug        String   @unique
-  title       String?  // "10x World Champion", "13x World Champion"
+  title       String?  // "10x World Champion"
   bio         String?
   photoUrl    String?
   instagram   String?

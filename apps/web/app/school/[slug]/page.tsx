@@ -11,9 +11,10 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
   const school = await prisma.school.findUnique({
     where: { slug },
     include: {
-      disciplines: { include: { discipline: true } },
-      instructors: { where: { isActive: true }, orderBy: { sortOrder: 'asc' } },
-      classes: { where: { isActive: true }, orderBy: { name: 'asc' } },
+      affiliation:    { select: { id: true, name: true, slug: true, logoUrl: true } },
+      disciplines:    { include: { discipline: true } },
+      instructors:    { where: { isActive: true }, orderBy: { sortOrder: 'asc' } },
+      classes:        { where: { isActive: true }, orderBy: { name: 'asc' } },
       membershipPlans: {
         where: { isActive: true },
         orderBy: [{ isPopular: 'desc' }, { price: 'asc' }],
@@ -79,9 +80,9 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
             <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-3">
                 <h1 className="text-3xl font-bold text-[#061229] tracking-tight uppercase">{school.name}</h1>
-                {school.affiliationName && (
+                {school.affiliation && (
                   <span className="text-xs font-semibold uppercase tracking-wide bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1 rounded-full">
-                    {school.affiliationName}
+                    {school.affiliation.name}
                   </span>
                 )}
               </div>
