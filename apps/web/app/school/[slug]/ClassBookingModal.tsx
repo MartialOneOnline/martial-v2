@@ -240,7 +240,7 @@ export default function ClassBookingModal({ session, schoolSlug, plans, onClose 
           )}
 
           {/* Has membership — confirm booking */}
-          {auth.state === 'has_membership' && bookingState === 'idle' && (
+          {auth.state === 'has_membership' && bookingState !== 'success' && bookingState !== 'error' && (
             <div className="space-y-4">
               <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
                 <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { prisma } from '../../../../../lib/db'
+import { prisma } from '@/lib/db'
 
 export async function GET(
   req: NextRequest,

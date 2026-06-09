@@ -60,7 +60,7 @@ export default function WeeklyTimetable({
     if (!cls.schedule?.length) continue
     for (const entry of cls.schedule) {
       if (!dayMap[entry.dayOfWeek]) dayMap[entry.dayOfWeek] = []
-      dayMap[entry.dayOfWeek].push({
+      ;(dayMap[entry.dayOfWeek] as SessionItem[]).push({
         classId: cls.id,
         name: cls.name,
         startTime: entry.startTime,
@@ -70,7 +70,7 @@ export default function WeeklyTimetable({
     }
   }
   for (const day of Object.keys(dayMap)) {
-    dayMap[Number(day)].sort((a, b) => a.startTime.localeCompare(b.startTime))
+    ;(dayMap[Number(day)] as SessionItem[]).sort((a, b) => a.startTime.localeCompare(b.startTime))
   }
 
   const sessions = dayMap[activeDay] ?? []

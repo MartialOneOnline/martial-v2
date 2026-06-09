@@ -286,6 +286,7 @@ async function main() {
       billingCycle: 'one-off',
       features: ['7 días gratis', 'Sin compromiso', 'Todas las clases'],
       isPopular: false,
+      isActive: false, // private — not shown publicly
     },
     {
       id: 'rgm-prueba-dia',
@@ -295,6 +296,7 @@ async function main() {
       billingCycle: 'one-off',
       features: ['1 día gratis', 'Sin compromiso'],
       isPopular: false,
+      isActive: false, // private — not shown publicly
     },
   ]
 
@@ -312,7 +314,7 @@ async function main() {
         billingCycle: plan.billingCycle,
         features: plan.features,
         isPopular: plan.isPopular,
-        isActive: true,
+        isActive: (plan as any).isActive ?? true,
       },
     })
   }

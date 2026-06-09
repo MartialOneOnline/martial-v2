@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { prisma } from '../../../lib/db'
+import { prisma } from '@/lib/db'
 import SchoolCarousel from './SchoolCarousel'
 import WeeklyTimetable from './WeeklyTimetable'
 import MembershipSection from './MembershipSection'
