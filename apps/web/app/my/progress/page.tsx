@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Award, User } from 'lucide-react'
+import Link from 'next/link'
+import { ChevronRight, User } from 'lucide-react'
 
 type SchoolMember = {
   id: string
@@ -23,27 +24,144 @@ type Grading = {
   promotedBy: { name: string | null } | null
 }
 
-const BELT_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  'White Belt':  { bg: '#F9FAFB', text: '#374151', border: '#D1D5DB' },
-  'Blue Belt':   { bg: '#EFF6FF', text: '#1D4ED8', border: '#BFDBFE' },
-  'Purple Belt': { bg: '#F5F3FF', text: '#6D28D9', border: '#DDD6FE' },
-  'Brown Belt':  { bg: '#FEF3C7', text: '#92400E', border: '#FDE68A' },
-  'Black Belt':  { bg: '#111827', text: '#FFFFFF', border: '#374151' },
+const BELT_COLORS: Record<string, string> = {
+  'White Belt':  '#D1D5DB',
+  'Blue Belt':   '#3B82F6',
+  'Purple Belt': '#8B5CF6',
+  'Brown Belt':  '#92400E',
+  'Black Belt':  '#1F2937',
 }
 
-function BeltStripe({ belt, degree }: { belt: string; degree?: number | null }) {
-  const colors = BELT_COLORS[belt] ?? { bg: '#F3F4F6', text: '#6B7280', border: '#E5E7EB' }
+function RankCard({ member, gradings }: { member: SchoolMember; gradings: Grading[] }) {
+  const belt = member.belt ?? 'White Belt'
+  const color = BELT_COLORS[belt] ?? '#9CA3AF'
+  const degree = member.beltDegree ?? 0
+  const progress = 0.75
+  const r = 52
+  const circ = 2 * Math.PI * r
+  const dash = circ * progress
+
+  const schoolGradings = gradings.filter(g => g.school.name === member.school.name)
+
   return (
-    <div
-      className="flex items-center gap-3 px-4 py-2.5 rounded-xl border font-semibold text-sm"
-      style={{ background: colors.bg, color: colors.text, borderColor: colors.border }}
-    >
-      <div className="w-6 h-2.5 rounded-sm border" style={{ background: colors.text === '#FFFFFF' ? '#374151' : colors.text, borderColor: colors.border, opacity: 0.3 }} />
-      {belt}
-      {!!degree && (
-        <div className="flex gap-1 ml-auto">
-          {Array.from({ length: degree }).map((_, i) => (
-            <div key={i} className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+    <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+      {/* School header */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-[#006197]/8 flex items-center justify-center overflow-hidden shrink-0">
+            {member.school.logoUrl
+              ? <img src={member.school.logoUrl} alt="" className="w-8 h-8 object-cover" />
+              : <span className="text-[#006197] font-bold text-sm">{member.school.name[0]}</span>
+            }
+          </div>
+          <div>
+            <p className="text-sm font-bold text-[#0D1B2A]">{member.school.name}</p>
+            <p className="text-xs text-[#006197] font-medium">Ranks</p>
+          </div>
+        </div>
+        <Link href={`/school/${member.school.slug}`} className="text-xs font-semibold text-[#006197] flex items-center gap-0.5 hover:underline">
+          View All <ChevronRight className="w-3.5 h-3.5" />
+        </Link>
+      </div>
+
+      <div className="px-5 py-5">
+        <div className="flex items-center gap-5">
+          {/* Donut */}
+          <div className="relative shrink-0">
+            <svg className="w-28 h-28 -rotate-90" viewBox="0 0 120 120">
+              <circle cx="60" cy="60" r={r} fill="none" stroke="#F0F1F3" strokeWidth="11" />
+              <circle
+                cx="60" cy="60" r={r}
+                fill="none"
+                stroke="#22C55E"
+                strokeWidth="11"
+                strokeDasharray={`${dash} ${circ - dash}`}
+                strokeLinecap="round"
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-2xl font-bold text-[#0D1B2A]">{Math.round(progress * 100)}%</span>
+              <span className="text-[10px] text-gray-400 text-center leading-tight">2 Classes<br />to go</span>
+            </div>
+          </div>
+
+          {/* Legend */}
+          <div className="flex-1 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-gray-500">Total Classes</span>
+              <span className="text-sm font-bold text-[#0D1B2A]">100</span>
+            </div>
+            {[
+              { label: 'Ready',        count: 12, color: '#22C55E' },
+              { label: 'Almost Ready', count: 10, color: '#F59E0B' },
+              { label: 'Not Ready',    count: 5,  color: '#EF4444' },
+            ].map(({ label, count, color: c }) => (
+              <div key={label} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: c }} />
+                  <span className="text-xs text-gray-500">{label}</span>
+                </div>
+                <span className="text-xs font-semibold text-[#006197]">{count} Classes</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Belt progression */}
+        {belt && (
+          <div className="mt-5 grid grid-cols-2 gap-3 items-center">
+            <div>
+              <p className="text-xs font-bold text-[#0D1B2A] mb-2">{belt}</p>
+              <div className="h-3 rounded-full overflow-hidden bg-gray-100">
+                <div className="h-full rounded-full" style={{ width: '65%', background: color }} />
+              </div>
+              <p className="text-[10px] text-gray-400 mt-1.5">
+                Last Grading &nbsp;
+                {member.beltDate
+                  ? new Date(member.beltDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                  : '—'}
+              </p>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="text-gray-300 text-lg mt-1">→</span>
+              <div className="flex-1">
+                <p className="text-xs font-bold text-[#0D1B2A] mb-2">{belt} {degree + 1} Stripe</p>
+                <div className="h-3 rounded-full overflow-hidden bg-gray-100">
+                  <div className="h-full rounded-full" style={{ width: '20%', background: color }} />
+                </div>
+                <p className="text-[10px] text-gray-400 mt-1.5">Next Grading &nbsp;—</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Grading history */}
+      {schoolGradings.length > 0 && (
+        <div className="border-t border-gray-50">
+          {schoolGradings.slice(0, 3).map((g, i) => (
+            <div
+              key={g.id}
+              className={`flex items-center gap-3 px-5 py-3.5 ${i < Math.min(schoolGradings.length, 3) - 1 ? 'border-b border-gray-50' : ''}`}
+            >
+              <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                <div className="w-3 h-3 rounded-full bg-amber-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-[#0D1B2A]">
+                  {g.fromBelt ? `${g.fromBelt} → ` : ''}{g.toBelt}
+                  {g.toDegree ? ` (${g.toDegree} stripe${g.toDegree !== 1 ? 's' : ''})` : ''}
+                </p>
+                {g.promotedBy?.name && (
+                  <p className="text-[11px] text-gray-400 mt-0.5 flex items-center gap-1">
+                    <User className="w-3 h-3" />{g.promotedBy.name}
+                  </p>
+                )}
+              </div>
+              <p className="text-[11px] text-gray-400 shrink-0">
+                {new Date(g.gradedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+              </p>
+            </div>
           ))}
         </div>
       )}
@@ -69,93 +187,65 @@ export default function MyProgressPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-10">
-        <h1 className="text-lg font-bold text-[#0D1B2A]">Progress</h1>
-        <p className="text-xs text-gray-400">Your belt ranks and grading history</p>
+      <div className="bg-white border-b border-gray-100 px-5 py-4 sticky top-0 z-10">
+        <h1 className="text-base font-bold text-[#0D1B2A]">Ranking</h1>
+        <p className="text-xs text-gray-400 mt-0.5">Belt progression & grading history</p>
       </div>
 
-      <div className="p-6 space-y-6 max-w-2xl">
+      <div className="px-4 py-5 space-y-4 max-w-2xl">
         {loading ? (
           <div className="flex items-center justify-center h-40">
-            <div className="w-6 h-6 border-2 border-[#006197] border-t-transparent rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-[#006197] border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : members.length === 0 ? (
+          <div className="bg-white border border-gray-100 rounded-2xl p-10 shadow-sm text-center">
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center mx-auto mb-3">
+              <div className="w-5 h-5 rounded-full bg-amber-300" />
+            </div>
+            <p className="text-sm font-semibold text-[#0D1B2A] mb-1">No rankings yet</p>
+            <p className="text-xs text-gray-400 mb-4">Join an academy to start tracking your belt progress</p>
+            <Link
+              href="/explore"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-xs font-semibold bg-[#006197] hover:bg-[#005580] transition-colors"
+            >
+              Find an academy
+            </Link>
           </div>
         ) : (
-          <>
-            {/* Current ranks per school */}
-            {members.length > 0 && (
-              <div className="space-y-3">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Current rank</p>
-                {members.map(m => (
-                  <div key={m.id} className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-9 h-9 rounded-xl bg-[#006197]/8 flex items-center justify-center overflow-hidden shrink-0">
-                        {m.school.logoUrl
-                          ? <img src={m.school.logoUrl} alt="" className="w-9 h-9 object-cover" />
-                          : <span className="text-[#006197] font-bold">{m.school.name[0]}</span>
-                        }
-                      </div>
-                      <p className="text-sm font-bold text-[#0D1B2A]">{m.school.name}</p>
+          members.map(m => (
+            <RankCard key={m.id} member={m} gradings={gradings} />
+          ))
+        )}
+
+        {/* All gradings timeline */}
+        {gradings.length > 0 && members.length > 1 && (
+          <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-50">
+              <p className="text-sm font-bold text-[#0D1B2A]">Full grading history</p>
+            </div>
+            <div className="relative">
+              <div className="absolute left-[37px] top-0 bottom-0 w-px bg-gray-100" />
+              <div className="divide-y divide-gray-50">
+                {gradings.map(g => (
+                  <div key={g.id} className="flex gap-4 px-5 py-4">
+                    <div className="w-8 h-8 rounded-full bg-amber-50 border-2 border-amber-100 flex items-center justify-center shrink-0 z-10">
+                      <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
                     </div>
-                    {m.belt
-                      ? <BeltStripe belt={m.belt} degree={m.beltDegree} />
-                      : <p className="text-xs text-gray-400 italic">No belt assigned yet</p>
-                    }
-                    {m.beltDate && (
-                      <p className="text-[11px] text-gray-400 mt-2">
-                        Awarded {new Date(m.beltDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    <div className="flex-1 min-w-0 pt-0.5">
+                      <p className="text-xs font-bold text-[#0D1B2A]">
+                        {g.fromBelt ? `${g.fromBelt} → ` : ''}{g.toBelt}
                       </p>
-                    )}
+                      <p className="text-[11px] text-gray-400 mt-0.5">{g.school.name}</p>
+                      {g.notes && <p className="text-[11px] text-gray-500 mt-1 italic">"{g.notes}"</p>}
+                    </div>
+                    <p className="text-[11px] text-gray-400 shrink-0 pt-0.5">
+                      {new Date(g.gradedAt).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
+                    </p>
                   </div>
                 ))}
               </div>
-            )}
-
-            {/* Grading timeline */}
-            {gradings.length > 0 ? (
-              <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Grading history</p>
-                <div className="relative">
-                  <div className="absolute left-[18px] top-0 bottom-0 w-px bg-gray-100" />
-                  <div className="space-y-4">
-                    {gradings.map((g, i) => (
-                      <div key={g.id} className="flex gap-4 relative">
-                        <div className="w-9 h-9 rounded-full bg-amber-50 border-2 border-amber-100 flex items-center justify-center shrink-0 z-10">
-                          <Award className="w-4 h-4 text-amber-500" />
-                        </div>
-                        <div className="flex-1 bg-white border border-gray-100 rounded-2xl shadow-sm p-4 min-w-0">
-                          <div className="flex items-start justify-between gap-2 mb-2">
-                            <div>
-                              <p className="text-xs font-bold text-[#0D1B2A]">
-                                {g.fromBelt ? `${g.fromBelt} → ` : ''}{g.toBelt}
-                                {g.toDegree ? ` (${g.toDegree} stripe${g.toDegree !== 1 ? 's' : ''})` : ''}
-                              </p>
-                              <p className="text-[11px] text-gray-400 mt-0.5">{g.school.name}</p>
-                            </div>
-                            <p className="text-[11px] text-gray-400 shrink-0">
-                              {new Date(g.gradedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                            </p>
-                          </div>
-                          {g.promotedBy?.name && (
-                            <p className="text-[11px] text-gray-400 flex items-center gap-1">
-                              <User className="w-3 h-3" /> Promoted by {g.promotedBy.name}
-                            </p>
-                          )}
-                          {g.notes && (
-                            <p className="text-xs text-gray-500 mt-2 italic">"{g.notes}"</p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="bg-white border border-gray-100 rounded-2xl p-10 shadow-sm text-center">
-                <Award className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-                <p className="text-sm text-gray-400">No gradings recorded yet</p>
-              </div>
-            )}
-          </>
+            </div>
+          </div>
         )}
       </div>
     </div>

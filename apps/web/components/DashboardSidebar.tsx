@@ -3,13 +3,14 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, Users, Calendar, CreditCard, Award,
   BarChart2, Settings, Bell, HelpCircle, LogOut,
-  ShoppingBag, School, Flame, X, ChevronRight, ChevronDown,
+  ShoppingBag, School, Flame, X, ChevronRight, ChevronDown, ChevronsUpDown,
 } from 'lucide-react'
 import { useT } from '../lib/i18n/LanguageContext'
+import { useSchoolContext } from '../lib/auth/useSchoolContext'
 
 type NavItem = {
   label: string
@@ -103,6 +104,9 @@ interface Props {
 }
 
 export default function DashboardSidebar({ menuOpen, setMenuOpen }: Props) {
+  const router = useRouter()
+  const { currentSchool, schools, switchSchool } = useSchoolContext()
+  const [switcherOpen, setSwitcherOpen] = useState(false)
   const t = useT()
 
   const NAV_MAIN: NavItem[] = [
@@ -169,25 +173,70 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen }: Props) {
           transition: 'transform 0.28s cubic-bezier(0.4,0,0.2,1)',
         }}
       >
-        {/* Logo + close (mobile) */}
-        <div className="flex items-center justify-between px-5 py-5" style={{ borderBottom: '1px solid #E5E7EB' }}>
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-lg overflow-hidden shrink-0">
-              <Image src="/martial-logo.png" alt="Martial" width={28} height={28} className="object-contain" />
+        {/* School header + switcher */}
+        <div className="px-4 py-4" style={{ borderBottom: '1px solid #E5E7EB' }}>
+          <div className="flex items-center justify-between">
+            {/* School identity */}
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-7 h-7 rounded-lg overflow-hidden shrink-0 bg-[#006197]/10 flex items-center justify-center">
+                <Image src="/martial-logo.png" alt="Martial" width={28} height={28} className="object-contain" />
+              </div>
+              <div className="min-w-0">
+                <p className="truncate" style={{ fontSize: 13, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>
+                  {currentSchool?.schoolName ?? 'Dashboard'}
+                </p>
+                <p style={{ fontSize: 10, fontWeight: 500, color: '#9CA3AF', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                  {currentSchool?.role ?? 'Academy'}
+                </p>
+              </div>
             </div>
-            <div>
-              <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>MARTIAL</p>
-              <p style={{ fontSize: 10, fontWeight: 500, color: '#9CA3AF', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Academy</p>
+            <div className="flex items-center gap-1">
+              {/* School switcher — only shown when user has multiple schools */}
+              {schools.length > 1 && (
+                <div className="relative">
+                  <button
+                    onClick={() => setSwitcherOpen(v => !v)}
+                    className="flex items-center justify-center w-6 h-6 rounded-md hover:bg-gray-100 transition-colors cursor-pointer"
+                    title="Switch school"
+                  >
+                    <ChevronsUpDown size={13} style={{ color: '#9CA3AF' }} />
+                  </button>
+                  {switcherOpen && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setSwitcherOpen(false)} />
+                      <div className="absolute left-0 top-8 z-50 bg-white border border-gray-100 rounded-xl shadow-lg py-1 min-w-[180px]">
+                        {schools.map(s => (
+                          <button
+                            key={s.schoolId}
+                            onClick={async () => {
+                              await switchSchool(s.schoolId)
+                              setSwitcherOpen(false)
+                              router.refresh()
+                            }}
+                            className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-left transition-colors"
+                          >
+                            <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: s.schoolId === currentSchool?.schoolId ? '#006197' : '#E5E7EB' }} />
+                            <div className="min-w-0">
+                              <p className="truncate text-xs font-semibold text-gray-800">{s.schoolName}</p>
+                              <p className="text-[10px] text-gray-400">{s.role}</p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+              {/* Mobile close */}
+              <button
+                className="md:hidden flex items-center justify-center w-6 h-6 rounded-md cursor-pointer hover:bg-gray-100"
+                onClick={() => setMenuOpen(false)}
+                aria-label="Close menu"
+              >
+                <X size={14} style={{ color: '#6B7280' }} />
+              </button>
             </div>
           </div>
-          <button
-            className="md:hidden flex items-center justify-center w-7 h-7 rounded-lg cursor-pointer"
-            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}
-            onClick={() => setMenuOpen(false)}
-            aria-label="Close menu"
-          >
-            <X size={14} style={{ color: '#6B7280' }} />
-          </button>
         </div>
 
         {/* Nav */}
