@@ -19,7 +19,20 @@ export function useSchoolContext() {
   useEffect(() => {
     fetch('/api/auth/me')
       .then(r => r.ok ? r.json() : null)
-      .then(json => setData(json))
+      .then(async (json) => {
+        if (!json) return setData(json)
+        // Auto-set context if cookie missing but user has a school
+        if (!json.contexts?.currentSchoolId && json.contexts?.schools?.length > 0) {
+          const firstSchoolId = json.contexts.schools[0].schoolId
+          await fetch('/api/auth/context', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ schoolId: firstSchoolId }),
+          })
+          json.contexts.currentSchoolId = firstSchoolId
+        }
+        setData(json)
+      })
       .catch(() => setData(null))
       .finally(() => setLoading(false))
   }, [])
