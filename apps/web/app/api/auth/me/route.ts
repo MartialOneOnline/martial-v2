@@ -16,8 +16,8 @@ export async function GET() {
   if (!user) return NextResponse.json({ role: null }, { status: 401 })
 
   const dbUser = await prisma.user.findUnique({
-    where: { id: user.id },
-    select: { role: true, name: true, email: true },
+    where: { supabaseAuthId: user.id },
+    select: { id: true, role: true, name: true, email: true },
   })
   if (!dbUser) return NextResponse.json({ role: null }, { status: 401 })
 
@@ -26,15 +26,15 @@ export async function GET() {
 
   // Get preference from DB as fallback (cross-device persistence)
   const pref = await prisma.userPreference.findUnique({
-    where: { userId: user.id },
+    where: { userId: dbUser.id },
     select: { lastSchoolId: true },
   })
 
-  const contexts = await getUserContexts(user.id, lastSchoolId ?? pref?.lastSchoolId)
+  const contexts = await getUserContexts(dbUser.id, lastSchoolId ?? pref?.lastSchoolId)
 
   return NextResponse.json({
     user: {
-      id: user.id,
+      id: dbUser.id,
       email: dbUser.email,
       name: dbUser.name,
       globalRole: dbUser.role,
