@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // Creamos la respuesta base — el middleware DEBE devolver siempre una respuesta
   let supabaseResponse = NextResponse.next({ request })
 
@@ -35,8 +35,15 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname
 
-  // /dashboard es público (preview sin auth) — solo rutas internas tipo /dashboard/settings requieren auth
-  // (sin restricciones por ahora, el page.tsx decide qué mostrar según el estado de sesión)
+  // Protect /admin/* — redirect to login if not authenticated
+  if (pathname.startsWith('/admin')) {
+    if (!user) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      url.searchParams.set('next', pathname)
+      return NextResponse.redirect(url)
+    }
+  }
 
   // Si ya tiene sesión y va a login o register, redirigir al dashboard
   if (user && (pathname === '/login' || pathname === '/register')) {
