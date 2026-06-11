@@ -1,4 +1,4 @@
-import { resend, FROM, APP_URL } from './resend'
+import { getResend, FROM, APP_URL } from './resend'
 import { buildInviteSchoolEmail } from './templates/inviteSchool'
 
 export interface InvitePayload {
@@ -20,7 +20,7 @@ export async function sendInviteEmail(payload: InvitePayload) {
   const html = buildInviteSchoolEmail({ ...payload, inviteUrl })
 
   try {
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: FROM,
       to: recipientEmail,
       subject: `${schoolName} — your profile is live on Martial App`,
