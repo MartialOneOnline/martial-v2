@@ -246,6 +246,7 @@ export type UserWhereInput = {
   transactions?: Prisma.TransactionListRelationFilter
   userWaivers?: Prisma.UserWaiverListRelationFilter
   sentInvitations?: Prisma.SchoolInvitationListRelationFilter
+  preference?: Prisma.XOR<Prisma.UserPreferenceNullableScalarRelationFilter, Prisma.UserPreferenceWhereInput> | null
 }
 
 export type UserOrderByWithRelationInput = {
@@ -276,6 +277,7 @@ export type UserOrderByWithRelationInput = {
   transactions?: Prisma.TransactionOrderByRelationAggregateInput
   userWaivers?: Prisma.UserWaiverOrderByRelationAggregateInput
   sentInvitations?: Prisma.SchoolInvitationOrderByRelationAggregateInput
+  preference?: Prisma.UserPreferenceOrderByWithRelationInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -309,6 +311,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   transactions?: Prisma.TransactionListRelationFilter
   userWaivers?: Prisma.UserWaiverListRelationFilter
   sentInvitations?: Prisma.SchoolInvitationListRelationFilter
+  preference?: Prisma.XOR<Prisma.UserPreferenceNullableScalarRelationFilter, Prisma.UserPreferenceWhereInput> | null
 }, "id" | "email" | "supabaseAuthId">
 
 export type UserOrderByWithAggregationInput = {
@@ -372,6 +375,7 @@ export type UserCreateInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -401,6 +405,7 @@ export type UserUncheckedCreateInput = {
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -430,6 +435,7 @@ export type UserUpdateInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -459,6 +465,7 @@ export type UserUncheckedUpdateInput = {
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -830,6 +837,20 @@ export type UserUpdateOneWithoutTransactionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTransactionsInput, Prisma.UserUpdateWithoutTransactionsInput>, Prisma.UserUncheckedUpdateWithoutTransactionsInput>
 }
 
+export type UserCreateNestedOneWithoutPreferenceInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPreferenceInput, Prisma.UserUncheckedCreateWithoutPreferenceInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPreferenceInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutPreferenceNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPreferenceInput, Prisma.UserUncheckedCreateWithoutPreferenceInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPreferenceInput
+  upsert?: Prisma.UserUpsertWithoutPreferenceInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPreferenceInput, Prisma.UserUpdateWithoutPreferenceInput>, Prisma.UserUncheckedUpdateWithoutPreferenceInput>
+}
+
 export type UserCreateWithoutContentAccessesInput = {
   id?: string
   email: string
@@ -856,6 +877,7 @@ export type UserCreateWithoutContentAccessesInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutContentAccessesInput = {
@@ -884,6 +906,7 @@ export type UserUncheckedCreateWithoutContentAccessesInput = {
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutContentAccessesInput = {
@@ -928,6 +951,7 @@ export type UserUpdateWithoutContentAccessesInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContentAccessesInput = {
@@ -956,6 +980,7 @@ export type UserUncheckedUpdateWithoutContentAccessesInput = {
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutClaimedSchoolsInput = {
@@ -984,6 +1009,7 @@ export type UserCreateWithoutClaimedSchoolsInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutClaimedSchoolsInput = {
@@ -1012,6 +1038,7 @@ export type UserUncheckedCreateWithoutClaimedSchoolsInput = {
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutClaimedSchoolsInput = {
@@ -1045,6 +1072,7 @@ export type UserCreateWithoutSchoolInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSchoolInput = {
@@ -1073,6 +1101,7 @@ export type UserUncheckedCreateWithoutSchoolInput = {
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSchoolInput = {
@@ -1122,6 +1151,7 @@ export type UserUpdateWithoutClaimedSchoolsInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutClaimedSchoolsInput = {
@@ -1150,6 +1180,7 @@ export type UserUncheckedUpdateWithoutClaimedSchoolsInput = {
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserUpsertWithWhereUniqueWithoutSchoolInput = {
@@ -1211,6 +1242,7 @@ export type UserCreateWithoutReviewsInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutReviewsInput = {
@@ -1239,6 +1271,7 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutReviewsInput = {
@@ -1283,6 +1316,7 @@ export type UserUpdateWithoutReviewsInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReviewsInput = {
@@ -1311,6 +1345,7 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutBookingsInput = {
@@ -1339,6 +1374,7 @@ export type UserCreateWithoutBookingsInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutBookingsInput = {
@@ -1367,6 +1403,7 @@ export type UserUncheckedCreateWithoutBookingsInput = {
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutBookingsInput = {
@@ -1411,6 +1448,7 @@ export type UserUpdateWithoutBookingsInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutBookingsInput = {
@@ -1439,6 +1477,7 @@ export type UserUncheckedUpdateWithoutBookingsInput = {
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutMembershipsInput = {
@@ -1467,6 +1506,7 @@ export type UserCreateWithoutMembershipsInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutMembershipsInput = {
@@ -1495,6 +1535,7 @@ export type UserUncheckedCreateWithoutMembershipsInput = {
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutMembershipsInput = {
@@ -1539,6 +1580,7 @@ export type UserUpdateWithoutMembershipsInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMembershipsInput = {
@@ -1567,6 +1609,7 @@ export type UserUncheckedUpdateWithoutMembershipsInput = {
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCampBookingsInput = {
@@ -1595,6 +1638,7 @@ export type UserCreateWithoutCampBookingsInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCampBookingsInput = {
@@ -1623,6 +1667,7 @@ export type UserUncheckedCreateWithoutCampBookingsInput = {
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCampBookingsInput = {
@@ -1667,6 +1712,7 @@ export type UserUpdateWithoutCampBookingsInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCampBookingsInput = {
@@ -1695,6 +1741,7 @@ export type UserUncheckedUpdateWithoutCampBookingsInput = {
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSchoolMembersInput = {
@@ -1723,6 +1770,7 @@ export type UserCreateWithoutSchoolMembersInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSchoolMembersInput = {
@@ -1751,6 +1799,7 @@ export type UserUncheckedCreateWithoutSchoolMembersInput = {
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSchoolMembersInput = {
@@ -1795,6 +1844,7 @@ export type UserUpdateWithoutSchoolMembersInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSchoolMembersInput = {
@@ -1823,6 +1873,7 @@ export type UserUncheckedUpdateWithoutSchoolMembersInput = {
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSchoolClaimsInput = {
@@ -1851,6 +1902,7 @@ export type UserCreateWithoutSchoolClaimsInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSchoolClaimsInput = {
@@ -1879,6 +1931,7 @@ export type UserUncheckedCreateWithoutSchoolClaimsInput = {
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSchoolClaimsInput = {
@@ -1923,6 +1976,7 @@ export type UserUpdateWithoutSchoolClaimsInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSchoolClaimsInput = {
@@ -1951,6 +2005,7 @@ export type UserUncheckedUpdateWithoutSchoolClaimsInput = {
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutGradingsInput = {
@@ -1979,6 +2034,7 @@ export type UserCreateWithoutGradingsInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutGradingsInput = {
@@ -2007,6 +2063,7 @@ export type UserUncheckedCreateWithoutGradingsInput = {
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutGradingsInput = {
@@ -2040,6 +2097,7 @@ export type UserCreateWithoutGradingsGivenInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutGradingsGivenInput = {
@@ -2068,6 +2126,7 @@ export type UserUncheckedCreateWithoutGradingsGivenInput = {
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutGradingsGivenInput = {
@@ -2112,6 +2171,7 @@ export type UserUpdateWithoutGradingsInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutGradingsInput = {
@@ -2140,6 +2200,7 @@ export type UserUncheckedUpdateWithoutGradingsInput = {
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutGradingsGivenInput = {
@@ -2179,6 +2240,7 @@ export type UserUpdateWithoutGradingsGivenInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutGradingsGivenInput = {
@@ -2207,6 +2269,7 @@ export type UserUncheckedUpdateWithoutGradingsGivenInput = {
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutLeadsInput = {
@@ -2235,6 +2298,7 @@ export type UserCreateWithoutLeadsInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutLeadsInput = {
@@ -2263,6 +2327,7 @@ export type UserUncheckedCreateWithoutLeadsInput = {
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutLeadsInput = {
@@ -2307,6 +2372,7 @@ export type UserUpdateWithoutLeadsInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLeadsInput = {
@@ -2335,6 +2401,7 @@ export type UserUncheckedUpdateWithoutLeadsInput = {
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutLeadNotesInput = {
@@ -2363,6 +2430,7 @@ export type UserCreateWithoutLeadNotesInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutLeadNotesInput = {
@@ -2391,6 +2459,7 @@ export type UserUncheckedCreateWithoutLeadNotesInput = {
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutLeadNotesInput = {
@@ -2435,6 +2504,7 @@ export type UserUpdateWithoutLeadNotesInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLeadNotesInput = {
@@ -2463,6 +2533,7 @@ export type UserUncheckedUpdateWithoutLeadNotesInput = {
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSentInvitationsInput = {
@@ -2491,6 +2562,7 @@ export type UserCreateWithoutSentInvitationsInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
+  preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSentInvitationsInput = {
@@ -2519,6 +2591,7 @@ export type UserUncheckedCreateWithoutSentInvitationsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
+  preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSentInvitationsInput = {
@@ -2563,6 +2636,7 @@ export type UserUpdateWithoutSentInvitationsInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
+  preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSentInvitationsInput = {
@@ -2591,6 +2665,7 @@ export type UserUncheckedUpdateWithoutSentInvitationsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
+  preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutUserWaiversInput = {
@@ -2619,6 +2694,7 @@ export type UserCreateWithoutUserWaiversInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutUserWaiversInput = {
@@ -2647,6 +2723,7 @@ export type UserUncheckedCreateWithoutUserWaiversInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutUserWaiversInput = {
@@ -2691,6 +2768,7 @@ export type UserUpdateWithoutUserWaiversInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutUserWaiversInput = {
@@ -2719,6 +2797,7 @@ export type UserUncheckedUpdateWithoutUserWaiversInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutTransactionsInput = {
@@ -2747,6 +2826,7 @@ export type UserCreateWithoutTransactionsInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTransactionsInput = {
@@ -2775,6 +2855,7 @@ export type UserUncheckedCreateWithoutTransactionsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTransactionsInput = {
@@ -2819,6 +2900,7 @@ export type UserUpdateWithoutTransactionsInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTransactionsInput = {
@@ -2845,6 +2927,139 @@ export type UserUncheckedUpdateWithoutTransactionsInput = {
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
+  userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
+  sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
+}
+
+export type UserCreateWithoutPreferenceInput = {
+  id?: string
+  email: string
+  name?: string | null
+  phone?: string | null
+  dateOfBirth?: Date | string | null
+  avatarUrl?: string | null
+  supabaseAuthId?: string | null
+  role?: $Enums.Role
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
+  claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
+  contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
+  campBookings?: Prisma.CampBookingCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
+  schoolMembers?: Prisma.SchoolMemberCreateNestedManyWithoutUserInput
+  schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
+  gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
+  leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
+  sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
+}
+
+export type UserUncheckedCreateWithoutPreferenceInput = {
+  id?: string
+  email: string
+  name?: string | null
+  phone?: string | null
+  dateOfBirth?: Date | string | null
+  avatarUrl?: string | null
+  supabaseAuthId?: string | null
+  role?: $Enums.Role
+  schoolId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
+  contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
+  campBookings?: Prisma.CampBookingUncheckedCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
+  schoolMembers?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutUserInput
+  schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
+  gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
+  leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
+  sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
+}
+
+export type UserCreateOrConnectWithoutPreferenceInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutPreferenceInput, Prisma.UserUncheckedCreateWithoutPreferenceInput>
+}
+
+export type UserUpsertWithoutPreferenceInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutPreferenceInput, Prisma.UserUncheckedUpdateWithoutPreferenceInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutPreferenceInput, Prisma.UserUncheckedCreateWithoutPreferenceInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutPreferenceInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutPreferenceInput, Prisma.UserUncheckedUpdateWithoutPreferenceInput>
+}
+
+export type UserUpdateWithoutPreferenceInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
+  claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
+  contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
+  campBookings?: Prisma.CampBookingUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
+  schoolMembers?: Prisma.SchoolMemberUpdateManyWithoutUserNestedInput
+  schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
+  gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
+  leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
+  sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutPreferenceInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
+  contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
+  campBookings?: Prisma.CampBookingUncheckedUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
+  schoolMembers?: Prisma.SchoolMemberUncheckedUpdateManyWithoutUserNestedInput
+  schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
+  gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
+  leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
 }
@@ -2888,6 +3103,7 @@ export type UserUpdateWithoutSchoolInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSchoolInput = {
@@ -2916,6 +3132,7 @@ export type UserUncheckedUpdateWithoutSchoolInput = {
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutSchoolInput = {
@@ -3116,6 +3333,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   transactions?: boolean | Prisma.User$transactionsArgs<ExtArgs>
   userWaivers?: boolean | Prisma.User$userWaiversArgs<ExtArgs>
   sentInvitations?: boolean | Prisma.User$sentInvitationsArgs<ExtArgs>
+  preference?: boolean | Prisma.User$preferenceArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -3181,6 +3399,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   transactions?: boolean | Prisma.User$transactionsArgs<ExtArgs>
   userWaivers?: boolean | Prisma.User$userWaiversArgs<ExtArgs>
   sentInvitations?: boolean | Prisma.User$sentInvitationsArgs<ExtArgs>
+  preference?: boolean | Prisma.User$preferenceArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -3209,6 +3428,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     transactions: Prisma.$TransactionPayload<ExtArgs>[]
     userWaivers: Prisma.$UserWaiverPayload<ExtArgs>[]
     sentInvitations: Prisma.$SchoolInvitationPayload<ExtArgs>[]
+    preference: Prisma.$UserPreferencePayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -3632,6 +3852,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   transactions<T extends Prisma.User$transactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   userWaivers<T extends Prisma.User$userWaiversArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$userWaiversArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserWaiverPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   sentInvitations<T extends Prisma.User$sentInvitationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$sentInvitationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SchoolInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  preference<T extends Prisma.User$preferenceArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$preferenceArgs<ExtArgs>>): Prisma.Prisma__UserPreferenceClient<runtime.Types.Result.GetResult<Prisma.$UserPreferencePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4449,6 +4670,25 @@ export type User$sentInvitationsArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.SchoolInvitationScalarFieldEnum | Prisma.SchoolInvitationScalarFieldEnum[]
+}
+
+/**
+ * User.preference
+ */
+export type User$preferenceArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the UserPreference
+   */
+  select?: Prisma.UserPreferenceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the UserPreference
+   */
+  omit?: Prisma.UserPreferenceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserPreferenceInclude<ExtArgs> | null
+  where?: Prisma.UserPreferenceWhereInput
 }
 
 /**

@@ -1,7 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { User, Mail, Phone, Calendar, Save, Check, Camera } from 'lucide-react'
+import Link from 'next/link'
+import {
+  CalendarDays, CreditCard, Award, DollarSign,
+  Settings, HelpCircle, Shield, QrCode, ChevronRight,
+  Camera, LogOut, School, Medal, BookOpen,
+} from 'lucide-react'
 
 type Profile = {
   name: string | null
@@ -10,16 +15,38 @@ type Profile = {
   dateOfBirth: string | null
   avatarUrl: string | null
   role: string
+  memberships: { status: string }[]
+  bookings: unknown[]
+  schoolMembers: { belt: string | null; beltDegree: number | null }[]
+  gradings: unknown[]
 }
+
+const MENU_SECTIONS = [
+  {
+    items: [
+      { label: 'My Classes',    href: '/my/classes',    icon: CalendarDays,  desc: 'Upcoming & past bookings' },
+      { label: 'Membership',    href: '/my/membership', icon: CreditCard,    desc: 'Plans & subscriptions' },
+      { label: 'Ranking',       href: '/my/progress',   icon: Medal,         desc: 'Belts & grading history' },
+      { label: 'Transactions',  href: '/my/payments',   icon: DollarSign,    desc: 'Payment history' },
+    ],
+  },
+  {
+    label: 'Account',
+    items: [
+      { label: 'Settings',         href: '/my/settings',  icon: Settings,     desc: 'Notifications & preferences' },
+      { label: 'QR Code Scanner',  href: '/my/qr',        icon: QrCode,       desc: 'Scan to check in' },
+      { label: 'Payment Method',   href: '/my/payments',  icon: CreditCard,   desc: 'Manage payment methods' },
+      { label: 'Help & Support',   href: '/my/help',      icon: HelpCircle,   desc: 'Get help' },
+      { label: 'Privacy',          href: '/my/privacy',   icon: Shield,       desc: 'Privacy & permissions' },
+    ],
+  },
+]
 
 export default function MyProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
-
+  const [editing, setEditing] = useState(false)
   const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
 
   useEffect(() => {
     fetch('/api/my')
@@ -28,151 +55,188 @@ export default function MyProfilePage() {
         const u = d.user
         setProfile(u)
         setName(u?.name ?? '')
-        setPhone(u?.phone ?? '')
         setLoading(false)
       })
       .catch(() => setLoading(false))
   }, [])
 
-  const save = async () => {
-    setSaving(true)
-    // Profile update endpoint — basic optimistic UI for now
-    await new Promise(r => setTimeout(r, 600))
-    setSaving(false)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
-  }
-
   const initials = (profile?.name || profile?.email || 'U').slice(0, 2).toUpperCase()
+  const activeMemberships = profile?.memberships?.filter(m => m.status === 'ACTIVE').length ?? 0
+  const totalClasses = profile?.bookings?.length ?? 0
+  const currentBelt = profile?.schoolMembers?.[0]?.belt
 
   return (
     <div className="min-h-screen">
-      <div className="bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-10 flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-bold text-[#0D1B2A]">Profile</h1>
-          <p className="text-xs text-gray-400">Your personal information</p>
-        </div>
+
+      {/* ── Header ── */}
+      <div className="bg-white border-b border-gray-100 px-5 py-4 sticky top-0 z-10 flex items-center justify-between">
+        <h1 className="text-base font-bold text-[#0D1B2A]">Profile</h1>
         <button
-          onClick={save}
-          disabled={saving}
-          className="flex items-center gap-2 h-9 px-4 rounded-xl text-white text-xs font-semibold hover:opacity-90 transition-all disabled:opacity-60"
-          style={{ background: saved ? '#10B981' : '#006197' }}
+          onClick={() => setEditing(e => !e)}
+          className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${
+            editing
+              ? 'bg-[#006197] text-white'
+              : 'text-[#006197] hover:bg-[#006197]/8'
+          }`}
         >
-          {saved ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
-          {saved ? 'Saved!' : saving ? 'Saving…' : 'Save'}
+          {editing ? 'Save' : 'Edit'}
         </button>
       </div>
 
-      <div className="p-6 max-w-lg space-y-5">
-        {loading ? (
-          <div className="flex items-center justify-center h-40">
-            <div className="w-6 h-6 border-2 border-[#006197] border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : (
-          <>
-            {/* Avatar */}
-            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 flex flex-col items-center gap-4">
-              <div className="relative">
+      {loading ? (
+        <div className="flex items-center justify-center h-60">
+          <div className="w-5 h-5 border-2 border-[#006197] border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : (
+        <>
+          {/* ── Profile card ── */}
+          <div className="bg-white border-b border-gray-100 px-5 py-6">
+            <div className="flex items-center gap-4">
+              {/* Avatar */}
+              <div className="relative shrink-0">
                 {profile?.avatarUrl ? (
-                  <img src={profile.avatarUrl} alt="" className="w-20 h-20 rounded-full object-cover" />
+                  <img src={profile.avatarUrl} alt="" className="w-16 h-16 rounded-full object-cover" />
                 ) : (
-                  <div className="w-20 h-20 rounded-full bg-[#006197]/10 flex items-center justify-center text-[#006197] font-bold text-2xl">
+                  <div className="w-16 h-16 rounded-full bg-[#006197]/10 flex items-center justify-center text-[#006197] font-bold text-xl">
                     {initials}
                   </div>
                 )}
-                <button className="absolute bottom-0 right-0 w-7 h-7 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors">
-                  <Camera className="w-3.5 h-3.5 text-gray-500" />
-                </button>
+                {editing && (
+                  <button className="absolute bottom-0 right-0 w-6 h-6 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-sm">
+                    <Camera className="w-3 h-3 text-gray-500" />
+                  </button>
+                )}
               </div>
-              <div className="text-center">
-                <p className="text-base font-bold text-[#0D1B2A]">{profile?.name || 'No name set'}</p>
-                <p className="text-xs text-gray-400">{profile?.email}</p>
-                <span className="inline-block mt-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#006197]/8 text-[#006197]">
-                  {profile?.role?.replace('_', ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}
-                </span>
-              </div>
-            </div>
 
-            {/* Form */}
-            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-50">
-                <p className="text-sm font-bold text-[#0D1B2A]">Personal details</p>
-              </div>
-              <div className="px-5 py-5 space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Full name</label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-                    <input
-                      type="text"
-                      value={name}
-                      onChange={e => setName(e.target.value)}
-                      placeholder="Your full name"
-                      className="w-full pl-9 pr-4 h-10 rounded-xl border border-gray-200 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006197]/20 focus:border-[#006197]"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Email</label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-                    <input
-                      type="email"
-                      value={profile?.email ?? ''}
-                      disabled
-                      className="w-full pl-9 pr-4 h-10 rounded-xl border border-gray-100 bg-gray-50 text-sm text-gray-400 cursor-not-allowed"
-                    />
-                  </div>
-                  <p className="text-[11px] text-gray-400 mt-1">Email is managed by your auth provider</p>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Phone</label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-                    <input
-                      type="tel"
-                      value={phone}
-                      onChange={e => setPhone(e.target.value)}
-                      placeholder="+34 600 000 000"
-                      className="w-full pl-9 pr-4 h-10 rounded-xl border border-gray-200 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006197]/20 focus:border-[#006197]"
-                    />
-                  </div>
-                </div>
-
-                {profile?.dateOfBirth && (
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">Date of birth</label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-                      <input
-                        type="text"
-                        value={new Date(profile.dateOfBirth).toLocaleDateString('en-GB')}
-                        disabled
-                        className="w-full pl-9 pr-4 h-10 rounded-xl border border-gray-100 bg-gray-50 text-sm text-gray-400 cursor-not-allowed"
-                      />
-                    </div>
-                  </div>
+              {/* Info */}
+              <div className="flex-1 min-w-0">
+                {editing ? (
+                  <input
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    className="w-full text-base font-bold text-[#0D1B2A] bg-gray-50 rounded-lg px-3 py-1.5 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#006197]/20 focus:border-[#006197]"
+                  />
+                ) : (
+                  <p className="text-base font-bold text-[#0D1B2A] truncate">{profile?.name || 'Add your name'}</p>
+                )}
+                <p className="text-xs text-gray-400 mt-0.5 truncate">{profile?.email}</p>
+                {profile?.phone && (
+                  <p className="text-xs text-gray-400 mt-0.5">{profile.phone}</p>
                 )}
               </div>
             </div>
 
-            {/* Danger zone */}
-            <div className="bg-white border border-red-50 rounded-2xl shadow-sm overflow-hidden">
-              <div className="px-5 py-4 border-b border-red-50">
-                <p className="text-sm font-bold text-red-500">Danger zone</p>
-              </div>
-              <div className="px-5 py-4">
-                <p className="text-xs text-gray-500 mb-3">Permanently delete your account and all associated data.</p>
-                <button className="px-4 py-2 rounded-xl border border-red-200 text-red-500 text-xs font-semibold hover:bg-red-50 transition-colors">
-                  Delete account
-                </button>
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-3 mt-5">
+              {[
+                { label: 'Memberships', value: activeMemberships, href: '/my/membership' },
+                { label: 'Classes',     value: totalClasses,       href: '/my/classes' },
+                { label: 'Current belt', value: currentBelt?.split(' ')[0] ?? '—', href: '/my/progress' },
+              ].map(({ label, value, href }) => (
+                <Link
+                  key={label}
+                  href={href}
+                  className="bg-[#F8F9FB] rounded-xl p-3 text-center hover:bg-[#006197]/5 transition-colors"
+                >
+                  <p className="text-lg font-bold text-[#0D1B2A]">{value}</p>
+                  <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">{label}</p>
+                </Link>
+              ))}
+            </div>
+
+            {/* Action buttons */}
+            <div className="grid grid-cols-2 gap-2 mt-3">
+              <button className="py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
+                Share Profile
+              </button>
+              <Link
+                href="/explore"
+                className="py-2.5 rounded-xl bg-[#006197] text-white text-xs font-semibold text-center hover:bg-[#005580] transition-colors"
+              >
+                Find Academies
+              </Link>
+            </div>
+          </div>
+
+          {/* ── Personal info (editable) ── */}
+          {editing && (
+            <div className="bg-white border-b border-gray-100 px-5 py-4 space-y-3">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Personal details</p>
+              {[
+                { label: 'Email', value: profile?.email ?? '', disabled: true, type: 'email' },
+                { label: 'Phone', value: profile?.phone ?? '', disabled: false, type: 'tel' },
+                { label: 'Date of birth', value: profile?.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString('en-GB') : '', disabled: true, type: 'text' },
+              ].map(({ label, value, disabled, type }) => (
+                <div key={label}>
+                  <label className="text-[11px] font-semibold text-gray-400 mb-1 block">{label}</label>
+                  <input
+                    type={type}
+                    defaultValue={value}
+                    disabled={disabled}
+                    className={`w-full h-10 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-[#006197]/20 focus:border-[#006197] transition-colors ${
+                      disabled
+                        ? 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed'
+                        : 'border-gray-200 text-gray-700'
+                    }`}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ── Menu sections ── */}
+          {MENU_SECTIONS.map((section, si) => (
+            <div key={si} className="mt-2">
+              {section.label && (
+                <p className="px-5 pt-4 pb-2 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">
+                  {section.label}
+                </p>
+              )}
+              <div className="bg-white border-y border-gray-100">
+                {section.items.map((item, ii) => {
+                  const Icon = item.icon
+                  return (
+                    <Link
+                      key={item.href + item.label}
+                      href={item.href}
+                      className={`flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors ${
+                        ii < section.items.length - 1 ? 'border-b border-gray-50' : ''
+                      }`}
+                    >
+                      <div className="w-8 h-8 rounded-xl bg-[#006197]/8 flex items-center justify-center shrink-0">
+                        <Icon className="w-4 h-4 text-[#006197]" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-[#0D1B2A]">{item.label}</p>
+                        <p className="text-[11px] text-gray-400 mt-0.5">{item.desc}</p>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />
+                    </Link>
+                  )
+                })}
               </div>
             </div>
-          </>
-        )}
-      </div>
+          ))}
+
+          {/* ── Sign out ── */}
+          <div className="px-5 py-4 mt-2">
+            <Link
+              href="/api/auth/signout"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl border border-red-100 text-red-500 hover:bg-red-50 transition-colors"
+            >
+              <LogOut className="w-4 h-4 shrink-0" />
+              <span className="text-sm font-semibold">Sign out</span>
+            </Link>
+          </div>
+
+          {/* ── Danger zone ── */}
+          <div className="px-5 pb-8">
+            <button className="text-xs text-gray-400 hover:text-red-400 transition-colors underline underline-offset-2">
+              Delete account
+            </button>
+          </div>
+        </>
+      )}
     </div>
   )
 }

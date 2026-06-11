@@ -53,11 +53,41 @@ export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod]
 
 export const SchoolMemberRole = {
   OWNER: 'OWNER',
+  ADMIN: 'ADMIN',
+  MANAGER: 'MANAGER',
   INSTRUCTOR: 'INSTRUCTOR',
+  ASSISTANT_INSTRUCTOR: 'ASSISTANT_INSTRUCTOR',
+  RECEPTIONIST: 'RECEPTIONIST',
   STUDENT: 'STUDENT'
 } as const
 
 export type SchoolMemberRole = (typeof SchoolMemberRole)[keyof typeof SchoolMemberRole]
+
+
+export const LeadStage = {
+  NEW: 'NEW',
+  CONTACTED: 'CONTACTED',
+  INTERESTED: 'INTERESTED',
+  DEMO: 'DEMO',
+  INVITE_SENT: 'INVITE_SENT',
+  ONBOARDING: 'ONBOARDING',
+  WON: 'WON',
+  LOST: 'LOST',
+  REJECTED: 'REJECTED'
+} as const
+
+export type LeadStage = (typeof LeadStage)[keyof typeof LeadStage]
+
+
+export const SchoolRelationshipType = {
+  HQ_BRANCH: 'HQ_BRANCH',
+  FRANCHISE: 'FRANCHISE',
+  AFFILIATE_SCHOOL: 'AFFILIATE_SCHOOL',
+  PARTNER: 'PARTNER',
+  NETWORK_MEMBER: 'NETWORK_MEMBER'
+} as const
+
+export type SchoolRelationshipType = (typeof SchoolRelationshipType)[keyof typeof SchoolRelationshipType]
 
 
 export const SchoolMemberStatus = {

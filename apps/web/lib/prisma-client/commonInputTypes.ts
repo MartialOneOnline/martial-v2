@@ -271,6 +271,20 @@ export type FloatNullableFilter<$PrismaModel = never> = {
   not?: Prisma.NestedFloatNullableFilter<$PrismaModel> | number | null
 }
 
+export type EnumSchoolRelationshipTypeNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.SchoolRelationshipType | Prisma.EnumSchoolRelationshipTypeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.SchoolRelationshipType[] | Prisma.ListEnumSchoolRelationshipTypeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.SchoolRelationshipType[] | Prisma.ListEnumSchoolRelationshipTypeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumSchoolRelationshipTypeNullableFilter<$PrismaModel> | $Enums.SchoolRelationshipType | null
+}
+
+export type EnumLeadStageNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.LeadStage | Prisma.EnumLeadStageFieldRefInput<$PrismaModel> | null
+  in?: $Enums.LeadStage[] | Prisma.ListEnumLeadStageFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.LeadStage[] | Prisma.ListEnumLeadStageFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumLeadStageNullableFilter<$PrismaModel> | $Enums.LeadStage | null
+}
+
 export type EnumSchoolStatusWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.SchoolStatus | Prisma.EnumSchoolStatusFieldRefInput<$PrismaModel>
   in?: $Enums.SchoolStatus[] | Prisma.ListEnumSchoolStatusFieldRefInput<$PrismaModel>
@@ -305,6 +319,26 @@ export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
   _sum?: Prisma.NestedFloatNullableFilter<$PrismaModel>
   _min?: Prisma.NestedFloatNullableFilter<$PrismaModel>
   _max?: Prisma.NestedFloatNullableFilter<$PrismaModel>
+}
+
+export type EnumSchoolRelationshipTypeNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.SchoolRelationshipType | Prisma.EnumSchoolRelationshipTypeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.SchoolRelationshipType[] | Prisma.ListEnumSchoolRelationshipTypeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.SchoolRelationshipType[] | Prisma.ListEnumSchoolRelationshipTypeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumSchoolRelationshipTypeNullableWithAggregatesFilter<$PrismaModel> | $Enums.SchoolRelationshipType | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumSchoolRelationshipTypeNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumSchoolRelationshipTypeNullableFilter<$PrismaModel>
+}
+
+export type EnumLeadStageNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LeadStage | Prisma.EnumLeadStageFieldRefInput<$PrismaModel> | null
+  in?: $Enums.LeadStage[] | Prisma.ListEnumLeadStageFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.LeadStage[] | Prisma.ListEnumLeadStageFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumLeadStageNullableWithAggregatesFilter<$PrismaModel> | $Enums.LeadStage | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLeadStageNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLeadStageNullableFilter<$PrismaModel>
 }
 
 export type FloatFilter<$PrismaModel = never> = {
@@ -863,6 +897,20 @@ export type NestedEnumSchoolSourceFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumSchoolSourceFilter<$PrismaModel> | $Enums.SchoolSource
 }
 
+export type NestedEnumSchoolRelationshipTypeNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.SchoolRelationshipType | Prisma.EnumSchoolRelationshipTypeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.SchoolRelationshipType[] | Prisma.ListEnumSchoolRelationshipTypeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.SchoolRelationshipType[] | Prisma.ListEnumSchoolRelationshipTypeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumSchoolRelationshipTypeNullableFilter<$PrismaModel> | $Enums.SchoolRelationshipType | null
+}
+
+export type NestedEnumLeadStageNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.LeadStage | Prisma.EnumLeadStageFieldRefInput<$PrismaModel> | null
+  in?: $Enums.LeadStage[] | Prisma.ListEnumLeadStageFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.LeadStage[] | Prisma.ListEnumLeadStageFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumLeadStageNullableFilter<$PrismaModel> | $Enums.LeadStage | null
+}
+
 export type NestedEnumSchoolStatusWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.SchoolStatus | Prisma.EnumSchoolStatusFieldRefInput<$PrismaModel>
   in?: $Enums.SchoolStatus[] | Prisma.ListEnumSchoolStatusFieldRefInput<$PrismaModel>
@@ -897,6 +945,26 @@ export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
   _sum?: Prisma.NestedFloatNullableFilter<$PrismaModel>
   _min?: Prisma.NestedFloatNullableFilter<$PrismaModel>
   _max?: Prisma.NestedFloatNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumSchoolRelationshipTypeNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.SchoolRelationshipType | Prisma.EnumSchoolRelationshipTypeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.SchoolRelationshipType[] | Prisma.ListEnumSchoolRelationshipTypeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.SchoolRelationshipType[] | Prisma.ListEnumSchoolRelationshipTypeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumSchoolRelationshipTypeNullableWithAggregatesFilter<$PrismaModel> | $Enums.SchoolRelationshipType | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumSchoolRelationshipTypeNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumSchoolRelationshipTypeNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumLeadStageNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LeadStage | Prisma.EnumLeadStageFieldRefInput<$PrismaModel> | null
+  in?: $Enums.LeadStage[] | Prisma.ListEnumLeadStageFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.LeadStage[] | Prisma.ListEnumLeadStageFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumLeadStageNullableWithAggregatesFilter<$PrismaModel> | $Enums.LeadStage | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLeadStageNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLeadStageNullableFilter<$PrismaModel>
 }
 
 export type NestedFloatWithAggregatesFilter<$PrismaModel = never> = {

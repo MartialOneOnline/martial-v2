@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
+import { getUserContexts } from '@/lib/auth/contexts'
 
 export async function GET() {
   const cookieStore = await cookies()
@@ -16,8 +17,28 @@ export async function GET() {
 
   const dbUser = await prisma.user.findUnique({
     where: { id: user.id },
-    select: { role: true },
+    select: { role: true, name: true, email: true },
+  })
+  if (!dbUser) return NextResponse.json({ role: null }, { status: 401 })
+
+  // Read last school context from cookie (hint only, not authorization)
+  const lastSchoolId = cookieStore.get('currentSchoolId')?.value ?? null
+
+  // Get preference from DB as fallback (cross-device persistence)
+  const pref = await prisma.userPreference.findUnique({
+    where: { userId: user.id },
+    select: { lastSchoolId: true },
   })
 
-  return NextResponse.json({ role: dbUser?.role ?? null })
+  const contexts = await getUserContexts(user.id, lastSchoolId ?? pref?.lastSchoolId)
+
+  return NextResponse.json({
+    user: {
+      id: user.id,
+      email: dbUser.email,
+      name: dbUser.name,
+      globalRole: dbUser.role,
+    },
+    contexts,
+  })
 }

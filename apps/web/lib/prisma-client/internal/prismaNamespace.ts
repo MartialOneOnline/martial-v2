@@ -411,6 +411,7 @@ export const ModelName = {
   Waiver: 'Waiver',
   UserWaiver: 'UserWaiver',
   Transaction: 'Transaction',
+  UserPreference: 'UserPreference',
   ProductCategory: 'ProductCategory',
   Product: 'Product',
   Order: 'Order',
@@ -431,7 +432,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "user" | "discipline" | "schoolDiscipline" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "event" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "schoolClaim" | "grading" | "lead" | "leadNote" | "schoolInvitation" | "waiver" | "userWaiver" | "transaction" | "productCategory" | "product" | "order" | "orderItem" | "partner"
+    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "user" | "discipline" | "schoolDiscipline" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "event" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "schoolClaim" | "grading" | "lead" | "leadNote" | "schoolInvitation" | "waiver" | "userWaiver" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "partner"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2433,6 +2434,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    UserPreference: {
+      payload: Prisma.$UserPreferencePayload<ExtArgs>
+      fields: Prisma.UserPreferenceFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.UserPreferenceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPreferencePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.UserPreferenceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPreferencePayload>
+        }
+        findFirst: {
+          args: Prisma.UserPreferenceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPreferencePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.UserPreferenceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPreferencePayload>
+        }
+        findMany: {
+          args: Prisma.UserPreferenceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPreferencePayload>[]
+        }
+        create: {
+          args: Prisma.UserPreferenceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPreferencePayload>
+        }
+        createMany: {
+          args: Prisma.UserPreferenceCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.UserPreferenceCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPreferencePayload>[]
+        }
+        delete: {
+          args: Prisma.UserPreferenceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPreferencePayload>
+        }
+        update: {
+          args: Prisma.UserPreferenceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPreferencePayload>
+        }
+        deleteMany: {
+          args: Prisma.UserPreferenceDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.UserPreferenceUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.UserPreferenceUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPreferencePayload>[]
+        }
+        upsert: {
+          args: Prisma.UserPreferenceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPreferencePayload>
+        }
+        aggregate: {
+          args: Prisma.UserPreferenceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateUserPreference>
+        }
+        groupBy: {
+          args: Prisma.UserPreferenceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserPreferenceGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.UserPreferenceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserPreferenceCountAggregateOutputType> | number
+        }
+      }
+    }
     ProductCategory: {
       payload: Prisma.$ProductCategoryPayload<ExtArgs>
       fields: Prisma.ProductCategoryFieldRefs
@@ -2992,6 +3067,9 @@ export const SchoolScalarFieldEnum = {
   googleReviews: 'googleReviews',
   googlePlaceId: 'googlePlaceId',
   stripeAccountId: 'stripeAccountId',
+  parentId: 'parentId',
+  parentRelationshipType: 'parentRelationshipType',
+  leadStage: 'leadStage',
   claimedById: 'claimedById',
   claimedAt: 'claimedAt',
   createdAt: 'createdAt',
@@ -3284,6 +3362,7 @@ export const SchoolInvitationScalarFieldEnum = {
   source: 'source',
   invitedById: 'invitedById',
   schoolId: 'schoolId',
+  isActive: 'isActive',
   sentAt: 'sentAt',
   openedAt: 'openedAt',
   registeredAt: 'registeredAt',
@@ -3339,6 +3418,18 @@ export const TransactionScalarFieldEnum = {
 } as const
 
 export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
+
+
+export const UserPreferenceScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  lastSchoolId: 'lastSchoolId',
+  lastContextType: 'lastContextType',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserPreferenceScalarFieldEnum = (typeof UserPreferenceScalarFieldEnum)[keyof typeof UserPreferenceScalarFieldEnum]
 
 
 export const ProductCategoryScalarFieldEnum = {
@@ -3561,6 +3652,34 @@ export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, '
  * Reference to a field of type 'Float[]'
  */
 export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+    
+
+
+/**
+ * Reference to a field of type 'SchoolRelationshipType'
+ */
+export type EnumSchoolRelationshipTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SchoolRelationshipType'>
+    
+
+
+/**
+ * Reference to a field of type 'SchoolRelationshipType[]'
+ */
+export type ListEnumSchoolRelationshipTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SchoolRelationshipType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'LeadStage'
+ */
+export type EnumLeadStageFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LeadStage'>
+    
+
+
+/**
+ * Reference to a field of type 'LeadStage[]'
+ */
+export type ListEnumLeadStageFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LeadStage[]'>
     
 
 
@@ -3896,6 +4015,7 @@ export type GlobalOmitConfig = {
   waiver?: Prisma.WaiverOmit
   userWaiver?: Prisma.UserWaiverOmit
   transaction?: Prisma.TransactionOmit
+  userPreference?: Prisma.UserPreferenceOmit
   productCategory?: Prisma.ProductCategoryOmit
   product?: Prisma.ProductOmit
   order?: Prisma.OrderOmit

@@ -6,6 +6,8 @@ import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ArrowLeft } from 'lucide-react'
 import { createClient } from '../lib/supabase/client'
+import SchoolPicker from './SchoolPicker'
+import type { SchoolContext } from '@/lib/auth/contexts'
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 function GoogleIcon() {
@@ -74,6 +76,53 @@ export default function LoginModal({ onClose, onOpenRegister }: LoginModalProps)
   const [error, setError]           = useState('')
   const [emailErr, setEmailErr]     = useState('')
   const [passErr, setPassErr]       = useState('')
+  const [pickerSchools, setPickerSchools] = useState<SchoolContext[] | null>(null)
+
+  const resolveRedirect = async () => {
+    try {
+      const res = await fetch('/api/auth/me')
+      const json = await res.json()
+
+      // 1. SUPERADMIN → /admin
+      if (json.user?.globalRole === 'SUPERADMIN') {
+        router.push('/admin')
+        return
+      }
+
+      const schools: SchoolContext[] = json.contexts?.schools ?? []
+      const staffSchools = schools.filter(
+        s => s.role !== 'STUDENT'
+      )
+
+      // 2. Has staff/owner access to schools
+      if (staffSchools.length === 1 && staffSchools[0]) {
+        await fetch('/api/auth/context', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ schoolId: staffSchools[0].schoolId }),
+        })
+        router.push('/dashboard')
+        return
+      }
+
+      if (staffSchools.length > 1) {
+        // Show school picker — includes personal option
+        setPickerSchools(staffSchools)
+        return
+      }
+
+      // 3. Has student memberships → /my (or /explore for now)
+      if (schools.length > 0) {
+        router.push('/explore')
+        return
+      }
+
+      // 4. No context → /explore
+      router.push('/explore')
+    } catch {
+      router.push('/explore')
+    }
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -84,28 +133,26 @@ export default function LoginModal({ onClose, onOpenRegister }: LoginModalProps)
     if (!valid) return
 
     setLoading(true)
-    const { data, error: err } = await supabase.auth.signInWithPassword({ email, password })
+    const { error: err } = await supabase.auth.signInWithPassword({ email, password })
     setLoading(false)
     if (err) { setError(err.message); return }
     onClose()
+    await resolveRedirect()
+  }
 
-    // Check role via API and redirect accordingly
-    try {
-      const res = await fetch('/api/auth/me')
-      const json = await res.json()
-      if (json.role === 'SUPERADMIN') {
-        router.push('/admin')
-        return
-      }
-      if (json.role === 'SCHOOL_OWNER' || json.role === 'INSTRUCTOR') {
-        router.push('/dashboard')
-        return
-      }
-      // STUDENT — zona propia pendiente, por ahora a Explore
-      router.push('/explore')
-      return
-    } catch {}
-    router.push('/dashboard')
+  // School picker shown after login when user has multiple staff roles
+  if (pickerSchools) {
+    return (
+      <SchoolPicker
+        schools={pickerSchools}
+        onSelect={(schoolId) => {
+          router.push('/dashboard')
+        }}
+        onPersonal={() => {
+          router.push('/explore')
+        }}
+      />
+    )
   }
 
   return (

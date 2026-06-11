@@ -11,7 +11,7 @@ export async function GET() {
       instagram: true, description: true, logoUrl: true,
       createdAt: true, updatedAt: true,
       _count: { select: { members: true } },
-      invitation: { select: { id: true, sentAt: true, registeredAt: true } },
+      invitations: { select: { id: true, sentAt: true, registeredAt: true } },
     },
   })
   return NextResponse.json({ schools })

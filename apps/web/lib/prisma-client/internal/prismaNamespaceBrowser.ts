@@ -78,6 +78,7 @@ export const ModelName = {
   Waiver: 'Waiver',
   UserWaiver: 'UserWaiver',
   Transaction: 'Transaction',
+  UserPreference: 'UserPreference',
   ProductCategory: 'ProductCategory',
   Product: 'Product',
   Order: 'Order',
@@ -251,6 +252,9 @@ export const SchoolScalarFieldEnum = {
   googleReviews: 'googleReviews',
   googlePlaceId: 'googlePlaceId',
   stripeAccountId: 'stripeAccountId',
+  parentId: 'parentId',
+  parentRelationshipType: 'parentRelationshipType',
+  leadStage: 'leadStage',
   claimedById: 'claimedById',
   claimedAt: 'claimedAt',
   createdAt: 'createdAt',
@@ -543,6 +547,7 @@ export const SchoolInvitationScalarFieldEnum = {
   source: 'source',
   invitedById: 'invitedById',
   schoolId: 'schoolId',
+  isActive: 'isActive',
   sentAt: 'sentAt',
   openedAt: 'openedAt',
   registeredAt: 'registeredAt',
@@ -598,6 +603,18 @@ export const TransactionScalarFieldEnum = {
 } as const
 
 export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
+
+
+export const UserPreferenceScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  lastSchoolId: 'lastSchoolId',
+  lastContextType: 'lastContextType',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserPreferenceScalarFieldEnum = (typeof UserPreferenceScalarFieldEnum)[keyof typeof UserPreferenceScalarFieldEnum]
 
 
 export const ProductCategoryScalarFieldEnum = {

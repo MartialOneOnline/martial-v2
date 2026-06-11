@@ -153,6 +153,11 @@ export type UserWaiver = Prisma.UserWaiverModel
  */
 export type Transaction = Prisma.TransactionModel
 /**
+ * Model UserPreference
+ * 
+ */
+export type UserPreference = Prisma.UserPreferenceModel
+/**
  * Model ProductCategory
  * 
  */
