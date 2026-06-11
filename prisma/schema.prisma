@@ -48,8 +48,32 @@ enum PaymentMethod {
 
 enum SchoolMemberRole {
   OWNER
+  ADMIN
+  MANAGER
   INSTRUCTOR
+  ASSISTANT_INSTRUCTOR
+  RECEPTIONIST
   STUDENT
+}
+
+enum LeadStage {
+  NEW
+  CONTACTED
+  INTERESTED
+  DEMO
+  INVITE_SENT
+  ONBOARDING
+  WON
+  LOST
+  REJECTED
+}
+
+enum SchoolRelationshipType {
+  HQ_BRANCH
+  FRANCHISE
+  AFFILIATE_SCHOOL
+  PARTNER
+  NETWORK_MEMBER
 }
 
 enum SchoolMemberStatus {
@@ -291,6 +315,7 @@ model User {
   transactions     Transaction[]   @relation("TransactionUser")
   userWaivers      UserWaiver[]
   sentInvitations  SchoolInvitation[] @relation("InvitedByUser")
+  preference       UserPreference?
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -377,6 +402,15 @@ model School {
   // Stripe
   stripeAccountId String?
 
+  // Hierarchy (HQ / branch / franchise)
+  parentId                 String?
+  parent                   School?               @relation("SchoolHierarchy", fields: [parentId], references: [id])
+  branches                 School[]              @relation("SchoolHierarchy")
+  parentRelationshipType   SchoolRelationshipType?
+
+  // CRM pipeline (separate from platform status)
+  leadStage   LeadStage?
+
   // Ownership
   claimedBy    User?     @relation("SchoolClaimer", fields: [claimedById], references: [id])
   claimedById  String?
@@ -398,7 +432,7 @@ model School {
   leads           Lead[]
   waivers         Waiver[]
   transactions    Transaction[]
-  invitation      SchoolInvitation?
+  invitations     SchoolInvitation[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -863,12 +897,18 @@ model SchoolInvitation {
   invitedBy   User?   @relation("InvitedByUser", fields: [invitedById], references: [id])
 
   // School created after successful onboarding
-  schoolId String? @unique
+  // Not unique — allows re-inviting after decline/expiry
+  schoolId String?
   school   School? @relation(fields: [schoolId], references: [id])
+
+  // Only one invitation per school should be active at a time
+  isActive Boolean @default(true)
 
   sentAt       DateTime?
   openedAt     DateTime?
   registeredAt DateTime?
+
+  @@index([schoolId, isActive])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -947,6 +987,27 @@ model Transaction {
   updatedAt   DateTime @updatedAt
 
   @@map("transactions")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// USER PREFERENCE
+// Stores last selected context for school picker. Not an authorization source.
+// Authorization always comes from SchoolMember.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model UserPreference {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Last active school context — suggestion only, not authorization
+  lastSchoolId        String?
+  lastContextType     String?  // "SCHOOL" | "PERSONAL" | "ADMIN"
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("user_preferences")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
