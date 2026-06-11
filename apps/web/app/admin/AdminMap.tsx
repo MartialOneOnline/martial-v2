@@ -22,9 +22,8 @@ const STATUS_COLOR: Record<string, string> = {
 }
 
 export default function AdminMap({ schools }: { schools: School[] }) {
-  const center: [number, number] = schools.length > 0
-    ? [schools[0].lat, schools[0].lng]
-    : [20, 0]
+  const first = schools[0]
+  const center: [number, number] = first ? [first.lat, first.lng] : [20, 0]
 
   const mapKey = schools.map(s => s.id).join(',') || 'empty'
 

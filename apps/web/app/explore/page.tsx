@@ -1,11 +1,13 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
+import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
   Search, MapPin, Star, Filter, X, ChevronLeft, ChevronRight,
-  ArrowRight, Clock, Sparkles, Dumbbell, Calendar, ChevronDown,
+  ArrowRight, Sparkles, Dumbbell, Calendar, ChevronDown, List, Map,
+  Navigation,
 } from 'lucide-react'
 import Header from '../../components/Header'
 import Footer from '../../components/Footer'
@@ -13,6 +15,11 @@ import LoginModal from '../../components/LoginModal'
 import RegisterModal from '../../components/RegisterModal'
 import { useT } from '../../lib/i18n/LanguageContext'
 import ClassBookingModal from '../school/[slug]/ClassBookingModal'
+
+// Leaflet map — dynamic import (no SSR, needs browser APIs)
+const ExploreMap = dynamic(() => import('../../components/ExploreMap'), { ssr: false, loading: () => (
+  <div className="w-full rounded-2xl bg-[#F3F4F6] animate-pulse" style={{ height: 520 }} />
+) })
 
 // ── Theme ─────────────────────────────────────────────────────────────────────
 const BLUE = '#006197'
@@ -28,6 +35,8 @@ type DbSchool = {
   city: string
   country: string
   address: string | null
+  lat: number | null
+  lng: number | null
   coverUrl: string | null
   googleRating: number | null
   googleReviews: number | null
@@ -61,10 +70,78 @@ type DbClass = {
   instructor: { name: string; belt: string | null; role: string } | null
 }
 
+// ── City coords fallback (used until geocoding populates lat/lng in DB) ───────
+const CITY_COORDS: Record<string, [number, number]> = {
+  // Spain
+  'Madrid': [40.42, -3.70], 'Barcelona': [41.39, 2.15], 'Valencia': [39.47, -0.38],
+  'Sevilla': [37.39, -5.99], 'Málaga': [36.72, -4.42], 'Malaga': [36.72, -4.42],
+  'Zaragoza': [41.65, -0.89], 'Murcia': [37.98, -1.13], 'Palma': [39.57, 2.65],
+  'Alicante': [38.35, -0.49], 'Bilbao': [43.26, -2.93], 'Córdoba': [37.89, -4.78],
+  'Valladolid': [41.65, -4.72], 'Vitoria': [42.85, -2.67], 'Granada': [37.18, -3.60],
+  // UK
+  'London': [51.51, -0.13], 'Manchester': [53.48, -2.24], 'Birmingham': [52.49, -1.90],
+  'Glasgow': [55.86, -4.25], 'Liverpool': [53.41, -2.98], 'Leeds': [53.80, -1.55],
+  'Edinburgh': [55.95, -3.19], 'Bristol': [51.45, -2.59], 'Sheffield': [53.38, -1.47],
+  'Reading': [51.46, -0.97], 'Coventry': [52.41, -1.51], 'Leicester': [52.64, -1.13],
+  'Nottingham': [52.95, -1.14], 'Newcastle': [54.98, -1.61], 'Brighton': [50.83, -0.14],
+  'Cardiff': [51.48, -3.18], 'Barnet': [51.65, -0.19], 'Bedford': [52.14, -0.47],
+  'Bolton': [53.58, -2.43], 'Salford': [53.49, -2.28], 'Preston': [53.76, -2.70],
+  'Chester': [53.19, -2.89], 'Taunton': [51.02, -3.10], 'Darlington': [54.52, -1.55],
+  'Watford': [51.66, -0.40],
+  // France
+  'Paris': [48.85, 2.35], 'Lyon': [45.75, 4.83], 'Marseille': [43.30, 5.37],
+  'Toulouse': [43.60, 1.44], 'Nice': [43.71, 7.26], 'Bordeaux': [44.84, -0.58],
+  'Nantes': [47.22, -1.55], 'Strasbourg': [48.57, 7.75], 'Rennes': [48.11, -1.68],
+  // Germany
+  'Berlin': [52.52, 13.40], 'Hamburg': [53.55, 9.99], 'Munich': [48.14, 11.58],
+  'Cologne': [50.94, 6.96], 'Frankfurt': [50.11, 8.68], 'Stuttgart': [48.78, 9.18],
+  'Düsseldorf': [51.22, 6.77], 'Dortmund': [51.51, 7.47], 'Nuremberg': [49.45, 11.08],
+  // Italy
+  'Rome': [41.90, 12.50], 'Milan': [45.46, 9.19], 'Naples': [40.85, 14.27],
+  'Turin': [45.07, 7.69], 'Palermo': [38.11, 13.35], 'Bologna': [44.50, 11.34],
+  'Florence': [43.77, 11.25], 'Venice': [45.44, 12.32], 'Catania': [37.50, 15.09],
+  // Portugal
+  'Lisbon': [38.72, -9.14], 'Porto': [41.15, -8.61], 'Braga': [41.55, -8.43],
+  // Netherlands
+  'Amsterdam': [52.37, 4.90], 'Rotterdam': [51.92, 4.48], 'The Hague': [52.08, 4.31],
+  // Belgium
+  'Brussels': [50.85, 4.35], 'Antwerp': [51.22, 4.40], 'Ghent': [51.05, 3.72],
+  // Sweden
+  'Stockholm': [59.33, 18.07], 'Gothenburg': [57.71, 11.97], 'Malmö': [55.61, 13.00],
+  // Poland
+  'Warsaw': [52.23, 21.01], 'Krakow': [50.06, 19.94], 'Wroclaw': [51.11, 17.04],
+  // Greece
+  'Athens': [37.98, 23.73], 'Thessaloniki': [40.63, 22.95],
+  // Ireland
+  'Dublin': [53.33, -6.25], 'Cork': [51.90, -8.47],
+  // Austria
+  'Vienna': [48.21, 16.37], 'Graz': [47.07, 15.44], 'Linz': [48.31, 14.29],
+  // Switzerland
+  'Zurich': [47.38, 8.54], 'Geneva': [46.20, 6.14], 'Bern': [46.95, 7.44],
+  // Croatia
+  'Zagreb': [45.81, 15.98], 'Split': [43.51, 16.44],
+  // Other
+  'Istanbul': [41.01, 28.95], 'Oslo': [59.91, 10.75], 'Copenhagen': [55.68, 12.57],
+  'Helsinki': [60.17, 24.94], 'Kiev': [50.45, 30.52], 'Kyiv': [50.45, 30.52],
+  'Dubai': [25.20, 55.27], 'Baku': [40.41, 49.87],
+}
+
+function getCityCoords(city: string | null): [number, number] | null {
+  if (!city) return null
+  // Try exact match first, then partial
+  const exact = CITY_COORDS[city]
+  if (exact) return exact
+  const lower = city.toLowerCase()
+  for (const [k, v] of Object.entries(CITY_COORDS)) {
+    if (lower.includes(k.toLowerCase()) || k.toLowerCase().includes(lower)) return v
+  }
+  return null
+}
+
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const DISCIPLINES = ['All', 'BJJ', 'Grappling', 'MMA', 'Muay Thai', 'Wrestling', 'Judo', 'Karate', 'Boxing']
-const SORTS = ['Rating', 'Price'] as const
+const SORTS = ['Nearest', 'Rating', 'Price', 'Name'] as const
 type SortKey = typeof SORTS[number]
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -418,13 +495,52 @@ export default function ExplorePage() {
 
   // UI state
   const [mode, setMode]               = useState<'schools' | 'classes'>('schools')
+  const [view, setView]               = useState<'list' | 'map'>('list')
   const [search, setSearch]           = useState('')
   const [location, setLocation]       = useState('')
   const [discipline, setDiscipline]   = useState('All')
-  const [sort, setSort]               = useState<SortKey>('Rating')
+  const [sort, setSort]               = useState<SortKey>('Nearest')
   const [quickView, setQuickView]     = useState<DbSchool | null>(null)
   const [showLogin, setShowLogin]     = useState(false)
   const [showRegister, setShowRegister] = useState(false)
+  const [userCoords, setUserCoords]   = useState<{ lat: number; lng: number } | null>(null)
+  const [userCountry, setUserCountry] = useState<string | null>(null)
+  const [geoLoading, setGeoLoading]   = useState(false)
+
+  // Auto-detect location on load: IP geolocation first (silent), then browser GPS if available
+  useEffect(() => {
+    // 1. IP-based geolocation — no permission needed, fast
+    fetch('https://ipapi.co/json/')
+      .then(r => r.json())
+      .then((data: any) => {
+        if (data.latitude && data.longitude) {
+          setUserCoords({ lat: data.latitude, lng: data.longitude })
+        }
+        if (data.country_code) {
+          setUserCountry(data.country_code) // e.g. "ES", "GB", "FR"
+        }
+      })
+      .catch(() => {})
+
+    // 2. Browser GPS upgrade (more precise) — runs in parallel, overwrites if user grants
+    if (typeof navigator !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        pos => setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => {}, // silently ignore if denied
+        { timeout: 6000 }
+      )
+    }
+  }, [])
+
+  const requestGeo = useCallback(() => {
+    if (geoLoading) return
+    setGeoLoading(true)
+    navigator.geolocation.getCurrentPosition(
+      pos => { setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }); setSort('Nearest'); setGeoLoading(false) },
+      () => setGeoLoading(false),
+      { timeout: 8000 }
+    )
+  }, [geoLoading])
 
   // Booking modal — for classes tab + quick view CTA
   const [bookingModal, setBookingModal] = useState<{
@@ -453,6 +569,15 @@ export default function ExplorePage() {
       .finally(() => setLoadingClasses(false))
   }, [])
 
+  // Haversine distance helper
+  function distKm(lat1: number, lng1: number, lat2: number, lng2: number) {
+    const R = 6371
+    const dLat = (lat2 - lat1) * Math.PI / 180
+    const dLng = (lng2 - lng1) * Math.PI / 180
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+  }
+
   // Filter + sort schools
   const filteredSchools = useMemo(() => {
     const q = search.toLowerCase()
@@ -466,10 +591,35 @@ export default function ExplorePage() {
         return matchDiscipline && matchSearch && matchLocation
       })
       .sort((a, b) => {
+        if (sort === 'Nearest' && !userCoords) {
+          if (userCountry) {
+            const inA = a.country === userCountry
+            const inB = b.country === userCountry
+            if (inA !== inB) return inA ? -1 : 1
+          }
+          return (b.googleRating ?? 0) - (a.googleRating ?? 0)
+        }
+        if (sort === 'Nearest' && userCoords) {
+          const coordsA = (a.lat && a.lng) ? [a.lat, a.lng] as [number,number] : getCityCoords(a.city)
+          const coordsB = (b.lat && b.lng) ? [b.lat, b.lng] as [number,number] : getCityCoords(b.city)
+          // If one has coords and the other doesn't, check country as tiebreaker
+          const inCountryA = userCountry ? a.country === userCountry : false
+          const inCountryB = userCountry ? b.country === userCountry : false
+          if (!coordsA && !coordsB) {
+            if (inCountryA !== inCountryB) return inCountryA ? -1 : 1
+            return (b.googleRating ?? 0) - (a.googleRating ?? 0)
+          }
+          const dA = coordsA ? distKm(userCoords.lat, userCoords.lng, coordsA[0], coordsA[1]) : (inCountryA ? 500 : 99999)
+          const dB = coordsB ? distKm(userCoords.lat, userCoords.lng, coordsB[0], coordsB[1]) : (inCountryB ? 500 : 99999)
+          if (Math.abs(dA - dB) < 30) return (b.googleRating ?? 0) - (a.googleRating ?? 0)
+          return dA - dB
+        }
         if (sort === 'Rating') return (b.googleRating ?? 0) - (a.googleRating ?? 0)
-        return (a.priceFrom ?? 9999) - (b.priceFrom ?? 9999)
+        if (sort === 'Price') return (a.priceFrom ?? 9999) - (b.priceFrom ?? 9999)
+        // Name / fallback: alphabetical
+        return a.name.localeCompare(b.name)
       })
-  }, [schools, search, location, discipline, sort])
+  }, [schools, search, location, discipline, sort, userCoords, userCountry])
 
   // Filter classes
   const filteredClasses = useMemo(() => {
@@ -616,20 +766,49 @@ export default function ExplorePage() {
           </div>
 
           {/* Controls */}
-          <div className="flex items-center justify-between gap-3">
-            {/* Mode toggle */}
-            <div className="inline-flex p-1 rounded-full bg-[#F9FAFB] border border-[#E5E7EB]">
-              {(['schools', 'classes'] as const).map(m => (
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              {/* Mode toggle */}
+              <div className="inline-flex p-1 rounded-full bg-[#F9FAFB] border border-[#E5E7EB]">
+                {(['schools', 'classes'] as const).map(m => (
+                  <button
+                    key={m}
+                    onClick={() => setMode(m)}
+                    className={`h-9 px-4 md:px-5 rounded-full text-sm font-semibold transition-all capitalize ${
+                      mode === m ? 'bg-white text-[#111827] shadow-sm' : 'text-[#6B7280] hover:text-[#111827]'
+                    }`}
+                  >
+                    {m === 'schools' ? (t?.explore?.schools ?? 'Schools') : (t?.explore?.classes ?? 'Classes')}
+                  </button>
+                ))}
+              </div>
+
+              {/* List / Map view toggle */}
+              <div className="inline-flex p-1 rounded-full bg-[#F9FAFB] border border-[#E5E7EB]">
                 <button
-                  key={m}
-                  onClick={() => setMode(m)}
-                  className={`h-9 px-4 md:px-5 rounded-full text-sm font-semibold transition-all capitalize ${
-                    mode === m ? 'bg-white text-[#111827] shadow-sm' : 'text-[#6B7280] hover:text-[#111827]'
-                  }`}
+                  onClick={() => setView('list')}
+                  className={`h-9 px-3 rounded-full text-sm font-semibold transition-all flex items-center gap-1.5 ${view === 'list' ? 'bg-white text-[#111827] shadow-sm' : 'text-[#6B7280] hover:text-[#111827]'}`}
                 >
-                  {m === 'schools' ? (t?.explore?.schools ?? 'Schools') : (t?.explore?.classes ?? 'Classes')}
+                  <List className="w-4 h-4" /> <span className="hidden sm:inline">List</span>
                 </button>
-              ))}
+                <button
+                  onClick={() => setView('map')}
+                  className={`h-9 px-3 rounded-full text-sm font-semibold transition-all flex items-center gap-1.5 ${view === 'map' ? 'bg-white text-[#111827] shadow-sm' : 'text-[#6B7280] hover:text-[#111827]'}`}
+                >
+                  <Map className="w-4 h-4" /> <span className="hidden sm:inline">Map</span>
+                </button>
+              </div>
+
+              {/* Near me */}
+              <button
+                onClick={requestGeo}
+                className={`h-9 px-3 rounded-full border text-sm font-semibold flex items-center gap-1.5 transition-all ${
+                  userCoords ? 'border-[#006197] text-[#006197] bg-[#EFF6FF]' : 'border-[#E5E7EB] text-[#6B7280] bg-white hover:border-[#9CA3AF]'
+                }`}
+              >
+                <Navigation className={`w-3.5 h-3.5 ${geoLoading ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">{userCoords ? 'Near me ✓' : 'Near me'}</span>
+              </button>
             </div>
 
             {/* Sort */}
@@ -668,34 +847,61 @@ export default function ExplorePage() {
           )}
         </div>
 
+        {/* Map view */}
+        {view === 'map' && mode === 'schools' && (
+          <div className="mb-6">
+            <ExploreMap
+              schools={filteredSchools}
+              userCoords={userCoords}
+              onSchoolClick={s => setQuickView(s as any)}
+            />
+          </div>
+        )}
+
         {/* List */}
-        <div className="space-y-4 max-w-3xl">
-          {isLoading ? (
-            <>
-              <CardSkeleton />
-              <CardSkeleton />
-              <CardSkeleton />
-            </>
-          ) : resultCount === 0 ? (
-            <EmptyState mode={mode} />
-          ) : mode === 'schools' ? (
-            filteredSchools.map(school => (
+        {view === 'list' && (
+          <div className="space-y-4 max-w-3xl">
+            {isLoading ? (
+              <>
+                <CardSkeleton />
+                <CardSkeleton />
+                <CardSkeleton />
+              </>
+            ) : resultCount === 0 ? (
+              <EmptyState mode={mode} />
+            ) : mode === 'schools' ? (
+              filteredSchools.map(school => (
+                <SchoolCard
+                  key={school.id}
+                  school={school}
+                  onClick={() => setQuickView(school)}
+                />
+              ))
+            ) : (
+              filteredClasses.map(cls => (
+                <ClassCard
+                  key={cls.id}
+                  cls={cls}
+                  onClick={() => openClassBooking(cls)}
+                />
+              ))
+            )}
+          </div>
+        )}
+
+        {/* Map + list side by side on wide screens when map active */}
+        {view === 'map' && mode === 'schools' && !isLoading && filteredSchools.length > 0 && (
+          <div className="space-y-3 max-w-3xl mt-2">
+            <p className="text-xs font-semibold text-[#6B7280] uppercase tracking-wide">Schools on map</p>
+            {filteredSchools.filter(s => s.lat && s.lng).slice(0, 10).map(school => (
               <SchoolCard
                 key={school.id}
                 school={school}
                 onClick={() => setQuickView(school)}
               />
-            ))
-          ) : (
-            filteredClasses.map(cls => (
-              <ClassCard
-                key={cls.id}
-                cls={cls}
-                onClick={() => openClassBooking(cls)}
-              />
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* Coming soon note when few results */}
         {!isLoading && resultCount > 0 && resultCount < 5 && (
