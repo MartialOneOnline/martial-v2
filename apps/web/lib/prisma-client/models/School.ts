@@ -52,6 +52,7 @@ export type SchoolMinAggregateOutputType = {
   slug: string | null
   status: $Enums.SchoolStatus | null
   source: $Enums.SchoolSource | null
+  affiliationId: string | null
   country: string | null
   city: string | null
   address: string | null
@@ -73,8 +74,6 @@ export type SchoolMinAggregateOutputType = {
   hasFreeTrialCls: boolean | null
   foundedYear: number | null
   totalStudents: number | null
-  affiliationName: string | null
-  affiliationUrl: string | null
   googleRating: number | null
   googleReviews: number | null
   googlePlaceId: string | null
@@ -91,6 +90,7 @@ export type SchoolMaxAggregateOutputType = {
   slug: string | null
   status: $Enums.SchoolStatus | null
   source: $Enums.SchoolSource | null
+  affiliationId: string | null
   country: string | null
   city: string | null
   address: string | null
@@ -112,8 +112,6 @@ export type SchoolMaxAggregateOutputType = {
   hasFreeTrialCls: boolean | null
   foundedYear: number | null
   totalStudents: number | null
-  affiliationName: string | null
-  affiliationUrl: string | null
   googleRating: number | null
   googleReviews: number | null
   googlePlaceId: string | null
@@ -130,6 +128,7 @@ export type SchoolCountAggregateOutputType = {
   slug: number
   status: number
   source: number
+  affiliationId: number
   country: number
   city: number
   address: number
@@ -153,8 +152,6 @@ export type SchoolCountAggregateOutputType = {
   facilities: number
   foundedYear: number
   totalStudents: number
-  affiliationName: number
-  affiliationUrl: number
   googleRating: number
   googleReviews: number
   googlePlaceId: number
@@ -193,6 +190,7 @@ export type SchoolMinAggregateInputType = {
   slug?: true
   status?: true
   source?: true
+  affiliationId?: true
   country?: true
   city?: true
   address?: true
@@ -214,8 +212,6 @@ export type SchoolMinAggregateInputType = {
   hasFreeTrialCls?: true
   foundedYear?: true
   totalStudents?: true
-  affiliationName?: true
-  affiliationUrl?: true
   googleRating?: true
   googleReviews?: true
   googlePlaceId?: true
@@ -232,6 +228,7 @@ export type SchoolMaxAggregateInputType = {
   slug?: true
   status?: true
   source?: true
+  affiliationId?: true
   country?: true
   city?: true
   address?: true
@@ -253,8 +250,6 @@ export type SchoolMaxAggregateInputType = {
   hasFreeTrialCls?: true
   foundedYear?: true
   totalStudents?: true
-  affiliationName?: true
-  affiliationUrl?: true
   googleRating?: true
   googleReviews?: true
   googlePlaceId?: true
@@ -271,6 +266,7 @@ export type SchoolCountAggregateInputType = {
   slug?: true
   status?: true
   source?: true
+  affiliationId?: true
   country?: true
   city?: true
   address?: true
@@ -294,8 +290,6 @@ export type SchoolCountAggregateInputType = {
   facilities?: true
   foundedYear?: true
   totalStudents?: true
-  affiliationName?: true
-  affiliationUrl?: true
   googleRating?: true
   googleReviews?: true
   googlePlaceId?: true
@@ -399,6 +393,7 @@ export type SchoolGroupByOutputType = {
   slug: string
   status: $Enums.SchoolStatus
   source: $Enums.SchoolSource
+  affiliationId: string | null
   country: string | null
   city: string | null
   address: string | null
@@ -422,8 +417,6 @@ export type SchoolGroupByOutputType = {
   facilities: string[]
   foundedYear: number | null
   totalStudents: number | null
-  affiliationName: string | null
-  affiliationUrl: string | null
   googleRating: number | null
   googleReviews: number | null
   googlePlaceId: string | null
@@ -463,6 +456,7 @@ export type SchoolWhereInput = {
   slug?: Prisma.StringFilter<"School"> | string
   status?: Prisma.EnumSchoolStatusFilter<"School"> | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFilter<"School"> | $Enums.SchoolSource
+  affiliationId?: Prisma.StringNullableFilter<"School"> | string | null
   country?: Prisma.StringNullableFilter<"School"> | string | null
   city?: Prisma.StringNullableFilter<"School"> | string | null
   address?: Prisma.StringNullableFilter<"School"> | string | null
@@ -486,8 +480,6 @@ export type SchoolWhereInput = {
   facilities?: Prisma.StringNullableListFilter<"School">
   foundedYear?: Prisma.IntNullableFilter<"School"> | number | null
   totalStudents?: Prisma.IntNullableFilter<"School"> | number | null
-  affiliationName?: Prisma.StringNullableFilter<"School"> | string | null
-  affiliationUrl?: Prisma.StringNullableFilter<"School"> | string | null
   googleRating?: Prisma.FloatNullableFilter<"School"> | number | null
   googleReviews?: Prisma.IntNullableFilter<"School"> | number | null
   googlePlaceId?: Prisma.StringNullableFilter<"School"> | string | null
@@ -496,10 +488,12 @@ export type SchoolWhereInput = {
   claimedAt?: Prisma.DateTimeNullableFilter<"School"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"School"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"School"> | Date | string
+  affiliation?: Prisma.XOR<Prisma.AffiliationNullableScalarRelationFilter, Prisma.AffiliationWhereInput> | null
   claimedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   staff?: Prisma.UserListRelationFilter
   disciplines?: Prisma.SchoolDisciplineListRelationFilter
   classes?: Prisma.ClassListRelationFilter
+  events?: Prisma.EventListRelationFilter
   memberships?: Prisma.MembershipListRelationFilter
   camps?: Prisma.CampListRelationFilter
   instructors?: Prisma.InstructorListRelationFilter
@@ -507,6 +501,11 @@ export type SchoolWhereInput = {
   reviews?: Prisma.ReviewListRelationFilter
   members?: Prisma.SchoolMemberListRelationFilter
   claims?: Prisma.SchoolClaimListRelationFilter
+  gradings?: Prisma.GradingListRelationFilter
+  leads?: Prisma.LeadListRelationFilter
+  waivers?: Prisma.WaiverListRelationFilter
+  transactions?: Prisma.TransactionListRelationFilter
+  invitation?: Prisma.XOR<Prisma.SchoolInvitationNullableScalarRelationFilter, Prisma.SchoolInvitationWhereInput> | null
 }
 
 export type SchoolOrderByWithRelationInput = {
@@ -515,6 +514,7 @@ export type SchoolOrderByWithRelationInput = {
   slug?: Prisma.SortOrder
   status?: Prisma.SortOrder
   source?: Prisma.SortOrder
+  affiliationId?: Prisma.SortOrderInput | Prisma.SortOrder
   country?: Prisma.SortOrderInput | Prisma.SortOrder
   city?: Prisma.SortOrderInput | Prisma.SortOrder
   address?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -538,8 +538,6 @@ export type SchoolOrderByWithRelationInput = {
   facilities?: Prisma.SortOrder
   foundedYear?: Prisma.SortOrderInput | Prisma.SortOrder
   totalStudents?: Prisma.SortOrderInput | Prisma.SortOrder
-  affiliationName?: Prisma.SortOrderInput | Prisma.SortOrder
-  affiliationUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   googleRating?: Prisma.SortOrderInput | Prisma.SortOrder
   googleReviews?: Prisma.SortOrderInput | Prisma.SortOrder
   googlePlaceId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -548,10 +546,12 @@ export type SchoolOrderByWithRelationInput = {
   claimedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  affiliation?: Prisma.AffiliationOrderByWithRelationInput
   claimedBy?: Prisma.UserOrderByWithRelationInput
   staff?: Prisma.UserOrderByRelationAggregateInput
   disciplines?: Prisma.SchoolDisciplineOrderByRelationAggregateInput
   classes?: Prisma.ClassOrderByRelationAggregateInput
+  events?: Prisma.EventOrderByRelationAggregateInput
   memberships?: Prisma.MembershipOrderByRelationAggregateInput
   camps?: Prisma.CampOrderByRelationAggregateInput
   instructors?: Prisma.InstructorOrderByRelationAggregateInput
@@ -559,6 +559,11 @@ export type SchoolOrderByWithRelationInput = {
   reviews?: Prisma.ReviewOrderByRelationAggregateInput
   members?: Prisma.SchoolMemberOrderByRelationAggregateInput
   claims?: Prisma.SchoolClaimOrderByRelationAggregateInput
+  gradings?: Prisma.GradingOrderByRelationAggregateInput
+  leads?: Prisma.LeadOrderByRelationAggregateInput
+  waivers?: Prisma.WaiverOrderByRelationAggregateInput
+  transactions?: Prisma.TransactionOrderByRelationAggregateInput
+  invitation?: Prisma.SchoolInvitationOrderByWithRelationInput
 }
 
 export type SchoolWhereUniqueInput = Prisma.AtLeast<{
@@ -570,6 +575,7 @@ export type SchoolWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"School"> | string
   status?: Prisma.EnumSchoolStatusFilter<"School"> | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFilter<"School"> | $Enums.SchoolSource
+  affiliationId?: Prisma.StringNullableFilter<"School"> | string | null
   country?: Prisma.StringNullableFilter<"School"> | string | null
   city?: Prisma.StringNullableFilter<"School"> | string | null
   address?: Prisma.StringNullableFilter<"School"> | string | null
@@ -593,8 +599,6 @@ export type SchoolWhereUniqueInput = Prisma.AtLeast<{
   facilities?: Prisma.StringNullableListFilter<"School">
   foundedYear?: Prisma.IntNullableFilter<"School"> | number | null
   totalStudents?: Prisma.IntNullableFilter<"School"> | number | null
-  affiliationName?: Prisma.StringNullableFilter<"School"> | string | null
-  affiliationUrl?: Prisma.StringNullableFilter<"School"> | string | null
   googleRating?: Prisma.FloatNullableFilter<"School"> | number | null
   googleReviews?: Prisma.IntNullableFilter<"School"> | number | null
   googlePlaceId?: Prisma.StringNullableFilter<"School"> | string | null
@@ -603,10 +607,12 @@ export type SchoolWhereUniqueInput = Prisma.AtLeast<{
   claimedAt?: Prisma.DateTimeNullableFilter<"School"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"School"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"School"> | Date | string
+  affiliation?: Prisma.XOR<Prisma.AffiliationNullableScalarRelationFilter, Prisma.AffiliationWhereInput> | null
   claimedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   staff?: Prisma.UserListRelationFilter
   disciplines?: Prisma.SchoolDisciplineListRelationFilter
   classes?: Prisma.ClassListRelationFilter
+  events?: Prisma.EventListRelationFilter
   memberships?: Prisma.MembershipListRelationFilter
   camps?: Prisma.CampListRelationFilter
   instructors?: Prisma.InstructorListRelationFilter
@@ -614,6 +620,11 @@ export type SchoolWhereUniqueInput = Prisma.AtLeast<{
   reviews?: Prisma.ReviewListRelationFilter
   members?: Prisma.SchoolMemberListRelationFilter
   claims?: Prisma.SchoolClaimListRelationFilter
+  gradings?: Prisma.GradingListRelationFilter
+  leads?: Prisma.LeadListRelationFilter
+  waivers?: Prisma.WaiverListRelationFilter
+  transactions?: Prisma.TransactionListRelationFilter
+  invitation?: Prisma.XOR<Prisma.SchoolInvitationNullableScalarRelationFilter, Prisma.SchoolInvitationWhereInput> | null
 }, "id" | "slug">
 
 export type SchoolOrderByWithAggregationInput = {
@@ -622,6 +633,7 @@ export type SchoolOrderByWithAggregationInput = {
   slug?: Prisma.SortOrder
   status?: Prisma.SortOrder
   source?: Prisma.SortOrder
+  affiliationId?: Prisma.SortOrderInput | Prisma.SortOrder
   country?: Prisma.SortOrderInput | Prisma.SortOrder
   city?: Prisma.SortOrderInput | Prisma.SortOrder
   address?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -645,8 +657,6 @@ export type SchoolOrderByWithAggregationInput = {
   facilities?: Prisma.SortOrder
   foundedYear?: Prisma.SortOrderInput | Prisma.SortOrder
   totalStudents?: Prisma.SortOrderInput | Prisma.SortOrder
-  affiliationName?: Prisma.SortOrderInput | Prisma.SortOrder
-  affiliationUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   googleRating?: Prisma.SortOrderInput | Prisma.SortOrder
   googleReviews?: Prisma.SortOrderInput | Prisma.SortOrder
   googlePlaceId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -671,6 +681,7 @@ export type SchoolScalarWhereWithAggregatesInput = {
   slug?: Prisma.StringWithAggregatesFilter<"School"> | string
   status?: Prisma.EnumSchoolStatusWithAggregatesFilter<"School"> | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceWithAggregatesFilter<"School"> | $Enums.SchoolSource
+  affiliationId?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
   country?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
   city?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
   address?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
@@ -694,8 +705,6 @@ export type SchoolScalarWhereWithAggregatesInput = {
   facilities?: Prisma.StringNullableListFilter<"School">
   foundedYear?: Prisma.IntNullableWithAggregatesFilter<"School"> | number | null
   totalStudents?: Prisma.IntNullableWithAggregatesFilter<"School"> | number | null
-  affiliationName?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
-  affiliationUrl?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
   googleRating?: Prisma.FloatNullableWithAggregatesFilter<"School"> | number | null
   googleReviews?: Prisma.IntNullableWithAggregatesFilter<"School"> | number | null
   googlePlaceId?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
@@ -735,8 +744,6 @@ export type SchoolCreateInput = {
   facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
   foundedYear?: number | null
   totalStudents?: number | null
-  affiliationName?: string | null
-  affiliationUrl?: string | null
   googleRating?: number | null
   googleReviews?: number | null
   googlePlaceId?: string | null
@@ -744,10 +751,12 @@ export type SchoolCreateInput = {
   claimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  affiliation?: Prisma.AffiliationCreateNestedOneWithoutSchoolsInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
   camps?: Prisma.CampCreateNestedManyWithoutSchoolInput
   instructors?: Prisma.InstructorCreateNestedManyWithoutSchoolInput
@@ -755,6 +764,11 @@ export type SchoolCreateInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationCreateNestedOneWithoutSchoolInput
 }
 
 export type SchoolUncheckedCreateInput = {
@@ -763,6 +777,7 @@ export type SchoolUncheckedCreateInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  affiliationId?: string | null
   country?: string | null
   city?: string | null
   address?: string | null
@@ -786,8 +801,6 @@ export type SchoolUncheckedCreateInput = {
   facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
   foundedYear?: number | null
   totalStudents?: number | null
-  affiliationName?: string | null
-  affiliationUrl?: string | null
   googleRating?: number | null
   googleReviews?: number | null
   googlePlaceId?: string | null
@@ -799,6 +812,7 @@ export type SchoolUncheckedCreateInput = {
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
   camps?: Prisma.CampUncheckedCreateNestedManyWithoutSchoolInput
   instructors?: Prisma.InstructorUncheckedCreateNestedManyWithoutSchoolInput
@@ -806,6 +820,11 @@ export type SchoolUncheckedCreateInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationUncheckedCreateNestedOneWithoutSchoolInput
 }
 
 export type SchoolUpdateInput = {
@@ -837,8 +856,6 @@ export type SchoolUpdateInput = {
   facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
   foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  affiliationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  affiliationUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -846,10 +863,12 @@ export type SchoolUpdateInput = {
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  affiliation?: Prisma.AffiliationUpdateOneWithoutSchoolsNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
   camps?: Prisma.CampUpdateManyWithoutSchoolNestedInput
   instructors?: Prisma.InstructorUpdateManyWithoutSchoolNestedInput
@@ -857,6 +876,11 @@ export type SchoolUpdateInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUpdateOneWithoutSchoolNestedInput
 }
 
 export type SchoolUncheckedUpdateInput = {
@@ -865,6 +889,7 @@ export type SchoolUncheckedUpdateInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -888,8 +913,6 @@ export type SchoolUncheckedUpdateInput = {
   facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
   foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  affiliationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  affiliationUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -901,6 +924,7 @@ export type SchoolUncheckedUpdateInput = {
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
   camps?: Prisma.CampUncheckedUpdateManyWithoutSchoolNestedInput
   instructors?: Prisma.InstructorUncheckedUpdateManyWithoutSchoolNestedInput
@@ -908,6 +932,11 @@ export type SchoolUncheckedUpdateInput = {
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
 export type SchoolCreateManyInput = {
@@ -916,6 +945,7 @@ export type SchoolCreateManyInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  affiliationId?: string | null
   country?: string | null
   city?: string | null
   address?: string | null
@@ -939,8 +969,6 @@ export type SchoolCreateManyInput = {
   facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
   foundedYear?: number | null
   totalStudents?: number | null
-  affiliationName?: string | null
-  affiliationUrl?: string | null
   googleRating?: number | null
   googleReviews?: number | null
   googlePlaceId?: string | null
@@ -980,8 +1008,6 @@ export type SchoolUpdateManyMutationInput = {
   facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
   foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  affiliationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  affiliationUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -997,6 +1023,7 @@ export type SchoolUncheckedUpdateManyInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1020,8 +1047,6 @@ export type SchoolUncheckedUpdateManyInput = {
   facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
   foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  affiliationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  affiliationUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1032,11 +1057,6 @@ export type SchoolUncheckedUpdateManyInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type SchoolNullableScalarRelationFilter = {
-  is?: Prisma.SchoolWhereInput | null
-  isNot?: Prisma.SchoolWhereInput | null
-}
-
 export type SchoolListRelationFilter = {
   every?: Prisma.SchoolWhereInput
   some?: Prisma.SchoolWhereInput
@@ -1045,6 +1065,11 @@ export type SchoolListRelationFilter = {
 
 export type SchoolOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type SchoolNullableScalarRelationFilter = {
+  is?: Prisma.SchoolWhereInput | null
+  isNot?: Prisma.SchoolWhereInput | null
 }
 
 export type SchoolScalarRelationFilter = {
@@ -1066,6 +1091,7 @@ export type SchoolCountOrderByAggregateInput = {
   slug?: Prisma.SortOrder
   status?: Prisma.SortOrder
   source?: Prisma.SortOrder
+  affiliationId?: Prisma.SortOrder
   country?: Prisma.SortOrder
   city?: Prisma.SortOrder
   address?: Prisma.SortOrder
@@ -1089,8 +1115,6 @@ export type SchoolCountOrderByAggregateInput = {
   facilities?: Prisma.SortOrder
   foundedYear?: Prisma.SortOrder
   totalStudents?: Prisma.SortOrder
-  affiliationName?: Prisma.SortOrder
-  affiliationUrl?: Prisma.SortOrder
   googleRating?: Prisma.SortOrder
   googleReviews?: Prisma.SortOrder
   googlePlaceId?: Prisma.SortOrder
@@ -1117,6 +1141,7 @@ export type SchoolMaxOrderByAggregateInput = {
   slug?: Prisma.SortOrder
   status?: Prisma.SortOrder
   source?: Prisma.SortOrder
+  affiliationId?: Prisma.SortOrder
   country?: Prisma.SortOrder
   city?: Prisma.SortOrder
   address?: Prisma.SortOrder
@@ -1138,8 +1163,6 @@ export type SchoolMaxOrderByAggregateInput = {
   hasFreeTrialCls?: Prisma.SortOrder
   foundedYear?: Prisma.SortOrder
   totalStudents?: Prisma.SortOrder
-  affiliationName?: Prisma.SortOrder
-  affiliationUrl?: Prisma.SortOrder
   googleRating?: Prisma.SortOrder
   googleReviews?: Prisma.SortOrder
   googlePlaceId?: Prisma.SortOrder
@@ -1156,6 +1179,7 @@ export type SchoolMinOrderByAggregateInput = {
   slug?: Prisma.SortOrder
   status?: Prisma.SortOrder
   source?: Prisma.SortOrder
+  affiliationId?: Prisma.SortOrder
   country?: Prisma.SortOrder
   city?: Prisma.SortOrder
   address?: Prisma.SortOrder
@@ -1177,8 +1201,6 @@ export type SchoolMinOrderByAggregateInput = {
   hasFreeTrialCls?: Prisma.SortOrder
   foundedYear?: Prisma.SortOrder
   totalStudents?: Prisma.SortOrder
-  affiliationName?: Prisma.SortOrder
-  affiliationUrl?: Prisma.SortOrder
   googleRating?: Prisma.SortOrder
   googleReviews?: Prisma.SortOrder
   googlePlaceId?: Prisma.SortOrder
@@ -1197,6 +1219,48 @@ export type SchoolSumOrderByAggregateInput = {
   totalStudents?: Prisma.SortOrder
   googleRating?: Prisma.SortOrder
   googleReviews?: Prisma.SortOrder
+}
+
+export type SchoolCreateNestedManyWithoutAffiliationInput = {
+  create?: Prisma.XOR<Prisma.SchoolCreateWithoutAffiliationInput, Prisma.SchoolUncheckedCreateWithoutAffiliationInput> | Prisma.SchoolCreateWithoutAffiliationInput[] | Prisma.SchoolUncheckedCreateWithoutAffiliationInput[]
+  connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutAffiliationInput | Prisma.SchoolCreateOrConnectWithoutAffiliationInput[]
+  createMany?: Prisma.SchoolCreateManyAffiliationInputEnvelope
+  connect?: Prisma.SchoolWhereUniqueInput | Prisma.SchoolWhereUniqueInput[]
+}
+
+export type SchoolUncheckedCreateNestedManyWithoutAffiliationInput = {
+  create?: Prisma.XOR<Prisma.SchoolCreateWithoutAffiliationInput, Prisma.SchoolUncheckedCreateWithoutAffiliationInput> | Prisma.SchoolCreateWithoutAffiliationInput[] | Prisma.SchoolUncheckedCreateWithoutAffiliationInput[]
+  connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutAffiliationInput | Prisma.SchoolCreateOrConnectWithoutAffiliationInput[]
+  createMany?: Prisma.SchoolCreateManyAffiliationInputEnvelope
+  connect?: Prisma.SchoolWhereUniqueInput | Prisma.SchoolWhereUniqueInput[]
+}
+
+export type SchoolUpdateManyWithoutAffiliationNestedInput = {
+  create?: Prisma.XOR<Prisma.SchoolCreateWithoutAffiliationInput, Prisma.SchoolUncheckedCreateWithoutAffiliationInput> | Prisma.SchoolCreateWithoutAffiliationInput[] | Prisma.SchoolUncheckedCreateWithoutAffiliationInput[]
+  connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutAffiliationInput | Prisma.SchoolCreateOrConnectWithoutAffiliationInput[]
+  upsert?: Prisma.SchoolUpsertWithWhereUniqueWithoutAffiliationInput | Prisma.SchoolUpsertWithWhereUniqueWithoutAffiliationInput[]
+  createMany?: Prisma.SchoolCreateManyAffiliationInputEnvelope
+  set?: Prisma.SchoolWhereUniqueInput | Prisma.SchoolWhereUniqueInput[]
+  disconnect?: Prisma.SchoolWhereUniqueInput | Prisma.SchoolWhereUniqueInput[]
+  delete?: Prisma.SchoolWhereUniqueInput | Prisma.SchoolWhereUniqueInput[]
+  connect?: Prisma.SchoolWhereUniqueInput | Prisma.SchoolWhereUniqueInput[]
+  update?: Prisma.SchoolUpdateWithWhereUniqueWithoutAffiliationInput | Prisma.SchoolUpdateWithWhereUniqueWithoutAffiliationInput[]
+  updateMany?: Prisma.SchoolUpdateManyWithWhereWithoutAffiliationInput | Prisma.SchoolUpdateManyWithWhereWithoutAffiliationInput[]
+  deleteMany?: Prisma.SchoolScalarWhereInput | Prisma.SchoolScalarWhereInput[]
+}
+
+export type SchoolUncheckedUpdateManyWithoutAffiliationNestedInput = {
+  create?: Prisma.XOR<Prisma.SchoolCreateWithoutAffiliationInput, Prisma.SchoolUncheckedCreateWithoutAffiliationInput> | Prisma.SchoolCreateWithoutAffiliationInput[] | Prisma.SchoolUncheckedCreateWithoutAffiliationInput[]
+  connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutAffiliationInput | Prisma.SchoolCreateOrConnectWithoutAffiliationInput[]
+  upsert?: Prisma.SchoolUpsertWithWhereUniqueWithoutAffiliationInput | Prisma.SchoolUpsertWithWhereUniqueWithoutAffiliationInput[]
+  createMany?: Prisma.SchoolCreateManyAffiliationInputEnvelope
+  set?: Prisma.SchoolWhereUniqueInput | Prisma.SchoolWhereUniqueInput[]
+  disconnect?: Prisma.SchoolWhereUniqueInput | Prisma.SchoolWhereUniqueInput[]
+  delete?: Prisma.SchoolWhereUniqueInput | Prisma.SchoolWhereUniqueInput[]
+  connect?: Prisma.SchoolWhereUniqueInput | Prisma.SchoolWhereUniqueInput[]
+  update?: Prisma.SchoolUpdateWithWhereUniqueWithoutAffiliationInput | Prisma.SchoolUpdateWithWhereUniqueWithoutAffiliationInput[]
+  updateMany?: Prisma.SchoolUpdateManyWithWhereWithoutAffiliationInput | Prisma.SchoolUpdateManyWithWhereWithoutAffiliationInput[]
+  deleteMany?: Prisma.SchoolScalarWhereInput | Prisma.SchoolScalarWhereInput[]
 }
 
 export type SchoolCreateNestedOneWithoutStaffInput = {
@@ -1300,25 +1364,9 @@ export type SchoolUpdatephotosInput = {
   push?: string | string[]
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type SchoolUpdatefacilitiesInput = {
   set?: string[]
   push?: string | string[]
-}
-
-export type NullableIntFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
 }
 
 export type SchoolCreateNestedOneWithoutInstructorsInput = {
@@ -1375,6 +1423,20 @@ export type SchoolUpdateOneRequiredWithoutClassesNestedInput = {
   upsert?: Prisma.SchoolUpsertWithoutClassesInput
   connect?: Prisma.SchoolWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.SchoolUpdateToOneWithWhereWithoutClassesInput, Prisma.SchoolUpdateWithoutClassesInput>, Prisma.SchoolUncheckedUpdateWithoutClassesInput>
+}
+
+export type SchoolCreateNestedOneWithoutEventsInput = {
+  create?: Prisma.XOR<Prisma.SchoolCreateWithoutEventsInput, Prisma.SchoolUncheckedCreateWithoutEventsInput>
+  connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutEventsInput
+  connect?: Prisma.SchoolWhereUniqueInput
+}
+
+export type SchoolUpdateOneRequiredWithoutEventsNestedInput = {
+  create?: Prisma.XOR<Prisma.SchoolCreateWithoutEventsInput, Prisma.SchoolUncheckedCreateWithoutEventsInput>
+  connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutEventsInput
+  upsert?: Prisma.SchoolUpsertWithoutEventsInput
+  connect?: Prisma.SchoolWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SchoolUpdateToOneWithWhereWithoutEventsInput, Prisma.SchoolUpdateWithoutEventsInput>, Prisma.SchoolUncheckedUpdateWithoutEventsInput>
 }
 
 export type SchoolCreateNestedOneWithoutMembershipsInput = {
@@ -1435,6 +1497,257 @@ export type SchoolUpdateOneRequiredWithoutClaimsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.SchoolUpdateToOneWithWhereWithoutClaimsInput, Prisma.SchoolUpdateWithoutClaimsInput>, Prisma.SchoolUncheckedUpdateWithoutClaimsInput>
 }
 
+export type SchoolCreateNestedOneWithoutGradingsInput = {
+  create?: Prisma.XOR<Prisma.SchoolCreateWithoutGradingsInput, Prisma.SchoolUncheckedCreateWithoutGradingsInput>
+  connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutGradingsInput
+  connect?: Prisma.SchoolWhereUniqueInput
+}
+
+export type SchoolUpdateOneRequiredWithoutGradingsNestedInput = {
+  create?: Prisma.XOR<Prisma.SchoolCreateWithoutGradingsInput, Prisma.SchoolUncheckedCreateWithoutGradingsInput>
+  connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutGradingsInput
+  upsert?: Prisma.SchoolUpsertWithoutGradingsInput
+  connect?: Prisma.SchoolWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SchoolUpdateToOneWithWhereWithoutGradingsInput, Prisma.SchoolUpdateWithoutGradingsInput>, Prisma.SchoolUncheckedUpdateWithoutGradingsInput>
+}
+
+export type SchoolCreateNestedOneWithoutLeadsInput = {
+  create?: Prisma.XOR<Prisma.SchoolCreateWithoutLeadsInput, Prisma.SchoolUncheckedCreateWithoutLeadsInput>
+  connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutLeadsInput
+  connect?: Prisma.SchoolWhereUniqueInput
+}
+
+export type SchoolUpdateOneRequiredWithoutLeadsNestedInput = {
+  create?: Prisma.XOR<Prisma.SchoolCreateWithoutLeadsInput, Prisma.SchoolUncheckedCreateWithoutLeadsInput>
+  connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutLeadsInput
+  upsert?: Prisma.SchoolUpsertWithoutLeadsInput
+  connect?: Prisma.SchoolWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SchoolUpdateToOneWithWhereWithoutLeadsInput, Prisma.SchoolUpdateWithoutLeadsInput>, Prisma.SchoolUncheckedUpdateWithoutLeadsInput>
+}
+
+export type SchoolCreateNestedOneWithoutInvitationInput = {
+  create?: Prisma.XOR<Prisma.SchoolCreateWithoutInvitationInput, Prisma.SchoolUncheckedCreateWithoutInvitationInput>
+  connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutInvitationInput
+  connect?: Prisma.SchoolWhereUniqueInput
+}
+
+export type SchoolUpdateOneWithoutInvitationNestedInput = {
+  create?: Prisma.XOR<Prisma.SchoolCreateWithoutInvitationInput, Prisma.SchoolUncheckedCreateWithoutInvitationInput>
+  connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutInvitationInput
+  upsert?: Prisma.SchoolUpsertWithoutInvitationInput
+  disconnect?: Prisma.SchoolWhereInput | boolean
+  delete?: Prisma.SchoolWhereInput | boolean
+  connect?: Prisma.SchoolWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SchoolUpdateToOneWithWhereWithoutInvitationInput, Prisma.SchoolUpdateWithoutInvitationInput>, Prisma.SchoolUncheckedUpdateWithoutInvitationInput>
+}
+
+export type SchoolCreateNestedOneWithoutWaiversInput = {
+  create?: Prisma.XOR<Prisma.SchoolCreateWithoutWaiversInput, Prisma.SchoolUncheckedCreateWithoutWaiversInput>
+  connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutWaiversInput
+  connect?: Prisma.SchoolWhereUniqueInput
+}
+
+export type SchoolUpdateOneRequiredWithoutWaiversNestedInput = {
+  create?: Prisma.XOR<Prisma.SchoolCreateWithoutWaiversInput, Prisma.SchoolUncheckedCreateWithoutWaiversInput>
+  connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutWaiversInput
+  upsert?: Prisma.SchoolUpsertWithoutWaiversInput
+  connect?: Prisma.SchoolWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SchoolUpdateToOneWithWhereWithoutWaiversInput, Prisma.SchoolUpdateWithoutWaiversInput>, Prisma.SchoolUncheckedUpdateWithoutWaiversInput>
+}
+
+export type SchoolCreateNestedOneWithoutTransactionsInput = {
+  create?: Prisma.XOR<Prisma.SchoolCreateWithoutTransactionsInput, Prisma.SchoolUncheckedCreateWithoutTransactionsInput>
+  connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutTransactionsInput
+  connect?: Prisma.SchoolWhereUniqueInput
+}
+
+export type SchoolUpdateOneRequiredWithoutTransactionsNestedInput = {
+  create?: Prisma.XOR<Prisma.SchoolCreateWithoutTransactionsInput, Prisma.SchoolUncheckedCreateWithoutTransactionsInput>
+  connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutTransactionsInput
+  upsert?: Prisma.SchoolUpsertWithoutTransactionsInput
+  connect?: Prisma.SchoolWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SchoolUpdateToOneWithWhereWithoutTransactionsInput, Prisma.SchoolUpdateWithoutTransactionsInput>, Prisma.SchoolUncheckedUpdateWithoutTransactionsInput>
+}
+
+export type SchoolCreateWithoutAffiliationInput = {
+  id?: string
+  name: string
+  slug: string
+  status?: $Enums.SchoolStatus
+  source?: $Enums.SchoolSource
+  country?: string | null
+  city?: string | null
+  address?: string | null
+  postcode?: string | null
+  lat?: number | null
+  lng?: number | null
+  phone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  youtube?: string | null
+  tiktok?: string | null
+  description?: string | null
+  tagline?: string | null
+  logoUrl?: string | null
+  coverUrl?: string | null
+  photos?: Prisma.SchoolCreatephotosInput | string[]
+  priceFrom?: number | null
+  hasFreeTrialCls?: boolean
+  facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
+  foundedYear?: number | null
+  totalStudents?: number | null
+  googleRating?: number | null
+  googleReviews?: number | null
+  googlePlaceId?: string | null
+  stripeAccountId?: string | null
+  claimedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
+  staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventCreateNestedManyWithoutSchoolInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
+  camps?: Prisma.CampCreateNestedManyWithoutSchoolInput
+  instructors?: Prisma.InstructorCreateNestedManyWithoutSchoolInput
+  membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
+  members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationCreateNestedOneWithoutSchoolInput
+}
+
+export type SchoolUncheckedCreateWithoutAffiliationInput = {
+  id?: string
+  name: string
+  slug: string
+  status?: $Enums.SchoolStatus
+  source?: $Enums.SchoolSource
+  country?: string | null
+  city?: string | null
+  address?: string | null
+  postcode?: string | null
+  lat?: number | null
+  lng?: number | null
+  phone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  youtube?: string | null
+  tiktok?: string | null
+  description?: string | null
+  tagline?: string | null
+  logoUrl?: string | null
+  coverUrl?: string | null
+  photos?: Prisma.SchoolCreatephotosInput | string[]
+  priceFrom?: number | null
+  hasFreeTrialCls?: boolean
+  facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
+  foundedYear?: number | null
+  totalStudents?: number | null
+  googleRating?: number | null
+  googleReviews?: number | null
+  googlePlaceId?: string | null
+  stripeAccountId?: string | null
+  claimedById?: string | null
+  claimedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
+  camps?: Prisma.CampUncheckedCreateNestedManyWithoutSchoolInput
+  instructors?: Prisma.InstructorUncheckedCreateNestedManyWithoutSchoolInput
+  membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
+  members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationUncheckedCreateNestedOneWithoutSchoolInput
+}
+
+export type SchoolCreateOrConnectWithoutAffiliationInput = {
+  where: Prisma.SchoolWhereUniqueInput
+  create: Prisma.XOR<Prisma.SchoolCreateWithoutAffiliationInput, Prisma.SchoolUncheckedCreateWithoutAffiliationInput>
+}
+
+export type SchoolCreateManyAffiliationInputEnvelope = {
+  data: Prisma.SchoolCreateManyAffiliationInput | Prisma.SchoolCreateManyAffiliationInput[]
+  skipDuplicates?: boolean
+}
+
+export type SchoolUpsertWithWhereUniqueWithoutAffiliationInput = {
+  where: Prisma.SchoolWhereUniqueInput
+  update: Prisma.XOR<Prisma.SchoolUpdateWithoutAffiliationInput, Prisma.SchoolUncheckedUpdateWithoutAffiliationInput>
+  create: Prisma.XOR<Prisma.SchoolCreateWithoutAffiliationInput, Prisma.SchoolUncheckedCreateWithoutAffiliationInput>
+}
+
+export type SchoolUpdateWithWhereUniqueWithoutAffiliationInput = {
+  where: Prisma.SchoolWhereUniqueInput
+  data: Prisma.XOR<Prisma.SchoolUpdateWithoutAffiliationInput, Prisma.SchoolUncheckedUpdateWithoutAffiliationInput>
+}
+
+export type SchoolUpdateManyWithWhereWithoutAffiliationInput = {
+  where: Prisma.SchoolScalarWhereInput
+  data: Prisma.XOR<Prisma.SchoolUpdateManyMutationInput, Prisma.SchoolUncheckedUpdateManyWithoutAffiliationInput>
+}
+
+export type SchoolScalarWhereInput = {
+  AND?: Prisma.SchoolScalarWhereInput | Prisma.SchoolScalarWhereInput[]
+  OR?: Prisma.SchoolScalarWhereInput[]
+  NOT?: Prisma.SchoolScalarWhereInput | Prisma.SchoolScalarWhereInput[]
+  id?: Prisma.StringFilter<"School"> | string
+  name?: Prisma.StringFilter<"School"> | string
+  slug?: Prisma.StringFilter<"School"> | string
+  status?: Prisma.EnumSchoolStatusFilter<"School"> | $Enums.SchoolStatus
+  source?: Prisma.EnumSchoolSourceFilter<"School"> | $Enums.SchoolSource
+  affiliationId?: Prisma.StringNullableFilter<"School"> | string | null
+  country?: Prisma.StringNullableFilter<"School"> | string | null
+  city?: Prisma.StringNullableFilter<"School"> | string | null
+  address?: Prisma.StringNullableFilter<"School"> | string | null
+  postcode?: Prisma.StringNullableFilter<"School"> | string | null
+  lat?: Prisma.FloatNullableFilter<"School"> | number | null
+  lng?: Prisma.FloatNullableFilter<"School"> | number | null
+  phone?: Prisma.StringNullableFilter<"School"> | string | null
+  email?: Prisma.StringNullableFilter<"School"> | string | null
+  website?: Prisma.StringNullableFilter<"School"> | string | null
+  instagram?: Prisma.StringNullableFilter<"School"> | string | null
+  facebook?: Prisma.StringNullableFilter<"School"> | string | null
+  youtube?: Prisma.StringNullableFilter<"School"> | string | null
+  tiktok?: Prisma.StringNullableFilter<"School"> | string | null
+  description?: Prisma.StringNullableFilter<"School"> | string | null
+  tagline?: Prisma.StringNullableFilter<"School"> | string | null
+  logoUrl?: Prisma.StringNullableFilter<"School"> | string | null
+  coverUrl?: Prisma.StringNullableFilter<"School"> | string | null
+  photos?: Prisma.StringNullableListFilter<"School">
+  priceFrom?: Prisma.FloatNullableFilter<"School"> | number | null
+  hasFreeTrialCls?: Prisma.BoolFilter<"School"> | boolean
+  facilities?: Prisma.StringNullableListFilter<"School">
+  foundedYear?: Prisma.IntNullableFilter<"School"> | number | null
+  totalStudents?: Prisma.IntNullableFilter<"School"> | number | null
+  googleRating?: Prisma.FloatNullableFilter<"School"> | number | null
+  googleReviews?: Prisma.IntNullableFilter<"School"> | number | null
+  googlePlaceId?: Prisma.StringNullableFilter<"School"> | string | null
+  stripeAccountId?: Prisma.StringNullableFilter<"School"> | string | null
+  claimedById?: Prisma.StringNullableFilter<"School"> | string | null
+  claimedAt?: Prisma.DateTimeNullableFilter<"School"> | Date | string | null
+  createdAt?: Prisma.DateTimeFilter<"School"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"School"> | Date | string
+}
+
 export type SchoolCreateWithoutStaffInput = {
   id?: string
   name: string
@@ -1464,8 +1777,6 @@ export type SchoolCreateWithoutStaffInput = {
   facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
   foundedYear?: number | null
   totalStudents?: number | null
-  affiliationName?: string | null
-  affiliationUrl?: string | null
   googleRating?: number | null
   googleReviews?: number | null
   googlePlaceId?: string | null
@@ -1473,9 +1784,11 @@ export type SchoolCreateWithoutStaffInput = {
   claimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  affiliation?: Prisma.AffiliationCreateNestedOneWithoutSchoolsInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
   camps?: Prisma.CampCreateNestedManyWithoutSchoolInput
   instructors?: Prisma.InstructorCreateNestedManyWithoutSchoolInput
@@ -1483,6 +1796,11 @@ export type SchoolCreateWithoutStaffInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationCreateNestedOneWithoutSchoolInput
 }
 
 export type SchoolUncheckedCreateWithoutStaffInput = {
@@ -1491,6 +1809,7 @@ export type SchoolUncheckedCreateWithoutStaffInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  affiliationId?: string | null
   country?: string | null
   city?: string | null
   address?: string | null
@@ -1514,8 +1833,6 @@ export type SchoolUncheckedCreateWithoutStaffInput = {
   facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
   foundedYear?: number | null
   totalStudents?: number | null
-  affiliationName?: string | null
-  affiliationUrl?: string | null
   googleRating?: number | null
   googleReviews?: number | null
   googlePlaceId?: string | null
@@ -1526,6 +1843,7 @@ export type SchoolUncheckedCreateWithoutStaffInput = {
   updatedAt?: Date | string
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
   camps?: Prisma.CampUncheckedCreateNestedManyWithoutSchoolInput
   instructors?: Prisma.InstructorUncheckedCreateNestedManyWithoutSchoolInput
@@ -1533,6 +1851,11 @@ export type SchoolUncheckedCreateWithoutStaffInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationUncheckedCreateNestedOneWithoutSchoolInput
 }
 
 export type SchoolCreateOrConnectWithoutStaffInput = {
@@ -1569,8 +1892,6 @@ export type SchoolCreateWithoutClaimedByInput = {
   facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
   foundedYear?: number | null
   totalStudents?: number | null
-  affiliationName?: string | null
-  affiliationUrl?: string | null
   googleRating?: number | null
   googleReviews?: number | null
   googlePlaceId?: string | null
@@ -1578,9 +1899,11 @@ export type SchoolCreateWithoutClaimedByInput = {
   claimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  affiliation?: Prisma.AffiliationCreateNestedOneWithoutSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
   camps?: Prisma.CampCreateNestedManyWithoutSchoolInput
   instructors?: Prisma.InstructorCreateNestedManyWithoutSchoolInput
@@ -1588,6 +1911,11 @@ export type SchoolCreateWithoutClaimedByInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationCreateNestedOneWithoutSchoolInput
 }
 
 export type SchoolUncheckedCreateWithoutClaimedByInput = {
@@ -1596,6 +1924,7 @@ export type SchoolUncheckedCreateWithoutClaimedByInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  affiliationId?: string | null
   country?: string | null
   city?: string | null
   address?: string | null
@@ -1619,8 +1948,6 @@ export type SchoolUncheckedCreateWithoutClaimedByInput = {
   facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
   foundedYear?: number | null
   totalStudents?: number | null
-  affiliationName?: string | null
-  affiliationUrl?: string | null
   googleRating?: number | null
   googleReviews?: number | null
   googlePlaceId?: string | null
@@ -1631,6 +1958,7 @@ export type SchoolUncheckedCreateWithoutClaimedByInput = {
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
   camps?: Prisma.CampUncheckedCreateNestedManyWithoutSchoolInput
   instructors?: Prisma.InstructorUncheckedCreateNestedManyWithoutSchoolInput
@@ -1638,6 +1966,11 @@ export type SchoolUncheckedCreateWithoutClaimedByInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationUncheckedCreateNestedOneWithoutSchoolInput
 }
 
 export type SchoolCreateOrConnectWithoutClaimedByInput = {
@@ -1690,8 +2023,6 @@ export type SchoolUpdateWithoutStaffInput = {
   facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
   foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  affiliationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  affiliationUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1699,9 +2030,11 @@ export type SchoolUpdateWithoutStaffInput = {
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  affiliation?: Prisma.AffiliationUpdateOneWithoutSchoolsNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
   camps?: Prisma.CampUpdateManyWithoutSchoolNestedInput
   instructors?: Prisma.InstructorUpdateManyWithoutSchoolNestedInput
@@ -1709,6 +2042,11 @@ export type SchoolUpdateWithoutStaffInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUpdateOneWithoutSchoolNestedInput
 }
 
 export type SchoolUncheckedUpdateWithoutStaffInput = {
@@ -1717,6 +2055,7 @@ export type SchoolUncheckedUpdateWithoutStaffInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1740,8 +2079,6 @@ export type SchoolUncheckedUpdateWithoutStaffInput = {
   facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
   foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  affiliationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  affiliationUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1752,6 +2089,7 @@ export type SchoolUncheckedUpdateWithoutStaffInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
   camps?: Prisma.CampUncheckedUpdateManyWithoutSchoolNestedInput
   instructors?: Prisma.InstructorUncheckedUpdateManyWithoutSchoolNestedInput
@@ -1759,6 +2097,11 @@ export type SchoolUncheckedUpdateWithoutStaffInput = {
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
 export type SchoolUpsertWithWhereUniqueWithoutClaimedByInput = {
@@ -1775,50 +2118,6 @@ export type SchoolUpdateWithWhereUniqueWithoutClaimedByInput = {
 export type SchoolUpdateManyWithWhereWithoutClaimedByInput = {
   where: Prisma.SchoolScalarWhereInput
   data: Prisma.XOR<Prisma.SchoolUpdateManyMutationInput, Prisma.SchoolUncheckedUpdateManyWithoutClaimedByInput>
-}
-
-export type SchoolScalarWhereInput = {
-  AND?: Prisma.SchoolScalarWhereInput | Prisma.SchoolScalarWhereInput[]
-  OR?: Prisma.SchoolScalarWhereInput[]
-  NOT?: Prisma.SchoolScalarWhereInput | Prisma.SchoolScalarWhereInput[]
-  id?: Prisma.StringFilter<"School"> | string
-  name?: Prisma.StringFilter<"School"> | string
-  slug?: Prisma.StringFilter<"School"> | string
-  status?: Prisma.EnumSchoolStatusFilter<"School"> | $Enums.SchoolStatus
-  source?: Prisma.EnumSchoolSourceFilter<"School"> | $Enums.SchoolSource
-  country?: Prisma.StringNullableFilter<"School"> | string | null
-  city?: Prisma.StringNullableFilter<"School"> | string | null
-  address?: Prisma.StringNullableFilter<"School"> | string | null
-  postcode?: Prisma.StringNullableFilter<"School"> | string | null
-  lat?: Prisma.FloatNullableFilter<"School"> | number | null
-  lng?: Prisma.FloatNullableFilter<"School"> | number | null
-  phone?: Prisma.StringNullableFilter<"School"> | string | null
-  email?: Prisma.StringNullableFilter<"School"> | string | null
-  website?: Prisma.StringNullableFilter<"School"> | string | null
-  instagram?: Prisma.StringNullableFilter<"School"> | string | null
-  facebook?: Prisma.StringNullableFilter<"School"> | string | null
-  youtube?: Prisma.StringNullableFilter<"School"> | string | null
-  tiktok?: Prisma.StringNullableFilter<"School"> | string | null
-  description?: Prisma.StringNullableFilter<"School"> | string | null
-  tagline?: Prisma.StringNullableFilter<"School"> | string | null
-  logoUrl?: Prisma.StringNullableFilter<"School"> | string | null
-  coverUrl?: Prisma.StringNullableFilter<"School"> | string | null
-  photos?: Prisma.StringNullableListFilter<"School">
-  priceFrom?: Prisma.FloatNullableFilter<"School"> | number | null
-  hasFreeTrialCls?: Prisma.BoolFilter<"School"> | boolean
-  facilities?: Prisma.StringNullableListFilter<"School">
-  foundedYear?: Prisma.IntNullableFilter<"School"> | number | null
-  totalStudents?: Prisma.IntNullableFilter<"School"> | number | null
-  affiliationName?: Prisma.StringNullableFilter<"School"> | string | null
-  affiliationUrl?: Prisma.StringNullableFilter<"School"> | string | null
-  googleRating?: Prisma.FloatNullableFilter<"School"> | number | null
-  googleReviews?: Prisma.IntNullableFilter<"School"> | number | null
-  googlePlaceId?: Prisma.StringNullableFilter<"School"> | string | null
-  stripeAccountId?: Prisma.StringNullableFilter<"School"> | string | null
-  claimedById?: Prisma.StringNullableFilter<"School"> | string | null
-  claimedAt?: Prisma.DateTimeNullableFilter<"School"> | Date | string | null
-  createdAt?: Prisma.DateTimeFilter<"School"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"School"> | Date | string
 }
 
 export type SchoolCreateWithoutDisciplinesInput = {
@@ -1850,8 +2149,6 @@ export type SchoolCreateWithoutDisciplinesInput = {
   facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
   foundedYear?: number | null
   totalStudents?: number | null
-  affiliationName?: string | null
-  affiliationUrl?: string | null
   googleRating?: number | null
   googleReviews?: number | null
   googlePlaceId?: string | null
@@ -1859,9 +2156,11 @@ export type SchoolCreateWithoutDisciplinesInput = {
   claimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  affiliation?: Prisma.AffiliationCreateNestedOneWithoutSchoolsInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
   camps?: Prisma.CampCreateNestedManyWithoutSchoolInput
   instructors?: Prisma.InstructorCreateNestedManyWithoutSchoolInput
@@ -1869,6 +2168,11 @@ export type SchoolCreateWithoutDisciplinesInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationCreateNestedOneWithoutSchoolInput
 }
 
 export type SchoolUncheckedCreateWithoutDisciplinesInput = {
@@ -1877,6 +2181,7 @@ export type SchoolUncheckedCreateWithoutDisciplinesInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  affiliationId?: string | null
   country?: string | null
   city?: string | null
   address?: string | null
@@ -1900,8 +2205,6 @@ export type SchoolUncheckedCreateWithoutDisciplinesInput = {
   facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
   foundedYear?: number | null
   totalStudents?: number | null
-  affiliationName?: string | null
-  affiliationUrl?: string | null
   googleRating?: number | null
   googleReviews?: number | null
   googlePlaceId?: string | null
@@ -1912,6 +2215,7 @@ export type SchoolUncheckedCreateWithoutDisciplinesInput = {
   updatedAt?: Date | string
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
   camps?: Prisma.CampUncheckedCreateNestedManyWithoutSchoolInput
   instructors?: Prisma.InstructorUncheckedCreateNestedManyWithoutSchoolInput
@@ -1919,6 +2223,11 @@ export type SchoolUncheckedCreateWithoutDisciplinesInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationUncheckedCreateNestedOneWithoutSchoolInput
 }
 
 export type SchoolCreateOrConnectWithoutDisciplinesInput = {
@@ -1966,8 +2275,6 @@ export type SchoolUpdateWithoutDisciplinesInput = {
   facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
   foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  affiliationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  affiliationUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1975,9 +2282,11 @@ export type SchoolUpdateWithoutDisciplinesInput = {
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  affiliation?: Prisma.AffiliationUpdateOneWithoutSchoolsNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
   camps?: Prisma.CampUpdateManyWithoutSchoolNestedInput
   instructors?: Prisma.InstructorUpdateManyWithoutSchoolNestedInput
@@ -1985,6 +2294,11 @@ export type SchoolUpdateWithoutDisciplinesInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUpdateOneWithoutSchoolNestedInput
 }
 
 export type SchoolUncheckedUpdateWithoutDisciplinesInput = {
@@ -1993,6 +2307,7 @@ export type SchoolUncheckedUpdateWithoutDisciplinesInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2016,8 +2331,6 @@ export type SchoolUncheckedUpdateWithoutDisciplinesInput = {
   facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
   foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  affiliationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  affiliationUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2028,6 +2341,7 @@ export type SchoolUncheckedUpdateWithoutDisciplinesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
   camps?: Prisma.CampUncheckedUpdateManyWithoutSchoolNestedInput
   instructors?: Prisma.InstructorUncheckedUpdateManyWithoutSchoolNestedInput
@@ -2035,6 +2349,11 @@ export type SchoolUncheckedUpdateWithoutDisciplinesInput = {
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
 export type SchoolCreateWithoutInstructorsInput = {
@@ -2066,8 +2385,6 @@ export type SchoolCreateWithoutInstructorsInput = {
   facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
   foundedYear?: number | null
   totalStudents?: number | null
-  affiliationName?: string | null
-  affiliationUrl?: string | null
   googleRating?: number | null
   googleReviews?: number | null
   googlePlaceId?: string | null
@@ -2075,16 +2392,23 @@ export type SchoolCreateWithoutInstructorsInput = {
   claimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  affiliation?: Prisma.AffiliationCreateNestedOneWithoutSchoolsInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
   camps?: Prisma.CampCreateNestedManyWithoutSchoolInput
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationCreateNestedOneWithoutSchoolInput
 }
 
 export type SchoolUncheckedCreateWithoutInstructorsInput = {
@@ -2093,6 +2417,7 @@ export type SchoolUncheckedCreateWithoutInstructorsInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  affiliationId?: string | null
   country?: string | null
   city?: string | null
   address?: string | null
@@ -2116,8 +2441,6 @@ export type SchoolUncheckedCreateWithoutInstructorsInput = {
   facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
   foundedYear?: number | null
   totalStudents?: number | null
-  affiliationName?: string | null
-  affiliationUrl?: string | null
   googleRating?: number | null
   googleReviews?: number | null
   googlePlaceId?: string | null
@@ -2129,12 +2452,18 @@ export type SchoolUncheckedCreateWithoutInstructorsInput = {
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
   camps?: Prisma.CampUncheckedCreateNestedManyWithoutSchoolInput
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationUncheckedCreateNestedOneWithoutSchoolInput
 }
 
 export type SchoolCreateOrConnectWithoutInstructorsInput = {
@@ -2182,8 +2511,6 @@ export type SchoolUpdateWithoutInstructorsInput = {
   facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
   foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  affiliationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  affiliationUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2191,16 +2518,23 @@ export type SchoolUpdateWithoutInstructorsInput = {
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  affiliation?: Prisma.AffiliationUpdateOneWithoutSchoolsNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
   camps?: Prisma.CampUpdateManyWithoutSchoolNestedInput
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUpdateOneWithoutSchoolNestedInput
 }
 
 export type SchoolUncheckedUpdateWithoutInstructorsInput = {
@@ -2209,6 +2543,7 @@ export type SchoolUncheckedUpdateWithoutInstructorsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2232,8 +2567,6 @@ export type SchoolUncheckedUpdateWithoutInstructorsInput = {
   facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
   foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  affiliationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  affiliationUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2245,12 +2578,18 @@ export type SchoolUncheckedUpdateWithoutInstructorsInput = {
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
   camps?: Prisma.CampUncheckedUpdateManyWithoutSchoolNestedInput
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
 export type SchoolCreateWithoutMembershipPlansInput = {
@@ -2282,8 +2621,6 @@ export type SchoolCreateWithoutMembershipPlansInput = {
   facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
   foundedYear?: number | null
   totalStudents?: number | null
-  affiliationName?: string | null
-  affiliationUrl?: string | null
   googleRating?: number | null
   googleReviews?: number | null
   googlePlaceId?: string | null
@@ -2291,16 +2628,23 @@ export type SchoolCreateWithoutMembershipPlansInput = {
   claimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  affiliation?: Prisma.AffiliationCreateNestedOneWithoutSchoolsInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
   camps?: Prisma.CampCreateNestedManyWithoutSchoolInput
   instructors?: Prisma.InstructorCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationCreateNestedOneWithoutSchoolInput
 }
 
 export type SchoolUncheckedCreateWithoutMembershipPlansInput = {
@@ -2309,6 +2653,7 @@ export type SchoolUncheckedCreateWithoutMembershipPlansInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  affiliationId?: string | null
   country?: string | null
   city?: string | null
   address?: string | null
@@ -2332,8 +2677,6 @@ export type SchoolUncheckedCreateWithoutMembershipPlansInput = {
   facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
   foundedYear?: number | null
   totalStudents?: number | null
-  affiliationName?: string | null
-  affiliationUrl?: string | null
   googleRating?: number | null
   googleReviews?: number | null
   googlePlaceId?: string | null
@@ -2345,12 +2688,18 @@ export type SchoolUncheckedCreateWithoutMembershipPlansInput = {
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
   camps?: Prisma.CampUncheckedCreateNestedManyWithoutSchoolInput
   instructors?: Prisma.InstructorUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationUncheckedCreateNestedOneWithoutSchoolInput
 }
 
 export type SchoolCreateOrConnectWithoutMembershipPlansInput = {
@@ -2398,8 +2747,6 @@ export type SchoolUpdateWithoutMembershipPlansInput = {
   facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
   foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  affiliationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  affiliationUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2407,16 +2754,23 @@ export type SchoolUpdateWithoutMembershipPlansInput = {
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  affiliation?: Prisma.AffiliationUpdateOneWithoutSchoolsNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
   camps?: Prisma.CampUpdateManyWithoutSchoolNestedInput
   instructors?: Prisma.InstructorUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUpdateOneWithoutSchoolNestedInput
 }
 
 export type SchoolUncheckedUpdateWithoutMembershipPlansInput = {
@@ -2425,6 +2779,7 @@ export type SchoolUncheckedUpdateWithoutMembershipPlansInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2448,8 +2803,6 @@ export type SchoolUncheckedUpdateWithoutMembershipPlansInput = {
   facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
   foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  affiliationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  affiliationUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2461,12 +2814,18 @@ export type SchoolUncheckedUpdateWithoutMembershipPlansInput = {
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
   camps?: Prisma.CampUncheckedUpdateManyWithoutSchoolNestedInput
   instructors?: Prisma.InstructorUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
 export type SchoolCreateWithoutReviewsInput = {
@@ -2498,8 +2857,6 @@ export type SchoolCreateWithoutReviewsInput = {
   facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
   foundedYear?: number | null
   totalStudents?: number | null
-  affiliationName?: string | null
-  affiliationUrl?: string | null
   googleRating?: number | null
   googleReviews?: number | null
   googlePlaceId?: string | null
@@ -2507,16 +2864,23 @@ export type SchoolCreateWithoutReviewsInput = {
   claimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  affiliation?: Prisma.AffiliationCreateNestedOneWithoutSchoolsInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
   camps?: Prisma.CampCreateNestedManyWithoutSchoolInput
   instructors?: Prisma.InstructorCreateNestedManyWithoutSchoolInput
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationCreateNestedOneWithoutSchoolInput
 }
 
 export type SchoolUncheckedCreateWithoutReviewsInput = {
@@ -2525,6 +2889,7 @@ export type SchoolUncheckedCreateWithoutReviewsInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  affiliationId?: string | null
   country?: string | null
   city?: string | null
   address?: string | null
@@ -2548,8 +2913,6 @@ export type SchoolUncheckedCreateWithoutReviewsInput = {
   facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
   foundedYear?: number | null
   totalStudents?: number | null
-  affiliationName?: string | null
-  affiliationUrl?: string | null
   googleRating?: number | null
   googleReviews?: number | null
   googlePlaceId?: string | null
@@ -2561,12 +2924,18 @@ export type SchoolUncheckedCreateWithoutReviewsInput = {
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
   camps?: Prisma.CampUncheckedCreateNestedManyWithoutSchoolInput
   instructors?: Prisma.InstructorUncheckedCreateNestedManyWithoutSchoolInput
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationUncheckedCreateNestedOneWithoutSchoolInput
 }
 
 export type SchoolCreateOrConnectWithoutReviewsInput = {
@@ -2614,8 +2983,6 @@ export type SchoolUpdateWithoutReviewsInput = {
   facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
   foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  affiliationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  affiliationUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2623,16 +2990,23 @@ export type SchoolUpdateWithoutReviewsInput = {
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  affiliation?: Prisma.AffiliationUpdateOneWithoutSchoolsNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
   camps?: Prisma.CampUpdateManyWithoutSchoolNestedInput
   instructors?: Prisma.InstructorUpdateManyWithoutSchoolNestedInput
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUpdateOneWithoutSchoolNestedInput
 }
 
 export type SchoolUncheckedUpdateWithoutReviewsInput = {
@@ -2641,6 +3015,7 @@ export type SchoolUncheckedUpdateWithoutReviewsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2664,8 +3039,6 @@ export type SchoolUncheckedUpdateWithoutReviewsInput = {
   facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
   foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  affiliationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  affiliationUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2677,12 +3050,18 @@ export type SchoolUncheckedUpdateWithoutReviewsInput = {
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
   camps?: Prisma.CampUncheckedUpdateManyWithoutSchoolNestedInput
   instructors?: Prisma.InstructorUncheckedUpdateManyWithoutSchoolNestedInput
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
 export type SchoolCreateWithoutClassesInput = {
@@ -2714,8 +3093,6 @@ export type SchoolCreateWithoutClassesInput = {
   facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
   foundedYear?: number | null
   totalStudents?: number | null
-  affiliationName?: string | null
-  affiliationUrl?: string | null
   googleRating?: number | null
   googleReviews?: number | null
   googlePlaceId?: string | null
@@ -2723,9 +3100,11 @@ export type SchoolCreateWithoutClassesInput = {
   claimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  affiliation?: Prisma.AffiliationCreateNestedOneWithoutSchoolsInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
   camps?: Prisma.CampCreateNestedManyWithoutSchoolInput
   instructors?: Prisma.InstructorCreateNestedManyWithoutSchoolInput
@@ -2733,6 +3112,11 @@ export type SchoolCreateWithoutClassesInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationCreateNestedOneWithoutSchoolInput
 }
 
 export type SchoolUncheckedCreateWithoutClassesInput = {
@@ -2741,6 +3125,7 @@ export type SchoolUncheckedCreateWithoutClassesInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  affiliationId?: string | null
   country?: string | null
   city?: string | null
   address?: string | null
@@ -2764,8 +3149,6 @@ export type SchoolUncheckedCreateWithoutClassesInput = {
   facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
   foundedYear?: number | null
   totalStudents?: number | null
-  affiliationName?: string | null
-  affiliationUrl?: string | null
   googleRating?: number | null
   googleReviews?: number | null
   googlePlaceId?: string | null
@@ -2776,6 +3159,7 @@ export type SchoolUncheckedCreateWithoutClassesInput = {
   updatedAt?: Date | string
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
   camps?: Prisma.CampUncheckedCreateNestedManyWithoutSchoolInput
   instructors?: Prisma.InstructorUncheckedCreateNestedManyWithoutSchoolInput
@@ -2783,6 +3167,11 @@ export type SchoolUncheckedCreateWithoutClassesInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationUncheckedCreateNestedOneWithoutSchoolInput
 }
 
 export type SchoolCreateOrConnectWithoutClassesInput = {
@@ -2830,8 +3219,6 @@ export type SchoolUpdateWithoutClassesInput = {
   facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
   foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  affiliationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  affiliationUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2839,9 +3226,11 @@ export type SchoolUpdateWithoutClassesInput = {
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  affiliation?: Prisma.AffiliationUpdateOneWithoutSchoolsNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
   camps?: Prisma.CampUpdateManyWithoutSchoolNestedInput
   instructors?: Prisma.InstructorUpdateManyWithoutSchoolNestedInput
@@ -2849,9 +3238,195 @@ export type SchoolUpdateWithoutClassesInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUpdateOneWithoutSchoolNestedInput
 }
 
 export type SchoolUncheckedUpdateWithoutClassesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
+  source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tiktok?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photos?: Prisma.SchoolUpdatephotosInput | string[]
+  priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
+  foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
+  camps?: Prisma.CampUncheckedUpdateManyWithoutSchoolNestedInput
+  instructors?: Prisma.InstructorUncheckedUpdateManyWithoutSchoolNestedInput
+  membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
+  members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUncheckedUpdateOneWithoutSchoolNestedInput
+}
+
+export type SchoolCreateWithoutEventsInput = {
+  id?: string
+  name: string
+  slug: string
+  status?: $Enums.SchoolStatus
+  source?: $Enums.SchoolSource
+  country?: string | null
+  city?: string | null
+  address?: string | null
+  postcode?: string | null
+  lat?: number | null
+  lng?: number | null
+  phone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  youtube?: string | null
+  tiktok?: string | null
+  description?: string | null
+  tagline?: string | null
+  logoUrl?: string | null
+  coverUrl?: string | null
+  photos?: Prisma.SchoolCreatephotosInput | string[]
+  priceFrom?: number | null
+  hasFreeTrialCls?: boolean
+  facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
+  foundedYear?: number | null
+  totalStudents?: number | null
+  googleRating?: number | null
+  googleReviews?: number | null
+  googlePlaceId?: string | null
+  stripeAccountId?: string | null
+  claimedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  affiliation?: Prisma.AffiliationCreateNestedOneWithoutSchoolsInput
+  claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
+  staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
+  camps?: Prisma.CampCreateNestedManyWithoutSchoolInput
+  instructors?: Prisma.InstructorCreateNestedManyWithoutSchoolInput
+  membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
+  members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationCreateNestedOneWithoutSchoolInput
+}
+
+export type SchoolUncheckedCreateWithoutEventsInput = {
+  id?: string
+  name: string
+  slug: string
+  status?: $Enums.SchoolStatus
+  source?: $Enums.SchoolSource
+  affiliationId?: string | null
+  country?: string | null
+  city?: string | null
+  address?: string | null
+  postcode?: string | null
+  lat?: number | null
+  lng?: number | null
+  phone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  youtube?: string | null
+  tiktok?: string | null
+  description?: string | null
+  tagline?: string | null
+  logoUrl?: string | null
+  coverUrl?: string | null
+  photos?: Prisma.SchoolCreatephotosInput | string[]
+  priceFrom?: number | null
+  hasFreeTrialCls?: boolean
+  facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
+  foundedYear?: number | null
+  totalStudents?: number | null
+  googleRating?: number | null
+  googleReviews?: number | null
+  googlePlaceId?: string | null
+  stripeAccountId?: string | null
+  claimedById?: string | null
+  claimedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
+  camps?: Prisma.CampUncheckedCreateNestedManyWithoutSchoolInput
+  instructors?: Prisma.InstructorUncheckedCreateNestedManyWithoutSchoolInput
+  membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
+  members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationUncheckedCreateNestedOneWithoutSchoolInput
+}
+
+export type SchoolCreateOrConnectWithoutEventsInput = {
+  where: Prisma.SchoolWhereUniqueInput
+  create: Prisma.XOR<Prisma.SchoolCreateWithoutEventsInput, Prisma.SchoolUncheckedCreateWithoutEventsInput>
+}
+
+export type SchoolUpsertWithoutEventsInput = {
+  update: Prisma.XOR<Prisma.SchoolUpdateWithoutEventsInput, Prisma.SchoolUncheckedUpdateWithoutEventsInput>
+  create: Prisma.XOR<Prisma.SchoolCreateWithoutEventsInput, Prisma.SchoolUncheckedCreateWithoutEventsInput>
+  where?: Prisma.SchoolWhereInput
+}
+
+export type SchoolUpdateToOneWithWhereWithoutEventsInput = {
+  where?: Prisma.SchoolWhereInput
+  data: Prisma.XOR<Prisma.SchoolUpdateWithoutEventsInput, Prisma.SchoolUncheckedUpdateWithoutEventsInput>
+}
+
+export type SchoolUpdateWithoutEventsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2880,8 +3455,62 @@ export type SchoolUncheckedUpdateWithoutClassesInput = {
   facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
   foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  affiliationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  affiliationUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  affiliation?: Prisma.AffiliationUpdateOneWithoutSchoolsNestedInput
+  claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
+  staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
+  camps?: Prisma.CampUpdateManyWithoutSchoolNestedInput
+  instructors?: Prisma.InstructorUpdateManyWithoutSchoolNestedInput
+  membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
+  members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUpdateOneWithoutSchoolNestedInput
+}
+
+export type SchoolUncheckedUpdateWithoutEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
+  source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tiktok?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photos?: Prisma.SchoolUpdatephotosInput | string[]
+  priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
+  foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2892,6 +3521,7 @@ export type SchoolUncheckedUpdateWithoutClassesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
   camps?: Prisma.CampUncheckedUpdateManyWithoutSchoolNestedInput
   instructors?: Prisma.InstructorUncheckedUpdateManyWithoutSchoolNestedInput
@@ -2899,6 +3529,11 @@ export type SchoolUncheckedUpdateWithoutClassesInput = {
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
 export type SchoolCreateWithoutMembershipsInput = {
@@ -2930,8 +3565,6 @@ export type SchoolCreateWithoutMembershipsInput = {
   facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
   foundedYear?: number | null
   totalStudents?: number | null
-  affiliationName?: string | null
-  affiliationUrl?: string | null
   googleRating?: number | null
   googleReviews?: number | null
   googlePlaceId?: string | null
@@ -2939,16 +3572,23 @@ export type SchoolCreateWithoutMembershipsInput = {
   claimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  affiliation?: Prisma.AffiliationCreateNestedOneWithoutSchoolsInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   camps?: Prisma.CampCreateNestedManyWithoutSchoolInput
   instructors?: Prisma.InstructorCreateNestedManyWithoutSchoolInput
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationCreateNestedOneWithoutSchoolInput
 }
 
 export type SchoolUncheckedCreateWithoutMembershipsInput = {
@@ -2957,6 +3597,7 @@ export type SchoolUncheckedCreateWithoutMembershipsInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  affiliationId?: string | null
   country?: string | null
   city?: string | null
   address?: string | null
@@ -2980,8 +3621,6 @@ export type SchoolUncheckedCreateWithoutMembershipsInput = {
   facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
   foundedYear?: number | null
   totalStudents?: number | null
-  affiliationName?: string | null
-  affiliationUrl?: string | null
   googleRating?: number | null
   googleReviews?: number | null
   googlePlaceId?: string | null
@@ -2993,12 +3632,18 @@ export type SchoolUncheckedCreateWithoutMembershipsInput = {
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   camps?: Prisma.CampUncheckedCreateNestedManyWithoutSchoolInput
   instructors?: Prisma.InstructorUncheckedCreateNestedManyWithoutSchoolInput
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationUncheckedCreateNestedOneWithoutSchoolInput
 }
 
 export type SchoolCreateOrConnectWithoutMembershipsInput = {
@@ -3046,8 +3691,6 @@ export type SchoolUpdateWithoutMembershipsInput = {
   facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
   foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  affiliationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  affiliationUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3055,16 +3698,23 @@ export type SchoolUpdateWithoutMembershipsInput = {
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  affiliation?: Prisma.AffiliationUpdateOneWithoutSchoolsNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   camps?: Prisma.CampUpdateManyWithoutSchoolNestedInput
   instructors?: Prisma.InstructorUpdateManyWithoutSchoolNestedInput
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUpdateOneWithoutSchoolNestedInput
 }
 
 export type SchoolUncheckedUpdateWithoutMembershipsInput = {
@@ -3073,6 +3723,7 @@ export type SchoolUncheckedUpdateWithoutMembershipsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3096,8 +3747,6 @@ export type SchoolUncheckedUpdateWithoutMembershipsInput = {
   facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
   foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  affiliationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  affiliationUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3109,12 +3758,18 @@ export type SchoolUncheckedUpdateWithoutMembershipsInput = {
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   camps?: Prisma.CampUncheckedUpdateManyWithoutSchoolNestedInput
   instructors?: Prisma.InstructorUncheckedUpdateManyWithoutSchoolNestedInput
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
 export type SchoolCreateWithoutCampsInput = {
@@ -3146,8 +3801,6 @@ export type SchoolCreateWithoutCampsInput = {
   facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
   foundedYear?: number | null
   totalStudents?: number | null
-  affiliationName?: string | null
-  affiliationUrl?: string | null
   googleRating?: number | null
   googleReviews?: number | null
   googlePlaceId?: string | null
@@ -3155,16 +3808,23 @@ export type SchoolCreateWithoutCampsInput = {
   claimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  affiliation?: Prisma.AffiliationCreateNestedOneWithoutSchoolsInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
   instructors?: Prisma.InstructorCreateNestedManyWithoutSchoolInput
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationCreateNestedOneWithoutSchoolInput
 }
 
 export type SchoolUncheckedCreateWithoutCampsInput = {
@@ -3173,6 +3833,7 @@ export type SchoolUncheckedCreateWithoutCampsInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  affiliationId?: string | null
   country?: string | null
   city?: string | null
   address?: string | null
@@ -3196,8 +3857,6 @@ export type SchoolUncheckedCreateWithoutCampsInput = {
   facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
   foundedYear?: number | null
   totalStudents?: number | null
-  affiliationName?: string | null
-  affiliationUrl?: string | null
   googleRating?: number | null
   googleReviews?: number | null
   googlePlaceId?: string | null
@@ -3209,12 +3868,18 @@ export type SchoolUncheckedCreateWithoutCampsInput = {
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
   instructors?: Prisma.InstructorUncheckedCreateNestedManyWithoutSchoolInput
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationUncheckedCreateNestedOneWithoutSchoolInput
 }
 
 export type SchoolCreateOrConnectWithoutCampsInput = {
@@ -3262,8 +3927,6 @@ export type SchoolUpdateWithoutCampsInput = {
   facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
   foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  affiliationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  affiliationUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3271,16 +3934,23 @@ export type SchoolUpdateWithoutCampsInput = {
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  affiliation?: Prisma.AffiliationUpdateOneWithoutSchoolsNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
   instructors?: Prisma.InstructorUpdateManyWithoutSchoolNestedInput
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUpdateOneWithoutSchoolNestedInput
 }
 
 export type SchoolUncheckedUpdateWithoutCampsInput = {
@@ -3289,6 +3959,7 @@ export type SchoolUncheckedUpdateWithoutCampsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3312,8 +3983,6 @@ export type SchoolUncheckedUpdateWithoutCampsInput = {
   facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
   foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  affiliationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  affiliationUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3325,12 +3994,18 @@ export type SchoolUncheckedUpdateWithoutCampsInput = {
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
   instructors?: Prisma.InstructorUncheckedUpdateManyWithoutSchoolNestedInput
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
 export type SchoolCreateWithoutMembersInput = {
@@ -3362,8 +4037,6 @@ export type SchoolCreateWithoutMembersInput = {
   facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
   foundedYear?: number | null
   totalStudents?: number | null
-  affiliationName?: string | null
-  affiliationUrl?: string | null
   googleRating?: number | null
   googleReviews?: number | null
   googlePlaceId?: string | null
@@ -3371,16 +4044,23 @@ export type SchoolCreateWithoutMembersInput = {
   claimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  affiliation?: Prisma.AffiliationCreateNestedOneWithoutSchoolsInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
   camps?: Prisma.CampCreateNestedManyWithoutSchoolInput
   instructors?: Prisma.InstructorCreateNestedManyWithoutSchoolInput
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationCreateNestedOneWithoutSchoolInput
 }
 
 export type SchoolUncheckedCreateWithoutMembersInput = {
@@ -3389,6 +4069,7 @@ export type SchoolUncheckedCreateWithoutMembersInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  affiliationId?: string | null
   country?: string | null
   city?: string | null
   address?: string | null
@@ -3412,8 +4093,6 @@ export type SchoolUncheckedCreateWithoutMembersInput = {
   facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
   foundedYear?: number | null
   totalStudents?: number | null
-  affiliationName?: string | null
-  affiliationUrl?: string | null
   googleRating?: number | null
   googleReviews?: number | null
   googlePlaceId?: string | null
@@ -3425,12 +4104,18 @@ export type SchoolUncheckedCreateWithoutMembersInput = {
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
   camps?: Prisma.CampUncheckedCreateNestedManyWithoutSchoolInput
   instructors?: Prisma.InstructorUncheckedCreateNestedManyWithoutSchoolInput
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationUncheckedCreateNestedOneWithoutSchoolInput
 }
 
 export type SchoolCreateOrConnectWithoutMembersInput = {
@@ -3478,8 +4163,6 @@ export type SchoolUpdateWithoutMembersInput = {
   facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
   foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  affiliationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  affiliationUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3487,16 +4170,23 @@ export type SchoolUpdateWithoutMembersInput = {
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  affiliation?: Prisma.AffiliationUpdateOneWithoutSchoolsNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
   camps?: Prisma.CampUpdateManyWithoutSchoolNestedInput
   instructors?: Prisma.InstructorUpdateManyWithoutSchoolNestedInput
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUpdateOneWithoutSchoolNestedInput
 }
 
 export type SchoolUncheckedUpdateWithoutMembersInput = {
@@ -3505,6 +4195,7 @@ export type SchoolUncheckedUpdateWithoutMembersInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3528,8 +4219,6 @@ export type SchoolUncheckedUpdateWithoutMembersInput = {
   facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
   foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  affiliationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  affiliationUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3541,12 +4230,18 @@ export type SchoolUncheckedUpdateWithoutMembersInput = {
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
   camps?: Prisma.CampUncheckedUpdateManyWithoutSchoolNestedInput
   instructors?: Prisma.InstructorUncheckedUpdateManyWithoutSchoolNestedInput
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
 export type SchoolCreateWithoutClaimsInput = {
@@ -3578,8 +4273,6 @@ export type SchoolCreateWithoutClaimsInput = {
   facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
   foundedYear?: number | null
   totalStudents?: number | null
-  affiliationName?: string | null
-  affiliationUrl?: string | null
   googleRating?: number | null
   googleReviews?: number | null
   googlePlaceId?: string | null
@@ -3587,16 +4280,23 @@ export type SchoolCreateWithoutClaimsInput = {
   claimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  affiliation?: Prisma.AffiliationCreateNestedOneWithoutSchoolsInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
   camps?: Prisma.CampCreateNestedManyWithoutSchoolInput
   instructors?: Prisma.InstructorCreateNestedManyWithoutSchoolInput
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationCreateNestedOneWithoutSchoolInput
 }
 
 export type SchoolUncheckedCreateWithoutClaimsInput = {
@@ -3605,6 +4305,7 @@ export type SchoolUncheckedCreateWithoutClaimsInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  affiliationId?: string | null
   country?: string | null
   city?: string | null
   address?: string | null
@@ -3628,8 +4329,6 @@ export type SchoolUncheckedCreateWithoutClaimsInput = {
   facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
   foundedYear?: number | null
   totalStudents?: number | null
-  affiliationName?: string | null
-  affiliationUrl?: string | null
   googleRating?: number | null
   googleReviews?: number | null
   googlePlaceId?: string | null
@@ -3641,12 +4340,18 @@ export type SchoolUncheckedCreateWithoutClaimsInput = {
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
   camps?: Prisma.CampUncheckedCreateNestedManyWithoutSchoolInput
   instructors?: Prisma.InstructorUncheckedCreateNestedManyWithoutSchoolInput
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationUncheckedCreateNestedOneWithoutSchoolInput
 }
 
 export type SchoolCreateOrConnectWithoutClaimsInput = {
@@ -3694,8 +4399,6 @@ export type SchoolUpdateWithoutClaimsInput = {
   facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
   foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  affiliationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  affiliationUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3703,16 +4406,23 @@ export type SchoolUpdateWithoutClaimsInput = {
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  affiliation?: Prisma.AffiliationUpdateOneWithoutSchoolsNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
   camps?: Prisma.CampUpdateManyWithoutSchoolNestedInput
   instructors?: Prisma.InstructorUpdateManyWithoutSchoolNestedInput
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUpdateOneWithoutSchoolNestedInput
 }
 
 export type SchoolUncheckedUpdateWithoutClaimsInput = {
@@ -3721,6 +4431,7 @@ export type SchoolUncheckedUpdateWithoutClaimsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3744,8 +4455,6 @@ export type SchoolUncheckedUpdateWithoutClaimsInput = {
   facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
   foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  affiliationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  affiliationUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3757,15 +4466,21 @@ export type SchoolUncheckedUpdateWithoutClaimsInput = {
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
   camps?: Prisma.CampUncheckedUpdateManyWithoutSchoolNestedInput
   instructors?: Prisma.InstructorUncheckedUpdateManyWithoutSchoolNestedInput
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
-export type SchoolCreateManyClaimedByInput = {
+export type SchoolCreateWithoutGradingsInput = {
   id?: string
   name: string
   slug: string
@@ -3794,8 +4509,1375 @@ export type SchoolCreateManyClaimedByInput = {
   facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
   foundedYear?: number | null
   totalStudents?: number | null
-  affiliationName?: string | null
-  affiliationUrl?: string | null
+  googleRating?: number | null
+  googleReviews?: number | null
+  googlePlaceId?: string | null
+  stripeAccountId?: string | null
+  claimedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  affiliation?: Prisma.AffiliationCreateNestedOneWithoutSchoolsInput
+  claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
+  staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventCreateNestedManyWithoutSchoolInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
+  camps?: Prisma.CampCreateNestedManyWithoutSchoolInput
+  instructors?: Prisma.InstructorCreateNestedManyWithoutSchoolInput
+  membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
+  members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationCreateNestedOneWithoutSchoolInput
+}
+
+export type SchoolUncheckedCreateWithoutGradingsInput = {
+  id?: string
+  name: string
+  slug: string
+  status?: $Enums.SchoolStatus
+  source?: $Enums.SchoolSource
+  affiliationId?: string | null
+  country?: string | null
+  city?: string | null
+  address?: string | null
+  postcode?: string | null
+  lat?: number | null
+  lng?: number | null
+  phone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  youtube?: string | null
+  tiktok?: string | null
+  description?: string | null
+  tagline?: string | null
+  logoUrl?: string | null
+  coverUrl?: string | null
+  photos?: Prisma.SchoolCreatephotosInput | string[]
+  priceFrom?: number | null
+  hasFreeTrialCls?: boolean
+  facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
+  foundedYear?: number | null
+  totalStudents?: number | null
+  googleRating?: number | null
+  googleReviews?: number | null
+  googlePlaceId?: string | null
+  stripeAccountId?: string | null
+  claimedById?: string | null
+  claimedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
+  camps?: Prisma.CampUncheckedCreateNestedManyWithoutSchoolInput
+  instructors?: Prisma.InstructorUncheckedCreateNestedManyWithoutSchoolInput
+  membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
+  members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationUncheckedCreateNestedOneWithoutSchoolInput
+}
+
+export type SchoolCreateOrConnectWithoutGradingsInput = {
+  where: Prisma.SchoolWhereUniqueInput
+  create: Prisma.XOR<Prisma.SchoolCreateWithoutGradingsInput, Prisma.SchoolUncheckedCreateWithoutGradingsInput>
+}
+
+export type SchoolUpsertWithoutGradingsInput = {
+  update: Prisma.XOR<Prisma.SchoolUpdateWithoutGradingsInput, Prisma.SchoolUncheckedUpdateWithoutGradingsInput>
+  create: Prisma.XOR<Prisma.SchoolCreateWithoutGradingsInput, Prisma.SchoolUncheckedCreateWithoutGradingsInput>
+  where?: Prisma.SchoolWhereInput
+}
+
+export type SchoolUpdateToOneWithWhereWithoutGradingsInput = {
+  where?: Prisma.SchoolWhereInput
+  data: Prisma.XOR<Prisma.SchoolUpdateWithoutGradingsInput, Prisma.SchoolUncheckedUpdateWithoutGradingsInput>
+}
+
+export type SchoolUpdateWithoutGradingsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
+  source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tiktok?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photos?: Prisma.SchoolUpdatephotosInput | string[]
+  priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
+  foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  affiliation?: Prisma.AffiliationUpdateOneWithoutSchoolsNestedInput
+  claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
+  staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
+  camps?: Prisma.CampUpdateManyWithoutSchoolNestedInput
+  instructors?: Prisma.InstructorUpdateManyWithoutSchoolNestedInput
+  membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
+  members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUpdateOneWithoutSchoolNestedInput
+}
+
+export type SchoolUncheckedUpdateWithoutGradingsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
+  source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tiktok?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photos?: Prisma.SchoolUpdatephotosInput | string[]
+  priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
+  foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
+  camps?: Prisma.CampUncheckedUpdateManyWithoutSchoolNestedInput
+  instructors?: Prisma.InstructorUncheckedUpdateManyWithoutSchoolNestedInput
+  membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
+  members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUncheckedUpdateOneWithoutSchoolNestedInput
+}
+
+export type SchoolCreateWithoutLeadsInput = {
+  id?: string
+  name: string
+  slug: string
+  status?: $Enums.SchoolStatus
+  source?: $Enums.SchoolSource
+  country?: string | null
+  city?: string | null
+  address?: string | null
+  postcode?: string | null
+  lat?: number | null
+  lng?: number | null
+  phone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  youtube?: string | null
+  tiktok?: string | null
+  description?: string | null
+  tagline?: string | null
+  logoUrl?: string | null
+  coverUrl?: string | null
+  photos?: Prisma.SchoolCreatephotosInput | string[]
+  priceFrom?: number | null
+  hasFreeTrialCls?: boolean
+  facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
+  foundedYear?: number | null
+  totalStudents?: number | null
+  googleRating?: number | null
+  googleReviews?: number | null
+  googlePlaceId?: string | null
+  stripeAccountId?: string | null
+  claimedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  affiliation?: Prisma.AffiliationCreateNestedOneWithoutSchoolsInput
+  claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
+  staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventCreateNestedManyWithoutSchoolInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
+  camps?: Prisma.CampCreateNestedManyWithoutSchoolInput
+  instructors?: Prisma.InstructorCreateNestedManyWithoutSchoolInput
+  membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
+  members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationCreateNestedOneWithoutSchoolInput
+}
+
+export type SchoolUncheckedCreateWithoutLeadsInput = {
+  id?: string
+  name: string
+  slug: string
+  status?: $Enums.SchoolStatus
+  source?: $Enums.SchoolSource
+  affiliationId?: string | null
+  country?: string | null
+  city?: string | null
+  address?: string | null
+  postcode?: string | null
+  lat?: number | null
+  lng?: number | null
+  phone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  youtube?: string | null
+  tiktok?: string | null
+  description?: string | null
+  tagline?: string | null
+  logoUrl?: string | null
+  coverUrl?: string | null
+  photos?: Prisma.SchoolCreatephotosInput | string[]
+  priceFrom?: number | null
+  hasFreeTrialCls?: boolean
+  facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
+  foundedYear?: number | null
+  totalStudents?: number | null
+  googleRating?: number | null
+  googleReviews?: number | null
+  googlePlaceId?: string | null
+  stripeAccountId?: string | null
+  claimedById?: string | null
+  claimedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
+  camps?: Prisma.CampUncheckedCreateNestedManyWithoutSchoolInput
+  instructors?: Prisma.InstructorUncheckedCreateNestedManyWithoutSchoolInput
+  membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
+  members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationUncheckedCreateNestedOneWithoutSchoolInput
+}
+
+export type SchoolCreateOrConnectWithoutLeadsInput = {
+  where: Prisma.SchoolWhereUniqueInput
+  create: Prisma.XOR<Prisma.SchoolCreateWithoutLeadsInput, Prisma.SchoolUncheckedCreateWithoutLeadsInput>
+}
+
+export type SchoolUpsertWithoutLeadsInput = {
+  update: Prisma.XOR<Prisma.SchoolUpdateWithoutLeadsInput, Prisma.SchoolUncheckedUpdateWithoutLeadsInput>
+  create: Prisma.XOR<Prisma.SchoolCreateWithoutLeadsInput, Prisma.SchoolUncheckedCreateWithoutLeadsInput>
+  where?: Prisma.SchoolWhereInput
+}
+
+export type SchoolUpdateToOneWithWhereWithoutLeadsInput = {
+  where?: Prisma.SchoolWhereInput
+  data: Prisma.XOR<Prisma.SchoolUpdateWithoutLeadsInput, Prisma.SchoolUncheckedUpdateWithoutLeadsInput>
+}
+
+export type SchoolUpdateWithoutLeadsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
+  source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tiktok?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photos?: Prisma.SchoolUpdatephotosInput | string[]
+  priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
+  foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  affiliation?: Prisma.AffiliationUpdateOneWithoutSchoolsNestedInput
+  claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
+  staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
+  camps?: Prisma.CampUpdateManyWithoutSchoolNestedInput
+  instructors?: Prisma.InstructorUpdateManyWithoutSchoolNestedInput
+  membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
+  members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUpdateOneWithoutSchoolNestedInput
+}
+
+export type SchoolUncheckedUpdateWithoutLeadsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
+  source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tiktok?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photos?: Prisma.SchoolUpdatephotosInput | string[]
+  priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
+  foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
+  camps?: Prisma.CampUncheckedUpdateManyWithoutSchoolNestedInput
+  instructors?: Prisma.InstructorUncheckedUpdateManyWithoutSchoolNestedInput
+  membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
+  members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUncheckedUpdateOneWithoutSchoolNestedInput
+}
+
+export type SchoolCreateWithoutInvitationInput = {
+  id?: string
+  name: string
+  slug: string
+  status?: $Enums.SchoolStatus
+  source?: $Enums.SchoolSource
+  country?: string | null
+  city?: string | null
+  address?: string | null
+  postcode?: string | null
+  lat?: number | null
+  lng?: number | null
+  phone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  youtube?: string | null
+  tiktok?: string | null
+  description?: string | null
+  tagline?: string | null
+  logoUrl?: string | null
+  coverUrl?: string | null
+  photos?: Prisma.SchoolCreatephotosInput | string[]
+  priceFrom?: number | null
+  hasFreeTrialCls?: boolean
+  facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
+  foundedYear?: number | null
+  totalStudents?: number | null
+  googleRating?: number | null
+  googleReviews?: number | null
+  googlePlaceId?: string | null
+  stripeAccountId?: string | null
+  claimedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  affiliation?: Prisma.AffiliationCreateNestedOneWithoutSchoolsInput
+  claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
+  staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventCreateNestedManyWithoutSchoolInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
+  camps?: Prisma.CampCreateNestedManyWithoutSchoolInput
+  instructors?: Prisma.InstructorCreateNestedManyWithoutSchoolInput
+  membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
+  members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
+}
+
+export type SchoolUncheckedCreateWithoutInvitationInput = {
+  id?: string
+  name: string
+  slug: string
+  status?: $Enums.SchoolStatus
+  source?: $Enums.SchoolSource
+  affiliationId?: string | null
+  country?: string | null
+  city?: string | null
+  address?: string | null
+  postcode?: string | null
+  lat?: number | null
+  lng?: number | null
+  phone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  youtube?: string | null
+  tiktok?: string | null
+  description?: string | null
+  tagline?: string | null
+  logoUrl?: string | null
+  coverUrl?: string | null
+  photos?: Prisma.SchoolCreatephotosInput | string[]
+  priceFrom?: number | null
+  hasFreeTrialCls?: boolean
+  facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
+  foundedYear?: number | null
+  totalStudents?: number | null
+  googleRating?: number | null
+  googleReviews?: number | null
+  googlePlaceId?: string | null
+  stripeAccountId?: string | null
+  claimedById?: string | null
+  claimedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
+  camps?: Prisma.CampUncheckedCreateNestedManyWithoutSchoolInput
+  instructors?: Prisma.InstructorUncheckedCreateNestedManyWithoutSchoolInput
+  membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
+  members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
+}
+
+export type SchoolCreateOrConnectWithoutInvitationInput = {
+  where: Prisma.SchoolWhereUniqueInput
+  create: Prisma.XOR<Prisma.SchoolCreateWithoutInvitationInput, Prisma.SchoolUncheckedCreateWithoutInvitationInput>
+}
+
+export type SchoolUpsertWithoutInvitationInput = {
+  update: Prisma.XOR<Prisma.SchoolUpdateWithoutInvitationInput, Prisma.SchoolUncheckedUpdateWithoutInvitationInput>
+  create: Prisma.XOR<Prisma.SchoolCreateWithoutInvitationInput, Prisma.SchoolUncheckedCreateWithoutInvitationInput>
+  where?: Prisma.SchoolWhereInput
+}
+
+export type SchoolUpdateToOneWithWhereWithoutInvitationInput = {
+  where?: Prisma.SchoolWhereInput
+  data: Prisma.XOR<Prisma.SchoolUpdateWithoutInvitationInput, Prisma.SchoolUncheckedUpdateWithoutInvitationInput>
+}
+
+export type SchoolUpdateWithoutInvitationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
+  source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tiktok?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photos?: Prisma.SchoolUpdatephotosInput | string[]
+  priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
+  foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  affiliation?: Prisma.AffiliationUpdateOneWithoutSchoolsNestedInput
+  claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
+  staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
+  camps?: Prisma.CampUpdateManyWithoutSchoolNestedInput
+  instructors?: Prisma.InstructorUpdateManyWithoutSchoolNestedInput
+  membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
+  members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
+}
+
+export type SchoolUncheckedUpdateWithoutInvitationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
+  source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tiktok?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photos?: Prisma.SchoolUpdatephotosInput | string[]
+  priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
+  foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
+  camps?: Prisma.CampUncheckedUpdateManyWithoutSchoolNestedInput
+  instructors?: Prisma.InstructorUncheckedUpdateManyWithoutSchoolNestedInput
+  membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
+  members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
+}
+
+export type SchoolCreateWithoutWaiversInput = {
+  id?: string
+  name: string
+  slug: string
+  status?: $Enums.SchoolStatus
+  source?: $Enums.SchoolSource
+  country?: string | null
+  city?: string | null
+  address?: string | null
+  postcode?: string | null
+  lat?: number | null
+  lng?: number | null
+  phone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  youtube?: string | null
+  tiktok?: string | null
+  description?: string | null
+  tagline?: string | null
+  logoUrl?: string | null
+  coverUrl?: string | null
+  photos?: Prisma.SchoolCreatephotosInput | string[]
+  priceFrom?: number | null
+  hasFreeTrialCls?: boolean
+  facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
+  foundedYear?: number | null
+  totalStudents?: number | null
+  googleRating?: number | null
+  googleReviews?: number | null
+  googlePlaceId?: string | null
+  stripeAccountId?: string | null
+  claimedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  affiliation?: Prisma.AffiliationCreateNestedOneWithoutSchoolsInput
+  claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
+  staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventCreateNestedManyWithoutSchoolInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
+  camps?: Prisma.CampCreateNestedManyWithoutSchoolInput
+  instructors?: Prisma.InstructorCreateNestedManyWithoutSchoolInput
+  membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
+  members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationCreateNestedOneWithoutSchoolInput
+}
+
+export type SchoolUncheckedCreateWithoutWaiversInput = {
+  id?: string
+  name: string
+  slug: string
+  status?: $Enums.SchoolStatus
+  source?: $Enums.SchoolSource
+  affiliationId?: string | null
+  country?: string | null
+  city?: string | null
+  address?: string | null
+  postcode?: string | null
+  lat?: number | null
+  lng?: number | null
+  phone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  youtube?: string | null
+  tiktok?: string | null
+  description?: string | null
+  tagline?: string | null
+  logoUrl?: string | null
+  coverUrl?: string | null
+  photos?: Prisma.SchoolCreatephotosInput | string[]
+  priceFrom?: number | null
+  hasFreeTrialCls?: boolean
+  facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
+  foundedYear?: number | null
+  totalStudents?: number | null
+  googleRating?: number | null
+  googleReviews?: number | null
+  googlePlaceId?: string | null
+  stripeAccountId?: string | null
+  claimedById?: string | null
+  claimedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
+  camps?: Prisma.CampUncheckedCreateNestedManyWithoutSchoolInput
+  instructors?: Prisma.InstructorUncheckedCreateNestedManyWithoutSchoolInput
+  membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
+  members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationUncheckedCreateNestedOneWithoutSchoolInput
+}
+
+export type SchoolCreateOrConnectWithoutWaiversInput = {
+  where: Prisma.SchoolWhereUniqueInput
+  create: Prisma.XOR<Prisma.SchoolCreateWithoutWaiversInput, Prisma.SchoolUncheckedCreateWithoutWaiversInput>
+}
+
+export type SchoolUpsertWithoutWaiversInput = {
+  update: Prisma.XOR<Prisma.SchoolUpdateWithoutWaiversInput, Prisma.SchoolUncheckedUpdateWithoutWaiversInput>
+  create: Prisma.XOR<Prisma.SchoolCreateWithoutWaiversInput, Prisma.SchoolUncheckedCreateWithoutWaiversInput>
+  where?: Prisma.SchoolWhereInput
+}
+
+export type SchoolUpdateToOneWithWhereWithoutWaiversInput = {
+  where?: Prisma.SchoolWhereInput
+  data: Prisma.XOR<Prisma.SchoolUpdateWithoutWaiversInput, Prisma.SchoolUncheckedUpdateWithoutWaiversInput>
+}
+
+export type SchoolUpdateWithoutWaiversInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
+  source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tiktok?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photos?: Prisma.SchoolUpdatephotosInput | string[]
+  priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
+  foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  affiliation?: Prisma.AffiliationUpdateOneWithoutSchoolsNestedInput
+  claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
+  staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
+  camps?: Prisma.CampUpdateManyWithoutSchoolNestedInput
+  instructors?: Prisma.InstructorUpdateManyWithoutSchoolNestedInput
+  membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
+  members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUpdateOneWithoutSchoolNestedInput
+}
+
+export type SchoolUncheckedUpdateWithoutWaiversInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
+  source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tiktok?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photos?: Prisma.SchoolUpdatephotosInput | string[]
+  priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
+  foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
+  camps?: Prisma.CampUncheckedUpdateManyWithoutSchoolNestedInput
+  instructors?: Prisma.InstructorUncheckedUpdateManyWithoutSchoolNestedInput
+  membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
+  members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUncheckedUpdateOneWithoutSchoolNestedInput
+}
+
+export type SchoolCreateWithoutTransactionsInput = {
+  id?: string
+  name: string
+  slug: string
+  status?: $Enums.SchoolStatus
+  source?: $Enums.SchoolSource
+  country?: string | null
+  city?: string | null
+  address?: string | null
+  postcode?: string | null
+  lat?: number | null
+  lng?: number | null
+  phone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  youtube?: string | null
+  tiktok?: string | null
+  description?: string | null
+  tagline?: string | null
+  logoUrl?: string | null
+  coverUrl?: string | null
+  photos?: Prisma.SchoolCreatephotosInput | string[]
+  priceFrom?: number | null
+  hasFreeTrialCls?: boolean
+  facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
+  foundedYear?: number | null
+  totalStudents?: number | null
+  googleRating?: number | null
+  googleReviews?: number | null
+  googlePlaceId?: string | null
+  stripeAccountId?: string | null
+  claimedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  affiliation?: Prisma.AffiliationCreateNestedOneWithoutSchoolsInput
+  claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
+  staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventCreateNestedManyWithoutSchoolInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
+  camps?: Prisma.CampCreateNestedManyWithoutSchoolInput
+  instructors?: Prisma.InstructorCreateNestedManyWithoutSchoolInput
+  membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
+  members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationCreateNestedOneWithoutSchoolInput
+}
+
+export type SchoolUncheckedCreateWithoutTransactionsInput = {
+  id?: string
+  name: string
+  slug: string
+  status?: $Enums.SchoolStatus
+  source?: $Enums.SchoolSource
+  affiliationId?: string | null
+  country?: string | null
+  city?: string | null
+  address?: string | null
+  postcode?: string | null
+  lat?: number | null
+  lng?: number | null
+  phone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  youtube?: string | null
+  tiktok?: string | null
+  description?: string | null
+  tagline?: string | null
+  logoUrl?: string | null
+  coverUrl?: string | null
+  photos?: Prisma.SchoolCreatephotosInput | string[]
+  priceFrom?: number | null
+  hasFreeTrialCls?: boolean
+  facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
+  foundedYear?: number | null
+  totalStudents?: number | null
+  googleRating?: number | null
+  googleReviews?: number | null
+  googlePlaceId?: string | null
+  stripeAccountId?: string | null
+  claimedById?: string | null
+  claimedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
+  camps?: Prisma.CampUncheckedCreateNestedManyWithoutSchoolInput
+  instructors?: Prisma.InstructorUncheckedCreateNestedManyWithoutSchoolInput
+  membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
+  members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
+  invitation?: Prisma.SchoolInvitationUncheckedCreateNestedOneWithoutSchoolInput
+}
+
+export type SchoolCreateOrConnectWithoutTransactionsInput = {
+  where: Prisma.SchoolWhereUniqueInput
+  create: Prisma.XOR<Prisma.SchoolCreateWithoutTransactionsInput, Prisma.SchoolUncheckedCreateWithoutTransactionsInput>
+}
+
+export type SchoolUpsertWithoutTransactionsInput = {
+  update: Prisma.XOR<Prisma.SchoolUpdateWithoutTransactionsInput, Prisma.SchoolUncheckedUpdateWithoutTransactionsInput>
+  create: Prisma.XOR<Prisma.SchoolCreateWithoutTransactionsInput, Prisma.SchoolUncheckedCreateWithoutTransactionsInput>
+  where?: Prisma.SchoolWhereInput
+}
+
+export type SchoolUpdateToOneWithWhereWithoutTransactionsInput = {
+  where?: Prisma.SchoolWhereInput
+  data: Prisma.XOR<Prisma.SchoolUpdateWithoutTransactionsInput, Prisma.SchoolUncheckedUpdateWithoutTransactionsInput>
+}
+
+export type SchoolUpdateWithoutTransactionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
+  source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tiktok?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photos?: Prisma.SchoolUpdatephotosInput | string[]
+  priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
+  foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  affiliation?: Prisma.AffiliationUpdateOneWithoutSchoolsNestedInput
+  claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
+  staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
+  camps?: Prisma.CampUpdateManyWithoutSchoolNestedInput
+  instructors?: Prisma.InstructorUpdateManyWithoutSchoolNestedInput
+  membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
+  members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUpdateOneWithoutSchoolNestedInput
+}
+
+export type SchoolUncheckedUpdateWithoutTransactionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
+  source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tiktok?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photos?: Prisma.SchoolUpdatephotosInput | string[]
+  priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
+  foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
+  camps?: Prisma.CampUncheckedUpdateManyWithoutSchoolNestedInput
+  instructors?: Prisma.InstructorUncheckedUpdateManyWithoutSchoolNestedInput
+  membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
+  members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUncheckedUpdateOneWithoutSchoolNestedInput
+}
+
+export type SchoolCreateManyAffiliationInput = {
+  id?: string
+  name: string
+  slug: string
+  status?: $Enums.SchoolStatus
+  source?: $Enums.SchoolSource
+  country?: string | null
+  city?: string | null
+  address?: string | null
+  postcode?: string | null
+  lat?: number | null
+  lng?: number | null
+  phone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  youtube?: string | null
+  tiktok?: string | null
+  description?: string | null
+  tagline?: string | null
+  logoUrl?: string | null
+  coverUrl?: string | null
+  photos?: Prisma.SchoolCreatephotosInput | string[]
+  priceFrom?: number | null
+  hasFreeTrialCls?: boolean
+  facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
+  foundedYear?: number | null
+  totalStudents?: number | null
+  googleRating?: number | null
+  googleReviews?: number | null
+  googlePlaceId?: string | null
+  stripeAccountId?: string | null
+  claimedById?: string | null
+  claimedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type SchoolUpdateWithoutAffiliationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
+  source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tiktok?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photos?: Prisma.SchoolUpdatephotosInput | string[]
+  priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
+  foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
+  staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
+  camps?: Prisma.CampUpdateManyWithoutSchoolNestedInput
+  instructors?: Prisma.InstructorUpdateManyWithoutSchoolNestedInput
+  membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
+  members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUpdateOneWithoutSchoolNestedInput
+}
+
+export type SchoolUncheckedUpdateWithoutAffiliationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
+  source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tiktok?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photos?: Prisma.SchoolUpdatephotosInput | string[]
+  priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
+  foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
+  camps?: Prisma.CampUncheckedUpdateManyWithoutSchoolNestedInput
+  instructors?: Prisma.InstructorUncheckedUpdateManyWithoutSchoolNestedInput
+  membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
+  members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUncheckedUpdateOneWithoutSchoolNestedInput
+}
+
+export type SchoolUncheckedUpdateManyWithoutAffiliationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
+  source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tiktok?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photos?: Prisma.SchoolUpdatephotosInput | string[]
+  priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
+  foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type SchoolCreateManyClaimedByInput = {
+  id?: string
+  name: string
+  slug: string
+  status?: $Enums.SchoolStatus
+  source?: $Enums.SchoolSource
+  affiliationId?: string | null
+  country?: string | null
+  city?: string | null
+  address?: string | null
+  postcode?: string | null
+  lat?: number | null
+  lng?: number | null
+  phone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  youtube?: string | null
+  tiktok?: string | null
+  description?: string | null
+  tagline?: string | null
+  logoUrl?: string | null
+  coverUrl?: string | null
+  photos?: Prisma.SchoolCreatephotosInput | string[]
+  priceFrom?: number | null
+  hasFreeTrialCls?: boolean
+  facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
+  foundedYear?: number | null
+  totalStudents?: number | null
   googleRating?: number | null
   googleReviews?: number | null
   googlePlaceId?: string | null
@@ -3834,8 +5916,6 @@ export type SchoolUpdateWithoutClaimedByInput = {
   facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
   foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  affiliationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  affiliationUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3843,9 +5923,11 @@ export type SchoolUpdateWithoutClaimedByInput = {
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  affiliation?: Prisma.AffiliationUpdateOneWithoutSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
   camps?: Prisma.CampUpdateManyWithoutSchoolNestedInput
   instructors?: Prisma.InstructorUpdateManyWithoutSchoolNestedInput
@@ -3853,6 +5935,11 @@ export type SchoolUpdateWithoutClaimedByInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUpdateOneWithoutSchoolNestedInput
 }
 
 export type SchoolUncheckedUpdateWithoutClaimedByInput = {
@@ -3861,6 +5948,7 @@ export type SchoolUncheckedUpdateWithoutClaimedByInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3884,8 +5972,6 @@ export type SchoolUncheckedUpdateWithoutClaimedByInput = {
   facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
   foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  affiliationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  affiliationUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3896,6 +5982,7 @@ export type SchoolUncheckedUpdateWithoutClaimedByInput = {
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
   camps?: Prisma.CampUncheckedUpdateManyWithoutSchoolNestedInput
   instructors?: Prisma.InstructorUncheckedUpdateManyWithoutSchoolNestedInput
@@ -3903,6 +5990,11 @@ export type SchoolUncheckedUpdateWithoutClaimedByInput = {
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
+  invitation?: Prisma.SchoolInvitationUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
 export type SchoolUncheckedUpdateManyWithoutClaimedByInput = {
@@ -3911,6 +6003,7 @@ export type SchoolUncheckedUpdateManyWithoutClaimedByInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3934,8 +6027,6 @@ export type SchoolUncheckedUpdateManyWithoutClaimedByInput = {
   facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
   foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  affiliationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  affiliationUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3954,6 +6045,7 @@ export type SchoolCountOutputType = {
   staff: number
   disciplines: number
   classes: number
+  events: number
   memberships: number
   camps: number
   instructors: number
@@ -3961,12 +6053,17 @@ export type SchoolCountOutputType = {
   reviews: number
   members: number
   claims: number
+  gradings: number
+  leads: number
+  waivers: number
+  transactions: number
 }
 
 export type SchoolCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   staff?: boolean | SchoolCountOutputTypeCountStaffArgs
   disciplines?: boolean | SchoolCountOutputTypeCountDisciplinesArgs
   classes?: boolean | SchoolCountOutputTypeCountClassesArgs
+  events?: boolean | SchoolCountOutputTypeCountEventsArgs
   memberships?: boolean | SchoolCountOutputTypeCountMembershipsArgs
   camps?: boolean | SchoolCountOutputTypeCountCampsArgs
   instructors?: boolean | SchoolCountOutputTypeCountInstructorsArgs
@@ -3974,6 +6071,10 @@ export type SchoolCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions
   reviews?: boolean | SchoolCountOutputTypeCountReviewsArgs
   members?: boolean | SchoolCountOutputTypeCountMembersArgs
   claims?: boolean | SchoolCountOutputTypeCountClaimsArgs
+  gradings?: boolean | SchoolCountOutputTypeCountGradingsArgs
+  leads?: boolean | SchoolCountOutputTypeCountLeadsArgs
+  waivers?: boolean | SchoolCountOutputTypeCountWaiversArgs
+  transactions?: boolean | SchoolCountOutputTypeCountTransactionsArgs
 }
 
 /**
@@ -4005,6 +6106,13 @@ export type SchoolCountOutputTypeCountDisciplinesArgs<ExtArgs extends runtime.Ty
  */
 export type SchoolCountOutputTypeCountClassesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.ClassWhereInput
+}
+
+/**
+ * SchoolCountOutputType without action
+ */
+export type SchoolCountOutputTypeCountEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EventWhereInput
 }
 
 /**
@@ -4056,6 +6164,34 @@ export type SchoolCountOutputTypeCountClaimsArgs<ExtArgs extends runtime.Types.E
   where?: Prisma.SchoolClaimWhereInput
 }
 
+/**
+ * SchoolCountOutputType without action
+ */
+export type SchoolCountOutputTypeCountGradingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.GradingWhereInput
+}
+
+/**
+ * SchoolCountOutputType without action
+ */
+export type SchoolCountOutputTypeCountLeadsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.LeadWhereInput
+}
+
+/**
+ * SchoolCountOutputType without action
+ */
+export type SchoolCountOutputTypeCountWaiversArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.WaiverWhereInput
+}
+
+/**
+ * SchoolCountOutputType without action
+ */
+export type SchoolCountOutputTypeCountTransactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TransactionWhereInput
+}
+
 
 export type SchoolSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -4063,6 +6199,7 @@ export type SchoolSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   slug?: boolean
   status?: boolean
   source?: boolean
+  affiliationId?: boolean
   country?: boolean
   city?: boolean
   address?: boolean
@@ -4086,8 +6223,6 @@ export type SchoolSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   facilities?: boolean
   foundedYear?: boolean
   totalStudents?: boolean
-  affiliationName?: boolean
-  affiliationUrl?: boolean
   googleRating?: boolean
   googleReviews?: boolean
   googlePlaceId?: boolean
@@ -4096,10 +6231,12 @@ export type SchoolSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   claimedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  affiliation?: boolean | Prisma.School$affiliationArgs<ExtArgs>
   claimedBy?: boolean | Prisma.School$claimedByArgs<ExtArgs>
   staff?: boolean | Prisma.School$staffArgs<ExtArgs>
   disciplines?: boolean | Prisma.School$disciplinesArgs<ExtArgs>
   classes?: boolean | Prisma.School$classesArgs<ExtArgs>
+  events?: boolean | Prisma.School$eventsArgs<ExtArgs>
   memberships?: boolean | Prisma.School$membershipsArgs<ExtArgs>
   camps?: boolean | Prisma.School$campsArgs<ExtArgs>
   instructors?: boolean | Prisma.School$instructorsArgs<ExtArgs>
@@ -4107,6 +6244,11 @@ export type SchoolSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   reviews?: boolean | Prisma.School$reviewsArgs<ExtArgs>
   members?: boolean | Prisma.School$membersArgs<ExtArgs>
   claims?: boolean | Prisma.School$claimsArgs<ExtArgs>
+  gradings?: boolean | Prisma.School$gradingsArgs<ExtArgs>
+  leads?: boolean | Prisma.School$leadsArgs<ExtArgs>
+  waivers?: boolean | Prisma.School$waiversArgs<ExtArgs>
+  transactions?: boolean | Prisma.School$transactionsArgs<ExtArgs>
+  invitation?: boolean | Prisma.School$invitationArgs<ExtArgs>
   _count?: boolean | Prisma.SchoolCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["school"]>
 
@@ -4116,6 +6258,7 @@ export type SchoolSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   slug?: boolean
   status?: boolean
   source?: boolean
+  affiliationId?: boolean
   country?: boolean
   city?: boolean
   address?: boolean
@@ -4139,8 +6282,6 @@ export type SchoolSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   facilities?: boolean
   foundedYear?: boolean
   totalStudents?: boolean
-  affiliationName?: boolean
-  affiliationUrl?: boolean
   googleRating?: boolean
   googleReviews?: boolean
   googlePlaceId?: boolean
@@ -4149,6 +6290,7 @@ export type SchoolSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   claimedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  affiliation?: boolean | Prisma.School$affiliationArgs<ExtArgs>
   claimedBy?: boolean | Prisma.School$claimedByArgs<ExtArgs>
 }, ExtArgs["result"]["school"]>
 
@@ -4158,6 +6300,7 @@ export type SchoolSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   slug?: boolean
   status?: boolean
   source?: boolean
+  affiliationId?: boolean
   country?: boolean
   city?: boolean
   address?: boolean
@@ -4181,8 +6324,6 @@ export type SchoolSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   facilities?: boolean
   foundedYear?: boolean
   totalStudents?: boolean
-  affiliationName?: boolean
-  affiliationUrl?: boolean
   googleRating?: boolean
   googleReviews?: boolean
   googlePlaceId?: boolean
@@ -4191,6 +6332,7 @@ export type SchoolSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   claimedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  affiliation?: boolean | Prisma.School$affiliationArgs<ExtArgs>
   claimedBy?: boolean | Prisma.School$claimedByArgs<ExtArgs>
 }, ExtArgs["result"]["school"]>
 
@@ -4200,6 +6342,7 @@ export type SchoolSelectScalar = {
   slug?: boolean
   status?: boolean
   source?: boolean
+  affiliationId?: boolean
   country?: boolean
   city?: boolean
   address?: boolean
@@ -4223,8 +6366,6 @@ export type SchoolSelectScalar = {
   facilities?: boolean
   foundedYear?: boolean
   totalStudents?: boolean
-  affiliationName?: boolean
-  affiliationUrl?: boolean
   googleRating?: boolean
   googleReviews?: boolean
   googlePlaceId?: boolean
@@ -4235,12 +6376,14 @@ export type SchoolSelectScalar = {
   updatedAt?: boolean
 }
 
-export type SchoolOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "status" | "source" | "country" | "city" | "address" | "postcode" | "lat" | "lng" | "phone" | "email" | "website" | "instagram" | "facebook" | "youtube" | "tiktok" | "description" | "tagline" | "logoUrl" | "coverUrl" | "photos" | "priceFrom" | "hasFreeTrialCls" | "facilities" | "foundedYear" | "totalStudents" | "affiliationName" | "affiliationUrl" | "googleRating" | "googleReviews" | "googlePlaceId" | "stripeAccountId" | "claimedById" | "claimedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["school"]>
+export type SchoolOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "status" | "source" | "affiliationId" | "country" | "city" | "address" | "postcode" | "lat" | "lng" | "phone" | "email" | "website" | "instagram" | "facebook" | "youtube" | "tiktok" | "description" | "tagline" | "logoUrl" | "coverUrl" | "photos" | "priceFrom" | "hasFreeTrialCls" | "facilities" | "foundedYear" | "totalStudents" | "googleRating" | "googleReviews" | "googlePlaceId" | "stripeAccountId" | "claimedById" | "claimedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["school"]>
 export type SchoolInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  affiliation?: boolean | Prisma.School$affiliationArgs<ExtArgs>
   claimedBy?: boolean | Prisma.School$claimedByArgs<ExtArgs>
   staff?: boolean | Prisma.School$staffArgs<ExtArgs>
   disciplines?: boolean | Prisma.School$disciplinesArgs<ExtArgs>
   classes?: boolean | Prisma.School$classesArgs<ExtArgs>
+  events?: boolean | Prisma.School$eventsArgs<ExtArgs>
   memberships?: boolean | Prisma.School$membershipsArgs<ExtArgs>
   camps?: boolean | Prisma.School$campsArgs<ExtArgs>
   instructors?: boolean | Prisma.School$instructorsArgs<ExtArgs>
@@ -4248,22 +6391,31 @@ export type SchoolInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   reviews?: boolean | Prisma.School$reviewsArgs<ExtArgs>
   members?: boolean | Prisma.School$membersArgs<ExtArgs>
   claims?: boolean | Prisma.School$claimsArgs<ExtArgs>
+  gradings?: boolean | Prisma.School$gradingsArgs<ExtArgs>
+  leads?: boolean | Prisma.School$leadsArgs<ExtArgs>
+  waivers?: boolean | Prisma.School$waiversArgs<ExtArgs>
+  transactions?: boolean | Prisma.School$transactionsArgs<ExtArgs>
+  invitation?: boolean | Prisma.School$invitationArgs<ExtArgs>
   _count?: boolean | Prisma.SchoolCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type SchoolIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  affiliation?: boolean | Prisma.School$affiliationArgs<ExtArgs>
   claimedBy?: boolean | Prisma.School$claimedByArgs<ExtArgs>
 }
 export type SchoolIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  affiliation?: boolean | Prisma.School$affiliationArgs<ExtArgs>
   claimedBy?: boolean | Prisma.School$claimedByArgs<ExtArgs>
 }
 
 export type $SchoolPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "School"
   objects: {
+    affiliation: Prisma.$AffiliationPayload<ExtArgs> | null
     claimedBy: Prisma.$UserPayload<ExtArgs> | null
     staff: Prisma.$UserPayload<ExtArgs>[]
     disciplines: Prisma.$SchoolDisciplinePayload<ExtArgs>[]
     classes: Prisma.$ClassPayload<ExtArgs>[]
+    events: Prisma.$EventPayload<ExtArgs>[]
     memberships: Prisma.$MembershipPayload<ExtArgs>[]
     camps: Prisma.$CampPayload<ExtArgs>[]
     instructors: Prisma.$InstructorPayload<ExtArgs>[]
@@ -4271,6 +6423,11 @@ export type $SchoolPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     reviews: Prisma.$ReviewPayload<ExtArgs>[]
     members: Prisma.$SchoolMemberPayload<ExtArgs>[]
     claims: Prisma.$SchoolClaimPayload<ExtArgs>[]
+    gradings: Prisma.$GradingPayload<ExtArgs>[]
+    leads: Prisma.$LeadPayload<ExtArgs>[]
+    waivers: Prisma.$WaiverPayload<ExtArgs>[]
+    transactions: Prisma.$TransactionPayload<ExtArgs>[]
+    invitation: Prisma.$SchoolInvitationPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -4278,6 +6435,7 @@ export type $SchoolPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     slug: string
     status: $Enums.SchoolStatus
     source: $Enums.SchoolSource
+    affiliationId: string | null
     country: string | null
     city: string | null
     address: string | null
@@ -4301,8 +6459,6 @@ export type $SchoolPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     facilities: string[]
     foundedYear: number | null
     totalStudents: number | null
-    affiliationName: string | null
-    affiliationUrl: string | null
     googleRating: number | null
     googleReviews: number | null
     googlePlaceId: string | null
@@ -4705,10 +6861,12 @@ readonly fields: SchoolFieldRefs;
  */
 export interface Prisma__SchoolClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  affiliation<T extends Prisma.School$affiliationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$affiliationArgs<ExtArgs>>): Prisma.Prisma__AffiliationClient<runtime.Types.Result.GetResult<Prisma.$AffiliationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   claimedBy<T extends Prisma.School$claimedByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$claimedByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   staff<T extends Prisma.School$staffArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$staffArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   disciplines<T extends Prisma.School$disciplinesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$disciplinesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SchoolDisciplinePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   classes<T extends Prisma.School$classesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$classesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  events<T extends Prisma.School$eventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   memberships<T extends Prisma.School$membershipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$membershipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MembershipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   camps<T extends Prisma.School$campsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$campsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CampPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   instructors<T extends Prisma.School$instructorsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$instructorsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$InstructorPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -4716,6 +6874,11 @@ export interface Prisma__SchoolClient<T, Null = never, ExtArgs extends runtime.T
   reviews<T extends Prisma.School$reviewsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$reviewsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReviewPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   members<T extends Prisma.School$membersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$membersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SchoolMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   claims<T extends Prisma.School$claimsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$claimsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SchoolClaimPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  gradings<T extends Prisma.School$gradingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$gradingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GradingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  leads<T extends Prisma.School$leadsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$leadsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LeadPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  waivers<T extends Prisma.School$waiversArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$waiversArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WaiverPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  transactions<T extends Prisma.School$transactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  invitation<T extends Prisma.School$invitationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$invitationArgs<ExtArgs>>): Prisma.Prisma__SchoolInvitationClient<runtime.Types.Result.GetResult<Prisma.$SchoolInvitationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4750,6 +6913,7 @@ export interface SchoolFieldRefs {
   readonly slug: Prisma.FieldRef<"School", 'String'>
   readonly status: Prisma.FieldRef<"School", 'SchoolStatus'>
   readonly source: Prisma.FieldRef<"School", 'SchoolSource'>
+  readonly affiliationId: Prisma.FieldRef<"School", 'String'>
   readonly country: Prisma.FieldRef<"School", 'String'>
   readonly city: Prisma.FieldRef<"School", 'String'>
   readonly address: Prisma.FieldRef<"School", 'String'>
@@ -4773,8 +6937,6 @@ export interface SchoolFieldRefs {
   readonly facilities: Prisma.FieldRef<"School", 'String[]'>
   readonly foundedYear: Prisma.FieldRef<"School", 'Int'>
   readonly totalStudents: Prisma.FieldRef<"School", 'Int'>
-  readonly affiliationName: Prisma.FieldRef<"School", 'String'>
-  readonly affiliationUrl: Prisma.FieldRef<"School", 'String'>
   readonly googleRating: Prisma.FieldRef<"School", 'Float'>
   readonly googleReviews: Prisma.FieldRef<"School", 'Int'>
   readonly googlePlaceId: Prisma.FieldRef<"School", 'String'>
@@ -5184,6 +7346,25 @@ export type SchoolDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
 }
 
 /**
+ * School.affiliation
+ */
+export type School$affiliationArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Affiliation
+   */
+  select?: Prisma.AffiliationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Affiliation
+   */
+  omit?: Prisma.AffiliationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AffiliationInclude<ExtArgs> | null
+  where?: Prisma.AffiliationWhereInput
+}
+
+/**
  * School.claimedBy
  */
 export type School$claimedByArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -5272,6 +7453,30 @@ export type School$classesArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   distinct?: Prisma.ClassScalarFieldEnum | Prisma.ClassScalarFieldEnum[]
+}
+
+/**
+ * School.events
+ */
+export type School$eventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Event
+   */
+  select?: Prisma.EventSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Event
+   */
+  omit?: Prisma.EventOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EventInclude<ExtArgs> | null
+  where?: Prisma.EventWhereInput
+  orderBy?: Prisma.EventOrderByWithRelationInput | Prisma.EventOrderByWithRelationInput[]
+  cursor?: Prisma.EventWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EventScalarFieldEnum | Prisma.EventScalarFieldEnum[]
 }
 
 /**
@@ -5440,6 +7645,121 @@ export type School$claimsArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   distinct?: Prisma.SchoolClaimScalarFieldEnum | Prisma.SchoolClaimScalarFieldEnum[]
+}
+
+/**
+ * School.gradings
+ */
+export type School$gradingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Grading
+   */
+  select?: Prisma.GradingSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Grading
+   */
+  omit?: Prisma.GradingOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.GradingInclude<ExtArgs> | null
+  where?: Prisma.GradingWhereInput
+  orderBy?: Prisma.GradingOrderByWithRelationInput | Prisma.GradingOrderByWithRelationInput[]
+  cursor?: Prisma.GradingWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.GradingScalarFieldEnum | Prisma.GradingScalarFieldEnum[]
+}
+
+/**
+ * School.leads
+ */
+export type School$leadsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Lead
+   */
+  select?: Prisma.LeadSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Lead
+   */
+  omit?: Prisma.LeadOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LeadInclude<ExtArgs> | null
+  where?: Prisma.LeadWhereInput
+  orderBy?: Prisma.LeadOrderByWithRelationInput | Prisma.LeadOrderByWithRelationInput[]
+  cursor?: Prisma.LeadWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.LeadScalarFieldEnum | Prisma.LeadScalarFieldEnum[]
+}
+
+/**
+ * School.waivers
+ */
+export type School$waiversArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Waiver
+   */
+  select?: Prisma.WaiverSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Waiver
+   */
+  omit?: Prisma.WaiverOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WaiverInclude<ExtArgs> | null
+  where?: Prisma.WaiverWhereInput
+  orderBy?: Prisma.WaiverOrderByWithRelationInput | Prisma.WaiverOrderByWithRelationInput[]
+  cursor?: Prisma.WaiverWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.WaiverScalarFieldEnum | Prisma.WaiverScalarFieldEnum[]
+}
+
+/**
+ * School.transactions
+ */
+export type School$transactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Transaction
+   */
+  select?: Prisma.TransactionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Transaction
+   */
+  omit?: Prisma.TransactionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TransactionInclude<ExtArgs> | null
+  where?: Prisma.TransactionWhereInput
+  orderBy?: Prisma.TransactionOrderByWithRelationInput | Prisma.TransactionOrderByWithRelationInput[]
+  cursor?: Prisma.TransactionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TransactionScalarFieldEnum | Prisma.TransactionScalarFieldEnum[]
+}
+
+/**
+ * School.invitation
+ */
+export type School$invitationArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SchoolInvitation
+   */
+  select?: Prisma.SchoolInvitationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SchoolInvitation
+   */
+  omit?: Prisma.SchoolInvitationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SchoolInvitationInclude<ExtArgs> | null
+  where?: Prisma.SchoolInvitationWhereInput
 }
 
 /**

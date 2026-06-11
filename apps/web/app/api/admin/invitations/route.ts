@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { sendInviteEmail } from '@/lib/email/sendInvite'
 
 // GET /api/admin/invitations — list all invitations
 export async function GET() {
@@ -46,8 +47,22 @@ export async function POST(req: NextRequest) {
     },
   })
 
-  // TODO: send invite email via Resend/SendGrid
-  // await sendInviteEmail(invitation)
+  // Send invitation email (non-blocking — don't fail the API if email fails)
+  const emailResult = await sendInviteEmail({
+    invitationId: invitation.id,
+    schoolName: invitation.name,
+    recipientEmail: invitation.email,
+    city: invitation.city,
+  })
 
-  return NextResponse.json(invitation, { status: 201 })
+  if (!emailResult.success) {
+    // Log but still return success — invitation is saved in DB
+    console.warn('[POST /api/admin/invitations] Email failed:', emailResult.error)
+    return NextResponse.json(
+      { ...invitation, emailSent: false, emailError: emailResult.error },
+      { status: 201 }
+    )
+  }
+
+  return NextResponse.json({ ...invitation, emailSent: true }, { status: 201 })
 }

@@ -20,8 +20,18 @@ export type SchoolMemberModel = runtime.Types.Result.DefaultSelection<Prisma.$Sc
 
 export type AggregateSchoolMember = {
   _count: SchoolMemberCountAggregateOutputType | null
+  _avg: SchoolMemberAvgAggregateOutputType | null
+  _sum: SchoolMemberSumAggregateOutputType | null
   _min: SchoolMemberMinAggregateOutputType | null
   _max: SchoolMemberMaxAggregateOutputType | null
+}
+
+export type SchoolMemberAvgAggregateOutputType = {
+  beltDegree: number | null
+}
+
+export type SchoolMemberSumAggregateOutputType = {
+  beltDegree: number | null
 }
 
 export type SchoolMemberMinAggregateOutputType = {
@@ -31,6 +41,11 @@ export type SchoolMemberMinAggregateOutputType = {
   role: $Enums.SchoolMemberRole | null
   status: $Enums.SchoolMemberStatus | null
   joinedAt: Date | null
+  belt: string | null
+  beltDegree: number | null
+  beltDate: Date | null
+  emergencyContact: string | null
+  medicalNotes: string | null
   notes: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -43,6 +58,11 @@ export type SchoolMemberMaxAggregateOutputType = {
   role: $Enums.SchoolMemberRole | null
   status: $Enums.SchoolMemberStatus | null
   joinedAt: Date | null
+  belt: string | null
+  beltDegree: number | null
+  beltDate: Date | null
+  emergencyContact: string | null
+  medicalNotes: string | null
   notes: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -55,12 +75,25 @@ export type SchoolMemberCountAggregateOutputType = {
   role: number
   status: number
   joinedAt: number
+  belt: number
+  beltDegree: number
+  beltDate: number
+  emergencyContact: number
+  medicalNotes: number
   notes: number
   createdAt: number
   updatedAt: number
   _all: number
 }
 
+
+export type SchoolMemberAvgAggregateInputType = {
+  beltDegree?: true
+}
+
+export type SchoolMemberSumAggregateInputType = {
+  beltDegree?: true
+}
 
 export type SchoolMemberMinAggregateInputType = {
   id?: true
@@ -69,6 +102,11 @@ export type SchoolMemberMinAggregateInputType = {
   role?: true
   status?: true
   joinedAt?: true
+  belt?: true
+  beltDegree?: true
+  beltDate?: true
+  emergencyContact?: true
+  medicalNotes?: true
   notes?: true
   createdAt?: true
   updatedAt?: true
@@ -81,6 +119,11 @@ export type SchoolMemberMaxAggregateInputType = {
   role?: true
   status?: true
   joinedAt?: true
+  belt?: true
+  beltDegree?: true
+  beltDate?: true
+  emergencyContact?: true
+  medicalNotes?: true
   notes?: true
   createdAt?: true
   updatedAt?: true
@@ -93,6 +136,11 @@ export type SchoolMemberCountAggregateInputType = {
   role?: true
   status?: true
   joinedAt?: true
+  belt?: true
+  beltDegree?: true
+  beltDate?: true
+  emergencyContact?: true
+  medicalNotes?: true
   notes?: true
   createdAt?: true
   updatedAt?: true
@@ -137,6 +185,18 @@ export type SchoolMemberAggregateArgs<ExtArgs extends runtime.Types.Extensions.I
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: SchoolMemberAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: SchoolMemberSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: SchoolMemberMinAggregateInputType
@@ -167,6 +227,8 @@ export type SchoolMemberGroupByArgs<ExtArgs extends runtime.Types.Extensions.Int
   take?: number
   skip?: number
   _count?: SchoolMemberCountAggregateInputType | true
+  _avg?: SchoolMemberAvgAggregateInputType
+  _sum?: SchoolMemberSumAggregateInputType
   _min?: SchoolMemberMinAggregateInputType
   _max?: SchoolMemberMaxAggregateInputType
 }
@@ -178,10 +240,17 @@ export type SchoolMemberGroupByOutputType = {
   role: $Enums.SchoolMemberRole
   status: $Enums.SchoolMemberStatus
   joinedAt: Date | null
+  belt: string | null
+  beltDegree: number | null
+  beltDate: Date | null
+  emergencyContact: string | null
+  medicalNotes: string | null
   notes: string | null
   createdAt: Date
   updatedAt: Date
   _count: SchoolMemberCountAggregateOutputType | null
+  _avg: SchoolMemberAvgAggregateOutputType | null
+  _sum: SchoolMemberSumAggregateOutputType | null
   _min: SchoolMemberMinAggregateOutputType | null
   _max: SchoolMemberMaxAggregateOutputType | null
 }
@@ -211,6 +280,11 @@ export type SchoolMemberWhereInput = {
   role?: Prisma.EnumSchoolMemberRoleFilter<"SchoolMember"> | $Enums.SchoolMemberRole
   status?: Prisma.EnumSchoolMemberStatusFilter<"SchoolMember"> | $Enums.SchoolMemberStatus
   joinedAt?: Prisma.DateTimeNullableFilter<"SchoolMember"> | Date | string | null
+  belt?: Prisma.StringNullableFilter<"SchoolMember"> | string | null
+  beltDegree?: Prisma.IntNullableFilter<"SchoolMember"> | number | null
+  beltDate?: Prisma.DateTimeNullableFilter<"SchoolMember"> | Date | string | null
+  emergencyContact?: Prisma.StringNullableFilter<"SchoolMember"> | string | null
+  medicalNotes?: Prisma.StringNullableFilter<"SchoolMember"> | string | null
   notes?: Prisma.StringNullableFilter<"SchoolMember"> | string | null
   createdAt?: Prisma.DateTimeFilter<"SchoolMember"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SchoolMember"> | Date | string
@@ -225,6 +299,11 @@ export type SchoolMemberOrderByWithRelationInput = {
   role?: Prisma.SortOrder
   status?: Prisma.SortOrder
   joinedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  belt?: Prisma.SortOrderInput | Prisma.SortOrder
+  beltDegree?: Prisma.SortOrderInput | Prisma.SortOrder
+  beltDate?: Prisma.SortOrderInput | Prisma.SortOrder
+  emergencyContact?: Prisma.SortOrderInput | Prisma.SortOrder
+  medicalNotes?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -243,6 +322,11 @@ export type SchoolMemberWhereUniqueInput = Prisma.AtLeast<{
   role?: Prisma.EnumSchoolMemberRoleFilter<"SchoolMember"> | $Enums.SchoolMemberRole
   status?: Prisma.EnumSchoolMemberStatusFilter<"SchoolMember"> | $Enums.SchoolMemberStatus
   joinedAt?: Prisma.DateTimeNullableFilter<"SchoolMember"> | Date | string | null
+  belt?: Prisma.StringNullableFilter<"SchoolMember"> | string | null
+  beltDegree?: Prisma.IntNullableFilter<"SchoolMember"> | number | null
+  beltDate?: Prisma.DateTimeNullableFilter<"SchoolMember"> | Date | string | null
+  emergencyContact?: Prisma.StringNullableFilter<"SchoolMember"> | string | null
+  medicalNotes?: Prisma.StringNullableFilter<"SchoolMember"> | string | null
   notes?: Prisma.StringNullableFilter<"SchoolMember"> | string | null
   createdAt?: Prisma.DateTimeFilter<"SchoolMember"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SchoolMember"> | Date | string
@@ -257,12 +341,19 @@ export type SchoolMemberOrderByWithAggregationInput = {
   role?: Prisma.SortOrder
   status?: Prisma.SortOrder
   joinedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  belt?: Prisma.SortOrderInput | Prisma.SortOrder
+  beltDegree?: Prisma.SortOrderInput | Prisma.SortOrder
+  beltDate?: Prisma.SortOrderInput | Prisma.SortOrder
+  emergencyContact?: Prisma.SortOrderInput | Prisma.SortOrder
+  medicalNotes?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.SchoolMemberCountOrderByAggregateInput
+  _avg?: Prisma.SchoolMemberAvgOrderByAggregateInput
   _max?: Prisma.SchoolMemberMaxOrderByAggregateInput
   _min?: Prisma.SchoolMemberMinOrderByAggregateInput
+  _sum?: Prisma.SchoolMemberSumOrderByAggregateInput
 }
 
 export type SchoolMemberScalarWhereWithAggregatesInput = {
@@ -275,6 +366,11 @@ export type SchoolMemberScalarWhereWithAggregatesInput = {
   role?: Prisma.EnumSchoolMemberRoleWithAggregatesFilter<"SchoolMember"> | $Enums.SchoolMemberRole
   status?: Prisma.EnumSchoolMemberStatusWithAggregatesFilter<"SchoolMember"> | $Enums.SchoolMemberStatus
   joinedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"SchoolMember"> | Date | string | null
+  belt?: Prisma.StringNullableWithAggregatesFilter<"SchoolMember"> | string | null
+  beltDegree?: Prisma.IntNullableWithAggregatesFilter<"SchoolMember"> | number | null
+  beltDate?: Prisma.DateTimeNullableWithAggregatesFilter<"SchoolMember"> | Date | string | null
+  emergencyContact?: Prisma.StringNullableWithAggregatesFilter<"SchoolMember"> | string | null
+  medicalNotes?: Prisma.StringNullableWithAggregatesFilter<"SchoolMember"> | string | null
   notes?: Prisma.StringNullableWithAggregatesFilter<"SchoolMember"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"SchoolMember"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"SchoolMember"> | Date | string
@@ -285,6 +381,11 @@ export type SchoolMemberCreateInput = {
   role?: $Enums.SchoolMemberRole
   status?: $Enums.SchoolMemberStatus
   joinedAt?: Date | string | null
+  belt?: string | null
+  beltDegree?: number | null
+  beltDate?: Date | string | null
+  emergencyContact?: string | null
+  medicalNotes?: string | null
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -299,6 +400,11 @@ export type SchoolMemberUncheckedCreateInput = {
   role?: $Enums.SchoolMemberRole
   status?: $Enums.SchoolMemberStatus
   joinedAt?: Date | string | null
+  belt?: string | null
+  beltDegree?: number | null
+  beltDate?: Date | string | null
+  emergencyContact?: string | null
+  medicalNotes?: string | null
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -309,6 +415,11 @@ export type SchoolMemberUpdateInput = {
   role?: Prisma.EnumSchoolMemberRoleFieldUpdateOperationsInput | $Enums.SchoolMemberRole
   status?: Prisma.EnumSchoolMemberStatusFieldUpdateOperationsInput | $Enums.SchoolMemberStatus
   joinedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  belt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  beltDegree?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  beltDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emergencyContact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  medicalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -323,6 +434,11 @@ export type SchoolMemberUncheckedUpdateInput = {
   role?: Prisma.EnumSchoolMemberRoleFieldUpdateOperationsInput | $Enums.SchoolMemberRole
   status?: Prisma.EnumSchoolMemberStatusFieldUpdateOperationsInput | $Enums.SchoolMemberStatus
   joinedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  belt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  beltDegree?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  beltDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emergencyContact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  medicalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -335,6 +451,11 @@ export type SchoolMemberCreateManyInput = {
   role?: $Enums.SchoolMemberRole
   status?: $Enums.SchoolMemberStatus
   joinedAt?: Date | string | null
+  belt?: string | null
+  beltDegree?: number | null
+  beltDate?: Date | string | null
+  emergencyContact?: string | null
+  medicalNotes?: string | null
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -345,6 +466,11 @@ export type SchoolMemberUpdateManyMutationInput = {
   role?: Prisma.EnumSchoolMemberRoleFieldUpdateOperationsInput | $Enums.SchoolMemberRole
   status?: Prisma.EnumSchoolMemberStatusFieldUpdateOperationsInput | $Enums.SchoolMemberStatus
   joinedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  belt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  beltDegree?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  beltDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emergencyContact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  medicalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -357,6 +483,11 @@ export type SchoolMemberUncheckedUpdateManyInput = {
   role?: Prisma.EnumSchoolMemberRoleFieldUpdateOperationsInput | $Enums.SchoolMemberRole
   status?: Prisma.EnumSchoolMemberStatusFieldUpdateOperationsInput | $Enums.SchoolMemberStatus
   joinedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  belt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  beltDegree?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  beltDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emergencyContact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  medicalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -384,9 +515,18 @@ export type SchoolMemberCountOrderByAggregateInput = {
   role?: Prisma.SortOrder
   status?: Prisma.SortOrder
   joinedAt?: Prisma.SortOrder
+  belt?: Prisma.SortOrder
+  beltDegree?: Prisma.SortOrder
+  beltDate?: Prisma.SortOrder
+  emergencyContact?: Prisma.SortOrder
+  medicalNotes?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type SchoolMemberAvgOrderByAggregateInput = {
+  beltDegree?: Prisma.SortOrder
 }
 
 export type SchoolMemberMaxOrderByAggregateInput = {
@@ -396,6 +536,11 @@ export type SchoolMemberMaxOrderByAggregateInput = {
   role?: Prisma.SortOrder
   status?: Prisma.SortOrder
   joinedAt?: Prisma.SortOrder
+  belt?: Prisma.SortOrder
+  beltDegree?: Prisma.SortOrder
+  beltDate?: Prisma.SortOrder
+  emergencyContact?: Prisma.SortOrder
+  medicalNotes?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -408,9 +553,18 @@ export type SchoolMemberMinOrderByAggregateInput = {
   role?: Prisma.SortOrder
   status?: Prisma.SortOrder
   joinedAt?: Prisma.SortOrder
+  belt?: Prisma.SortOrder
+  beltDegree?: Prisma.SortOrder
+  beltDate?: Prisma.SortOrder
+  emergencyContact?: Prisma.SortOrder
+  medicalNotes?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type SchoolMemberSumOrderByAggregateInput = {
+  beltDegree?: Prisma.SortOrder
 }
 
 export type SchoolMemberCreateNestedManyWithoutUserInput = {
@@ -510,6 +664,11 @@ export type SchoolMemberCreateWithoutUserInput = {
   role?: $Enums.SchoolMemberRole
   status?: $Enums.SchoolMemberStatus
   joinedAt?: Date | string | null
+  belt?: string | null
+  beltDegree?: number | null
+  beltDate?: Date | string | null
+  emergencyContact?: string | null
+  medicalNotes?: string | null
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -522,6 +681,11 @@ export type SchoolMemberUncheckedCreateWithoutUserInput = {
   role?: $Enums.SchoolMemberRole
   status?: $Enums.SchoolMemberStatus
   joinedAt?: Date | string | null
+  belt?: string | null
+  beltDegree?: number | null
+  beltDate?: Date | string | null
+  emergencyContact?: string | null
+  medicalNotes?: string | null
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -563,6 +727,11 @@ export type SchoolMemberScalarWhereInput = {
   role?: Prisma.EnumSchoolMemberRoleFilter<"SchoolMember"> | $Enums.SchoolMemberRole
   status?: Prisma.EnumSchoolMemberStatusFilter<"SchoolMember"> | $Enums.SchoolMemberStatus
   joinedAt?: Prisma.DateTimeNullableFilter<"SchoolMember"> | Date | string | null
+  belt?: Prisma.StringNullableFilter<"SchoolMember"> | string | null
+  beltDegree?: Prisma.IntNullableFilter<"SchoolMember"> | number | null
+  beltDate?: Prisma.DateTimeNullableFilter<"SchoolMember"> | Date | string | null
+  emergencyContact?: Prisma.StringNullableFilter<"SchoolMember"> | string | null
+  medicalNotes?: Prisma.StringNullableFilter<"SchoolMember"> | string | null
   notes?: Prisma.StringNullableFilter<"SchoolMember"> | string | null
   createdAt?: Prisma.DateTimeFilter<"SchoolMember"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SchoolMember"> | Date | string
@@ -573,6 +742,11 @@ export type SchoolMemberCreateWithoutSchoolInput = {
   role?: $Enums.SchoolMemberRole
   status?: $Enums.SchoolMemberStatus
   joinedAt?: Date | string | null
+  belt?: string | null
+  beltDegree?: number | null
+  beltDate?: Date | string | null
+  emergencyContact?: string | null
+  medicalNotes?: string | null
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -585,6 +759,11 @@ export type SchoolMemberUncheckedCreateWithoutSchoolInput = {
   role?: $Enums.SchoolMemberRole
   status?: $Enums.SchoolMemberStatus
   joinedAt?: Date | string | null
+  belt?: string | null
+  beltDegree?: number | null
+  beltDate?: Date | string | null
+  emergencyContact?: string | null
+  medicalNotes?: string | null
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -622,6 +801,11 @@ export type SchoolMemberCreateManyUserInput = {
   role?: $Enums.SchoolMemberRole
   status?: $Enums.SchoolMemberStatus
   joinedAt?: Date | string | null
+  belt?: string | null
+  beltDegree?: number | null
+  beltDate?: Date | string | null
+  emergencyContact?: string | null
+  medicalNotes?: string | null
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -632,6 +816,11 @@ export type SchoolMemberUpdateWithoutUserInput = {
   role?: Prisma.EnumSchoolMemberRoleFieldUpdateOperationsInput | $Enums.SchoolMemberRole
   status?: Prisma.EnumSchoolMemberStatusFieldUpdateOperationsInput | $Enums.SchoolMemberStatus
   joinedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  belt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  beltDegree?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  beltDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emergencyContact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  medicalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -644,6 +833,11 @@ export type SchoolMemberUncheckedUpdateWithoutUserInput = {
   role?: Prisma.EnumSchoolMemberRoleFieldUpdateOperationsInput | $Enums.SchoolMemberRole
   status?: Prisma.EnumSchoolMemberStatusFieldUpdateOperationsInput | $Enums.SchoolMemberStatus
   joinedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  belt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  beltDegree?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  beltDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emergencyContact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  medicalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -655,6 +849,11 @@ export type SchoolMemberUncheckedUpdateManyWithoutUserInput = {
   role?: Prisma.EnumSchoolMemberRoleFieldUpdateOperationsInput | $Enums.SchoolMemberRole
   status?: Prisma.EnumSchoolMemberStatusFieldUpdateOperationsInput | $Enums.SchoolMemberStatus
   joinedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  belt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  beltDegree?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  beltDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emergencyContact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  medicalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -666,6 +865,11 @@ export type SchoolMemberCreateManySchoolInput = {
   role?: $Enums.SchoolMemberRole
   status?: $Enums.SchoolMemberStatus
   joinedAt?: Date | string | null
+  belt?: string | null
+  beltDegree?: number | null
+  beltDate?: Date | string | null
+  emergencyContact?: string | null
+  medicalNotes?: string | null
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -676,6 +880,11 @@ export type SchoolMemberUpdateWithoutSchoolInput = {
   role?: Prisma.EnumSchoolMemberRoleFieldUpdateOperationsInput | $Enums.SchoolMemberRole
   status?: Prisma.EnumSchoolMemberStatusFieldUpdateOperationsInput | $Enums.SchoolMemberStatus
   joinedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  belt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  beltDegree?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  beltDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emergencyContact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  medicalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -688,6 +897,11 @@ export type SchoolMemberUncheckedUpdateWithoutSchoolInput = {
   role?: Prisma.EnumSchoolMemberRoleFieldUpdateOperationsInput | $Enums.SchoolMemberRole
   status?: Prisma.EnumSchoolMemberStatusFieldUpdateOperationsInput | $Enums.SchoolMemberStatus
   joinedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  belt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  beltDegree?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  beltDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emergencyContact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  medicalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -699,6 +913,11 @@ export type SchoolMemberUncheckedUpdateManyWithoutSchoolInput = {
   role?: Prisma.EnumSchoolMemberRoleFieldUpdateOperationsInput | $Enums.SchoolMemberRole
   status?: Prisma.EnumSchoolMemberStatusFieldUpdateOperationsInput | $Enums.SchoolMemberStatus
   joinedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  belt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  beltDegree?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  beltDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emergencyContact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  medicalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -713,6 +932,11 @@ export type SchoolMemberSelect<ExtArgs extends runtime.Types.Extensions.Internal
   role?: boolean
   status?: boolean
   joinedAt?: boolean
+  belt?: boolean
+  beltDegree?: boolean
+  beltDate?: boolean
+  emergencyContact?: boolean
+  medicalNotes?: boolean
   notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -727,6 +951,11 @@ export type SchoolMemberSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   role?: boolean
   status?: boolean
   joinedAt?: boolean
+  belt?: boolean
+  beltDegree?: boolean
+  beltDate?: boolean
+  emergencyContact?: boolean
+  medicalNotes?: boolean
   notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -741,6 +970,11 @@ export type SchoolMemberSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   role?: boolean
   status?: boolean
   joinedAt?: boolean
+  belt?: boolean
+  beltDegree?: boolean
+  beltDate?: boolean
+  emergencyContact?: boolean
+  medicalNotes?: boolean
   notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -755,12 +989,17 @@ export type SchoolMemberSelectScalar = {
   role?: boolean
   status?: boolean
   joinedAt?: boolean
+  belt?: boolean
+  beltDegree?: boolean
+  beltDate?: boolean
+  emergencyContact?: boolean
+  medicalNotes?: boolean
   notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type SchoolMemberOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "userId" | "role" | "status" | "joinedAt" | "notes" | "createdAt" | "updatedAt", ExtArgs["result"]["schoolMember"]>
+export type SchoolMemberOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "userId" | "role" | "status" | "joinedAt" | "belt" | "beltDegree" | "beltDate" | "emergencyContact" | "medicalNotes" | "notes" | "createdAt" | "updatedAt", ExtArgs["result"]["schoolMember"]>
 export type SchoolMemberInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -787,6 +1026,11 @@ export type $SchoolMemberPayload<ExtArgs extends runtime.Types.Extensions.Intern
     role: $Enums.SchoolMemberRole
     status: $Enums.SchoolMemberStatus
     joinedAt: Date | null
+    belt: string | null
+    beltDegree: number | null
+    beltDate: Date | null
+    emergencyContact: string | null
+    medicalNotes: string | null
     notes: string | null
     createdAt: Date
     updatedAt: Date
@@ -1221,6 +1465,11 @@ export interface SchoolMemberFieldRefs {
   readonly role: Prisma.FieldRef<"SchoolMember", 'SchoolMemberRole'>
   readonly status: Prisma.FieldRef<"SchoolMember", 'SchoolMemberStatus'>
   readonly joinedAt: Prisma.FieldRef<"SchoolMember", 'DateTime'>
+  readonly belt: Prisma.FieldRef<"SchoolMember", 'String'>
+  readonly beltDegree: Prisma.FieldRef<"SchoolMember", 'Int'>
+  readonly beltDate: Prisma.FieldRef<"SchoolMember", 'DateTime'>
+  readonly emergencyContact: Prisma.FieldRef<"SchoolMember", 'String'>
+  readonly medicalNotes: Prisma.FieldRef<"SchoolMember", 'String'>
   readonly notes: Prisma.FieldRef<"SchoolMember", 'String'>
   readonly createdAt: Prisma.FieldRef<"SchoolMember", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"SchoolMember", 'DateTime'>

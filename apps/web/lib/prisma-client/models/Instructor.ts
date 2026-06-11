@@ -290,6 +290,7 @@ export type InstructorWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Instructor"> | Date | string
   school?: Prisma.XOR<Prisma.SchoolScalarRelationFilter, Prisma.SchoolWhereInput>
   classes?: Prisma.ClassListRelationFilter
+  events?: Prisma.EventListRelationFilter
 }
 
 export type InstructorOrderByWithRelationInput = {
@@ -309,6 +310,7 @@ export type InstructorOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   school?: Prisma.SchoolOrderByWithRelationInput
   classes?: Prisma.ClassOrderByRelationAggregateInput
+  events?: Prisma.EventOrderByRelationAggregateInput
 }
 
 export type InstructorWhereUniqueInput = Prisma.AtLeast<{
@@ -331,6 +333,7 @@ export type InstructorWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Instructor"> | Date | string
   school?: Prisma.XOR<Prisma.SchoolScalarRelationFilter, Prisma.SchoolWhereInput>
   classes?: Prisma.ClassListRelationFilter
+  events?: Prisma.EventListRelationFilter
 }, "id" | "userId">
 
 export type InstructorOrderByWithAggregationInput = {
@@ -391,6 +394,7 @@ export type InstructorCreateInput = {
   updatedAt?: Date | string
   school: Prisma.SchoolCreateNestedOneWithoutInstructorsInput
   classes?: Prisma.ClassCreateNestedManyWithoutInstructorInput
+  events?: Prisma.EventCreateNestedManyWithoutInstructorInput
 }
 
 export type InstructorUncheckedCreateInput = {
@@ -409,6 +413,7 @@ export type InstructorUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutInstructorInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutInstructorInput
 }
 
 export type InstructorUpdateInput = {
@@ -427,6 +432,7 @@ export type InstructorUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneRequiredWithoutInstructorsNestedInput
   classes?: Prisma.ClassUpdateManyWithoutInstructorNestedInput
+  events?: Prisma.EventUpdateManyWithoutInstructorNestedInput
 }
 
 export type InstructorUncheckedUpdateInput = {
@@ -445,6 +451,7 @@ export type InstructorUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classes?: Prisma.ClassUncheckedUpdateManyWithoutInstructorNestedInput
+  events?: Prisma.EventUncheckedUpdateManyWithoutInstructorNestedInput
 }
 
 export type InstructorCreateManyInput = {
@@ -613,14 +620,6 @@ export type InstructorUncheckedUpdateManyWithoutSchoolNestedInput = {
   deleteMany?: Prisma.InstructorScalarWhereInput | Prisma.InstructorScalarWhereInput[]
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type InstructorCreateNestedOneWithoutClassesInput = {
   create?: Prisma.XOR<Prisma.InstructorCreateWithoutClassesInput, Prisma.InstructorUncheckedCreateWithoutClassesInput>
   connectOrCreate?: Prisma.InstructorCreateOrConnectWithoutClassesInput
@@ -635,6 +634,22 @@ export type InstructorUpdateOneWithoutClassesNestedInput = {
   delete?: Prisma.InstructorWhereInput | boolean
   connect?: Prisma.InstructorWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.InstructorUpdateToOneWithWhereWithoutClassesInput, Prisma.InstructorUpdateWithoutClassesInput>, Prisma.InstructorUncheckedUpdateWithoutClassesInput>
+}
+
+export type InstructorCreateNestedOneWithoutEventsInput = {
+  create?: Prisma.XOR<Prisma.InstructorCreateWithoutEventsInput, Prisma.InstructorUncheckedCreateWithoutEventsInput>
+  connectOrCreate?: Prisma.InstructorCreateOrConnectWithoutEventsInput
+  connect?: Prisma.InstructorWhereUniqueInput
+}
+
+export type InstructorUpdateOneWithoutEventsNestedInput = {
+  create?: Prisma.XOR<Prisma.InstructorCreateWithoutEventsInput, Prisma.InstructorUncheckedCreateWithoutEventsInput>
+  connectOrCreate?: Prisma.InstructorCreateOrConnectWithoutEventsInput
+  upsert?: Prisma.InstructorUpsertWithoutEventsInput
+  disconnect?: Prisma.InstructorWhereInput | boolean
+  delete?: Prisma.InstructorWhereInput | boolean
+  connect?: Prisma.InstructorWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.InstructorUpdateToOneWithWhereWithoutEventsInput, Prisma.InstructorUpdateWithoutEventsInput>, Prisma.InstructorUncheckedUpdateWithoutEventsInput>
 }
 
 export type InstructorCreateWithoutSchoolInput = {
@@ -652,6 +667,7 @@ export type InstructorCreateWithoutSchoolInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   classes?: Prisma.ClassCreateNestedManyWithoutInstructorInput
+  events?: Prisma.EventCreateNestedManyWithoutInstructorInput
 }
 
 export type InstructorUncheckedCreateWithoutSchoolInput = {
@@ -669,6 +685,7 @@ export type InstructorUncheckedCreateWithoutSchoolInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutInstructorInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutInstructorInput
 }
 
 export type InstructorCreateOrConnectWithoutSchoolInput = {
@@ -732,6 +749,7 @@ export type InstructorCreateWithoutClassesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   school: Prisma.SchoolCreateNestedOneWithoutInstructorsInput
+  events?: Prisma.EventCreateNestedManyWithoutInstructorInput
 }
 
 export type InstructorUncheckedCreateWithoutClassesInput = {
@@ -749,6 +767,7 @@ export type InstructorUncheckedCreateWithoutClassesInput = {
   sortOrder?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutInstructorInput
 }
 
 export type InstructorCreateOrConnectWithoutClassesInput = {
@@ -782,6 +801,7 @@ export type InstructorUpdateWithoutClassesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneRequiredWithoutInstructorsNestedInput
+  events?: Prisma.EventUpdateManyWithoutInstructorNestedInput
 }
 
 export type InstructorUncheckedUpdateWithoutClassesInput = {
@@ -799,6 +819,95 @@ export type InstructorUncheckedUpdateWithoutClassesInput = {
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  events?: Prisma.EventUncheckedUpdateManyWithoutInstructorNestedInput
+}
+
+export type InstructorCreateWithoutEventsInput = {
+  id?: string
+  userId?: string | null
+  name: string
+  role: string
+  belt?: string | null
+  bio?: string | null
+  photoUrl?: string | null
+  instagram?: string | null
+  isHead?: boolean
+  isActive?: boolean
+  sortOrder?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  school: Prisma.SchoolCreateNestedOneWithoutInstructorsInput
+  classes?: Prisma.ClassCreateNestedManyWithoutInstructorInput
+}
+
+export type InstructorUncheckedCreateWithoutEventsInput = {
+  id?: string
+  schoolId: string
+  userId?: string | null
+  name: string
+  role: string
+  belt?: string | null
+  bio?: string | null
+  photoUrl?: string | null
+  instagram?: string | null
+  isHead?: boolean
+  isActive?: boolean
+  sortOrder?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  classes?: Prisma.ClassUncheckedCreateNestedManyWithoutInstructorInput
+}
+
+export type InstructorCreateOrConnectWithoutEventsInput = {
+  where: Prisma.InstructorWhereUniqueInput
+  create: Prisma.XOR<Prisma.InstructorCreateWithoutEventsInput, Prisma.InstructorUncheckedCreateWithoutEventsInput>
+}
+
+export type InstructorUpsertWithoutEventsInput = {
+  update: Prisma.XOR<Prisma.InstructorUpdateWithoutEventsInput, Prisma.InstructorUncheckedUpdateWithoutEventsInput>
+  create: Prisma.XOR<Prisma.InstructorCreateWithoutEventsInput, Prisma.InstructorUncheckedCreateWithoutEventsInput>
+  where?: Prisma.InstructorWhereInput
+}
+
+export type InstructorUpdateToOneWithWhereWithoutEventsInput = {
+  where?: Prisma.InstructorWhereInput
+  data: Prisma.XOR<Prisma.InstructorUpdateWithoutEventsInput, Prisma.InstructorUncheckedUpdateWithoutEventsInput>
+}
+
+export type InstructorUpdateWithoutEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  belt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isHead?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  school?: Prisma.SchoolUpdateOneRequiredWithoutInstructorsNestedInput
+  classes?: Prisma.ClassUpdateManyWithoutInstructorNestedInput
+}
+
+export type InstructorUncheckedUpdateWithoutEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  schoolId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  belt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isHead?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  classes?: Prisma.ClassUncheckedUpdateManyWithoutInstructorNestedInput
 }
 
 export type InstructorCreateManySchoolInput = {
@@ -832,6 +941,7 @@ export type InstructorUpdateWithoutSchoolInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classes?: Prisma.ClassUpdateManyWithoutInstructorNestedInput
+  events?: Prisma.EventUpdateManyWithoutInstructorNestedInput
 }
 
 export type InstructorUncheckedUpdateWithoutSchoolInput = {
@@ -849,6 +959,7 @@ export type InstructorUncheckedUpdateWithoutSchoolInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classes?: Prisma.ClassUncheckedUpdateManyWithoutInstructorNestedInput
+  events?: Prisma.EventUncheckedUpdateManyWithoutInstructorNestedInput
 }
 
 export type InstructorUncheckedUpdateManyWithoutSchoolInput = {
@@ -874,10 +985,12 @@ export type InstructorUncheckedUpdateManyWithoutSchoolInput = {
 
 export type InstructorCountOutputType = {
   classes: number
+  events: number
 }
 
 export type InstructorCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   classes?: boolean | InstructorCountOutputTypeCountClassesArgs
+  events?: boolean | InstructorCountOutputTypeCountEventsArgs
 }
 
 /**
@@ -895,6 +1008,13 @@ export type InstructorCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.E
  */
 export type InstructorCountOutputTypeCountClassesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.ClassWhereInput
+}
+
+/**
+ * InstructorCountOutputType without action
+ */
+export type InstructorCountOutputTypeCountEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EventWhereInput
 }
 
 
@@ -915,6 +1035,7 @@ export type InstructorSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   updatedAt?: boolean
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   classes?: boolean | Prisma.Instructor$classesArgs<ExtArgs>
+  events?: boolean | Prisma.Instructor$eventsArgs<ExtArgs>
   _count?: boolean | Prisma.InstructorCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["instructor"]>
 
@@ -975,6 +1096,7 @@ export type InstructorOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs
 export type InstructorInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   classes?: boolean | Prisma.Instructor$classesArgs<ExtArgs>
+  events?: boolean | Prisma.Instructor$eventsArgs<ExtArgs>
   _count?: boolean | Prisma.InstructorCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type InstructorIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -989,6 +1111,7 @@ export type $InstructorPayload<ExtArgs extends runtime.Types.Extensions.Internal
   objects: {
     school: Prisma.$SchoolPayload<ExtArgs>
     classes: Prisma.$ClassPayload<ExtArgs>[]
+    events: Prisma.$EventPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1401,6 +1524,7 @@ export interface Prisma__InstructorClient<T, Null = never, ExtArgs extends runti
   readonly [Symbol.toStringTag]: "PrismaPromise"
   school<T extends Prisma.SchoolDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SchoolDefaultArgs<ExtArgs>>): Prisma.Prisma__SchoolClient<runtime.Types.Result.GetResult<Prisma.$SchoolPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   classes<T extends Prisma.Instructor$classesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instructor$classesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  events<T extends Prisma.Instructor$eventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instructor$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1866,6 +1990,30 @@ export type Instructor$classesArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.ClassScalarFieldEnum | Prisma.ClassScalarFieldEnum[]
+}
+
+/**
+ * Instructor.events
+ */
+export type Instructor$eventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Event
+   */
+  select?: Prisma.EventSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Event
+   */
+  omit?: Prisma.EventOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EventInclude<ExtArgs> | null
+  where?: Prisma.EventWhereInput
+  orderBy?: Prisma.EventOrderByWithRelationInput | Prisma.EventOrderByWithRelationInput[]
+  cursor?: Prisma.EventWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EventScalarFieldEnum | Prisma.EventScalarFieldEnum[]
 }
 
 /**

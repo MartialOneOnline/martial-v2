@@ -290,6 +290,7 @@ model User {
   leadNotes        LeadNote[]
   transactions     Transaction[]   @relation("TransactionUser")
   userWaivers      UserWaiver[]
+  sentInvitations  SchoolInvitation[] @relation("InvitedByUser")
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -397,6 +398,7 @@ model School {
   leads           Lead[]
   waivers         Waiver[]
   transactions    Transaction[]
+  invitation      SchoolInvitation?
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -819,6 +821,59 @@ model LeadNote {
   createdAt DateTime @default(now())
 
   @@map("lead_notes")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SCHOOL INVITATION
+// Admin-initiated invite to onboard a new school onto the platform.
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum InvitationStatus {
+  PENDING     // Created, email not yet sent
+  SENT        // Invite email sent
+  OPENED      // Link clicked
+  REGISTERED  // School completed onboarding → School record created
+  DECLINED    // School declined or unsubscribed
+}
+
+enum InvitationSource {
+  MANUAL  // Admin typed name + email
+  IMPORT  // Bulk CSV/Excel import
+}
+
+model SchoolInvitation {
+  id    String @id @default(cuid())
+  token String @unique @default(cuid())
+
+  // Basic info (filled by admin or from import)
+  name       String
+  email      String
+  phone      String?
+  city       String?
+  country    String?
+  activities String?  // "BJJ, Grappling, MMA"
+  website    String?
+  notes      String?
+
+  status InvitationStatus @default(PENDING)
+  source InvitationSource @default(MANUAL)
+
+  // Admin who created the invite
+  invitedById String?
+  invitedBy   User?   @relation("InvitedByUser", fields: [invitedById], references: [id])
+
+  // School created after successful onboarding
+  schoolId String? @unique
+  school   School? @relation(fields: [schoolId], references: [id])
+
+  sentAt       DateTime?
+  openedAt     DateTime?
+  registeredAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("school_invitations")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

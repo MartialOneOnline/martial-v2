@@ -33,7 +33,8 @@ export type SchoolStatus = (typeof SchoolStatus)[keyof typeof SchoolStatus]
 export const SchoolSource = {
   VONSEL: 'VONSEL',
   MANUAL: 'MANUAL',
-  SELF_REGISTERED: 'SELF_REGISTERED'
+  SELF_REGISTERED: 'SELF_REGISTERED',
+  AFFILIATE: 'AFFILIATE'
 } as const
 
 export type SchoolSource = (typeof SchoolSource)[keyof typeof SchoolSource]
@@ -42,7 +43,9 @@ export type SchoolSource = (typeof SchoolSource)[keyof typeof SchoolSource]
 export const PaymentMethod = {
   STRIPE: 'STRIPE',
   CASH: 'CASH',
-  BANK_TRANSFER: 'BANK_TRANSFER'
+  BANK_TRANSFER: 'BANK_TRANSFER',
+  DIRECT_DEBIT: 'DIRECT_DEBIT',
+  OTHER: 'OTHER'
 } as const
 
 export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod]
@@ -51,8 +54,7 @@ export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod]
 export const SchoolMemberRole = {
   OWNER: 'OWNER',
   INSTRUCTOR: 'INSTRUCTOR',
-  STUDENT: 'STUDENT',
-  LEAD: 'LEAD'
+  STUDENT: 'STUDENT'
 } as const
 
 export type SchoolMemberRole = (typeof SchoolMemberRole)[keyof typeof SchoolMemberRole]
@@ -62,6 +64,7 @@ export const SchoolMemberStatus = {
   ACTIVE: 'ACTIVE',
   INACTIVE: 'INACTIVE',
   PENDING: 'PENDING',
+  FROZEN: 'FROZEN',
   ARCHIVED: 'ARCHIVED'
 } as const
 
@@ -81,7 +84,8 @@ export const BookingStatus = {
   PENDING: 'PENDING',
   CONFIRMED: 'CONFIRMED',
   CANCELLED: 'CANCELLED',
-  COMPLETED: 'COMPLETED'
+  COMPLETED: 'COMPLETED',
+  NO_SHOW: 'NO_SHOW'
 } as const
 
 export type BookingStatus = (typeof BookingStatus)[keyof typeof BookingStatus]
@@ -95,3 +99,81 @@ export const MembershipStatus = {
 } as const
 
 export type MembershipStatus = (typeof MembershipStatus)[keyof typeof MembershipStatus]
+
+
+export const LeadStatus = {
+  NEW: 'NEW',
+  CONTACTED: 'CONTACTED',
+  TRIAL_BOOKED: 'TRIAL_BOOKED',
+  CONVERTED: 'CONVERTED',
+  LOST: 'LOST'
+} as const
+
+export type LeadStatus = (typeof LeadStatus)[keyof typeof LeadStatus]
+
+
+export const LeadSource = {
+  WEBSITE: 'WEBSITE',
+  INSTAGRAM: 'INSTAGRAM',
+  FACEBOOK: 'FACEBOOK',
+  WALK_IN: 'WALK_IN',
+  REFERRAL: 'REFERRAL',
+  PHONE: 'PHONE',
+  OTHER: 'OTHER'
+} as const
+
+export type LeadSource = (typeof LeadSource)[keyof typeof LeadSource]
+
+
+export const EventType = {
+  SEMINAR: 'SEMINAR',
+  COMPETITION: 'COMPETITION',
+  OPEN_MAT: 'OPEN_MAT',
+  WORKSHOP: 'WORKSHOP',
+  SOCIAL: 'SOCIAL',
+  CAMP: 'CAMP',
+  OTHER: 'OTHER'
+} as const
+
+export type EventType = (typeof EventType)[keyof typeof EventType]
+
+
+export const TransactionType = {
+  INCOME: 'INCOME',
+  EXPENSE: 'EXPENSE'
+} as const
+
+export type TransactionType = (typeof TransactionType)[keyof typeof TransactionType]
+
+
+export const TransactionCategory = {
+  MEMBERSHIP: 'MEMBERSHIP',
+  CLASS_BOOKING: 'CLASS_BOOKING',
+  PRODUCT_SALE: 'PRODUCT_SALE',
+  SALARY: 'SALARY',
+  RENT: 'RENT',
+  EQUIPMENT: 'EQUIPMENT',
+  MARKETING: 'MARKETING',
+  OTHER: 'OTHER'
+} as const
+
+export type TransactionCategory = (typeof TransactionCategory)[keyof typeof TransactionCategory]
+
+
+export const InvitationStatus = {
+  PENDING: 'PENDING',
+  SENT: 'SENT',
+  OPENED: 'OPENED',
+  REGISTERED: 'REGISTERED',
+  DECLINED: 'DECLINED'
+} as const
+
+export type InvitationStatus = (typeof InvitationStatus)[keyof typeof InvitationStatus]
+
+
+export const InvitationSource = {
+  MANUAL: 'MANUAL',
+  IMPORT: 'IMPORT'
+} as const
+
+export type InvitationSource = (typeof InvitationSource)[keyof typeof InvitationSource]

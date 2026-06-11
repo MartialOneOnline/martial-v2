@@ -31,8 +31,8 @@ export * from "./enums"
  * const prisma = new PrismaClient({
  *   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
  * })
- * // Fetch zero or more Users
- * const users = await prisma.user.findMany()
+ * // Fetch zero or more Affiliations
+ * const affiliations = await prisma.affiliation.findMany()
  * ```
  * 
  * Read more in our [docs](https://pris.ly/d/client).
@@ -41,6 +41,31 @@ export const PrismaClient = $Class.getPrismaClientClass()
 export type PrismaClient<LogOpts extends Prisma.LogLevel = never, OmitOpts extends Prisma.PrismaClientOptions["omit"] = Prisma.PrismaClientOptions["omit"], ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = $Class.PrismaClient<LogOpts, OmitOpts, ExtArgs>
 export { Prisma }
 
+/**
+ * Model Affiliation
+ * 
+ */
+export type Affiliation = Prisma.AffiliationModel
+/**
+ * Model ContentPlatform
+ * 
+ */
+export type ContentPlatform = Prisma.ContentPlatformModel
+/**
+ * Model ContentSeries
+ * 
+ */
+export type ContentSeries = Prisma.ContentSeriesModel
+/**
+ * Model ContentVideo
+ * 
+ */
+export type ContentVideo = Prisma.ContentVideoModel
+/**
+ * Model ContentAccess
+ * 
+ */
+export type ContentAccess = Prisma.ContentAccessModel
 /**
  * Model User
  * 
@@ -82,6 +107,11 @@ export type Review = Prisma.ReviewModel
  */
 export type Class = Prisma.ClassModel
 /**
+ * Model Event
+ * 
+ */
+export type Event = Prisma.EventModel
+/**
  * Model Booking
  * 
  */
@@ -111,6 +141,61 @@ export type SchoolMember = Prisma.SchoolMemberModel
  * 
  */
 export type SchoolClaim = Prisma.SchoolClaimModel
+/**
+ * Model Grading
+ * 
+ */
+export type Grading = Prisma.GradingModel
+/**
+ * Model Lead
+ * 
+ */
+export type Lead = Prisma.LeadModel
+/**
+ * Model LeadNote
+ * 
+ */
+export type LeadNote = Prisma.LeadNoteModel
+/**
+ * Model SchoolInvitation
+ * 
+ */
+export type SchoolInvitation = Prisma.SchoolInvitationModel
+/**
+ * Model Waiver
+ * 
+ */
+export type Waiver = Prisma.WaiverModel
+/**
+ * Model UserWaiver
+ * 
+ */
+export type UserWaiver = Prisma.UserWaiverModel
+/**
+ * Model Transaction
+ * 
+ */
+export type Transaction = Prisma.TransactionModel
+/**
+ * Model ProductCategory
+ * 
+ */
+export type ProductCategory = Prisma.ProductCategoryModel
+/**
+ * Model Product
+ * 
+ */
+export type Product = Prisma.ProductModel
+/**
+ * Model Order
+ * 
+ */
+export type Order = Prisma.OrderModel
+/**
+ * Model OrderItem
+ * 
+ */
+export type OrderItem = Prisma.OrderItemModel
 /**
  * Model Partner
  * 
