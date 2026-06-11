@@ -1,17 +1,18 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
   Bell, Clock, TrendingUp, TrendingDown,
-  ChevronRight, MoreHorizontal,
+  ChevronRight,
   Filter, Download,
-  Star, Sparkles, Send,
+  Sparkles, Send,
   Calendar,
   Menu, UserPlus, QrCode, Pencil,
 } from 'lucide-react'
 import { useDashboard } from '../../components/DashboardShell'
+import { useSchoolContext } from '../../lib/auth/useSchoolContext'
 import NotificationsPopup       from '../../components/popups/NotificationsPopup'
 import InviteUserModal           from '../../components/popups/InviteUserModal'
 import SendModal                 from '../../components/popups/SendModal'
@@ -165,8 +166,29 @@ function AreaChart() {
   )
 }
 
+// ── Real data types ────────────────────────────────────────────────────────────
+type DashStats = {
+  members: { value: number; trend: string | null }
+  activeClasses: { value: number }
+  revenue: { value: number; formatted: string; trend: string | null }
+  bookings: { value: number }
+  activeMembers: { value: number }
+  openLeads: { value: number }
+  gradings: { value: number }
+  classesToday: { value: number }
+}
+
+type TodayClass = {
+  id: string | number; name: string; time: string
+  enrolled: number; cap: number; status: string
+  instructor?: string | null; level?: string | null
+  image?: string
+}
+
 export default function DashboardClient({ userName, userEmail }: Props) {
   const t = useT()
+  const { currentSchool, loading: ctxLoading } = useSchoolContext()
+
   const [period, setPeriod]         = useState<Period>('12 months')
   const [activeDay, setActiveDay]   = useState(() => {
     const todayNum = new Date().getDate()
@@ -174,10 +196,30 @@ export default function DashboardClient({ userName, userEmail }: Props) {
     return idx >= 0 ? idx : 0
   })
   const { menuOpen, setMenuOpen } = useDashboard()
+
+  // Real data
+  const [stats, setStats]           = useState<DashStats | null>(null)
+  const [todayClasses, setTodayClasses] = useState<TodayClass[]>([])
+
+  useEffect(() => {
+    const sid = currentSchool?.schoolId
+    if (!sid) return
+    fetch(`/api/dashboard/stats?schoolId=${sid}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => d && setStats(d))
+    fetch(`/api/dashboard/classes/today?schoolId=${sid}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => d?.classes && setTodayClasses(d.classes))
+  }, [currentSchool?.schoolId])
   const [aiInput, setAiInput]       = useState('')
   const [aiMessages, setAiMessages] = useState<{ role: 'ai' | 'user'; text: string }[]>([
     { role: 'ai', text: t.dashboard.aiGreeting },
   ])
+
+  // Use real classes if loaded, fall back to mock
+  const displayClasses = todayClasses.length > 0
+    ? todayClasses
+    : TODAY_CLASSES
 
   // ── Popup state ────────────────────────────────────────────────────────────
   const [showNotifications, setShowNotifications] = useState(false)
@@ -186,7 +228,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
   const [showQR, setShowQR]                       = useState(false)
   const [showEditSchool, setShowEditSchool]        = useState(false)
   const [showAIMessages, setShowAIMessages]        = useState(false)
-  const [selectedClass, setSelectedClass]         = useState<typeof TODAY_CLASSES[0] | null>(null)
+  const [selectedClass, setSelectedClass]         = useState<TodayClass | null>(null)
   const bellRef                                    = useRef<HTMLDivElement>(null)
 
   const firstName = userName.split(' ')[0] ?? 'there'
@@ -194,10 +236,34 @@ export default function DashboardClient({ userName, userEmail }: Props) {
   const greeting  = hour < 12 ? t.dashboard.goodMorning : hour < 18 ? t.dashboard.goodAfternoon : t.dashboard.goodEvening
 
   const STATS = [
-    { label: t.dashboard.students,      value: '665',    trend: '+14%', trendUp: true,  sub: t.common.vsLastMonth },
-    { label: t.dashboard.activeClasses, value: '67',     trend: '+3',   trendUp: true,  sub: t.common.thisWeek    },
-    { label: t.dashboard.revenue,       value: '€3,586', trend: '+8%',  trendUp: true,  sub: t.common.vsLastMonth },
-    { label: t.dashboard.bookings,      value: '29,466', trend: '+2%',  trendUp: true,  sub: t.common.allTime     },
+    {
+      label: t.dashboard.students,
+      value: stats ? stats.members.value.toLocaleString() : '—',
+      trend: stats?.members.trend ?? null,
+      trendUp: true,
+      sub: t.common.vsLastMonth,
+    },
+    {
+      label: t.dashboard.activeClasses,
+      value: stats ? stats.activeClasses.value.toLocaleString() : '—',
+      trend: null,
+      trendUp: true,
+      sub: t.common.thisWeek,
+    },
+    {
+      label: t.dashboard.revenue,
+      value: stats ? stats.revenue.formatted : '—',
+      trend: stats?.revenue.trend ?? null,
+      trendUp: true,
+      sub: t.common.vsLastMonth,
+    },
+    {
+      label: t.dashboard.bookings,
+      value: stats ? stats.bookings.value.toLocaleString() : '—',
+      trend: null,
+      trendUp: true,
+      sub: t.common.allTime,
+    },
   ]
   const AI_INSIGHTS = [
     { insight: t.dashboard.insight1, action: t.dashboard.action1, openAI: true  },
@@ -302,7 +368,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
               </div>
             </div>
             <div className="pt-10 pb-4 px-4 text-center">
-              <p style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>Roger Gracie Malaga</p>
+              <p style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>{currentSchool?.schoolName ?? 'Academy'}</p>
               <p style={{ fontSize: 12, color: '#9CA3AF' }}>{t.dashboard.jiuJitsuAcademy}</p>
             </div>
             <div className="px-4 pb-4 flex gap-2" style={{ borderTop: '1px solid #F3F4F6', paddingTop: 12 }}>
@@ -408,13 +474,13 @@ export default function DashboardClient({ userName, userEmail }: Props) {
               ))}
             </div>
             <div className="px-4 py-3 space-y-3">
-              {TODAY_CLASSES.slice(0, 5).map((cls, i) => {
+              {displayClasses.slice(0, 5).map((cls, i) => {
                 const pct = cls.enrolled / cls.cap
                 const capacityColor = pct >= 1 ? '#DC2626' : pct > 0.7 ? '#D97706' : '#16A34A'
                 return (
                   <div key={cls.id} className="flex items-center gap-3" style={{ paddingBottom: i < 4 ? 12 : 0, borderBottom: i < 4 ? '1px solid #F9FAFB' : 'none' }}>
                     <div className="shrink-0 rounded-xl overflow-hidden relative" style={{ width: 52, height: 52 }}>
-                      <Image src={cls.image} alt={cls.name} fill className="object-cover" />
+                      <Image src={cls.image ?? '/martial-logo.png'} alt={cls.name} fill className="object-cover" />
                     </div>
                     {/* Name + time */}
                     <div className="flex-1 min-w-0 pl-1">
@@ -570,7 +636,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
             </div>
           </div>
           <div className="pt-10 pb-3 px-4 text-center">
-            <p style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>Roger Gracie Malaga</p>
+            <p style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{currentSchool?.schoolName ?? 'Academy'}</p>
             <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{t.dashboard.jiuJitsuAcademy}</p>
           </div>
           <div className="px-4 pb-4 flex gap-2" style={{ borderTop: '1px solid #F3F4F6', paddingTop: 12 }}>
@@ -652,14 +718,14 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           </div>
           {/* Class list — fills all remaining space in the card */}
           <div className="px-4 py-3 space-y-3 overflow-y-auto" style={{ flex: 1, scrollbarWidth: 'none' }}>
-            {TODAY_CLASSES.map((cls, i) => {
+            {displayClasses.map((cls, i) => {
               const pct = cls.enrolled / cls.cap
               const capacityColor = pct >= 1 ? '#DC2626' : pct > 0.7 ? '#D97706' : '#16A34A'
               return (
                 <div key={cls.id} className="flex items-center gap-3"
-                  style={{ paddingBottom: i < TODAY_CLASSES.length - 1 ? 12 : 0, borderBottom: i < TODAY_CLASSES.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
+                  style={{ paddingBottom: i < displayClasses.length - 1 ? 12 : 0, borderBottom: i < displayClasses.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
                   <div className="shrink-0 rounded-xl overflow-hidden relative" style={{ width: 44, height: 44 }}>
-                    <Image src={cls.image} alt={cls.name} fill className="object-cover" />
+                    <Image src={cls.image ?? '/martial-logo.png'} alt={cls.name} fill className="object-cover" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
@@ -688,12 +754,12 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           </div>
           <div className="grid grid-cols-3" style={{ gap: 1, background: '#F3F4F6' }}>
             {[
-              { label: t.dashboard.avgAttendance, value: '78%', color: '#0071E3' },
-              { label: t.dashboard.openLeads,     value: '4',   color: '#D97706' },
-              { label: t.dashboard.gradings,      value: '167', color: '#16A34A' },
-              { label: t.dashboard.notifications, value: '35',  color: '#DC2626' },
-              { label: t.dashboard.activeMembers, value: '421', color: '#6366F1' },
-              { label: t.dashboard.classesToday,  value: '12',  color: '#0071E3' },
+              { label: t.dashboard.avgAttendance, value: '—',   color: '#0071E3' },
+              { label: t.dashboard.openLeads,     value: stats ? String(stats.openLeads.value)    : '—', color: '#D97706' },
+              { label: t.dashboard.gradings,      value: stats ? String(stats.gradings.value)     : '—', color: '#16A34A' },
+              { label: t.dashboard.notifications, value: '—',   color: '#DC2626' },
+              { label: t.dashboard.activeMembers, value: stats ? String(stats.activeMembers.value): '—', color: '#6366F1' },
+              { label: t.dashboard.classesToday,  value: stats ? String(stats.classesToday.value) : '—', color: '#0071E3' },
             ].map(s => (
               <div key={s.label} className="flex flex-col gap-1 px-2 py-2.5" style={{ background: '#fff' }}>
                 <p style={{ fontSize: 9, color: '#9CA3AF', lineHeight: 1.2 }}>{s.label}</p>

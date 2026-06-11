@@ -13,9 +13,9 @@ interface Student {
 
 interface ClassInfo {
   name: string
-  image: string
+  image?: string
   time: string
-  instructor?: string
+  instructor?: string | null
   enrolled: number
   cap: number
   location?: string
@@ -66,7 +66,7 @@ export default function ClassCapacityPopup({ cls, students = DEFAULT_STUDENTS, o
 
         {/* Class image header */}
         <div className="relative h-24 overflow-hidden">
-          <Image src={cls.image} alt={cls.name} fill className="object-cover" />
+          <Image src={cls.image ?? '/martial-logo.png'} alt={cls.name} fill className="object-cover" />
           <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.45)' }} />
           <div className="absolute inset-0 flex items-center justify-between px-4">
             <div>

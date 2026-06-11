@@ -1,4 +1,4 @@
-import type { SchoolMemberRole } from '../prisma-client'
+import type { SchoolMemberRole } from '../prisma-client/enums'
 
 export type Permission =
   | 'school.profile.view'

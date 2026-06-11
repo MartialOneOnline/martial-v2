@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db'
 import { getPermissions, type Permission } from './permissions'
-import type { SchoolMemberRole } from '../prisma-client'
+import type { SchoolMemberRole } from '../prisma-client/enums'
 
 export type SchoolContext = {
   schoolId: string
