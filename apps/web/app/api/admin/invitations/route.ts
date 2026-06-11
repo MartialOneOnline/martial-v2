@@ -2,16 +2,58 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { sendInviteEmail } from '@/lib/email/sendInvite'
 
-// GET /api/admin/invitations — list all invitations
-export async function GET() {
-  const invitations = await prisma.schoolInvitation.findMany({
-    orderBy: { createdAt: 'desc' },
-    include: {
-      invitedBy: { select: { name: true, email: true } },
-      school: { select: { id: true, slug: true, name: true, status: true } },
-    },
-  })
-  return NextResponse.json(invitations)
+// GET /api/admin/invitations — list invitations with optional search/filter/pagination
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url)
+  const search = searchParams.get('search') || ''
+  const status = searchParams.get('status') || ''
+  const page = parseInt(searchParams.get('page') || '1')
+  const limit = 20
+
+  const where: Record<string, unknown> = {}
+  if (search) {
+    where.OR = [
+      { name: { contains: search, mode: 'insensitive' } },
+      { email: { contains: search, mode: 'insensitive' } },
+    ]
+  }
+  if (status) where.status = status
+
+  const [invitations, total] = await Promise.all([
+    prisma.schoolInvitation.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * limit,
+      take: limit,
+      include: {
+        invitedBy: { select: { name: true, email: true } },
+        school: { select: { id: true, slug: true, name: true, status: true } },
+      },
+    }),
+    prisma.schoolInvitation.count({ where }),
+  ])
+
+  return NextResponse.json({ invitations, total, pages: Math.ceil(total / limit) })
+}
+
+// PATCH /api/admin/invitations — send a pending invite
+export async function PATCH(req: NextRequest) {
+  const { id, action } = await req.json()
+  if (!id || action !== 'send') return NextResponse.json({ error: 'Invalid' }, { status: 400 })
+
+  const invitation = await prisma.schoolInvitation.findUnique({ where: { id } })
+  if (!invitation) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  await prisma.schoolInvitation.update({ where: { id }, data: { status: 'SENT', sentAt: new Date() } })
+
+  await sendInviteEmail({
+    invitationId: invitation.id,
+    schoolName: invitation.name,
+    recipientEmail: invitation.email,
+    city: invitation.city,
+  }).catch(() => {})
+
+  return NextResponse.json({ ok: true })
 }
 
 // POST /api/admin/invitations — create single invite
