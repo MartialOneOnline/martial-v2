@@ -84,10 +84,27 @@ export default function LoginModal({ onClose, onOpenRegister }: LoginModalProps)
     if (!valid) return
 
     setLoading(true)
-    const { error: err } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error: err } = await supabase.auth.signInWithPassword({ email, password })
     setLoading(false)
     if (err) { setError(err.message); return }
     onClose()
+
+    // Check role via API and redirect accordingly
+    try {
+      const res = await fetch('/api/auth/me')
+      const json = await res.json()
+      if (json.role === 'SUPERADMIN') {
+        router.push('/admin')
+        return
+      }
+      if (json.role === 'SCHOOL_OWNER' || json.role === 'INSTRUCTOR') {
+        router.push('/dashboard')
+        return
+      }
+      // STUDENT — zona propia pendiente, por ahora a Explore
+      router.push('/explore')
+      return
+    } catch {}
     router.push('/dashboard')
   }
 
