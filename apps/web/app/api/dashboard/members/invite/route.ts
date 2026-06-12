@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const { email } = await req.json()
+  const { email, name } = await req.json()
   if (!email?.trim()) return NextResponse.json({ error: 'Email is required' }, { status: 400 })
 
   const normalizedEmail = email.trim().toLowerCase()
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
     update: {},
     create: {
       email: normalizedEmail,
-      name: normalizedEmail.split('@')[0],
+      name: name?.trim() || normalizedEmail.split('@')[0],
       role: 'STUDENT',
       ...(inviteData?.user?.id ? { id: inviteData.user.id } : {}),
     },

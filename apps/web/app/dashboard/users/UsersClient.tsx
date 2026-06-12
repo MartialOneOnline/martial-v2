@@ -314,6 +314,7 @@ function AddStudentModal({
 
 // ── Invite tab ─────────────────────────────────────────────────────────────────
 function InviteTab({ onClose, onCreated }: { onClose: () => void; onCreated: (s: Student[]) => void }) {
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -328,7 +329,7 @@ function InviteTab({ onClose, onCreated }: { onClose: () => void; onCreated: (s:
       const res = await fetch('/api/dashboard/members/invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim() }),
+        body: JSON.stringify({ email: email.trim(), name: name.trim() || undefined }),
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error ?? 'Error al enviar la invitación'); return }
@@ -349,7 +350,7 @@ function InviteTab({ onClose, onCreated }: { onClose: () => void; onCreated: (s:
         </div>
         <p style={{ fontSize: 15, fontWeight: 600, color: '#111827', margin: '0 0 6px' }}>¡Invitación enviada!</p>
         <p style={{ fontSize: 13, color: '#6B7280', margin: '0 0 20px' }}>
-          {email} recibirá un email para activar su cuenta.
+          {name ? <><strong>{name}</strong> ({email})</> : email} recibirá un email para activar su cuenta.
         </p>
         <button onClick={onClose} style={{ padding: '9px 24px', background: '#0071E3', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
           Cerrar
@@ -368,10 +369,21 @@ function InviteTab({ onClose, onCreated }: { onClose: () => void; onCreated: (s:
       </div>
 
       <div>
-        <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Email del alumno *</label>
+        <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Nombre</label>
+        <input
+          type="text" value={name} onChange={e => setName(e.target.value)}
+          placeholder="Ej. Juan García" autoFocus
+          style={fieldInput}
+          onFocus={e => (e.target.style.borderColor = '#0071E3')}
+          onBlur={e => (e.target.style.borderColor = '#E5E7EB')}
+        />
+      </div>
+
+      <div>
+        <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Email *</label>
         <input
           type="email" value={email} onChange={e => setEmail(e.target.value)}
-          placeholder="alumno@ejemplo.com" autoFocus
+          placeholder="alumno@ejemplo.com"
           style={fieldInput}
           onFocus={e => (e.target.style.borderColor = '#0071E3')}
           onBlur={e => (e.target.style.borderColor = '#E5E7EB')}
@@ -400,6 +412,7 @@ function InviteTab({ onClose, onCreated }: { onClose: () => void; onCreated: (s:
 // ── Create tab ─────────────────────────────────────────────────────────────────
 function CreateTab({ onClose, onCreated }: { onClose: () => void; onCreated: (s: Student[]) => void }) {
   const [form, setForm] = useState({ name: '', email: '', phone: '', belt: 'Blanco', beltDegree: 0, status: 'ACTIVE' })
+  const [sendInvite, setSendInvite] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -416,6 +429,15 @@ function CreateTab({ onClose, onCreated }: { onClose: () => void; onCreated: (s:
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error ?? 'Error al crear el estudiante'); return }
+
+      if (sendInvite && form.email.trim()) {
+        await fetch('/api/dashboard/members/invite', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: form.email.trim(), name: form.name.trim() }),
+        })
+      }
+
       onCreated([data.member])
       onClose()
     } catch {
@@ -462,6 +484,28 @@ function CreateTab({ onClose, onCreated }: { onClose: () => void; onCreated: (s:
           {STATUSES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
         </select>
       </div>
+      {/* Send invite toggle */}
+      <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '12px 14px', background: sendInvite ? '#F0F9FF' : '#F9FAFB', borderRadius: 10, border: `1px solid ${sendInvite ? '#BFDBFE' : '#E5E7EB'}`, transition: 'all 0.15s' }}>
+        <div
+          onClick={() => setSendInvite(v => !v)}
+          style={{
+            width: 36, height: 20, borderRadius: 999, flexShrink: 0,
+            background: sendInvite ? '#0071E3' : '#D1D5DB',
+            position: 'relative', transition: 'background 0.2s', cursor: 'pointer',
+          }}
+        >
+          <div style={{
+            position: 'absolute', top: 2, left: sendInvite ? 18 : 2,
+            width: 16, height: 16, borderRadius: '50%', background: '#fff',
+            transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+          }} />
+        </div>
+        <div>
+          <p style={{ fontSize: 13, fontWeight: 500, color: '#111827', margin: 0 }}>Enviar invitación por email</p>
+          <p style={{ fontSize: 12, color: '#6B7280', margin: '1px 0 0' }}>El alumno recibirá un enlace para activar su cuenta</p>
+        </div>
+      </label>
+
       {error && (
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '8px 12px', background: '#FEF2F2', borderRadius: 8 }}>
           <AlertCircle size={14} style={{ color: '#DC2626', flexShrink: 0 }} />
@@ -473,7 +517,7 @@ function CreateTab({ onClose, onCreated }: { onClose: () => void; onCreated: (s:
           Cancelar
         </button>
         <button type="submit" disabled={loading} style={{ flex: 2, padding: '10px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', background: loading ? '#93C5FD' : '#0071E3', color: '#fff', cursor: loading ? 'not-allowed' : 'pointer' }}>
-          {loading ? 'Creando...' : 'Crear estudiante'}
+          {loading ? 'Creando...' : sendInvite ? 'Crear y enviar invitación' : 'Crear estudiante'}
         </button>
       </div>
     </form>
