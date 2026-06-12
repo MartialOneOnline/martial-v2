@@ -53,11 +53,27 @@ export default function SetPasswordPage() {
   const [done, setDone] = useState(false)
 
   useEffect(() => {
-    getSupabase().auth.getSession().then(({ data }) => {
-      if (data.session?.user?.email) setEmail(data.session.user.email)
-      if (data.session?.user?.user_metadata?.full_name) setName(String(data.session.user.user_metadata.full_name))
-      else if (data.session?.user?.user_metadata?.name) setName(String(data.session.user.user_metadata.name))
+    const supabase = getSupabase()
+    // onAuthStateChange processes the hash token and fires SIGNED_IN
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user?.email) {
+        setEmail(session.user.email)
+        const meta = session.user.user_metadata
+        if (meta?.full_name) setName(String(meta.full_name))
+        else if (meta?.name) setName(String(meta.name))
+      }
     })
+    // Also check existing session (e.g. Google OAuth return)
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session?.user?.email && !email) {
+        setEmail(data.session.user.email)
+        const meta = data.session.user.user_metadata
+        if (meta?.full_name) setName(String(meta.full_name))
+        else if (meta?.name) setName(String(meta.name))
+      }
+    })
+    return () => subscription.unsubscribe()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const activateMember = async () => {
