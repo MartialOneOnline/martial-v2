@@ -94,6 +94,7 @@ export const SchoolMemberStatus = {
   ACTIVE: 'ACTIVE',
   INACTIVE: 'INACTIVE',
   PENDING: 'PENDING',
+  LEAD: 'LEAD',
   FROZEN: 'FROZEN',
   ARCHIVED: 'ARCHIVED'
 } as const
