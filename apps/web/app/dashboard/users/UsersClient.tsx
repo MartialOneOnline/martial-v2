@@ -7,6 +7,7 @@ import {
   Download, TrendingUp, Clock, Users, X,
   ChevronDown, UserCheck, Archive, Shield,
   Mail, Upload, FileText, CheckCircle, AlertCircle,
+  SlidersHorizontal,
 } from 'lucide-react'
 import { useDashboard } from '../../../components/DashboardShell'
 import DashboardLanguageSelector from '../../../components/DashboardLanguageSelector'
@@ -202,6 +203,184 @@ function ActionsMenu({
             <Archive size={13} />
             Archivar
           </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Filters dropdown ──────────────────────────────────────────────────────────
+const BELT_FILTER_OPTIONS = [
+  { value: 'Blanco', label: 'Blanco', color: '#D1D5DB' },
+  { value: 'Azul',   label: 'Azul',   color: '#2563EB' },
+  { value: 'Morado', label: 'Morado', color: '#7C3AED' },
+  { value: 'Marron', label: 'Marrón', color: '#92400E' },
+  { value: 'Negro',  label: 'Negro',  color: '#111827' },
+]
+
+const STATUS_FILTER_OPTIONS = [
+  { value: 'ACTIVE',   label: 'Active',   color: '#16A34A' },
+  { value: 'INACTIVE', label: 'Inactive', color: '#6B7280' },
+  { value: 'PENDING',  label: 'Pending',  color: '#D97706' },
+  { value: 'LEAD',     label: 'Lead',     color: '#6366F1' },
+  { value: 'ARCHIVED', label: 'Archived', color: '#9CA3AF' },
+]
+
+const ROLE_FILTER_OPTIONS = [
+  { value: 'STUDENT',      label: 'Student'      },
+  { value: 'INSTRUCTOR',   label: 'Instructor'   },
+  { value: 'SCHOOL_OWNER', label: 'Owner'        },
+]
+
+type ActiveFilters = {
+  belts: string[]
+  statuses: string[]
+  roles: string[]
+}
+
+function FiltersDropdown({
+  filters,
+  onChange,
+}: {
+  filters: ActiveFilters
+  onChange: (f: ActiveFilters) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [draft, setDraft] = useState<ActiveFilters>(filters)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    if (open) document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  useEffect(() => { if (open) setDraft(filters) }, [open])
+
+  const toggle = (key: keyof ActiveFilters, value: string) => {
+    setDraft(prev => ({
+      ...prev,
+      [key]: prev[key].includes(value)
+        ? prev[key].filter(v => v !== value)
+        : [...prev[key], value],
+    }))
+  }
+
+  const apply = () => { onChange(draft); setOpen(false) }
+  const clear  = () => { const empty = { belts: [], statuses: [], roles: [] }; setDraft(empty); onChange(empty); setOpen(false) }
+
+  const activeCount = filters.belts.length + filters.statuses.length + filters.roles.length
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button
+        onClick={() => setOpen(v => !v)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 7,
+          padding: '7px 14px', borderRadius: 8, cursor: 'pointer',
+          border: `1px solid ${activeCount > 0 ? '#0071E3' : '#E5E7EB'}`,
+          background: activeCount > 0 ? '#EFF6FF' : '#F9FAFB',
+          fontSize: 13, fontWeight: 500,
+          color: activeCount > 0 ? '#0071E3' : '#374151',
+          transition: 'all 0.15s',
+        }}
+      >
+        <SlidersHorizontal size={13} />
+        Filtrar
+        {activeCount > 0 && (
+          <span style={{
+            background: '#0071E3', color: '#fff', fontSize: 10, fontWeight: 700,
+            borderRadius: 999, width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            {activeCount}
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 50,
+          background: '#fff', border: '1px solid #E5E7EB', borderRadius: 16,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.12)', width: 280, padding: 16,
+        }}>
+
+          {/* Belt section */}
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 10px' }}>
+            Cinturón
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 16 }}>
+            {BELT_FILTER_OPTIONS.map(opt => (
+              <label key={opt.value} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 10px', borderRadius: 8, cursor: 'pointer', background: draft.belts.includes(opt.value) ? '#F0F9FF' : 'transparent', transition: 'background 0.1s' }}>
+                <div style={{
+                  width: 16, height: 16, borderRadius: 4, border: `2px solid ${draft.belts.includes(opt.value) ? '#0071E3' : '#D1D5DB'}`,
+                  background: draft.belts.includes(opt.value) ? '#0071E3' : '#fff',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.1s',
+                  cursor: 'pointer',
+                }} onClick={() => toggle('belts', opt.value)}>
+                  {draft.belts.includes(opt.value) && <CheckCircle size={10} style={{ color: '#fff' }} />}
+                </div>
+                <div style={{ width: 28, height: 8, borderRadius: 999, background: opt.color, flexShrink: 0 }} />
+                <span style={{ fontSize: 13, color: '#374151' }}>{opt.label}</span>
+              </label>
+            ))}
+          </div>
+
+          {/* Status section */}
+          <div style={{ borderTop: '1px solid #F3F4F6', paddingTop: 14, marginBottom: 16 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 10px' }}>
+              Estado
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {STATUS_FILTER_OPTIONS.map(opt => (
+                <label key={opt.value} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 10px', borderRadius: 8, cursor: 'pointer', background: draft.statuses.includes(opt.value) ? '#F0F9FF' : 'transparent', transition: 'background 0.1s' }}>
+                  <div style={{
+                    width: 16, height: 16, borderRadius: 4, border: `2px solid ${draft.statuses.includes(opt.value) ? '#0071E3' : '#D1D5DB'}`,
+                    background: draft.statuses.includes(opt.value) ? '#0071E3' : '#fff',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.1s',
+                    cursor: 'pointer',
+                  }} onClick={() => toggle('statuses', opt.value)}>
+                    {draft.statuses.includes(opt.value) && <CheckCircle size={10} style={{ color: '#fff' }} />}
+                  </div>
+                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: opt.color, flexShrink: 0 }} />
+                  <span style={{ fontSize: 13, color: '#374151' }}>{opt.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Role section */}
+          <div style={{ borderTop: '1px solid #F3F4F6', paddingTop: 14, marginBottom: 16 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 10px' }}>
+              Rol
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {ROLE_FILTER_OPTIONS.map(opt => (
+                <label key={opt.value} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 10px', borderRadius: 8, cursor: 'pointer', background: draft.roles.includes(opt.value) ? '#F0F9FF' : 'transparent', transition: 'background 0.1s' }}>
+                  <div style={{
+                    width: 16, height: 16, borderRadius: 4, border: `2px solid ${draft.roles.includes(opt.value) ? '#0071E3' : '#D1D5DB'}`,
+                    background: draft.roles.includes(opt.value) ? '#0071E3' : '#fff',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.1s',
+                    cursor: 'pointer',
+                  }} onClick={() => toggle('roles', opt.value)}>
+                    {draft.roles.includes(opt.value) && <CheckCircle size={10} style={{ color: '#fff' }} />}
+                  </div>
+                  <span style={{ fontSize: 13, color: '#374151' }}>{opt.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div style={{ borderTop: '1px solid #F3F4F6', paddingTop: 12, display: 'flex', gap: 8 }}>
+            <button onClick={clear} style={{ flex: 1, padding: '8px', fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', borderRadius: 8, background: '#fff', color: '#6B7280', cursor: 'pointer' }}>
+              Limpiar
+            </button>
+            <button onClick={apply} style={{ flex: 2, padding: '8px', fontSize: 13, fontWeight: 600, border: 'none', borderRadius: 8, background: '#0071E3', color: '#fff', cursor: 'pointer' }}>
+              Aplicar filtros
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -759,6 +938,7 @@ export default function UsersClient({ students: initialStudents }: { students: S
   const [students, setStudents] = useState<Student[]>(initialStudents)
   const [showAddModal, setShowAddModal] = useState(false)
   const [activeFilter, setActiveFilter] = useState<FilterType>('All')
+  const [advFilters, setAdvFilters]     = useState<ActiveFilters>({ belts: [], statuses: [], roles: [] })
   const [search, setSearch]             = useState('')
   const [currentPage, setCurrentPage]   = useState(1)
 
@@ -772,10 +952,13 @@ export default function UsersClient({ students: initialStudents }: { students: S
 
   const filtered = students.filter(s => {
     const displayStatus = STATUS_DISPLAY[s.status] ?? s.status
-    const matchFilter = activeFilter === 'All' || displayStatus === activeFilter
+    const matchStatusTab = activeFilter === 'All' || displayStatus === activeFilter
     const matchSearch = s.name.toLowerCase().includes(search.toLowerCase()) ||
                         s.email.toLowerCase().includes(search.toLowerCase())
-    return matchFilter && matchSearch
+    const matchBelt   = advFilters.belts.length === 0    || advFilters.belts.includes(s.belt)
+    const matchStatus = advFilters.statuses.length === 0 || advFilters.statuses.includes(s.status)
+    const matchRole   = advFilters.roles.length === 0    || advFilters.roles.includes(s.role)
+    return matchStatusTab && matchSearch && matchBelt && matchStatus && matchRole
   })
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE))
@@ -845,6 +1028,8 @@ export default function UsersClient({ students: initialStudents }: { students: S
         </button>
 
         <DashboardLanguageSelector />
+
+        <FiltersDropdown filters={advFilters} onChange={f => { setAdvFilters(f); setCurrentPage(1) }} />
 
         <button
           onClick={() => setShowAddModal(true)}
@@ -926,6 +1111,45 @@ export default function UsersClient({ students: initialStudents }: { students: S
             )
           })}
         </div>
+
+        {/* Active filter chips */}
+        {(advFilters.belts.length > 0 || advFilters.statuses.length > 0 || advFilters.roles.length > 0) && (
+          <div className="flex items-center gap-2 flex-wrap" style={{ marginTop: -8 }}>
+            <span style={{ fontSize: 12, color: '#9CA3AF' }}>Filtros activos:</span>
+            {advFilters.belts.map(b => {
+              const opt = BELT_FILTER_OPTIONS.find(o => o.value === b)
+              return (
+                <span key={b} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 500, padding: '3px 8px 3px 6px', borderRadius: 999, background: '#F3F4F6', color: '#374151', border: '1px solid #E5E7EB' }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: opt?.color ?? '#D1D5DB', flexShrink: 0 }} />
+                  {opt?.label ?? b}
+                  <button onClick={() => setAdvFilters(f => ({ ...f, belts: f.belts.filter(v => v !== b) }))} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#9CA3AF', display: 'flex', alignItems: 'center' }}><X size={11} /></button>
+                </span>
+              )
+            })}
+            {advFilters.statuses.map(s => {
+              const opt = STATUS_FILTER_OPTIONS.find(o => o.value === s)
+              return (
+                <span key={s} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 500, padding: '3px 8px 3px 6px', borderRadius: 999, background: '#F3F4F6', color: '#374151', border: '1px solid #E5E7EB' }}>
+                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: opt?.color ?? '#D1D5DB', flexShrink: 0 }} />
+                  {opt?.label ?? s}
+                  <button onClick={() => setAdvFilters(f => ({ ...f, statuses: f.statuses.filter(v => v !== s) }))} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#9CA3AF', display: 'flex', alignItems: 'center' }}><X size={11} /></button>
+                </span>
+              )
+            })}
+            {advFilters.roles.map(r => {
+              const opt = ROLE_FILTER_OPTIONS.find(o => o.value === r)
+              return (
+                <span key={r} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 500, padding: '3px 8px 3px 6px', borderRadius: 999, background: '#F3F4F6', color: '#374151', border: '1px solid #E5E7EB' }}>
+                  {opt?.label ?? r}
+                  <button onClick={() => setAdvFilters(f => ({ ...f, roles: f.roles.filter(v => v !== r) }))} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#9CA3AF', display: 'flex', alignItems: 'center' }}><X size={11} /></button>
+                </span>
+              )
+            })}
+            <button onClick={() => setAdvFilters({ belts: [], statuses: [], roles: [] })} style={{ fontSize: 12, color: '#DC2626', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              Limpiar todo
+            </button>
+          </div>
+        )}
 
         {/* Table */}
         <div className="rounded-2xl overflow-hidden" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
