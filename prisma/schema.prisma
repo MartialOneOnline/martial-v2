@@ -79,7 +79,8 @@ enum SchoolRelationshipType {
 enum SchoolMemberStatus {
   ACTIVE
   INACTIVE
-  PENDING     // Trial or awaiting approval
+  PENDING     // Invite sent, not yet accepted
+  LEAD        // Accepted invite, no membership yet
   FROZEN      // Paused by student (injury, holiday)
   ARCHIVED
 }
