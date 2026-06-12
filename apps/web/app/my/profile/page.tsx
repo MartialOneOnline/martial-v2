@@ -46,7 +46,9 @@ export default function MyProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
 
   useEffect(() => {
     fetch('/api/my')
@@ -55,6 +57,7 @@ export default function MyProfilePage() {
         const u = d.user
         setProfile(u)
         setName(u?.name ?? '')
+        setPhone(u?.phone ?? '')
         setLoading(false)
       })
       .catch(() => setLoading(false))
@@ -72,14 +75,26 @@ export default function MyProfilePage() {
       <div className="bg-white border-b border-gray-100 px-5 py-4 sticky top-0 z-10 flex items-center justify-between">
         <h1 className="text-base font-bold text-[#101828]">Profile</h1>
         <button
-          onClick={() => setEditing(e => !e)}
+          onClick={async () => {
+            if (editing) {
+              setSaving(true)
+              await fetch('/api/my', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, phone }),
+              })
+              setProfile(p => p ? { ...p, name, phone } : p)
+              setSaving(false)
+            }
+            setEditing(e => !e)
+          }}
           className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${
             editing
               ? 'bg-[#0870E2] text-white'
               : 'text-[#0870E2] hover:bg-[#0870E2]/8'
           }`}
         >
-          {editing ? 'Save' : 'Edit'}
+          {saving ? 'Saving…' : editing ? 'Save' : 'Edit'}
         </button>
       </div>
 
@@ -163,15 +178,17 @@ export default function MyProfilePage() {
             <div className="bg-white border-b border-gray-100 px-5 py-4 space-y-3">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Personal details</p>
               {[
-                { label: 'Email', value: profile?.email ?? '', disabled: true, type: 'email' },
-                { label: 'Phone', value: profile?.phone ?? '', disabled: false, type: 'tel' },
-                { label: 'Date of birth', value: profile?.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString('en-GB') : '', disabled: true, type: 'text' },
-              ].map(({ label, value, disabled, type }) => (
+                { label: 'Email', value: profile?.email ?? '', disabled: true, type: 'email', readOnly: true },
+                { label: 'Phone', value: phone, disabled: false, type: 'tel', readOnly: false },
+                { label: 'Date of birth', value: profile?.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString('en-GB') : '', disabled: true, type: 'text', readOnly: true },
+              ].map(({ label, value, disabled, type, readOnly }) => (
                 <div key={label}>
                   <label className="text-[11px] font-semibold text-gray-400 mb-1 block">{label}</label>
                   <input
                     type={type}
-                    defaultValue={value}
+                    value={value}
+                    readOnly={readOnly}
+                    onChange={!readOnly && label === 'Phone' ? e => setPhone(e.target.value) : undefined}
                     disabled={disabled}
                     className={`w-full h-10 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-[#0870E2]/20 focus:border-[#0870E2] transition-colors ${
                       disabled

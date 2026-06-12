@@ -45,9 +45,9 @@ export async function GET() {
         },
       },
       schoolMembers: {
-        where: { status: 'ACTIVE' },
+        where: { status: { in: ['ACTIVE', 'LEAD', 'FROZEN'] } },
         select: {
-          id: true, belt: true, beltDegree: true, beltDate: true, role: true,
+          id: true, belt: true, beltDegree: true, beltDate: true, role: true, status: true,
           school: { select: { id: true, name: true, slug: true, logoUrl: true } },
         },
       },
@@ -66,4 +66,30 @@ export async function GET() {
 
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
   return NextResponse.json({ user })
+}
+
+export async function PATCH(req: Request) {
+  const cookieStore = await cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    { cookies: { getAll: () => cookieStore.getAll() } }
+  )
+  const { data: { user: authUser } } = await supabase.auth.getUser()
+  if (!authUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const body = await req.json()
+  const { name, phone, dateOfBirth } = body
+
+  const updated = await prisma.user.update({
+    where: { supabaseAuthId: authUser.id },
+    data: {
+      ...(name !== undefined && { name: name || null }),
+      ...(phone !== undefined && { phone: phone || null }),
+      ...(dateOfBirth !== undefined && { dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null }),
+    },
+    select: { id: true, name: true, phone: true, dateOfBirth: true },
+  })
+
+  return NextResponse.json({ user: updated })
 }

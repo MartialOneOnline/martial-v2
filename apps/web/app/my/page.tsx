@@ -42,6 +42,7 @@ type UserData = {
       beltDegree: number | null
       beltDate: string | null
       role: string
+      status: string
       school: { id: string; name: string; slug: string; logoUrl: string | null }
     }[]
     gradings: {
@@ -198,6 +199,28 @@ export default function MyHomePage() {
           </div>
         </div>
 
+        {/* ── Personal info ── */}
+        {(user?.email || user?.phone || user?.dateOfBirth) && (
+          <Link href="/my/profile" className="block bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-50">
+              <p className="text-sm font-bold text-[#101828]">Personal info</p>
+              <span className="text-xs font-semibold text-[#0870E2]">Edit →</span>
+            </div>
+            <div className="divide-y divide-gray-50">
+              {[
+                { label: 'Email', value: user.email },
+                { label: 'Phone', value: user.phone ?? '—' },
+                { label: 'Date of birth', value: user.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : '—' },
+              ].map(({ label, value }) => (
+                <div key={label} className="flex items-center justify-between px-5 py-3">
+                  <span className="text-xs text-gray-400 font-medium">{label}</span>
+                  <span className="text-xs font-semibold text-[#101828] text-right max-w-[60%] truncate">{value}</span>
+                </div>
+              ))}
+            </div>
+          </Link>
+        )}
+
         {/* ── Ranking section ── */}
         {primaryMember?.belt && (
           <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
@@ -335,7 +358,12 @@ export default function MyHomePage() {
                   }
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-[#101828] truncate">{m.school.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-[#101828] truncate">{m.school.name}</p>
+                    {m.status === 'LEAD' && (
+                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600 shrink-0">Pending</span>
+                    )}
+                  </div>
                   {m.belt && (
                     <p className="text-xs text-gray-400 mt-0.5">{m.belt}{m.beltDegree ? ` · ${m.beltDegree} stripe` : ''}</p>
                   )}
