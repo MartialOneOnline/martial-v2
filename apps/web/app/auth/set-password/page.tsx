@@ -51,6 +51,7 @@ export default function SetPasswordPage() {
   const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState('')
   const [done, setDone] = useState(false)
+  const [redirect, setRedirect] = useState('/my')
 
   useEffect(() => {
     // Decode email from hash JWT immediately (no async needed)
@@ -82,8 +83,12 @@ export default function SetPasswordPage() {
     })
   }, [])
 
-  const activateMember = async () => {
-    try { await fetch('/api/auth/activate-member', { method: 'POST' }) } catch { /* best-effort */ }
+  const activateMember = async (): Promise<string> => {
+    try {
+      const res = await fetch('/api/auth/activate-member', { method: 'POST' })
+      const data = await res.json()
+      return data.redirect ?? '/my'
+    } catch { return '/my' }
   }
 
   const handleSetPassword = async (e: React.FormEvent) => {
@@ -95,7 +100,8 @@ export default function SetPasswordPage() {
     try {
       const { error: err } = await getSupabase().auth.updateUser({ password })
       if (err) { setError(err.message); return }
-      await activateMember()
+      const redirectTo = await activateMember()
+      setRedirect(redirectTo)
       setDone(true)
     } finally {
       setLoading(false)
@@ -114,7 +120,7 @@ export default function SetPasswordPage() {
   if (done) {
     return (
       <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
-        <SuccessScreen name={name || email.split('@')[0] || ''} onContinue={() => router.replace('/my')} />
+        <SuccessScreen name={name || email.split('@')[0] || ''} onContinue={() => router.replace(redirect)} />
       </div>
     )
   }

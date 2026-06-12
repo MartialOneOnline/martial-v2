@@ -42,5 +42,12 @@ export async function POST() {
     data: { status: 'LEAD' },
   })
 
-  return NextResponse.json({ ok: true })
+  // Determine redirect based on highest role
+  const membership = await prisma.schoolMember.findFirst({
+    where: { userId: dbUser.id },
+    orderBy: { createdAt: 'asc' },
+    select: { role: true },
+  })
+  const isSchool = membership && ['OWNER', 'ADMIN', 'INSTRUCTOR'].includes(membership.role)
+  return NextResponse.json({ ok: true, redirect: isSchool ? '/dashboard' : '/my' })
 }
