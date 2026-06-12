@@ -36,9 +36,9 @@ function HomeContent() {
     if (typeof window === 'undefined') return
     const hash = window.location.hash
     if (hash.includes('access_token') && hash.includes('type=magiclink')) {
-      router.replace('/auth/accept-invite' + hash)
+      window.location.replace('/auth/accept-invite' + hash)
     }
-  }, [router])
+  }, [])
 
   // Auto-open modals when redirected from /login or /register
   useEffect(() => {
