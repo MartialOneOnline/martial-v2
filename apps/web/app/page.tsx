@@ -31,13 +31,22 @@ function HomeContent() {
   const openModal    = () => setShowModal(true)
   const openRegister = () => setShowRegisterModal(true)
 
-  // Redirect invite/magiclink tokens to the accept-invite page
+  // Redirect magiclink sessions (from invite emails) to set-password page
   useEffect(() => {
-    if (typeof window === 'undefined') return
-    const hash = window.location.hash
-    if (hash.includes('access_token') && hash.includes('type=magiclink')) {
-      window.location.replace('/auth/accept-invite' + hash)
-    }
+    const { createBrowserClient } = require('@supabase/ssr')
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    )
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string) => {
+      if (event === 'SIGNED_IN') {
+        const hash = window.location.hash
+        if (hash.includes('type=magiclink')) {
+          window.location.replace('/auth/set-password')
+        }
+      }
+    })
+    return () => subscription.unsubscribe()
   }, [])
 
   // Auto-open modals when redirected from /login or /register
