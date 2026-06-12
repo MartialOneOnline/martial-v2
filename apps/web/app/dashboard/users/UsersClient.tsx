@@ -1125,11 +1125,7 @@ export default function UsersClient({ students: initialStudents }: { students: S
 
   const handleResendInvite = async (student: Student) => {
     try {
-      await fetch('/api/dashboard/members/invite', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: student.email, name: student.name }),
-      })
+      await fetch(`/api/dashboard/members/${student.id}/resend-invite`, { method: 'POST' })
     } catch {
       // silent — invite is best-effort
     }
