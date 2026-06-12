@@ -53,27 +53,33 @@ export default function SetPasswordPage() {
   const [done, setDone] = useState(false)
 
   useEffect(() => {
-    const supabase = getSupabase()
-    // onAuthStateChange processes the hash token and fires SIGNED_IN
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user?.email) {
-        setEmail(session.user.email)
-        const meta = session.user.user_metadata
-        if (meta?.full_name) setName(String(meta.full_name))
-        else if (meta?.name) setName(String(meta.name))
-      }
-    })
-    // Also check existing session (e.g. Google OAuth return)
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session?.user?.email && !email) {
+    // Decode email from hash JWT immediately (no async needed)
+    const hash = window.location.hash
+    if (hash.includes('access_token')) {
+      try {
+        const params = new URLSearchParams(hash.slice(1))
+        const token = params.get('access_token')
+        const refreshToken = params.get('refresh_token')
+        if (token) {
+          const payload = JSON.parse(atob(token.split('.')[1]))
+          if (payload.email) setEmail(payload.email)
+          // Establish session so updateUser works
+          if (refreshToken) {
+            getSupabase().auth.setSession({ access_token: token, refresh_token: refreshToken })
+          }
+        }
+      } catch { /* ignore decode errors */ }
+      return
+    }
+    // Fallback: existing session (e.g. Google OAuth return)
+    getSupabase().auth.getSession().then(({ data }) => {
+      if (data.session?.user?.email) {
         setEmail(data.session.user.email)
         const meta = data.session.user.user_metadata
         if (meta?.full_name) setName(String(meta.full_name))
         else if (meta?.name) setName(String(meta.name))
       }
     })
-    return () => subscription.unsubscribe()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const activateMember = async () => {
