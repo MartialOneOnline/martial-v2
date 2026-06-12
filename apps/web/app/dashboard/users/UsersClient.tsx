@@ -7,7 +7,7 @@ import {
   Download, TrendingUp, Clock, Users, X,
   ChevronDown, UserCheck, Archive, Shield,
   Mail, Upload, FileText, CheckCircle, AlertCircle,
-  SlidersHorizontal,
+  SlidersHorizontal, Eye, Send,
 } from 'lucide-react'
 import { useDashboard } from '../../../components/DashboardShell'
 import DashboardLanguageSelector from '../../../components/DashboardLanguageSelector'
@@ -107,35 +107,57 @@ function ActionsMenu({
   student,
   onStatusChange,
   onBeltChange,
+  onResendInvite,
   onDelete,
 }: {
   student: Student
   onStatusChange: (id: string, status: string) => void
   onBeltChange: (id: string, belt: string) => void
+  onResendInvite: (student: Student) => void
   onDelete: (id: string) => void
 }) {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [statusOpen, setStatusOpen] = useState(false)
   const [beltOpen, setBeltOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
+  const closeAll = () => { setOpen(false); setStatusOpen(false); setBeltOpen(false) }
+
   useEffect(() => {
     if (!open) return
     const handler = (e: MouseEvent) => {
-      if (!ref.current?.contains(e.target as Node)) {
-        setOpen(false); setStatusOpen(false); setBeltOpen(false)
-      }
+      if (!ref.current?.contains(e.target as Node)) closeAll()
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [open])
 
   const currentDisplay = STATUS_DISPLAY[student.status] ?? student.status
+  const currentBelt = student.belt ?? 'Blanco'
+
+  const menuItem = (
+    icon: React.ReactNode,
+    label: string,
+    onClick: () => void,
+    danger = false,
+  ) => (
+    <button
+      onClick={e => { e.stopPropagation(); onClick() }}
+      className="w-full flex items-center gap-2 cursor-pointer"
+      style={{ padding: '8px 14px', fontSize: 13, border: 'none', textAlign: 'left',
+        color: danger ? '#DC2626' : '#374151', background: 'transparent' }}
+      onMouseEnter={e => (e.currentTarget.style.background = danger ? '#FEF2F2' : '#F9FAFB')}
+      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+      {icon}
+      {label}
+    </button>
+  )
 
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       <button
-        onClick={e => { e.stopPropagation(); setOpen(o => !o); setStatusOpen(false) }}
+        onClick={e => { e.stopPropagation(); setOpen(o => !o); setStatusOpen(false); setBeltOpen(false) }}
         className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
         style={{ color: open ? '#111827' : '#9CA3AF', background: open ? '#F3F4F6' : 'transparent', border: 'none', transition: 'all .15s' }}>
         <MoreHorizontal size={15} />
@@ -143,14 +165,31 @@ function ActionsMenu({
 
       {open && (
         <div style={{
-          position: 'absolute', right: 0, top: 32, zIndex: 50, minWidth: 180,
+          position: 'absolute', right: 0, top: 32, zIndex: 50, minWidth: 190,
           background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10,
           boxShadow: '0 8px 24px rgba(0,0,0,0.10)', padding: '4px 0',
         }}>
-          {/* Change status submenu trigger */}
+
+          {/* View profile */}
+          {menuItem(
+            <Eye size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
+            'Ver perfil',
+            () => { closeAll(); router.push(`/dashboard/users/${student.id}`) },
+          )}
+
+          {/* Resend invite — only for PENDING */}
+          {student.status === 'PENDING' && menuItem(
+            <Send size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
+            'Reenviar invitación',
+            () => { closeAll(); onResendInvite(student) },
+          )}
+
+          <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
+
+          {/* Change status submenu */}
           <div style={{ position: 'relative' }}>
             <button
-              onClick={e => { e.stopPropagation(); setStatusOpen(o => !o) }}
+              onClick={e => { e.stopPropagation(); setStatusOpen(o => !o); setBeltOpen(false) }}
               className="w-full flex items-center justify-between cursor-pointer"
               style={{ padding: '8px 14px', fontSize: 13, color: '#374151', background: 'transparent', border: 'none', textAlign: 'left' }}
               onMouseEnter={e => (e.currentTarget.style.background = '#F9FAFB')}
@@ -174,7 +213,7 @@ function ActionsMenu({
                     onClick={e => {
                       e.stopPropagation()
                       onStatusChange(student.id, s.value)
-                      setOpen(false); setStatusOpen(false)
+                      closeAll()
                     }}
                     className="w-full flex items-center gap-2 cursor-pointer"
                     style={{
@@ -192,17 +231,65 @@ function ActionsMenu({
             )}
           </div>
 
+          {/* Change belt submenu */}
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={e => { e.stopPropagation(); setBeltOpen(o => !o); setStatusOpen(false) }}
+              className="w-full flex items-center justify-between cursor-pointer"
+              style={{ padding: '8px 14px', fontSize: 13, color: '#374151', background: 'transparent', border: 'none', textAlign: 'left' }}
+              onMouseEnter={e => (e.currentTarget.style.background = '#F9FAFB')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+              <span className="flex items-center gap-2">
+                <Shield size={13} style={{ color: '#6B7280' }} />
+                Cambiar cinturón
+              </span>
+              <ChevronDown size={12} style={{ color: '#9CA3AF', transform: beltOpen ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} />
+            </button>
+
+            {beltOpen && (
+              <div style={{
+                position: 'absolute', right: '100%', top: 0, zIndex: 51, minWidth: 140,
+                background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10,
+                boxShadow: '0 8px 24px rgba(0,0,0,0.10)', padding: '4px 0', marginRight: 4,
+              }}>
+                {BELTS.map(b => {
+                  const isActive = b === currentBelt
+                  const col = BELT_COLORS[b] ?? { dot: '#9CA3AF' }
+                  return (
+                    <button
+                      key={b}
+                      onClick={e => {
+                        e.stopPropagation()
+                        onBeltChange(student.id, b)
+                        closeAll()
+                      }}
+                      className="w-full flex items-center gap-2 cursor-pointer"
+                      style={{
+                        padding: '8px 14px', fontSize: 13, border: 'none', textAlign: 'left',
+                        color: isActive ? '#0071E3' : '#374151',
+                        background: isActive ? '#EFF6FF' : 'transparent',
+                        fontWeight: isActive ? 600 : 400,
+                      }}
+                      onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#F9FAFB' }}
+                      onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent' }}>
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: col.dot, flexShrink: 0, display: 'inline-block' }} />
+                      {BELT_DISPLAY[b]?.label ?? b}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
           <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
 
-          <button
-            onClick={e => { e.stopPropagation(); onDelete(student.id); setOpen(false) }}
-            className="w-full flex items-center gap-2 cursor-pointer"
-            style={{ padding: '8px 14px', fontSize: 13, color: '#DC2626', background: 'transparent', border: 'none', textAlign: 'left' }}
-            onMouseEnter={e => (e.currentTarget.style.background = '#FEF2F2')}
-            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-            <Archive size={13} />
-            Archivar
-          </button>
+          {/* Archive */}
+          {menuItem(
+            <Archive size={13} style={{ flexShrink: 0 }} />,
+            'Archivar',
+            () => { closeAll(); onDelete(student.id) },
+            true,
+          )}
         </div>
       )}
     </div>
@@ -986,6 +1073,31 @@ export default function UsersClient({ students: initialStudents }: { students: S
 
   const handleArchive = (memberId: string) => handleStatusChange(memberId, 'ARCHIVED')
 
+  const handleBeltChange = async (memberId: string, belt: string) => {
+    setStudents(prev => prev.map(s => s.id === memberId ? { ...s, belt } : s))
+    try {
+      await fetch(`/api/dashboard/members/${memberId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ belt }),
+      })
+    } catch {
+      setStudents(initialStudents)
+    }
+  }
+
+  const handleResendInvite = async (student: Student) => {
+    try {
+      await fetch('/api/dashboard/members/invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: student.email, name: student.name }),
+      })
+    } catch {
+      // silent — invite is best-effort
+    }
+  }
+
   const handleCreated = (newStudents: Student[]) => {
     setStudents(prev => [...newStudents, ...prev])
   }
@@ -1232,7 +1344,8 @@ export default function UsersClient({ students: initialStudents }: { students: S
                     <ActionsMenu
                       student={student}
                       onStatusChange={handleStatusChange}
-                      onBeltChange={() => {}}
+                      onBeltChange={handleBeltChange}
+                      onResendInvite={handleResendInvite}
                       onDelete={handleArchive}
                     />
                   </td>
