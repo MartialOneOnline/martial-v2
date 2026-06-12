@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+
+function getAdminSupabase() {
+  const key = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!key) throw new Error('Supabase service key not configured')
+  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, key, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  })
+}
 
 // PATCH /api/dashboard/members/[id] — update status, belt, or beltDegree
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -80,7 +89,19 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   // Delete the user only if they have no other school memberships
   const otherMemberships = await prisma.schoolMember.count({ where: { userId: existing.userId } })
   if (otherMemberships === 0) {
+    const dbUser = await prisma.user.findUnique({
+      where: { id: existing.userId },
+      select: { supabaseAuthId: true },
+    })
     await prisma.user.delete({ where: { id: existing.userId } })
+    // Also delete from Supabase Auth so the email can be re-invited cleanly
+    if (dbUser?.supabaseAuthId) {
+      try {
+        await getAdminSupabase().auth.admin.deleteUser(dbUser.supabaseAuthId)
+      } catch (err) {
+        console.error('[delete-member] Failed to delete Supabase auth user:', err)
+      }
+    }
   }
 
   return NextResponse.json({ ok: true })
