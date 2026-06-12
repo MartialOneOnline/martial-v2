@@ -25,6 +25,7 @@ type Student = {
   status: string
   role: string
   joinedAt: string | null
+  avatarUrl: string | null
 }
 
 // Map V1 Spanish belt names → display name + color key
@@ -289,10 +290,15 @@ export default function UsersClient({ students }: { students: Student[] }) {
                       {/* Member */}
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 border border-[#E5E7EB]"
-                            style={{ background: '#F3F4F6', fontSize: 13, fontWeight: 700, color: '#374151' }}>
-                            {student.name.charAt(0).toUpperCase()}
-                          </div>
+                          {student.avatarUrl ? (
+                            <img src={student.avatarUrl} alt={student.name}
+                              className="w-9 h-9 rounded-full shrink-0 border border-[#E5E7EB] object-cover" />
+                          ) : (
+                            <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 border border-[#E5E7EB]"
+                              style={{ background: '#F3F4F6', fontSize: 13, fontWeight: 700, color: '#374151' }}>
+                              {student.name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
                           <div>
                             <p style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{student.name}</p>
                             <p style={{ fontSize: 12, color: '#9CA3AF' }}>{student.email}</p>
