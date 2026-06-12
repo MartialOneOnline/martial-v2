@@ -65,6 +65,7 @@ export const ModelName = {
   Review: 'Review',
   Class: 'Class',
   Event: 'Event',
+  EventTicket: 'EventTicket',
   Booking: 'Booking',
   Membership: 'Membership',
   Camp: 'Camp',
@@ -358,18 +359,33 @@ export const EventScalarFieldEnum = {
   startAt: 'startAt',
   endAt: 'endAt',
   capacity: 'capacity',
-  price: 'price',
-  currency: 'currency',
   coverUrl: 'coverUrl',
   isPublished: 'isPublished',
   isCancelled: 'isCancelled',
   externalUrl: 'externalUrl',
+  paymentMethods: 'paymentMethods',
   instructorId: 'instructorId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type EventScalarFieldEnum = (typeof EventScalarFieldEnum)[keyof typeof EventScalarFieldEnum]
+
+
+export const EventTicketScalarFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  name: 'name',
+  description: 'description',
+  price: 'price',
+  currency: 'currency',
+  capacity: 'capacity',
+  sortOrder: 'sortOrder',
+  stripePriceId: 'stripePriceId',
+  createdAt: 'createdAt'
+} as const
+
+export type EventTicketScalarFieldEnum = (typeof EventTicketScalarFieldEnum)[keyof typeof EventTicketScalarFieldEnum]
 
 
 export const BookingScalarFieldEnum = {

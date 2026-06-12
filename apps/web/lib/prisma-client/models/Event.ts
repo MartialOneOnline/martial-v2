@@ -28,12 +28,10 @@ export type AggregateEvent = {
 
 export type EventAvgAggregateOutputType = {
   capacity: number | null
-  price: number | null
 }
 
 export type EventSumAggregateOutputType = {
   capacity: number | null
-  price: number | null
 }
 
 export type EventMinAggregateOutputType = {
@@ -46,8 +44,6 @@ export type EventMinAggregateOutputType = {
   startAt: Date | null
   endAt: Date | null
   capacity: number | null
-  price: number | null
-  currency: string | null
   coverUrl: string | null
   isPublished: boolean | null
   isCancelled: boolean | null
@@ -67,8 +63,6 @@ export type EventMaxAggregateOutputType = {
   startAt: Date | null
   endAt: Date | null
   capacity: number | null
-  price: number | null
-  currency: string | null
   coverUrl: string | null
   isPublished: boolean | null
   isCancelled: boolean | null
@@ -88,12 +82,11 @@ export type EventCountAggregateOutputType = {
   startAt: number
   endAt: number
   capacity: number
-  price: number
-  currency: number
   coverUrl: number
   isPublished: number
   isCancelled: number
   externalUrl: number
+  paymentMethods: number
   instructorId: number
   createdAt: number
   updatedAt: number
@@ -103,12 +96,10 @@ export type EventCountAggregateOutputType = {
 
 export type EventAvgAggregateInputType = {
   capacity?: true
-  price?: true
 }
 
 export type EventSumAggregateInputType = {
   capacity?: true
-  price?: true
 }
 
 export type EventMinAggregateInputType = {
@@ -121,8 +112,6 @@ export type EventMinAggregateInputType = {
   startAt?: true
   endAt?: true
   capacity?: true
-  price?: true
-  currency?: true
   coverUrl?: true
   isPublished?: true
   isCancelled?: true
@@ -142,8 +131,6 @@ export type EventMaxAggregateInputType = {
   startAt?: true
   endAt?: true
   capacity?: true
-  price?: true
-  currency?: true
   coverUrl?: true
   isPublished?: true
   isCancelled?: true
@@ -163,12 +150,11 @@ export type EventCountAggregateInputType = {
   startAt?: true
   endAt?: true
   capacity?: true
-  price?: true
-  currency?: true
   coverUrl?: true
   isPublished?: true
   isCancelled?: true
   externalUrl?: true
+  paymentMethods?: true
   instructorId?: true
   createdAt?: true
   updatedAt?: true
@@ -271,12 +257,11 @@ export type EventGroupByOutputType = {
   startAt: Date
   endAt: Date | null
   capacity: number | null
-  price: number
-  currency: string
   coverUrl: string | null
   isPublished: boolean
   isCancelled: boolean
   externalUrl: string | null
+  paymentMethods: string[]
   instructorId: string | null
   createdAt: Date
   updatedAt: Date
@@ -315,17 +300,17 @@ export type EventWhereInput = {
   startAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   endAt?: Prisma.DateTimeNullableFilter<"Event"> | Date | string | null
   capacity?: Prisma.IntNullableFilter<"Event"> | number | null
-  price?: Prisma.FloatFilter<"Event"> | number
-  currency?: Prisma.StringFilter<"Event"> | string
   coverUrl?: Prisma.StringNullableFilter<"Event"> | string | null
   isPublished?: Prisma.BoolFilter<"Event"> | boolean
   isCancelled?: Prisma.BoolFilter<"Event"> | boolean
   externalUrl?: Prisma.StringNullableFilter<"Event"> | string | null
+  paymentMethods?: Prisma.StringNullableListFilter<"Event">
   instructorId?: Prisma.StringNullableFilter<"Event"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   school?: Prisma.XOR<Prisma.SchoolScalarRelationFilter, Prisma.SchoolWhereInput>
   instructor?: Prisma.XOR<Prisma.InstructorNullableScalarRelationFilter, Prisma.InstructorWhereInput> | null
+  tickets?: Prisma.EventTicketListRelationFilter
 }
 
 export type EventOrderByWithRelationInput = {
@@ -338,17 +323,17 @@ export type EventOrderByWithRelationInput = {
   startAt?: Prisma.SortOrder
   endAt?: Prisma.SortOrderInput | Prisma.SortOrder
   capacity?: Prisma.SortOrderInput | Prisma.SortOrder
-  price?: Prisma.SortOrder
-  currency?: Prisma.SortOrder
   coverUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   isPublished?: Prisma.SortOrder
   isCancelled?: Prisma.SortOrder
   externalUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  paymentMethods?: Prisma.SortOrder
   instructorId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   school?: Prisma.SchoolOrderByWithRelationInput
   instructor?: Prisma.InstructorOrderByWithRelationInput
+  tickets?: Prisma.EventTicketOrderByRelationAggregateInput
 }
 
 export type EventWhereUniqueInput = Prisma.AtLeast<{
@@ -364,17 +349,17 @@ export type EventWhereUniqueInput = Prisma.AtLeast<{
   startAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   endAt?: Prisma.DateTimeNullableFilter<"Event"> | Date | string | null
   capacity?: Prisma.IntNullableFilter<"Event"> | number | null
-  price?: Prisma.FloatFilter<"Event"> | number
-  currency?: Prisma.StringFilter<"Event"> | string
   coverUrl?: Prisma.StringNullableFilter<"Event"> | string | null
   isPublished?: Prisma.BoolFilter<"Event"> | boolean
   isCancelled?: Prisma.BoolFilter<"Event"> | boolean
   externalUrl?: Prisma.StringNullableFilter<"Event"> | string | null
+  paymentMethods?: Prisma.StringNullableListFilter<"Event">
   instructorId?: Prisma.StringNullableFilter<"Event"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   school?: Prisma.XOR<Prisma.SchoolScalarRelationFilter, Prisma.SchoolWhereInput>
   instructor?: Prisma.XOR<Prisma.InstructorNullableScalarRelationFilter, Prisma.InstructorWhereInput> | null
+  tickets?: Prisma.EventTicketListRelationFilter
 }, "id">
 
 export type EventOrderByWithAggregationInput = {
@@ -387,12 +372,11 @@ export type EventOrderByWithAggregationInput = {
   startAt?: Prisma.SortOrder
   endAt?: Prisma.SortOrderInput | Prisma.SortOrder
   capacity?: Prisma.SortOrderInput | Prisma.SortOrder
-  price?: Prisma.SortOrder
-  currency?: Prisma.SortOrder
   coverUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   isPublished?: Prisma.SortOrder
   isCancelled?: Prisma.SortOrder
   externalUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  paymentMethods?: Prisma.SortOrder
   instructorId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -416,12 +400,11 @@ export type EventScalarWhereWithAggregatesInput = {
   startAt?: Prisma.DateTimeWithAggregatesFilter<"Event"> | Date | string
   endAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Event"> | Date | string | null
   capacity?: Prisma.IntNullableWithAggregatesFilter<"Event"> | number | null
-  price?: Prisma.FloatWithAggregatesFilter<"Event"> | number
-  currency?: Prisma.StringWithAggregatesFilter<"Event"> | string
   coverUrl?: Prisma.StringNullableWithAggregatesFilter<"Event"> | string | null
   isPublished?: Prisma.BoolWithAggregatesFilter<"Event"> | boolean
   isCancelled?: Prisma.BoolWithAggregatesFilter<"Event"> | boolean
   externalUrl?: Prisma.StringNullableWithAggregatesFilter<"Event"> | string | null
+  paymentMethods?: Prisma.StringNullableListFilter<"Event">
   instructorId?: Prisma.StringNullableWithAggregatesFilter<"Event"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Event"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Event"> | Date | string
@@ -436,16 +419,16 @@ export type EventCreateInput = {
   startAt: Date | string
   endAt?: Date | string | null
   capacity?: number | null
-  price?: number
-  currency?: string
   coverUrl?: string | null
   isPublished?: boolean
   isCancelled?: boolean
   externalUrl?: string | null
+  paymentMethods?: Prisma.EventCreatepaymentMethodsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   school: Prisma.SchoolCreateNestedOneWithoutEventsInput
   instructor?: Prisma.InstructorCreateNestedOneWithoutEventsInput
+  tickets?: Prisma.EventTicketCreateNestedManyWithoutEventInput
 }
 
 export type EventUncheckedCreateInput = {
@@ -458,15 +441,15 @@ export type EventUncheckedCreateInput = {
   startAt: Date | string
   endAt?: Date | string | null
   capacity?: number | null
-  price?: number
-  currency?: string
   coverUrl?: string | null
   isPublished?: boolean
   isCancelled?: boolean
   externalUrl?: string | null
+  paymentMethods?: Prisma.EventCreatepaymentMethodsInput | string[]
   instructorId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  tickets?: Prisma.EventTicketUncheckedCreateNestedManyWithoutEventInput
 }
 
 export type EventUpdateInput = {
@@ -478,16 +461,16 @@ export type EventUpdateInput = {
   startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  price?: Prisma.FloatFieldUpdateOperationsInput | number
-  currency?: Prisma.StringFieldUpdateOperationsInput | string
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isCancelled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethods?: Prisma.EventUpdatepaymentMethodsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneRequiredWithoutEventsNestedInput
   instructor?: Prisma.InstructorUpdateOneWithoutEventsNestedInput
+  tickets?: Prisma.EventTicketUpdateManyWithoutEventNestedInput
 }
 
 export type EventUncheckedUpdateInput = {
@@ -500,15 +483,15 @@ export type EventUncheckedUpdateInput = {
   startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  price?: Prisma.FloatFieldUpdateOperationsInput | number
-  currency?: Prisma.StringFieldUpdateOperationsInput | string
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isCancelled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethods?: Prisma.EventUpdatepaymentMethodsInput | string[]
   instructorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tickets?: Prisma.EventTicketUncheckedUpdateManyWithoutEventNestedInput
 }
 
 export type EventCreateManyInput = {
@@ -521,12 +504,11 @@ export type EventCreateManyInput = {
   startAt: Date | string
   endAt?: Date | string | null
   capacity?: number | null
-  price?: number
-  currency?: string
   coverUrl?: string | null
   isPublished?: boolean
   isCancelled?: boolean
   externalUrl?: string | null
+  paymentMethods?: Prisma.EventCreatepaymentMethodsInput | string[]
   instructorId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -541,12 +523,11 @@ export type EventUpdateManyMutationInput = {
   startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  price?: Prisma.FloatFieldUpdateOperationsInput | number
-  currency?: Prisma.StringFieldUpdateOperationsInput | string
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isCancelled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethods?: Prisma.EventUpdatepaymentMethodsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -561,12 +542,11 @@ export type EventUncheckedUpdateManyInput = {
   startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  price?: Prisma.FloatFieldUpdateOperationsInput | number
-  currency?: Prisma.StringFieldUpdateOperationsInput | string
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isCancelled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethods?: Prisma.EventUpdatepaymentMethodsInput | string[]
   instructorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -592,12 +572,11 @@ export type EventCountOrderByAggregateInput = {
   startAt?: Prisma.SortOrder
   endAt?: Prisma.SortOrder
   capacity?: Prisma.SortOrder
-  price?: Prisma.SortOrder
-  currency?: Prisma.SortOrder
   coverUrl?: Prisma.SortOrder
   isPublished?: Prisma.SortOrder
   isCancelled?: Prisma.SortOrder
   externalUrl?: Prisma.SortOrder
+  paymentMethods?: Prisma.SortOrder
   instructorId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -605,7 +584,6 @@ export type EventCountOrderByAggregateInput = {
 
 export type EventAvgOrderByAggregateInput = {
   capacity?: Prisma.SortOrder
-  price?: Prisma.SortOrder
 }
 
 export type EventMaxOrderByAggregateInput = {
@@ -618,8 +596,6 @@ export type EventMaxOrderByAggregateInput = {
   startAt?: Prisma.SortOrder
   endAt?: Prisma.SortOrder
   capacity?: Prisma.SortOrder
-  price?: Prisma.SortOrder
-  currency?: Prisma.SortOrder
   coverUrl?: Prisma.SortOrder
   isPublished?: Prisma.SortOrder
   isCancelled?: Prisma.SortOrder
@@ -639,8 +615,6 @@ export type EventMinOrderByAggregateInput = {
   startAt?: Prisma.SortOrder
   endAt?: Prisma.SortOrder
   capacity?: Prisma.SortOrder
-  price?: Prisma.SortOrder
-  currency?: Prisma.SortOrder
   coverUrl?: Prisma.SortOrder
   isPublished?: Prisma.SortOrder
   isCancelled?: Prisma.SortOrder
@@ -652,7 +626,11 @@ export type EventMinOrderByAggregateInput = {
 
 export type EventSumOrderByAggregateInput = {
   capacity?: Prisma.SortOrder
-  price?: Prisma.SortOrder
+}
+
+export type EventScalarRelationFilter = {
+  is?: Prisma.EventWhereInput
+  isNot?: Prisma.EventWhereInput
 }
 
 export type EventCreateNestedManyWithoutSchoolInput = {
@@ -739,8 +717,31 @@ export type EventUncheckedUpdateManyWithoutInstructorNestedInput = {
   deleteMany?: Prisma.EventScalarWhereInput | Prisma.EventScalarWhereInput[]
 }
 
+export type EventCreatepaymentMethodsInput = {
+  set: string[]
+}
+
 export type EnumEventTypeFieldUpdateOperationsInput = {
   set?: $Enums.EventType
+}
+
+export type EventUpdatepaymentMethodsInput = {
+  set?: string[]
+  push?: string | string[]
+}
+
+export type EventCreateNestedOneWithoutTicketsInput = {
+  create?: Prisma.XOR<Prisma.EventCreateWithoutTicketsInput, Prisma.EventUncheckedCreateWithoutTicketsInput>
+  connectOrCreate?: Prisma.EventCreateOrConnectWithoutTicketsInput
+  connect?: Prisma.EventWhereUniqueInput
+}
+
+export type EventUpdateOneRequiredWithoutTicketsNestedInput = {
+  create?: Prisma.XOR<Prisma.EventCreateWithoutTicketsInput, Prisma.EventUncheckedCreateWithoutTicketsInput>
+  connectOrCreate?: Prisma.EventCreateOrConnectWithoutTicketsInput
+  upsert?: Prisma.EventUpsertWithoutTicketsInput
+  connect?: Prisma.EventWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EventUpdateToOneWithWhereWithoutTicketsInput, Prisma.EventUpdateWithoutTicketsInput>, Prisma.EventUncheckedUpdateWithoutTicketsInput>
 }
 
 export type EventCreateWithoutSchoolInput = {
@@ -752,15 +753,15 @@ export type EventCreateWithoutSchoolInput = {
   startAt: Date | string
   endAt?: Date | string | null
   capacity?: number | null
-  price?: number
-  currency?: string
   coverUrl?: string | null
   isPublished?: boolean
   isCancelled?: boolean
   externalUrl?: string | null
+  paymentMethods?: Prisma.EventCreatepaymentMethodsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   instructor?: Prisma.InstructorCreateNestedOneWithoutEventsInput
+  tickets?: Prisma.EventTicketCreateNestedManyWithoutEventInput
 }
 
 export type EventUncheckedCreateWithoutSchoolInput = {
@@ -772,15 +773,15 @@ export type EventUncheckedCreateWithoutSchoolInput = {
   startAt: Date | string
   endAt?: Date | string | null
   capacity?: number | null
-  price?: number
-  currency?: string
   coverUrl?: string | null
   isPublished?: boolean
   isCancelled?: boolean
   externalUrl?: string | null
+  paymentMethods?: Prisma.EventCreatepaymentMethodsInput | string[]
   instructorId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  tickets?: Prisma.EventTicketUncheckedCreateNestedManyWithoutEventInput
 }
 
 export type EventCreateOrConnectWithoutSchoolInput = {
@@ -822,12 +823,11 @@ export type EventScalarWhereInput = {
   startAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   endAt?: Prisma.DateTimeNullableFilter<"Event"> | Date | string | null
   capacity?: Prisma.IntNullableFilter<"Event"> | number | null
-  price?: Prisma.FloatFilter<"Event"> | number
-  currency?: Prisma.StringFilter<"Event"> | string
   coverUrl?: Prisma.StringNullableFilter<"Event"> | string | null
   isPublished?: Prisma.BoolFilter<"Event"> | boolean
   isCancelled?: Prisma.BoolFilter<"Event"> | boolean
   externalUrl?: Prisma.StringNullableFilter<"Event"> | string | null
+  paymentMethods?: Prisma.StringNullableListFilter<"Event">
   instructorId?: Prisma.StringNullableFilter<"Event"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Event"> | Date | string
@@ -842,15 +842,15 @@ export type EventCreateWithoutInstructorInput = {
   startAt: Date | string
   endAt?: Date | string | null
   capacity?: number | null
-  price?: number
-  currency?: string
   coverUrl?: string | null
   isPublished?: boolean
   isCancelled?: boolean
   externalUrl?: string | null
+  paymentMethods?: Prisma.EventCreatepaymentMethodsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   school: Prisma.SchoolCreateNestedOneWithoutEventsInput
+  tickets?: Prisma.EventTicketCreateNestedManyWithoutEventInput
 }
 
 export type EventUncheckedCreateWithoutInstructorInput = {
@@ -863,14 +863,14 @@ export type EventUncheckedCreateWithoutInstructorInput = {
   startAt: Date | string
   endAt?: Date | string | null
   capacity?: number | null
-  price?: number
-  currency?: string
   coverUrl?: string | null
   isPublished?: boolean
   isCancelled?: boolean
   externalUrl?: string | null
+  paymentMethods?: Prisma.EventCreatepaymentMethodsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
+  tickets?: Prisma.EventTicketUncheckedCreateNestedManyWithoutEventInput
 }
 
 export type EventCreateOrConnectWithoutInstructorInput = {
@@ -899,6 +899,102 @@ export type EventUpdateManyWithWhereWithoutInstructorInput = {
   data: Prisma.XOR<Prisma.EventUpdateManyMutationInput, Prisma.EventUncheckedUpdateManyWithoutInstructorInput>
 }
 
+export type EventCreateWithoutTicketsInput = {
+  id?: string
+  title: string
+  description?: string | null
+  type?: $Enums.EventType
+  location?: string | null
+  startAt: Date | string
+  endAt?: Date | string | null
+  capacity?: number | null
+  coverUrl?: string | null
+  isPublished?: boolean
+  isCancelled?: boolean
+  externalUrl?: string | null
+  paymentMethods?: Prisma.EventCreatepaymentMethodsInput | string[]
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  school: Prisma.SchoolCreateNestedOneWithoutEventsInput
+  instructor?: Prisma.InstructorCreateNestedOneWithoutEventsInput
+}
+
+export type EventUncheckedCreateWithoutTicketsInput = {
+  id?: string
+  schoolId: string
+  title: string
+  description?: string | null
+  type?: $Enums.EventType
+  location?: string | null
+  startAt: Date | string
+  endAt?: Date | string | null
+  capacity?: number | null
+  coverUrl?: string | null
+  isPublished?: boolean
+  isCancelled?: boolean
+  externalUrl?: string | null
+  paymentMethods?: Prisma.EventCreatepaymentMethodsInput | string[]
+  instructorId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type EventCreateOrConnectWithoutTicketsInput = {
+  where: Prisma.EventWhereUniqueInput
+  create: Prisma.XOR<Prisma.EventCreateWithoutTicketsInput, Prisma.EventUncheckedCreateWithoutTicketsInput>
+}
+
+export type EventUpsertWithoutTicketsInput = {
+  update: Prisma.XOR<Prisma.EventUpdateWithoutTicketsInput, Prisma.EventUncheckedUpdateWithoutTicketsInput>
+  create: Prisma.XOR<Prisma.EventCreateWithoutTicketsInput, Prisma.EventUncheckedCreateWithoutTicketsInput>
+  where?: Prisma.EventWhereInput
+}
+
+export type EventUpdateToOneWithWhereWithoutTicketsInput = {
+  where?: Prisma.EventWhereInput
+  data: Prisma.XOR<Prisma.EventUpdateWithoutTicketsInput, Prisma.EventUncheckedUpdateWithoutTicketsInput>
+}
+
+export type EventUpdateWithoutTicketsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isCancelled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethods?: Prisma.EventUpdatepaymentMethodsInput | string[]
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  school?: Prisma.SchoolUpdateOneRequiredWithoutEventsNestedInput
+  instructor?: Prisma.InstructorUpdateOneWithoutEventsNestedInput
+}
+
+export type EventUncheckedUpdateWithoutTicketsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  schoolId?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isCancelled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethods?: Prisma.EventUpdatepaymentMethodsInput | string[]
+  instructorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
 export type EventCreateManySchoolInput = {
   id?: string
   title: string
@@ -908,12 +1004,11 @@ export type EventCreateManySchoolInput = {
   startAt: Date | string
   endAt?: Date | string | null
   capacity?: number | null
-  price?: number
-  currency?: string
   coverUrl?: string | null
   isPublished?: boolean
   isCancelled?: boolean
   externalUrl?: string | null
+  paymentMethods?: Prisma.EventCreatepaymentMethodsInput | string[]
   instructorId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -928,15 +1023,15 @@ export type EventUpdateWithoutSchoolInput = {
   startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  price?: Prisma.FloatFieldUpdateOperationsInput | number
-  currency?: Prisma.StringFieldUpdateOperationsInput | string
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isCancelled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethods?: Prisma.EventUpdatepaymentMethodsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   instructor?: Prisma.InstructorUpdateOneWithoutEventsNestedInput
+  tickets?: Prisma.EventTicketUpdateManyWithoutEventNestedInput
 }
 
 export type EventUncheckedUpdateWithoutSchoolInput = {
@@ -948,15 +1043,15 @@ export type EventUncheckedUpdateWithoutSchoolInput = {
   startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  price?: Prisma.FloatFieldUpdateOperationsInput | number
-  currency?: Prisma.StringFieldUpdateOperationsInput | string
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isCancelled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethods?: Prisma.EventUpdatepaymentMethodsInput | string[]
   instructorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tickets?: Prisma.EventTicketUncheckedUpdateManyWithoutEventNestedInput
 }
 
 export type EventUncheckedUpdateManyWithoutSchoolInput = {
@@ -968,12 +1063,11 @@ export type EventUncheckedUpdateManyWithoutSchoolInput = {
   startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  price?: Prisma.FloatFieldUpdateOperationsInput | number
-  currency?: Prisma.StringFieldUpdateOperationsInput | string
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isCancelled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethods?: Prisma.EventUpdatepaymentMethodsInput | string[]
   instructorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -989,12 +1083,11 @@ export type EventCreateManyInstructorInput = {
   startAt: Date | string
   endAt?: Date | string | null
   capacity?: number | null
-  price?: number
-  currency?: string
   coverUrl?: string | null
   isPublished?: boolean
   isCancelled?: boolean
   externalUrl?: string | null
+  paymentMethods?: Prisma.EventCreatepaymentMethodsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1008,15 +1101,15 @@ export type EventUpdateWithoutInstructorInput = {
   startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  price?: Prisma.FloatFieldUpdateOperationsInput | number
-  currency?: Prisma.StringFieldUpdateOperationsInput | string
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isCancelled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethods?: Prisma.EventUpdatepaymentMethodsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneRequiredWithoutEventsNestedInput
+  tickets?: Prisma.EventTicketUpdateManyWithoutEventNestedInput
 }
 
 export type EventUncheckedUpdateWithoutInstructorInput = {
@@ -1029,14 +1122,14 @@ export type EventUncheckedUpdateWithoutInstructorInput = {
   startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  price?: Prisma.FloatFieldUpdateOperationsInput | number
-  currency?: Prisma.StringFieldUpdateOperationsInput | string
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isCancelled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethods?: Prisma.EventUpdatepaymentMethodsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tickets?: Prisma.EventTicketUncheckedUpdateManyWithoutEventNestedInput
 }
 
 export type EventUncheckedUpdateManyWithoutInstructorInput = {
@@ -1049,16 +1142,44 @@ export type EventUncheckedUpdateManyWithoutInstructorInput = {
   startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  price?: Prisma.FloatFieldUpdateOperationsInput | number
-  currency?: Prisma.StringFieldUpdateOperationsInput | string
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isCancelled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethods?: Prisma.EventUpdatepaymentMethodsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
+
+/**
+ * Count Type EventCountOutputType
+ */
+
+export type EventCountOutputType = {
+  tickets: number
+}
+
+export type EventCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  tickets?: boolean | EventCountOutputTypeCountTicketsArgs
+}
+
+/**
+ * EventCountOutputType without action
+ */
+export type EventCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EventCountOutputType
+   */
+  select?: Prisma.EventCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * EventCountOutputType without action
+ */
+export type EventCountOutputTypeCountTicketsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EventTicketWhereInput
+}
 
 
 export type EventSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1071,17 +1192,18 @@ export type EventSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   startAt?: boolean
   endAt?: boolean
   capacity?: boolean
-  price?: boolean
-  currency?: boolean
   coverUrl?: boolean
   isPublished?: boolean
   isCancelled?: boolean
   externalUrl?: boolean
+  paymentMethods?: boolean
   instructorId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   instructor?: boolean | Prisma.Event$instructorArgs<ExtArgs>
+  tickets?: boolean | Prisma.Event$ticketsArgs<ExtArgs>
+  _count?: boolean | Prisma.EventCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["event"]>
 
 export type EventSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1094,12 +1216,11 @@ export type EventSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   startAt?: boolean
   endAt?: boolean
   capacity?: boolean
-  price?: boolean
-  currency?: boolean
   coverUrl?: boolean
   isPublished?: boolean
   isCancelled?: boolean
   externalUrl?: boolean
+  paymentMethods?: boolean
   instructorId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1117,12 +1238,11 @@ export type EventSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   startAt?: boolean
   endAt?: boolean
   capacity?: boolean
-  price?: boolean
-  currency?: boolean
   coverUrl?: boolean
   isPublished?: boolean
   isCancelled?: boolean
   externalUrl?: boolean
+  paymentMethods?: boolean
   instructorId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1140,21 +1260,22 @@ export type EventSelectScalar = {
   startAt?: boolean
   endAt?: boolean
   capacity?: boolean
-  price?: boolean
-  currency?: boolean
   coverUrl?: boolean
   isPublished?: boolean
   isCancelled?: boolean
   externalUrl?: boolean
+  paymentMethods?: boolean
   instructorId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type EventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "title" | "description" | "type" | "location" | "startAt" | "endAt" | "capacity" | "price" | "currency" | "coverUrl" | "isPublished" | "isCancelled" | "externalUrl" | "instructorId" | "createdAt" | "updatedAt", ExtArgs["result"]["event"]>
+export type EventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "title" | "description" | "type" | "location" | "startAt" | "endAt" | "capacity" | "coverUrl" | "isPublished" | "isCancelled" | "externalUrl" | "paymentMethods" | "instructorId" | "createdAt" | "updatedAt", ExtArgs["result"]["event"]>
 export type EventInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   instructor?: boolean | Prisma.Event$instructorArgs<ExtArgs>
+  tickets?: boolean | Prisma.Event$ticketsArgs<ExtArgs>
+  _count?: boolean | Prisma.EventCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type EventIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
@@ -1170,6 +1291,7 @@ export type $EventPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   objects: {
     school: Prisma.$SchoolPayload<ExtArgs>
     instructor: Prisma.$InstructorPayload<ExtArgs> | null
+    tickets: Prisma.$EventTicketPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1181,12 +1303,11 @@ export type $EventPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     startAt: Date
     endAt: Date | null
     capacity: number | null
-    price: number
-    currency: string
     coverUrl: string | null
     isPublished: boolean
     isCancelled: boolean
     externalUrl: string | null
+    paymentMethods: string[]
     instructorId: string | null
     createdAt: Date
     updatedAt: Date
@@ -1586,6 +1707,7 @@ export interface Prisma__EventClient<T, Null = never, ExtArgs extends runtime.Ty
   readonly [Symbol.toStringTag]: "PrismaPromise"
   school<T extends Prisma.SchoolDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SchoolDefaultArgs<ExtArgs>>): Prisma.Prisma__SchoolClient<runtime.Types.Result.GetResult<Prisma.$SchoolPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   instructor<T extends Prisma.Event$instructorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Event$instructorArgs<ExtArgs>>): Prisma.Prisma__InstructorClient<runtime.Types.Result.GetResult<Prisma.$InstructorPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  tickets<T extends Prisma.Event$ticketsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Event$ticketsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventTicketPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1624,12 +1746,11 @@ export interface EventFieldRefs {
   readonly startAt: Prisma.FieldRef<"Event", 'DateTime'>
   readonly endAt: Prisma.FieldRef<"Event", 'DateTime'>
   readonly capacity: Prisma.FieldRef<"Event", 'Int'>
-  readonly price: Prisma.FieldRef<"Event", 'Float'>
-  readonly currency: Prisma.FieldRef<"Event", 'String'>
   readonly coverUrl: Prisma.FieldRef<"Event", 'String'>
   readonly isPublished: Prisma.FieldRef<"Event", 'Boolean'>
   readonly isCancelled: Prisma.FieldRef<"Event", 'Boolean'>
   readonly externalUrl: Prisma.FieldRef<"Event", 'String'>
+  readonly paymentMethods: Prisma.FieldRef<"Event", 'String[]'>
   readonly instructorId: Prisma.FieldRef<"Event", 'String'>
   readonly createdAt: Prisma.FieldRef<"Event", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Event", 'DateTime'>
@@ -2050,6 +2171,30 @@ export type Event$instructorArgs<ExtArgs extends runtime.Types.Extensions.Intern
    */
   include?: Prisma.InstructorInclude<ExtArgs> | null
   where?: Prisma.InstructorWhereInput
+}
+
+/**
+ * Event.tickets
+ */
+export type Event$ticketsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EventTicket
+   */
+  select?: Prisma.EventTicketSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EventTicket
+   */
+  omit?: Prisma.EventTicketOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EventTicketInclude<ExtArgs> | null
+  where?: Prisma.EventTicketWhereInput
+  orderBy?: Prisma.EventTicketOrderByWithRelationInput | Prisma.EventTicketOrderByWithRelationInput[]
+  cursor?: Prisma.EventTicketWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EventTicketScalarFieldEnum | Prisma.EventTicketScalarFieldEnum[]
 }
 
 /**

@@ -1,9 +1,8 @@
 'use client'
 
 import { useDashboard } from '../../../../components/DashboardShell'
-import { useState, useRef, useEffect } from 'react'
-import Image from 'next/image'
-import {Users, Calendar, CreditCard, BarChart2, Settings, Bell, ChevronRight, ChevronDown, Menu, X, Plus, ChevronLeft, Clock, Search, LayoutList, CalendarDays, MoreHorizontal, TrendingUp, Pencil, Copy, Trash2, Eye, Check, Upload, Flame, Award, School, ShoppingBag, HelpCircle} from 'lucide-react'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { Users, Calendar, CreditCard, BarChart2, Settings, Bell, ChevronRight, Menu, X, Plus, ChevronLeft, Clock, Search, LayoutList, CalendarDays, MoreHorizontal, TrendingUp, Pencil, Copy, Trash2, Eye, Check, Upload, Flame, Award, School, ShoppingBag, HelpCircle } from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import type { Translations } from '../../../../lib/i18n/translations'
 
@@ -14,11 +13,9 @@ const END_HOUR    = 22
 const HOURS       = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => i + START_HOUR)
 const DAYS        = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
-// Simulated "today": June 4 2026 — Thursday (index 3 in Mon-based week)
-const TODAY = new Date(2026, 5, 4)
-// Simulated current time: 10:30 AM
-const NOW_H = 10
-const NOW_M = 30
+const TODAY = new Date()
+const NOW_H = TODAY.getHours()
+const NOW_M = TODAY.getMinutes()
 
 // ── Activity colours ───────────────────────────────────────────────────────────
 const ACTIVITY_COLORS: Record<string, { bg: string; border: string; text: string }> = {
@@ -34,80 +31,79 @@ const ACTIVITY_COLORS: Record<string, { bg: string; border: string; text: string
 
 const ACTIVITIES_LIST = Object.keys(ACTIVITY_COLORS)
 
-// ── Locations & Rooms ──────────────────────────────────────────────────────────
-interface Location { id: number; name: string; city: string; color: string }
-interface Room     { id: number; name: string; capacity: number; locationId: number }
-
-const LOCATIONS: Location[] = [
-  { id: 1, name: 'Main Academy',  city: 'Madrid', color: '#0071E3' },
-  { id: 2, name: 'Branch Malaga', city: 'Malaga', color: '#7C3AED' },
-]
-
-const ROOMS: Room[] = [
-  { id: 1, name: 'Main Mat',     capacity: 30, locationId: 1 },
-  { id: 2, name: 'Kids Room',    capacity: 20, locationId: 1 },
-  { id: 3, name: 'Weights Area', capacity: 15, locationId: 1 },
-  { id: 4, name: 'Dojo Central', capacity: 25, locationId: 2 },
-  { id: 5, name: 'Fitness Room', capacity: 12, locationId: 2 },
-]
-
-function getRoom(id: number) { return ROOMS.find(r => r.id === id)! }
-function getLoc(id: number)  { return LOCATIONS.find(l => l.id === id)! }
-
-// ── Calendar schedule ──────────────────────────────────────────────────────────
+// ── Types ──────────────────────────────────────────────────────────────────────
 interface ClassSlot {
-  id: number; day: number; startH: number; startM: number; durationM: number
+  id: string; day: number; startH: number; startM: number; durationM: number
   name: string; activity: string; instructor: string; capacity: number; enrolled: number
-  roomId: number; locationId: number
 }
 
-const SCHEDULE: ClassSlot[] = [
-  { id:1,  day:0, startH:7,  startM:0,  durationM:90, name:'BJJ All Levels',    activity:'BJJ',          instructor:'Carlos Silva',  capacity:20, enrolled:8,  roomId:1, locationId:1 },
-  { id:3,  day:0, startH:12, startM:0,  durationM:90, name:'BJJ Advanced',      activity:'BJJ',          instructor:'Jorge Sanchez', capacity:20, enrolled:18, roomId:1, locationId:1 },
-  { id:4,  day:0, startH:18, startM:0,  durationM:90, name:'NOGI Advanced',     activity:'NOGI',         instructor:'Jorge Sanchez', capacity:15, enrolled:14, roomId:1, locationId:1 },
-  { id:5,  day:0, startH:19, startM:0,  durationM:90, name:'BJJ Competition',   activity:'BJJ Comp',     instructor:'Carlos Silva',  capacity:15, enrolled:15, roomId:1, locationId:1 },
-  { id:2,  day:0, startH:9,  startM:30, durationM:60, name:'Kids BJJ',          activity:'BJJ Kids',     instructor:'Ana Torres',    capacity:20, enrolled:10, roomId:2, locationId:1 },
-  { id:6,  day:1, startH:8,  startM:30, durationM:60, name:'NOGI',              activity:'NOGI',         instructor:'Monti',         capacity:15, enrolled:15, roomId:1, locationId:1 },
-  { id:7,  day:1, startH:10, startM:0,  durationM:90, name:'BJJ Beginners',     activity:'BJJ',          instructor:'Carlos Silva',  capacity:25, enrolled:5,  roomId:1, locationId:1 },
-  { id:8,  day:1, startH:17, startM:0,  durationM:60, name:'Wrestling',         activity:'Wrestling',    instructor:'Monti',         capacity:15, enrolled:12, roomId:1, locationId:1 },
-  { id:9,  day:1, startH:19, startM:30, durationM:60, name:'BJJ Iniciacion',    activity:'BJJ',          instructor:'Ana Torres',    capacity:25, enrolled:3,  roomId:2, locationId:1 },
-  { id:10, day:2, startH:7,  startM:0,  durationM:90, name:'BJJ All Levels',    activity:'BJJ',          instructor:'Carlos Silva',  capacity:20, enrolled:8,  roomId:1, locationId:1 },
-  { id:11, day:2, startH:8,  startM:0,  durationM:60, name:'Yoga & Stretching', activity:'Yoga',         instructor:'Laura M.',      capacity:20, enrolled:11, roomId:2, locationId:1 },
-  { id:12, day:2, startH:9,  startM:30, durationM:60, name:'Kids BJJ',          activity:'BJJ Kids',     instructor:'Ana Torres',    capacity:20, enrolled:10, roomId:2, locationId:1 },
-  { id:13, day:2, startH:12, startM:0,  durationM:90, name:'BJJ Advanced',      activity:'BJJ',          instructor:'Jorge Sanchez', capacity:20, enrolled:18, roomId:1, locationId:1 },
-  { id:14, day:2, startH:18, startM:0,  durationM:90, name:'NOGI Advanced',     activity:'NOGI',         instructor:'Jorge Sanchez', capacity:15, enrolled:14, roomId:1, locationId:1 },
-  { id:15, day:2, startH:19, startM:0,  durationM:90, name:'BJJ Competition',   activity:'BJJ Comp',     instructor:'Carlos Silva',  capacity:15, enrolled:15, roomId:1, locationId:1 },
-  { id:16, day:3, startH:8,  startM:30, durationM:60, name:'NOGI',              activity:'NOGI',         instructor:'Monti',         capacity:15, enrolled:15, roomId:1, locationId:1 },
-  { id:17, day:3, startH:10, startM:0,  durationM:90, name:'BJJ Beginners',     activity:'BJJ',          instructor:'Carlos Silva',  capacity:25, enrolled:5,  roomId:1, locationId:1 },
-  { id:18, day:3, startH:17, startM:0,  durationM:60, name:'Wrestling',         activity:'Wrestling',    instructor:'Monti',         capacity:15, enrolled:12, roomId:1, locationId:1 },
-  { id:19, day:3, startH:19, startM:30, durationM:60, name:'BJJ Iniciacion',    activity:'BJJ',          instructor:'Ana Torres',    capacity:25, enrolled:3,  roomId:2, locationId:1 },
-  { id:20, day:4, startH:7,  startM:0,  durationM:90, name:'BJJ All Levels',    activity:'BJJ',          instructor:'Carlos Silva',  capacity:20, enrolled:8,  roomId:1, locationId:1 },
-  { id:21, day:4, startH:8,  startM:0,  durationM:60, name:'Yoga & Stretching', activity:'Yoga',         instructor:'Laura M.',      capacity:20, enrolled:11, roomId:2, locationId:1 },
-  { id:22, day:4, startH:12, startM:0,  durationM:90, name:'BJJ Advanced',      activity:'BJJ',          instructor:'Jorge Sanchez', capacity:20, enrolled:18, roomId:1, locationId:1 },
-  { id:23, day:4, startH:19, startM:0,  durationM:90, name:'BJJ Competition',   activity:'BJJ Comp',     instructor:'Carlos Silva',  capacity:15, enrolled:15, roomId:1, locationId:1 },
-  { id:24, day:5, startH:10, startM:0,  durationM:60, name:'Self Defence',      activity:'Self Defence', instructor:'Jorge Sanchez', capacity:20, enrolled:0,  roomId:4, locationId:2 },
-  { id:25, day:5, startH:11, startM:30, durationM:90, name:'Open Mat',          activity:'Open Mat',     instructor:'—',             capacity:25, enrolled:22, roomId:4, locationId:2 },
-  { id:26, day:6, startH:11, startM:30, durationM:90, name:'Open Mat',          activity:'Open Mat',     instructor:'—',             capacity:25, enrolled:20, roomId:4, locationId:2 },
-]
-
-// ── List view data ─────────────────────────────────────────────────────────────
 interface TimetableRow {
-  id: number; image: string; title: string; activity: string; instructor: string
-  days: string; time: string; startDate: string; endDate: string
-  type: 'Repeat' | 'Single'; status: 'Active' | 'Inactive'
-  locationId: number; roomId: number
+  id: string; title: string; activity: string; instructor: string
+  days: string; time: string; status: 'Active' | 'Inactive'
 }
 
-const TIMETABLE_LIST: TimetableRow[] = [
-  { id:1, image:'/roger-gracie-malaga.jpg',     title:'BJJ All Levels',    activity:'BJJ',          instructor:'Carlos Silva',  days:'Mon · Wed · Fri', time:'07:00–08:30', startDate:'01 Sep 2025', endDate:'30 Jun 2026', type:'Repeat', status:'Active',   locationId:1, roomId:1 },
-  { id:2, image:'/mathouse.jpg',                title:'NOGI',              activity:'NOGI',         instructor:'Monti',         days:'Tue · Thu',       time:'08:30–09:30', startDate:'01 Sep 2025', endDate:'30 Jun 2026', type:'Repeat', status:'Active',   locationId:1, roomId:1 },
-  { id:3, image:'/five-elements-jiu-jitsu.jpg', title:'Kids BJJ',          activity:'BJJ Kids',     instructor:'Ana Torres',    days:'Mon · Wed',       time:'09:30–10:30', startDate:'08 Sep 2025', endDate:'30 Jun 2026', type:'Repeat', status:'Active',   locationId:1, roomId:2 },
-  { id:4, image:'/roger-gracie-malaga.jpg',     title:'BJJ Beginners',     activity:'BJJ',          instructor:'Carlos Silva',  days:'Tue · Thu',       time:'10:00–11:30', startDate:'08 Sep 2025', endDate:'30 Jun 2026', type:'Repeat', status:'Active',   locationId:1, roomId:1 },
-  { id:5, image:'/mathouse.jpg',                title:'Open Mat',          activity:'Open Mat',     instructor:'—',            days:'Sat · Sun',       time:'11:30–13:00', startDate:'13 Sep 2025', endDate:'31 Dec 2026', type:'Repeat', status:'Active',   locationId:2, roomId:4 },
-  { id:6, image:'/five-elements-jiu-jitsu.jpg', title:'BJJ Advanced',      activity:'BJJ',          instructor:'Jorge Sanchez', days:'Mon · Wed · Fri', time:'12:00–13:30', startDate:'01 Sep 2025', endDate:'15 Jun 2026', type:'Repeat', status:'Inactive', locationId:1, roomId:1 },
-  { id:7, image:'/roger-gracie-malaga.jpg',     title:'Wrestling',         activity:'Wrestling',    instructor:'Monti',         days:'Tue · Thu',       time:'17:00–18:00', startDate:'15 Jan 2026', endDate:'15 Jan 2026', type:'Single', status:'Active',   locationId:2, roomId:4 },
-  { id:8, image:'/mathouse.jpg',                title:'NOGI Advanced',     activity:'NOGI',         instructor:'Jorge Sanchez', days:'Mon · Wed · Fri', time:'18:00–19:30', startDate:'01 Sep 2025', endDate:'30 Jun 2026', type:'Repeat', status:'Active',   locationId:1, roomId:1 },
-]
+// ── Converters — DB class → display formats ────────────────────────────────────
+
+interface DbScheduleSlot { dayOfWeek: number; startTime: string; endTime?: string }
+
+interface DbClass {
+  id: string; name: string; isActive: boolean; capacity: number | null
+  schedule: DbScheduleSlot[] | null
+  instructor: { name: string } | null
+  discipline: { name: string } | null
+}
+
+function parseTime(t: string): { h: number; m: number } {
+  const [h, m] = t.split(':').map(Number)
+  return { h: h ?? 0, m: m ?? 0 }
+}
+
+function classesToSlots(classes: DbClass[]): ClassSlot[] {
+  const slots: ClassSlot[] = []
+  for (const cls of classes) {
+    if (!cls.isActive || !cls.schedule) continue
+    for (const s of cls.schedule) {
+      const start = parseTime(s.startTime)
+      const end   = s.endTime ? parseTime(s.endTime) : { h: start.h + 1, m: start.m }
+      const durationM = (end.h * 60 + end.m) - (start.h * 60 + start.m)
+      // DB dayOfWeek: 0=Sun. Display day: 0=Mon. Convert: (dow + 6) % 7
+      const displayDay = (s.dayOfWeek + 6) % 7
+      slots.push({
+        id: `${cls.id}-${s.dayOfWeek}`,
+        day: displayDay,
+        startH: start.h,
+        startM: start.m,
+        durationM: Math.max(30, durationM),
+        name: cls.name,
+        activity: cls.discipline?.name ?? 'Other',
+        instructor: cls.instructor?.name ?? '—',
+        capacity: cls.capacity ?? 20,
+        enrolled: 0,
+      })
+    }
+  }
+  return slots
+}
+
+function classesToListRows(classes: DbClass[]): TimetableRow[] {
+  return classes.map(cls => {
+    const slots = cls.schedule ?? []
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    const days = [...new Set(slots.map(s => dayNames[s.dayOfWeek]))].join(' · ')
+    const times = slots.length > 0
+      ? `${slots[0]!.startTime}${slots[0]!.endTime ? '–' + slots[0]!.endTime : ''}`
+      : '—'
+    return {
+      id: cls.id,
+      title: cls.name,
+      activity: cls.discipline?.name ?? '—',
+      instructor: cls.instructor?.name ?? '—',
+      days: days || '—',
+      time: times,
+      status: cls.isActive ? 'Active' : 'Inactive',
+    }
+  })
+}
 
 const LIST_STATUS_MAP: Record<string, { bg: string; color: string }> = {
   Active:   { bg: '#F0FDF4', color: '#16A34A' },
@@ -213,7 +209,7 @@ function ClassPopup({ slot, onClose }: { slot: ClassSlot; onClose: () => void })
   const endH    = Math.floor(endMin / 60)
   const endMm   = endMin % 60
   const time    = fmtTime(slot.startH, slot.startM) + ' – ' + fmtTime(endH, endMm)
-  const pct     = Math.round((slot.enrolled / slot.capacity) * 100)
+  const pct     = slot.capacity > 0 ? Math.round((slot.enrolled / slot.capacity) * 100) : 0
   const isFull  = slot.enrolled >= slot.capacity
   const barColor = isFull ? '#DC2626' : pct >= 80 ? '#D97706' : '#16A34A'
   const capLabel = isFull ? t.common.full : pct >= 80 ? t.classes.almostFull : t.common.open
@@ -233,13 +229,6 @@ function ClassPopup({ slot, onClose }: { slot: ClassSlot; onClose: () => void })
             </span>
           </div>
           <p style={{ fontSize: 11, color: '#6B7280' }}>{time} · {slot.instructor}</p>
-          <div className="flex items-center gap-1.5 mt-2">
-            <span style={{ fontSize: 10, fontWeight: 600, padding: '1px 6px', borderRadius: 99,
-              background: getLoc(slot.locationId).color + '18', color: getLoc(slot.locationId).color }}>
-              {getLoc(slot.locationId).name}
-            </span>
-            <span style={{ fontSize: 10, color: '#9CA3AF' }}>{getRoom(slot.roomId).name}</span>
-          </div>
           <div style={{ marginTop: 10, height: 4, background: '#F3F4F6', borderRadius: 99, overflow: 'hidden' }}>
             <div style={{ height: '100%', borderRadius: 99, background: barColor, width: pct + '%', transition: 'width 0.3s' }} />
           </div>
@@ -251,7 +240,7 @@ function ClassPopup({ slot, onClose }: { slot: ClassSlot; onClose: () => void })
         <div className="py-1">
           {[
             { icon: Eye,    label: t.classes.viewStudentsAction, color: '#374151' },
-            { icon: Pencil, label: t.classes.editClass,    color: '#374151' },
+            { icon: Pencil, label: t.classes.editClass ?? 'Edit class', color: '#374151' },
             { icon: Copy,   label: t.common.duplicate,     color: '#374151' },
             { icon: Trash2, label: t.common.delete,        color: '#DC2626' },
           ].map(({ icon: Icon, label, color }) => (
@@ -289,7 +278,7 @@ function ClassBlock({ slot, onSelect }: { slot: ClassSlot; onSelect: (s: ClassSl
       <p style={{ fontSize: 11, fontWeight: 700, color: colors.text, lineHeight: 1.2, marginBottom: 1 }}>{slot.name}</p>
       {height > 36 && <p style={{ fontSize: 10, color: colors.text, opacity: 0.75, lineHeight: 1.2 }}>{time}</p>}
       {height > 52 && <p style={{ fontSize: 10, color: colors.text, opacity: 0.6, lineHeight: 1.2 }}>{slot.instructor}</p>}
-      {height > 64 && <p style={{ fontSize: 9, color: colors.text, opacity: 0.5 }}>{getRoom(slot.roomId).name}</p>}
+      {height > 64 && <p style={{ fontSize: 9, color: colors.text, opacity: 0.5 }}>Cap. {slot.capacity}</p>}
       {height > 80 && (
         <div style={{ marginTop: 4 }}>
           <div style={{ height: 3, background: colors.border, borderRadius: 99 }}>
@@ -304,225 +293,38 @@ function ClassBlock({ slot, onSelect }: { slot: ClassSlot; onSelect: (s: ClassSl
   )
 }
 
-// ── Add Timetable drawer ───────────────────────────────────────────────────────
-const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-const INSTRUCTORS_LIST = ['Carlos Silva', 'Monti', 'Ana Torres', 'Jorge Sanchez', 'Laura M.']
-const DEFAULT_DAYS = [true, true, true, true, true, false, false]
-
+// ── Add Timetable drawer — redirects to create class ──────────────────────────
 function AddTimetableDrawer({ open, onClose, onSuccess }: {
   open: boolean; onClose: () => void; onSuccess: () => void
 }) {
-  const t = useT()
-  const daysOfWeek = t.classes.daysOfWeek.split(',')
-  const [repeat, setRepeat]         = useState('Yes')
-  const [selLocId, setSelLocId]     = useState<number | ''>('')
-  const [dayEnabled, setDayEnabled] = useState<boolean[]>([...DEFAULT_DAYS])
-  const [bannerDrag, setBannerDrag] = useState(false)
-
-  // Reset form every time drawer opens
-  useEffect(() => {
-    if (open) {
-      setRepeat('Yes')
-      setSelLocId('')
-      setDayEnabled([...DEFAULT_DAYS])
-      setBannerDrag(false)
-    }
-  }, [open])
-
-  const availableRooms = selLocId !== '' ? ROOMS.filter(r => r.locationId === selLocId) : []
-  const iStyle: React.CSSProperties = {
-    border: '1px solid #E5E7EB', borderRadius: 8, padding: '8px 10px',
-    fontSize: 12, color: '#111827', background: '#fff', outline: 'none', width: '100%',
-  }
-  const lStyle: React.CSSProperties = { display: 'block', fontSize: 11, fontWeight: 600, color: '#374151', marginBottom: 4 }
-
+  // The timetable is derived from classes. Redirect user to create a class instead.
+  if (!open) return null
   return (
     <>
-      <div className="fixed inset-0 z-40 transition-opacity"
-        style={{ background: 'rgba(0,0,0,0.35)', opacity: open ? 1 : 0, pointerEvents: open ? 'auto' : 'none' }}
-        onClick={onClose} />
-      <div className="fixed top-0 right-0 h-full z-50 flex flex-col"
-        style={{ width: 'min(760px,96vw)', background: '#F9FAFB',
-          boxShadow: '-4px 0 32px rgba(0,0,0,0.12)',
-          transform: open ? 'translateX(0)' : 'translateX(100%)',
-          transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)' }}>
-
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 shrink-0"
-          style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
-          <div>
-            <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>{t.classes.addTimetable}</h2>
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{t.classes.timetableDesc}</p>
-          </div>
-          <button onClick={onClose} className="w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
-            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-            <X size={14} style={{ color: '#6B7280' }} />
-          </button>
+      <div className="fixed inset-0 z-40" style={{ background: 'rgba(0,0,0,0.35)' }} onClick={onClose} />
+      <div className="fixed z-50 rounded-2xl p-8 flex flex-col items-center text-center gap-4"
+        style={{ top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+          background: '#fff', width: 380, boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
+        <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: '#EFF6FF' }}>
+          <Calendar size={24} style={{ color: '#0071E3' }} />
         </div>
-
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-5">
-
-          {/* Banner upload */}
-          <div>
-            <label style={lStyle}>{t.classes.timetableBanner}</label>
-            <div onDragEnter={() => setBannerDrag(true)} onDragLeave={() => setBannerDrag(false)} onDrop={() => setBannerDrag(false)}
-              className="flex items-center gap-4 rounded-xl"
-              style={{ border: `2px dashed ${bannerDrag ? '#0071E3' : '#D1D5DB'}`,
-                background: bannerDrag ? '#EFF6FF' : '#fff', padding: '12px 16px' }}>
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: '#F3F4F6' }}>
-                <Upload size={15} style={{ color: '#9CA3AF' }} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>{t.common.dropImage}</p>
-                <p style={{ fontSize: 11, color: '#9CA3AF' }}>{t.common.pngJpg} — 1200×600px</p>
-              </div>
-              <label className="px-3 py-1.5 rounded-lg cursor-pointer shrink-0"
-                style={{ fontSize: 12, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
-                {t.common.browse}<input type="file" accept="image/*" className="hidden" />
-              </label>
-            </div>
-          </div>
-
-          {/* Title + Instructor */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label style={lStyle}>Title</label>
-              <input type="text" placeholder="e.g. BJJ Schedule" style={iStyle} />
-            </div>
-            <div>
-              <label style={lStyle}>Instructor</label>
-              <select style={iStyle}>
-                <option value="">Select instructor...</option>
-                {INSTRUCTORS_LIST.map(i => <option key={i}>{i}</option>)}
-              </select>
-            </div>
-          </div>
-
-          {/* Activity + Capacity */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label style={lStyle}>Activity</label>
-              <select style={iStyle}>
-                <option value="">Select activity...</option>
-                {ACTIVITIES_LIST.map(a => <option key={a}>{a}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={lStyle}>Capacity</label>
-              <input type="number" placeholder="20" min={1} style={iStyle} />
-            </div>
-          </div>
-
-          {/* Location + Room */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label style={lStyle}>Location</label>
-              <select style={iStyle} value={selLocId}
-                onChange={e => setSelLocId(e.target.value === '' ? '' : Number(e.target.value))}>
-                <option value="">Select location...</option>
-                {LOCATIONS.map(l => <option key={l.id} value={l.id}>{l.name} — {l.city}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={lStyle}>Room</label>
-              <select style={{ ...iStyle, opacity: selLocId === '' ? 0.5 : 1 }} disabled={selLocId === ''}>
-                <option value="">{selLocId === '' ? 'Select location first' : 'Select room...'}</option>
-                {availableRooms.map(r => <option key={r.id} value={r.id}>{r.name} (cap. {r.capacity})</option>)}
-              </select>
-            </div>
-          </div>
-
-          {/* Repeat + Dates */}
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label style={lStyle}>Repeat Timetable</label>
-              <select value={repeat} onChange={e => setRepeat(e.target.value)} style={iStyle}>
-                <option>Yes</option>
-                <option>No</option>
-              </select>
-            </div>
-            <div>
-              <label style={lStyle}>Start Date</label>
-              <input type="date" style={iStyle} />
-            </div>
-            <div>
-              <label style={lStyle}>{repeat === 'Yes' ? 'Repeat End Date' : 'End Date'}</label>
-              <input type="date" style={iStyle} />
-            </div>
-          </div>
-
-          {/* Session timings */}
-          <div>
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#0071E3', marginBottom: 12 }}>Session Timings by Day</p>
-            <div className="rounded-xl overflow-hidden" style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
-              <table className="w-full">
-                <thead>
-                  <tr style={{ borderBottom: '1px solid #F3F4F6', background: '#F9FAFB' }}>
-                    {['Day', 'Start Time', 'End Time', 'Break Start', 'Break End', 'Active'].map(h => (
-                      <th key={h} className="px-3 py-2 text-left"
-                        style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF',
-                          textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {DAYS_OF_WEEK.map((day, idx) => {
-                    const on = dayEnabled[idx] ?? false
-                    return (
-                      <tr key={day} style={{
-                        borderBottom: idx < DAYS_OF_WEEK.length - 1 ? '1px solid #F9FAFB' : 'none',
-                        opacity: on ? 1 : 0.4, transition: 'opacity 0.15s' }}>
-                        <td className="px-3 py-2">
-                          <span style={{ fontSize: 11, fontWeight: 700, color: '#374151',
-                            textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                            {day.slice(0, 3)}
-                          </span>
-                        </td>
-                        {[0, 1, 2, 3].map(i => (
-                          <td key={i} className="px-3 py-2">
-                            <input type="time" disabled={!on}
-                              style={{ ...iStyle, width: 90, padding: '5px 6px', fontSize: 11,
-                                cursor: on ? 'text' : 'not-allowed' }} />
-                          </td>
-                        ))}
-                        <td className="px-3 py-2">
-                          <div onClick={() => setDayEnabled(prev => prev.map((v, i) => i === idx ? !v : v))}
-                            className="cursor-pointer select-none"
-                            style={{ width: 44, height: 22, borderRadius: 99,
-                              background: on ? '#0071E3' : '#E5E7EB',
-                              padding: '2px', display: 'flex', alignItems: 'center',
-                              justifyContent: on ? 'flex-end' : 'flex-start',
-                              transition: 'background 0.2s' }}>
-                            <div style={{ width: 18, height: 18, borderRadius: '50%',
-                              background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
-                              transition: 'all 0.2s' }} />
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
+        <div>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>Add a class</h3>
+          <p style={{ fontSize: 13, color: '#6B7280', marginTop: 6 }}>
+            The timetable is built from your classes. Create a class with a weekly schedule to see it here.
+          </p>
         </div>
-
-        {/* Footer */}
-        <div className="px-6 py-4 flex items-center justify-end gap-3 shrink-0"
-          style={{ background: '#fff', borderTop: '1px solid #E5E7EB' }}>
+        <div className="flex gap-3 w-full">
           <button onClick={onClose}
-            className="px-5 py-2.5 rounded-xl cursor-pointer"
+            className="flex-1 py-2.5 rounded-xl cursor-pointer"
             style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
             Cancel
           </button>
-          <button onClick={onSuccess}
-            className="px-6 py-2.5 rounded-xl cursor-pointer"
-            style={{ fontSize: 13, fontWeight: 600, border: 'none', background: '#0071E3', color: '#fff' }}>
-            Add Timetable
-          </button>
+          <a href="/dashboard/classes"
+            className="flex-1 py-2.5 rounded-xl text-center cursor-pointer"
+            style={{ fontSize: 13, fontWeight: 600, border: 'none', background: '#0071E3', color: '#fff', textDecoration: 'none' }}>
+            Go to Classes
+          </a>
         </div>
       </div>
     </>
@@ -562,14 +364,32 @@ export default function TimetableClient() {
   const [weekOffset, setWeekOffset]     = useState(0)
   const [view, setView]                 = useState<'calendar' | 'list'>('calendar')
   const [currentPage, setCurrentPage]   = useState(1)
-  const [openMenuId, setOpenMenuId]     = useState<number | null>(null)
+  const [openMenuId, setOpenMenuId]     = useState<string | null>(null)
   const [drawerOpen, setDrawerOpen]     = useState(false)
   const [successOpen, setSuccessOpen]   = useState(false)
   const [selectedSlot, setSelectedSlot] = useState<ClassSlot | null>(null)
-  const [filterLocId, setFilterLocId]   = useState<number | null>(null)
   const [listSearch, setListSearch]     = useState('')
   const [listActivity, setListActivity] = useState('All')
+  const [schedule, setSchedule]         = useState<ClassSlot[]>([])
+  const [listRows, setListRows]         = useState<TimetableRow[]>([])
+  const [loading, setLoading]           = useState(true)
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  const loadClasses = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/dashboard/classes')
+      if (res.ok) {
+        const data = await res.json()
+        setSchedule(classesToSlots(data.classes ?? []))
+        setListRows(classesToListRows(data.classes ?? []))
+      }
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { loadClasses() }, [loadClasses])
 
   // Auto-scroll to current time on mount
   useEffect(() => {
@@ -577,8 +397,6 @@ export default function TimetableClient() {
       scrollRef.current.scrollTop = Math.max(0, classTop(NOW_H, NOW_M) - 120)
     }
   }, [])
-
-  const filteredSchedule = filterLocId ? SCHEDULE.filter(s => s.locationId === filterLocId) : SCHEDULE
 
   const monday    = getWeekStart(weekOffset)
   const weekLabel = formatWeekLabel(monday)
@@ -588,8 +406,8 @@ export default function TimetableClient() {
   const nowTop = classTop(NOW_H, NOW_M)
 
   // List filtering
-  const activityOptions = ['All', ...Array.from(new Set(TIMETABLE_LIST.map(r => r.activity)))]
-  const filteredList = TIMETABLE_LIST.filter(r => {
+  const activityOptions = ['All', ...Array.from(new Set(listRows.map(r => r.activity)))]
+  const filteredList = listRows.filter(r => {
     const q = listSearch.toLowerCase()
     return (listActivity === 'All' || r.activity === listActivity) &&
       (listSearch === '' || r.title.toLowerCase().includes(q) || r.instructor.toLowerCase().includes(q))
@@ -758,9 +576,6 @@ export default function TimetableClient() {
                       { label: 'Class',      cls: '' },
                       { label: 'Schedule',   cls: 'hidden md:table-cell' },
                       { label: 'Instructor', cls: 'hidden lg:table-cell' },
-                      { label: 'Location',   cls: 'hidden md:table-cell' },
-                      { label: 'Period',     cls: 'hidden xl:table-cell' },
-                      { label: 'Type',       cls: 'hidden md:table-cell' },
                       { label: 'Status',     cls: '' },
                       { label: 'Actions',    cls: '' },
                     ].map(h => (
@@ -775,7 +590,6 @@ export default function TimetableClient() {
                 <tbody>
                   {paginated.map((row, idx) => {
                     const sc = LIST_STATUS_MAP[row.status] ?? { bg: '#F3F4F6', color: '#6B7280' }
-                    const tc = row.type === 'Repeat' ? { bg: '#EFF6FF', color: '#2563EB' } : { bg: '#F5F3FF', color: '#6D28D9' }
                     const ac = ACTIVITY_COLORS[row.activity]
                     return (
                       <tr key={row.id}
@@ -784,8 +598,9 @@ export default function TimetableClient() {
                         {/* Class */}
                         <td className="px-5 py-3">
                           <div className="flex items-center gap-3">
-                            <div className="shrink-0 rounded-lg overflow-hidden relative" style={{ width: 36, height: 36 }}>
-                              <Image src={row.image} alt={row.title} fill className="object-cover" />
+                            <div className="shrink-0 rounded-lg flex items-center justify-center"
+                              style={{ width: 36, height: 36, background: ac?.bg ?? '#F3F4F6' }}>
+                              <Calendar size={16} style={{ color: ac?.text ?? '#6B7280' }} />
                             </div>
                             <div>
                               <p style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{row.title}</p>
@@ -805,30 +620,6 @@ export default function TimetableClient() {
                         {/* Instructor */}
                         <td className="hidden lg:table-cell px-5 py-3">
                           <span style={{ fontSize: 12, color: '#374151' }}>{row.instructor}</span>
-                        </td>
-                        {/* Location */}
-                        <td className="hidden md:table-cell px-5 py-3">
-                          <div className="flex items-center gap-1.5">
-                            <span style={{ width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
-                              background: getLoc(row.locationId).color, display: 'inline-block' }} />
-                            <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{getLoc(row.locationId).name}</span>
-                          </div>
-                          <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 1, paddingLeft: 10 }}>
-                            {getRoom(row.roomId).name}
-                          </p>
-                        </td>
-                        {/* Period */}
-                        <td className="hidden xl:table-cell px-5 py-3">
-                          <p style={{ fontSize: 12, color: '#6B7280' }}>{row.startDate}</p>
-                          {row.type === 'Repeat' && (
-                            <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 1 }}>→ {row.endDate}</p>
-                          )}
-                        </td>
-                        {/* Type */}
-                        <td className="hidden md:table-cell px-5 py-3">
-                          <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 999, background: tc.bg, color: tc.color }}>
-                            {row.type}
-                          </span>
                         </td>
                         {/* Status */}
                         <td className="px-5 py-3">
@@ -926,33 +717,6 @@ export default function TimetableClient() {
         {view === 'calendar' && (
           <div className="flex flex-col flex-1 overflow-hidden">
 
-            {/* Location filter */}
-            <div className="flex items-center gap-2 px-4 md:px-6 py-2 shrink-0"
-              style={{ background: '#fff', borderBottom: '1px solid #F3F4F6' }}>
-              <span style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF',
-                textTransform: 'uppercase', letterSpacing: '0.04em', marginRight: 4 }}>Location</span>
-              <button onClick={() => setFilterLocId(null)}
-                className="px-3 py-1 rounded-lg cursor-pointer"
-                style={{ fontSize: 12, fontWeight: filterLocId === null ? 600 : 400, border: 'none',
-                  background: filterLocId === null ? '#111827' : '#F3F4F6',
-                  color: filterLocId === null ? '#fff' : '#374151' }}>
-                All locations
-              </button>
-              {LOCATIONS.map(loc => (
-                <button key={loc.id} onClick={() => setFilterLocId(loc.id)}
-                  className="flex items-center gap-1.5 px-3 py-1 rounded-lg cursor-pointer"
-                  style={{ fontSize: 12, fontWeight: filterLocId === loc.id ? 600 : 400, border: 'none',
-                    background: filterLocId === loc.id ? loc.color : '#F3F4F6',
-                    color: filterLocId === loc.id ? '#fff' : '#374151' }}>
-                  <span style={{ width: 6, height: 6, borderRadius: '50%',
-                    background: filterLocId === loc.id ? 'rgba(255,255,255,0.7)' : loc.color,
-                    flexShrink: 0, display: 'inline-block' }} />
-                  {loc.name}
-                  <span style={{ fontSize: 11, opacity: 0.75 }}> · {loc.city}</span>
-                </button>
-              ))}
-            </div>
-
             {/* Day header */}
             <div className="flex shrink-0" style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
               <div style={{ width: 56, flexShrink: 0 }} />
@@ -992,7 +756,6 @@ export default function TimetableClient() {
                 {/* Day columns */}
                 {DAYS.map((day, dayIdx) => {
                   const isToday  = dayIdx === todayIdx
-                  const daySlots = filteredSchedule.filter(s => s.day === dayIdx)
                   return (
                     <div key={day} className="flex-1 border-l relative"
                       style={{ borderColor: '#F3F4F6', minWidth: 0, background: isToday ? '#FAFBFF' : 'transparent' }}>
@@ -1008,7 +771,7 @@ export default function TimetableClient() {
                           <div style={{ flex: 1, height: 1.5, background: '#EF4444', opacity: 0.9 }} />
                         </div>
                       )}
-                      {daySlots.map(slot => (
+                      {schedule.filter(s => s.day === dayIdx).map(slot => (
                         <ClassBlock key={slot.id} slot={slot} onSelect={setSelectedSlot} />
                       ))}
                     </div>

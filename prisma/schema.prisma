@@ -590,24 +590,42 @@ model Event {
   title       String
   description String?
   type        EventType @default(OTHER)
-  location    String?   // May differ from school address
+  location    String?
   startAt     DateTime
   endAt       DateTime?
   capacity    Int?
-  price       Float     @default(0)
-  currency    String    @default("EUR")
   coverUrl    String?
-  isPublished  Boolean   @default(false)
-  isCancelled  Boolean   @default(false)
-  externalUrl  String?   // e.g. competition registration link
+  isPublished    Boolean  @default(false)
+  isCancelled    Boolean  @default(false)
+  externalUrl    String?
+  paymentMethods String[] @default([]) // ["STRIPE","CASH","BANK_TRANSFER"]
 
   instructorId String?
-  instructor   Instructor? @relation(fields: [instructorId], references: [id])
+  instructor   Instructor?   @relation(fields: [instructorId], references: [id])
+  tickets      EventTicket[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@map("events")
+}
+
+model EventTicket {
+  id            String  @id @default(cuid())
+  eventId       String
+  event         Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  name          String           // e.g. "Early Bird", "Member", "VIP"
+  description   String?
+  price         Float   @default(0)
+  currency      String  @default("EUR")
+  capacity      Int?              // null = unlimited
+  sortOrder     Int     @default(0)
+  stripePriceId String?           // wired when Stripe is connected
+
+  createdAt     DateTime @default(now())
+
+  @@map("event_tickets")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

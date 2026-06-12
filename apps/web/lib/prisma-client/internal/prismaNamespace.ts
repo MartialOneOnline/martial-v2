@@ -398,6 +398,7 @@ export const ModelName = {
   Review: 'Review',
   Class: 'Class',
   Event: 'Event',
+  EventTicket: 'EventTicket',
   Booking: 'Booking',
   Membership: 'Membership',
   Camp: 'Camp',
@@ -432,7 +433,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "user" | "discipline" | "schoolDiscipline" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "event" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "schoolClaim" | "grading" | "lead" | "leadNote" | "schoolInvitation" | "waiver" | "userWaiver" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "partner"
+    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "user" | "discipline" | "schoolDiscipline" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "event" | "eventTicket" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "schoolClaim" | "grading" | "lead" | "leadNote" | "schoolInvitation" | "waiver" | "userWaiver" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "partner"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1469,6 +1470,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.EventCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.EventCountAggregateOutputType> | number
+        }
+      }
+    }
+    EventTicket: {
+      payload: Prisma.$EventTicketPayload<ExtArgs>
+      fields: Prisma.EventTicketFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EventTicketFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventTicketPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EventTicketFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventTicketPayload>
+        }
+        findFirst: {
+          args: Prisma.EventTicketFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventTicketPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EventTicketFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventTicketPayload>
+        }
+        findMany: {
+          args: Prisma.EventTicketFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventTicketPayload>[]
+        }
+        create: {
+          args: Prisma.EventTicketCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventTicketPayload>
+        }
+        createMany: {
+          args: Prisma.EventTicketCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.EventTicketCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventTicketPayload>[]
+        }
+        delete: {
+          args: Prisma.EventTicketDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventTicketPayload>
+        }
+        update: {
+          args: Prisma.EventTicketUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventTicketPayload>
+        }
+        deleteMany: {
+          args: Prisma.EventTicketDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EventTicketUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.EventTicketUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventTicketPayload>[]
+        }
+        upsert: {
+          args: Prisma.EventTicketUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventTicketPayload>
+        }
+        aggregate: {
+          args: Prisma.EventTicketAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEventTicket>
+        }
+        groupBy: {
+          args: Prisma.EventTicketGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EventTicketGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EventTicketCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EventTicketCountAggregateOutputType> | number
         }
       }
     }
@@ -3173,18 +3248,33 @@ export const EventScalarFieldEnum = {
   startAt: 'startAt',
   endAt: 'endAt',
   capacity: 'capacity',
-  price: 'price',
-  currency: 'currency',
   coverUrl: 'coverUrl',
   isPublished: 'isPublished',
   isCancelled: 'isCancelled',
   externalUrl: 'externalUrl',
+  paymentMethods: 'paymentMethods',
   instructorId: 'instructorId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type EventScalarFieldEnum = (typeof EventScalarFieldEnum)[keyof typeof EventScalarFieldEnum]
+
+
+export const EventTicketScalarFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  name: 'name',
+  description: 'description',
+  price: 'price',
+  currency: 'currency',
+  capacity: 'capacity',
+  sortOrder: 'sortOrder',
+  stripePriceId: 'stripePriceId',
+  createdAt: 'createdAt'
+} as const
+
+export type EventTicketScalarFieldEnum = (typeof EventTicketScalarFieldEnum)[keyof typeof EventTicketScalarFieldEnum]
 
 
 export const BookingScalarFieldEnum = {
@@ -4005,6 +4095,7 @@ export type GlobalOmitConfig = {
   review?: Prisma.ReviewOmit
   class?: Prisma.ClassOmit
   event?: Prisma.EventOmit
+  eventTicket?: Prisma.EventTicketOmit
   booking?: Prisma.BookingOmit
   membership?: Prisma.MembershipOmit
   camp?: Prisma.CampOmit
