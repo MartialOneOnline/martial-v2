@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import {
   Bell,
   Menu, X, Search, Filter, Plus, MoreHorizontal,
@@ -16,33 +15,50 @@ import { useT } from '../../../lib/i18n/LanguageContext'
 // bg: #F9FAFB | card: #fff | border: #E5E7EB | text-1: #111827 | text-2: #6B7280
 // blue: #0071E3 | green: #16A34A | red: #DC2626 | amber: #D97706
 
-// ── Mock data ──────────────────────────────────────────────────────────────────
+// ── Types ──────────────────────────────────────────────────────────────────────
+type Student = {
+  id: string
+  name: string
+  email: string
+  belt: string
+  beltDegree: number
+  status: string
+  role: string
+  joinedAt: string | null
+}
 
-const STUDENTS = [
-  { id: 1,  avatar: 'https://i.pravatar.cc/40?u=fn',  name: 'Fernanda Neves',    email: 'fernanda@email.com',   belt: 'Blue',   stripes: 2, membership: 'Premium',    classes: 24,  lastSeen: '2h ago',  status: 'Active'   },
-  { id: 2,  avatar: 'https://i.pravatar.cc/40?u=pm',  name: 'Patricia Mancera',  email: 'patricia@email.com',   belt: 'White',  stripes: 4, membership: 'Basic',      classes: 8,   lastSeen: '1d ago',  status: 'Active'   },
-  { id: 3,  avatar: 'https://i.pravatar.cc/40?u=mt',  name: 'Matias Toloza',     email: 'matias@email.com',     belt: 'Purple', stripes: 1, membership: 'Premium',    classes: 61,  lastSeen: '3h ago',  status: 'Pending'  },
-  { id: 4,  avatar: 'https://i.pravatar.cc/40?u=fw',  name: 'Florian Walter',    email: 'florian@email.com',    belt: 'Blue',   stripes: 3, membership: 'Premium',    classes: 38,  lastSeen: '5d ago',  status: 'Inactive' },
-  { id: 5,  avatar: 'https://i.pravatar.cc/40?u=ad',  name: 'Alejandro DB',      email: 'alejandro@email.com',  belt: 'Brown',  stripes: 0, membership: 'Premium',    classes: 112, lastSeen: '1h ago',  status: 'Active'   },
-  { id: 6,  avatar: 'https://i.pravatar.cc/40?u=rg',  name: 'Rafael Gonzalez',   email: 'rafael@email.com',     belt: 'White',  stripes: 2, membership: 'Basic',      classes: 5,   lastSeen: '2w ago',  status: 'Archived' },
-  { id: 7,  avatar: 'https://i.pravatar.cc/40?u=lm',  name: 'Laura Martinez',    email: 'laura@email.com',      belt: 'Blue',   stripes: 1, membership: 'Premium',    classes: 29,  lastSeen: '4h ago',  status: 'Active'   },
-  { id: 8,  avatar: 'https://i.pravatar.cc/40?u=js',  name: 'Jorge Sanchez',     email: 'jorge@email.com',      belt: 'Black',  stripes: 1, membership: 'Instructor', classes: 203, lastSeen: 'Now',     status: 'Active'   },
-  { id: 9,  avatar: 'https://i.pravatar.cc/40?u=ak',  name: 'Anna Kowalski',     email: 'anna@email.com',       belt: 'White',  stripes: 0, membership: 'Trial',      classes: 2,   lastSeen: '3d ago',  status: 'Lead'     },
-  { id: 10, avatar: 'https://i.pravatar.cc/40?u=dm',  name: 'Diego Morales',     email: 'diego@email.com',      belt: 'Purple', stripes: 3, membership: 'Premium',    classes: 77,  lastSeen: '6h ago',  status: 'Active'   },
-  { id: 11, avatar: 'https://i.pravatar.cc/40?u=sc',  name: 'Sofia Chen',        email: 'sofia@email.com',      belt: 'Blue',   stripes: 0, membership: 'Basic',      classes: 14,  lastSeen: '2d ago',  status: 'Pending'  },
-  { id: 12, avatar: 'https://i.pravatar.cc/40?u=mb',  name: 'Marco Bianchi',     email: 'marco@email.com',      belt: 'White',  stripes: 3, membership: 'Basic',      classes: 11,  lastSeen: '1w ago',  status: 'Inactive' },
-  { id: 13, avatar: 'https://i.pravatar.cc/40?u=cl',  name: 'Carlos Lopez',      email: 'carlos@email.com',     belt: 'White',  stripes: 0, membership: 'Trial',      classes: 0,   lastSeen: 'Never',   status: 'Lead'     },
-  { id: 14, avatar: 'https://i.pravatar.cc/40?u=hr',  name: 'Hannah Richter',    email: 'hannah@email.com',     belt: 'Blue',   stripes: 2, membership: 'Basic',      classes: 19,  lastSeen: '3w ago',  status: 'Archived' },
-]
+// Map V1 Spanish belt names → display name + color key
+const BELT_DISPLAY: Record<string, { label: string; colorKey: string }> = {
+  Blanco:  { label: 'Blanco', colorKey: 'White'  },
+  Azul:    { label: 'Azul',   colorKey: 'Blue'   },
+  Morado:  { label: 'Morado', colorKey: 'Purple' },
+  Marron:  { label: 'Marrón', colorKey: 'Brown'  },
+  Negro:   { label: 'Negro',  colorKey: 'Black'  },
+  // English fallbacks (instructors seeded with English)
+  White:   { label: 'Blanco', colorKey: 'White'  },
+  Blue:    { label: 'Azul',   colorKey: 'Blue'   },
+  Purple:  { label: 'Morado', colorKey: 'Purple' },
+  Brown:   { label: 'Marrón', colorKey: 'Brown'  },
+  Black:   { label: 'Negro',  colorKey: 'Black'  },
+}
+
+// Map DB status (ACTIVE/INACTIVE/PENDING…) → display
+const STATUS_DISPLAY: Record<string, string> = {
+  ACTIVE:   'Active',
+  INACTIVE: 'Inactive',
+  PENDING:  'Pending',
+  ARCHIVED: 'Archived',
+  LEAD:     'Lead',
+}
 
 // STATS built inside component from t.*
 
 const BELT_COLORS: Record<string, { bg: string; color: string; dot: string }> = {
-  White:      { bg: '#F9FAFB', color: '#374151',   dot: '#9CA3AF' },
-  Blue:       { bg: '#EFF6FF', color: '#2563EB',   dot: '#2563EB' },
-  Purple:     { bg: '#F5F3FF', color: '#7C3AED',   dot: '#7C3AED' },
-  Brown:      { bg: '#FEF3C7', color: '#92400E',   dot: '#92400E' },
-  Black:      { bg: '#F3F4F6', color: '#111827',   dot: '#111827' },
+  White:  { bg: '#F9FAFB', color: '#374151', dot: '#9CA3AF' },
+  Blue:   { bg: '#EFF6FF', color: '#2563EB', dot: '#2563EB' },
+  Purple: { bg: '#F5F3FF', color: '#7C3AED', dot: '#7C3AED' },
+  Brown:  { bg: '#FEF3C7', color: '#92400E', dot: '#92400E' },
+  Black:  { bg: '#F3F4F6', color: '#111827', dot: '#111827' },
 }
 
 const STATUS_MAP: Record<string, { bg: string; color: string }> = {
@@ -54,14 +70,15 @@ const STATUS_MAP: Record<string, { bg: string; color: string }> = {
 }
 
 function BeltBadge({ belt, stripes }: { belt: string; stripes: number }) {
-  const c = BELT_COLORS[belt] ?? BELT_COLORS['White']!
+  const display = BELT_DISPLAY[belt] ?? { label: belt, colorKey: 'White' }
+  const c = BELT_COLORS[display.colorKey] ?? BELT_COLORS['White']!
   return (
     <span className="inline-flex items-center gap-1.5" style={{
       background: c.bg, color: c.color, fontSize: 11, fontWeight: 600,
       padding: '3px 8px', borderRadius: 999,
     }}>
       <span style={{ width: 6, height: 6, borderRadius: '50%', background: c.dot, display: 'inline-block', flexShrink: 0 }} />
-      {belt}
+      {display.label}
       {stripes > 0 && (
         <span style={{ display: 'inline-flex', gap: 1 }}>
           {Array.from({ length: stripes }).map((_, i) => (
@@ -93,21 +110,24 @@ function getPaginationPages(current: number, total: number): (number | '...')[] 
 
 type Filter = 'All' | 'Active' | 'Inactive' | 'Pending' | 'Lead' | 'Archived'
 
-export default function UsersClient() {
+export default function UsersClient({ students }: { students: Student[] }) {
   const { menuOpen, setMenuOpen } = useDashboard()
   const t = useT()
+
+  const activeCount = students.filter(s => s.status === 'ACTIVE').length
   const STATS = [
-    { label: t.users.totalStudents, value: '665', trend: '+14%', trendUp: true, sub: t.common.vsLastMonth },
-    { label: t.users.activeMembers, value: '421', trend: '+8%',  trendUp: true, sub: t.common.thisMonth   },
-    { label: t.users.newThisMonth,  value: '23',  trend: '+5',   trendUp: true, sub: t.common.vsLastMonth },
-    { label: t.users.avgAttendance, value: '78%', trend: '+3%',  trendUp: true, sub: t.common.thisWeek    },
+    { label: t.users.totalStudents, value: String(students.length), trend: '', trendUp: true, sub: t.common.vsLastMonth },
+    { label: t.users.activeMembers, value: String(activeCount),     trend: '', trendUp: true, sub: t.common.thisMonth   },
+    { label: t.users.newThisMonth,  value: '—',                     trend: '', trendUp: true, sub: t.common.vsLastMonth },
+    { label: t.users.avgAttendance, value: '—',                     trend: '', trendUp: true, sub: t.common.thisWeek    },
   ]
   const [activeFilter, setActiveFilter] = useState<Filter>('All')
   const [search, setSearch]             = useState('')
   const [currentPage, setCurrentPage]   = useState(1)
 
-  const filtered = STUDENTS.filter(s => {
-    const matchFilter = activeFilter === 'All' || s.status === activeFilter
+  const filtered = students.filter(s => {
+    const displayStatus = STATUS_DISPLAY[s.status] ?? s.status
+    const matchFilter = activeFilter === 'All' || displayStatus === activeFilter
     const matchSearch = s.name.toLowerCase().includes(search.toLowerCase()) ||
                         s.email.toLowerCase().includes(search.toLowerCase())
     return matchFilter && matchSearch
@@ -178,7 +198,7 @@ export default function UsersClient() {
                   {t.users.title}
                 </h1>
                 <p style={{ fontSize: 13, color: '#6B7280', marginTop: 2 }}>
-                  {filtered.length} {t.common.of} {STUDENTS.length} {t.users.ofMembers}
+                  {filtered.length} {t.common.of} {students.length} {t.users.ofMembers}
                 </p>
               </div>
               <button className="hidden sm:flex items-center gap-2 cursor-pointer"
@@ -196,14 +216,14 @@ export default function UsersClient() {
                   style={{ background: '#fff', border: '1px solid #E5E7EB', padding: '14px 16px' }}>
                   <div className="flex items-start justify-between mb-3">
                     <span style={{ fontSize: 11, color: '#9CA3AF' }}>{stat.label}</span>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2,
+                    {stat.trend && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2,
                       fontSize: 11, fontWeight: 600,
                       background: stat.trendUp ? '#F0FDF4' : '#FEF2F2',
                       color: stat.trendUp ? '#16A34A' : '#DC2626',
                       padding: '2px 7px', borderRadius: 999, flexShrink: 0 }}>
                       <TrendingUp size={9} />
                       {stat.trend}
-                    </span>
+                    </span>}
                   </div>
                   <p style={{ fontSize: 28, fontWeight: 700, color: '#111827', letterSpacing: '-0.03em', lineHeight: 1 }}>
                     {stat.value}
@@ -232,8 +252,8 @@ export default function UsersClient() {
                   {filterLabels[f]}
                   <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 600,
                     color: activeFilter === f ? '#0071E3' : '#9CA3AF' }}>
-                    {f === 'All' ? STUDENTS.length
-                      : STUDENTS.filter(s => s.status === f).length}
+                    {f === 'All' ? students.length
+                      : students.filter(s => (STATUS_DISPLAY[s.status] ?? s.status) === f).length}
                   </span>
                 </button>
               )})}
@@ -269,10 +289,9 @@ export default function UsersClient() {
                       {/* Member */}
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 border border-[#E5E7EB]">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={student.avatar} alt={student.name} width={36} height={36}
-                              style={{ width: 36, height: 36, objectFit: 'cover' }} />
+                          <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 border border-[#E5E7EB]"
+                            style={{ background: '#F3F4F6', fontSize: 13, fontWeight: 700, color: '#374151' }}>
+                            {student.name.charAt(0).toUpperCase()}
                           </div>
                           <div>
                             <p style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{student.name}</p>
@@ -283,28 +302,29 @@ export default function UsersClient() {
 
                       {/* Belt */}
                       <td className="hidden md:table-cell px-6 py-4">
-                        <BeltBadge belt={student.belt} stripes={student.stripes} />
+                        <BeltBadge belt={student.belt} stripes={student.beltDegree} />
                       </td>
 
                       {/* Membership */}
                       <td className="hidden lg:table-cell px-6 py-4">
-                        <span style={{ fontSize: 13, color: '#374151' }}>{student.membership}</span>
+                        <span style={{ fontSize: 13, color: '#9CA3AF' }}>—</span>
                       </td>
 
                       {/* Classes */}
                       <td className="hidden lg:table-cell px-6 py-4">
-                        <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{student.classes}</span>
-                        <span style={{ fontSize: 11, color: '#9CA3AF', marginLeft: 3 }}>{t.common.classes}</span>
+                        <span style={{ fontSize: 13, color: '#9CA3AF' }}>—</span>
                       </td>
 
                       {/* Last seen */}
                       <td className="hidden md:table-cell px-6 py-4">
-                        <span style={{ fontSize: 13, color: '#6B7280' }}>{student.lastSeen}</span>
+                        <span style={{ fontSize: 13, color: '#9CA3AF' }}>
+                          {student.joinedAt ? new Date(student.joinedAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                        </span>
                       </td>
 
                       {/* Status */}
                       <td className="px-6 py-4">
-                        <StatusBadge status={student.status} />
+                        <StatusBadge status={STATUS_DISPLAY[student.status] ?? student.status} />
                       </td>
 
                       {/* Actions */}
