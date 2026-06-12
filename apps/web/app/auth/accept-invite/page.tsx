@@ -16,13 +16,7 @@ export default function AcceptInvitePage() {
     // onAuthStateChange fires after Supabase parses the hash token
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session) {
-        // Activate the member record
-        try {
-          await fetch('/api/auth/activate-member', { method: 'POST' })
-        } catch {
-          // best-effort
-        }
-        router.replace('/dashboard')
+          router.replace('/auth/set-password')
       } else if (event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
         // No session after initial check — redirect to login
         setTimeout(() => router.replace('/login'), 2000)
