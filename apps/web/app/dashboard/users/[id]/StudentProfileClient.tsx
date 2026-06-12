@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   ArrowLeft, Mail, Phone, Calendar, Shield, Edit2,
   Send, MoreHorizontal, Sparkles, CreditCard,
   BookOpen, TrendingUp, Clock, AlertCircle, ChevronRight,
-  User, Heart, FileText, Dumbbell,
+  User, Heart, FileText, Dumbbell, X,
 } from 'lucide-react'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -68,6 +68,12 @@ const TX_STATUS: Record<string, { bg: string; color: string }> = {
   FAILED:  { bg: '#FEF2F2', color: '#DC2626' },
 }
 
+const inputStyle: React.CSSProperties = {
+  width: '100%', padding: '9px 12px', fontSize: 13, color: '#111827',
+  border: '1px solid #E5E7EB', borderRadius: 8, outline: 'none',
+  fontFamily: 'inherit', boxSizing: 'border-box', background: '#fff',
+}
+
 function fmt(iso: string) {
   return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
 }
@@ -112,17 +118,317 @@ function EmptyState({ icon: Icon, text }: { icon: React.ElementType; text: strin
   )
 }
 
+function Field({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
+  return (
+    <div>
+      <label style={{ fontSize: 12, fontWeight: 500, color: '#374151', display: 'block', marginBottom: 6 }}>
+        {label}
+      </label>
+      {children}
+      {hint && <p style={{ fontSize: 11, color: '#9CA3AF', margin: '4px 0 0' }}>{hint}</p>}
+    </div>
+  )
+}
+
+// ── Edit Drawer ────────────────────────────────────────────────────────────────
+function EditDrawer({
+  profile, open, onClose, onSaved,
+}: {
+  profile: Profile
+  open: boolean
+  onClose: () => void
+  onSaved: (updates: Partial<Profile>) => void
+}) {
+  const [name, setName] = useState(profile.name)
+  const [phone, setPhone] = useState(profile.phone ?? '')
+  const [dob, setDob] = useState(profile.dateOfBirth?.substring(0, 10) ?? '')
+  const [status, setStatus] = useState(profile.status)
+  const [belt, setBelt] = useState(profile.belt)
+  const [beltDegree, setBeltDegree] = useState(profile.beltDegree)
+  const [beltDate, setBeltDate] = useState(profile.beltDate?.substring(0, 10) ?? '')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (open) {
+      setName(profile.name)
+      setPhone(profile.phone ?? '')
+      setDob(profile.dateOfBirth?.substring(0, 10) ?? '')
+      setStatus(profile.status)
+      setBelt(profile.belt)
+      setBeltDegree(profile.beltDegree)
+      setBeltDate(profile.beltDate?.substring(0, 10) ?? '')
+      setError(null)
+    }
+  }, [open])
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    if (open) window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open, onClose])
+
+  const save = async () => {
+    if (!name.trim()) { setError('El nombre es obligatorio.'); return }
+    setSaving(true)
+    setError(null)
+    try {
+      const [memberRes, userRes] = await Promise.all([
+        fetch(`/api/dashboard/members/${profile.memberId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status, belt, beltDegree, beltDate: beltDate || null }),
+        }),
+        fetch(`/api/dashboard/users/${profile.userId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: name.trim(),
+            phone: phone.trim() || null,
+            dateOfBirth: dob || null,
+          }),
+        }),
+      ])
+      if (!memberRes.ok || !userRes.ok) throw new Error('save failed')
+      onSaved({
+        name: name.trim(),
+        phone: phone.trim() || null,
+        dateOfBirth: dob ? new Date(dob).toISOString() : null,
+        status,
+        belt,
+        beltDegree,
+        beltDate: beltDate ? new Date(beltDate).toISOString() : null,
+      })
+      onClose()
+    } catch {
+      setError('Error al guardar. Inténtalo de nuevo.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const bc = BELT_COLORS[belt] ?? BELT_COLORS['Blanco']!
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        onClick={onClose}
+        style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.25)',
+          opacity: open ? 1 : 0, pointerEvents: open ? 'auto' : 'none',
+          transition: 'opacity 0.2s ease', zIndex: 40,
+        }}
+      />
+
+      {/* Drawer panel */}
+      <div style={{
+        position: 'fixed', top: 0, right: 0, bottom: 0, width: 480,
+        background: '#fff', boxShadow: '-4px 0 32px rgba(0,0,0,0.1)',
+        transform: open ? 'translateX(0)' : 'translateX(100%)',
+        transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+        zIndex: 50, display: 'flex', flexDirection: 'column',
+      }}>
+
+        {/* Header */}
+        <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+          <div>
+            <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0 }}>Editar alumno</p>
+            <p style={{ fontSize: 12, color: '#9CA3AF', margin: '2px 0 0' }}>{profile.name}</p>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', padding: 6, borderRadius: 6, display: 'flex', alignItems: 'center' }}>
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Scrollable body */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: 24 }}>
+
+          {/* Personal info */}
+          <p style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 16px' }}>
+            Información personal
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <Field label="Nombre completo">
+              <input
+                value={name}
+                onChange={e => setName(e.target.value)}
+                style={inputStyle}
+                onFocus={e => (e.target.style.borderColor = '#0071E3')}
+                onBlur={e => (e.target.style.borderColor = '#E5E7EB')}
+              />
+            </Field>
+            <Field label="Email" hint="El email es el identificador de acceso — no se puede cambiar aquí.">
+              <input value={profile.email} disabled style={{ ...inputStyle, background: '#F9FAFB', color: '#9CA3AF', cursor: 'not-allowed' }} />
+            </Field>
+            <Field label="Teléfono">
+              <input
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
+                placeholder="+34 600 000 000"
+                style={inputStyle}
+                onFocus={e => (e.target.style.borderColor = '#0071E3')}
+                onBlur={e => (e.target.style.borderColor = '#E5E7EB')}
+              />
+            </Field>
+            <Field label="Fecha de nacimiento">
+              <input
+                type="date"
+                value={dob}
+                onChange={e => setDob(e.target.value)}
+                style={inputStyle}
+                onFocus={e => (e.target.style.borderColor = '#0071E3')}
+                onBlur={e => (e.target.style.borderColor = '#E5E7EB')}
+              />
+            </Field>
+            <Field label="Estado">
+              <select
+                value={status}
+                onChange={e => setStatus(e.target.value)}
+                style={{ ...inputStyle, cursor: 'pointer' }}
+              >
+                <option value="ACTIVE">Active</option>
+                <option value="INACTIVE">Inactive</option>
+                <option value="PENDING">Pending</option>
+                <option value="LEAD">Lead</option>
+                <option value="ARCHIVED">Archived</option>
+              </select>
+            </Field>
+          </div>
+
+          <div style={{ borderTop: '1px solid #F3F4F6', margin: '24px 0' }} />
+
+          {/* Belt section */}
+          <p style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 16px' }}>
+            Cinturón & Progreso
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+            {/* Visual belt selector */}
+            <Field label="Cinturón">
+              <div style={{ display: 'flex', gap: 6 }}>
+                {BELT_ORDER.map(b => {
+                  const bColor = BELT_COLORS[b]!
+                  const selected = belt === b
+                  return (
+                    <button
+                      key={b}
+                      type="button"
+                      onClick={() => setBelt(b)}
+                      style={{
+                        flex: 1, padding: '10px 4px', borderRadius: 10,
+                        border: `2px solid ${selected ? bColor.bar : '#E5E7EB'}`,
+                        background: selected ? bColor.bg : '#fff',
+                        cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+                        transition: 'all 0.15s ease',
+                        outline: 'none',
+                      }}
+                    >
+                      <div style={{
+                        width: 32, height: 10, borderRadius: 999,
+                        background: b === 'Blanco' ? '#E5E7EB' : bColor.bar,
+                      }} />
+                      <span style={{
+                        fontSize: 10, fontWeight: selected ? 700 : 400,
+                        color: selected ? bColor.color : '#9CA3AF',
+                        whiteSpace: 'nowrap',
+                      }}>
+                        {b}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            </Field>
+
+            {/* Degree selector */}
+            <Field label="Grados (rayas)">
+              <div style={{ display: 'flex', gap: 6 }}>
+                {[0, 1, 2, 3, 4].map(d => {
+                  const selected = beltDegree === d
+                  return (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => setBeltDegree(d)}
+                      style={{
+                        flex: 1, padding: '9px 0', borderRadius: 8,
+                        border: `2px solid ${selected ? bc.bar : '#E5E7EB'}`,
+                        background: selected ? bc.bg : '#fff',
+                        cursor: 'pointer', fontSize: 13, fontWeight: selected ? 700 : 400,
+                        color: selected ? bc.color : '#6B7280',
+                        transition: 'all 0.15s ease',
+                        outline: 'none',
+                      }}
+                    >
+                      {d}
+                    </button>
+                  )
+                })}
+              </div>
+              <p style={{ fontSize: 11, color: '#9CA3AF', margin: '6px 0 0' }}>
+                Número de rayas/grados en el cinturón actual
+              </p>
+            </Field>
+
+            <Field label="Fecha de promoción">
+              <input
+                type="date"
+                value={beltDate}
+                onChange={e => setBeltDate(e.target.value)}
+                style={inputStyle}
+                onFocus={e => (e.target.style.borderColor = '#0071E3')}
+                onBlur={e => (e.target.style.borderColor = '#E5E7EB')}
+              />
+            </Field>
+          </div>
+        </div>
+
+        {/* Error bar */}
+        {error && (
+          <div style={{ padding: '10px 24px', background: '#FEF2F2', borderTop: '1px solid #FEE2E2' }}>
+            <p style={{ fontSize: 13, color: '#DC2626', margin: 0 }}>{error}</p>
+          </div>
+        )}
+
+        {/* Footer */}
+        <div style={{ padding: '16px 24px', borderTop: '1px solid #E5E7EB', display: 'flex', gap: 10, flexShrink: 0 }}>
+          <button
+            onClick={onClose}
+            style={{ flex: 1, padding: '10px', border: '1px solid #E5E7EB', borderRadius: 8, background: '#fff', fontSize: 13, fontWeight: 500, cursor: 'pointer', color: '#374151' }}
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={save}
+            disabled={saving}
+            style={{ flex: 2, padding: '10px', border: 'none', borderRadius: 8, background: '#0071E3', color: '#fff', fontSize: 13, fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1, transition: 'opacity 0.15s' }}
+          >
+            {saving ? 'Guardando…' : 'Guardar cambios'}
+          </button>
+        </div>
+      </div>
+    </>
+  )
+}
+
 // ── Main component ─────────────────────────────────────────────────────────────
-export default function StudentProfileClient({ profile }: { profile: Profile }) {
+export default function StudentProfileClient({ profile: initialProfile }: { profile: Profile }) {
   const router = useRouter()
-  const [notesValue, setNotesValue] = useState(profile.notes ?? '')
+  const [profile, setProfile] = useState(initialProfile)
+  const [notesValue, setNotesValue] = useState(initialProfile.notes ?? '')
   const [savingNotes, setSavingNotes] = useState(false)
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   const belt = BELT_COLORS[profile.belt] ?? BELT_COLORS['Blanco']!
   const status = STATUS_MAP[profile.status] ?? { bg: '#F3F4F6', color: '#6B7280', label: profile.status }
   const beltIdx = BELT_ORDER.indexOf(profile.belt)
   const beltProgress = beltIdx >= 0 ? ((beltIdx + (profile.beltDegree / 4)) / BELT_ORDER.length) * 100 : 0
   const memberMonths = profile.joinedAt ? monthsSince(profile.joinedAt) : null
+
+  const handleSaved = (updates: Partial<Profile>) => {
+    setProfile(prev => ({ ...prev, ...updates }))
+  }
 
   const saveNotes = async () => {
     setSavingNotes(true)
@@ -136,6 +442,14 @@ export default function StudentProfileClient({ profile }: { profile: Profile }) 
 
   return (
     <main style={{ flex: 1, minWidth: 0, background: '#F9FAFB' }}>
+
+      {/* Edit drawer */}
+      <EditDrawer
+        profile={profile}
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        onSaved={handleSaved}
+      />
 
       {/* Topbar */}
       <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20"
@@ -211,7 +525,9 @@ export default function StudentProfileClient({ profile }: { profile: Profile }) 
 
               {/* Action buttons */}
               <div className="flex gap-2" style={{ marginTop: 16 }}>
-                <button style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px', fontSize: 12, fontWeight: 500, border: '1px solid #E5E7EB', borderRadius: 8, background: '#fff', color: '#374151', cursor: 'pointer' }}>
+                <button
+                  onClick={() => setDrawerOpen(true)}
+                  style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px', fontSize: 12, fontWeight: 500, border: '1px solid #E5E7EB', borderRadius: 8, background: '#fff', color: '#374151', cursor: 'pointer' }}>
                   <Edit2 size={12} /> Editar
                 </button>
                 <button style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px', fontSize: 12, fontWeight: 500, border: 'none', borderRadius: 8, background: '#0071E3', color: '#fff', cursor: 'pointer' }}>
@@ -225,7 +541,13 @@ export default function StudentProfileClient({ profile }: { profile: Profile }) 
 
             {/* Belt progress */}
             <Card>
-              <CardHeader title="Cinturón & Progreso" />
+              <CardHeader title="Cinturón & Progreso" action={
+                <button
+                  onClick={() => setDrawerOpen(true)}
+                  style={{ fontSize: 12, color: '#0071E3', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Edit2 size={11} /> Editar
+                </button>
+              } />
               <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
                 <span style={{ fontSize: 13, fontWeight: 600, color: belt.color }}>{profile.belt}</span>
                 <span style={{ fontSize: 12, color: '#9CA3AF' }}>

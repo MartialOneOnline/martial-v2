@@ -24,7 +24,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const { id } = await params
   const body = await req.json()
-  const { status, belt, beltDegree, notes } = body
+  const { status, belt, beltDegree, notes, beltDate } = body
 
   // Verify the member belongs to this school
   const existing = await prisma.schoolMember.findFirst({
@@ -39,6 +39,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       ...(belt !== undefined && { belt }),
       ...(beltDegree !== undefined && { beltDegree }),
       ...(notes !== undefined && { notes }),
+      ...(beltDate !== undefined && { beltDate: beltDate ? new Date(beltDate) : null }),
     },
     select: { id: true, status: true, belt: true, beltDegree: true },
   })
