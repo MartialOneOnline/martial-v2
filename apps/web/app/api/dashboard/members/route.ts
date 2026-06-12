@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
       email: email.trim().toLowerCase(),
       name: name.trim(),
       phone: phone?.trim() || null,
-      role: 'USER',
+      role: 'STUDENT',
     },
     select: { id: true, name: true, email: true, avatarUrl: true },
   })
