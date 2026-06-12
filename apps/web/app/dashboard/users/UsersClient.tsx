@@ -100,12 +100,13 @@ const BELT_COLORS: Record<string, { bg: string; color: string; dot: string }> = 
   Black:  { bg: '#F3F4F6', color: '#111827', dot: '#111827' },
 }
 
-const STATUS_MAP: Record<string, { bg: string; color: string }> = {
-  Active:   { bg: '#F0FDF4', color: '#16A34A' },
-  Inactive: { bg: '#F3F4F6', color: '#6B7280' },
-  Pending:  { bg: '#FFFBEB', color: '#D97706' },
-  Lead:     { bg: '#EEF2FF', color: '#6366F1' },
-  Archived: { bg: '#FEF2F2', color: '#9CA3AF' },
+const STATUS_MAP: Record<string, { bg: string; color: string; dot: string }> = {
+  Active:   { bg: '#F0FDF4', color: '#15803D', dot: '#22C55E' },
+  Pending:  { bg: '#FEFCE8', color: '#A16207', dot: '#EAB308' },
+  Lead:     { bg: '#FFF7ED', color: '#C2410C', dot: '#F97316' },
+  Inactive: { bg: '#FFF1F2', color: '#BE123C', dot: '#E11D48' },
+  Frozen:   { bg: '#EFF6FF', color: '#1D4ED8', dot: '#3B82F6' },
+  Archived: { bg: '#F9FAFB', color: '#6B7280', dot: '#6B7280' },
 }
 
 const BELTS = ['Blanco', 'Azul', 'Morado', 'Marron', 'Negro']
@@ -139,9 +140,10 @@ function BeltBadge({ belt, stripes }: { belt: string; stripes: number }) {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const { bg, color } = STATUS_MAP[status] ?? { bg: '#F3F4F6', color: '#6B7280' }
+  const { bg, color, dot } = STATUS_MAP[status] ?? { bg: '#F3F4F6', color: '#6B7280', dot: '#6B7280' }
   return (
-    <span style={{ background: bg, color, fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 999 }}>
+    <span style={{ background: bg, color, fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+      <span style={{ width: 6, height: 6, borderRadius: '50%', background: dot, flexShrink: 0 }} />
       {status}
     </span>
   )
@@ -383,11 +385,12 @@ const BELT_FILTER_OPTIONS = [
 ]
 
 const STATUS_FILTER_OPTIONS = [
-  { value: 'ACTIVE',   label: 'Active',   color: '#16A34A' },
-  { value: 'INACTIVE', label: 'Inactive', color: '#6B7280' },
-  { value: 'PENDING',  label: 'Pending',  color: '#D97706' },
-  { value: 'LEAD',     label: 'Lead',     color: '#6366F1' },
-  { value: 'ARCHIVED', label: 'Archived', color: '#9CA3AF' },
+  { value: 'ACTIVE',   label: 'Active',   color: '#22C55E' },
+  { value: 'PENDING',  label: 'Pending',  color: '#EAB308' },
+  { value: 'LEAD',     label: 'Lead',     color: '#F97316' },
+  { value: 'INACTIVE', label: 'Inactive', color: '#E11D48' },
+  { value: 'FROZEN',   label: 'Frozen',   color: '#3B82F6' },
+  { value: 'ARCHIVED', label: 'Archived', color: '#6B7280' },
 ]
 
 const ROLE_FILTER_OPTIONS = [
