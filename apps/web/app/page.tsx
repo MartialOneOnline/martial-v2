@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { useT } from '../lib/i18n/LanguageContext'
 import LoginModal        from '../components/LoginModal'
 import RegisterModal     from '../components/RegisterModal'
@@ -24,11 +24,21 @@ import Footer            from '../components/Footer'
 // Inner component — uses useSearchParams (must be inside Suspense)
 function HomeContent() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const t = useT()
   const [showModal, setShowModal]                 = useState(false)
   const [showRegisterModal, setShowRegisterModal] = useState(false)
   const openModal    = () => setShowModal(true)
   const openRegister = () => setShowRegisterModal(true)
+
+  // Redirect invite/magiclink tokens to the accept-invite page
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const hash = window.location.hash
+    if (hash.includes('access_token') && hash.includes('type=magiclink')) {
+      router.replace('/auth/accept-invite' + hash)
+    }
+  }, [router])
 
   // Auto-open modals when redirected from /login or /register
   useEffect(() => {
