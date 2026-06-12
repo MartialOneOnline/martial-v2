@@ -75,9 +75,16 @@ const ES_COUNTRIES = new Set(['ES','MX','AR','CO','CL','PE','VE','EC','BO','PY',
 const PT_COUNTRIES = new Set(['BR','PT','AO','MZ'])
 const FR_COUNTRIES = new Set(['FR','BE','CH','LU','MC','SN','CI','CM','MA','TN','DZ'])
 
-export function detectLang(country?: string | null): Lang {
-  if (!country) return 'en'
-  const c = country.toUpperCase()
+export function detectLang(value?: string | null): Lang {
+  if (!value) return 'en'
+  const v = value.toLowerCase()
+  // Explicit language code
+  if (v === 'es') return 'es'
+  if (v === 'pt') return 'pt'
+  if (v === 'fr') return 'fr'
+  if (v === 'en') return 'en'
+  // Fallback: infer from country code
+  const c = v.toUpperCase()
   if (ES_COUNTRIES.has(c)) return 'es'
   if (PT_COUNTRIES.has(c)) return 'pt'
   if (FR_COUNTRIES.has(c)) return 'fr'

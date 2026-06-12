@@ -45,3 +45,43 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({ school })
 }
+
+// PATCH /api/dashboard/school — update school settings (language, etc.)
+export async function PATCH(req: NextRequest) {
+  const user = await getAuthUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const schoolId = await getCurrentSchoolId()
+  if (!schoolId) return NextResponse.json({ error: 'No school context' }, { status: 400 })
+
+  if (user.role !== 'SUPERADMIN') {
+    try {
+      const member = await requireSchoolAccess(user.id, schoolId)
+      if (!['OWNER', 'ADMIN'].includes(member.role)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
+    } catch {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+  }
+
+  const body = await req.json()
+  const { language, name, phone, email, website, instagram } = body
+
+  const VALID_LANGS = ['en', 'es', 'pt', 'fr']
+
+  const updated = await prisma.school.update({
+    where: { id: schoolId },
+    data: {
+      ...(language !== undefined && VALID_LANGS.includes(language) && { language }),
+      ...(name !== undefined && { name: name.trim() }),
+      ...(phone !== undefined && { phone: phone?.trim() || null }),
+      ...(email !== undefined && { email: email?.trim() || null }),
+      ...(website !== undefined && { website: website?.trim() || null }),
+      ...(instagram !== undefined && { instagram: instagram?.trim() || null }),
+    },
+    select: { id: true, language: true, name: true },
+  })
+
+  return NextResponse.json({ school: updated })
+}

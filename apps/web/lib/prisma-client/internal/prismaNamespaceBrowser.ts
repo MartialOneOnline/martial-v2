@@ -234,6 +234,7 @@ export const SchoolScalarFieldEnum = {
   phone: 'phone',
   email: 'email',
   website: 'website',
+  language: 'language',
   instagram: 'instagram',
   facebook: 'facebook',
   youtube: 'youtube',

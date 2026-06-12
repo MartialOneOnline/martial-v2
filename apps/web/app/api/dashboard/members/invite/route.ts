@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
   // Load school for name, city, country (to determine email language)
   const school = await prisma.school.findUnique({
     where: { id: schoolId },
-    select: { name: true, city: true, country: true },
+    select: { name: true, city: true, country: true, language: true },
   })
 
   // Check if already a member
@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
   })
 
   // Send email via Resend with our custom template
-  const lang = detectLang(school?.country)
+  const lang = detectLang(school?.language ?? school?.country)
   const html = buildInviteStudentEmail({
     studentName: dbUser.name,
     schoolName: school?.name ?? 'Your school',

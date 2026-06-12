@@ -62,6 +62,7 @@ export type SchoolMinAggregateOutputType = {
   phone: string | null
   email: string | null
   website: string | null
+  language: string | null
   instagram: string | null
   facebook: string | null
   youtube: string | null
@@ -103,6 +104,7 @@ export type SchoolMaxAggregateOutputType = {
   phone: string | null
   email: string | null
   website: string | null
+  language: string | null
   instagram: string | null
   facebook: string | null
   youtube: string | null
@@ -144,6 +146,7 @@ export type SchoolCountAggregateOutputType = {
   phone: number
   email: number
   website: number
+  language: number
   instagram: number
   facebook: number
   youtube: number
@@ -209,6 +212,7 @@ export type SchoolMinAggregateInputType = {
   phone?: true
   email?: true
   website?: true
+  language?: true
   instagram?: true
   facebook?: true
   youtube?: true
@@ -250,6 +254,7 @@ export type SchoolMaxAggregateInputType = {
   phone?: true
   email?: true
   website?: true
+  language?: true
   instagram?: true
   facebook?: true
   youtube?: true
@@ -291,6 +296,7 @@ export type SchoolCountAggregateInputType = {
   phone?: true
   email?: true
   website?: true
+  language?: true
   instagram?: true
   facebook?: true
   youtube?: true
@@ -421,6 +427,7 @@ export type SchoolGroupByOutputType = {
   phone: string | null
   email: string | null
   website: string | null
+  language: string
   instagram: string | null
   facebook: string | null
   youtube: string | null
@@ -487,6 +494,7 @@ export type SchoolWhereInput = {
   phone?: Prisma.StringNullableFilter<"School"> | string | null
   email?: Prisma.StringNullableFilter<"School"> | string | null
   website?: Prisma.StringNullableFilter<"School"> | string | null
+  language?: Prisma.StringFilter<"School"> | string
   instagram?: Prisma.StringNullableFilter<"School"> | string | null
   facebook?: Prisma.StringNullableFilter<"School"> | string | null
   youtube?: Prisma.StringNullableFilter<"School"> | string | null
@@ -550,6 +558,7 @@ export type SchoolOrderByWithRelationInput = {
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
   email?: Prisma.SortOrderInput | Prisma.SortOrder
   website?: Prisma.SortOrderInput | Prisma.SortOrder
+  language?: Prisma.SortOrder
   instagram?: Prisma.SortOrderInput | Prisma.SortOrder
   facebook?: Prisma.SortOrderInput | Prisma.SortOrder
   youtube?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -616,6 +625,7 @@ export type SchoolWhereUniqueInput = Prisma.AtLeast<{
   phone?: Prisma.StringNullableFilter<"School"> | string | null
   email?: Prisma.StringNullableFilter<"School"> | string | null
   website?: Prisma.StringNullableFilter<"School"> | string | null
+  language?: Prisma.StringFilter<"School"> | string
   instagram?: Prisma.StringNullableFilter<"School"> | string | null
   facebook?: Prisma.StringNullableFilter<"School"> | string | null
   youtube?: Prisma.StringNullableFilter<"School"> | string | null
@@ -679,6 +689,7 @@ export type SchoolOrderByWithAggregationInput = {
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
   email?: Prisma.SortOrderInput | Prisma.SortOrder
   website?: Prisma.SortOrderInput | Prisma.SortOrder
+  language?: Prisma.SortOrder
   instagram?: Prisma.SortOrderInput | Prisma.SortOrder
   facebook?: Prisma.SortOrderInput | Prisma.SortOrder
   youtube?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -730,6 +741,7 @@ export type SchoolScalarWhereWithAggregatesInput = {
   phone?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
   email?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
   website?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
+  language?: Prisma.StringWithAggregatesFilter<"School"> | string
   instagram?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
   facebook?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
   youtube?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
@@ -772,6 +784,7 @@ export type SchoolCreateInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -833,6 +846,7 @@ export type SchoolUncheckedCreateInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -892,6 +906,7 @@ export type SchoolUpdateInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -953,6 +968,7 @@ export type SchoolUncheckedUpdateInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1013,6 +1029,7 @@ export type SchoolCreateManyInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -1055,6 +1072,7 @@ export type SchoolUpdateManyMutationInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1096,6 +1114,7 @@ export type SchoolUncheckedUpdateManyInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1167,6 +1186,7 @@ export type SchoolCountOrderByAggregateInput = {
   phone?: Prisma.SortOrder
   email?: Prisma.SortOrder
   website?: Prisma.SortOrder
+  language?: Prisma.SortOrder
   instagram?: Prisma.SortOrder
   facebook?: Prisma.SortOrder
   youtube?: Prisma.SortOrder
@@ -1220,6 +1240,7 @@ export type SchoolMaxOrderByAggregateInput = {
   phone?: Prisma.SortOrder
   email?: Prisma.SortOrder
   website?: Prisma.SortOrder
+  language?: Prisma.SortOrder
   instagram?: Prisma.SortOrder
   facebook?: Prisma.SortOrder
   youtube?: Prisma.SortOrder
@@ -1261,6 +1282,7 @@ export type SchoolMinOrderByAggregateInput = {
   phone?: Prisma.SortOrder
   email?: Prisma.SortOrder
   website?: Prisma.SortOrder
+  language?: Prisma.SortOrder
   instagram?: Prisma.SortOrder
   facebook?: Prisma.SortOrder
   youtube?: Prisma.SortOrder
@@ -1725,6 +1747,7 @@ export type SchoolCreateWithoutAffiliationInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -1784,6 +1807,7 @@ export type SchoolUncheckedCreateWithoutAffiliationInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -1873,6 +1897,7 @@ export type SchoolScalarWhereInput = {
   phone?: Prisma.StringNullableFilter<"School"> | string | null
   email?: Prisma.StringNullableFilter<"School"> | string | null
   website?: Prisma.StringNullableFilter<"School"> | string | null
+  language?: Prisma.StringFilter<"School"> | string
   instagram?: Prisma.StringNullableFilter<"School"> | string | null
   facebook?: Prisma.StringNullableFilter<"School"> | string | null
   youtube?: Prisma.StringNullableFilter<"School"> | string | null
@@ -1915,6 +1940,7 @@ export type SchoolCreateWithoutStaffInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -1975,6 +2001,7 @@ export type SchoolUncheckedCreateWithoutStaffInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -2038,6 +2065,7 @@ export type SchoolCreateWithoutClaimedByInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -2098,6 +2126,7 @@ export type SchoolUncheckedCreateWithoutClaimedByInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -2177,6 +2206,7 @@ export type SchoolUpdateWithoutStaffInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2237,6 +2267,7 @@ export type SchoolUncheckedUpdateWithoutStaffInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2311,6 +2342,7 @@ export type SchoolCreateWithoutDisciplinesInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -2371,6 +2403,7 @@ export type SchoolUncheckedCreateWithoutDisciplinesInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -2445,6 +2478,7 @@ export type SchoolUpdateWithoutDisciplinesInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2505,6 +2539,7 @@ export type SchoolUncheckedUpdateWithoutDisciplinesInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2563,6 +2598,7 @@ export type SchoolCreateWithoutBranchesInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -2623,6 +2659,7 @@ export type SchoolUncheckedCreateWithoutBranchesInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -2686,6 +2723,7 @@ export type SchoolCreateWithoutParentInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -2746,6 +2784,7 @@ export type SchoolUncheckedCreateWithoutParentInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -2825,6 +2864,7 @@ export type SchoolUpdateWithoutBranchesInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2885,6 +2925,7 @@ export type SchoolUncheckedUpdateWithoutBranchesInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2959,6 +3000,7 @@ export type SchoolCreateWithoutInstructorsInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -3019,6 +3061,7 @@ export type SchoolUncheckedCreateWithoutInstructorsInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -3093,6 +3136,7 @@ export type SchoolUpdateWithoutInstructorsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3153,6 +3197,7 @@ export type SchoolUncheckedUpdateWithoutInstructorsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3211,6 +3256,7 @@ export type SchoolCreateWithoutMembershipPlansInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -3271,6 +3317,7 @@ export type SchoolUncheckedCreateWithoutMembershipPlansInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -3345,6 +3392,7 @@ export type SchoolUpdateWithoutMembershipPlansInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3405,6 +3453,7 @@ export type SchoolUncheckedUpdateWithoutMembershipPlansInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3463,6 +3512,7 @@ export type SchoolCreateWithoutReviewsInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -3523,6 +3573,7 @@ export type SchoolUncheckedCreateWithoutReviewsInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -3597,6 +3648,7 @@ export type SchoolUpdateWithoutReviewsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3657,6 +3709,7 @@ export type SchoolUncheckedUpdateWithoutReviewsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3715,6 +3768,7 @@ export type SchoolCreateWithoutClassesInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -3775,6 +3829,7 @@ export type SchoolUncheckedCreateWithoutClassesInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -3849,6 +3904,7 @@ export type SchoolUpdateWithoutClassesInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3909,6 +3965,7 @@ export type SchoolUncheckedUpdateWithoutClassesInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3967,6 +4024,7 @@ export type SchoolCreateWithoutEventsInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -4027,6 +4085,7 @@ export type SchoolUncheckedCreateWithoutEventsInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -4101,6 +4160,7 @@ export type SchoolUpdateWithoutEventsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4161,6 +4221,7 @@ export type SchoolUncheckedUpdateWithoutEventsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4219,6 +4280,7 @@ export type SchoolCreateWithoutMembershipsInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -4279,6 +4341,7 @@ export type SchoolUncheckedCreateWithoutMembershipsInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -4353,6 +4416,7 @@ export type SchoolUpdateWithoutMembershipsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4413,6 +4477,7 @@ export type SchoolUncheckedUpdateWithoutMembershipsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4471,6 +4536,7 @@ export type SchoolCreateWithoutCampsInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -4531,6 +4597,7 @@ export type SchoolUncheckedCreateWithoutCampsInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -4605,6 +4672,7 @@ export type SchoolUpdateWithoutCampsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4665,6 +4733,7 @@ export type SchoolUncheckedUpdateWithoutCampsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4723,6 +4792,7 @@ export type SchoolCreateWithoutMembersInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -4783,6 +4853,7 @@ export type SchoolUncheckedCreateWithoutMembersInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -4857,6 +4928,7 @@ export type SchoolUpdateWithoutMembersInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4917,6 +4989,7 @@ export type SchoolUncheckedUpdateWithoutMembersInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4975,6 +5048,7 @@ export type SchoolCreateWithoutClaimsInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -5035,6 +5109,7 @@ export type SchoolUncheckedCreateWithoutClaimsInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -5109,6 +5184,7 @@ export type SchoolUpdateWithoutClaimsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5169,6 +5245,7 @@ export type SchoolUncheckedUpdateWithoutClaimsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5227,6 +5304,7 @@ export type SchoolCreateWithoutGradingsInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -5287,6 +5365,7 @@ export type SchoolUncheckedCreateWithoutGradingsInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -5361,6 +5440,7 @@ export type SchoolUpdateWithoutGradingsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5421,6 +5501,7 @@ export type SchoolUncheckedUpdateWithoutGradingsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5479,6 +5560,7 @@ export type SchoolCreateWithoutLeadsInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -5539,6 +5621,7 @@ export type SchoolUncheckedCreateWithoutLeadsInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -5613,6 +5696,7 @@ export type SchoolUpdateWithoutLeadsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5673,6 +5757,7 @@ export type SchoolUncheckedUpdateWithoutLeadsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5731,6 +5816,7 @@ export type SchoolCreateWithoutInvitationsInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -5791,6 +5877,7 @@ export type SchoolUncheckedCreateWithoutInvitationsInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -5865,6 +5952,7 @@ export type SchoolUpdateWithoutInvitationsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5925,6 +6013,7 @@ export type SchoolUncheckedUpdateWithoutInvitationsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5983,6 +6072,7 @@ export type SchoolCreateWithoutWaiversInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -6043,6 +6133,7 @@ export type SchoolUncheckedCreateWithoutWaiversInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -6117,6 +6208,7 @@ export type SchoolUpdateWithoutWaiversInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6177,6 +6269,7 @@ export type SchoolUncheckedUpdateWithoutWaiversInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6235,6 +6328,7 @@ export type SchoolCreateWithoutTransactionsInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -6295,6 +6389,7 @@ export type SchoolUncheckedCreateWithoutTransactionsInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -6369,6 +6464,7 @@ export type SchoolUpdateWithoutTransactionsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6429,6 +6525,7 @@ export type SchoolUncheckedUpdateWithoutTransactionsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6487,6 +6584,7 @@ export type SchoolCreateManyAffiliationInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -6529,6 +6627,7 @@ export type SchoolUpdateWithoutAffiliationInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6588,6 +6687,7 @@ export type SchoolUncheckedUpdateWithoutAffiliationInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6647,6 +6747,7 @@ export type SchoolUncheckedUpdateManyWithoutAffiliationInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6690,6 +6791,7 @@ export type SchoolCreateManyClaimedByInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -6731,6 +6833,7 @@ export type SchoolUpdateWithoutClaimedByInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6791,6 +6894,7 @@ export type SchoolUncheckedUpdateWithoutClaimedByInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6850,6 +6954,7 @@ export type SchoolUncheckedUpdateManyWithoutClaimedByInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6892,6 +6997,7 @@ export type SchoolCreateManyParentInput = {
   phone?: string | null
   email?: string | null
   website?: string | null
+  language?: string
   instagram?: string | null
   facebook?: string | null
   youtube?: string | null
@@ -6933,6 +7039,7 @@ export type SchoolUpdateWithoutParentInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6993,6 +7100,7 @@ export type SchoolUncheckedUpdateWithoutParentInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -7052,6 +7160,7 @@ export type SchoolUncheckedUpdateManyWithoutParentInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -7269,6 +7378,7 @@ export type SchoolSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   phone?: boolean
   email?: boolean
   website?: boolean
+  language?: boolean
   instagram?: boolean
   facebook?: boolean
   youtube?: boolean
@@ -7333,6 +7443,7 @@ export type SchoolSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   phone?: boolean
   email?: boolean
   website?: boolean
+  language?: boolean
   instagram?: boolean
   facebook?: boolean
   youtube?: boolean
@@ -7379,6 +7490,7 @@ export type SchoolSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   phone?: boolean
   email?: boolean
   website?: boolean
+  language?: boolean
   instagram?: boolean
   facebook?: boolean
   youtube?: boolean
@@ -7425,6 +7537,7 @@ export type SchoolSelectScalar = {
   phone?: boolean
   email?: boolean
   website?: boolean
+  language?: boolean
   instagram?: boolean
   facebook?: boolean
   youtube?: boolean
@@ -7452,7 +7565,7 @@ export type SchoolSelectScalar = {
   updatedAt?: boolean
 }
 
-export type SchoolOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "status" | "source" | "affiliationId" | "country" | "city" | "address" | "postcode" | "lat" | "lng" | "phone" | "email" | "website" | "instagram" | "facebook" | "youtube" | "tiktok" | "description" | "tagline" | "logoUrl" | "coverUrl" | "photos" | "priceFrom" | "hasFreeTrialCls" | "facilities" | "foundedYear" | "totalStudents" | "googleRating" | "googleReviews" | "googlePlaceId" | "stripeAccountId" | "parentId" | "parentRelationshipType" | "leadStage" | "claimedById" | "claimedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["school"]>
+export type SchoolOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "status" | "source" | "affiliationId" | "country" | "city" | "address" | "postcode" | "lat" | "lng" | "phone" | "email" | "website" | "language" | "instagram" | "facebook" | "youtube" | "tiktok" | "description" | "tagline" | "logoUrl" | "coverUrl" | "photos" | "priceFrom" | "hasFreeTrialCls" | "facilities" | "foundedYear" | "totalStudents" | "googleRating" | "googleReviews" | "googlePlaceId" | "stripeAccountId" | "parentId" | "parentRelationshipType" | "leadStage" | "claimedById" | "claimedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["school"]>
 export type SchoolInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   affiliation?: boolean | Prisma.School$affiliationArgs<ExtArgs>
   parent?: boolean | Prisma.School$parentArgs<ExtArgs>
@@ -7527,6 +7640,7 @@ export type $SchoolPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     phone: string | null
     email: string | null
     website: string | null
+    language: string
     instagram: string | null
     facebook: string | null
     youtube: string | null
@@ -8010,6 +8124,7 @@ export interface SchoolFieldRefs {
   readonly phone: Prisma.FieldRef<"School", 'String'>
   readonly email: Prisma.FieldRef<"School", 'String'>
   readonly website: Prisma.FieldRef<"School", 'String'>
+  readonly language: Prisma.FieldRef<"School", 'String'>
   readonly instagram: Prisma.FieldRef<"School", 'String'>
   readonly facebook: Prisma.FieldRef<"School", 'String'>
   readonly youtube: Prisma.FieldRef<"School", 'String'>

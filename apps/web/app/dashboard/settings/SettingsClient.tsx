@@ -278,6 +278,81 @@ function ProfileTab() {
   )
 }
 
+function SchoolLanguageCard() {
+  const [language, setLanguage] = useState<string>('en')
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  // Load current school language
+  useState(() => {
+    fetch('/api/dashboard/school')
+      .then(r => r.json())
+      .then(d => { if (d.school?.language) setLanguage(d.school.language) })
+      .finally(() => setLoading(false))
+  })
+
+  const save = async (lang: string) => {
+    setSaving(true)
+    await fetch('/api/dashboard/school', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ language: lang }),
+    })
+    setSaving(false)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+  }
+
+  const LANGS = [
+    { value: 'en', label: 'English', flag: '🇬🇧' },
+    { value: 'es', label: 'Español', flag: '🇪🇸' },
+    { value: 'pt', label: 'Português', flag: '🇧🇷' },
+    { value: 'fr', label: 'Français', flag: '🇫🇷' },
+  ]
+
+  return (
+    <div className="rounded-2xl p-6 flex flex-col gap-4" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+      <div>
+        <p style={{ fontSize: 14, fontWeight: 600, color: '#111827', margin: '0 0 2px' }}>Idioma de comunicaciones</p>
+        <p style={{ fontSize: 13, color: '#6B7280', margin: 0 }}>Idioma en el que se envían los emails a los alumnos (invitaciones, avisos, etc.)</p>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        {LANGS.map(l => (
+          <button
+            key={l.value}
+            disabled={loading || saving}
+            onClick={() => { setLanguage(l.value); save(l.value) }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: '12px 16px', borderRadius: 12, cursor: 'pointer',
+              border: `2px solid ${language === l.value ? '#0071E3' : '#E5E7EB'}`,
+              background: language === l.value ? '#EFF6FF' : '#fff',
+              transition: 'all 0.15s',
+            }}
+          >
+            <span style={{ fontSize: 20 }}>{l.flag}</span>
+            <span style={{ fontSize: 13, fontWeight: language === l.value ? 600 : 400, color: language === l.value ? '#0071E3' : '#374151' }}>
+              {l.label}
+            </span>
+            {language === l.value && (
+              <span style={{ marginLeft: 'auto', width: 16, height: 16, borderRadius: '50%', background: '#0071E3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Check size={10} style={{ color: '#fff' }} strokeWidth={3} />
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+      {saved && (
+        <p style={{ fontSize: 12, color: '#16A34A', margin: 0 }}>✓ Idioma guardado</p>
+      )}
+      {saving && (
+        <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>Guardando…</p>
+      )}
+    </div>
+  )
+}
+
 function SchoolTab() {
   const [saved, setSaved] = useState(false)
   function save() { setSaved(true); setTimeout(() => setSaved(false), 2000) }
@@ -389,6 +464,9 @@ function SchoolTab() {
           ))}
         </div>
       </div>
+
+      {/* Communications language */}
+      <SchoolLanguageCard />
 
       <SaveBar onSave={save} />
       {saved && (

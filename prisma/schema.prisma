@@ -373,6 +373,7 @@ model School {
   phone       String?
   email       String?
   website     String?
+  language    String   @default("en") // en | es | pt | fr
 
   // Social
   instagram   String?
