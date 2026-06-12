@@ -118,7 +118,7 @@ export default function StudentProfileClient({ profile }: { profile: Profile }) 
   const [notesValue, setNotesValue] = useState(profile.notes ?? '')
   const [savingNotes, setSavingNotes] = useState(false)
 
-  const belt = BELT_COLORS[profile.belt] ?? BELT_COLORS['Blanco']
+  const belt = BELT_COLORS[profile.belt] ?? BELT_COLORS['Blanco']!
   const status = STATUS_MAP[profile.status] ?? { bg: '#F3F4F6', color: '#6B7280', label: profile.status }
   const beltIdx = BELT_ORDER.indexOf(profile.belt)
   const beltProgress = beltIdx >= 0 ? ((beltIdx + (profile.beltDegree / 4)) / BELT_ORDER.length) * 100 : 0
