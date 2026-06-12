@@ -1,7 +1,12 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
+import { createBrowserClient } from '@supabase/ssr'
+
+// Capture hash synchronously at module load — before Supabase clears it
+const _initialHash = typeof window !== 'undefined' ? window.location.hash : ''
+const _isMagicLink = _initialHash.includes('access_token') && _initialHash.includes('type=magiclink')
 import { useT } from '../lib/i18n/LanguageContext'
 import LoginModal        from '../components/LoginModal'
 import RegisterModal     from '../components/RegisterModal'
@@ -24,7 +29,6 @@ import Footer            from '../components/Footer'
 // Inner component — uses useSearchParams (must be inside Suspense)
 function HomeContent() {
   const searchParams = useSearchParams()
-  const router = useRouter()
   const t = useT()
   const [showModal, setShowModal]                 = useState(false)
   const [showRegisterModal, setShowRegisterModal] = useState(false)
@@ -33,17 +37,14 @@ function HomeContent() {
 
   // Redirect magiclink sessions (from invite emails) to set-password page
   useEffect(() => {
-    const { createBrowserClient } = require('@supabase/ssr')
+    if (!_isMagicLink) return
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     )
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string) => {
-      if (event === 'SIGNED_IN') {
-        const hash = window.location.hash
-        if (hash.includes('type=magiclink')) {
-          window.location.replace('/auth/set-password')
-        }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        window.location.replace('/auth/set-password')
       }
     })
     return () => subscription.unsubscribe()
