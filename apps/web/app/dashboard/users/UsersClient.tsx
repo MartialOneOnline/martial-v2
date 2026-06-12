@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Bell, Menu, Search, Plus, MoreHorizontal,
   Download, TrendingUp, Clock, Users, X,
   ChevronDown, UserCheck, Archive, Shield,
+  Mail, Upload, FileText, CheckCircle, AlertCircle,
 } from 'lucide-react'
 import { useDashboard } from '../../../components/DashboardShell'
 import DashboardLanguageSelector from '../../../components/DashboardLanguageSelector'
@@ -207,14 +208,197 @@ function ActionsMenu({
   )
 }
 
+// ── Shared input style ─────────────────────────────────────────────────────────
+const fieldInput: React.CSSProperties = {
+  width: '100%', padding: '9px 12px', fontSize: 13, borderRadius: 8,
+  border: '1px solid #E5E7EB', outline: 'none', background: '#fff',
+  boxSizing: 'border-box', color: '#111827', fontFamily: 'inherit',
+}
+
+// ── CSV parser (no dependency) ─────────────────────────────────────────────────
+function parseCSV(text: string): string[][] {
+  const rows: string[][] = []
+  const lines = text.split(/\r?\n/).filter(l => l.trim())
+  for (const line of lines) {
+    const cols: string[] = []
+    let cur = '', inQ = false
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i]
+      if (c === '"') { inQ = !inQ }
+      else if (c === ',' && !inQ) { cols.push(cur.trim()); cur = '' }
+      else { cur += c }
+    }
+    cols.push(cur.trim())
+    rows.push(cols)
+  }
+  return rows
+}
+
+function detectColumn(headers: string[], keys: string[]): number {
+  return headers.findIndex(h => keys.some(k => h.toLowerCase().includes(k)))
+}
+
 // ── Add Student modal ──────────────────────────────────────────────────────────
 function AddStudentModal({
   onClose,
   onCreated,
 }: {
   onClose: () => void
-  onCreated: (student: Student) => void
+  onCreated: (students: Student[]) => void
 }) {
+  const [tab, setTab] = useState<'invite' | 'create' | 'import'>('invite')
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  const TABS = [
+    { key: 'invite' as const, label: 'Invitar', icon: Mail },
+    { key: 'create' as const, label: 'Crear',   icon: Plus },
+    { key: 'import' as const, label: 'Importar CSV', icon: Upload },
+  ]
+
+  return (
+    <div
+      style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+      onClick={onClose}
+    >
+      <div
+        style={{ background: '#fff', borderRadius: 18, width: '100%', maxWidth: 500, boxShadow: '0 32px 80px rgba(0,0,0,0.18)', overflow: 'hidden' }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div style={{ padding: '24px 24px 0', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+          <div>
+            <h2 style={{ fontSize: 17, fontWeight: 700, color: '#111827', margin: 0 }}>Añadir estudiante</h2>
+            <p style={{ fontSize: 13, color: '#9CA3AF', margin: '2px 0 0' }}>Elige cómo quieres añadir el alumno</p>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', padding: 4, marginTop: -2 }}>
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Tab bar */}
+        <div style={{ display: 'flex', gap: 0, padding: '16px 24px 0', borderBottom: '1px solid #F3F4F6' }}>
+          {TABS.map(t => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '8px 14px', fontSize: 13, fontWeight: tab === t.key ? 600 : 400,
+                color: tab === t.key ? '#0071E3' : '#6B7280',
+                background: 'none', border: 'none', cursor: 'pointer',
+                borderBottom: `2px solid ${tab === t.key ? '#0071E3' : 'transparent'}`,
+                marginBottom: -1, transition: 'all 0.15s',
+              }}
+            >
+              <t.icon size={13} />
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab content */}
+        <div style={{ padding: 24 }}>
+          {tab === 'invite' && <InviteTab onClose={onClose} onCreated={onCreated} />}
+          {tab === 'create' && <CreateTab onClose={onClose} onCreated={onCreated} />}
+          {tab === 'import' && <ImportTab onClose={onClose} onCreated={onCreated} />}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Invite tab ─────────────────────────────────────────────────────────────────
+function InviteTab({ onClose, onCreated }: { onClose: () => void; onCreated: (s: Student[]) => void }) {
+  const [email, setEmail] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [sent, setSent] = useState(false)
+
+  const handleInvite = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    if (!email.trim()) { setError('El email es obligatorio'); return }
+    setLoading(true)
+    try {
+      const res = await fetch('/api/dashboard/members/invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setError(data.error ?? 'Error al enviar la invitación'); return }
+      onCreated([data.member])
+      setSent(true)
+    } catch {
+      setError('Error de conexión')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (sent) {
+    return (
+      <div style={{ textAlign: 'center', padding: '24px 0' }}>
+        <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#F0FDF4', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+          <CheckCircle size={24} style={{ color: '#16A34A' }} />
+        </div>
+        <p style={{ fontSize: 15, fontWeight: 600, color: '#111827', margin: '0 0 6px' }}>¡Invitación enviada!</p>
+        <p style={{ fontSize: 13, color: '#6B7280', margin: '0 0 20px' }}>
+          {email} recibirá un email para activar su cuenta.
+        </p>
+        <button onClick={onClose} style={{ padding: '9px 24px', background: '#0071E3', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+          Cerrar
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <form onSubmit={handleInvite} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ padding: '14px 16px', background: '#F0F9FF', borderRadius: 10, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+        <Mail size={15} style={{ color: '#0071E3', flexShrink: 0, marginTop: 1 }} />
+        <p style={{ fontSize: 13, color: '#374151', margin: 0, lineHeight: 1.5 }}>
+          El alumno recibirá un email con un enlace para crear su contraseña y acceder a la plataforma. Se añade como <strong>Pendiente</strong> hasta que complete el registro.
+        </p>
+      </div>
+
+      <div>
+        <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Email del alumno *</label>
+        <input
+          type="email" value={email} onChange={e => setEmail(e.target.value)}
+          placeholder="alumno@ejemplo.com" autoFocus
+          style={fieldInput}
+          onFocus={e => (e.target.style.borderColor = '#0071E3')}
+          onBlur={e => (e.target.style.borderColor = '#E5E7EB')}
+        />
+      </div>
+
+      {error && (
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '8px 12px', background: '#FEF2F2', borderRadius: 8 }}>
+          <AlertCircle size={14} style={{ color: '#DC2626', flexShrink: 0 }} />
+          <p style={{ fontSize: 13, color: '#DC2626', margin: 0 }}>{error}</p>
+        </div>
+      )}
+
+      <div className="flex gap-3">
+        <button type="button" onClick={onClose} style={{ flex: 1, padding: '10px', fontSize: 13, fontWeight: 500, borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', color: '#374151', cursor: 'pointer' }}>
+          Cancelar
+        </button>
+        <button type="submit" disabled={loading} style={{ flex: 2, padding: '10px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', background: loading ? '#93C5FD' : '#0071E3', color: '#fff', cursor: loading ? 'not-allowed' : 'pointer' }}>
+          {loading ? 'Enviando...' : 'Enviar invitación'}
+        </button>
+      </div>
+    </form>
+  )
+}
+
+// ── Create tab ─────────────────────────────────────────────────────────────────
+function CreateTab({ onClose, onCreated }: { onClose: () => void; onCreated: (s: Student[]) => void }) {
   const [form, setForm] = useState({ name: '', email: '', phone: '', belt: 'Blanco', beltDegree: 0, status: 'ACTIVE' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -232,7 +416,7 @@ function AddStudentModal({
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error ?? 'Error al crear el estudiante'); return }
-      onCreated(data.member)
+      onCreated([data.member])
       onClose()
     } catch {
       setError('Error de conexión')
@@ -242,116 +426,269 @@ function AddStudentModal({
   }
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 100,
-      background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
-    }} onClick={onClose}>
-      <div style={{
-        background: '#fff', borderRadius: 16, width: '100%', maxWidth: 460,
-        boxShadow: '0 24px 64px rgba(0,0,0,0.15)', padding: 28,
-      }} onClick={e => e.stopPropagation()}>
-
-        {/* Header */}
-        <div className="flex items-center justify-between" style={{ marginBottom: 24 }}>
-          <div>
-            <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111827', margin: 0 }}>Añadir estudiante</h2>
-            <p style={{ fontSize: 13, color: '#6B7280', marginTop: 2 }}>Crea un nuevo miembro en tu escuela</p>
-          </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF' }}>
-            <X size={20} />
-          </button>
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div>
+        <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Nombre completo *</label>
+        <input type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Ej. Juan García" autoFocus
+          style={fieldInput} onFocus={e => (e.target.style.borderColor = '#0071E3')} onBlur={e => (e.target.style.borderColor = '#E5E7EB')} />
+      </div>
+      <div>
+        <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Email *</label>
+        <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="juan@ejemplo.com"
+          style={fieldInput} onFocus={e => (e.target.style.borderColor = '#0071E3')} onBlur={e => (e.target.style.borderColor = '#E5E7EB')} />
+      </div>
+      <div>
+        <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Teléfono</label>
+        <input type="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="+34 600 000 000"
+          style={fieldInput} onFocus={e => (e.target.style.borderColor = '#0071E3')} onBlur={e => (e.target.style.borderColor = '#E5E7EB')} />
+      </div>
+      <div className="flex gap-3">
+        <div style={{ flex: 2 }}>
+          <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Cinturón</label>
+          <select value={form.belt} onChange={e => setForm(f => ({ ...f, belt: e.target.value }))} style={fieldInput}>
+            {BELTS.map(b => <option key={b} value={b}>{BELT_DISPLAY[b]?.label ?? b}</option>)}
+          </select>
         </div>
+        <div style={{ flex: 1 }}>
+          <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Grados</label>
+          <select value={form.beltDegree} onChange={e => setForm(f => ({ ...f, beltDegree: Number(e.target.value) }))} style={fieldInput}>
+            {[0,1,2,3,4].map(n => <option key={n} value={n}>{n}</option>)}
+          </select>
+        </div>
+      </div>
+      <div>
+        <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Estado</label>
+        <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} style={fieldInput}>
+          {STATUSES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+        </select>
+      </div>
+      {error && (
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '8px 12px', background: '#FEF2F2', borderRadius: 8 }}>
+          <AlertCircle size={14} style={{ color: '#DC2626', flexShrink: 0 }} />
+          <p style={{ fontSize: 13, color: '#DC2626', margin: 0 }}>{error}</p>
+        </div>
+      )}
+      <div className="flex gap-3" style={{ marginTop: 4 }}>
+        <button type="button" onClick={onClose} style={{ flex: 1, padding: '10px', fontSize: 13, fontWeight: 500, borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', color: '#374151', cursor: 'pointer' }}>
+          Cancelar
+        </button>
+        <button type="submit" disabled={loading} style={{ flex: 2, padding: '10px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', background: loading ? '#93C5FD' : '#0071E3', color: '#fff', cursor: loading ? 'not-allowed' : 'pointer' }}>
+          {loading ? 'Creando...' : 'Crear estudiante'}
+        </button>
+      </div>
+    </form>
+  )
+}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {/* Name */}
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>
-              Nombre completo *
-            </label>
-            <input
-              type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-              placeholder="Ej. Juan García"
-              style={{ width: '100%', padding: '9px 12px', fontSize: 14, borderRadius: 8, border: '1px solid #E5E7EB', outline: 'none', boxSizing: 'border-box' }}
-              onFocus={e => (e.target.style.borderColor = '#0071E3')}
-              onBlur={e => (e.target.style.borderColor = '#E5E7EB')} />
+// ── Import tab ─────────────────────────────────────────────────────────────────
+type CsvRow = { name: string; email: string; phone: string; belt: string }
+
+function ImportTab({ onClose, onCreated }: { onClose: () => void; onCreated: (s: Student[]) => void }) {
+  const [dragging, setDragging] = useState(false)
+  const [rows, setRows] = useState<CsvRow[]>([])
+  const [fileName, setFileName] = useState('')
+  const [colMap, setColMap] = useState({ name: -1, email: -1, phone: -1, belt: -1 })
+  const [headers, setHeaders] = useState<string[]>([])
+  const [loading, setLoading] = useState(false)
+  const [result, setResult] = useState<{ created: number; skipped: number; errors: string[] } | null>(null)
+  const [error, setError] = useState('')
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  const processFile = useCallback((file: File) => {
+    if (!file.name.match(/\.(csv|txt)$/i)) { setError('Solo se aceptan archivos .csv'); return }
+    setFileName(file.name)
+    setError('')
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const text = e.target?.result as string
+      const parsed = parseCSV(text)
+      if (parsed.length < 2) { setError('El archivo está vacío o no tiene datos'); return }
+      const hdrs = (parsed[0] ?? []).map(h => h.replace(/^["']|["']$/g, ''))
+      setHeaders(hdrs)
+      const map = {
+        name:  detectColumn(hdrs, ['name', 'nombre', 'full']),
+        email: detectColumn(hdrs, ['email', 'correo', 'mail']),
+        phone: detectColumn(hdrs, ['phone', 'telefono', 'tel', 'móvil', 'movil']),
+        belt:  detectColumn(hdrs, ['belt', 'cinturon', 'cinturón', 'rank']),
+      }
+      setColMap(map)
+      const dataRows = parsed.slice(1).slice(0, 200)
+      setRows(dataRows.map(r => ({
+        name:  map.name  >= 0 ? r[map.name]  ?? '' : '',
+        email: map.email >= 0 ? r[map.email] ?? '' : '',
+        phone: map.phone >= 0 ? r[map.phone] ?? '' : '',
+        belt:  map.belt  >= 0 ? r[map.belt]  ?? '' : '',
+      })))
+    }
+    reader.readAsText(file)
+  }, [])
+
+  const onDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault(); setDragging(false)
+    const file = e.dataTransfer.files[0]
+    if (file) processFile(file)
+  }, [processFile])
+
+  const handleImport = async () => {
+    setLoading(true); setError('')
+    try {
+      const validRows = rows.filter(r => r.email.trim() && r.name.trim())
+      const res = await fetch('/api/dashboard/members/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rows: validRows }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setError(data.error ?? 'Error al importar'); return }
+      setResult(data)
+      if (data.members?.length > 0) onCreated(data.members as Student[])
+    } catch {
+      setError('Error de conexión')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (result) {
+    return (
+      <div style={{ textAlign: 'center', padding: '16px 0' }}>
+        <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#F0FDF4', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+          <CheckCircle size={24} style={{ color: '#16A34A' }} />
+        </div>
+        <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: '0 0 8px' }}>Importación completada</p>
+        <div className="flex justify-center gap-4" style={{ marginBottom: 16 }}>
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ fontSize: 22, fontWeight: 700, color: '#16A34A', margin: 0 }}>{result.created}</p>
+            <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>creados</p>
           </div>
-
-          {/* Email */}
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>
-              Email *
-            </label>
-            <input
-              type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-              placeholder="juan@ejemplo.com"
-              style={{ width: '100%', padding: '9px 12px', fontSize: 14, borderRadius: 8, border: '1px solid #E5E7EB', outline: 'none', boxSizing: 'border-box' }}
-              onFocus={e => (e.target.style.borderColor = '#0071E3')}
-              onBlur={e => (e.target.style.borderColor = '#E5E7EB')} />
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ fontSize: 22, fontWeight: 700, color: '#9CA3AF', margin: 0 }}>{result.skipped}</p>
+            <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>omitidos</p>
           </div>
-
-          {/* Phone */}
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>
-              Teléfono
-            </label>
-            <input
-              type="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
-              placeholder="+34 600 000 000"
-              style={{ width: '100%', padding: '9px 12px', fontSize: 14, borderRadius: 8, border: '1px solid #E5E7EB', outline: 'none', boxSizing: 'border-box' }}
-              onFocus={e => (e.target.style.borderColor = '#0071E3')}
-              onBlur={e => (e.target.style.borderColor = '#E5E7EB')} />
+        </div>
+        {result.errors.length > 0 && (
+          <div style={{ textAlign: 'left', background: '#FEF2F2', borderRadius: 8, padding: '10px 12px', marginBottom: 16 }}>
+            <p style={{ fontSize: 12, fontWeight: 600, color: '#DC2626', margin: '0 0 4px' }}>Errores ({result.errors.length})</p>
+            {result.errors.slice(0, 5).map((e, i) => <p key={i} style={{ fontSize: 12, color: '#DC2626', margin: '2px 0' }}>{e}</p>)}
           </div>
+        )}
+        <button onClick={onClose} style={{ padding: '9px 24px', background: '#0071E3', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+          Cerrar
+        </button>
+      </div>
+    )
+  }
 
-          {/* Belt + Degree */}
-          <div className="flex gap-3">
-            <div style={{ flex: 2 }}>
-              <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Cinturón</label>
-              <select value={form.belt} onChange={e => setForm(f => ({ ...f, belt: e.target.value }))}
-                style={{ width: '100%', padding: '9px 12px', fontSize: 14, borderRadius: 8, border: '1px solid #E5E7EB', outline: 'none', background: '#fff', boxSizing: 'border-box' }}>
-                {BELTS.map(b => <option key={b} value={b}>{BELT_DISPLAY[b]?.label ?? b}</option>)}
-              </select>
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Drop zone */}
+      {rows.length === 0 ? (
+        <div
+          onDragOver={e => { e.preventDefault(); setDragging(true) }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={onDrop}
+          onClick={() => fileRef.current?.click()}
+          style={{
+            border: `2px dashed ${dragging ? '#0071E3' : '#D1D5DB'}`,
+            borderRadius: 12, padding: '32px 20px', textAlign: 'center',
+            cursor: 'pointer', background: dragging ? '#EFF6FF' : '#FAFAFA',
+            transition: 'all 0.15s',
+          }}
+        >
+          <Upload size={28} style={{ color: dragging ? '#0071E3' : '#9CA3AF', margin: '0 auto 10px', display: 'block' }} />
+          <p style={{ fontSize: 14, fontWeight: 600, color: '#374151', margin: '0 0 4px' }}>Arrastra tu CSV aquí</p>
+          <p style={{ fontSize: 12, color: '#9CA3AF', margin: '0 0 12px' }}>o haz clic para seleccionar</p>
+          <span style={{ fontSize: 11, background: '#F3F4F6', color: '#6B7280', padding: '4px 10px', borderRadius: 999 }}>
+            .csv · máx. 200 filas
+          </span>
+          <input ref={fileRef} type="file" accept=".csv,.txt" style={{ display: 'none' }}
+            onChange={e => { const f = e.target.files?.[0]; if (f) processFile(f) }} />
+        </div>
+      ) : (
+        <>
+          {/* File info */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: '#F9FAFB', borderRadius: 10, border: '1px solid #E5E7EB' }}>
+            <FileText size={16} style={{ color: '#0071E3', flexShrink: 0 }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fileName}</p>
+              <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>{rows.length} filas detectadas</p>
             </div>
-            <div style={{ flex: 1 }}>
-              <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Grados</label>
-              <select value={form.beltDegree} onChange={e => setForm(f => ({ ...f, beltDegree: Number(e.target.value) }))}
-                style={{ width: '100%', padding: '9px 12px', fontSize: 14, borderRadius: 8, border: '1px solid #E5E7EB', outline: 'none', background: '#fff', boxSizing: 'border-box' }}>
-                {[0,1,2,3,4].map(n => <option key={n} value={n}>{n}</option>)}
-              </select>
+            <button onClick={() => { setRows([]); setFileName(''); setColMap({ name: -1, email: -1, phone: -1, belt: -1 }) }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', padding: 4 }}>
+              <X size={16} />
+            </button>
+          </div>
+
+          {/* Column mapping */}
+          <div>
+            <p style={{ fontSize: 12, fontWeight: 600, color: '#374151', margin: '0 0 10px' }}>Mapeo de columnas</p>
+            <div className="grid grid-cols-2 gap-2">
+              {(['name', 'email', 'phone', 'belt'] as const).map(field => (
+                <div key={field}>
+                  <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4, textTransform: 'capitalize' }}>
+                    {field === 'name' ? 'Nombre' : field === 'email' ? 'Email' : field === 'phone' ? 'Teléfono' : 'Cinturón'}
+                    {(field === 'name' || field === 'email') && <span style={{ color: '#DC2626' }}> *</span>}
+                  </label>
+                  <select
+                    value={colMap[field]}
+                    onChange={e => setColMap(m => ({ ...m, [field]: Number(e.target.value) }))}
+                    style={{ ...fieldInput, fontSize: 12, padding: '6px 10px' }}
+                  >
+                    <option value={-1}>— ignorar —</option>
+                    {headers.map((h, i) => <option key={i} value={i}>{h}</option>)}
+                  </select>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Status */}
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Estado</label>
-            <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
-              style={{ width: '100%', padding: '9px 12px', fontSize: 14, borderRadius: 8, border: '1px solid #E5E7EB', outline: 'none', background: '#fff', boxSizing: 'border-box' }}>
-              {STATUSES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-            </select>
+          {/* Preview */}
+          <div style={{ overflowX: 'auto', borderRadius: 8, border: '1px solid #E5E7EB' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+              <thead>
+                <tr style={{ background: '#F9FAFB' }}>
+                  {['Nombre', 'Email', 'Teléfono', 'Cinturón'].map(h => (
+                    <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#6B7280', borderBottom: '1px solid #E5E7EB' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.slice(0, 5).map((r, i) => (
+                  <tr key={i} style={{ borderBottom: '1px solid #F3F4F6' }}>
+                    <td style={{ padding: '7px 12px', color: r.name ? '#111827' : '#D1D5DB' }}>{r.name || '—'}</td>
+                    <td style={{ padding: '7px 12px', color: r.email ? '#111827' : '#D1D5DB' }}>{r.email || '—'}</td>
+                    <td style={{ padding: '7px 12px', color: '#6B7280' }}>{r.phone || '—'}</td>
+                    <td style={{ padding: '7px 12px', color: '#6B7280' }}>{r.belt || '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {rows.length > 5 && (
+              <p style={{ fontSize: 11, color: '#9CA3AF', padding: '6px 12px', margin: 0 }}>
+                +{rows.length - 5} filas más
+              </p>
+            )}
           </div>
+        </>
+      )}
 
-          {error && (
-            <p style={{ fontSize: 13, color: '#DC2626', background: '#FEF2F2', padding: '8px 12px', borderRadius: 8, margin: 0 }}>
-              {error}
-            </p>
-          )}
+      {error && (
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '8px 12px', background: '#FEF2F2', borderRadius: 8 }}>
+          <AlertCircle size={14} style={{ color: '#DC2626', flexShrink: 0 }} />
+          <p style={{ fontSize: 13, color: '#DC2626', margin: 0 }}>{error}</p>
+        </div>
+      )}
 
-          {/* Actions */}
-          <div className="flex gap-3" style={{ marginTop: 4 }}>
-            <button type="button" onClick={onClose} style={{
-              flex: 1, padding: '10px', fontSize: 14, fontWeight: 500, borderRadius: 8,
-              border: '1px solid #E5E7EB', background: '#fff', color: '#374151', cursor: 'pointer',
-            }}>
-              Cancelar
-            </button>
-            <button type="submit" disabled={loading} style={{
-              flex: 2, padding: '10px', fontSize: 14, fontWeight: 600, borderRadius: 8,
-              border: 'none', background: loading ? '#93C5FD' : '#0071E3', color: '#fff',
-              cursor: loading ? 'not-allowed' : 'pointer',
-            }}>
-              {loading ? 'Creando...' : 'Añadir estudiante'}
-            </button>
-          </div>
-        </form>
+      <div className="flex gap-3">
+        <button type="button" onClick={onClose} style={{ flex: 1, padding: '10px', fontSize: 13, fontWeight: 500, borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', color: '#374151', cursor: 'pointer' }}>
+          Cancelar
+        </button>
+        {rows.length > 0 && (
+          <button onClick={handleImport} disabled={loading || colMap.email < 0 || colMap.name < 0}
+            style={{ flex: 2, padding: '10px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', background: (loading || colMap.email < 0 || colMap.name < 0) ? '#93C5FD' : '#0071E3', color: '#fff', cursor: (loading || colMap.email < 0 || colMap.name < 0) ? 'not-allowed' : 'pointer' }}>
+            {loading ? 'Importando...' : `Importar ${rows.filter(r => r.name && r.email).length} alumnos`}
+          </button>
+        )}
       </div>
     </div>
   )
@@ -422,8 +759,8 @@ export default function UsersClient({ students: initialStudents }: { students: S
 
   const handleArchive = (memberId: string) => handleStatusChange(memberId, 'ARCHIVED')
 
-  const handleCreated = (newStudent: Student) => {
-    setStudents(prev => [newStudent, ...prev])
+  const handleCreated = (newStudents: Student[]) => {
+    setStudents(prev => [...newStudents, ...prev])
   }
 
   return (
