@@ -30,6 +30,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* Redirect magiclink tokens to set-password before any JS bundle runs */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function(){
+            var h = window.location.hash;
+            if (h.indexOf('access_token') !== -1 && h.indexOf('type=magiclink') !== -1) {
+              window.location.replace('/auth/set-password' + h);
+            }
+          })();
+        `}} />
+      </head>
       <body className={`${inter.variable} ${outfit.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
         <LanguageProvider>{children}</LanguageProvider>
       </body>
