@@ -89,18 +89,35 @@ function ScheduleBuilder({
   value: ScheduleSlot[]
   onChange: (v: ScheduleSlot[]) => void
 }) {
-  function toggle(dow: number) {
-    const exists = value.find(s => s.dayOfWeek === dow)
-    if (exists) {
+  function toggleDay(dow: number) {
+    const hasDay = value.some(s => s.dayOfWeek === dow)
+    if (hasDay) {
       onChange(value.filter(s => s.dayOfWeek !== dow))
     } else {
       onChange([...value, { dayOfWeek: dow, startTime: '09:00', endTime: '10:00' }])
     }
   }
 
-  function updateSlot(dow: number, field: 'startTime' | 'endTime', val: string) {
-    onChange(value.map(s => s.dayOfWeek === dow ? { ...s, [field]: val } : s))
+  function addSlot(dow: number) {
+    onChange([...value, { dayOfWeek: dow, startTime: '09:00', endTime: '10:00' }])
   }
+
+  function updateSlot(idx: number, field: 'startTime' | 'endTime', val: string) {
+    onChange(value.map((s, i) => i === idx ? { ...s, [field]: val } : s))
+  }
+
+  function removeSlot(idx: number) {
+    onChange(value.filter((_, i) => i !== idx))
+  }
+
+  // Group slots by day, preserving original indices for update/remove
+  const sorted = value
+    .map((slot, idx) => ({ slot, idx }))
+    .sort((a, b) => a.slot.dayOfWeek - b.slot.dayOfWeek)
+
+  const byDay = DAY_LABELS.map((_, dow) =>
+    sorted.filter(({ slot }) => slot.dayOfWeek === dow)
+  )
 
   return (
     <div className="flex flex-col gap-2">
@@ -110,7 +127,7 @@ function ScheduleBuilder({
           const active = value.some(s => s.dayOfWeek === dow)
           return (
             <button key={dow} type="button"
-              onClick={() => toggle(dow)}
+              onClick={() => toggleDay(dow)}
               style={{
                 fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 999,
                 border: `1px solid ${active ? '#0071E3' : '#E5E7EB'}`,
@@ -123,21 +140,45 @@ function ScheduleBuilder({
           )
         })}
       </div>
-      {/* Time inputs for selected days */}
-      {value.sort((a, b) => a.dayOfWeek - b.dayOfWeek).map(slot => (
-        <div key={slot.dayOfWeek} className="flex items-center gap-2">
-          <span style={{ fontSize: 12, fontWeight: 600, color: '#374151', width: 28 }}>
-            {DAY_LABELS[slot.dayOfWeek]}
-          </span>
-          <input type="time" value={slot.startTime}
-            onChange={e => updateSlot(slot.dayOfWeek, 'startTime', e.target.value)}
-            style={{ border: '1px solid #E5E7EB', borderRadius: 8, padding: '4px 8px', fontSize: 12 }} />
-          <span style={{ fontSize: 12, color: '#9CA3AF' }}>–</span>
-          <input type="time" value={slot.endTime}
-            onChange={e => updateSlot(slot.dayOfWeek, 'endTime', e.target.value)}
-            style={{ border: '1px solid #E5E7EB', borderRadius: 8, padding: '4px 8px', fontSize: 12 }} />
-        </div>
-      ))}
+
+      {/* Time rows grouped by day */}
+      {byDay.map((entries, dow) => {
+        if (entries.length === 0) return null
+        return (
+          <div key={dow} className="flex flex-col gap-1">
+            {entries.map(({ slot, idx }, slotInDay) => (
+              <div key={idx} className="flex items-center gap-2">
+                {/* Day label — only on first slot of that day */}
+                <span style={{ fontSize: 12, fontWeight: 600, color: '#374151', width: 28, flexShrink: 0 }}>
+                  {slotInDay === 0 ? DAY_LABELS[dow] : ''}
+                </span>
+                <input type="time" value={slot.startTime}
+                  onChange={e => updateSlot(idx, 'startTime', e.target.value)}
+                  style={{ border: '1px solid #E5E7EB', borderRadius: 8, padding: '4px 8px', fontSize: 12 }} />
+                <span style={{ fontSize: 12, color: '#9CA3AF' }}>–</span>
+                <input type="time" value={slot.endTime}
+                  onChange={e => updateSlot(idx, 'endTime', e.target.value)}
+                  style={{ border: '1px solid #E5E7EB', borderRadius: 8, padding: '4px 8px', fontSize: 12 }} />
+                {/* Remove slot — always show if day has >1 slot, or show to remove the only slot */}
+                <button type="button" onClick={() => removeSlot(idx)}
+                  style={{ fontSize: 18, lineHeight: 1, color: '#D1D5DB', background: 'none',
+                    border: 'none', cursor: 'pointer', padding: '0 2px' }}
+                  title="Remove this time slot">
+                  ×
+                </button>
+                {/* Add another slot for this day — only on last slot */}
+                {slotInDay === entries.length - 1 && (
+                  <button type="button" onClick={() => addSlot(dow)}
+                    style={{ fontSize: 11, fontWeight: 600, color: '#0071E3', background: 'none',
+                      border: 'none', cursor: 'pointer', padding: '0 2px', whiteSpace: 'nowrap' }}>
+                    + time
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )
+      })}
     </div>
   )
 }
