@@ -100,18 +100,24 @@
   --color-marketplace: #F97316;
 
   /* ── Semantic aliases (shorthand for components) ─────────────────────── */
-  --color-primary:        #0870E2;
-  --color-primary-hover:  #0761C9;
-  --color-primary-soft:   #EFF6FF;
+  --color-primary:         #0870E2;
+  --color-primary-hover:   #0761C9;
+  --color-primary-pressed: #0557B3;
+  --color-primary-soft:    #EFF6FF;
+  --color-primary-border:  #BFDBFE;
 
   --color-ink:            #0B1220;
   --color-surface:        #FFFFFF;
+  --color-surface-soft:   #F9FAFB;
+  --color-surface-muted:  #F1F5F9;
   --color-background:     #F8FAFC;
   --color-border:         #E5EAF0;
+  --color-border-strong:  #CBD5E1;
 
   --color-text-primary:   #101828;
   --color-text-secondary: #667085;
   --color-text-muted:     #98A2B3;
+  --color-text-disabled:  #CBD5E1;
 
   --color-martial-navy:      #0E3A7A;
   --color-martial-navy-dark: #071A33;
@@ -161,8 +167,10 @@
   --martial-error:        #E11D48;
   --martial-error-soft:   #FFF1F2;
 
-  --martial-ai:          #7C5CFF;
-  --martial-marketplace: #F97316;
+  --martial-ai:             #7C5CFF;
+  --martial-ai-soft:        #F4F1FF;
+  --martial-marketplace:    #F97316;
+  --martial-marketplace-soft: #FFF7ED;
 
   --gradient-brand-hero:   linear-gradient(135deg, #071A33 0%, #0E3A7A 55%, #7DE7EC 100%);
   --gradient-app-splash:   linear-gradient(135deg, #0E3A7A 0%, #3C83C3 60%, #6EC1EC 100%);
