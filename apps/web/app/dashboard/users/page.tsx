@@ -1,13 +1,38 @@
-import { requireDashboardAccess, getCurrentSchoolId } from '@/lib/auth/server'
+import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/db'
+import { cookies } from 'next/headers'
 import UsersClient from './UsersClient'
 
 export default async function UsersPage() {
-  await requireDashboardAccess()
-  const schoolId = await getCurrentSchoolId()
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!schoolId) return <UsersClient students={[]} />
+  if (!user) return <UsersClient students={[]} />
 
+  const cookieStore = await cookies()
+  const schoolId = cookieStore.get('currentSchoolId')?.value
+
+  if (!schoolId) {
+    // Try to find the user's school automatically
+    const dbUser = await prisma.user.findUnique({
+      where: { supabaseAuthId: user.id },
+      select: { id: true },
+    })
+    if (!dbUser) return <UsersClient students={[]} />
+
+    const membership = await prisma.schoolMember.findFirst({
+      where: { userId: dbUser.id },
+      select: { schoolId: true },
+    })
+    if (!membership) return <UsersClient students={[]} />
+
+    return <UsersPageWithSchool schoolId={membership.schoolId} />
+  }
+
+  return <UsersPageWithSchool schoolId={schoolId} />
+}
+
+async function UsersPageWithSchool({ schoolId }: { schoolId: string }) {
   const members = await prisma.schoolMember.findMany({
     where: { schoolId },
     include: { user: { select: { id: true, name: true, email: true } } },
