@@ -158,9 +158,9 @@ function ActionsMenu({
 
             {statusOpen && (
               <div style={{
-                position: 'absolute', left: '100%', top: 0, zIndex: 51, minWidth: 150,
+                position: 'absolute', right: '100%', top: 0, zIndex: 51, minWidth: 150,
                 background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10,
-                boxShadow: '0 8px 24px rgba(0,0,0,0.10)', padding: '4px 0',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.10)', padding: '4px 0', marginRight: 4,
               }}>
                 {STATUSES.map(s => (
                   <button
