@@ -61,7 +61,7 @@ export default function SetPasswordPage() {
         const token = params.get('access_token')
         const refreshToken = params.get('refresh_token')
         if (token) {
-          const payload = JSON.parse(atob(token.split('.')[1]))
+          const payload = JSON.parse(atob(token.split('.')[1] ?? ''))
           if (payload.email) setEmail(payload.email)
           // Establish session so updateUser works
           if (refreshToken) {
