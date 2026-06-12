@@ -333,6 +333,7 @@ model Discipline {
   name    String             @unique // "BJJ", "MMA", "Muay Thai", etc.
   slug    String             @unique
   schools SchoolDiscipline[]
+  classes Class[]
 
   @@map("disciplines")
 }
@@ -400,6 +401,9 @@ model School {
   googleRating    Float?
   googleReviews   Int?
   googlePlaceId   String?
+
+  // V1 migration reference
+  v1UserId        Int?     @unique // V1 user_id (e.g. 798 for Roger Gracie Málaga)
 
   // Stripe
   stripeAccountId String?
@@ -550,6 +554,7 @@ model Class {
   name         String
   description  String?
   disciplineId String?
+  discipline   Discipline? @relation(fields: [disciplineId], references: [id])
   level        String?    // "Beginner" | "Intermediate" | "Advanced" | "All levels"
   duration     Int?       // minutes
   capacity     Int?
@@ -592,8 +597,9 @@ model Event {
   price       Float     @default(0)
   currency    String    @default("EUR")
   coverUrl    String?
-  isPublished Boolean   @default(false)
-  externalUrl String?   // e.g. competition registration link
+  isPublished  Boolean   @default(false)
+  isCancelled  Boolean   @default(false)
+  externalUrl  String?   // e.g. competition registration link
 
   instructorId String?
   instructor   Instructor? @relation(fields: [instructorId], references: [id])
