@@ -114,7 +114,7 @@ export default function SetPasswordPage() {
   if (done) {
     return (
       <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
-        <SuccessScreen name={name || email.split('@')[0] || ''} onContinue={() => router.replace('/dashboard')} />
+        <SuccessScreen name={name || email.split('@')[0] || ''} onContinue={() => router.replace('/my')} />
       </div>
     )
   }
