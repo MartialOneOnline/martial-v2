@@ -62,7 +62,7 @@ export default function VerifyQueueClient() {
       {/* Top bar */}
       <div className="bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
         <div>
-          <h1 className="text-lg font-bold text-[#0D1B2A]">Verification Queue</h1>
+          <h1 className="text-lg font-bold text-[#101828]">Verification Queue</h1>
           <p className="text-xs text-gray-400">Schools that have claimed their listing and are awaiting approval</p>
         </div>
         <button
@@ -77,7 +77,7 @@ export default function VerifyQueueClient() {
       <div className="p-8">
         {loading ? (
           <div className="flex items-center justify-center h-64">
-            <div className="w-6 h-6 border-2 border-[#006197] border-t-transparent rounded-full animate-spin" />
+            <div className="w-6 h-6 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />
           </div>
         ) : schools.length === 0 ? (
           <div className="bg-white border border-gray-100 rounded-2xl shadow-sm flex flex-col items-center justify-center py-20">
@@ -99,10 +99,10 @@ export default function VerifyQueueClient() {
                 <div className="p-6">
                   <div className="flex items-start gap-4">
                     {/* Avatar */}
-                    <div className="w-12 h-12 rounded-xl bg-[#006197]/8 flex items-center justify-center shrink-0">
+                    <div className="w-12 h-12 rounded-xl bg-[#0870E2]/8 flex items-center justify-center shrink-0">
                       {school.logoUrl
                         ? <img src={school.logoUrl} alt="" className="w-12 h-12 rounded-xl object-cover" />
-                        : <Building2 className="w-6 h-6 text-[#006197]" />
+                        : <Building2 className="w-6 h-6 text-[#0870E2]" />
                       }
                     </div>
 
@@ -110,7 +110,7 @@ export default function VerifyQueueClient() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-4">
                         <div>
-                          <h3 className="text-sm font-bold text-[#0D1B2A]">{school.name}</h3>
+                          <h3 className="text-sm font-bold text-[#101828]">{school.name}</h3>
                           <div className="flex items-center gap-3 mt-1 flex-wrap">
                             {school.city && (
                               <span className="flex items-center gap-1 text-xs text-gray-400">
@@ -145,7 +145,7 @@ export default function VerifyQueueClient() {
                             onClick={() => act(school.id, 'verify')}
                             disabled={!!acting}
                             className="flex items-center gap-1.5 h-8 px-4 rounded-lg text-xs font-semibold text-white transition-opacity disabled:opacity-50 hover:opacity-90"
-                            style={{ background: '#006197' }}
+                            style={{ background: '#0870E2' }}
                           >
                             <CheckCircle2 className="w-3.5 h-3.5" />
                             {acting === school.id + 'verify' ? '...' : 'Verify'}
@@ -157,7 +157,7 @@ export default function VerifyQueueClient() {
                       {(school.email || school.phone || school.website || school.instagram) && (
                         <div className="flex items-center gap-4 mt-3 flex-wrap">
                           {school.email && (
-                            <a href={`mailto:${school.email}`} className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-[#006197]">
+                            <a href={`mailto:${school.email}`} className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-[#0870E2]">
                               <Mail className="w-3 h-3" /> {school.email}
                             </a>
                           )}
@@ -167,12 +167,12 @@ export default function VerifyQueueClient() {
                             </span>
                           )}
                           {school.website && (
-                            <a href={school.website} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-[#006197]">
+                            <a href={school.website} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-[#0870E2]">
                               <Globe className="w-3 h-3" /> Website
                             </a>
                           )}
                           {school.instagram && (
-                            <a href={`https://instagram.com/${school.instagram}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-[#006197]">
+                            <a href={`https://instagram.com/${school.instagram}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-[#0870E2]">
                               <AtSign className="w-3 h-3" /> {school.instagram}
                             </a>
                           )}

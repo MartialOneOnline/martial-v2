@@ -178,7 +178,7 @@ export default function LoginModal({ onClose, onOpenRegister }: LoginModalProps)
           {/* Back button (email view only) */}
           {view === 'email' && (
             <button onClick={() => { setView('sso'); setError(''); setEmailErr(''); setPassErr('') }}
-              className="absolute top-4 left-4 w-9 h-9 flex items-center justify-center rounded-full bg-[#f5f5f5] hover:bg-[#ebebeb] text-slate-600 cursor-pointer transition-colors"
+              className="absolute top-4 left-4 w-9 h-9 flex items-center justify-center rounded-full bg-[#f5f5f5] hover:bg-[#ebebeb] text-[#667085] cursor-pointer transition-colors"
               aria-label="Back">
               <ArrowLeft className="w-[18px] h-[18px]" />
             </button>
@@ -186,7 +186,7 @@ export default function LoginModal({ onClose, onOpenRegister }: LoginModalProps)
 
           {/* Close */}
           <button onClick={onClose}
-            className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-[#f5f5f5] hover:bg-[#ebebeb] text-slate-600 hover:text-slate-900 cursor-pointer transition-colors"
+            className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-[#f5f5f5] hover:bg-[#ebebeb] text-[#667085] hover:text-[#101828] cursor-pointer transition-colors"
             aria-label="Close">
             <X className="w-[18px] h-[18px]" />
           </button>
@@ -225,7 +225,7 @@ export default function LoginModal({ onClose, onOpenRegister }: LoginModalProps)
                 <p className="text-[13px] text-[#6b7280] text-center mt-6">
                   Don&apos;t have an account?{' '}
                   <span onClick={() => { onClose(); onOpenRegister?.() }}
-                    className="text-[#006197] font-semibold underline cursor-pointer hover:text-[#004e7c] transition-colors">
+                    className="text-[#0870E2] font-semibold underline cursor-pointer hover:text-[#004e7c] transition-colors">
                     Register
                   </span>
                 </p>
@@ -268,7 +268,7 @@ export default function LoginModal({ onClose, onOpenRegister }: LoginModalProps)
 
                   {/* Forgot password */}
                   <div className="flex justify-end -mt-1">
-                    <span className="text-[13px] font-medium text-[#006197] cursor-pointer hover:underline">
+                    <span className="text-[13px] font-medium text-[#0870E2] cursor-pointer hover:underline">
                       Forgot Password?
                     </span>
                   </div>
@@ -284,7 +284,7 @@ export default function LoginModal({ onClose, onOpenRegister }: LoginModalProps)
                 <p className="text-[13px] text-[#6b7280] text-center mt-5">
                   Don&apos;t have an account?{' '}
                   <span onClick={() => { onClose(); onOpenRegister?.() }}
-                    className="text-[#006197] font-semibold underline cursor-pointer hover:text-[#004e7c] transition-colors">
+                    className="text-[#0870E2] font-semibold underline cursor-pointer hover:text-[#004e7c] transition-colors">
                     Register
                   </span>
                 </p>

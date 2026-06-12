@@ -42,7 +42,7 @@ function PriceLabel({ price, currency, billingCycle }: { price: number; currency
   if (price === 0) return <span className="text-2xl font-bold text-emerald-600">Free</span>
   const suffix = billingCycle === 'monthly' ? '/mo' : billingCycle === 'quarterly' ? '/qtr' : billingCycle === 'annual' ? '/yr' : ''
   return (
-    <span className="text-2xl font-bold text-[#006197]">
+    <span className="text-2xl font-bold text-[#0870E2]">
       {sym}{price}<span className="text-sm font-normal text-[#4f4f4f]">{suffix}</span>
     </span>
   )
@@ -66,13 +66,13 @@ export default function MembershipSection({ plans }: { plans: Plan[] }) {
               onClick={() => setActiveTab(tab.key)}
               className={`px-5 py-3 text-sm font-medium transition-colors relative ${
                 activeTab === tab.key
-                  ? 'text-[#006197]'
-                  : 'text-[#6b7280] hover:text-[#006197]'
+                  ? 'text-[#0870E2]'
+                  : 'text-[#6b7280] hover:text-[#0870E2]'
               }`}
             >
               {tab.label}
               {activeTab === tab.key && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#006197]" />
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#0870E2]" />
               )}
             </button>
           ))}
@@ -87,7 +87,7 @@ export default function MembershipSection({ plans }: { plans: Plan[] }) {
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-semibold text-[#061229] text-sm">{plan.name}</span>
                 {plan.isPopular && (
-                  <span className="text-[10px] font-bold uppercase tracking-wide bg-[#006197] text-white px-2 py-0.5 rounded-full">Popular</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wide bg-[#0870E2] text-white px-2 py-0.5 rounded-full">Popular</span>
                 )}
               </div>
               {plan.description && (
@@ -97,7 +97,7 @@ export default function MembershipSection({ plans }: { plans: Plan[] }) {
                 <div className="flex flex-wrap gap-x-3 mt-1">
                   {plan.features.slice(0, 3).map((f, i) => (
                     <span key={i} className="text-[11px] text-[#4f4f4f] flex items-center gap-1">
-                      <svg className="w-3 h-3 text-[#006197]" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                      <svg className="w-3 h-3 text-[#0870E2]" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
                       {f}

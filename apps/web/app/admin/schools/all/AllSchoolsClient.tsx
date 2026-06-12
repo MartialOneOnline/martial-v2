@@ -70,7 +70,7 @@ export default function AllSchoolsClient() {
       {/* Top bar */}
       <div className="bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
         <div>
-          <h1 className="text-lg font-bold text-[#0D1B2A]">All Schools</h1>
+          <h1 className="text-lg font-bold text-[#101828]">All Schools</h1>
           <p className="text-xs text-gray-400">{total} schools on the platform</p>
         </div>
         <button
@@ -92,7 +92,7 @@ export default function AllSchoolsClient() {
               placeholder="Search schools…"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="pl-9 pr-4 h-9 rounded-xl border border-gray-200 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006197]/20 focus:border-[#006197] w-64"
+              className="pl-9 pr-4 h-9 rounded-xl border border-gray-200 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0870E2]/20 focus:border-[#0870E2] w-64"
             />
           </div>
 
@@ -101,7 +101,7 @@ export default function AllSchoolsClient() {
             <select
               value={status}
               onChange={e => setStatus(e.target.value)}
-              className="h-9 px-3 rounded-xl border border-gray-200 text-xs text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#006197]/20 focus:border-[#006197] bg-white"
+              className="h-9 px-3 rounded-xl border border-gray-200 text-xs text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#0870E2]/20 focus:border-[#0870E2] bg-white"
             >
               {STATUSES.map(s => (
                 <option key={s} value={s}>{s || 'All statuses'}</option>
@@ -113,7 +113,7 @@ export default function AllSchoolsClient() {
             <select
               value={country}
               onChange={e => setCountry(e.target.value)}
-              className="h-9 px-3 rounded-xl border border-gray-200 text-xs text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#006197]/20 focus:border-[#006197] bg-white"
+              className="h-9 px-3 rounded-xl border border-gray-200 text-xs text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#0870E2]/20 focus:border-[#0870E2] bg-white"
             >
               <option value="">All countries</option>
               {countries.map(c => (
@@ -127,7 +127,7 @@ export default function AllSchoolsClient() {
         <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center h-40">
-              <div className="w-6 h-6 border-2 border-[#006197] border-t-transparent rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />
             </div>
           ) : schools.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16">
@@ -151,11 +151,11 @@ export default function AllSchoolsClient() {
                   <tr key={school.id} className="hover:bg-gray-50/50 transition-colors group">
                     <td className="px-6 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-[#006197]/8 flex items-center justify-center shrink-0">
-                          <Building2 className="w-4 h-4 text-[#006197]" />
+                        <div className="w-8 h-8 rounded-xl bg-[#0870E2]/8 flex items-center justify-center shrink-0">
+                          <Building2 className="w-4 h-4 text-[#0870E2]" />
                         </div>
                         <div>
-                          <p className="text-xs font-semibold text-[#0D1B2A]">{school.name}</p>
+                          <p className="text-xs font-semibold text-[#101828]">{school.name}</p>
                           {school.email && <p className="text-[11px] text-gray-400">{school.email}</p>}
                         </div>
                       </div>
@@ -182,7 +182,7 @@ export default function AllSchoolsClient() {
                       <Link
                         href={`/school/${school.slug}`}
                         target="_blank"
-                        className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-[11px] font-semibold text-[#006197] hover:underline"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-[11px] font-semibold text-[#0870E2] hover:underline"
                       >
                         View <ExternalLink className="w-3 h-3" />
                       </Link>

@@ -7,10 +7,10 @@ function Section({ title, icon: Icon, children }: { title: string; icon: React.E
   return (
     <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
       <div className="flex items-center gap-2.5 px-6 py-4 border-b border-gray-50">
-        <div className="w-7 h-7 rounded-lg bg-[#006197]/8 flex items-center justify-center">
-          <Icon className="w-3.5 h-3.5 text-[#006197]" />
+        <div className="w-7 h-7 rounded-lg bg-[#0870E2]/8 flex items-center justify-center">
+          <Icon className="w-3.5 h-3.5 text-[#0870E2]" />
         </div>
-        <p className="text-sm font-bold text-[#0D1B2A]">{title}</p>
+        <p className="text-sm font-bold text-[#101828]">{title}</p>
       </div>
       <div className="px-6 py-5 space-y-4">{children}</div>
     </div>
@@ -23,13 +23,13 @@ function Toggle({ label, description, checked, onChange }: {
   return (
     <div className="flex items-start justify-between gap-4">
       <div>
-        <p className="text-sm font-medium text-[#0D1B2A]">{label}</p>
+        <p className="text-sm font-medium text-[#101828]">{label}</p>
         {description && <p className="text-xs text-gray-400 mt-0.5">{description}</p>}
       </div>
       <button
         onClick={() => onChange(!checked)}
         className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${
-          checked ? 'bg-[#006197]' : 'bg-gray-200'
+          checked ? 'bg-[#0870E2]' : 'bg-gray-200'
         }`}
       >
         <span className={`inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${
@@ -62,13 +62,13 @@ export default function SettingsClient() {
     <div className="min-h-screen">
       <div className="bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
         <div>
-          <h1 className="text-lg font-bold text-[#0D1B2A]">Settings</h1>
+          <h1 className="text-lg font-bold text-[#101828]">Settings</h1>
           <p className="text-xs text-gray-400">Platform configuration and preferences</p>
         </div>
         <button
           onClick={save}
           className="flex items-center gap-2 h-9 px-4 rounded-xl text-white text-xs font-semibold hover:opacity-90 transition-opacity"
-          style={{ background: saved ? '#10B981' : '#006197' }}
+          style={{ background: saved ? '#10B981' : '#0870E2' }}
         >
           {saved ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
           {saved ? 'Saved!' : 'Save changes'}
@@ -121,19 +121,19 @@ export default function SettingsClient() {
         <Section title="Security" icon={Shield}>
           <div className="space-y-3">
             <div>
-              <p className="text-sm font-medium text-[#0D1B2A] mb-1">Super admin email</p>
+              <p className="text-sm font-medium text-[#101828] mb-1">Super admin email</p>
               <input
                 type="email"
                 defaultValue="admin@martial.app"
-                className="w-full h-9 px-3 rounded-xl border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#006197]/20 focus:border-[#006197]"
+                className="w-full h-9 px-3 rounded-xl border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0870E2]/20 focus:border-[#0870E2]"
               />
             </div>
             <div>
-              <p className="text-sm font-medium text-[#0D1B2A] mb-1">Support email</p>
+              <p className="text-sm font-medium text-[#101828] mb-1">Support email</p>
               <input
                 type="email"
                 defaultValue="hello@martial.app"
-                className="w-full h-9 px-3 rounded-xl border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#006197]/20 focus:border-[#006197]"
+                className="w-full h-9 px-3 rounded-xl border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0870E2]/20 focus:border-[#0870E2]"
               />
             </div>
           </div>
@@ -145,11 +145,11 @@ export default function SettingsClient() {
             <p className="text-xs text-amber-600 mt-0.5">Emails are sent via Resend. Update your API key in environment variables.</p>
           </div>
           <div>
-            <p className="text-sm font-medium text-[#0D1B2A] mb-1">Sender name</p>
+            <p className="text-sm font-medium text-[#101828] mb-1">Sender name</p>
             <input
               type="text"
               defaultValue="Martial"
-              className="w-full h-9 px-3 rounded-xl border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#006197]/20 focus:border-[#006197]"
+              className="w-full h-9 px-3 rounded-xl border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0870E2]/20 focus:border-[#0870E2]"
             />
           </div>
         </Section>

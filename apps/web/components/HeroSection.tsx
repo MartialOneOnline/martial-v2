@@ -36,28 +36,28 @@ export default function HeroSection({ onOpenLoginModal }: HeroSectionProps) {
           <div className="lg:col-span-6 flex flex-col space-y-8">
             <div className="flex flex-col gap-2.5">
               <div className="flex gap-2.5 items-center">
-                <span className="w-10 h-1 bg-sky-400 rounded-full" />
-                <span className="w-4 h-1 bg-sky-400/50 rounded-full" />
-                <span className="w-2.5 h-1 bg-sky-400/30 rounded-full" />
+                <span className="w-10 h-1 bg-[#0870E2] rounded-full" />
+                <span className="w-4 h-1 bg-[#0870E2]/50 rounded-full" />
+                <span className="w-2.5 h-1 bg-[#0870E2]/30 rounded-full" />
               </div>
               <span className="text-xs font-extrabold tracking-wider text-sky-600 uppercase mt-1">
                 {t.hero.badge}
               </span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#101828] leading-tight">
               {t.hero.title} <br />
-              <span className="text-[#0092ff]">{t.hero.titleSub}</span>
+              <span className="text-[#0870E2]">{t.hero.titleSub}</span>
             </h1>
 
-            <p className="text-lg text-slate-600 leading-relaxed max-w-xl">
+            <p className="text-lg text-[#667085] leading-relaxed max-w-xl">
               {t.hero.subtitle}
             </p>
 
             <div className="flex flex-wrap gap-4 items-center">
               <button
                 onClick={() => onOpenLoginModal?.()}
-                className="px-8 py-4 bg-[#0092ff] text-white font-extrabold text-[15px] rounded-xl hover:bg-[#007cd7] shadow-lg shadow-sky-500/20 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+                className="px-8 py-4 bg-[#0870E2] text-white font-extrabold text-[15px] rounded-xl hover:bg-[#007cd7] shadow-lg shadow-sky-500/20 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
               >
                 {t.hero.cta}
                 <motion.span
@@ -112,10 +112,10 @@ export default function HeroSection({ onOpenLoginModal }: HeroSectionProps) {
 
               {/* Top banner */}
               <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none z-10">
-                <span className="bg-sky-500/90 text-white font-extrabold text-xs tracking-wider uppercase px-4 py-1.5 rounded-full shadow-md backdrop-blur-sm">
+                <span className="bg-[#0870E2]/90 text-white font-extrabold text-xs tracking-wider uppercase px-4 py-1.5 rounded-full shadow-md backdrop-blur-sm">
                   🏆 Verified Club
                 </span>
-                <span className="w-10 h-10 bg-[#0092ff] text-white flex items-center justify-center rounded-full shadow-lg">
+                <span className="w-10 h-10 bg-[#0870E2] text-white flex items-center justify-center rounded-full shadow-lg">
                   <svg className="w-5 h-5 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                   </svg>
@@ -130,10 +130,10 @@ export default function HeroSection({ onOpenLoginModal }: HeroSectionProps) {
                   className="bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-xl flex items-center gap-4 border border-white/20"
                 >
                   <div className="w-12 h-12 bg-sky-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Award className="w-6 h-6 text-[#0092ff]" />
+                    <Award className="w-6 h-6 text-[#0870E2]" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-800 text-sm leading-tight">{slide.title}</h3>
+                    <h3 className="font-bold text-[#101828] text-sm leading-tight">{slide.title}</h3>
                     <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5 font-semibold">
                       <MapPin className="w-3.5 h-3.5 text-slate-400" />{slide.location}
                     </p>

@@ -46,14 +46,14 @@ export default function MyPaymentsPage() {
   return (
     <div className="min-h-screen">
       <div className="bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-10">
-        <h1 className="text-lg font-bold text-[#0D1B2A]">Payments</h1>
+        <h1 className="text-lg font-bold text-[#101828]">Payments</h1>
         <p className="text-xs text-gray-400">{total} transactions</p>
       </div>
 
       <div className="p-6 space-y-4 max-w-2xl">
         {/* Summary card */}
         {transactions.length > 0 && (
-          <div className="bg-[#006197] rounded-2xl p-5 text-white">
+          <div className="bg-[#0870E2] rounded-2xl p-5 text-white">
             <p className="text-xs font-semibold opacity-70 uppercase tracking-wide mb-1">Total this page</p>
             <p className="text-3xl font-bold">€{totalSpent.toFixed(2)}</p>
             <p className="text-sm opacity-70 mt-0.5">{transactions.length} transactions</p>
@@ -62,7 +62,7 @@ export default function MyPaymentsPage() {
 
         {loading ? (
           <div className="flex items-center justify-center h-40">
-            <div className="w-6 h-6 border-2 border-[#006197] border-t-transparent rounded-full animate-spin" />
+            <div className="w-6 h-6 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />
           </div>
         ) : transactions.length === 0 ? (
           <div className="bg-white border border-gray-100 rounded-2xl p-10 shadow-sm text-center">
@@ -74,16 +74,16 @@ export default function MyPaymentsPage() {
             <div className="divide-y divide-gray-50">
               {transactions.map(t => (
                 <div key={t.id} className="flex items-center gap-3 px-5 py-3.5">
-                  <div className="w-9 h-9 rounded-xl bg-[#006197]/8 flex items-center justify-center shrink-0">
-                    <CreditCard className="w-4 h-4 text-[#006197]" />
+                  <div className="w-9 h-9 rounded-xl bg-[#0870E2]/8 flex items-center justify-center shrink-0">
+                    <CreditCard className="w-4 h-4 text-[#0870E2]" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-[#0D1B2A] truncate">
+                    <p className="text-xs font-semibold text-[#101828] truncate">
                       {t.description || t.category || 'Payment'}
                     </p>
                     <p className="text-[11px] text-gray-400">{t.school.name} · {fmtDate(t.date)}</p>
                   </div>
-                  <p className="text-sm font-bold text-[#0D1B2A] shrink-0">
+                  <p className="text-sm font-bold text-[#101828] shrink-0">
                     {fmtAmount(t.amount, t.currency, t.type)}
                   </p>
                 </div>

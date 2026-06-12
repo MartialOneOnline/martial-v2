@@ -59,7 +59,7 @@ export default function SchoolOwnersClient() {
     <div className="min-h-screen">
       <div className="bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
         <div>
-          <h1 className="text-lg font-bold text-[#0D1B2A]">School Owners</h1>
+          <h1 className="text-lg font-bold text-[#101828]">School Owners</h1>
           <p className="text-xs text-gray-400">{total} registered owners</p>
         </div>
         <button onClick={load}
@@ -76,14 +76,14 @@ export default function SchoolOwnersClient() {
             placeholder="Search owners…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="pl-9 pr-4 h-9 w-full rounded-xl border border-gray-200 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006197]/20 focus:border-[#006197]"
+            className="pl-9 pr-4 h-9 w-full rounded-xl border border-gray-200 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0870E2]/20 focus:border-[#0870E2]"
           />
         </div>
 
         <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center h-40">
-              <div className="w-6 h-6 border-2 border-[#006197] border-t-transparent rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />
             </div>
           ) : users.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16">
@@ -106,18 +106,18 @@ export default function SchoolOwnersClient() {
                   <tr key={user.id} className="hover:bg-gray-50/50 transition-colors group">
                     <td className="px-6 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-[#006197]/10 flex items-center justify-center text-[#006197] text-[11px] font-bold">
+                        <div className="w-8 h-8 rounded-full bg-[#0870E2]/10 flex items-center justify-center text-[#0870E2] text-[11px] font-bold">
                           {(user.name || user.email).slice(0, 2).toUpperCase()}
                         </div>
                         <div>
-                          <p className="text-xs font-semibold text-[#0D1B2A]">{user.name || '—'}</p>
+                          <p className="text-xs font-semibold text-[#101828]">{user.name || '—'}</p>
                           <p className="text-[11px] text-gray-400">{user.email}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-3">
                       {user.claimedSchools[0] ? (
-                        <div className="flex items-center gap-1.5 text-xs font-medium text-[#0D1B2A]">
+                        <div className="flex items-center gap-1.5 text-xs font-medium text-[#101828]">
                           <Building2 className="w-3 h-3 text-gray-300 shrink-0" />
                           {user.claimedSchools[0].name}
                         </div>
@@ -140,7 +140,7 @@ export default function SchoolOwnersClient() {
                         <Link
                           href={`/school/${user.claimedSchools[0].slug}`}
                           target="_blank"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-[11px] font-semibold text-[#006197] hover:underline"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-[11px] font-semibold text-[#0870E2] hover:underline"
                         >
                           View <ExternalLink className="w-3 h-3" />
                         </Link>

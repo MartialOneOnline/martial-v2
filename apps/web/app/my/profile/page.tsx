@@ -70,13 +70,13 @@ export default function MyProfilePage() {
 
       {/* ── Header ── */}
       <div className="bg-white border-b border-gray-100 px-5 py-4 sticky top-0 z-10 flex items-center justify-between">
-        <h1 className="text-base font-bold text-[#0D1B2A]">Profile</h1>
+        <h1 className="text-base font-bold text-[#101828]">Profile</h1>
         <button
           onClick={() => setEditing(e => !e)}
           className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${
             editing
-              ? 'bg-[#006197] text-white'
-              : 'text-[#006197] hover:bg-[#006197]/8'
+              ? 'bg-[#0870E2] text-white'
+              : 'text-[#0870E2] hover:bg-[#0870E2]/8'
           }`}
         >
           {editing ? 'Save' : 'Edit'}
@@ -85,7 +85,7 @@ export default function MyProfilePage() {
 
       {loading ? (
         <div className="flex items-center justify-center h-60">
-          <div className="w-5 h-5 border-2 border-[#006197] border-t-transparent rounded-full animate-spin" />
+          <div className="w-5 h-5 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />
         </div>
       ) : (
         <>
@@ -97,7 +97,7 @@ export default function MyProfilePage() {
                 {profile?.avatarUrl ? (
                   <img src={profile.avatarUrl} alt="" className="w-16 h-16 rounded-full object-cover" />
                 ) : (
-                  <div className="w-16 h-16 rounded-full bg-[#006197]/10 flex items-center justify-center text-[#006197] font-bold text-xl">
+                  <div className="w-16 h-16 rounded-full bg-[#0870E2]/10 flex items-center justify-center text-[#0870E2] font-bold text-xl">
                     {initials}
                   </div>
                 )}
@@ -114,10 +114,10 @@ export default function MyProfilePage() {
                   <input
                     value={name}
                     onChange={e => setName(e.target.value)}
-                    className="w-full text-base font-bold text-[#0D1B2A] bg-gray-50 rounded-lg px-3 py-1.5 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#006197]/20 focus:border-[#006197]"
+                    className="w-full text-base font-bold text-[#101828] bg-gray-50 rounded-lg px-3 py-1.5 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#0870E2]/20 focus:border-[#0870E2]"
                   />
                 ) : (
-                  <p className="text-base font-bold text-[#0D1B2A] truncate">{profile?.name || 'Add your name'}</p>
+                  <p className="text-base font-bold text-[#101828] truncate">{profile?.name || 'Add your name'}</p>
                 )}
                 <p className="text-xs text-gray-400 mt-0.5 truncate">{profile?.email}</p>
                 {profile?.phone && (
@@ -136,9 +136,9 @@ export default function MyProfilePage() {
                 <Link
                   key={label}
                   href={href}
-                  className="bg-[#F8F9FB] rounded-xl p-3 text-center hover:bg-[#006197]/5 transition-colors"
+                  className="bg-[#F8F9FB] rounded-xl p-3 text-center hover:bg-[#0870E2]/5 transition-colors"
                 >
-                  <p className="text-lg font-bold text-[#0D1B2A]">{value}</p>
+                  <p className="text-lg font-bold text-[#101828]">{value}</p>
                   <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">{label}</p>
                 </Link>
               ))}
@@ -151,7 +151,7 @@ export default function MyProfilePage() {
               </button>
               <Link
                 href="/explore"
-                className="py-2.5 rounded-xl bg-[#006197] text-white text-xs font-semibold text-center hover:bg-[#005580] transition-colors"
+                className="py-2.5 rounded-xl bg-[#0870E2] text-white text-xs font-semibold text-center hover:bg-[#005580] transition-colors"
               >
                 Find Academies
               </Link>
@@ -173,7 +173,7 @@ export default function MyProfilePage() {
                     type={type}
                     defaultValue={value}
                     disabled={disabled}
-                    className={`w-full h-10 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-[#006197]/20 focus:border-[#006197] transition-colors ${
+                    className={`w-full h-10 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-[#0870E2]/20 focus:border-[#0870E2] transition-colors ${
                       disabled
                         ? 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed'
                         : 'border-gray-200 text-gray-700'
@@ -203,11 +203,11 @@ export default function MyProfilePage() {
                         ii < section.items.length - 1 ? 'border-b border-gray-50' : ''
                       }`}
                     >
-                      <div className="w-8 h-8 rounded-xl bg-[#006197]/8 flex items-center justify-center shrink-0">
-                        <Icon className="w-4 h-4 text-[#006197]" />
+                      <div className="w-8 h-8 rounded-xl bg-[#0870E2]/8 flex items-center justify-center shrink-0">
+                        <Icon className="w-4 h-4 text-[#0870E2]" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-[#0D1B2A]">{item.label}</p>
+                        <p className="text-sm font-semibold text-[#101828]">{item.label}</p>
                         <p className="text-[11px] text-gray-400 mt-0.5">{item.desc}</p>
                       </div>
                       <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />

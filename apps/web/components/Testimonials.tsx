@@ -14,8 +14,8 @@ export default function Testimonials() {
     <section className="bg-slate-50 py-20 sm:py-28 border-t border-gray-100">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-xs font-black text-sky-500 uppercase tracking-widest block mb-1">Success Stories</span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight">
+          <span className="text-xs font-black text-[#0870E2] uppercase tracking-widest block mb-1">Success Stories</span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#101828] leading-tight">
             What Our Happy Users Think
           </h2>
         </div>
@@ -42,15 +42,15 @@ export default function Testimonials() {
                   </div>
                   <span className="text-[11px] font-black text-sky-600">4.9 (40+)</span>
                 </div>
-                <p className="text-slate-600 text-sm leading-relaxed font-semibold italic">&ldquo;{t.quote}&rdquo;</p>
+                <p className="text-[#667085] text-sm leading-relaxed font-semibold italic">&ldquo;{t.quote}&rdquo;</p>
               </div>
 
               <div className="mt-8 pt-4 border-t border-gray-100 flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-[#0092ff] to-cyan-500 rounded-full flex items-center justify-center text-white font-extrabold text-sm shrink-0">
+                <div className="w-10 h-10 bg-gradient-to-br from-[#0870E2] to-cyan-500 rounded-full flex items-center justify-center text-white font-extrabold text-sm shrink-0">
                   {t.name[0]}
                 </div>
                 <div>
-                  <h4 className="text-sm font-black text-slate-800 leading-tight">{t.name}</h4>
+                  <h4 className="text-sm font-black text-[#101828] leading-tight">{t.name}</h4>
                   <p className="text-[10px] text-slate-400 font-bold mt-0.5 uppercase tracking-wider">
                     {t.role} • {t.school}
                   </p>

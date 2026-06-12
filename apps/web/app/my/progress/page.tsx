@@ -48,18 +48,18 @@ function RankCard({ member, gradings }: { member: SchoolMember; gradings: Gradin
       {/* School header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-[#006197]/8 flex items-center justify-center overflow-hidden shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-[#0870E2]/8 flex items-center justify-center overflow-hidden shrink-0">
             {member.school.logoUrl
               ? <img src={member.school.logoUrl} alt="" className="w-8 h-8 object-cover" />
-              : <span className="text-[#006197] font-bold text-sm">{member.school.name[0]}</span>
+              : <span className="text-[#0870E2] font-bold text-sm">{member.school.name[0]}</span>
             }
           </div>
           <div>
-            <p className="text-sm font-bold text-[#0D1B2A]">{member.school.name}</p>
-            <p className="text-xs text-[#006197] font-medium">Ranks</p>
+            <p className="text-sm font-bold text-[#101828]">{member.school.name}</p>
+            <p className="text-xs text-[#0870E2] font-medium">Ranks</p>
           </div>
         </div>
-        <Link href={`/school/${member.school.slug}`} className="text-xs font-semibold text-[#006197] flex items-center gap-0.5 hover:underline">
+        <Link href={`/school/${member.school.slug}`} className="text-xs font-semibold text-[#0870E2] flex items-center gap-0.5 hover:underline">
           View All <ChevronRight className="w-3.5 h-3.5" />
         </Link>
       </div>
@@ -80,7 +80,7 @@ function RankCard({ member, gradings }: { member: SchoolMember; gradings: Gradin
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-2xl font-bold text-[#0D1B2A]">{Math.round(progress * 100)}%</span>
+              <span className="text-2xl font-bold text-[#101828]">{Math.round(progress * 100)}%</span>
               <span className="text-[10px] text-gray-400 text-center leading-tight">2 Classes<br />to go</span>
             </div>
           </div>
@@ -89,7 +89,7 @@ function RankCard({ member, gradings }: { member: SchoolMember; gradings: Gradin
           <div className="flex-1 space-y-2.5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-gray-500">Total Classes</span>
-              <span className="text-sm font-bold text-[#0D1B2A]">100</span>
+              <span className="text-sm font-bold text-[#101828]">100</span>
             </div>
             {[
               { label: 'Ready',        count: 12, color: '#22C55E' },
@@ -101,7 +101,7 @@ function RankCard({ member, gradings }: { member: SchoolMember; gradings: Gradin
                   <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: c }} />
                   <span className="text-xs text-gray-500">{label}</span>
                 </div>
-                <span className="text-xs font-semibold text-[#006197]">{count} Classes</span>
+                <span className="text-xs font-semibold text-[#0870E2]">{count} Classes</span>
               </div>
             ))}
           </div>
@@ -111,7 +111,7 @@ function RankCard({ member, gradings }: { member: SchoolMember; gradings: Gradin
         {belt && (
           <div className="mt-5 grid grid-cols-2 gap-3 items-center">
             <div>
-              <p className="text-xs font-bold text-[#0D1B2A] mb-2">{belt}</p>
+              <p className="text-xs font-bold text-[#101828] mb-2">{belt}</p>
               <div className="h-3 rounded-full overflow-hidden bg-gray-100">
                 <div className="h-full rounded-full" style={{ width: '65%', background: color }} />
               </div>
@@ -125,7 +125,7 @@ function RankCard({ member, gradings }: { member: SchoolMember; gradings: Gradin
             <div className="flex items-start gap-2">
               <span className="text-gray-300 text-lg mt-1">→</span>
               <div className="flex-1">
-                <p className="text-xs font-bold text-[#0D1B2A] mb-2">{belt} {degree + 1} Stripe</p>
+                <p className="text-xs font-bold text-[#101828] mb-2">{belt} {degree + 1} Stripe</p>
                 <div className="h-3 rounded-full overflow-hidden bg-gray-100">
                   <div className="h-full rounded-full" style={{ width: '20%', background: color }} />
                 </div>
@@ -148,7 +148,7 @@ function RankCard({ member, gradings }: { member: SchoolMember; gradings: Gradin
                 <div className="w-3 h-3 rounded-full bg-amber-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-[#0D1B2A]">
+                <p className="text-xs font-semibold text-[#101828]">
                   {g.fromBelt ? `${g.fromBelt} → ` : ''}{g.toBelt}
                   {g.toDegree ? ` (${g.toDegree} stripe${g.toDegree !== 1 ? 's' : ''})` : ''}
                 </p>
@@ -188,25 +188,25 @@ export default function MyProgressPage() {
   return (
     <div className="min-h-screen">
       <div className="bg-white border-b border-gray-100 px-5 py-4 sticky top-0 z-10">
-        <h1 className="text-base font-bold text-[#0D1B2A]">Ranking</h1>
+        <h1 className="text-base font-bold text-[#101828]">Ranking</h1>
         <p className="text-xs text-gray-400 mt-0.5">Belt progression & grading history</p>
       </div>
 
       <div className="px-4 py-5 space-y-4 max-w-2xl">
         {loading ? (
           <div className="flex items-center justify-center h-40">
-            <div className="w-5 h-5 border-2 border-[#006197] border-t-transparent rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />
           </div>
         ) : members.length === 0 ? (
           <div className="bg-white border border-gray-100 rounded-2xl p-10 shadow-sm text-center">
             <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center mx-auto mb-3">
               <div className="w-5 h-5 rounded-full bg-amber-300" />
             </div>
-            <p className="text-sm font-semibold text-[#0D1B2A] mb-1">No rankings yet</p>
+            <p className="text-sm font-semibold text-[#101828] mb-1">No rankings yet</p>
             <p className="text-xs text-gray-400 mb-4">Join an academy to start tracking your belt progress</p>
             <Link
               href="/explore"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-xs font-semibold bg-[#006197] hover:bg-[#005580] transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-xs font-semibold bg-[#0870E2] hover:bg-[#005580] transition-colors"
             >
               Find an academy
             </Link>
@@ -221,7 +221,7 @@ export default function MyProgressPage() {
         {gradings.length > 0 && members.length > 1 && (
           <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-50">
-              <p className="text-sm font-bold text-[#0D1B2A]">Full grading history</p>
+              <p className="text-sm font-bold text-[#101828]">Full grading history</p>
             </div>
             <div className="relative">
               <div className="absolute left-[37px] top-0 bottom-0 w-px bg-gray-100" />
@@ -232,7 +232,7 @@ export default function MyProgressPage() {
                       <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
                     </div>
                     <div className="flex-1 min-w-0 pt-0.5">
-                      <p className="text-xs font-bold text-[#0D1B2A]">
+                      <p className="text-xs font-bold text-[#101828]">
                         {g.fromBelt ? `${g.fromBelt} → ` : ''}{g.toBelt}
                       </p>
                       <p className="text-[11px] text-gray-400 mt-0.5">{g.school.name}</p>

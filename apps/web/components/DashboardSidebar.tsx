@@ -178,7 +178,7 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen }: Props) {
           <div className="flex items-center justify-between">
             {/* School identity */}
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-7 h-7 rounded-lg overflow-hidden shrink-0 bg-[#006197]/10 flex items-center justify-center">
+              <div className="w-7 h-7 rounded-lg overflow-hidden shrink-0 bg-[#0870E2]/10 flex items-center justify-center">
                 <Image src="/martial-logo.png" alt="Martial" width={28} height={28} className="object-contain" />
               </div>
               <div className="min-w-0">
@@ -215,7 +215,7 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen }: Props) {
                             }}
                             className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-left transition-colors"
                           >
-                            <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: s.schoolId === currentSchool?.schoolId ? '#006197' : '#E5E7EB' }} />
+                            <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: s.schoolId === currentSchool?.schoolId ? '#0870E2' : '#E5E7EB' }} />
                             <div className="min-w-0">
                               <p className="truncate text-xs font-semibold text-gray-800">{s.schoolName}</p>
                               <p className="text-[10px] text-gray-400">{s.role}</p>

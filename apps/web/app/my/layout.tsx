@@ -64,12 +64,12 @@ function BottomNav() {
             key={item.href}
             href={item.href}
             className={`flex-1 flex flex-col items-center justify-center py-2.5 gap-1 transition-colors ${
-              active ? 'text-[#006197]' : 'text-gray-400'
+              active ? 'text-[#0870E2]' : 'text-gray-400'
             }`}
           >
             <Icon className={`w-5 h-5 ${active ? 'stroke-[2.5]' : 'stroke-[1.5]'}`} />
             <span className={`text-[10px] font-medium ${active ? 'font-semibold' : ''}`}>{item.label}</span>
-            {active && <div className="absolute bottom-0 w-8 h-0.5 bg-[#006197] rounded-full" />}
+            {active && <div className="absolute bottom-0 w-8 h-0.5 bg-[#0870E2] rounded-full" />}
           </Link>
         )
       })}
@@ -87,7 +87,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
         <Link href="/my" onClick={onClose} className="flex items-center gap-2.5">
           <Image src="/logo.svg" alt="Martial" width={28} height={28} />
           <div>
-            <p className="text-sm font-bold text-[#0D1B2A] leading-tight">Martial</p>
+            <p className="text-sm font-bold text-[#101828] leading-tight">Martial</p>
             <p className="text-[10px] text-gray-400 leading-tight">My Account</p>
           </div>
         </Link>
@@ -118,13 +118,13 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
                     onClick={onClose}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
                       active
-                        ? 'bg-[#006197]/8 text-[#006197] font-semibold'
-                        : 'text-gray-500 hover:text-[#0D1B2A] hover:bg-gray-50'
+                        ? 'bg-[#0870E2]/8 text-[#0870E2] font-semibold'
+                        : 'text-gray-500 hover:text-[#101828] hover:bg-gray-50'
                     }`}
                   >
-                    <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-[#006197]' : 'text-gray-400'}`} />
+                    <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-[#0870E2]' : 'text-gray-400'}`} />
                     <span className="flex-1 truncate">{item.label}</span>
-                    {active && <ChevronRight className="w-3.5 h-3.5 text-[#006197]/40 shrink-0" />}
+                    {active && <ChevronRight className="w-3.5 h-3.5 text-[#0870E2]/40 shrink-0" />}
                   </Link>
                 )
               })}

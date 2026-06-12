@@ -51,14 +51,14 @@ export default function MyMembershipPage() {
   return (
     <div className="min-h-screen">
       <div className="bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-10">
-        <h1 className="text-lg font-bold text-[#0D1B2A]">Membership</h1>
+        <h1 className="text-lg font-bold text-[#101828]">Membership</h1>
         <p className="text-xs text-gray-400">Your active plans and subscriptions</p>
       </div>
 
       <div className="p-6 space-y-5 max-w-2xl">
         {loading ? (
           <div className="flex items-center justify-center h-40">
-            <div className="w-6 h-6 border-2 border-[#006197] border-t-transparent rounded-full animate-spin" />
+            <div className="w-6 h-6 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />
           </div>
         ) : memberships.length === 0 ? (
           <div className="bg-white border border-gray-100 rounded-2xl p-10 shadow-sm text-center">
@@ -67,7 +67,7 @@ export default function MyMembershipPage() {
             <p className="text-xs text-gray-400 mb-4">Join a school to get started</p>
             <Link href="/explore"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white text-xs font-semibold hover:opacity-90 transition-opacity"
-              style={{ background: '#006197' }}>
+              style={{ background: '#0870E2' }}>
               Find a school
             </Link>
           </div>
@@ -84,14 +84,14 @@ export default function MyMembershipPage() {
                   {/* Header */}
                   <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-[#006197]/8 flex items-center justify-center overflow-hidden shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-[#0870E2]/8 flex items-center justify-center overflow-hidden shrink-0">
                         {m.school.logoUrl
                           ? <img src={m.school.logoUrl} alt="" className="w-10 h-10 object-cover" />
-                          : <Building2 className="w-5 h-5 text-[#006197]" />
+                          : <Building2 className="w-5 h-5 text-[#0870E2]" />
                         }
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-[#0D1B2A]">{m.school.name}</p>
+                        <p className="text-sm font-bold text-[#101828]">{m.school.name}</p>
                         {m.school.city && <p className="text-xs text-gray-400">{m.school.city}</p>}
                       </div>
                     </div>
@@ -104,13 +104,13 @@ export default function MyMembershipPage() {
                   <div className="px-5 py-4 space-y-4">
                     <div className="flex items-start justify-between">
                       <div>
-                        <p className="text-base font-bold text-[#0D1B2A]">{m.planName}</p>
-                        <p className="text-xl font-bold text-[#006197] mt-0.5">
+                        <p className="text-base font-bold text-[#101828]">{m.planName}</p>
+                        <p className="text-xl font-bold text-[#0870E2] mt-0.5">
                           {m.currency === 'EUR' ? '€' : m.currency}{m.price.toFixed(0)}
                           <span className="text-xs font-normal text-gray-400"> /month</span>
                         </p>
                       </div>
-                      <Zap className="w-5 h-5 text-[#006197] mt-1" />
+                      <Zap className="w-5 h-5 text-[#0870E2] mt-1" />
                     </div>
 
                     {/* Class usage bar */}
@@ -125,7 +125,7 @@ export default function MyMembershipPage() {
                             className="h-full rounded-full transition-all"
                             style={{
                               width: `${pct}%`,
-                              background: pct! > 80 ? '#EF4444' : '#006197',
+                              background: pct! > 80 ? '#EF4444' : '#0870E2',
                             }}
                           />
                         </div>
@@ -157,7 +157,7 @@ export default function MyMembershipPage() {
                     <div className="pt-1">
                       <Link
                         href={`/school/${m.school.slug}`}
-                        className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-[#006197] text-[#006197] text-xs font-semibold hover:bg-[#006197] hover:text-white transition-colors"
+                        className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-[#0870E2] text-[#0870E2] text-xs font-semibold hover:bg-[#0870E2] hover:text-white transition-colors"
                       >
                         View school
                       </Link>
@@ -171,7 +171,7 @@ export default function MyMembershipPage() {
             {past.length > 0 && (
               <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
                 <div className="px-5 py-4 border-b border-gray-50">
-                  <p className="text-sm font-bold text-[#0D1B2A]">Past memberships</p>
+                  <p className="text-sm font-bold text-[#101828]">Past memberships</p>
                 </div>
                 <div className="divide-y divide-gray-50">
                   {past.map(m => (

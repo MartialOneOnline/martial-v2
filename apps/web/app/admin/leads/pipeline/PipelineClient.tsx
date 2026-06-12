@@ -57,7 +57,7 @@ export default function PipelineClient() {
           </Link>
           <div className="h-4 w-px bg-gray-200" />
           <div>
-            <h1 className="text-lg font-bold text-[#0D1B2A]">Pipeline</h1>
+            <h1 className="text-lg font-bold text-[#101828]">Pipeline</h1>
             <p className="text-xs text-gray-400">{invitations.length} total leads</p>
           </div>
         </div>
@@ -69,7 +69,7 @@ export default function PipelineClient() {
 
       {loading ? (
         <div className="flex items-center justify-center flex-1 h-64">
-          <div className="w-6 h-6 border-2 border-[#006197] border-t-transparent rounded-full animate-spin" />
+          <div className="w-6 h-6 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />
         </div>
       ) : (
         <div className="flex-1 overflow-x-auto">
@@ -94,7 +94,7 @@ export default function PipelineClient() {
                       </div>
                     ) : cards.map(inv => (
                       <div key={inv.id} className="bg-white border border-gray-100 rounded-xl p-3 shadow-sm hover:shadow-md transition-shadow">
-                        <p className="text-xs font-semibold text-[#0D1B2A] truncate">{inv.name}</p>
+                        <p className="text-xs font-semibold text-[#101828] truncate">{inv.name}</p>
                         <p className="text-[11px] text-gray-400 truncate mt-0.5">{inv.email}</p>
                         {(inv.city || inv.country) && (
                           <div className="flex items-center gap-1 mt-2 text-[11px] text-gray-400">
@@ -109,7 +109,7 @@ export default function PipelineClient() {
                           <span className="text-[10px] text-gray-300">{fmtDate(inv.createdAt)}</span>
                           {inv.school ? (
                             <Link href={`/school/${inv.school.slug}`} target="_blank"
-                              className="text-[10px] font-semibold text-[#006197] hover:underline">
+                              className="text-[10px] font-semibold text-[#0870E2] hover:underline">
                               View →
                             </Link>
                           ) : (

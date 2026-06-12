@@ -117,14 +117,14 @@ export default function HomeDiscovery() {
         {/* Header */}
         <div className="flex items-end justify-between mb-8">
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-[#006197] mb-1.5">Find Your Academy</p>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0D1B2A] leading-tight">
+            <p className="text-xs font-bold uppercase tracking-widest text-[#0870E2] mb-1.5">Find Your Academy</p>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#101828] leading-tight">
               Academies Near You
             </h2>
           </div>
           <Link
             href="/explore"
-            className="hidden sm:flex items-center gap-1.5 text-sm font-bold text-[#006197] hover:underline"
+            className="hidden sm:flex items-center gap-1.5 text-sm font-bold text-[#0870E2] hover:underline"
           >
             See all <ChevronRight className="w-4 h-4" />
           </Link>
@@ -140,8 +140,8 @@ export default function HomeDiscovery() {
                 onClick={() => setDiscipline(d.label)}
                 className={`shrink-0 flex items-center gap-1.5 h-9 px-4 rounded-full text-sm font-semibold border transition-all ${
                   active
-                    ? 'bg-[#006197] text-white border-transparent shadow-sm shadow-[#006197]/25'
-                    : 'bg-white text-[#0D1B2A] border-gray-200 hover:border-[#006197]/40'
+                    ? 'bg-[#0870E2] text-white border-transparent shadow-sm shadow-[#0870E2]/25'
+                    : 'bg-white text-[#101828] border-gray-200 hover:border-[#0870E2]/40'
                 }`}
               >
                 <span>{d.emoji}</span>
@@ -175,7 +175,7 @@ export default function HomeDiscovery() {
         <div className="mt-6 sm:hidden text-center">
           <Link
             href="/explore"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#006197] text-white text-sm font-bold hover:bg-[#005580] transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#0870E2] text-white text-sm font-bold hover:bg-[#005580] transition-colors"
           >
             Explore all academies <ArrowRight className="w-4 h-4" />
           </Link>

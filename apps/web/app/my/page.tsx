@@ -86,7 +86,7 @@ export default function MyHomePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="w-5 h-5 border-2 border-[#006197] border-t-transparent rounded-full animate-spin" />
+        <div className="w-5 h-5 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -108,15 +108,15 @@ export default function MyHomePage() {
       <div className="bg-white border-b border-gray-100 px-5 py-5">
         <div className="flex items-center gap-3 max-w-2xl">
           {user?.avatarUrl ? (
-            <img src={user.avatarUrl} alt="" className="w-11 h-11 rounded-full object-cover ring-2 ring-[#006197]/10" />
+            <img src={user.avatarUrl} alt="" className="w-11 h-11 rounded-full object-cover ring-2 ring-[#0870E2]/10" />
           ) : (
-            <div className="w-11 h-11 rounded-full bg-[#006197]/10 flex items-center justify-center text-[#006197] font-bold text-sm shrink-0">
+            <div className="w-11 h-11 rounded-full bg-[#0870E2]/10 flex items-center justify-center text-[#0870E2] font-bold text-sm shrink-0">
               {(user?.name || user?.email || 'U').slice(0, 2).toUpperCase()}
             </div>
           )}
           <div>
             <p className="text-xs text-gray-400">{greeting}</p>
-            <h1 className="text-base font-bold text-[#0D1B2A] leading-tight">{user?.name ?? user?.email}</h1>
+            <h1 className="text-base font-bold text-[#101828] leading-tight">{user?.name ?? user?.email}</h1>
           </div>
         </div>
       </div>
@@ -125,8 +125,8 @@ export default function MyHomePage() {
 
         {/* ── Upcoming class card (hero) ── */}
         {nextBooking ? (
-          <div className="relative rounded-2xl overflow-hidden bg-[#0D1B2A] shadow-lg">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#006197] to-[#003d5c]" />
+          <div className="relative rounded-2xl overflow-hidden bg-[#101828] shadow-lg">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#0870E2] to-[#003d5c]" />
             <div className="relative px-5 py-5">
               {days !== null && (
                 <span className="inline-block text-[10px] font-semibold bg-white/20 text-white px-2.5 py-1 rounded-full mb-3">
@@ -149,7 +149,7 @@ export default function MyHomePage() {
               </div>
               <Link
                 href="/my/classes"
-                className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold bg-white text-[#006197] px-4 py-2 rounded-xl hover:bg-white/90 transition-colors"
+                className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold bg-white text-[#0870E2] px-4 py-2 rounded-xl hover:bg-white/90 transition-colors"
               >
                 View booking <ChevronRight className="w-3.5 h-3.5" />
               </Link>
@@ -157,14 +157,14 @@ export default function MyHomePage() {
           </div>
         ) : (
           <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-[#006197]/8 flex items-center justify-center shrink-0">
-              <Calendar className="w-5 h-5 text-[#006197]" />
+            <div className="w-10 h-10 rounded-xl bg-[#0870E2]/8 flex items-center justify-center shrink-0">
+              <Calendar className="w-5 h-5 text-[#0870E2]" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold text-[#0D1B2A]">No upcoming classes</p>
+              <p className="text-sm font-semibold text-[#101828]">No upcoming classes</p>
               <p className="text-xs text-gray-400 mt-0.5">Find and book your next session</p>
             </div>
-            <Link href="/explore" className="text-xs font-semibold text-[#006197] shrink-0">
+            <Link href="/explore" className="text-xs font-semibold text-[#0870E2] shrink-0">
               Explore →
             </Link>
           </div>
@@ -191,7 +191,7 @@ export default function MyHomePage() {
               },
             ].map(({ label, value, href }) => (
               <Link key={label} href={href} className="flex flex-col items-center py-4 hover:bg-gray-50 transition-colors">
-                <p className="text-xl font-bold text-[#0D1B2A]">{value}</p>
+                <p className="text-xl font-bold text-[#101828]">{value}</p>
                 <p className="text-[11px] text-gray-400 mt-0.5 text-center px-2 leading-tight">{label}</p>
               </Link>
             ))}
@@ -203,10 +203,10 @@ export default function MyHomePage() {
           <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-sm font-bold text-[#0D1B2A]">{primaryMember.school.name}</p>
+                <p className="text-sm font-bold text-[#101828]">{primaryMember.school.name}</p>
                 <p className="text-xs text-gray-400 mt-0.5">Ranks</p>
               </div>
-              <Link href="/my/progress" className="flex items-center gap-1 text-xs font-semibold text-[#006197] hover:underline">
+              <Link href="/my/progress" className="flex items-center gap-1 text-xs font-semibold text-[#0870E2] hover:underline">
                 View All <ChevronRight className="w-3.5 h-3.5" />
               </Link>
             </div>
@@ -225,7 +225,7 @@ export default function MyHomePage() {
                   />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-lg font-bold text-[#0D1B2A]">75%</span>
+                  <span className="text-lg font-bold text-[#101828]">75%</span>
                   <span className="text-[9px] text-gray-400 leading-tight text-center">2 to go</span>
                 </div>
               </div>
@@ -241,7 +241,7 @@ export default function MyHomePage() {
                       <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
                       <span className="text-xs text-gray-500">{label}</span>
                     </div>
-                    <span className="text-xs font-semibold text-[#006197]">{count} classes</span>
+                    <span className="text-xs font-semibold text-[#0870E2]">{count} classes</span>
                   </div>
                 ))}
               </div>
@@ -250,7 +250,7 @@ export default function MyHomePage() {
             <div className="mt-4 flex items-center gap-3">
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-1.5">
-                  <p className="text-xs font-semibold text-[#0D1B2A]">{primaryMember.belt}</p>
+                  <p className="text-xs font-semibold text-[#101828]">{primaryMember.belt}</p>
                   <p className="text-[10px] text-gray-400">
                     {primaryMember.beltDate
                       ? new Date(primaryMember.beltDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
@@ -266,7 +266,7 @@ export default function MyHomePage() {
               </div>
               <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />
               <div className="flex-1">
-                <p className="text-xs font-semibold text-[#0D1B2A] mb-1.5">
+                <p className="text-xs font-semibold text-[#101828] mb-1.5">
                   {primaryMember.belt} {(primaryMember.beltDegree ?? 0) + 1} Stripe
                 </p>
                 <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
@@ -286,11 +286,11 @@ export default function MyHomePage() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs text-gray-400 font-medium">Active membership</p>
-                <p className="text-sm font-bold text-[#0D1B2A] mt-0.5">{activeMembership.planName}</p>
+                <p className="text-sm font-bold text-[#101828] mt-0.5">{activeMembership.planName}</p>
                 <p className="text-xs text-gray-400 mt-0.5">{activeMembership.school.name}</p>
               </div>
               <div className="text-right">
-                <p className="text-base font-bold text-[#006197]">
+                <p className="text-base font-bold text-[#0870E2]">
                   {activeMembership.currency === 'GBP' ? '£' : activeMembership.currency === 'EUR' ? '€' : '$'}{activeMembership.price.toFixed(0)}
                 </p>
                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600">Active</span>
@@ -306,7 +306,7 @@ export default function MyHomePage() {
                 </div>
                 <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-[#006197]"
+                    className="h-full rounded-full bg-[#0870E2]"
                     style={{ width: `${Math.min(100, (activeMembership.classesUsed / activeMembership.plan.classLimit) * 100)}%` }}
                   />
                 </div>
@@ -319,8 +319,8 @@ export default function MyHomePage() {
         {(user?.schoolMembers?.length ?? 0) > 0 && (
           <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50">
-              <p className="text-sm font-bold text-[#0D1B2A]">My academies</p>
-              <Link href="/explore" className="text-xs font-semibold text-[#006197]">Find more →</Link>
+              <p className="text-sm font-bold text-[#101828]">My academies</p>
+              <Link href="/explore" className="text-xs font-semibold text-[#0870E2]">Find more →</Link>
             </div>
             {user?.schoolMembers.map(m => (
               <Link
@@ -328,14 +328,14 @@ export default function MyHomePage() {
                 href={`/school/${m.school.slug}`}
                 className="flex items-center gap-3 px-5 py-3.5 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors group"
               >
-                <div className="w-9 h-9 rounded-xl bg-[#006197]/8 flex items-center justify-center shrink-0 overflow-hidden">
+                <div className="w-9 h-9 rounded-xl bg-[#0870E2]/8 flex items-center justify-center shrink-0 overflow-hidden">
                   {m.school.logoUrl
                     ? <img src={m.school.logoUrl} alt="" className="w-9 h-9 object-cover" />
-                    : <span className="text-[#006197] font-bold text-sm">{m.school.name[0]}</span>
+                    : <span className="text-[#0870E2] font-bold text-sm">{m.school.name[0]}</span>
                   }
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-[#0D1B2A] truncate">{m.school.name}</p>
+                  <p className="text-sm font-semibold text-[#101828] truncate">{m.school.name}</p>
                   {m.belt && (
                     <p className="text-xs text-gray-400 mt-0.5">{m.belt}{m.beltDegree ? ` · ${m.beltDegree} stripe` : ''}</p>
                   )}
@@ -349,14 +349,14 @@ export default function MyHomePage() {
         {/* ── Empty state ── */}
         {!activeMembership && !nextBooking && (user?.schoolMembers?.length ?? 0) === 0 && (
           <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-sm text-center">
-            <div className="w-12 h-12 rounded-2xl bg-[#006197]/8 flex items-center justify-center mx-auto mb-4">
-              <MapPin className="w-6 h-6 text-[#006197]" />
+            <div className="w-12 h-12 rounded-2xl bg-[#0870E2]/8 flex items-center justify-center mx-auto mb-4">
+              <MapPin className="w-6 h-6 text-[#0870E2]" />
             </div>
-            <h3 className="text-sm font-bold text-[#0D1B2A] mb-1">Find your academy</h3>
+            <h3 className="text-sm font-bold text-[#101828] mb-1">Find your academy</h3>
             <p className="text-xs text-gray-400 mb-4">Search for martial arts schools near you and join today.</p>
             <Link
               href="/explore"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-xs font-semibold bg-[#006197] hover:bg-[#005580] transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-xs font-semibold bg-[#0870E2] hover:bg-[#005580] transition-colors"
             >
               Explore schools
             </Link>
@@ -366,15 +366,15 @@ export default function MyHomePage() {
         {/* ── Videos teaser ── */}
         <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50">
-            <p className="text-sm font-bold text-[#0D1B2A]">Videos</p>
-            <button className="text-xs font-semibold text-[#006197]">View all →</button>
+            <p className="text-sm font-bold text-[#101828]">Videos</p>
+            <button className="text-xs font-semibold text-[#0870E2]">View all →</button>
           </div>
           <div className="grid grid-cols-2 gap-2 p-3">
             {[1, 2].map(i => (
               <div key={i} className="relative aspect-video rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden group cursor-pointer">
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
                   <div className="w-9 h-9 rounded-full bg-white/90 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                    <Play className="w-3.5 h-3.5 text-[#006197] fill-[#006197] ml-0.5" />
+                    <Play className="w-3.5 h-3.5 text-[#0870E2] fill-[#0870E2] ml-0.5" />
                   </div>
                   <p className="text-[10px] text-gray-500 font-medium">15m 10s</p>
                 </div>

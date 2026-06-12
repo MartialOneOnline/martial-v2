@@ -25,22 +25,22 @@ export default function MembersAndAcademies() {
             className="space-y-6"
           >
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-[#0092ff]/20 flex items-center justify-center">
-                <span className="text-[#0092ff] text-lg">👤</span>
+              <div className="w-8 h-8 rounded-lg bg-[#0870E2]/20 flex items-center justify-center">
+                <span className="text-[#0870E2] text-lg">👤</span>
               </div>
               <h3 className="text-xl font-extrabold text-white uppercase tracking-wide">For Members</h3>
             </div>
             <ul className="space-y-4">
               {FEATURES.map((f, i) => (
                 <li key={i} className="flex items-start gap-3 text-slate-300 group">
-                  <div className="w-8 h-8 rounded-lg bg-slate-800 group-hover:bg-[#0092ff]/20 flex items-center justify-center shrink-0 transition-colors">
-                    <f.icon className="w-4 h-4 text-[#0092ff]" />
+                  <div className="w-8 h-8 rounded-lg bg-slate-800 group-hover:bg-[#0870E2]/20 flex items-center justify-center shrink-0 transition-colors">
+                    <f.icon className="w-4 h-4 text-[#0870E2]" />
                   </div>
                   <span className="text-sm font-semibold leading-relaxed pt-1">{f.text}</span>
                 </li>
               ))}
             </ul>
-            <button className="text-xs font-black text-[#0092ff] hover:text-sky-300 transition-colors cursor-pointer">
+            <button className="text-xs font-black text-[#0870E2] hover:text-sky-300 transition-colors cursor-pointer">
               + Many other great features!
             </button>
           </motion.div>

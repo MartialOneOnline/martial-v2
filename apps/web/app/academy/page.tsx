@@ -172,7 +172,7 @@ export default function AcademyPage() {
       <div className="bg-slate-900 text-white border-b border-sky-900/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
           <div className="flex items-center gap-6 overflow-x-auto [&::-webkit-scrollbar]:hidden py-1">
-            <span className="font-black text-xs uppercase tracking-widest text-[#0092ff] whitespace-nowrap">
+            <span className="font-black text-xs uppercase tracking-widest text-[#0870E2] whitespace-nowrap">
               Martial Online Academy
             </span>
             <div className="h-4 w-px bg-slate-700 shrink-0" />
@@ -188,7 +188,7 @@ export default function AcademyPage() {
           </div>
           <div className="hidden sm:flex items-center gap-3 shrink-0">
             <span className="text-xs font-bold text-slate-400">Your Wallet:</span>
-            <span className="bg-sky-500/10 text-[#0092ff] border border-sky-400/20 px-2.5 py-1 rounded-md text-xs font-black">
+            <span className="bg-sky-500/10 text-[#0870E2] border border-sky-400/20 px-2.5 py-1 rounded-md text-xs font-black">
               ${walletBalance.toFixed(2)}
             </span>
           </div>
@@ -217,7 +217,7 @@ export default function AcademyPage() {
           <div className="mt-8 flex flex-col sm:flex-row justify-center items-center gap-4">
             <button
               onClick={() => setShowRegister(true)}
-              className="w-full sm:w-auto bg-[#0092ff] hover:bg-[#007cd7] text-white font-extrabold text-sm py-4 px-8 rounded-xl shadow-lg shadow-sky-500/20 hover:scale-105 transition-all flex items-center justify-center gap-2 cursor-pointer group"
+              className="w-full sm:w-auto bg-[#0870E2] hover:bg-[#007cd7] text-white font-extrabold text-sm py-4 px-8 rounded-xl shadow-lg shadow-sky-500/20 hover:scale-105 transition-all flex items-center justify-center gap-2 cursor-pointer group"
             >
               Launch Creator Hub (Instructor Mode)
               <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -264,7 +264,7 @@ export default function AcademyPage() {
                 onClick={() => setCategory(cat)}
                 className={`px-4 py-2 rounded-xl text-xs font-black tracking-wider uppercase transition-all whitespace-nowrap cursor-pointer ${
                   category === cat
-                    ? 'bg-[#0092ff] text-white shadow-md shadow-sky-500/10'
+                    ? 'bg-[#0870E2] text-white shadow-md shadow-sky-500/10'
                     : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
                 }`}
               >
@@ -293,8 +293,8 @@ export default function AcademyPage() {
         <div className="mt-10">
           <div className="flex items-center justify-between mb-8">
             <div className="text-left">
-              <h2 className="text-xs font-black tracking-widest text-[#0092ff] uppercase flex items-center gap-1.5">
-                <Star className="w-3.5 h-3.5 fill-[#0092ff]" /> Recently Published
+              <h2 className="text-xs font-black tracking-widest text-[#0870E2] uppercase flex items-center gap-1.5">
+                <Star className="w-3.5 h-3.5 fill-[#0870E2]" /> Recently Published
               </h2>
               <p className="text-xl sm:text-2xl font-black text-slate-800">Newest Martial Online Courses</p>
             </div>
@@ -382,7 +382,7 @@ export default function AcademyPage() {
                       ) : (
                         <button
                           onClick={() => setSelectedCourse(course)}
-                          className="bg-[#0092ff] hover:bg-[#007cd7] text-white font-extrabold text-xs py-2 px-4 rounded-xl hover:scale-105 transition-all cursor-pointer shadow-sm"
+                          className="bg-[#0870E2] hover:bg-[#007cd7] text-white font-extrabold text-xs py-2 px-4 rounded-xl hover:scale-105 transition-all cursor-pointer shadow-sm"
                         >
                           Get Course
                         </button>
@@ -476,7 +476,7 @@ export default function AcademyPage() {
             <div className="mt-6 flex flex-wrap gap-4">
               <button
                 onClick={() => setShowRegister(true)}
-                className="bg-[#0092ff] hover:bg-[#007cd7] text-white text-xs font-extrabold py-3 px-6 rounded-lg transition-all hover:scale-105 cursor-pointer shadow-md"
+                className="bg-[#0870E2] hover:bg-[#007cd7] text-white text-xs font-extrabold py-3 px-6 rounded-lg transition-all hover:scale-105 cursor-pointer shadow-md"
               >
                 Launch Creator Dashboard
               </button>
@@ -552,7 +552,7 @@ export default function AcademyPage() {
                       ) : (
                         <>
                           {!selectedCourse.isSubscriptionOnly && (
-                            <button onClick={() => handleGetCourse(selectedCourse)} className="w-full bg-[#0092ff] hover:bg-[#007cd7] text-white font-extrabold text-xs py-3 px-4 rounded-xl cursor-pointer flex items-center justify-center gap-1 shadow-sm">
+                            <button onClick={() => handleGetCourse(selectedCourse)} className="w-full bg-[#0870E2] hover:bg-[#007cd7] text-white font-extrabold text-xs py-3 px-4 rounded-xl cursor-pointer flex items-center justify-center gap-1 shadow-sm">
                               Buy (${selectedCourse.price.toFixed(2)})
                             </button>
                           )}

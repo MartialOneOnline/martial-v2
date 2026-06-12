@@ -24,16 +24,16 @@ export default function FeaturedSchools() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-12">
           <div>
-            <span className="text-xs font-black text-sky-500 uppercase tracking-widest block mb-2">
+            <span className="text-xs font-black text-[#0870E2] uppercase tracking-widest block mb-2">
               Find a Dojo Near You
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#101828] leading-tight">
               Our Featured Schools
             </h2>
           </div>
           <button
             onClick={() => setSelectedSchool(FEATURED_SCHOOLS[0] ?? null)}
-            className="px-6 py-3 border-2 border-slate-200 hover:border-[#0092ff] text-slate-700 hover:text-[#0092ff] text-[14px] font-bold rounded-xl transition-all cursor-pointer flex items-center gap-2"
+            className="px-6 py-3 border-2 border-slate-200 hover:border-[#0870E2] text-slate-700 hover:text-[#0870E2] text-[14px] font-bold rounded-xl transition-all cursor-pointer flex items-center gap-2"
           >
             Explore all <ChevronRight className="w-4 h-4" />
           </button>
@@ -53,7 +53,7 @@ export default function FeaturedSchools() {
             >
               <div className="relative aspect-video w-full overflow-hidden bg-slate-100">
                 <Image src={school.image} alt={school.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
-                <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-lg text-[10px] font-bold text-slate-800 shadow-sm flex items-center gap-1">
+                <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-lg text-[10px] font-bold text-[#101828] shadow-sm flex items-center gap-1">
                   <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                   <span>{school.rating} ({school.reviewCount}+)</span>
                 </div>
@@ -61,10 +61,10 @@ export default function FeaturedSchools() {
 
               <div className="p-5 flex-1 flex flex-col justify-between">
                 <div className="space-y-2">
-                  <p className="text-[11px] font-bold text-[#0092ff] uppercase tracking-wider flex items-center gap-1">
+                  <p className="text-[11px] font-bold text-[#0870E2] uppercase tracking-wider flex items-center gap-1">
                     <MapPin className="w-3 h-3" />{school.location}
                   </p>
-                  <h3 className="font-extrabold text-slate-800 text-[15px] group-hover:text-[#0092ff] transition-colors leading-snug">
+                  <h3 className="font-extrabold text-[#101828] text-[15px] group-hover:text-[#0870E2] transition-colors leading-snug">
                     {school.name}
                   </h3>
                   <p className="text-[12px] text-slate-500 leading-relaxed line-clamp-3 font-semibold">
@@ -77,7 +77,7 @@ export default function FeaturedSchools() {
                   </div>
                   <button
                     onClick={() => setSelectedSchool(school)}
-                    className="text-[#0092ff] hover:text-[#007cd7] text-xs font-extrabold flex items-center gap-1 cursor-pointer"
+                    className="text-[#0870E2] hover:text-[#007cd7] text-xs font-extrabold flex items-center gap-1 cursor-pointer"
                   >
                     Learn More <ChevronRight className="w-3 h-3" />
                   </button>
@@ -98,7 +98,7 @@ export default function FeaturedSchools() {
             >
               <button
                 onClick={() => { setSelectedSchool(null); setBookingSuccess(false) }}
-                className="absolute top-4 right-4 text-slate-400 hover:text-slate-900 p-2 rounded-xl hover:bg-slate-100 cursor-pointer"
+                className="absolute top-4 right-4 text-slate-400 hover:text-[#101828] p-2 rounded-xl hover:bg-slate-100 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -106,7 +106,7 @@ export default function FeaturedSchools() {
               <div className="relative aspect-[3/1] w-full rounded-2xl overflow-hidden bg-slate-100 mb-6">
                 <Image src={selectedSchool.image} alt={selectedSchool.name} fill className="object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-4">
-                  <span className="text-white text-xs font-black tracking-widest uppercase bg-[#0092ff]/90 px-3 py-1 rounded-md">
+                  <span className="text-white text-xs font-black tracking-widest uppercase bg-[#0870E2]/90 px-3 py-1 rounded-md">
                     Featured Academy
                   </span>
                 </div>
@@ -118,12 +118,12 @@ export default function FeaturedSchools() {
                     <ShieldCheck className="w-10 h-10" />
                   </div>
                   <h3 className="text-2xl font-black text-slate-950">Trial Session Booked!</h3>
-                  <p className="text-sm text-slate-600 max-w-md mx-auto font-semibold">
-                    Confirmation email sent for <span className="text-[#0092ff]">{selectedSchool.name}</span>.
+                  <p className="text-sm text-[#667085] max-w-md mx-auto font-semibold">
+                    Confirmation email sent for <span className="text-[#0870E2]">{selectedSchool.name}</span>.
                   </p>
                   <button
                     onClick={() => { setSelectedSchool(null); setBookingSuccess(false) }}
-                    className="px-8 py-3 bg-[#0092ff] text-white text-sm font-black rounded-lg shadow-md hover:bg-[#007cd7] transition-all cursor-pointer"
+                    className="px-8 py-3 bg-[#0870E2] text-white text-sm font-black rounded-lg shadow-md hover:bg-[#007cd7] transition-all cursor-pointer"
                   >
                     Return to Schools
                   </button>
@@ -132,19 +132,19 @@ export default function FeaturedSchools() {
                 <div className="grid md:grid-cols-12 gap-6 items-start">
                   <div className="md:col-span-8 space-y-4">
                     <div>
-                      <h3 className="text-xl sm:text-2xl font-black text-slate-900">{selectedSchool.name}</h3>
-                      <p className="text-sm font-bold text-sky-500 flex items-center gap-1 mt-1">
+                      <h3 className="text-xl sm:text-2xl font-black text-[#101828]">{selectedSchool.name}</h3>
+                      <p className="text-sm font-bold text-[#0870E2] flex items-center gap-1 mt-1">
                         <MapPin className="w-4 h-4" />{selectedSchool.location}
                       </p>
                     </div>
-                    <p className="text-sm text-slate-600 leading-relaxed font-semibold">{selectedSchool.description}</p>
+                    <p className="text-sm text-[#667085] leading-relaxed font-semibold">{selectedSchool.description}</p>
                     <div className="space-y-2.5 pt-2">
-                      <h4 className="font-bold text-slate-800 text-sm flex items-center gap-1.5 uppercase tracking-wider">
-                        <Dumbbell className="w-4 h-4 text-sky-500" /> Disciplines
+                      <h4 className="font-bold text-[#101828] text-sm flex items-center gap-1.5 uppercase tracking-wider">
+                        <Dumbbell className="w-4 h-4 text-[#0870E2]" /> Disciplines
                       </h4>
                       <div className="flex flex-wrap gap-2">
                         {SCHOOL_DETAILS[selectedSchool.id]?.courses.map((c, i) => (
-                          <span key={i} className="bg-sky-50 border border-sky-100 text-sky-600 font-bold text-xs px-3 py-1 rounded-full">{c}</span>
+                          <span key={i} className="bg-sky-50 border border-[#0870E2]/20 border-sky-REMOVED100 text-sky-600 font-bold text-xs px-3 py-1 rounded-full">{c}</span>
                         ))}
                       </div>
                     </div>
@@ -153,7 +153,7 @@ export default function FeaturedSchools() {
                   <div className="md:col-span-4 bg-slate-50 border border-slate-100 rounded-2xl p-4 space-y-4">
                     <div className="flex items-center gap-1">
                       <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                      <span className="text-sm font-black text-slate-800">{selectedSchool.rating}</span>
+                      <span className="text-sm font-black text-[#101828]">{selectedSchool.rating}</span>
                       <span className="text-xs text-slate-400 font-semibold">({selectedSchool.reviewCount}+ reviews)</span>
                     </div>
                     <div className="space-y-2.5 text-xs text-slate-500 border-t border-slate-200 pt-3">
@@ -163,7 +163,7 @@ export default function FeaturedSchools() {
                     </div>
                     <button
                       onClick={() => setBookingSuccess(true)}
-                      className="w-full py-2.5 bg-[#0092ff] text-white text-xs font-black rounded-xl hover:bg-[#007cd7] transition-all cursor-pointer shadow-sm"
+                      className="w-full py-2.5 bg-[#0870E2] text-white text-xs font-black rounded-xl hover:bg-[#007cd7] transition-all cursor-pointer shadow-sm"
                     >
                       Book Free Trial Slot
                     </button>

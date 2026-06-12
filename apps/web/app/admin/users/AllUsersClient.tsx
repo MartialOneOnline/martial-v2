@@ -35,7 +35,7 @@ function Avatar({ user }: { user: User }) {
   return user.avatarUrl
     ? <img src={user.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
     : (
-      <div className="w-8 h-8 rounded-full bg-[#006197]/10 flex items-center justify-center text-[#006197] text-[11px] font-bold">
+      <div className="w-8 h-8 rounded-full bg-[#0870E2]/10 flex items-center justify-center text-[#0870E2] text-[11px] font-bold">
         {initials}
       </div>
     )
@@ -71,7 +71,7 @@ export default function AllUsersClient() {
     <div className="min-h-screen">
       <div className="bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
         <div>
-          <h1 className="text-lg font-bold text-[#0D1B2A]">All Users</h1>
+          <h1 className="text-lg font-bold text-[#101828]">All Users</h1>
           <p className="text-xs text-gray-400">{total} registered accounts</p>
         </div>
         <button
@@ -93,13 +93,13 @@ export default function AllUsersClient() {
               placeholder="Search users…"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="pl-9 pr-4 h-9 rounded-xl border border-gray-200 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006197]/20 focus:border-[#006197] w-64"
+              className="pl-9 pr-4 h-9 rounded-xl border border-gray-200 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0870E2]/20 focus:border-[#0870E2] w-64"
             />
           </div>
           <select
             value={role}
             onChange={e => setRole(e.target.value)}
-            className="h-9 px-3 rounded-xl border border-gray-200 text-xs text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#006197]/20 focus:border-[#006197] bg-white"
+            className="h-9 px-3 rounded-xl border border-gray-200 text-xs text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#0870E2]/20 focus:border-[#0870E2] bg-white"
           >
             {ROLES.map(r => (
               <option key={r} value={r}>{r || 'All roles'}</option>
@@ -111,7 +111,7 @@ export default function AllUsersClient() {
         <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center h-40">
-              <div className="w-6 h-6 border-2 border-[#006197] border-t-transparent rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />
             </div>
           ) : users.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16">
@@ -136,7 +136,7 @@ export default function AllUsersClient() {
                       <div className="flex items-center gap-3">
                         <Avatar user={user} />
                         <div>
-                          <p className="text-xs font-semibold text-[#0D1B2A]">{user.name || '—'}</p>
+                          <p className="text-xs font-semibold text-[#101828]">{user.name || '—'}</p>
                           <p className="text-[11px] text-gray-400">{user.email}</p>
                         </div>
                       </div>

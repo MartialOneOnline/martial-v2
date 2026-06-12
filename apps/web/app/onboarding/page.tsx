@@ -8,7 +8,7 @@ import {
   User, MapPin, Dumbbell, Image as ImageIcon, Loader2, AlertCircle,
 } from 'lucide-react'
 
-const BLUE = '#006197'
+const BLUE = '#0870E2'
 
 // ── Disciplines ───────────────────────────────────────────────────────────────
 const DISCIPLINES = [
@@ -140,7 +140,7 @@ function OnboardingPageInner() {
   // ── Loading / Error states ─────────────────────────────────────────────────
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: '#F9FAFB' }}>
-      <Loader2 className="w-8 h-8 animate-spin text-[#006197]" />
+      <Loader2 className="w-8 h-8 animate-spin text-[#0870E2]" />
     </div>
   )
 
@@ -148,7 +148,7 @@ function OnboardingPageInner() {
     <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#F9FAFB' }}>
       <div className="max-w-sm w-full bg-white rounded-2xl shadow-lg p-8 text-center">
         <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-        <h2 className="text-xl font-bold text-[#0D1B2A] mb-2">Invalid Invitation</h2>
+        <h2 className="text-xl font-bold text-[#101828] mb-2">Invalid Invitation</h2>
         <p className="text-sm text-gray-500">{error}</p>
       </div>
     </div>
@@ -161,7 +161,7 @@ function OnboardingPageInner() {
         <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5" style={{ background: '#EFF9F4' }}>
           <CheckCircle2 className="w-8 h-8 text-emerald-500" />
         </div>
-        <h2 className="text-2xl font-bold text-[#0D1B2A] mb-2">You're all set! 🎉</h2>
+        <h2 className="text-2xl font-bold text-[#101828] mb-2">You're all set! 🎉</h2>
         <p className="text-gray-500 text-sm mb-6">Your academy is live on Martial. Log in to your dashboard to complete your profile and start managing your school.</p>
         <button
           onClick={() => router.push('/dashboard')}
@@ -185,7 +185,7 @@ function OnboardingPageInner() {
       <header className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Image src="/logo.svg" alt="Martial" width={28} height={28} />
-          <span className="font-bold text-[#0D1B2A]">Martial</span>
+          <span className="font-bold text-[#101828]">Martial</span>
         </div>
         <span className="text-xs text-gray-400 font-medium">Step {step + 1} of {totalSteps}</span>
       </header>
@@ -214,7 +214,7 @@ function OnboardingPageInner() {
                       : <Icon className={`w-4 h-4 ${active ? 'text-white' : 'text-gray-400'}`} />
                     }
                   </div>
-                  <span className={`text-[10px] font-medium hidden sm:block ${active ? 'text-[#006197]' : done ? 'text-emerald-600' : 'text-gray-400'}`}>
+                  <span className={`text-[10px] font-medium hidden sm:block ${active ? 'text-[#0870E2]' : done ? 'text-emerald-600' : 'text-gray-400'}`}>
                     {s.label}
                   </span>
                 </div>
@@ -231,7 +231,7 @@ function OnboardingPageInner() {
                 <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ background: '#EFF6FF' }}>
                   <Building2 className="w-8 h-8" style={{ color: BLUE }} />
                 </div>
-                <h1 className="text-2xl font-bold text-[#0D1B2A] mb-2">Welcome, {invitation?.name}! 👋</h1>
+                <h1 className="text-2xl font-bold text-[#101828] mb-2">Welcome, {invitation?.name}! 👋</h1>
                 <p className="text-gray-500 text-sm leading-relaxed mb-6">
                   You've been invited to join <strong>Martial</strong> — the platform that helps martial arts academies manage their school, members, and bookings in one place.
                   <br /><br />
@@ -251,7 +251,7 @@ function OnboardingPageInner() {
             {/* ── Step 1: Account ── */}
             {step === 1 && (
               <div>
-                <h2 className="text-xl font-bold text-[#0D1B2A] mb-1">Create your account</h2>
+                <h2 className="text-xl font-bold text-[#101828] mb-1">Create your account</h2>
                 <p className="text-sm text-gray-500 mb-5">This will be your personal login for the dashboard.</p>
                 <div className="space-y-4">
                   <Field label="Your Name" value={form.ownerName} onChange={v => set('ownerName', v)} placeholder="Pablo Cabo" />
@@ -265,7 +265,7 @@ function OnboardingPageInner() {
             {/* ── Step 2: School Info ── */}
             {step === 2 && (
               <div>
-                <h2 className="text-xl font-bold text-[#0D1B2A] mb-1">School information</h2>
+                <h2 className="text-xl font-bold text-[#101828] mb-1">School information</h2>
                 <p className="text-sm text-gray-500 mb-5">Basic details about your academy.</p>
                 <div className="space-y-4">
                   <Field label="Academy Name" value={form.schoolName} onChange={v => set('schoolName', v)} placeholder="Roger Gracie Málaga" required />
@@ -282,7 +282,7 @@ function OnboardingPageInner() {
             {/* ── Step 3: Location ── */}
             {step === 3 && (
               <div>
-                <h2 className="text-xl font-bold text-[#0D1B2A] mb-1">Location</h2>
+                <h2 className="text-xl font-bold text-[#101828] mb-1">Location</h2>
                 <p className="text-sm text-gray-500 mb-5">Where is your academy located?</p>
                 <div className="space-y-4">
                   <Field label="Street Address" value={form.address} onChange={v => set('address', v)} placeholder="Calle Polifemo, 3" />
@@ -291,11 +291,11 @@ function OnboardingPageInner() {
                     <Field label="Postcode" value={form.postcode} onChange={v => set('postcode', v)} placeholder="29004" />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-[#0D1B2A] mb-1.5">Country <span className="text-red-400">*</span></label>
+                    <label className="block text-sm font-semibold text-[#101828] mb-1.5">Country <span className="text-red-400">*</span></label>
                     <select
                       value={form.country}
                       onChange={e => set('country', e.target.value)}
-                      className="w-full h-11 px-3 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:border-[#006197]"
+                      className="w-full h-11 px-3 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:border-[#0870E2]"
                     >
                       <option value="">Select country…</option>
                       {[['ES','Spain'],['GB','United Kingdom'],['FR','France'],['DE','Germany'],['IT','Italy'],['PT','Portugal'],['NL','Netherlands'],['BE','Belgium'],['SE','Sweden'],['NO','Norway'],['DK','Denmark'],['IE','Ireland'],['CH','Switzerland'],['AT','Austria'],['PL','Poland'],['GR','Greece'],['TR','Turkey'],['AE','UAE'],['US','United States'],['AU','Australia'],['BR','Brazil']].map(([code, name]) => (
@@ -310,7 +310,7 @@ function OnboardingPageInner() {
             {/* ── Step 4: Disciplines ── */}
             {step === 4 && (
               <div>
-                <h2 className="text-xl font-bold text-[#0D1B2A] mb-1">What do you teach?</h2>
+                <h2 className="text-xl font-bold text-[#101828] mb-1">What do you teach?</h2>
                 <p className="text-sm text-gray-500 mb-5">Select all disciplines offered at your academy.</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {DISCIPLINES.map(d => {
@@ -320,12 +320,12 @@ function OnboardingPageInner() {
                         key={d.slug}
                         onClick={() => toggleDiscipline(d.slug)}
                         className={`flex items-center gap-2 p-3 rounded-xl border-2 text-left transition-all ${
-                          selected ? 'border-[#006197] bg-[#EFF6FF]' : 'border-gray-200 bg-white hover:border-gray-300'
+                          selected ? 'border-[#0870E2] bg-[#EFF6FF]' : 'border-gray-200 bg-white hover:border-gray-300'
                         }`}
                       >
                         <span className="text-xl">{d.emoji}</span>
-                        <span className={`text-xs font-semibold leading-tight ${selected ? 'text-[#006197]' : 'text-[#0D1B2A]'}`}>{d.label}</span>
-                        {selected && <CheckCircle2 className="w-4 h-4 text-[#006197] ml-auto shrink-0" />}
+                        <span className={`text-xs font-semibold leading-tight ${selected ? 'text-[#0870E2]' : 'text-[#101828]'}`}>{d.label}</span>
+                        {selected && <CheckCircle2 className="w-4 h-4 text-[#0870E2] ml-auto shrink-0" />}
                       </button>
                     )
                   })}
@@ -339,27 +339,27 @@ function OnboardingPageInner() {
             {/* ── Step 5: Profile ── */}
             {step === 5 && (
               <div>
-                <h2 className="text-xl font-bold text-[#0D1B2A] mb-1">Your profile</h2>
+                <h2 className="text-xl font-bold text-[#101828] mb-1">Your profile</h2>
                 <p className="text-sm text-gray-500 mb-5">Help students discover your academy. You can update this later.</p>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold text-[#0D1B2A] mb-1.5">Tagline <span className="text-gray-400 font-normal">(optional)</span></label>
+                    <label className="block text-sm font-semibold text-[#101828] mb-1.5">Tagline <span className="text-gray-400 font-normal">(optional)</span></label>
                     <input
                       value={form.tagline}
                       onChange={e => set('tagline', e.target.value)}
                       placeholder="e.g. Elite BJJ training in the heart of Málaga"
                       maxLength={100}
-                      className="w-full h-11 px-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-[#006197]"
+                      className="w-full h-11 px-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-[#0870E2]"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-[#0D1B2A] mb-1.5">Description <span className="text-gray-400 font-normal">(optional)</span></label>
+                    <label className="block text-sm font-semibold text-[#101828] mb-1.5">Description <span className="text-gray-400 font-normal">(optional)</span></label>
                     <textarea
                       value={form.description}
                       onChange={e => set('description', e.target.value)}
                       placeholder="Tell students about your academy, your team, your philosophy…"
                       rows={4}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-[#006197] resize-none"
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-[#0870E2] resize-none"
                     />
                   </div>
                   {error && <p className="text-sm text-red-600">{error}</p>}
@@ -408,7 +408,7 @@ function OnboardingPageInner() {
 
 export default function OnboardingPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="w-6 h-6 border-2 border-[#006197] border-t-transparent rounded-full animate-spin" /></div>}>
+    <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="w-6 h-6 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" /></div>}>
       <OnboardingPageInner />
     </Suspense>
   )
@@ -421,7 +421,7 @@ function Field({ label, value, onChange, placeholder, type = 'text', required, h
 }) {
   return (
     <div>
-      <label className="block text-sm font-semibold text-[#0D1B2A] mb-1.5">
+      <label className="block text-sm font-semibold text-[#101828] mb-1.5">
         {label} {required && <span className="text-red-400">*</span>}
       </label>
       <input
@@ -429,7 +429,7 @@ function Field({ label, value, onChange, placeholder, type = 'text', required, h
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full h-11 px-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-[#006197] focus:ring-2 focus:ring-[#006197]/10"
+        className="w-full h-11 px-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-[#0870E2] focus:ring-2 focus:ring-[#0870E2]/10"
       />
       {hint && <p className="text-xs text-red-500 mt-1">{hint}</p>}
     </div>

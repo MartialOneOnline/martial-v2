@@ -22,7 +22,7 @@ const ExploreMap = dynamic(() => import('../../components/ExploreMap'), { ssr: f
 ) })
 
 // ── Theme ─────────────────────────────────────────────────────────────────────
-const BLUE = '#006197'
+const BLUE = '#0870E2'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -183,150 +183,116 @@ function getNextSlot(schedule: ScheduleEntry[]): string | null {
 
 function CardSkeleton() {
   return (
-    <div className="bg-white border border-[#E5E7EB] rounded-2xl p-4 flex gap-4 animate-pulse">
-      <div className="w-28 h-28 rounded-xl bg-[#F3F4F6] shrink-0" />
-      <div className="flex-1 space-y-2.5 py-1">
-        <div className="h-3 bg-[#F3F4F6] rounded-full w-3/4" />
-        <div className="h-3 bg-[#F3F4F6] rounded-full w-1/2" />
-        <div className="h-3 bg-[#F3F4F6] rounded-full w-2/3" />
-      </div>
-    </div>
+    <div className="rounded-3xl overflow-hidden animate-pulse bg-[#E5E7EB] h-60" />
   )
 }
 
-// ── School Card ───────────────────────────────────────────────────────────────
+// ── School Card (full-bleed photo) ───────────────────────────────────────────
 
-function SchoolCard({
-  school,
-  onClick,
-}: {
-  school: DbSchool
-  onClick: () => void
-}) {
-  const disciplines = school.disciplines.map(d => d.discipline.name.toUpperCase())
-  const headInstructor = school.instructors.find(i => i.isHead)
+function SchoolCard({ school, onClick }: { school: DbSchool; onClick: () => void }) {
+  const disciplines = school.disciplines.map(d => d.discipline.name)
   const cover = school.coverUrl ?? FALLBACK_COVER
 
   return (
     <button
       onClick={onClick}
-      className="group w-full text-left rounded-2xl bg-white border border-[#E5E7EB] hover:border-[#006197] hover:shadow-md p-3 md:p-4 transition-all flex flex-col md:flex-row gap-3 md:gap-4"
+      className="group relative w-full text-left rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 h-56"
     >
-      {/* Image */}
-      <div className="relative w-full md:w-28 h-40 md:h-28 rounded-xl overflow-hidden shrink-0 bg-[#F3F4F6]">
-        <Image src={cover} alt={school.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
-        {school.hasFreeTrialCls && (
-          <span className="absolute top-2 left-2 text-[10px] font-bold bg-emerald-500 text-white px-2 py-0.5 rounded-full uppercase tracking-wide">
-            Free Trial
+      {/* Photo */}
+      <Image src={cover} alt={school.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+      {/* Gradient */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/10" />
+
+      {/* Top badges */}
+      <div className="absolute top-3 left-3 right-3 flex items-start justify-between">
+        <div className="flex flex-wrap gap-1.5">
+          {disciplines.slice(0, 2).map(d => (
+            <span key={d} className="text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full bg-black/30 backdrop-blur-sm text-white border border-white/15">
+              {d}
+            </span>
+          ))}
+        </div>
+        {school.googleRating && (
+          <span className="flex items-center gap-1 bg-black/30 backdrop-blur-sm rounded-full px-2.5 py-1 text-xs font-bold text-white">
+            <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+            {school.googleRating.toFixed(1)}
           </span>
         )}
       </div>
 
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="font-bold text-[#111827] text-sm leading-snug group-hover:text-[#006197] transition-colors line-clamp-2">
-            {school.name}
-          </h3>
-          {school.googleRating && (
-            <span className="flex items-center gap-0.5 shrink-0 text-sm font-bold text-[#111827]">
-              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-              {school.googleRating.toFixed(1)}
-            </span>
-          )}
-        </div>
-
-        <p className="flex items-center gap-1 mt-1.5 text-xs text-[#6B7280]">
-          <MapPin className="w-3.5 h-3.5 shrink-0" style={{ color: BLUE }} />
-          {school.city}, {school.country}
-        </p>
-
-        {headInstructor && (
-          <p className="mt-1 text-xs text-[#6B7280]">
-            <span className="font-medium">{headInstructor.name}</span>
-            {headInstructor.belt && <span className="text-[#9CA3AF]"> · {headInstructor.belt}</span>}
-          </p>
-        )}
-
-        <div className="flex flex-wrap gap-1.5 mt-2.5">
-          {disciplines.slice(0, 3).map(d => (
-            <span key={d} className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[#F3F4F6] text-[#6B7280] border border-[#E5E7EB]">{d}</span>
-          ))}
-        </div>
-
-        <div className="flex items-center justify-between mt-3">
-          <span className="text-xs text-[#6B7280]">
-            {school.priceFrom ? `from €${school.priceFrom}/mo` : 'Contact for pricing'}
+      {/* Free trial */}
+      {school.hasFreeTrialCls && (
+        <div className="absolute top-3 left-1/2 -translate-x-1/2">
+          <span className="text-[10px] font-bold bg-emerald-500 text-white px-2.5 py-1 rounded-full uppercase tracking-wide">
+            Free Trial
           </span>
-          <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" style={{ color: BLUE }} />
+        </div>
+      )}
+
+      {/* Bottom info */}
+      <div className="absolute bottom-0 left-0 right-0 px-4 pb-4">
+        <h3 className="text-white font-bold text-base leading-tight line-clamp-1 mb-1">{school.name}</h3>
+        <div className="flex items-center justify-between">
+          <p className="flex items-center gap-1 text-white/75 text-xs">
+            <MapPin className="w-3 h-3 shrink-0" />
+            {school.city}, {school.country}
+          </p>
+          <span className="text-xs font-semibold text-white/80">
+            {school.priceFrom ? `from €${school.priceFrom}/mo` : 'Contact'}
+          </span>
         </div>
       </div>
     </button>
   )
 }
 
-// ── Class Card ────────────────────────────────────────────────────────────────
+// ── Class Card (full-bleed photo) ─────────────────────────────────────────────
 
-function ClassCard({
-  cls,
-  onClick,
-}: {
-  cls: DbClass
-  onClick: () => void
-}) {
+function ClassCard({ cls, onClick }: { cls: DbClass; onClick: () => void }) {
   const cover = cls.school.coverUrl ?? FALLBACK_COVER
   const nextSlot = getNextSlot(cls.schedule)
-  const levelStyle = LEVEL_STYLES[cls.level ?? ''] ?? LEVEL_STYLES['All levels']
 
   return (
     <button
       onClick={onClick}
-      className="group w-full text-left rounded-2xl bg-white border border-[#E5E7EB] hover:border-[#006197] hover:shadow-md p-3 md:p-4 transition-all flex flex-col md:flex-row gap-3 md:gap-4"
+      className="group relative w-full text-left rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 h-56"
     >
-      {/* Image */}
-      <div className="relative w-full md:w-28 h-36 md:h-28 rounded-xl overflow-hidden shrink-0 bg-[#F3F4F6]">
-        <Image src={cover} alt={cls.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
-        {cls.school.hasFreeTrialCls && (
-          <span className="absolute top-2 left-2 text-[10px] font-bold bg-emerald-500 text-white px-2 py-0.5 rounded-full uppercase tracking-wide">
-            Free Trial
+      <Image src={cover} alt={cls.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/10" />
+
+      {/* Top */}
+      <div className="absolute top-3 left-3 right-3 flex items-start justify-between">
+        <span className={`text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full bg-black/30 backdrop-blur-sm text-white border border-white/15`}>
+          {cls.level ?? 'All levels'}
+        </span>
+        {cls.duration && (
+          <span className="text-[10px] font-semibold bg-black/30 backdrop-blur-sm rounded-full px-2.5 py-1 text-white/90">
+            {cls.duration} min
           </span>
         )}
       </div>
 
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="font-bold text-[#111827] text-sm leading-snug group-hover:text-[#006197] transition-colors">
-            {cls.name}
-          </h3>
-          <span className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${levelStyle}`}>
-            {cls.level ?? 'All levels'}
+      {cls.school.hasFreeTrialCls && (
+        <div className="absolute top-3 left-1/2 -translate-x-1/2">
+          <span className="text-[10px] font-bold bg-emerald-500 text-white px-2.5 py-1 rounded-full uppercase tracking-wide">
+            Free Trial
           </span>
         </div>
+      )}
 
-        <p className="flex items-center gap-1 mt-1.5 text-xs text-[#6B7280]">
-          <MapPin className="w-3.5 h-3.5 shrink-0" style={{ color: BLUE }} />
-          {cls.school.name} · {cls.school.city}
-        </p>
-
-        {cls.instructor && (
-          <p className="mt-1 text-xs text-[#6B7280]">
-            <span className="font-medium">{cls.instructor.name}</span>
-            {cls.instructor.belt && <span className="text-[#9CA3AF]"> · {cls.instructor.belt}</span>}
+      {/* Bottom */}
+      <div className="absolute bottom-0 left-0 right-0 px-4 pb-4">
+        <h3 className="text-white font-bold text-base leading-tight mb-1">{cls.name}</h3>
+        <div className="flex items-center justify-between">
+          <p className="flex items-center gap-1 text-white/75 text-xs">
+            <MapPin className="w-3 h-3 shrink-0" />
+            {cls.school.name} · {cls.school.city}
           </p>
-        )}
-
-        <div className="flex items-center justify-between mt-3">
-          {nextSlot ? (
-            <span className="flex items-center gap-1 text-xs font-semibold text-[#006197]">
-              <Calendar className="w-3.5 h-3.5" />
+          {nextSlot && (
+            <span className="flex items-center gap-1 text-xs font-semibold text-white/90 bg-[#0870E2]/70 backdrop-blur-sm rounded-full px-2.5 py-1">
+              <Calendar className="w-3 h-3" />
               {nextSlot}
             </span>
-          ) : (
-            <span className="text-xs text-[#9CA3AF]">Check schedule</span>
-          )}
-          {cls.duration && (
-            <span className="text-xs text-[#9CA3AF]">{cls.duration} min</span>
           )}
         </div>
       </div>
@@ -803,7 +769,7 @@ export default function ExplorePage() {
               <button
                 onClick={requestGeo}
                 className={`h-9 px-3 rounded-full border text-sm font-semibold flex items-center gap-1.5 transition-all ${
-                  userCoords ? 'border-[#006197] text-[#006197] bg-[#EFF6FF]' : 'border-[#E5E7EB] text-[#6B7280] bg-white hover:border-[#9CA3AF]'
+                  userCoords ? 'border-[#0870E2] text-[#0870E2] bg-[#EFF6FF]' : 'border-[#E5E7EB] text-[#6B7280] bg-white hover:border-[#9CA3AF]'
                 }`}
               >
                 <Navigation className={`w-3.5 h-3.5 ${geoLoading ? 'animate-spin' : ''}`} />
@@ -860,15 +826,20 @@ export default function ExplorePage() {
 
         {/* List */}
         {view === 'list' && (
-          <div className="space-y-4 max-w-3xl">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {isLoading ? (
               <>
                 <CardSkeleton />
                 <CardSkeleton />
                 <CardSkeleton />
+                <CardSkeleton />
+                <CardSkeleton />
+                <CardSkeleton />
               </>
             ) : resultCount === 0 ? (
-              <EmptyState mode={mode} />
+              <div className="col-span-full">
+                <EmptyState mode={mode} />
+              </div>
             ) : mode === 'schools' ? (
               filteredSchools.map(school => (
                 <SchoolCard
@@ -891,8 +862,8 @@ export default function ExplorePage() {
 
         {/* Map + list side by side on wide screens when map active */}
         {view === 'map' && mode === 'schools' && !isLoading && filteredSchools.length > 0 && (
-          <div className="space-y-3 max-w-3xl mt-2">
-            <p className="text-xs font-semibold text-[#6B7280] uppercase tracking-wide">Schools on map</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+            <p className="col-span-full text-xs font-semibold text-[#6B7280] uppercase tracking-wide">Schools on map</p>
             {filteredSchools.filter(s => s.lat && s.lng).slice(0, 10).map(school => (
               <SchoolCard
                 key={school.id}
@@ -905,8 +876,8 @@ export default function ExplorePage() {
 
         {/* Coming soon note when few results */}
         {!isLoading && resultCount > 0 && resultCount < 5 && (
-          <div className="max-w-3xl mt-6 p-4 bg-[#F0F9FF] border border-[#BAE6FD] rounded-2xl flex items-start gap-3">
-            <Sparkles className="w-5 h-5 text-[#006197] mt-0.5 shrink-0" />
+          <div className="mt-6 p-4 bg-[#F0F9FF] border border-[#BAE6FD] rounded-2xl flex items-start gap-3">
+            <Sparkles className="w-5 h-5 text-[#0870E2] mt-0.5 shrink-0" />
             <div>
               <p className="text-sm font-semibold text-[#0369A1]">More schools coming soon</p>
               <p className="text-xs text-[#0369A1]/70 mt-0.5">

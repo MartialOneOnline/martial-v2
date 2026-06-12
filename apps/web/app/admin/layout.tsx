@@ -58,8 +58,8 @@ function NavItem({ item }: { item: typeof NAV[number] }) {
         href={item.href!}
         className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
           active
-            ? 'bg-[#006197]/10 text-[#006197] font-semibold'
-            : 'text-gray-500 hover:text-[#0D1B2A] hover:bg-gray-50'
+            ? 'bg-[#0870E2]/10 text-[#0870E2] font-semibold'
+            : 'text-gray-500 hover:text-[#101828] hover:bg-gray-50'
         }`}
       >
         {item.icon && <item.icon className="w-4 h-4 shrink-0" />}
@@ -76,8 +76,8 @@ function NavItem({ item }: { item: typeof NAV[number] }) {
         onClick={() => setOpen(v => !v)}
         className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
           anyChildActive
-            ? 'text-[#0D1B2A] font-semibold'
-            : 'text-gray-500 hover:text-[#0D1B2A] hover:bg-gray-50'
+            ? 'text-[#101828] font-semibold'
+            : 'text-gray-500 hover:text-[#101828] hover:bg-gray-50'
         }`}
       >
         {item.icon && <item.icon className="w-4 h-4 shrink-0" />}
@@ -97,8 +97,8 @@ function NavItem({ item }: { item: typeof NAV[number] }) {
                 href={child.href}
                 className={`block px-2 py-1.5 rounded-md text-xs transition-colors ${
                   active
-                    ? 'text-[#006197] font-semibold'
-                    : 'text-gray-400 hover:text-[#0D1B2A]'
+                    ? 'text-[#0870E2] font-semibold'
+                    : 'text-gray-400 hover:text-[#101828]'
                 }`}
               >
                 {child.label}
@@ -122,12 +122,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link href="/admin" className="flex items-center gap-2.5">
             <Image src="/logo.svg" alt="Martial" width={30} height={30} />
             <div>
-              <p className="text-sm font-bold text-[#0D1B2A] leading-none">Martial</p>
+              <p className="text-sm font-bold text-[#101828] leading-none">Martial</p>
               <p className="text-[10px] text-gray-400 leading-none mt-0.5">Academy</p>
             </div>
           </Link>
           <div className="mt-3">
-            <span className="text-[9px] font-bold tracking-widest text-[#006197] uppercase bg-[#006197]/8 px-2 py-0.5 rounded-full">
+            <span className="text-[9px] font-bold tracking-widest text-[#0870E2] uppercase bg-[#0870E2]/8 px-2 py-0.5 rounded-full">
               Super Admin
             </span>
           </div>

@@ -39,22 +39,22 @@ export default function AppPromotion() {
           {/* Left — text + bullets */}
           <div className="lg:col-span-6 space-y-8">
             <div>
-              <span className="text-xs font-black text-[#0092ff] uppercase tracking-widest block mb-2">
+              <span className="text-xs font-black text-[#0870E2] uppercase tracking-widest block mb-2">
                 Sync Your Operations Anywhere
               </span>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight">
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#101828] leading-tight">
                 An All-in-one App <br />
-                <span className="text-sky-500">For Academy Owners</span>
+                <span className="text-[#0870E2]">For Academy Owners</span>
               </h2>
             </div>
-            <p className="text-slate-600 text-sm leading-relaxed font-semibold">
+            <p className="text-[#667085] text-sm leading-relaxed font-semibold">
               Martial App empowers academy owners with a simple user experience that frees up time for them to teach, retain current memberships, and find new students. Your pocket administrator is always synced with our real-time cloud database.
             </p>
             <div className="grid sm:grid-cols-2 gap-4">
               {BULLETS.map((b, i) => (
                 <div key={i} className="flex gap-3 items-start group">
-                  <CheckCircle2 className="w-5 h-5 text-sky-500 shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
-                  <p className="text-slate-600 text-xs font-bold leading-relaxed">{b}</p>
+                  <CheckCircle2 className="w-5 h-5 text-[#0870E2] shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
+                  <p className="text-[#667085] text-xs font-bold leading-relaxed">{b}</p>
                 </div>
               ))}
             </div>
@@ -96,7 +96,7 @@ export default function AppPromotion() {
                   {/* App header */}
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-1.5">
-                      <div className="w-6 h-6 rounded-lg bg-[#006197] flex items-center justify-center font-black text-[10px] text-white">M</div>
+                      <div className="w-6 h-6 rounded-lg bg-[#0870E2] flex items-center justify-center font-black text-[10px] text-white">M</div>
                       <span className="text-[11px] font-extrabold tracking-wider text-gray-900">MARTIAL</span>
                     </div>
                     <Bell className="w-4 h-4 text-gray-400" />
@@ -106,14 +106,14 @@ export default function AppPromotion() {
                   <div className="relative mb-3">
                     <Search className="absolute left-2.5 top-2 w-3 h-3 text-gray-400" />
                     <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search academies..."
-                      className="w-full bg-gray-100 border border-gray-200 rounded-xl pl-8 pr-3 py-1.5 text-[10px] focus:outline-none focus:border-[#006197] text-gray-700 placeholder-gray-400" />
+                      className="w-full bg-gray-100 border border-gray-200 rounded-xl pl-8 pr-3 py-1.5 text-[10px] focus:outline-none focus:border-[#0870E2] text-gray-700 placeholder-gray-400" />
                   </div>
 
                   {/* Category chips */}
                   <div className="flex gap-1.5 overflow-x-auto pb-2 mb-3 scrollbar-hide">
                     {CATEGORIES.map(cat => (
                       <button key={cat} onClick={() => setActiveCategory(cat)}
-                        className={`px-2.5 py-1 text-[8px] font-black rounded-full whitespace-nowrap cursor-pointer transition-all ${activeCategory === cat ? 'bg-[#006197] text-white' : 'bg-gray-100 text-gray-500 hover:text-gray-700'}`}>
+                        className={`px-2.5 py-1 text-[8px] font-black rounded-full whitespace-nowrap cursor-pointer transition-all ${activeCategory === cat ? 'bg-[#0870E2] text-white' : 'bg-gray-100 text-gray-500 hover:text-gray-700'}`}>
                         {cat}
                       </button>
                     ))}
@@ -130,7 +130,7 @@ export default function AppPromotion() {
                           <div>
                             <p className="text-[10px] font-black text-gray-800 leading-tight">{club.name}</p>
                             <span className="text-[8px] text-gray-400 mt-0.5 block">{club.arts}</span>
-                            <span className="text-[7.5px] text-[#006197] font-semibold block mt-0.5">{club.distance}</span>
+                            <span className="text-[7.5px] text-[#0870E2] font-semibold block mt-0.5">{club.distance}</span>
                           </div>
                           <div className="flex items-center gap-0.5 bg-white border border-gray-200 px-1.5 py-0.5 rounded-lg shrink-0 shadow-sm">
                             <Star className="w-2 h-2 text-amber-400 fill-amber-400" />
@@ -145,7 +145,7 @@ export default function AppPromotion() {
 
                   {/* Bottom tab bar */}
                   <div className="mt-2 border-t border-gray-100 pt-2 flex justify-around text-gray-400 text-[8px] font-black">
-                    <div className="flex flex-col items-center gap-0.5 text-[#006197] cursor-pointer"><Grid className="w-4 h-4" /><span>Home</span></div>
+                    <div className="flex flex-col items-center gap-0.5 text-[#0870E2] cursor-pointer"><Grid className="w-4 h-4" /><span>Home</span></div>
                     <div className="flex flex-col items-center gap-0.5 hover:text-gray-600 cursor-pointer"><Map className="w-4 h-4" /><span>Map</span></div>
                     <div className="flex flex-col items-center gap-0.5 hover:text-gray-600 cursor-pointer"><ListFilter className="w-4 h-4" /><span>Filter</span></div>
                   </div>

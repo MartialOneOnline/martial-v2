@@ -22,7 +22,7 @@ function GrowthCard({ label, value, sub, color }: { label: string; value: number
   return (
     <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
       <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">{label}</p>
-      <p className="text-3xl font-bold text-[#0D1B2A]">{value}</p>
+      <p className="text-3xl font-bold text-[#101828]">{value}</p>
       <p className="text-xs text-gray-400 mt-1">{sub}</p>
       <div className="mt-3 h-1 rounded-full" style={{ background: color + '30' }}>
         <div className="h-1 rounded-full w-full" style={{ background: color }} />
@@ -72,7 +72,7 @@ export default function GrowthClient() {
           </Link>
           <div className="h-4 w-px bg-gray-200" />
           <div>
-            <h1 className="text-lg font-bold text-[#0D1B2A]">Growth</h1>
+            <h1 className="text-lg font-bold text-[#101828]">Growth</h1>
             <p className="text-xs text-gray-400">Platform expansion metrics</p>
           </div>
         </div>
@@ -84,13 +84,13 @@ export default function GrowthClient() {
 
       {loading || !data ? (
         <div className="flex items-center justify-center h-64">
-          <div className="w-6 h-6 border-2 border-[#006197] border-t-transparent rounded-full animate-spin" />
+          <div className="w-6 h-6 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />
         </div>
       ) : (
         <div className="p-8 space-y-6">
           {/* Summary cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <GrowthCard label="Schools this month" value={data.overview.schoolsThisMonth} sub={`vs ${data.overview.schoolsLastMonth} last month`} color="#006197" />
+            <GrowthCard label="Schools this month" value={data.overview.schoolsThisMonth} sub={`vs ${data.overview.schoolsLastMonth} last month`} color="#0870E2" />
             <GrowthCard label="Users this month" value={data.overview.usersThisMonth} sub={`vs ${data.overview.usersLastMonth} last month`} color="#8B5CF6" />
             <GrowthCard label="Total schools" value={data.overview.totalSchools} sub="all time" color="#10B981" />
             <GrowthCard label="Invite conv. rate" value={convRate} sub={`${invRegistered} of ${invTotal} converted`} color="#F59E0B" />
@@ -98,7 +98,7 @@ export default function GrowthClient() {
 
           {/* Combined growth chart */}
           <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
-            <p className="text-sm font-bold text-[#0D1B2A] mb-1">Schools & users growth</p>
+            <p className="text-sm font-bold text-[#101828] mb-1">Schools & users growth</p>
             <p className="text-xs text-gray-400 mb-5">Monthly new additions (last 12 months)</p>
             {combined.length > 0 ? (
               <ResponsiveContainer width="100%" height={220}>
@@ -108,7 +108,7 @@ export default function GrowthClient() {
                   <YAxis tick={{ fontSize: 10, fill: '#9CA3AF' }} axisLine={false} tickLine={false} allowDecimals={false} />
                   <Tooltip contentStyle={{ fontSize: 12, borderRadius: 10, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }} />
                   <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
-                  <Line type="monotone" dataKey="schools" stroke="#006197" strokeWidth={2.5} dot={{ r: 3, fill: '#006197', stroke: '#fff', strokeWidth: 2 }} name="Schools" />
+                  <Line type="monotone" dataKey="schools" stroke="#0870E2" strokeWidth={2.5} dot={{ r: 3, fill: '#0870E2', stroke: '#fff', strokeWidth: 2 }} name="Schools" />
                   <Line type="monotone" dataKey="users" stroke="#8B5CF6" strokeWidth={2.5} dot={{ r: 3, fill: '#8B5CF6', stroke: '#fff', strokeWidth: 2 }} name="Users" />
                 </LineChart>
               </ResponsiveContainer>
@@ -122,7 +122,7 @@ export default function GrowthClient() {
 
           {/* Invitations funnel */}
           <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
-            <p className="text-sm font-bold text-[#0D1B2A] mb-1">Invitation funnel</p>
+            <p className="text-sm font-bold text-[#101828] mb-1">Invitation funnel</p>
             <p className="text-xs text-gray-400 mb-5">Breakdown by status — total {invTotal} invitations</p>
             {data.invitationsByStatus.length > 0 ? (
               <ResponsiveContainer width="100%" height={160}>
@@ -130,7 +130,7 @@ export default function GrowthClient() {
                   <XAxis type="number" tick={{ fontSize: 10, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
                   <YAxis type="category" dataKey="status" tick={{ fontSize: 10, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
                   <Tooltip contentStyle={{ fontSize: 12, borderRadius: 10, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }} />
-                  <Bar dataKey="count" fill="#006197" radius={[0, 4, 4, 0]} label={{ position: 'right', fontSize: 11, fill: '#6B7280' }} />
+                  <Bar dataKey="count" fill="#0870E2" radius={[0, 4, 4, 0]} label={{ position: 'right', fontSize: 11, fill: '#6B7280' }} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (

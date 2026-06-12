@@ -10,9 +10,9 @@ export default function AppDownloadBanner() {
           {/* Left image */}
           <div className="lg:col-span-5 h-[320px] lg:h-[450px] bg-slate-900 relative overflow-hidden">
             <Image src="/app-promo.jpg" alt="Martial App — available on iOS and Android" fill className="object-cover object-top opacity-85" />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#041833] via-slate-950/20 to-transparent" />
             <div className="absolute bottom-6 left-6 text-white text-left space-y-1">
-              <span className="text-[9px] font-black tracking-widest bg-sky-500 px-2.5 py-1 rounded-md uppercase">
+              <span className="text-[9px] font-black tracking-widest bg-[#0870E2] px-2.5 py-1 rounded-md uppercase">
                 Pro Grade Solution
               </span>
               <h4 className="text-lg font-extrabold tracking-tight">Synchronized Combat Systems</h4>
@@ -23,14 +23,14 @@ export default function AppDownloadBanner() {
           {/* Right content */}
           <div className="lg:col-span-7 p-6 sm:p-10 lg:pl-4 space-y-8 text-left">
             <div>
-              <span className="text-xs font-black text-sky-500 uppercase tracking-widest block mb-1">
+              <span className="text-xs font-black text-[#0870E2] uppercase tracking-widest block mb-1">
                 Instant App Download
               </span>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 leading-tight uppercase">
-                <span className="text-[#0092ff] block sm:inline">Our platform</span> is available{' '}
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#101828] leading-tight uppercase">
+                <span className="text-[#0870E2] block sm:inline">Our platform</span> is available{' '}
                 <br className="hidden sm:inline" />on any app store
               </h2>
-              <p className="text-slate-600 text-sm mt-3 leading-relaxed max-w-lg font-semibold">
+              <p className="text-[#667085] text-sm mt-3 leading-relaxed max-w-lg font-semibold">
                 Innovative Management Software for Martial Arts Academies and Business &amp; User Interaction Worldwide. Get the native app now to coordinate grades and pay subscriptions on the fly.
               </p>
             </div>
@@ -58,12 +58,12 @@ export default function AppDownloadBanner() {
 
             <div className="grid grid-cols-3 gap-4 pt-6 border-t border-gray-100 max-w-md">
               {[
-                { value: '+23.6k', label: 'Members',   icon: <Users      className="w-3 h-3 text-sky-500" /> },
-                { value: '1000+',  label: 'Downloads',  icon: <Download   className="w-3 h-3 text-sky-500" /> },
-                { value: '25',     label: 'Cities',     icon: <Navigation className="w-3 h-3 text-sky-500" /> },
+                { value: '+23.6k', label: 'Members',   icon: <Users      className="w-3 h-3 text-[#0870E2]" /> },
+                { value: '1000+',  label: 'Downloads',  icon: <Download   className="w-3 h-3 text-[#0870E2]" /> },
+                { value: '25',     label: 'Cities',     icon: <Navigation className="w-3 h-3 text-[#0870E2]" /> },
               ].map(s => (
                 <div key={s.label} className="space-y-1">
-                  <span className="text-xl sm:text-2xl font-black text-slate-900 block">{s.value}</span>
+                  <span className="text-xl sm:text-2xl font-black text-[#101828] block">{s.value}</span>
                   <span className="text-[10px] text-slate-400 font-bold tracking-wider uppercase inline-flex items-center gap-1">
                     {s.icon}{s.label}
                   </span>

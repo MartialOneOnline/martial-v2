@@ -76,15 +76,15 @@ export function TrySomethingNew() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-xl sm:text-2xl font-extrabold text-[#0D1B2A]">Try Something New</h2>
-          <Link href="/explore" className="text-sm font-bold text-[#006197] flex items-center gap-1 hover:underline">
+          <h2 className="text-xl sm:text-2xl font-extrabold text-[#101828]">Try Something New</h2>
+          <Link href="/explore" className="text-sm font-bold text-[#0870E2] flex items-center gap-1 hover:underline">
             View all <ChevronRight className="w-4 h-4" />
           </Link>
         </div>
 
         <Link
           href={`/school/${plan.school.slug}`}
-          className="group flex flex-col sm:flex-row gap-4 bg-[#F8F9FB] rounded-2xl overflow-hidden border border-gray-100 hover:border-[#006197]/30 hover:shadow-md transition-all"
+          className="group flex flex-col sm:flex-row gap-4 bg-[#F8F9FB] rounded-2xl overflow-hidden border border-gray-100 hover:border-[#0870E2]/30 hover:shadow-md transition-all"
         >
           {/* Photo */}
           <div className="relative w-full sm:w-56 h-48 sm:h-auto shrink-0 overflow-hidden">
@@ -99,7 +99,7 @@ export function TrySomethingNew() {
           {/* Info */}
           <div className="flex flex-col justify-center px-5 py-5 sm:py-6 flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
-              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full bg-[#006197] text-white">
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full bg-[#0870E2] text-white">
                 <Tag className="w-3 h-3" /> Best Deal
               </span>
               {plan.school.googleRating && (
@@ -111,28 +111,28 @@ export function TrySomethingNew() {
             </div>
 
             <div className="flex items-baseline gap-1 mb-1">
-              <span className="text-3xl font-extrabold text-[#006197]">
+              <span className="text-3xl font-extrabold text-[#0870E2]">
                 {plan.currency}{plan.price}
               </span>
               <span className="text-sm text-gray-400 font-medium">{plan.billingCycle}</span>
             </div>
 
-            <p className="text-base font-bold text-[#0D1B2A] leading-snug mb-1">{plan.name}</p>
+            <p className="text-base font-bold text-[#101828] leading-snug mb-1">{plan.name}</p>
 
             {plan.description && (
               <p className="text-sm text-gray-400 line-clamp-2 mb-3">{plan.description}</p>
             )}
 
             <p className="flex items-center gap-1 text-xs text-gray-400">
-              <MapPin className="w-3 h-3 text-[#006197] shrink-0" />
+              <MapPin className="w-3 h-3 text-[#0870E2] shrink-0" />
               {plan.school.name} · {plan.school.city}
             </p>
           </div>
 
           {/* CTA arrow */}
           <div className="hidden sm:flex items-center pr-6">
-            <div className="w-10 h-10 rounded-full bg-[#006197]/8 flex items-center justify-center group-hover:bg-[#006197] transition-colors">
-              <ArrowRight className="w-5 h-5 text-[#006197] group-hover:text-white transition-colors" />
+            <div className="w-10 h-10 rounded-full bg-[#0870E2]/8 flex items-center justify-center group-hover:bg-[#0870E2] transition-colors">
+              <ArrowRight className="w-5 h-5 text-[#0870E2] group-hover:text-white transition-colors" />
             </div>
           </div>
         </Link>
@@ -149,8 +149,8 @@ export function ExploreCategories() {
       <div className="max-w-7xl mx-auto">
 
         <div className="flex items-center justify-between mb-5 px-4 sm:px-6 lg:px-8">
-          <h2 className="text-xl sm:text-2xl font-extrabold text-[#0D1B2A]">Explore Categories</h2>
-          <Link href="/explore" className="text-sm font-bold text-[#006197] flex items-center gap-1 hover:underline shrink-0">
+          <h2 className="text-xl sm:text-2xl font-extrabold text-[#101828]">Explore Categories</h2>
+          <Link href="/explore" className="text-sm font-bold text-[#0870E2] flex items-center gap-1 hover:underline shrink-0">
             View all <ChevronRight className="w-4 h-4" />
           </Link>
         </div>

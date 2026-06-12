@@ -103,14 +103,14 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
             <span>© MartialApp. 2026 {t.footer.rights}</span>
-            <span className="hidden sm:inline text-slate-800">|</span>
+            <span className="hidden sm:inline text-[#101828]">|</span>
             <div className="flex items-center gap-4">
               <a href="#" className="hover:text-slate-300 transition-colors">{t.footer.terms}</a>
               <a href="#" className="hover:text-slate-300 transition-colors">{t.footer.privacy}</a>
             </div>
           </div>
           <div className="flex items-center gap-3 flex-wrap opacity-60 hover:opacity-90 transition-opacity">
-            <span className="mr-2 text-[10px] uppercase font-bold tracking-widest text-slate-600">Integrations:</span>
+            <span className="mr-2 text-[10px] uppercase font-bold tracking-widest text-[#667085]">Integrations:</span>
             <span className="text-slate-400 font-extrabold italic text-[11px]">stripe</span>
             <span className="text-slate-400 font-black italic text-[11px]">PayPal</span>
             <span className="text-slate-400 text-[9px] font-black tracking-widest uppercase">gocardless</span>

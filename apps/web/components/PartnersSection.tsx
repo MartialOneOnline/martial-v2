@@ -14,27 +14,27 @@ export default function PartnersSection() {
           {/* Left */}
           <div className="lg:col-span-7 space-y-8 text-left">
             <div>
-              <span className="text-xs font-black text-sky-500 uppercase tracking-widest block mb-2">
+              <span className="text-xs font-black text-[#0870E2] uppercase tracking-widest block mb-2">
                 Our Global Ecosystem
               </span>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight uppercase">
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#101828] leading-tight uppercase">
                 More Than Mere Business Associates, <br />
-                <span className="text-[#0092ff]">Genuine Companions On This Journey</span>
+                <span className="text-[#0870E2]">Genuine Companions On This Journey</span>
               </h2>
             </div>
 
-            <p className="text-slate-600 text-[14px] leading-relaxed max-w-xl font-semibold">
+            <p className="text-[#667085] text-[14px] leading-relaxed max-w-xl font-semibold">
               Martial App empowers academy owners with a simple user experience that frees up time for them to teach, retain current memberships, and find new students. Together, we are building a synchronized network of global dojos supporting the evolution of martial arts.
             </p>
 
             <div className="grid grid-cols-3 gap-4 pt-4 max-w-lg">
               {[
-                { value: '+23.6k', label: 'Active Members', icon: <Users className="w-3.5 h-3.5 text-sky-500" /> },
-                { value: '340',    label: 'Academies',      icon: <Building2 className="w-3.5 h-3.5 text-sky-500" /> },
-                { value: '25',     label: 'Martial Arts',   icon: <Shield className="w-3.5 h-3.5 text-sky-500" /> },
+                { value: '+23.6k', label: 'Active Members', icon: <Users className="w-3.5 h-3.5 text-[#0870E2]" /> },
+                { value: '340',    label: 'Academies',      icon: <Building2 className="w-3.5 h-3.5 text-[#0870E2]" /> },
+                { value: '25',     label: 'Martial Arts',   icon: <Shield className="w-3.5 h-3.5 text-[#0870E2]" /> },
               ].map(s => (
                 <div key={s.label} className="p-4 bg-white rounded-2xl border border-gray-100 shadow-xs flex flex-col justify-center">
-                  <span className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">{s.value}</span>
+                  <span className="text-2xl sm:text-3xl font-black text-[#101828] tracking-tight">{s.value}</span>
                   <span className="text-[10px] sm:text-xs text-slate-400 font-bold mt-1 inline-flex items-center gap-1">
                     {s.icon}{s.label}
                   </span>

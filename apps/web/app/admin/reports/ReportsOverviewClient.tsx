@@ -32,7 +32,7 @@ const STATUS_COLORS: Record<string, string> = {
   PARTNER: '#F59E0B', SUSPENDED: '#EF4444',
 }
 const ROLE_COLORS: Record<string, string> = {
-  SUPERADMIN: '#8B5CF6', SCHOOL_OWNER: '#006197', INSTRUCTOR: '#F59E0B', STUDENT: '#10B981',
+  SUPERADMIN: '#8B5CF6', SCHOOL_OWNER: '#0870E2', INSTRUCTOR: '#F59E0B', STUDENT: '#10B981',
 }
 
 function pct(val: number, last: number) {
@@ -58,7 +58,7 @@ export default function ReportsOverviewClient() {
   if (loading || !data) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="w-6 h-6 border-2 border-[#006197] border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -69,7 +69,7 @@ export default function ReportsOverviewClient() {
 
   const kpis = [
     {
-      label: 'Total Schools', value: overview.totalSchools, icon: Building2, color: '#006197',
+      label: 'Total Schools', value: overview.totalSchools, icon: Building2, color: '#0870E2',
       sub: `${overview.schoolsThisMonth} this month`,
       change: schoolPct,
     },
@@ -99,7 +99,7 @@ export default function ReportsOverviewClient() {
     <div className="min-h-screen">
       <div className="bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
         <div>
-          <h1 className="text-lg font-bold text-[#0D1B2A]">Reports Overview</h1>
+          <h1 className="text-lg font-bold text-[#101828]">Reports Overview</h1>
           <p className="text-xs text-gray-400">Platform-wide metrics and growth</p>
         </div>
         <div className="flex items-center gap-2">
@@ -125,7 +125,7 @@ export default function ReportsOverviewClient() {
                 </div>
                 <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{k.label}</p>
               </div>
-              <p className="text-3xl font-bold text-[#0D1B2A]">{k.value}</p>
+              <p className="text-3xl font-bold text-[#101828]">{k.value}</p>
               <div className="flex items-center gap-2 mt-1">
                 <p className="text-[11px] text-gray-400">{k.sub}</p>
                 {k.change && (
@@ -142,22 +142,22 @@ export default function ReportsOverviewClient() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Schools per month */}
           <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
-            <p className="text-sm font-bold text-[#0D1B2A] mb-1">Schools growth</p>
+            <p className="text-sm font-bold text-[#101828] mb-1">Schools growth</p>
             <p className="text-xs text-gray-400 mb-4">New schools per month (last 12 months)</p>
             {data.schoolsPerMonth.length > 0 ? (
               <ResponsiveContainer width="100%" height={180}>
                 <AreaChart data={data.schoolsPerMonth} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
                   <defs>
                     <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#006197" stopOpacity={0.12} />
-                      <stop offset="95%" stopColor="#006197" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#0870E2" stopOpacity={0.12} />
+                      <stop offset="95%" stopColor="#0870E2" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 10, fill: '#9CA3AF' }} axisLine={false} tickLine={false} allowDecimals={false} />
                   <Tooltip contentStyle={{ fontSize: 12, borderRadius: 10, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }} />
-                  <Area type="monotone" dataKey="count" stroke="#006197" strokeWidth={2.5} fill="url(#sg)"
-                    dot={{ r: 3, fill: '#006197', stroke: '#fff', strokeWidth: 2 }} />
+                  <Area type="monotone" dataKey="count" stroke="#0870E2" strokeWidth={2.5} fill="url(#sg)"
+                    dot={{ r: 3, fill: '#0870E2', stroke: '#fff', strokeWidth: 2 }} />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
@@ -167,7 +167,7 @@ export default function ReportsOverviewClient() {
 
           {/* Users per month */}
           <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
-            <p className="text-sm font-bold text-[#0D1B2A] mb-1">User registrations</p>
+            <p className="text-sm font-bold text-[#101828] mb-1">User registrations</p>
             <p className="text-xs text-gray-400 mb-4">New users per month (last 12 months)</p>
             {data.usersPerMonth.length > 0 ? (
               <ResponsiveContainer width="100%" height={180}>
@@ -188,7 +188,7 @@ export default function ReportsOverviewClient() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Schools by status */}
           <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
-            <p className="text-sm font-bold text-[#0D1B2A] mb-4">Schools by status</p>
+            <p className="text-sm font-bold text-[#101828] mb-4">Schools by status</p>
             <div className="space-y-3">
               {data.schoolsByStatus.map(r => (
                 <div key={r.status} className="flex items-center gap-3">
@@ -207,7 +207,7 @@ export default function ReportsOverviewClient() {
 
           {/* Users by role */}
           <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
-            <p className="text-sm font-bold text-[#0D1B2A] mb-4">Users by role</p>
+            <p className="text-sm font-bold text-[#101828] mb-4">Users by role</p>
             <div className="space-y-3">
               {data.usersByRole.map(r => (
                 <div key={r.role} className="flex items-center gap-3">
@@ -228,13 +228,13 @@ export default function ReportsOverviewClient() {
 
           {/* Top countries */}
           <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
-            <p className="text-sm font-bold text-[#0D1B2A] mb-4">Top countries</p>
+            <p className="text-sm font-bold text-[#101828] mb-4">Top countries</p>
             <div className="space-y-3">
               {data.schoolsByCountry.slice(0, 6).map(r => (
                 <div key={r.country} className="flex items-center gap-3">
                   <span className="w-24 text-xs font-medium text-gray-500 shrink-0 truncate">{r.country}</span>
                   <div className="flex-1 bg-gray-100 rounded-full h-1.5">
-                    <div className="h-1.5 rounded-full bg-[#006197]" style={{
+                    <div className="h-1.5 rounded-full bg-[#0870E2]" style={{
                       width: `${(r.count / (data.schoolsByCountry[0]?.count || 1)) * 100}%`,
                     }} />
                   </div>

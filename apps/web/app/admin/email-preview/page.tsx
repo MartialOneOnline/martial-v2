@@ -4,7 +4,7 @@ export default function EmailPreviewPage() {
   return (
     <div className="min-h-screen bg-[#374151]">
       {/* Toolbar */}
-      <div className="bg-[#0D1B2A] text-white px-6 py-3 flex items-center gap-3 text-sm sticky top-0 z-10">
+      <div className="bg-[#101828] text-white px-6 py-3 flex items-center gap-3 text-sm sticky top-0 z-10">
         <span className="font-bold">📧 Email Preview</span>
         <span className="text-gray-500">·</span>
         <span className="text-gray-400 text-xs">

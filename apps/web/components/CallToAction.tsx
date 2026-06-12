@@ -11,8 +11,8 @@ export default function CallToAction() {
 
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 relative z-10">
         <div className="lg:w-7/12 space-y-8 text-left">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0092ff]/20 border border-[#0092ff]/30 text-[#0092ff] text-xs font-black uppercase tracking-wider">
-            <Compass className="w-4 h-4 text-sky-400 animate-pulse" />
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0870E2]/20 border border-[#0870E2]/30 text-[#0870E2] text-xs font-black uppercase tracking-wider">
+            <Compass className="w-4 h-4 text-[#0870E2] animate-pulse" />
             <span>Join the Global Martial Movement</span>
           </div>
 
@@ -26,7 +26,7 @@ export default function CallToAction() {
 
           <div className="flex flex-wrap gap-4 pt-2">
             <a href="#schools"
-              className="inline-flex items-center gap-2.5 px-8 py-4 bg-[#0092ff] text-white hover:bg-[#007cd7] text-sm font-extrabold rounded-xl shadow-lg transition-all cursor-pointer active:scale-95">
+              className="inline-flex items-center gap-2.5 px-8 py-4 bg-[#0870E2] text-white hover:bg-[#007cd7] text-sm font-extrabold rounded-xl shadow-lg transition-all cursor-pointer active:scale-95">
               <Search className="w-4 h-4" />
               <span>Explore All Academies</span>
             </a>

@@ -49,9 +49,9 @@ function HomeContent() {
       <HeroSection onOpenLoginModal={openModal} />
 
       {/* 2. Free Platform Bar */}
-      <section className="bg-sky-950 py-16 sm:py-20">
+      <section className="bg-[#0E3A7A] py-16 sm:py-20">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <p className="text-sm font-semibold text-sky-400 uppercase tracking-widest mb-3">
+          <p className="text-sm font-semibold text-[#7DE7EC] uppercase tracking-widest mb-3">
             {t.platform.badge}
           </p>
           <h2 className="text-2xl md:text-3xl font-bold text-white leading-snug">

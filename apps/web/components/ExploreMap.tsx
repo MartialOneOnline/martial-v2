@@ -64,7 +64,7 @@ export default function ExploreMap({ schools, userCoords, onSchoolClick }: Props
       // User position marker
       if (userCoords) {
         const userIcon = L.divIcon({
-          html: `<div style="width:16px;height:16px;border-radius:50%;background:#006197;border:3px solid white;box-shadow:0 2px 8px rgba(0,97,151,0.5)"></div>`,
+          html: `<div style="width:16px;height:16px;border-radius:50%;background:#0870E2;border:3px solid white;box-shadow:0 2px 8px rgba(0,97,151,0.5)"></div>`,
           iconSize: [16, 16],
           iconAnchor: [8, 8],
           className: '',
@@ -92,13 +92,13 @@ export default function ExploreMap({ schools, userCoords, onSchoolClick }: Props
             <div style="font-size:11px;margin-bottom:8px">${ratingHtml}${trialHtml}</div>
             <button
               onclick="window.__exploreMapClick('${school.id}')"
-              style="width:100%;background:#006197;color:white;border:none;border-radius:8px;padding:7px 0;font-weight:600;font-size:12px;cursor:pointer"
+              style="width:100%;background:#0870E2;color:white;border:none;border-radius:8px;padding:7px 0;font-weight:600;font-size:12px;cursor:pointer"
             >View Academy →</button>
           </div>
         `
 
         const markerIcon = L.divIcon({
-          html: `<div style="background:#006197;color:white;font-size:10px;font-weight:700;padding:3px 7px;border-radius:999px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.25);border:2px solid white">${school.name.split(' ').slice(0, 2).join(' ')}</div>`,
+          html: `<div style="background:#0870E2;color:white;font-size:10px;font-weight:700;padding:3px 7px;border-radius:999px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.25);border:2px solid white">${school.name.split(' ').slice(0, 2).join(' ')}</div>`,
           className: '',
           iconAnchor: [0, 0],
         })

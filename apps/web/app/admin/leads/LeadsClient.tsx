@@ -80,7 +80,7 @@ export default function LeadsClient() {
     <div className="min-h-screen">
       <div className="bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
         <div>
-          <h1 className="text-lg font-bold text-[#0D1B2A]">Leads</h1>
+          <h1 className="text-lg font-bold text-[#101828]">Leads</h1>
           <p className="text-xs text-gray-400">School invitations and outreach</p>
         </div>
         <div className="flex items-center gap-2">
@@ -94,7 +94,7 @@ export default function LeadsClient() {
           </Link>
           <Link href="/admin/schools"
             className="flex items-center gap-2 h-9 px-4 rounded-xl text-white text-xs font-semibold hover:opacity-90 transition-opacity"
-            style={{ background: '#006197' }}>
+            style={{ background: '#0870E2' }}>
             <Mail className="w-3.5 h-3.5" /> New invite
           </Link>
         </div>
@@ -110,7 +110,7 @@ export default function LeadsClient() {
               placeholder="Search by name, email…"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="pl-9 pr-4 h-9 rounded-xl border border-gray-200 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006197]/20 focus:border-[#006197] w-64"
+              className="pl-9 pr-4 h-9 rounded-xl border border-gray-200 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0870E2]/20 focus:border-[#0870E2] w-64"
             />
           </div>
           <div className="flex items-center gap-1.5">
@@ -118,7 +118,7 @@ export default function LeadsClient() {
             <select
               value={status}
               onChange={e => setStatus(e.target.value)}
-              className="h-9 px-3 rounded-xl border border-gray-200 text-xs text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#006197]/20 focus:border-[#006197] bg-white"
+              className="h-9 px-3 rounded-xl border border-gray-200 text-xs text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#0870E2]/20 focus:border-[#0870E2] bg-white"
             >
               {STATUSES.map(s => <option key={s} value={s}>{s || 'All statuses'}</option>)}
             </select>
@@ -144,13 +144,13 @@ export default function LeadsClient() {
         <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center h-40">
-              <div className="w-6 h-6 border-2 border-[#006197] border-t-transparent rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />
             </div>
           ) : invitations.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16">
               <Mail className="w-10 h-10 text-gray-200 mb-3" />
               <p className="text-sm text-gray-400">No invitations found</p>
-              <Link href="/admin/schools" className="text-xs text-[#006197] font-semibold hover:underline mt-1">
+              <Link href="/admin/schools" className="text-xs text-[#0870E2] font-semibold hover:underline mt-1">
                 Create one →
               </Link>
             </div>
@@ -174,7 +174,7 @@ export default function LeadsClient() {
                     <tr key={inv.id} className="hover:bg-gray-50/50 transition-colors group">
                       <td className="px-6 py-3">
                         <div>
-                          <p className="text-xs font-semibold text-[#0D1B2A]">{inv.name}</p>
+                          <p className="text-xs font-semibold text-[#101828]">{inv.name}</p>
                           <p className="text-[11px] text-gray-400">{inv.email}</p>
                         </div>
                       </td>
@@ -199,7 +199,7 @@ export default function LeadsClient() {
                           <button
                             onClick={() => sendInvite(inv.id)}
                             disabled={sending === inv.id}
-                            className="opacity-0 group-hover:opacity-100 flex items-center gap-1.5 text-[11px] font-semibold text-[#006197] hover:underline disabled:opacity-50 transition-opacity"
+                            className="opacity-0 group-hover:opacity-100 flex items-center gap-1.5 text-[11px] font-semibold text-[#0870E2] hover:underline disabled:opacity-50 transition-opacity"
                           >
                             <Send className="w-3 h-3" />
                             {sending === inv.id ? 'Sending…' : 'Send'}
@@ -209,7 +209,7 @@ export default function LeadsClient() {
                           <Link
                             href={`/school/${inv.school.slug}`}
                             target="_blank"
-                            className="opacity-0 group-hover:opacity-100 flex items-center gap-1 text-[11px] font-semibold text-[#006197] hover:underline transition-opacity"
+                            className="opacity-0 group-hover:opacity-100 flex items-center gap-1 text-[11px] font-semibold text-[#0870E2] hover:underline transition-opacity"
                           >
                             <Globe className="w-3 h-3" /> View
                           </Link>

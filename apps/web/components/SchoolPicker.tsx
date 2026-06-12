@@ -59,18 +59,18 @@ export default function SchoolPicker({ schools, onSelect, onPersonal }: Props) {
                 key={s.schoolId}
                 onClick={() => handleSelect(s.schoolId)}
                 disabled={loading !== null}
-                className="flex items-center justify-between px-4 py-3 rounded-xl border border-gray-100 hover:border-[#006197] hover:bg-[#006197]/5 transition-all text-left group disabled:opacity-50"
+                className="flex items-center justify-between px-4 py-3 rounded-xl border border-gray-100 hover:border-[#0870E2] hover:bg-[#0870E2]/5 transition-all text-left group disabled:opacity-50"
               >
                 <div>
-                  <div className="text-sm font-semibold text-gray-900 group-hover:text-[#006197]">
+                  <div className="text-sm font-semibold text-gray-900 group-hover:text-[#0870E2]">
                     {s.schoolName}
                   </div>
                   <div className="text-xs text-gray-400 mt-0.5">{ROLE_LABEL[s.role] ?? s.role}</div>
                 </div>
                 {loading === s.schoolId ? (
-                  <div className="w-4 h-4 border-2 border-[#006197] border-t-transparent rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  <span className="text-gray-300 group-hover:text-[#006197] text-sm">→</span>
+                  <span className="text-gray-300 group-hover:text-[#0870E2] text-sm">→</span>
                 )}
               </button>
             ))}

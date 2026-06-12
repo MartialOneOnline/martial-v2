@@ -149,7 +149,7 @@ function CountryPicker({ value, onChange }: { value: typeof COUNTRIES[0]; onChan
                 >
                   <span className="text-[15px] shrink-0">{c.flag}</span>
                   <span className="text-[12px] text-[#4f4f4f] flex-1 truncate">{c.name}</span>
-                  <span className="text-[12px] font-semibold text-[#006197] shrink-0">{c.dial}</span>
+                  <span className="text-[12px] font-semibold text-[#0870E2] shrink-0">{c.dial}</span>
                 </button>
               ))}
             </div>
@@ -326,7 +326,7 @@ export default function RegisterModal({ onClose, onOpenLogin }: RegisterModalPro
 
           {/* Close */}
           <button type="button" onClick={onClose}
-            className="absolute top-5 right-5 flex items-center gap-1.5 text-[12px] font-semibold text-[#9ca3af] hover:text-[#006197] transition-colors cursor-pointer"
+            className="absolute top-5 right-5 flex items-center gap-1.5 text-[12px] font-semibold text-[#9ca3af] hover:text-[#0870E2] transition-colors cursor-pointer"
             aria-label="Close">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
             Home
@@ -337,7 +337,7 @@ export default function RegisterModal({ onClose, onOpenLogin }: RegisterModalPro
             <div className="w-14 h-14 overflow-hidden rounded-2xl shrink-0">
               <Image src="/martial-logo.png" alt="Martial App" width={56} height={56} className="object-contain" />
             </div>
-            <p className="text-[20px] font-black tracking-wider text-slate-800 leading-none">MARTIAL</p>
+            <p className="text-[20px] font-black tracking-wider text-[#101828] leading-none">MARTIAL</p>
           </div>
 
           {/* Title */}
@@ -351,10 +351,10 @@ export default function RegisterModal({ onClose, onOpenLogin }: RegisterModalPro
             {(['student', 'school'] as UserRole[]).map(r => (
               <button key={r} type="button" onClick={() => { setRole(r); setErrors({}) }}
                 className={`flex-1 py-3.5 text-[13px] font-black uppercase tracking-widest transition-all cursor-pointer relative ${
-                  role === r ? 'bg-white text-[#006197]' : 'bg-[#fafafa] text-[#9ca3af] hover:text-[#6b7280]'
+                  role === r ? 'bg-white text-[#0870E2]' : 'bg-[#fafafa] text-[#9ca3af] hover:text-[#6b7280]'
                 }`}>
                 {role === r && (
-                  <motion.div layoutId="role-indicator" className="absolute inset-x-0 bottom-0 h-[2.5px] bg-[#0092ff] rounded-full" />
+                  <motion.div layoutId="role-indicator" className="absolute inset-x-0 bottom-0 h-[2.5px] bg-[#0870E2] rounded-full" />
                 )}
                 {r === 'student' ? '🥋  Student' : '🏛️  Academy'}
               </button>
@@ -459,15 +459,15 @@ export default function RegisterModal({ onClose, onOpenLogin }: RegisterModalPro
           {/* Terms */}
           <p className="text-[12px] text-[#6b7280] text-center mt-4 leading-snug">
             By continuing, you agree to Martial App&apos;s{' '}
-            <span className="text-[#006197] underline cursor-pointer hover:text-[#004e7c]">Terms of Use</span>.{' '}
+            <span className="text-[#0870E2] underline cursor-pointer hover:text-[#004e7c]">Terms of Use</span>.{' '}
             Read our{' '}
-            <span className="text-[#006197] underline cursor-pointer hover:text-[#004e7c]">Privacy Policy</span>.
+            <span className="text-[#0870E2] underline cursor-pointer hover:text-[#004e7c]">Privacy Policy</span>.
           </p>
 
           {/* Login link */}
           <p className="text-[13px] text-[#6b7280] text-center mt-3">
             Already have an account?{' '}
-            <span onClick={() => { onClose(); onOpenLogin() }} className="text-[#006197] font-semibold underline cursor-pointer hover:text-[#004e7c] transition-colors">
+            <span onClick={() => { onClose(); onOpenLogin() }} className="text-[#0870E2] font-semibold underline cursor-pointer hover:text-[#004e7c] transition-colors">
               Login
             </span>
           </p>

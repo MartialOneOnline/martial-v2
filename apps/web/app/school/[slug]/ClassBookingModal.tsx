@@ -134,7 +134,7 @@ export default function ClassBookingModal({ session, schoolSlug, plans, onClose 
           {/* Loading */}
           {auth.state === 'loading' && (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-[#006197]" />
+              <Loader2 className="w-6 h-6 animate-spin text-[#0870E2]" />
             </div>
           )}
 
@@ -148,7 +148,7 @@ export default function ClassBookingModal({ session, schoolSlug, plans, onClose 
               </p>
               <button
                 onClick={onClose}
-                className="mt-2 w-full bg-[#006197] hover:bg-[#005080] text-white font-semibold py-3 rounded-2xl transition-colors"
+                className="mt-2 w-full bg-[#0870E2] hover:bg-[#005080] text-white font-semibold py-3 rounded-2xl transition-colors"
               >
                 Done
               </button>
@@ -162,7 +162,7 @@ export default function ClassBookingModal({ session, schoolSlug, plans, onClose 
                 <X className="w-7 h-7 text-red-500" />
               </div>
               <p className="text-sm text-[#6B7280] text-center">{errorMsg}</p>
-              <button onClick={() => setBookingState('idle')} className="text-sm text-[#006197] underline">Try again</button>
+              <button onClick={() => setBookingState('idle')} className="text-sm text-[#0870E2] underline">Try again</button>
             </div>
           )}
 
@@ -170,20 +170,20 @@ export default function ClassBookingModal({ session, schoolSlug, plans, onClose 
           {auth.state === 'unauthenticated' && bookingState === 'idle' && (
             <div className="space-y-4">
               <div className="flex items-center gap-3 bg-[#F0F9FF] border border-[#BAE6FD] rounded-2xl p-4">
-                <LogIn className="w-5 h-5 text-[#006197] shrink-0" />
+                <LogIn className="w-5 h-5 text-[#0870E2] shrink-0" />
                 <p className="text-sm text-[#0369A1]">
                   You need to be logged in to book a class.
                 </p>
               </div>
               <button
                 onClick={() => router.push(`/login?redirect=/school/${schoolSlug}`)}
-                className="w-full bg-[#006197] hover:bg-[#005080] text-white font-semibold py-3 rounded-2xl transition-colors"
+                className="w-full bg-[#0870E2] hover:bg-[#005080] text-white font-semibold py-3 rounded-2xl transition-colors"
               >
                 Log In to Book
               </button>
               <button
                 onClick={() => router.push(`/register?redirect=/school/${schoolSlug}`)}
-                className="w-full border border-[#006197] text-[#006197] hover:bg-[#e8f7ff] font-semibold py-3 rounded-2xl transition-colors"
+                className="w-full border border-[#0870E2] text-[#0870E2] hover:bg-[#e8f7ff] font-semibold py-3 rounded-2xl transition-colors"
               >
                 Create Free Account
               </button>
@@ -214,15 +214,15 @@ export default function ClassBookingModal({ session, schoolSlug, plans, onClose 
                   const sym = CURRENCY_SYM[plan.currency] ?? '€'
                   const suffix = plan.billingCycle === 'monthly' ? '/mo' : plan.billingCycle === 'quarterly' ? '/qtr' : ''
                   return (
-                    <div key={plan.id} className={`flex items-center justify-between gap-3 border rounded-xl px-4 py-3 ${plan.isPopular ? 'border-[#006197] bg-[#f0f9ff]' : 'border-[#E5E7EB]'}`}>
+                    <div key={plan.id} className={`flex items-center justify-between gap-3 border rounded-xl px-4 py-3 ${plan.isPopular ? 'border-[#0870E2] bg-[#f0f9ff]' : 'border-[#E5E7EB]'}`}>
                       <div>
                         <div className="text-sm font-semibold text-[#111827] flex items-center gap-2">
                           {plan.name}
-                          {plan.isPopular && <span className="text-[10px] font-bold bg-[#006197] text-white px-2 py-0.5 rounded-full uppercase">Popular</span>}
+                          {plan.isPopular && <span className="text-[10px] font-bold bg-[#0870E2] text-white px-2 py-0.5 rounded-full uppercase">Popular</span>}
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="text-base font-bold text-[#006197]">{sym}{plan.price}<span className="text-xs font-normal text-[#6B7280]">{suffix}</span></div>
+                        <div className="text-base font-bold text-[#0870E2]">{sym}{plan.price}<span className="text-xs font-normal text-[#6B7280]">{suffix}</span></div>
                       </div>
                     </div>
                   )
@@ -231,7 +231,7 @@ export default function ClassBookingModal({ session, schoolSlug, plans, onClose 
 
               <button
                 onClick={() => router.push(`/school/${schoolSlug}#memberships`)}
-                className="w-full border border-[#006197] text-[#006197] hover:bg-[#e8f7ff] font-semibold py-3 rounded-2xl transition-colors flex items-center justify-center gap-2"
+                className="w-full border border-[#0870E2] text-[#0870E2] hover:bg-[#e8f7ff] font-semibold py-3 rounded-2xl transition-colors flex items-center justify-center gap-2"
               >
                 <CreditCard className="w-4 h-4" />
                 View All Plans
@@ -271,7 +271,7 @@ export default function ClassBookingModal({ session, schoolSlug, plans, onClose 
               <button
                 onClick={confirmBooking}
                 disabled={bookingState === 'booking'}
-                className="w-full bg-[#006197] hover:bg-[#005080] disabled:opacity-50 text-white font-semibold py-3 rounded-2xl transition-colors flex items-center justify-center gap-2"
+                className="w-full bg-[#0870E2] hover:bg-[#005080] disabled:opacity-50 text-white font-semibold py-3 rounded-2xl transition-colors flex items-center justify-center gap-2"
               >
                 {bookingState === 'booking' ? (
                   <><Loader2 className="w-4 h-4 animate-spin" /> Confirming...</>

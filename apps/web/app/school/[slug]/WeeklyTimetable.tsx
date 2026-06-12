@@ -89,14 +89,14 @@ export default function WeeklyTimetable({
                 key={day.idx}
                 onClick={() => setActiveDay(day.idx)}
                 className={`flex-1 min-w-[56px] py-3 px-2 text-center transition-colors relative ${
-                  isActive ? 'text-[#006197] font-semibold' : 'text-[#6b7280] hover:text-[#006197]'
+                  isActive ? 'text-[#0870E2] font-semibold' : 'text-[#6b7280] hover:text-[#0870E2]'
                 }`}
               >
                 <div className="text-xs font-medium">{day.short}</div>
                 {count > 0 && (
-                  <div className={`mx-auto mt-1 w-1.5 h-1.5 rounded-full ${isActive ? 'bg-[#006197]' : 'bg-slate-300'}`} />
+                  <div className={`mx-auto mt-1 w-1.5 h-1.5 rounded-full ${isActive ? 'bg-[#0870E2]' : 'bg-slate-300'}`} />
                 )}
-                {isActive && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#006197]" />}
+                {isActive && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#0870E2]" />}
               </button>
             )
           })}
