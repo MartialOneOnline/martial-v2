@@ -7,7 +7,7 @@ import {
   Download, TrendingUp, Clock, Users, X,
   ChevronDown, UserCheck, Archive, Shield,
   Mail, Upload, FileText, CheckCircle, AlertCircle,
-  SlidersHorizontal, Eye, Send,
+  SlidersHorizontal, Eye, Send, Trash2,
 } from 'lucide-react'
 import { useDashboard } from '../../../components/DashboardShell'
 import DashboardLanguageSelector from '../../../components/DashboardLanguageSelector'
@@ -109,20 +109,23 @@ function ActionsMenu({
   onBeltChange,
   onResendInvite,
   onDelete,
+  onDeleteUser,
 }: {
   student: Student
   onStatusChange: (id: string, status: string) => void
   onBeltChange: (id: string, belt: string) => void
   onResendInvite: (student: Student) => void
   onDelete: (id: string) => void
+  onDeleteUser: (id: string) => void
 }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [statusOpen, setStatusOpen] = useState(false)
   const [beltOpen, setBeltOpen] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
-  const closeAll = () => { setOpen(false); setStatusOpen(false); setBeltOpen(false) }
+  const closeAll = () => { setOpen(false); setStatusOpen(false); setBeltOpen(false); setConfirmDelete(false) }
 
   useEffect(() => {
     if (!open) return
@@ -289,6 +292,35 @@ function ActionsMenu({
             'Archivar',
             () => { closeAll(); onDelete(student.id) },
             true,
+          )}
+
+          {/* Delete with confirm */}
+          {!confirmDelete ? (
+            <button
+              onClick={e => { e.stopPropagation(); setConfirmDelete(true) }}
+              className="w-full flex items-center gap-2 cursor-pointer"
+              style={{ padding: '8px 14px', fontSize: 13, border: 'none', textAlign: 'left', color: '#DC2626', background: 'transparent' }}
+              onMouseEnter={e => (e.currentTarget.style.background = '#FEF2F2')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+              <Trash2 size={13} style={{ flexShrink: 0 }} />
+              Eliminar
+            </button>
+          ) : (
+            <div style={{ padding: '8px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <p style={{ margin: 0, fontSize: 12, color: '#DC2626', fontWeight: 600 }}>¿Eliminar permanentemente?</p>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button
+                  onClick={e => { e.stopPropagation(); closeAll(); onDeleteUser(student.id) }}
+                  style={{ flex: 1, padding: '5px 0', fontSize: 12, fontWeight: 600, background: '#DC2626', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
+                  Sí, eliminar
+                </button>
+                <button
+                  onClick={e => { e.stopPropagation(); setConfirmDelete(false) }}
+                  style={{ flex: 1, padding: '5px 0', fontSize: 12, background: '#F3F4F6', color: '#374151', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
+                  Cancelar
+                </button>
+              </div>
+            </div>
           )}
         </div>
       )}
@@ -1086,6 +1118,11 @@ export default function UsersClient({ students: initialStudents }: { students: S
     }
   }
 
+  const handleDeleteUser = async (memberId: string) => {
+    setStudents(prev => prev.filter(s => s.id !== memberId))
+    await fetch(`/api/dashboard/members/${memberId}`, { method: 'DELETE' })
+  }
+
   const handleResendInvite = async (student: Student) => {
     try {
       await fetch('/api/dashboard/members/invite', {
@@ -1347,6 +1384,7 @@ export default function UsersClient({ students: initialStudents }: { students: S
                       onBeltChange={handleBeltChange}
                       onResendInvite={handleResendInvite}
                       onDelete={handleArchive}
+                      onDeleteUser={handleDeleteUser}
                     />
                   </td>
                 </tr>

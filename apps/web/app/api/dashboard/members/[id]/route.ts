@@ -46,3 +46,42 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   return NextResponse.json({ member: updated })
 }
+
+// DELETE /api/dashboard/members/[id] — permanently delete member + user record
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const user = await getAuthUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const schoolId = await getCurrentSchoolId()
+  if (!schoolId) return NextResponse.json({ error: 'No school context' }, { status: 400 })
+
+  if (user.role !== 'SUPERADMIN') {
+    try {
+      const member = await requireSchoolAccess(user.id, schoolId)
+      if (!['OWNER', 'ADMIN'].includes(member.role)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
+    } catch {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+  }
+
+  const { id } = await params
+
+  const existing = await prisma.schoolMember.findFirst({
+    where: { id, schoolId },
+    select: { id: true, userId: true },
+  })
+  if (!existing) return NextResponse.json({ error: 'Member not found' }, { status: 404 })
+
+  // Delete the school membership
+  await prisma.schoolMember.delete({ where: { id } })
+
+  // Delete the user only if they have no other school memberships
+  const otherMemberships = await prisma.schoolMember.count({ where: { userId: existing.userId } })
+  if (otherMemberships === 0) {
+    await prisma.user.delete({ where: { id: existing.userId } })
+  }
+
+  return NextResponse.json({ ok: true })
+}
