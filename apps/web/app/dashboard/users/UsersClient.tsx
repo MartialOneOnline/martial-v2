@@ -13,6 +13,51 @@ import { useDashboard } from '../../../components/DashboardShell'
 import DashboardLanguageSelector from '../../../components/DashboardLanguageSelector'
 import { useT } from '../../../lib/i18n/LanguageContext'
 
+// ── Toast ─────────────────────────────────────────────────────────────────────
+type ToastType = 'success' | 'error' | 'info'
+type Toast = { id: number; message: string; type: ToastType }
+
+function ToastContainer({ toasts, onRemove }: { toasts: Toast[]; onRemove: (id: number) => void }) {
+  if (!toasts.length) return null
+  return (
+    <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 9999, display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {toasts.map(t => (
+        <div key={t.id} style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          padding: '12px 16px', borderRadius: 10, minWidth: 260, maxWidth: 380,
+          background: t.type === 'success' ? '#ECFDF5' : t.type === 'error' ? '#FEF2F2' : '#EFF6FF',
+          border: `1px solid ${t.type === 'success' ? '#A7F3D0' : t.type === 'error' ? '#FECACA' : '#BFDBFE'}`,
+          boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
+          animation: 'slideIn .2s ease',
+        }}>
+          {t.type === 'success' && <CheckCircle size={16} style={{ color: '#16A34A', flexShrink: 0 }} />}
+          {t.type === 'error' && <AlertCircle size={16} style={{ color: '#DC2626', flexShrink: 0 }} />}
+          {t.type === 'info' && <Bell size={16} style={{ color: '#2563EB', flexShrink: 0 }} />}
+          <span style={{ fontSize: 13, fontWeight: 500, color: '#111827', flex: 1 }}>{t.message}</span>
+          <button onClick={() => onRemove(t.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', padding: 0 }}>
+            <X size={14} />
+          </button>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function useToast() {
+  const [toasts, setToasts] = useState<Toast[]>([])
+  const counter = useRef(0)
+
+  const show = (message: string, type: ToastType = 'success', duration = 3500) => {
+    const id = ++counter.current
+    setToasts(prev => [...prev, { id, message, type }])
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), duration)
+  }
+
+  const remove = (id: number) => setToasts(prev => prev.filter(t => t.id !== id))
+
+  return { toasts, show, remove }
+}
+
 // ── Types ──────────────────────────────────────────────────────────────────────
 type Student = {
   id: string
@@ -1053,6 +1098,7 @@ export default function UsersClient({ students: initialStudents }: { students: S
   const { menuOpen, setMenuOpen } = useDashboard()
   const t = useT()
   const router = useRouter()
+  const { toasts, show: showToast, remove: removeToast } = useToast()
 
   const [students, setStudents] = useState<Student[]>(initialStudents)
   const [showAddModal, setShowAddModal] = useState(false)
@@ -1125,9 +1171,14 @@ export default function UsersClient({ students: initialStudents }: { students: S
 
   const handleResendInvite = async (student: Student) => {
     try {
-      await fetch(`/api/dashboard/members/${student.id}/resend-invite`, { method: 'POST' })
+      const res = await fetch(`/api/dashboard/members/${student.id}/resend-invite`, { method: 'POST' })
+      if (res.ok) {
+        showToast(`Invitación reenviada a ${student.email}`, 'success')
+      } else {
+        showToast('Error al reenviar la invitación', 'error')
+      }
     } catch {
-      // silent — invite is best-effort
+      showToast('Error al reenviar la invitación', 'error')
     }
   }
 
@@ -1137,6 +1188,7 @@ export default function UsersClient({ students: initialStudents }: { students: S
 
   return (
     <main style={{ flex: 1, minWidth: 0 }}>
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
 
       {showAddModal && (
         <AddStudentModal onClose={() => setShowAddModal(false)} onCreated={handleCreated} />
