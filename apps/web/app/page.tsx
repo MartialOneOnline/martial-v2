@@ -10,7 +10,8 @@ import HeroSection       from '../components/HeroSection'
 import FeaturesCloud     from '../components/FeaturesCloud'
 import MissionSection    from '../components/MissionSection'
 import MembersAndAcademies from '../components/MembersAndAcademies'
-import FeaturedSchools   from '../components/FeaturedSchools'
+import HomeDiscovery     from '../components/HomeDiscovery'
+import { TrySomethingNew } from '../components/HomeSections'
 import PartnersSection   from '../components/PartnersSection'
 import AppPromotion      from '../components/AppPromotion'
 import Testimonials      from '../components/Testimonials'
@@ -68,8 +69,12 @@ function HomeContent() {
       {/* 5. For Members / For Academies */}
       <MembersAndAcademies />
 
-      {/* 6. Featured Schools */}
-      <FeaturedSchools />
+      {/* 6. Try Something New */}
+      <TrySomethingNew />
+
+      {/* 7. Discovery — Academies Near You */}
+      <HomeDiscovery />
+
 
       {/* 7. Partners */}
       <PartnersSection />

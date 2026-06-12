@@ -60,63 +60,95 @@ export default function AppPromotion() {
             </div>
           </div>
 
-          {/* Right — phone mockup */}
+          {/* Right — iPhone 17 mockup */}
           <div className="lg:col-span-6 flex justify-center">
-            <div className="relative w-[300px] h-[580px] bg-slate-950 rounded-[40px] border-[8px] border-slate-900 shadow-2xl p-3 flex flex-col overflow-hidden">
-              <div className="absolute top-2 left-1/2 -translate-x-1/2 w-32 h-5 bg-slate-950 rounded-b-xl z-20 flex justify-center gap-1.5 items-center">
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-800" />
-                <span className="w-10 h-1 bg-slate-900 rounded-full" />
-                <span className="text-[7.5px] font-bold text-slate-500 font-mono">12:00</span>
-              </div>
-              <div className="h-6 flex items-center justify-between text-[8px] text-slate-400 px-3 z-10 font-bold font-mono pt-1">
-                <span>Signal ••••</span><span>Martial App</span>
-              </div>
-              <div className="flex-1 bg-slate-900 rounded-[30px] overflow-hidden flex flex-col p-3 relative text-white">
-                <div className="flex items-center justify-between pb-3 mt-1 pt-2">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-5 h-5 rounded-md bg-[#0092ff] flex items-center justify-center font-black text-[9px] text-white">M</div>
-                    <span className="text-[10px] font-extrabold tracking-wider text-slate-200">MARTIAL</span>
+            {/* iPhone 17 — titanium frame, thin bezels, Dynamic Island */}
+            <div className="relative w-[300px] h-[620px] rounded-[52px] shadow-2xl"
+              style={{ background: 'linear-gradient(145deg, #d4d4d4 0%, #a8a8a8 40%, #c8c8c8 100%)', padding: '3px' }}>
+              {/* Outer frame highlight */}
+              <div className="absolute inset-0 rounded-[52px] pointer-events-none"
+                style={{ boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6), inset 0 -1px 1px rgba(0,0,0,0.2)' }} />
+              {/* Side buttons */}
+              <div className="absolute -left-[3px] top-[120px] w-[3px] h-8 bg-[#b0b0b0] rounded-l-sm" />
+              <div className="absolute -left-[3px] top-[165px] w-[3px] h-12 bg-[#b0b0b0] rounded-l-sm" />
+              <div className="absolute -left-[3px] top-[225px] w-[3px] h-12 bg-[#b0b0b0] rounded-l-sm" />
+              <div className="absolute -right-[3px] top-[165px] w-[3px] h-16 bg-[#b0b0b0] rounded-r-sm" />
+
+              {/* Inner screen */}
+              <div className="w-full h-full bg-white rounded-[50px] overflow-hidden flex flex-col">
+                {/* Status bar */}
+                <div className="flex items-center justify-between px-6 pt-3 pb-1 bg-white">
+                  <span className="text-[10px] font-bold text-gray-800 font-mono">9:41</span>
+                  {/* Dynamic Island */}
+                  <div className="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-6 bg-black rounded-full flex items-center justify-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-gray-800 border border-gray-700" />
+                    <span className="w-1 h-1 rounded-full bg-gray-700" />
                   </div>
-                  <Bell className="w-3.5 h-3.5 text-slate-400" />
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] text-gray-800">●●●●</span>
+                    <span className="text-[10px] text-gray-800">WiFi</span>
+                    <span className="text-[10px] font-bold text-gray-800">100%</span>
+                  </div>
                 </div>
-                <div className="relative mb-3">
-                  <Search className="absolute left-2.5 top-2 w-3 h-3 text-slate-500" />
-                  <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search academies..."
-                    className="w-full bg-slate-800/80 border border-slate-700/50 rounded-lg pl-8 pr-3 py-1 text-[10px] focus:outline-none focus:border-[#0092ff] text-white placeholder-slate-500" />
-                </div>
-                <div className="flex gap-1.5 overflow-x-auto pb-2 mb-3">
-                  {CATEGORIES.map(cat => (
-                    <button key={cat} onClick={() => setActiveCategory(cat)}
-                      className={`px-2.5 py-1 text-[8px] font-black rounded-full whitespace-nowrap cursor-pointer transition-all ${activeCategory === cat ? 'bg-[#0092ff] text-white' : 'bg-slate-800 text-slate-400 hover:text-slate-200'}`}>
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-                <p className="text-[10px] font-extrabold text-slate-400 mb-2 uppercase tracking-wider">Explore Near You</p>
-                <div className="space-y-1.5 overflow-y-auto max-h-[220px] flex-1">
-                  <AnimatePresence mode="popLayout">
-                    {filtered.length > 0 ? filtered.map(club => (
-                      <motion.div key={club.name} layout initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 5 }} transition={{ duration: 0.15 }}
-                        className="p-2 bg-slate-800/50 border border-slate-700/60 rounded-xl flex items-center justify-between">
-                        <div>
-                          <p className="text-[10px] font-black text-slate-200 leading-tight">{club.name}</p>
-                          <span className="text-[8px] text-slate-400 mt-0.5 block">{club.arts}</span>
-                          <span className="text-[7.5px] text-[#0092ff] font-medium block mt-0.5">{club.distance}</span>
-                        </div>
-                        <div className="flex items-center gap-0.5 bg-slate-900 px-1.5 py-0.5 rounded-md shrink-0">
-                          <Star className="w-2 h-2 text-amber-400 fill-amber-400" />
-                          <span className="text-[8px] font-black">{club.rating}</span>
-                        </div>
-                      </motion.div>
-                    )) : (
-                      <p className="text-[9px] text-slate-500 py-6 text-center font-semibold">No active dojos match.</p>
-                    )}
-                  </AnimatePresence>
-                </div>
-                <div className="mt-auto border-t border-slate-800 pt-2 flex justify-around text-slate-500 text-[8px] font-black">
-                  <div className="flex flex-col items-center gap-0.5 text-[#0092ff] cursor-pointer"><Grid className="w-3.5 h-3.5" /><span>Home</span></div>
-                  <div className="flex flex-col items-center gap-0.5 hover:text-slate-200 cursor-pointer"><Map className="w-3.5 h-3.5" /><span>Map</span></div>
-                  <div className="flex flex-col items-center gap-0.5 hover:text-slate-200 cursor-pointer"><ListFilter className="w-3.5 h-3.5" /><span>Filter</span></div>
+
+                {/* App content — white background */}
+                <div className="flex-1 bg-white flex flex-col px-4 pt-2 pb-3 overflow-hidden">
+                  {/* App header */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-6 h-6 rounded-lg bg-[#006197] flex items-center justify-center font-black text-[10px] text-white">M</div>
+                      <span className="text-[11px] font-extrabold tracking-wider text-gray-900">MARTIAL</span>
+                    </div>
+                    <Bell className="w-4 h-4 text-gray-400" />
+                  </div>
+
+                  {/* Search */}
+                  <div className="relative mb-3">
+                    <Search className="absolute left-2.5 top-2 w-3 h-3 text-gray-400" />
+                    <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search academies..."
+                      className="w-full bg-gray-100 border border-gray-200 rounded-xl pl-8 pr-3 py-1.5 text-[10px] focus:outline-none focus:border-[#006197] text-gray-700 placeholder-gray-400" />
+                  </div>
+
+                  {/* Category chips */}
+                  <div className="flex gap-1.5 overflow-x-auto pb-2 mb-3 scrollbar-hide">
+                    {CATEGORIES.map(cat => (
+                      <button key={cat} onClick={() => setActiveCategory(cat)}
+                        className={`px-2.5 py-1 text-[8px] font-black rounded-full whitespace-nowrap cursor-pointer transition-all ${activeCategory === cat ? 'bg-[#006197] text-white' : 'bg-gray-100 text-gray-500 hover:text-gray-700'}`}>
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+
+                  <p className="text-[9px] font-extrabold text-gray-400 mb-2 uppercase tracking-wider">Explore Near You</p>
+
+                  {/* Club list */}
+                  <div className="space-y-2 overflow-y-auto flex-1">
+                    <AnimatePresence mode="popLayout">
+                      {filtered.length > 0 ? filtered.map(club => (
+                        <motion.div key={club.name} layout initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 5 }} transition={{ duration: 0.15 }}
+                          className="p-2.5 bg-gray-50 border border-gray-100 rounded-2xl flex items-center justify-between">
+                          <div>
+                            <p className="text-[10px] font-black text-gray-800 leading-tight">{club.name}</p>
+                            <span className="text-[8px] text-gray-400 mt-0.5 block">{club.arts}</span>
+                            <span className="text-[7.5px] text-[#006197] font-semibold block mt-0.5">{club.distance}</span>
+                          </div>
+                          <div className="flex items-center gap-0.5 bg-white border border-gray-200 px-1.5 py-0.5 rounded-lg shrink-0 shadow-sm">
+                            <Star className="w-2 h-2 text-amber-400 fill-amber-400" />
+                            <span className="text-[8px] font-black text-gray-700">{club.rating}</span>
+                          </div>
+                        </motion.div>
+                      )) : (
+                        <p className="text-[9px] text-gray-400 py-6 text-center font-semibold">No active dojos match.</p>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Bottom tab bar */}
+                  <div className="mt-2 border-t border-gray-100 pt-2 flex justify-around text-gray-400 text-[8px] font-black">
+                    <div className="flex flex-col items-center gap-0.5 text-[#006197] cursor-pointer"><Grid className="w-4 h-4" /><span>Home</span></div>
+                    <div className="flex flex-col items-center gap-0.5 hover:text-gray-600 cursor-pointer"><Map className="w-4 h-4" /><span>Map</span></div>
+                    <div className="flex flex-col items-center gap-0.5 hover:text-gray-600 cursor-pointer"><ListFilter className="w-4 h-4" /><span>Filter</span></div>
+                  </div>
                 </div>
               </div>
             </div>
