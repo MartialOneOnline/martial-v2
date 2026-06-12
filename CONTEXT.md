@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 20 completada ✅ — Booking flow completo (auth check → membership → free trial → booking)
+**Estado:** Sesión 22 completada ✅ — Color System v1.0 implementado (tokens, shared badges, CSS vars, UsersClient migrado)
 
 ---
 
@@ -202,16 +202,41 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 
 ---
 
+## Páginas del usuario (/my) implementadas
+
+| Ruta | Estado | Notas |
+|---|---|---|
+| `/my` | ✅ Live | Dashboard personal: escuelas, info personal, links a secciones |
+| `/my/profile` | ✅ Live | Editar nombre, teléfono, fecha de nacimiento — PATCH /api/my |
+| `/my/progress` | ⏳ Pendiente | Ranking / cinturón |
+| `/my/membership` | ⏳ Pendiente | Suscripciones activas |
+| `/my/classes` | ⏳ Pendiente | Horario + bookings |
+
+---
+
+## Flujo de invitación (invite flow)
+
+1. Admin invita desde `/dashboard/users` → magiclink con `redirect_to=/auth/accept-invite`
+2. Email → click → `layout.tsx` script inline intercepta el hash y redirige a `/auth/set-password#access_token=...`
+3. `/auth/set-password` — decodifica email del JWT (`atob`), llama `setSession`, user crea contraseña
+4. `POST /api/auth/activate-member` — status `PENDING → LEAD`, devuelve redirect según rol
+5. Redirect: STUDENT → `/my`, OWNER/ADMIN/INSTRUCTOR → `/dashboard`
+
+**Resend invite:** usa magiclink (no `invite` type — inválido para usuarios existentes en Supabase).
+**Delete member:** también elimina de Supabase Auth (`admin.deleteUser`) para poder re-invitar el mismo email.
+
+---
+
 ## Próximos pasos
 
-1. **Booking flow — test logged in** — probar flujo completo con usuario real logueado
-2. **"Book a Trial Class"** del sidebar → conectar al mismo modal de booking
-3. **Explore → clases clicables** — misma lógica de booking desde Explore
-4. **School page — diseño** — mejorar UI/UX (facilities/disciplines icons, hero, etc.)
-2. **LoginModal** — popup en homepage con SSO + Email
-3. **SSO OAuth** — configurar Google en Supabase
-4. **Homepage** — ajustes finales diseño AI Studio → Next.js
-5. **API deploy** — Railway o Render
+1. **Color System — migración pendiente**: Payments page, Members table, transaction table, super admin pipeline
+2. **`/my/progress`** — página de ranking y cinturón del alumno
+3. **`/my/membership`** — suscripciones activas del alumno
+4. **`/my/classes`** — horario + bookings del alumno
+5. **Homepage redesign** — usar banners V1 como referencia + estilo Nzzl (pedir URL a Pablo)
+6. **LoginModal** — popup en homepage con SSO + Email
+7. **SSO OAuth** — configurar Google en Supabase
+8. **API deploy** — Railway o Render
 6. **Dominio propio** — conectar app.martialapp.online a Vercel
 7. **Conectar dashboard a datos reales** — reemplazar mocks por API calls
 8. **Importar más escuelas** — usar seed-schools.xlsx + import-from-v1.mjs
@@ -305,6 +330,28 @@ Prototipo movido a apps/prototype/ en el monorepo
 - **Payments**: Transactions + Subscriptions con drawers de entrada manual
 - **School section**: 7 páginas (Leads, Store, Curriculum, Affiliates, Staff, Waivers, Gradings)
 - **Users page**: tabla completa estilo NZZL
+
+### Sesión 22 — 2026-06-12 ✅
+- **Color System v1.0** — sistema de colores centralizado implementado por fases
+- `apps/web/lib/design/tokens.ts` — tokens completos: uiColors, martialColors, primaryColors, memberStatusColors, paymentStatusColors, gradients
+- `apps/web/components/ui/StatusBadge.tsx` — badge compartido member status (soft/solid, sm/md)
+- `apps/web/components/ui/PaymentBadge.tsx` — badge compartido payment status (soft/solid, sm/md)
+- `apps/web/app/design/page.tsx` — preview page en `/design` con todos los tokens, badges y tabla de muestra
+- `globals.css` — añadidas vars faltantes: `--color-surface-soft`, `--color-border-strong`, `--color-primary-pressed`, `--color-primary-border`, `--color-text-disabled`, `--martial-ai-soft`, `--martial-marketplace-soft`
+- **UsersClient migrado** — eliminado `STATUS_MAP` local + `StatusBadge` local, importados componentes compartidos, `STATUS_FILTER_OPTIONS` derivado de tokens (cero hardcodes de colores)
+- Commit: 3c6f78a
+
+### Sesión 21 — 2026-06-11 ✅
+- **Invite flow completo** — magiclink con redirect correcto a `/auth/set-password`
+- `layout.tsx` — script inline en `<head>` intercepta hash antes de que React cargue
+- `/auth/set-password` — decodifica email del JWT con `atob`, llama `setSession` para activar sesión
+- `/auth/accept-invite` — página intermedia (redirect a set-password)
+- `POST /api/auth/activate-member` — status PENDING → LEAD, redirect según rol (student=/my, school=/dashboard)
+- **Delete member** — también elimina de Supabase Auth (`admin.deleteUser`) para poder re-invitar mismo email
+- **Páginas /my** — `/my` (dashboard personal) + `/my/profile` (editar perfil: nombre, teléfono, DOB)
+- `PATCH /api/my` — guarda nombre, teléfono, fecha de nacimiento
+- `/api/my` — filtro schoolMembers ampliado para incluir LEAD + FROZEN (no solo ACTIVE)
+- Commits: 7ea5484, 0afbc98, 53dbc18
 
 ### Sesión 20 — 2026-06-09 ✅
 - **Booking flow completo** — clases clicables en WeeklyTimetable
