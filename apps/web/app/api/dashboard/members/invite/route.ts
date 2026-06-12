@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { getResend, FROM, APP_URL } from '@/lib/email/resend'
+import { buildInviteStudentEmail, detectLang, getInviteSubject } from '@/lib/email/templates/inviteStudent'
 
 function getAdminSupabase() {
   const key = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -12,7 +14,7 @@ function getAdminSupabase() {
   })
 }
 
-// POST /api/dashboard/members/invite — send email invite + create PENDING member
+// POST /api/dashboard/members/invite — send custom Resend email + create PENDING member
 export async function POST(req: NextRequest) {
   const user = await getAuthUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -36,6 +38,12 @@ export async function POST(req: NextRequest) {
 
   const normalizedEmail = email.trim().toLowerCase()
 
+  // Load school for name, city, country (to determine email language)
+  const school = await prisma.school.findUnique({
+    where: { id: schoolId },
+    select: { name: true, city: true, country: true },
+  })
+
   // Check if already a member
   const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } })
   if (existingUser) {
@@ -47,30 +55,41 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Send Supabase invite email
+  // Generate invite link via Supabase (does NOT send email — we handle that)
   const supabase = getAdminSupabase()
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.martial.one'
-  const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
-    normalizedEmail,
-    { redirectTo: `${baseUrl}/auth/accept-invite` }
-  )
+  const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
+    type: 'invite',
+    email: normalizedEmail,
+    options: { redirectTo: `${APP_URL}/auth/accept-invite` },
+  })
 
-  if (inviteError) {
-    // If user already exists in auth but not in our DB, continue
-    if (!inviteError.message.includes('already been registered')) {
-      return NextResponse.json({ error: inviteError.message }, { status: 400 })
+  if (linkError) {
+    // User may already exist in auth — fall back to magic link
+    const { data: magicData, error: magicError } = await supabase.auth.admin.generateLink({
+      type: 'magiclink',
+      email: normalizedEmail,
+      options: { redirectTo: `${APP_URL}/auth/accept-invite` },
+    })
+    if (magicError || !magicData?.properties?.action_link) {
+      return NextResponse.json({ error: linkError.message }, { status: 400 })
     }
+    // continue with magic link
+    Object.assign(linkData ?? {}, magicData)
+  }
+
+  const inviteUrl = (linkData as { properties?: { action_link?: string } })?.properties?.action_link
+  if (!inviteUrl) {
+    return NextResponse.json({ error: 'Could not generate invite link' }, { status: 500 })
   }
 
   // Upsert user record
   const dbUser = await prisma.user.upsert({
     where: { email: normalizedEmail },
-    update: {},
+    update: name?.trim() ? { name: name.trim() } : {},
     create: {
       email: normalizedEmail,
       name: name?.trim() || normalizedEmail.split('@')[0],
       role: 'STUDENT',
-      ...(inviteData?.user?.id ? { id: inviteData.user.id } : {}),
     },
     select: { id: true, name: true, email: true, avatarUrl: true },
   })
@@ -89,6 +108,23 @@ export async function POST(req: NextRequest) {
       id: true, belt: true, beltDegree: true, status: true, role: true, joinedAt: true,
       user: { select: { id: true, name: true, email: true, avatarUrl: true } },
     },
+  })
+
+  // Send email via Resend with our custom template
+  const lang = detectLang(school?.country)
+  const html = buildInviteStudentEmail({
+    studentName: dbUser.name,
+    schoolName: school?.name ?? 'Your school',
+    schoolCity: school?.city,
+    inviteUrl,
+    lang,
+  })
+
+  await getResend().emails.send({
+    from: FROM,
+    to: normalizedEmail,
+    subject: getInviteSubject(school?.name ?? 'Your school', lang),
+    html,
   })
 
   return NextResponse.json({
