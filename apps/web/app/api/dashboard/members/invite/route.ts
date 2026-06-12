@@ -120,12 +120,16 @@ export async function POST(req: NextRequest) {
     lang,
   })
 
-  await getResend().emails.send({
-    from: FROM,
-    to: normalizedEmail,
-    subject: getInviteSubject(school?.name ?? 'Your school', lang),
-    html,
-  })
+  try {
+    await getResend().emails.send({
+      from: FROM,
+      to: normalizedEmail,
+      subject: getInviteSubject(school?.name ?? 'Your school', lang),
+      html,
+    })
+  } catch (emailErr) {
+    console.error('[invite] Resend error:', emailErr)
+  }
 
   return NextResponse.json({
     member: {
