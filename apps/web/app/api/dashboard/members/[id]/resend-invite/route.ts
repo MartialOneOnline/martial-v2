@@ -48,24 +48,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const supabase = getAdminSupabase()
 
-  // Try invite link first, fall back to magic link
-  let inviteUrl: string | undefined
-  const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
-    type: 'invite',
+  // Always use magiclink for resend — invite type is only valid for brand-new Supabase users
+  const { data: magicData, error: magicError } = await supabase.auth.admin.generateLink({
+    type: 'magiclink',
     email: member.user.email,
     options: { redirectTo: `${APP_URL}/auth/accept-invite` },
   })
-
-  if (!linkError && linkData?.properties?.action_link) {
-    inviteUrl = linkData.properties.action_link
-  } else {
-    const { data: magicData } = await supabase.auth.admin.generateLink({
-      type: 'magiclink',
-      email: member.user.email,
-      options: { redirectTo: `${APP_URL}/auth/accept-invite` },
-    })
-    inviteUrl = magicData?.properties?.action_link
-  }
+  if (magicError) console.error('[resend-invite] generateLink error:', magicError)
+  const inviteUrl = magicData?.properties?.action_link
 
   if (!inviteUrl) return NextResponse.json({ error: 'Could not generate invite link' }, { status: 500 })
 
