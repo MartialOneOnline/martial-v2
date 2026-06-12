@@ -47,7 +47,7 @@ export default async function StudentProfilePage({
     orderBy: { createdAt: 'desc' },
     take: 5,
     include: {
-      class: { select: { name: true, startTime: true } },
+      class: { select: { name: true } },
     },
   }).catch(() => [])
 
@@ -86,7 +86,7 @@ export default async function StudentProfilePage({
     bookings: bookings.map(b => ({
       id: b.id,
       className: b.class?.name ?? 'Clase',
-      date: b.class?.startTime?.toISOString() ?? b.createdAt.toISOString(),
+      date: b.scheduledAt?.toISOString() ?? b.createdAt.toISOString(),
       status: b.status,
     })),
     transactions: transactions.map(t => ({
