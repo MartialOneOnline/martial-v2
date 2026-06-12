@@ -169,6 +169,7 @@ export type SchoolCountAggregateOutputType = {
   googleReviews: number
   googlePlaceId: number
   v1UserId: number
+  defaultBookingSettings: number
   stripeAccountId: number
   parentId: number
   parentRelationshipType: number
@@ -324,6 +325,7 @@ export type SchoolCountAggregateInputType = {
   googleReviews?: true
   googlePlaceId?: true
   v1UserId?: true
+  defaultBookingSettings?: true
   stripeAccountId?: true
   parentId?: true
   parentRelationshipType?: true
@@ -456,6 +458,7 @@ export type SchoolGroupByOutputType = {
   googleReviews: number | null
   googlePlaceId: string | null
   v1UserId: number | null
+  defaultBookingSettings: runtime.JsonValue
   stripeAccountId: string | null
   parentId: string | null
   parentRelationshipType: $Enums.SchoolRelationshipType | null
@@ -524,6 +527,7 @@ export type SchoolWhereInput = {
   googleReviews?: Prisma.IntNullableFilter<"School"> | number | null
   googlePlaceId?: Prisma.StringNullableFilter<"School"> | string | null
   v1UserId?: Prisma.IntNullableFilter<"School"> | number | null
+  defaultBookingSettings?: Prisma.JsonFilter<"School">
   stripeAccountId?: Prisma.StringNullableFilter<"School"> | string | null
   parentId?: Prisma.StringNullableFilter<"School"> | string | null
   parentRelationshipType?: Prisma.EnumSchoolRelationshipTypeNullableFilter<"School"> | $Enums.SchoolRelationshipType | null
@@ -589,6 +593,7 @@ export type SchoolOrderByWithRelationInput = {
   googleReviews?: Prisma.SortOrderInput | Prisma.SortOrder
   googlePlaceId?: Prisma.SortOrderInput | Prisma.SortOrder
   v1UserId?: Prisma.SortOrderInput | Prisma.SortOrder
+  defaultBookingSettings?: Prisma.SortOrder
   stripeAccountId?: Prisma.SortOrderInput | Prisma.SortOrder
   parentId?: Prisma.SortOrderInput | Prisma.SortOrder
   parentRelationshipType?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -657,6 +662,7 @@ export type SchoolWhereUniqueInput = Prisma.AtLeast<{
   googleRating?: Prisma.FloatNullableFilter<"School"> | number | null
   googleReviews?: Prisma.IntNullableFilter<"School"> | number | null
   googlePlaceId?: Prisma.StringNullableFilter<"School"> | string | null
+  defaultBookingSettings?: Prisma.JsonFilter<"School">
   stripeAccountId?: Prisma.StringNullableFilter<"School"> | string | null
   parentId?: Prisma.StringNullableFilter<"School"> | string | null
   parentRelationshipType?: Prisma.EnumSchoolRelationshipTypeNullableFilter<"School"> | $Enums.SchoolRelationshipType | null
@@ -722,6 +728,7 @@ export type SchoolOrderByWithAggregationInput = {
   googleReviews?: Prisma.SortOrderInput | Prisma.SortOrder
   googlePlaceId?: Prisma.SortOrderInput | Prisma.SortOrder
   v1UserId?: Prisma.SortOrderInput | Prisma.SortOrder
+  defaultBookingSettings?: Prisma.SortOrder
   stripeAccountId?: Prisma.SortOrderInput | Prisma.SortOrder
   parentId?: Prisma.SortOrderInput | Prisma.SortOrder
   parentRelationshipType?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -775,6 +782,7 @@ export type SchoolScalarWhereWithAggregatesInput = {
   googleReviews?: Prisma.IntNullableWithAggregatesFilter<"School"> | number | null
   googlePlaceId?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
   v1UserId?: Prisma.IntNullableWithAggregatesFilter<"School"> | number | null
+  defaultBookingSettings?: Prisma.JsonWithAggregatesFilter<"School">
   stripeAccountId?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
   parentId?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
   parentRelationshipType?: Prisma.EnumSchoolRelationshipTypeNullableWithAggregatesFilter<"School"> | $Enums.SchoolRelationshipType | null
@@ -819,6 +827,7 @@ export type SchoolCreateInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -882,6 +891,7 @@ export type SchoolUncheckedCreateInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
@@ -943,6 +953,7 @@ export type SchoolUpdateInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -1006,6 +1017,7 @@ export type SchoolUncheckedUpdateInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
@@ -1068,6 +1080,7 @@ export type SchoolCreateManyInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
@@ -1112,6 +1125,7 @@ export type SchoolUpdateManyMutationInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -1155,6 +1169,7 @@ export type SchoolUncheckedUpdateManyInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
@@ -1228,6 +1243,7 @@ export type SchoolCountOrderByAggregateInput = {
   googleReviews?: Prisma.SortOrder
   googlePlaceId?: Prisma.SortOrder
   v1UserId?: Prisma.SortOrder
+  defaultBookingSettings?: Prisma.SortOrder
   stripeAccountId?: Prisma.SortOrder
   parentId?: Prisma.SortOrder
   parentRelationshipType?: Prisma.SortOrder
@@ -1794,6 +1810,7 @@ export type SchoolCreateWithoutAffiliationInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -1855,6 +1872,7 @@ export type SchoolUncheckedCreateWithoutAffiliationInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
@@ -1946,6 +1964,7 @@ export type SchoolScalarWhereInput = {
   googleReviews?: Prisma.IntNullableFilter<"School"> | number | null
   googlePlaceId?: Prisma.StringNullableFilter<"School"> | string | null
   v1UserId?: Prisma.IntNullableFilter<"School"> | number | null
+  defaultBookingSettings?: Prisma.JsonFilter<"School">
   stripeAccountId?: Prisma.StringNullableFilter<"School"> | string | null
   parentId?: Prisma.StringNullableFilter<"School"> | string | null
   parentRelationshipType?: Prisma.EnumSchoolRelationshipTypeNullableFilter<"School"> | $Enums.SchoolRelationshipType | null
@@ -1990,6 +2009,7 @@ export type SchoolCreateWithoutStaffInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -2052,6 +2072,7 @@ export type SchoolUncheckedCreateWithoutStaffInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
@@ -2117,6 +2138,7 @@ export type SchoolCreateWithoutClaimedByInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -2179,6 +2201,7 @@ export type SchoolUncheckedCreateWithoutClaimedByInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
@@ -2260,6 +2283,7 @@ export type SchoolUpdateWithoutStaffInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -2322,6 +2346,7 @@ export type SchoolUncheckedUpdateWithoutStaffInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
@@ -2398,6 +2423,7 @@ export type SchoolCreateWithoutDisciplinesInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -2460,6 +2486,7 @@ export type SchoolUncheckedCreateWithoutDisciplinesInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
@@ -2536,6 +2563,7 @@ export type SchoolUpdateWithoutDisciplinesInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -2598,6 +2626,7 @@ export type SchoolUncheckedUpdateWithoutDisciplinesInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
@@ -2658,6 +2687,7 @@ export type SchoolCreateWithoutBranchesInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -2720,6 +2750,7 @@ export type SchoolUncheckedCreateWithoutBranchesInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
@@ -2785,6 +2816,7 @@ export type SchoolCreateWithoutParentInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -2847,6 +2879,7 @@ export type SchoolUncheckedCreateWithoutParentInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -2928,6 +2961,7 @@ export type SchoolUpdateWithoutBranchesInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -2990,6 +3024,7 @@ export type SchoolUncheckedUpdateWithoutBranchesInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
@@ -3066,6 +3101,7 @@ export type SchoolCreateWithoutInstructorsInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -3128,6 +3164,7 @@ export type SchoolUncheckedCreateWithoutInstructorsInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
@@ -3204,6 +3241,7 @@ export type SchoolUpdateWithoutInstructorsInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -3266,6 +3304,7 @@ export type SchoolUncheckedUpdateWithoutInstructorsInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
@@ -3326,6 +3365,7 @@ export type SchoolCreateWithoutMembershipPlansInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -3388,6 +3428,7 @@ export type SchoolUncheckedCreateWithoutMembershipPlansInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
@@ -3464,6 +3505,7 @@ export type SchoolUpdateWithoutMembershipPlansInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -3526,6 +3568,7 @@ export type SchoolUncheckedUpdateWithoutMembershipPlansInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
@@ -3586,6 +3629,7 @@ export type SchoolCreateWithoutReviewsInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -3648,6 +3692,7 @@ export type SchoolUncheckedCreateWithoutReviewsInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
@@ -3724,6 +3769,7 @@ export type SchoolUpdateWithoutReviewsInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -3786,6 +3832,7 @@ export type SchoolUncheckedUpdateWithoutReviewsInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
@@ -3846,6 +3893,7 @@ export type SchoolCreateWithoutClassesInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -3908,6 +3956,7 @@ export type SchoolUncheckedCreateWithoutClassesInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
@@ -3984,6 +4033,7 @@ export type SchoolUpdateWithoutClassesInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -4046,6 +4096,7 @@ export type SchoolUncheckedUpdateWithoutClassesInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
@@ -4106,6 +4157,7 @@ export type SchoolCreateWithoutEventsInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -4168,6 +4220,7 @@ export type SchoolUncheckedCreateWithoutEventsInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
@@ -4244,6 +4297,7 @@ export type SchoolUpdateWithoutEventsInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -4306,6 +4360,7 @@ export type SchoolUncheckedUpdateWithoutEventsInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
@@ -4366,6 +4421,7 @@ export type SchoolCreateWithoutMembershipsInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -4428,6 +4484,7 @@ export type SchoolUncheckedCreateWithoutMembershipsInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
@@ -4504,6 +4561,7 @@ export type SchoolUpdateWithoutMembershipsInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -4566,6 +4624,7 @@ export type SchoolUncheckedUpdateWithoutMembershipsInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
@@ -4626,6 +4685,7 @@ export type SchoolCreateWithoutCampsInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -4688,6 +4748,7 @@ export type SchoolUncheckedCreateWithoutCampsInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
@@ -4764,6 +4825,7 @@ export type SchoolUpdateWithoutCampsInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -4826,6 +4888,7 @@ export type SchoolUncheckedUpdateWithoutCampsInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
@@ -4886,6 +4949,7 @@ export type SchoolCreateWithoutMembersInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -4948,6 +5012,7 @@ export type SchoolUncheckedCreateWithoutMembersInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
@@ -5024,6 +5089,7 @@ export type SchoolUpdateWithoutMembersInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -5086,6 +5152,7 @@ export type SchoolUncheckedUpdateWithoutMembersInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
@@ -5146,6 +5213,7 @@ export type SchoolCreateWithoutClaimsInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -5208,6 +5276,7 @@ export type SchoolUncheckedCreateWithoutClaimsInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
@@ -5284,6 +5353,7 @@ export type SchoolUpdateWithoutClaimsInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -5346,6 +5416,7 @@ export type SchoolUncheckedUpdateWithoutClaimsInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
@@ -5406,6 +5477,7 @@ export type SchoolCreateWithoutGradingsInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -5468,6 +5540,7 @@ export type SchoolUncheckedCreateWithoutGradingsInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
@@ -5544,6 +5617,7 @@ export type SchoolUpdateWithoutGradingsInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -5606,6 +5680,7 @@ export type SchoolUncheckedUpdateWithoutGradingsInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
@@ -5666,6 +5741,7 @@ export type SchoolCreateWithoutLeadsInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -5728,6 +5804,7 @@ export type SchoolUncheckedCreateWithoutLeadsInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
@@ -5804,6 +5881,7 @@ export type SchoolUpdateWithoutLeadsInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -5866,6 +5944,7 @@ export type SchoolUncheckedUpdateWithoutLeadsInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
@@ -5926,6 +6005,7 @@ export type SchoolCreateWithoutInvitationsInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -5988,6 +6068,7 @@ export type SchoolUncheckedCreateWithoutInvitationsInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
@@ -6064,6 +6145,7 @@ export type SchoolUpdateWithoutInvitationsInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -6126,6 +6208,7 @@ export type SchoolUncheckedUpdateWithoutInvitationsInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
@@ -6186,6 +6269,7 @@ export type SchoolCreateWithoutWaiversInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -6248,6 +6332,7 @@ export type SchoolUncheckedCreateWithoutWaiversInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
@@ -6324,6 +6409,7 @@ export type SchoolUpdateWithoutWaiversInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -6386,6 +6472,7 @@ export type SchoolUncheckedUpdateWithoutWaiversInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
@@ -6446,6 +6533,7 @@ export type SchoolCreateWithoutTransactionsInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -6508,6 +6596,7 @@ export type SchoolUncheckedCreateWithoutTransactionsInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
@@ -6584,6 +6673,7 @@ export type SchoolUpdateWithoutTransactionsInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -6646,6 +6736,7 @@ export type SchoolUncheckedUpdateWithoutTransactionsInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
@@ -6706,6 +6797,7 @@ export type SchoolCreateManyAffiliationInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
@@ -6750,6 +6842,7 @@ export type SchoolUpdateWithoutAffiliationInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -6811,6 +6904,7 @@ export type SchoolUncheckedUpdateWithoutAffiliationInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
@@ -6872,6 +6966,7 @@ export type SchoolUncheckedUpdateManyWithoutAffiliationInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
@@ -6917,6 +7012,7 @@ export type SchoolCreateManyClaimedByInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
@@ -6960,6 +7056,7 @@ export type SchoolUpdateWithoutClaimedByInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -7022,6 +7119,7 @@ export type SchoolUncheckedUpdateWithoutClaimedByInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
@@ -7083,6 +7181,7 @@ export type SchoolUncheckedUpdateManyWithoutClaimedByInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
@@ -7127,6 +7226,7 @@ export type SchoolCreateManyParentInput = {
   googleReviews?: number | null
   googlePlaceId?: string | null
   v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -7170,6 +7270,7 @@ export type SchoolUpdateWithoutParentInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -7232,6 +7333,7 @@ export type SchoolUncheckedUpdateWithoutParentInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -7293,6 +7395,7 @@ export type SchoolUncheckedUpdateManyWithoutParentInput = {
   googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -7512,6 +7615,7 @@ export type SchoolSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   googleReviews?: boolean
   googlePlaceId?: boolean
   v1UserId?: boolean
+  defaultBookingSettings?: boolean
   stripeAccountId?: boolean
   parentId?: boolean
   parentRelationshipType?: boolean
@@ -7578,6 +7682,7 @@ export type SchoolSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   googleReviews?: boolean
   googlePlaceId?: boolean
   v1UserId?: boolean
+  defaultBookingSettings?: boolean
   stripeAccountId?: boolean
   parentId?: boolean
   parentRelationshipType?: boolean
@@ -7626,6 +7731,7 @@ export type SchoolSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   googleReviews?: boolean
   googlePlaceId?: boolean
   v1UserId?: boolean
+  defaultBookingSettings?: boolean
   stripeAccountId?: boolean
   parentId?: boolean
   parentRelationshipType?: boolean
@@ -7674,6 +7780,7 @@ export type SchoolSelectScalar = {
   googleReviews?: boolean
   googlePlaceId?: boolean
   v1UserId?: boolean
+  defaultBookingSettings?: boolean
   stripeAccountId?: boolean
   parentId?: boolean
   parentRelationshipType?: boolean
@@ -7684,7 +7791,7 @@ export type SchoolSelectScalar = {
   updatedAt?: boolean
 }
 
-export type SchoolOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "status" | "source" | "affiliationId" | "country" | "city" | "address" | "postcode" | "lat" | "lng" | "phone" | "email" | "website" | "language" | "instagram" | "facebook" | "youtube" | "tiktok" | "description" | "tagline" | "logoUrl" | "coverUrl" | "photos" | "priceFrom" | "hasFreeTrialCls" | "facilities" | "foundedYear" | "totalStudents" | "googleRating" | "googleReviews" | "googlePlaceId" | "v1UserId" | "stripeAccountId" | "parentId" | "parentRelationshipType" | "leadStage" | "claimedById" | "claimedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["school"]>
+export type SchoolOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "status" | "source" | "affiliationId" | "country" | "city" | "address" | "postcode" | "lat" | "lng" | "phone" | "email" | "website" | "language" | "instagram" | "facebook" | "youtube" | "tiktok" | "description" | "tagline" | "logoUrl" | "coverUrl" | "photos" | "priceFrom" | "hasFreeTrialCls" | "facilities" | "foundedYear" | "totalStudents" | "googleRating" | "googleReviews" | "googlePlaceId" | "v1UserId" | "defaultBookingSettings" | "stripeAccountId" | "parentId" | "parentRelationshipType" | "leadStage" | "claimedById" | "claimedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["school"]>
 export type SchoolInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   affiliation?: boolean | Prisma.School$affiliationArgs<ExtArgs>
   parent?: boolean | Prisma.School$parentArgs<ExtArgs>
@@ -7778,6 +7885,7 @@ export type $SchoolPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     googleReviews: number | null
     googlePlaceId: string | null
     v1UserId: number | null
+    defaultBookingSettings: runtime.JsonValue
     stripeAccountId: string | null
     parentId: string | null
     parentRelationshipType: $Enums.SchoolRelationshipType | null
@@ -8263,6 +8371,7 @@ export interface SchoolFieldRefs {
   readonly googleReviews: Prisma.FieldRef<"School", 'Int'>
   readonly googlePlaceId: Prisma.FieldRef<"School", 'String'>
   readonly v1UserId: Prisma.FieldRef<"School", 'Int'>
+  readonly defaultBookingSettings: Prisma.FieldRef<"School", 'Json'>
   readonly stripeAccountId: Prisma.FieldRef<"School", 'String'>
   readonly parentId: Prisma.FieldRef<"School", 'String'>
   readonly parentRelationshipType: Prisma.FieldRef<"School", 'SchoolRelationshipType'>

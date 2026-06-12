@@ -91,6 +91,7 @@ export type ClassCountAggregateOutputType = {
   isActive: number
   isPublished: number
   paymentMethods: number
+  bookingSettings: number
   schedule: number
   instructorId: number
   createdAt: number
@@ -164,6 +165,7 @@ export type ClassCountAggregateInputType = {
   isActive?: true
   isPublished?: true
   paymentMethods?: true
+  bookingSettings?: true
   schedule?: true
   instructorId?: true
   createdAt?: true
@@ -272,6 +274,7 @@ export type ClassGroupByOutputType = {
   isActive: boolean
   isPublished: boolean
   paymentMethods: string[]
+  bookingSettings: runtime.JsonValue | null
   schedule: runtime.JsonValue | null
   instructorId: string | null
   createdAt: Date
@@ -316,6 +319,7 @@ export type ClassWhereInput = {
   isActive?: Prisma.BoolFilter<"Class"> | boolean
   isPublished?: Prisma.BoolFilter<"Class"> | boolean
   paymentMethods?: Prisma.StringNullableListFilter<"Class">
+  bookingSettings?: Prisma.JsonNullableFilter<"Class">
   schedule?: Prisma.JsonNullableFilter<"Class">
   instructorId?: Prisma.StringNullableFilter<"Class"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Class"> | Date | string
@@ -341,6 +345,7 @@ export type ClassOrderByWithRelationInput = {
   isActive?: Prisma.SortOrder
   isPublished?: Prisma.SortOrder
   paymentMethods?: Prisma.SortOrder
+  bookingSettings?: Prisma.SortOrderInput | Prisma.SortOrder
   schedule?: Prisma.SortOrderInput | Prisma.SortOrder
   instructorId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -369,6 +374,7 @@ export type ClassWhereUniqueInput = Prisma.AtLeast<{
   isActive?: Prisma.BoolFilter<"Class"> | boolean
   isPublished?: Prisma.BoolFilter<"Class"> | boolean
   paymentMethods?: Prisma.StringNullableListFilter<"Class">
+  bookingSettings?: Prisma.JsonNullableFilter<"Class">
   schedule?: Prisma.JsonNullableFilter<"Class">
   instructorId?: Prisma.StringNullableFilter<"Class"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Class"> | Date | string
@@ -394,6 +400,7 @@ export type ClassOrderByWithAggregationInput = {
   isActive?: Prisma.SortOrder
   isPublished?: Prisma.SortOrder
   paymentMethods?: Prisma.SortOrder
+  bookingSettings?: Prisma.SortOrderInput | Prisma.SortOrder
   schedule?: Prisma.SortOrderInput | Prisma.SortOrder
   instructorId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -423,6 +430,7 @@ export type ClassScalarWhereWithAggregatesInput = {
   isActive?: Prisma.BoolWithAggregatesFilter<"Class"> | boolean
   isPublished?: Prisma.BoolWithAggregatesFilter<"Class"> | boolean
   paymentMethods?: Prisma.StringNullableListFilter<"Class">
+  bookingSettings?: Prisma.JsonNullableWithAggregatesFilter<"Class">
   schedule?: Prisma.JsonNullableWithAggregatesFilter<"Class">
   instructorId?: Prisma.StringNullableWithAggregatesFilter<"Class"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Class"> | Date | string
@@ -442,6 +450,7 @@ export type ClassCreateInput = {
   isActive?: boolean
   isPublished?: boolean
   paymentMethods?: Prisma.ClassCreatepaymentMethodsInput | string[]
+  bookingSettings?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -466,6 +475,7 @@ export type ClassUncheckedCreateInput = {
   isActive?: boolean
   isPublished?: boolean
   paymentMethods?: Prisma.ClassCreatepaymentMethodsInput | string[]
+  bookingSettings?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   instructorId?: string | null
   createdAt?: Date | string
@@ -486,6 +496,7 @@ export type ClassUpdateInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   paymentMethods?: Prisma.ClassUpdatepaymentMethodsInput | string[]
+  bookingSettings?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -510,6 +521,7 @@ export type ClassUncheckedUpdateInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   paymentMethods?: Prisma.ClassUpdatepaymentMethodsInput | string[]
+  bookingSettings?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   instructorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -532,6 +544,7 @@ export type ClassCreateManyInput = {
   isActive?: boolean
   isPublished?: boolean
   paymentMethods?: Prisma.ClassCreatepaymentMethodsInput | string[]
+  bookingSettings?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   instructorId?: string | null
   createdAt?: Date | string
@@ -551,6 +564,7 @@ export type ClassUpdateManyMutationInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   paymentMethods?: Prisma.ClassUpdatepaymentMethodsInput | string[]
+  bookingSettings?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -571,6 +585,7 @@ export type ClassUncheckedUpdateManyInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   paymentMethods?: Prisma.ClassUpdatepaymentMethodsInput | string[]
+  bookingSettings?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   instructorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -602,6 +617,7 @@ export type ClassCountOrderByAggregateInput = {
   isActive?: Prisma.SortOrder
   isPublished?: Prisma.SortOrder
   paymentMethods?: Prisma.SortOrder
+  bookingSettings?: Prisma.SortOrder
   schedule?: Prisma.SortOrder
   instructorId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -825,6 +841,7 @@ export type ClassCreateWithoutDisciplineInput = {
   isActive?: boolean
   isPublished?: boolean
   paymentMethods?: Prisma.ClassCreatepaymentMethodsInput | string[]
+  bookingSettings?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -847,6 +864,7 @@ export type ClassUncheckedCreateWithoutDisciplineInput = {
   isActive?: boolean
   isPublished?: boolean
   paymentMethods?: Prisma.ClassCreatepaymentMethodsInput | string[]
+  bookingSettings?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   instructorId?: string | null
   createdAt?: Date | string
@@ -898,6 +916,7 @@ export type ClassScalarWhereInput = {
   isActive?: Prisma.BoolFilter<"Class"> | boolean
   isPublished?: Prisma.BoolFilter<"Class"> | boolean
   paymentMethods?: Prisma.StringNullableListFilter<"Class">
+  bookingSettings?: Prisma.JsonNullableFilter<"Class">
   schedule?: Prisma.JsonNullableFilter<"Class">
   instructorId?: Prisma.StringNullableFilter<"Class"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Class"> | Date | string
@@ -917,6 +936,7 @@ export type ClassCreateWithoutSchoolInput = {
   isActive?: boolean
   isPublished?: boolean
   paymentMethods?: Prisma.ClassCreatepaymentMethodsInput | string[]
+  bookingSettings?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -939,6 +959,7 @@ export type ClassUncheckedCreateWithoutSchoolInput = {
   isActive?: boolean
   isPublished?: boolean
   paymentMethods?: Prisma.ClassCreatepaymentMethodsInput | string[]
+  bookingSettings?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   instructorId?: string | null
   createdAt?: Date | string
@@ -985,6 +1006,7 @@ export type ClassCreateWithoutInstructorInput = {
   isActive?: boolean
   isPublished?: boolean
   paymentMethods?: Prisma.ClassCreatepaymentMethodsInput | string[]
+  bookingSettings?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1008,6 +1030,7 @@ export type ClassUncheckedCreateWithoutInstructorInput = {
   isActive?: boolean
   isPublished?: boolean
   paymentMethods?: Prisma.ClassCreatepaymentMethodsInput | string[]
+  bookingSettings?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1053,6 +1076,7 @@ export type ClassCreateWithoutBookingsInput = {
   isActive?: boolean
   isPublished?: boolean
   paymentMethods?: Prisma.ClassCreatepaymentMethodsInput | string[]
+  bookingSettings?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1076,6 +1100,7 @@ export type ClassUncheckedCreateWithoutBookingsInput = {
   isActive?: boolean
   isPublished?: boolean
   paymentMethods?: Prisma.ClassCreatepaymentMethodsInput | string[]
+  bookingSettings?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   instructorId?: string | null
   createdAt?: Date | string
@@ -1111,6 +1136,7 @@ export type ClassUpdateWithoutBookingsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   paymentMethods?: Prisma.ClassUpdatepaymentMethodsInput | string[]
+  bookingSettings?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1134,6 +1160,7 @@ export type ClassUncheckedUpdateWithoutBookingsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   paymentMethods?: Prisma.ClassUpdatepaymentMethodsInput | string[]
+  bookingSettings?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   instructorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1154,6 +1181,7 @@ export type ClassCreateManyDisciplineInput = {
   isActive?: boolean
   isPublished?: boolean
   paymentMethods?: Prisma.ClassCreatepaymentMethodsInput | string[]
+  bookingSettings?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   instructorId?: string | null
   createdAt?: Date | string
@@ -1173,6 +1201,7 @@ export type ClassUpdateWithoutDisciplineInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   paymentMethods?: Prisma.ClassUpdatepaymentMethodsInput | string[]
+  bookingSettings?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1195,6 +1224,7 @@ export type ClassUncheckedUpdateWithoutDisciplineInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   paymentMethods?: Prisma.ClassUpdatepaymentMethodsInput | string[]
+  bookingSettings?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   instructorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1216,6 +1246,7 @@ export type ClassUncheckedUpdateManyWithoutDisciplineInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   paymentMethods?: Prisma.ClassUpdatepaymentMethodsInput | string[]
+  bookingSettings?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   instructorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1236,6 +1267,7 @@ export type ClassCreateManySchoolInput = {
   isActive?: boolean
   isPublished?: boolean
   paymentMethods?: Prisma.ClassCreatepaymentMethodsInput | string[]
+  bookingSettings?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   instructorId?: string | null
   createdAt?: Date | string
@@ -1255,6 +1287,7 @@ export type ClassUpdateWithoutSchoolInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   paymentMethods?: Prisma.ClassUpdatepaymentMethodsInput | string[]
+  bookingSettings?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1277,6 +1310,7 @@ export type ClassUncheckedUpdateWithoutSchoolInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   paymentMethods?: Prisma.ClassUpdatepaymentMethodsInput | string[]
+  bookingSettings?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   instructorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1298,6 +1332,7 @@ export type ClassUncheckedUpdateManyWithoutSchoolInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   paymentMethods?: Prisma.ClassUpdatepaymentMethodsInput | string[]
+  bookingSettings?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   instructorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1319,6 +1354,7 @@ export type ClassCreateManyInstructorInput = {
   isActive?: boolean
   isPublished?: boolean
   paymentMethods?: Prisma.ClassCreatepaymentMethodsInput | string[]
+  bookingSettings?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1337,6 +1373,7 @@ export type ClassUpdateWithoutInstructorInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   paymentMethods?: Prisma.ClassUpdatepaymentMethodsInput | string[]
+  bookingSettings?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1360,6 +1397,7 @@ export type ClassUncheckedUpdateWithoutInstructorInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   paymentMethods?: Prisma.ClassUpdatepaymentMethodsInput | string[]
+  bookingSettings?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1381,6 +1419,7 @@ export type ClassUncheckedUpdateManyWithoutInstructorInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   paymentMethods?: Prisma.ClassUpdatepaymentMethodsInput | string[]
+  bookingSettings?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1432,6 +1471,7 @@ export type ClassSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   isActive?: boolean
   isPublished?: boolean
   paymentMethods?: boolean
+  bookingSettings?: boolean
   schedule?: boolean
   instructorId?: boolean
   createdAt?: boolean
@@ -1458,6 +1498,7 @@ export type ClassSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   isActive?: boolean
   isPublished?: boolean
   paymentMethods?: boolean
+  bookingSettings?: boolean
   schedule?: boolean
   instructorId?: boolean
   createdAt?: boolean
@@ -1482,6 +1523,7 @@ export type ClassSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   isActive?: boolean
   isPublished?: boolean
   paymentMethods?: boolean
+  bookingSettings?: boolean
   schedule?: boolean
   instructorId?: boolean
   createdAt?: boolean
@@ -1506,13 +1548,14 @@ export type ClassSelectScalar = {
   isActive?: boolean
   isPublished?: boolean
   paymentMethods?: boolean
+  bookingSettings?: boolean
   schedule?: boolean
   instructorId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ClassOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "name" | "description" | "disciplineId" | "level" | "duration" | "capacity" | "price" | "currency" | "isTrial" | "isActive" | "isPublished" | "paymentMethods" | "schedule" | "instructorId" | "createdAt" | "updatedAt", ExtArgs["result"]["class"]>
+export type ClassOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "name" | "description" | "disciplineId" | "level" | "duration" | "capacity" | "price" | "currency" | "isTrial" | "isActive" | "isPublished" | "paymentMethods" | "bookingSettings" | "schedule" | "instructorId" | "createdAt" | "updatedAt", ExtArgs["result"]["class"]>
 export type ClassInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   discipline?: boolean | Prisma.Class$disciplineArgs<ExtArgs>
@@ -1554,6 +1597,7 @@ export type $ClassPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     isActive: boolean
     isPublished: boolean
     paymentMethods: string[]
+    bookingSettings: runtime.JsonValue | null
     schedule: runtime.JsonValue | null
     instructorId: string | null
     createdAt: Date
@@ -1999,6 +2043,7 @@ export interface ClassFieldRefs {
   readonly isActive: Prisma.FieldRef<"Class", 'Boolean'>
   readonly isPublished: Prisma.FieldRef<"Class", 'Boolean'>
   readonly paymentMethods: Prisma.FieldRef<"Class", 'String[]'>
+  readonly bookingSettings: Prisma.FieldRef<"Class", 'Json'>
   readonly schedule: Prisma.FieldRef<"Class", 'Json'>
   readonly instructorId: Prisma.FieldRef<"Class", 'String'>
   readonly createdAt: Prisma.FieldRef<"Class", 'DateTime'>

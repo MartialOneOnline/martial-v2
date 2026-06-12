@@ -4,10 +4,12 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   Bell, Calendar, Menu, X, Plus, MoreHorizontal, Search,
   ChevronLeft, ChevronRight, TrendingUp, Check, Upload, Clock, Trash2, Pencil,
+  ChevronDown,
 } from 'lucide-react'
 import { useDashboard } from '../../../components/DashboardShell'
 import DashboardLanguageSelector from '../../../components/DashboardLanguageSelector'
 import { useT } from '../../../lib/i18n/LanguageContext'
+import { type BookingSettings, minsToHoursAndMins, hoursAndMinsToTotal } from '../../../lib/types/booking-settings'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -27,6 +29,7 @@ interface ClassRow {
   isActive: boolean
   isPublished: boolean
   paymentMethods: string[]
+  bookingSettings: BookingSettings | null
   schedule: ScheduleSlot[] | null
   instructor: Instructor | null
   discipline: Discipline | null
@@ -195,6 +198,66 @@ const PAYMENT_OPTIONS: { value: PaymentMethod; label: string; icon: string }[] =
   { value: 'BANK_TRANSFER', label: 'Bank transfer',   icon: '🏦' },
 ]
 
+// Booking form uses h+m strings for each field for easy input binding
+interface BookingFormField { h: string; m: string }
+interface ClassBookingForm {
+  bookingOpens:      BookingFormField
+  bookingCloses:     BookingFormField
+  cancelOpens:       BookingFormField
+  cancelCloses:      BookingFormField
+  minStudents:       string
+  minStudentsCancelH: string
+  minStudentsCancelM: string
+}
+
+const EMPTY_BOOKING: ClassBookingForm = {
+  bookingOpens:       { h: '', m: '' },
+  bookingCloses:      { h: '', m: '' },
+  cancelOpens:        { h: '', m: '' },
+  cancelCloses:       { h: '', m: '' },
+  minStudents:        '',
+  minStudentsCancelH: '',
+  minStudentsCancelM: '',
+}
+
+function bookingSettingsToForm(bs: BookingSettings | null): ClassBookingForm {
+  if (!bs) return EMPTY_BOOKING
+  const f = (mins?: number): BookingFormField => {
+    if (mins == null) return { h: '', m: '' }
+    const { hours, mins: m } = minsToHoursAndMins(mins)
+    return { h: hours > 0 ? String(hours) : '', m: m > 0 ? String(m) : '' }
+  }
+  const fH = (mins?: number) => mins != null ? String(Math.floor(mins / 60)) : ''
+  const fM = (mins?: number) => mins != null ? String(mins % 60) : ''
+  return {
+    bookingOpens:       f(bs.bookingOpensMins),
+    bookingCloses:      f(bs.bookingClosesMins),
+    cancelOpens:        f(bs.cancelOpensMins),
+    cancelCloses:       f(bs.cancelClosesMins),
+    minStudents:        bs.minStudents != null ? String(bs.minStudents) : '',
+    minStudentsCancelH: fH(bs.minStudentsCancelMins),
+    minStudentsCancelM: fM(bs.minStudentsCancelMins),
+  }
+}
+
+function bookingFormToSettings(bf: ClassBookingForm): BookingSettings | null {
+  const toMins = (h: string, m: string): number | undefined => {
+    const total = hoursAndMinsToTotal(Number(h) || 0, Number(m) || 0)
+    return total > 0 ? total : undefined
+  }
+  const s: BookingSettings = {
+    bookingOpensMins:      toMins(bf.bookingOpens.h,  bf.bookingOpens.m),
+    bookingClosesMins:     toMins(bf.bookingCloses.h, bf.bookingCloses.m),
+    cancelOpensMins:       toMins(bf.cancelOpens.h,   bf.cancelOpens.m),
+    cancelClosesMins:      toMins(bf.cancelCloses.h,  bf.cancelCloses.m),
+    minStudents:           bf.minStudents ? Number(bf.minStudents) : undefined,
+    minStudentsCancelMins: toMins(bf.minStudentsCancelH, bf.minStudentsCancelM),
+  }
+  // Return null if all fields are empty (use school defaults)
+  const hasAny = Object.values(s).some(v => v != null)
+  return hasAny ? s : null
+}
+
 interface ClassFormData {
   name: string
   description: string
@@ -208,6 +271,7 @@ interface ClassFormData {
   isActive: boolean
   isPublished: boolean
   paymentMethods: PaymentMethod[]
+  booking: ClassBookingForm
   schedule: ScheduleSlot[]
   instructorId: string
 }
@@ -215,7 +279,8 @@ interface ClassFormData {
 const EMPTY_FORM: ClassFormData = {
   name: '', description: '', disciplineId: '', level: '', duration: '',
   capacity: '', price: '', currency: 'EUR', isTrial: false, isActive: true,
-  isPublished: false, paymentMethods: [], schedule: [], instructorId: '',
+  isPublished: false, paymentMethods: [], booking: EMPTY_BOOKING,
+  schedule: [], instructorId: '',
 }
 
 function classToForm(cls: ClassRow): ClassFormData {
@@ -232,9 +297,142 @@ function classToForm(cls: ClassRow): ClassFormData {
     isActive: cls.isActive,
     isPublished: cls.isPublished,
     paymentMethods: (cls.paymentMethods ?? []) as PaymentMethod[],
+    booking: bookingSettingsToForm(cls.bookingSettings),
     schedule: cls.schedule ?? [],
     instructorId: cls.instructor?.id ?? '',
   }
+}
+
+// ── Booking settings section ───────────────────────────────────────────────────
+
+function TimeInput({ label, value, onChange }: {
+  label: string
+  value: { h: string; m: string }
+  onChange: (v: { h: string; m: string }) => void
+}) {
+  const inp: React.CSSProperties = {
+    border: '1px solid #E5E7EB', borderRadius: 8, padding: '7px 10px',
+    fontSize: 13, color: '#111827', background: '#fff', outline: 'none', width: 64,
+  }
+  return (
+    <div className="flex flex-col gap-1">
+      <span style={{ fontSize: 11, color: '#9CA3AF' }}>{label}</span>
+      <div className="flex items-center gap-1.5">
+        <input type="text" inputMode="numeric" placeholder="0" value={value.h}
+          onChange={e => onChange({ ...value, h: e.target.value.replace(/\D/g, '') })}
+          style={inp} />
+        <span style={{ fontSize: 11, color: '#9CA3AF' }}>h</span>
+        <input type="text" inputMode="numeric" placeholder="0" value={value.m}
+          onChange={e => onChange({ ...value, m: e.target.value.replace(/\D/g, '') })}
+          style={inp} />
+        <span style={{ fontSize: 11, color: '#9CA3AF' }}>min</span>
+      </div>
+    </div>
+  )
+}
+
+function BookingSettingsSection({
+  value, onChange,
+}: {
+  value: ClassBookingForm
+  onChange: (v: ClassBookingForm) => void
+}) {
+  const [open, setOpen] = useState(false)
+
+  function set<K extends keyof ClassBookingForm>(field: K, val: ClassBookingForm[K]) {
+    onChange({ ...value, [field]: val })
+  }
+
+  const rowStyle: React.CSSProperties = {
+    display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, alignItems: 'start',
+  }
+  const sectionLabel: React.CSSProperties = {
+    fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase',
+    letterSpacing: '0.05em', marginBottom: 10,
+  }
+
+  return (
+    <div className="rounded-xl overflow-hidden" style={{ border: '1px solid #E5E7EB' }}>
+      {/* Header — toggle */}
+      <button type="button" onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-4 py-3 cursor-pointer"
+        style={{ background: open ? '#F9FAFB' : '#fff', border: 'none' }}>
+        <div className="flex items-center gap-2">
+          <Clock size={14} style={{ color: '#6B7280' }} />
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>Booking settings</span>
+          <span style={{ fontSize: 11, color: '#9CA3AF' }}>— leave blank to use school defaults</span>
+        </div>
+        <ChevronDown size={14} style={{ color: '#9CA3AF', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+      </button>
+
+      {open && (
+        <div className="px-4 pb-4 flex flex-col gap-5" style={{ borderTop: '1px solid #F3F4F6', paddingTop: 16 }}>
+
+          {/* Booking window */}
+          <div>
+            <p style={sectionLabel}>Booking window</p>
+            <div style={rowStyle}>
+              <TimeInput label="Opens before class"
+                value={value.bookingOpens}
+                onChange={v => set('bookingOpens', v)} />
+              <TimeInput label="Closes before class"
+                value={value.bookingCloses}
+                onChange={v => set('bookingCloses', v)} />
+            </div>
+          </div>
+
+          {/* Cancellation window */}
+          <div>
+            <p style={sectionLabel}>Cancellation window</p>
+            <div style={rowStyle}>
+              <TimeInput label="Opens before class"
+                value={value.cancelOpens}
+                onChange={v => set('cancelOpens', v)} />
+              <TimeInput label="Closes before class"
+                value={value.cancelCloses}
+                onChange={v => set('cancelCloses', v)} />
+            </div>
+          </div>
+
+          {/* Minimum enrollment */}
+          <div>
+            <p style={sectionLabel}>Minimum enrollment</p>
+            <div className="flex items-end gap-4 flex-wrap">
+              <div className="flex flex-col gap-1">
+                <span style={{ fontSize: 11, color: '#9CA3AF' }}>Min students to run</span>
+                <input type="text" inputMode="numeric" placeholder="0 = no minimum"
+                  value={value.minStudents}
+                  onChange={e => set('minStudents', e.target.value.replace(/\D/g, ''))}
+                  style={{ border: '1px solid #E5E7EB', borderRadius: 8, padding: '7px 10px',
+                    fontSize: 13, color: '#111827', background: '#fff', outline: 'none', width: 160 }} />
+              </div>
+              <div className="flex flex-col gap-1">
+                <span style={{ fontSize: 11, color: '#9CA3AF' }}>Auto-cancel if below min</span>
+                <div className="flex items-center gap-1.5">
+                  <input type="text" inputMode="numeric" placeholder="2"
+                    value={value.minStudentsCancelH}
+                    onChange={e => set('minStudentsCancelH', e.target.value.replace(/\D/g, ''))}
+                    style={{ border: '1px solid #E5E7EB', borderRadius: 8, padding: '7px 10px',
+                      fontSize: 13, color: '#111827', background: '#fff', outline: 'none', width: 64 }} />
+                  <span style={{ fontSize: 11, color: '#9CA3AF' }}>h</span>
+                  <input type="text" inputMode="numeric" placeholder="0"
+                    value={value.minStudentsCancelM}
+                    onChange={e => set('minStudentsCancelM', e.target.value.replace(/\D/g, ''))}
+                    style={{ border: '1px solid #E5E7EB', borderRadius: 8, padding: '7px 10px',
+                      fontSize: 13, color: '#111827', background: '#fff', outline: 'none', width: 64 }} />
+                  <span style={{ fontSize: 11, color: '#9CA3AF' }}>min before class</span>
+                </div>
+              </div>
+            </div>
+            <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 6 }}>
+              e.g. min 2 students, auto-cancel 2h before if not reached
+            </p>
+          </div>
+
+        </div>
+      )}
+    </div>
+  )
 }
 
 interface ClassDrawerProps {
@@ -289,6 +487,7 @@ function ClassDrawer({ open, onClose, onSaved, editing, instructors, disciplines
           isActive: form.isActive,
           isPublished: form.isPublished,
           paymentMethods: form.paymentMethods,
+          bookingSettings: bookingFormToSettings(form.booking),
           schedule: form.schedule.length > 0 ? form.schedule : null,
           instructorId: form.instructorId || null,
         }),
@@ -478,6 +677,12 @@ function ClassDrawer({ open, onClose, onSaved, editing, instructors, disciplines
                     boxShadow: '0 1px 3px rgba(0,0,0,0.25)' }} />
                 </div>
               </div>
+
+              {/* Booking settings — collapsible */}
+              <BookingSettingsSection
+                value={form.booking}
+                onChange={b => set('booking', b)}
+              />
 
               {error && <p style={{ fontSize: 12, color: '#DC2626' }}>{error}</p>}
             </div>

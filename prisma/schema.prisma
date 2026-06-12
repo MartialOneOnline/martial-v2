@@ -405,6 +405,9 @@ model School {
   // V1 migration reference
   v1UserId        Int?     @unique // V1 user_id (e.g. 798 for Roger Gracie Málaga)
 
+  // Booking defaults — inherited by all classes unless overridden per-class
+  defaultBookingSettings Json @default("{}")
+
   // Stripe
   stripeAccountId String?
 
@@ -564,6 +567,9 @@ model Class {
   isActive       Boolean  @default(true)
   isPublished    Boolean  @default(false) // visible on Explore
   paymentMethods String[] @default([])    // ["STRIPE","CASH","BANK_TRANSFER"]
+
+  // Booking settings — null = inherit school defaultBookingSettings
+  bookingSettings Json?
 
   // Weekly schedule: [{ dayOfWeek: 1, startTime: "18:00", endTime: "19:30" }]
   schedule     Json?

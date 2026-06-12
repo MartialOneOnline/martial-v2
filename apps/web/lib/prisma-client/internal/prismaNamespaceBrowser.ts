@@ -254,6 +254,7 @@ export const SchoolScalarFieldEnum = {
   googleReviews: 'googleReviews',
   googlePlaceId: 'googlePlaceId',
   v1UserId: 'v1UserId',
+  defaultBookingSettings: 'defaultBookingSettings',
   stripeAccountId: 'stripeAccountId',
   parentId: 'parentId',
   parentRelationshipType: 'parentRelationshipType',
@@ -342,6 +343,7 @@ export const ClassScalarFieldEnum = {
   isActive: 'isActive',
   isPublished: 'isPublished',
   paymentMethods: 'paymentMethods',
+  bookingSettings: 'bookingSettings',
   schedule: 'schedule',
   instructorId: 'instructorId',
   createdAt: 'createdAt',
@@ -715,6 +717,13 @@ export const SortOrder = {
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const NullableJsonNullValueInput = {
