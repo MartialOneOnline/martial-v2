@@ -22,10 +22,20 @@ export async function getAuthUser() {
   return dbUser ?? null
 }
 
-// Returns currentSchoolId from cookie (context hint — always validate with requireSchoolAccess).
+// Returns currentSchoolId from cookie, falling back to UserPreference if cookie is missing.
 export async function getCurrentSchoolId(): Promise<string | null> {
   const cookieStore = await cookies()
-  return cookieStore.get('currentSchoolId')?.value ?? null
+  const fromCookie = cookieStore.get('currentSchoolId')?.value ?? null
+  if (fromCookie) return fromCookie
+
+  // Fallback: read from UserPreference (handles cross-device / first login after claim)
+  const user = await getAuthUser()
+  if (!user) return null
+  const pref = await prisma.userPreference.findUnique({
+    where: { userId: user.id },
+    select: { lastSchoolId: true },
+  })
+  return pref?.lastSchoolId ?? null
 }
 
 // Convenience: get auth user + validate school access in one call.
