@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json()
   const {
     name, description, disciplineId, level, duration,
-    capacity, price, currency, isTrial, isActive,
+    capacity, price, currency, isTrial, isActive, isPublished, paymentMethods,
     schedule, instructorId,
   } = body
 
@@ -78,6 +78,8 @@ export async function POST(req: NextRequest) {
       currency: currency || 'EUR',
       isTrial: isTrial ?? false,
       isActive: isActive ?? true,
+      isPublished: isPublished ?? false,
+      paymentMethods: Array.isArray(paymentMethods) ? paymentMethods : [],
       schedule: schedule ?? null,
       instructorId: instructorId || null,
     },

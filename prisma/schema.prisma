@@ -560,8 +560,10 @@ model Class {
   capacity     Int?
   price        Float?     // 0 = included in membership
   currency     String     @default("EUR")
-  isTrial      Boolean    @default(false)
-  isActive     Boolean    @default(true)
+  isTrial        Boolean  @default(false)
+  isActive       Boolean  @default(true)
+  isPublished    Boolean  @default(false) // visible on Explore
+  paymentMethods String[] @default([])    // ["STRIPE","CASH","BANK_TRANSFER"]
 
   // Weekly schedule: [{ dayOfWeek: 1, startTime: "18:00", endTime: "19:30" }]
   schedule     Json?

@@ -31,7 +31,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const body = await req.json()
   const {
     name, description, disciplineId, level, duration,
-    capacity, price, currency, isTrial, isActive,
+    capacity, price, currency, isTrial, isActive, isPublished, paymentMethods,
     schedule, instructorId,
   } = body
 
@@ -48,6 +48,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       currency: currency ?? existing.currency,
       isTrial: isTrial ?? existing.isTrial,
       isActive: isActive ?? existing.isActive,
+      isPublished: isPublished ?? existing.isPublished,
+      paymentMethods: Array.isArray(paymentMethods) ? paymentMethods : existing.paymentMethods,
       schedule: schedule !== undefined ? schedule : existing.schedule,
       instructorId: instructorId !== undefined ? (instructorId || null) : existing.instructorId,
     },

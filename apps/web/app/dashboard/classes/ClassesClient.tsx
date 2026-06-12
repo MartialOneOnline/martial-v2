@@ -25,6 +25,8 @@ interface ClassRow {
   currency: string
   isTrial: boolean
   isActive: boolean
+  isPublished: boolean
+  paymentMethods: string[]
   schedule: ScheduleSlot[] | null
   instructor: Instructor | null
   discipline: Discipline | null
@@ -185,6 +187,14 @@ function ScheduleBuilder({
 
 // ── Class form (shared create / edit) ─────────────────────────────────────────
 
+type PaymentMethod = 'STRIPE' | 'CASH' | 'BANK_TRANSFER'
+
+const PAYMENT_OPTIONS: { value: PaymentMethod; label: string; icon: string }[] = [
+  { value: 'STRIPE',        label: 'Online (Stripe)', icon: '💳' },
+  { value: 'CASH',          label: 'Cash at door',    icon: '💵' },
+  { value: 'BANK_TRANSFER', label: 'Bank transfer',   icon: '🏦' },
+]
+
 interface ClassFormData {
   name: string
   description: string
@@ -196,6 +206,8 @@ interface ClassFormData {
   currency: string
   isTrial: boolean
   isActive: boolean
+  isPublished: boolean
+  paymentMethods: PaymentMethod[]
   schedule: ScheduleSlot[]
   instructorId: string
 }
@@ -203,7 +215,7 @@ interface ClassFormData {
 const EMPTY_FORM: ClassFormData = {
   name: '', description: '', disciplineId: '', level: '', duration: '',
   capacity: '', price: '', currency: 'EUR', isTrial: false, isActive: true,
-  schedule: [], instructorId: '',
+  isPublished: false, paymentMethods: [], schedule: [], instructorId: '',
 }
 
 function classToForm(cls: ClassRow): ClassFormData {
@@ -218,6 +230,8 @@ function classToForm(cls: ClassRow): ClassFormData {
     currency: cls.currency,
     isTrial: cls.isTrial,
     isActive: cls.isActive,
+    isPublished: cls.isPublished,
+    paymentMethods: (cls.paymentMethods ?? []) as PaymentMethod[],
     schedule: cls.schedule ?? [],
     instructorId: cls.instructor?.id ?? '',
   }
@@ -273,6 +287,8 @@ function ClassDrawer({ open, onClose, onSaved, editing, instructors, disciplines
           currency: form.currency,
           isTrial: form.isTrial,
           isActive: form.isActive,
+          isPublished: form.isPublished,
+          paymentMethods: form.paymentMethods,
           schedule: form.schedule.length > 0 ? form.schedule : null,
           instructorId: form.instructorId || null,
         }),
@@ -408,6 +424,59 @@ function ClassDrawer({ open, onClose, onSaved, editing, instructors, disciplines
                     <span style={{ fontSize: 12, color: '#374151' }}>{label}</span>
                   </label>
                 ))}
+              </div>
+
+              {/* Payment methods */}
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 5 }}>
+                  Payment methods
+                </label>
+                <div className="flex gap-2 flex-wrap">
+                  {PAYMENT_OPTIONS.map(opt => {
+                    const active = form.paymentMethods.includes(opt.value)
+                    return (
+                      <button key={opt.value} type="button"
+                        onClick={() => set('paymentMethods', active
+                          ? form.paymentMethods.filter(m => m !== opt.value)
+                          : [...form.paymentMethods, opt.value]
+                        )}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-all"
+                        style={{
+                          fontSize: 12, fontWeight: 500,
+                          border: `1.5px solid ${active ? '#0071E3' : '#E5E7EB'}`,
+                          background: active ? '#EFF6FF' : '#fff',
+                          color: active ? '#0071E3' : '#6B7280',
+                        }}>
+                        <span>{opt.icon}</span>
+                        {opt.label}
+                        {active && <Check size={11} strokeWidth={2.5} />}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Public on Explore */}
+              <div className="flex items-center justify-between rounded-xl px-4 py-3"
+                style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>Public on Explore</p>
+                  <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 1 }}>
+                    Visible to anyone browsing Explore
+                  </p>
+                </div>
+                <div onClick={() => set('isPublished', !form.isPublished)}
+                  className="cursor-pointer select-none"
+                  style={{
+                    width: 44, height: 24, borderRadius: 99,
+                    background: form.isPublished ? '#0071E3' : '#E5E7EB',
+                    padding: 2, display: 'flex', alignItems: 'center',
+                    justifyContent: form.isPublished ? 'flex-end' : 'flex-start',
+                    transition: 'background 0.2s', flexShrink: 0,
+                  }}>
+                  <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#fff',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.25)' }} />
+                </div>
               </div>
 
               {error && <p style={{ fontSize: 12, color: '#DC2626' }}>{error}</p>}

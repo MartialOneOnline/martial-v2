@@ -3229,6 +3229,8 @@ export const ClassScalarFieldEnum = {
   currency: 'currency',
   isTrial: 'isTrial',
   isActive: 'isActive',
+  isPublished: 'isPublished',
+  paymentMethods: 'paymentMethods',
   schedule: 'schedule',
   instructorId: 'instructorId',
   createdAt: 'createdAt',
