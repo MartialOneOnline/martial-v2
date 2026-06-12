@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   Bell, Menu, Search, Plus, MoreHorizontal,
   Download, TrendingUp, Clock, Users, X,
-  ChevronDown, UserCheck, UserX, Archive, Trash2,
+  ChevronDown, UserCheck, Archive, Shield,
 } from 'lucide-react'
 import { useDashboard } from '../../../components/DashboardShell'
 import DashboardLanguageSelector from '../../../components/DashboardLanguageSelector'
@@ -103,21 +104,24 @@ function StatusBadge({ status }: { status: string }) {
 function ActionsMenu({
   student,
   onStatusChange,
+  onBeltChange,
   onDelete,
 }: {
   student: Student
   onStatusChange: (id: string, status: string) => void
+  onBeltChange: (id: string, belt: string) => void
   onDelete: (id: string) => void
 }) {
   const [open, setOpen] = useState(false)
   const [statusOpen, setStatusOpen] = useState(false)
+  const [beltOpen, setBeltOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!open) return
     const handler = (e: MouseEvent) => {
       if (!ref.current?.contains(e.target as Node)) {
-        setOpen(false); setStatusOpen(false)
+        setOpen(false); setStatusOpen(false); setBeltOpen(false)
       }
     }
     document.addEventListener('mousedown', handler)
@@ -369,6 +373,7 @@ type FilterType = 'All' | 'Active' | 'Inactive' | 'Pending' | 'Lead' | 'Archived
 export default function UsersClient({ students: initialStudents }: { students: Student[] }) {
   const { menuOpen, setMenuOpen } = useDashboard()
   const t = useT()
+  const router = useRouter()
 
   const [students, setStudents] = useState<Student[]>(initialStudents)
   const [showAddModal, setShowAddModal] = useState(false)
@@ -565,8 +570,9 @@ export default function UsersClient({ students: initialStudents }: { students: S
             <tbody>
               {paginated.map((student, idx) => (
                 <tr key={student.id}
-                  className="hover:bg-[#FAFAFA] transition-colors"
-                  style={{ borderBottom: idx < paginated.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
+                  className="hover:bg-[#FAFAFA] transition-colors cursor-pointer"
+                  style={{ borderBottom: idx < paginated.length - 1 ? '1px solid #F9FAFB' : 'none' }}
+                  onClick={() => router.push(`/dashboard/users/${student.id}`)}>
 
                   {/* Member */}
                   <td className="px-6 py-4">
@@ -617,10 +623,11 @@ export default function UsersClient({ students: initialStudents }: { students: S
                   </td>
 
                   {/* Actions */}
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4" onClick={e => e.stopPropagation()}>
                     <ActionsMenu
                       student={student}
                       onStatusChange={handleStatusChange}
+                      onBeltChange={() => {}}
                       onDelete={handleArchive}
                     />
                   </td>
