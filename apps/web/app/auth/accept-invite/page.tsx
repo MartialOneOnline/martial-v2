@@ -2,39 +2,34 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@supabase/supabase-js'
-
-// Supabase reads the #access_token from the URL hash automatically
-// when using the browser client — we just need to trigger a session check
-// and redirect to onboarding/dashboard.
+import { createBrowserClient } from '@supabase/ssr'
 
 export default function AcceptInvitePage() {
   const router = useRouter()
 
   useEffect(() => {
-    const supabase = createClient(
+    const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     )
 
-    // Supabase JS v2 auto-detects the hash and sets the session
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
-        // Logged in — go to dashboard
+    // onAuthStateChange fires after Supabase parses the hash token
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session) {
+        // Activate the member record
+        try {
+          await fetch('/api/auth/activate-member', { method: 'POST' })
+        } catch {
+          // best-effort
+        }
         router.replace('/dashboard')
-      } else {
-        // Wait a moment for the hash to be processed, then retry
-        setTimeout(() => {
-          supabase.auth.getSession().then(({ data: d2 }) => {
-            if (d2.session) {
-              router.replace('/dashboard')
-            } else {
-              router.replace('/login')
-            }
-          })
-        }, 1500)
+      } else if (event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
+        // No session after initial check — redirect to login
+        setTimeout(() => router.replace('/login'), 2000)
       }
     })
+
+    return () => subscription.unsubscribe()
   }, [router])
 
   return (
