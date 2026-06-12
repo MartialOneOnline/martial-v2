@@ -101,7 +101,7 @@ export default async function StudentProfilePage({
     membership: membership ? {
       planName: membership.plan?.name ?? 'Plan',
       status: membership.status,
-      expiresAt: membership.expiresAt?.toISOString() ?? null,
+      expiresAt: membership.endDate?.toISOString() ?? null,
       price: Number(membership.plan?.price ?? 0),
       interval: membership.plan?.billingCycle ?? null,
     } : null,
