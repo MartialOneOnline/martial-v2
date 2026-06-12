@@ -10,7 +10,7 @@ export async function POST() {
 
   await prisma.schoolMember.updateMany({
     where: { userId: user.id, status: 'PENDING' },
-    data: { status: 'ACTIVE' },
+    data: { status: 'INACTIVE' },
   })
 
   return NextResponse.json({ ok: true })
