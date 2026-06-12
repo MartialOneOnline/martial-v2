@@ -61,7 +61,7 @@ export default async function StudentProfilePage({
   // Active membership
   const membership = await prisma.membership.findFirst({
     where: { userId: member.userId, status: 'ACTIVE' },
-    include: { plan: { select: { name: true, price: true, interval: true } } },
+    include: { plan: { select: { name: true, price: true, billingCycle: true } } },
   }).catch(() => null)
 
   const profile = {
@@ -103,7 +103,7 @@ export default async function StudentProfilePage({
       status: membership.status,
       expiresAt: membership.expiresAt?.toISOString() ?? null,
       price: Number(membership.plan?.price ?? 0),
-      interval: membership.plan?.interval ?? null,
+      interval: membership.plan?.billingCycle ?? null,
     } : null,
   }
 
