@@ -38,7 +38,7 @@ function getColor(name: string) {
   return 'bg-indigo-50 border-indigo-200 text-indigo-800 hover:bg-indigo-100'
 }
 
-type SessionItem = { classId: string; name: string; startTime: string; endTime: string; level: string }
+type SessionItem = { classId: string; name: string; startTime: string; endTime: string; level: string; dayOfWeek: number; schedule: ScheduleEntry[] }
 
 export default function WeeklyTimetable({
   classes,
@@ -70,6 +70,8 @@ export default function WeeklyTimetable({
         startTime: entry.startTime,
         endTime: entry.endTime,
         level: cls.level ?? 'All levels',
+        dayOfWeek: entry.dayOfWeek,
+        schedule: cls.schedule,
       })
     }
   }
@@ -153,6 +155,8 @@ export default function WeeklyTimetable({
             startTime: modalSession.startTime,
             endTime: modalSession.endTime,
             dayLabel: activeDayLabel,
+            dayOfWeek: modalSession.dayOfWeek,
+            schedule: modalSession.schedule,
           }}
           schoolSlug={schoolSlug}
           plans={plans}

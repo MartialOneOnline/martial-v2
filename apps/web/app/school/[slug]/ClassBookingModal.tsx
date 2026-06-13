@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { X, Clock, Calendar, User, CheckCircle, LogIn, CreditCard, Loader2 } from 'lucide-react'
+import { X, Clock, Calendar, CheckCircle, LogIn, CreditCard, Loader2 } from 'lucide-react'
+import { nextOccurrence, type ScheduleSlot } from '@/lib/scheduling'
 
 type Plan = { id: string; name: string; price: number; currency: string; billingCycle: string; isPopular: boolean }
 
@@ -13,6 +14,9 @@ type Session = {
   startTime: string
   endTime: string
   dayLabel: string
+  /** dayOfWeek matching the schedule slot (0=Sun…6=Sat) */
+  dayOfWeek: number
+  schedule?: ScheduleSlot[]
 }
 
 type Props = {
@@ -65,8 +69,8 @@ export default function ClassBookingModal({ session, schoolSlug, plans, onClose 
       if (!res.ok) throw new Error(data.error || 'Error activating trial')
       // After trial, create the booking
       await confirmBooking()
-    } catch (e: any) {
-      setErrorMsg(e.message)
+    } catch (e: unknown) {
+      setErrorMsg(e instanceof Error ? e.message : 'Something went wrong')
       setBookingState('error')
     }
   }
@@ -74,9 +78,12 @@ export default function ClassBookingModal({ session, schoolSlug, plans, onClose 
   async function confirmBooking() {
     setBookingState('booking')
     try {
-      // Build scheduledAt from next occurrence of this day
+      // Calculate the next real occurrence of this class slot (UTC).
+      // NOTE: School.timezone is not yet stored in the DB. Until it is,
+      // we calculate in UTC which is safe and deterministic.
       const now = new Date()
-      const scheduledAt = now.toISOString()
+      const scheduledDate = nextOccurrence(now, session.dayOfWeek, session.startTime)
+      const scheduledAt = scheduledDate.toISOString()
 
       const res = await fetch('/api/bookings', {
         method: 'POST',
@@ -86,8 +93,8 @@ export default function ClassBookingModal({ session, schoolSlug, plans, onClose 
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Error creating booking')
       setBookingState('success')
-    } catch (e: any) {
-      setErrorMsg(e.message)
+    } catch (e: unknown) {
+      setErrorMsg(e instanceof Error ? e.message : 'Something went wrong')
       setBookingState('error')
     }
   }
@@ -144,7 +151,7 @@ export default function ClassBookingModal({ session, schoolSlug, plans, onClose 
               <CheckCircle className="w-14 h-14 text-emerald-500" />
               <h3 className="text-lg font-bold text-[#111827]">Booking Confirmed!</h3>
               <p className="text-sm text-[#6B7280] text-center">
-                You're booked for <strong>{session.className}</strong> on <strong>{session.dayLabel}</strong> at <strong>{session.startTime}</strong>.
+                You are booked for <strong>{session.className}</strong> on <strong>{session.dayLabel}</strong> at <strong>{session.startTime}</strong>.
               </p>
               <button
                 onClick={onClose}

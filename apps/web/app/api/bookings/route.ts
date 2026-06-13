@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
+import { isValidScheduledAt, type ScheduleSlot } from '@/lib/scheduling'
 
 export async function POST(req: NextRequest) {
   const cookieStore = await cookies()
@@ -50,12 +51,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Scheduled date must be in the future' }, { status: 400 })
   }
 
-  // Validate the day of week matches the class schedule
-  const dayOfWeek = scheduledDate.getDay() // 0=Sun … 6=Sat
-  const schedule = cls.schedule as { dayOfWeek: number; startTime: string; endTime: string }[] | null
+  // Validate that scheduledAt matches a real schedule slot (day + time).
+  // Uses isValidScheduledAt from lib/scheduling — same logic as the client.
+  const schedule = cls.schedule as ScheduleSlot[] | null
   if (schedule && schedule.length > 0) {
-    const matchingSlot = schedule.find((s) => s.dayOfWeek === dayOfWeek)
-    if (!matchingSlot) {
+    if (!isValidScheduledAt(scheduledDate, schedule)) {
       return NextResponse.json(
         { error: 'Scheduled date does not match class timetable' },
         { status: 400 },
@@ -79,44 +79,55 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // Check capacity (count confirmed/pending bookings for this class on this date)
-  if (cls.capacity !== null) {
-    const bookedCount = await prisma.booking.count({
+  // Use a transaction to prevent race conditions on capacity and duplicate checks.
+  // Both checks AND the insert happen atomically so concurrent requests can't
+  // both pass the capacity gate and double-book the same slot.
+  const booking = await prisma.$transaction(async (tx) => {
+    // 1. Duplicate check inside transaction
+    const duplicate = await tx.booking.findFirst({
       where: {
+        userId: dbUser.id,
         classId,
         scheduledAt: scheduledDate,
         status: { in: ['CONFIRMED', 'PENDING'] },
       },
     })
-    if (bookedCount >= cls.capacity) {
-      return NextResponse.json({ error: 'Class is full' }, { status: 409 })
+    if (duplicate) {
+      throw Object.assign(new Error('Already booked for this session'), { code: 'DUPLICATE', status: 409 })
     }
-  }
 
-  // Prevent duplicate booking
-  const duplicate = await prisma.booking.findFirst({
-    where: {
-      userId: dbUser.id,
-      classId,
-      scheduledAt: scheduledDate,
-      status: { in: ['CONFIRMED', 'PENDING'] },
-    },
-  })
-  if (duplicate) {
-    return NextResponse.json({ error: 'Already booked for this session' }, { status: 409 })
-  }
+    // 2. Capacity check inside transaction
+    if (cls.capacity !== null) {
+      const bookedCount = await tx.booking.count({
+        where: {
+          classId,
+          scheduledAt: scheduledDate,
+          status: { in: ['CONFIRMED', 'PENDING'] },
+        },
+      })
+      if (bookedCount >= cls.capacity) {
+        throw Object.assign(new Error('Class is full'), { code: 'FULL', status: 409 })
+      }
+    }
 
-  const booking = await prisma.booking.create({
-    data: {
-      userId: dbUser.id,
-      classId,
-      scheduledAt: scheduledDate,
-      status: 'CONFIRMED',
-      paymentMethod: 'CASH',
-      amountPaid: 0,
-      currency: 'EUR',
-    },
+    // 3. Create booking
+    return tx.booking.create({
+      data: {
+        userId: dbUser.id,
+        classId,
+        scheduledAt: scheduledDate,
+        status: 'CONFIRMED',
+        paymentMethod: 'CASH',
+        amountPaid: 0,
+        currency: 'EUR',
+      },
+    })
+  }).catch((err: Error & { status?: number }) => {
+    const status = err.status ?? 500
+    return NextResponse.json({ error: err.message }, { status })
   })
+
+  if (booking instanceof NextResponse) return booking
 
   return NextResponse.json({ success: true, bookingId: booking.id })
 }

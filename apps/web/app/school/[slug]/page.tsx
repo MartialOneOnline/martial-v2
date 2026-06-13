@@ -4,9 +4,10 @@ import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/db'
 import WeeklyTimetable from './WeeklyTimetable'
 import MembershipSection from './MembershipSection'
+import TrialBookingCTA from './TrialBookingCTA'
 import {
   MapPin, Star, Phone, Globe, Mail, ChevronLeft,
-  CheckCircle, Dumbbell, MessageCircle, ExternalLink,
+  CheckCircle, MessageCircle, ExternalLink,
 } from 'lucide-react'
 
 function InstagramIcon({ className }: { className?: string }) {
@@ -30,7 +31,7 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
       affiliation:     { select: { id: true, name: true, slug: true, logoUrl: true } },
       disciplines:     { include: { discipline: true } },
       instructors:     { where: { isActive: true }, orderBy: { sortOrder: 'asc' } },
-      classes:         { where: { isActive: true }, orderBy: { name: 'asc' } },
+      classes:         { where: { isActive: true, isPublished: true }, orderBy: { name: 'asc' } },
       membershipPlans: {
         where: { isActive: true },
         orderBy: [{ isPopular: 'desc' }, { price: 'asc' }],
@@ -42,7 +43,6 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
 
   const cover = school.coverUrl ?? FALLBACK
   const disciplines = school.disciplines.map(d => d.discipline.name)
-  const headInstructor = school.instructors.find(i => i.isHead)
 
   const plans = school.membershipPlans.map(p => ({
     id: p.id, name: p.name, description: p.description,
@@ -52,13 +52,23 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
 
   const classesMapped = school.classes.map(c => ({
     id: c.id, name: c.name, level: c.level,
-    duration: c.duration, schedule: c.schedule as any,
+    duration: c.duration, schedule: c.schedule as unknown as { dayOfWeek: number; startTime: string; endTime: string }[],
   }))
 
   const plansMapped = school.membershipPlans.map(p => ({
     id: p.id, name: p.name, price: p.price,
     currency: p.currency, billingCycle: p.billingCycle, isPopular: p.isPopular,
   }))
+
+  // Trial classes: active + published + isTrial flag (all guaranteed by the query above)
+  const trialClasses = school.classes
+    .filter(c => c.isTrial)
+    .map(c => ({
+      id: c.id,
+      name: c.name,
+      level: c.level,
+      schedule: (c.schedule as unknown as import('@/lib/scheduling').ScheduleSlot[]) ?? [],
+    }))
 
   return (
     <div className="min-h-screen bg-[#F8F9FB]">
@@ -253,13 +263,14 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
 
             {/* CTAs */}
             <div className="hidden md:flex flex-col gap-2">
-              <a
-                href={`mailto:${school.email}`}
+              <TrialBookingCTA
+                trialClasses={trialClasses}
+                schoolSlug={slug}
+                schoolEmail={school.email}
+                schoolPhone={school.phone}
+                plans={plansMapped}
                 className="w-full h-12 rounded-xl bg-[#0870E2] hover:bg-[#005580] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
-              >
-                <Dumbbell className="w-4 h-4" />
-                Book a Trial Class
-              </a>
+              />
               {school.phone && (
                 <a
                   href={`https://wa.me/${school.phone.replace(/\D/g, '')}`}
@@ -359,13 +370,14 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
               <MessageCircle className="w-4 h-4" />
             </a>
           )}
-          <a
-            href={`mailto:${school.email}`}
+          <TrialBookingCTA
+            trialClasses={trialClasses}
+            schoolSlug={slug}
+            schoolEmail={school.email}
+            schoolPhone={school.phone}
+            plans={plansMapped}
             className="flex-1 h-12 rounded-xl bg-[#0870E2] hover:bg-[#005580] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
-          >
-            <Dumbbell className="w-4 h-4" />
-            Book a Trial Class
-          </a>
+          />
         </div>
       </div>
     </div>
