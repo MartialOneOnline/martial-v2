@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 23 completada ✅ — Estabilización y seguridad: admin guard, booking validation, free trial, hydration, public data filters, env unification, 27 tests
+**Estado:** Sesión 25 completada ✅ — Mobile view perfection: topbars, animations, filter tabs, responsive buttons
 
 ---
 
@@ -197,7 +197,8 @@ prisma.config.ts
 apps/api/src/lib/prisma.ts
 ```
 
-Modelos: `User`, `School`, `Discipline`, `SchoolDiscipline`, `Instructor`, `MembershipPlan`, `Review`, `Class`, `Booking`, `Membership`, `Camp`, `CampBooking`, `SchoolMember`, `SchoolClaim`, `Partner`
+Modelos: `User`, `School`, `Discipline`, `SchoolDiscipline`, `Instructor`, `MembershipPlan`, `Review`, `Class`, `Booking`, `Membership`, `Camp`, `CampBooking`, `SchoolMember`, `SchoolClaim`, `Partner`, `UserPreference`, `SchoolInvitation`
+Campos añadidos: `Class.coverUrl String?`, `School.v1UserId`, `School.description`
 Tablas en Supabase: todas sincronizadas con `prisma db push`
 
 ---
@@ -229,21 +230,41 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 
 ## Próximos pasos
 
-1. **Color System — migración pendiente**: Payments page, Members table, transaction table, super admin pipeline
-2. **`/my/progress`** — página de ranking y cinturón del alumno
-3. **`/my/membership`** — suscripciones activas del alumno
-4. **`/my/classes`** — horario + bookings del alumno
-5. **Homepage redesign** — usar banners V1 como referencia + estilo Nzzl (pedir URL a Pablo)
-6. **LoginModal** — popup en homepage con SSO + Email
-7. **SSO OAuth** — configurar Google en Supabase
-8. **API deploy** — Railway o Render
-6. **Dominio propio** — conectar app.martialapp.online a Vercel
-7. **Conectar dashboard a datos reales** — reemplazar mocks por API calls
-8. **Importar más escuelas** — usar seed-schools.xlsx + import-from-v1.mjs
+1. **Memberships module** — CRUD completo: crear, editar, asignar a miembros
+2. **Class images para otras 19 escuelas** — imágenes de V1 en el ZIP, solo Roger Gracie Málaga tiene imágenes en Supabase Storage
+3. **Disciplines faltantes** — nogi, mma, boxing, karate, muay-thai, judo, kickboxing tienen `disciplineId=null` en clases importadas
+4. **Color System — migración pendiente**: Payments page, Members table, transaction table, super admin pipeline
+5. **`/my/progress`** — página de ranking y cinturón del alumno
+6. **`/my/membership`** — suscripciones activas del alumno
+7. **`/my/classes`** — horario + bookings del alumno
+8. **SSO OAuth** — configurar Google en Supabase
+9. **API deploy** — Railway o Render
+10. **Dominio propio** — conectar app.martialapp.online a Vercel
 
 ---
 
 ## Historial de sesiones
+
+### Sesión 25 — 2026-06-13 ✅
+**Mobile view perfection** — `fix(mobile)` commit `0d7bd05`
+- `MembersAndAcademies.tsx` — eliminadas animaciones framer-motion `whileInView` (contenido quedaba invisible en móvil hasta que el IntersectionObserver disparaba)
+- `Testimonials.tsx` + `PaymentMethods.tsx` — añadido `viewport={{ amount: 0 }}` para animar en cuanto entra cualquier pixel en vista
+- Todos los topbars del dashboard — eliminado `flex-wrap` para que los items nunca se vayan a segunda fila
+- `ClassesClient` + `EventsClient` — search box es ahora `flex-1` (antes `minWidth: 180/200` fijo)
+- `EventsClient` + `PaymentSubscriptionsClient` — botón crear muestra solo icono en móvil (`<span className="hidden sm:inline">`)
+- `UsersClient` — texto "Filtrar" oculto en móvil (solo icono), filter tabs horizontalmente scrollables (`overflow-x-auto`) en lugar de `flex-wrap`
+- Sidebar dashboard — abre correctamente en móvil vía `#burger-btn` + contexto `DashboardContext`
+
+### Sesión 24 — 2026-06-13 ✅
+**V1 data import, claim flow, class images** — commits `14e29d4`, `2fb8f65`, `46f2e92`
+- `scripts/import-schools-from-v1.ts` — importa 20 escuelas reales de V1 desde CSV (users + userdetails)
+- `/api/claim/[id]/route.ts` — GET (fetch invitation) + POST (crea Auth user, SchoolMember OWNER, UserPreference.lastSchoolId)
+- `/claim/[id]/page.tsx` — página de onboarding de propietario de escuela
+- `getCurrentSchoolId()` — fallback a `UserPreference.lastSchoolId` cuando no hay cookie (fix: dashboard mostraba 0 clases tras claim flow)
+- `Class.coverUrl String?` — añadido a schema Prisma, db push + generate
+- `ClassesClient` — muestra thumbnail de imagen si existe `coverUrl`, icono calendario si no
+- Supabase Storage bucket `class-images` creado, imágenes de V1 subidas para Roger Gracie Málaga (6 clases + 4 eventos limpios)
+- `NEXT_PUBLIC_APP_URL` = `https://martial-v2-web.vercel.app` en `.env.local`
 
 ### Sesión 23 — 2026-06-13 ✅
 - **`guardSuperadmin()`** — helper reutilizable en `lib/auth/server.ts`
