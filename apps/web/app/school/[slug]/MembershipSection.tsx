@@ -9,7 +9,6 @@ type Plan = {
   price: number
   currency: string
   billingCycle: string
-  features: string[]
   isPopular: boolean
 }
 
@@ -92,18 +91,6 @@ export default function MembershipSection({ plans }: { plans: Plan[] }) {
               </div>
               {plan.description && (
                 <p className="text-xs text-[#6b7280] mt-0.5 line-clamp-1">{plan.description}</p>
-              )}
-              {plan.features.length > 0 && (
-                <div className="flex flex-wrap gap-x-3 mt-1">
-                  {plan.features.slice(0, 3).map((f, i) => (
-                    <span key={i} className="text-[11px] text-[#4f4f4f] flex items-center gap-1">
-                      <svg className="w-3 h-3 text-[#0870E2]" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                      {f}
-                    </span>
-                  ))}
-                </div>
               )}
             </div>
             <div className="shrink-0 text-right">

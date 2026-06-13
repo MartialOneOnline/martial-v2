@@ -23,7 +23,7 @@ type UserData = {
       endDate: string | null
       classesUsed: number
       school: { id: string; name: string; slug: string; logoUrl: string | null; city: string | null }
-      plan: { classLimit: number | null } | null
+      plan: { classAccess: Record<string, unknown> } | null
     }[]
     bookings: {
       id: string
@@ -319,19 +319,11 @@ export default function MyHomePage() {
                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600">Active</span>
               </div>
             </div>
-            {activeMembership.plan?.classLimit && (
+            {activeMembership.classesUsed > 0 && (
               <div className="mt-4">
                 <div className="flex items-center justify-between mb-1.5">
                   <p className="text-[11px] text-gray-400">Classes used</p>
-                  <p className="text-[11px] font-semibold text-gray-600">
-                    {activeMembership.classesUsed} / {activeMembership.plan.classLimit}
-                  </p>
-                </div>
-                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-[#0870E2]"
-                    style={{ width: `${Math.min(100, (activeMembership.classesUsed / activeMembership.plan.classLimit) * 100)}%` }}
-                  />
+                  <p className="text-[11px] font-semibold text-gray-600">{activeMembership.classesUsed}</p>
                 </div>
               </div>
             )}

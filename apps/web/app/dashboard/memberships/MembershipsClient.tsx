@@ -1,174 +1,413 @@
 'use client'
 
-import { useState } from 'react'
-import Image from 'next/image'
+import { useState, useEffect, useCallback } from 'react'
 import {
-  Users, Award,
-  Bell,
-  Menu, X, Plus, MoreHorizontal, Search,
-  TrendingUp, Check, Upload, Eye,
-  Clock, Zap, RefreshCw, ToggleLeft, Infinity,
+  X, Plus, Pencil, Trash2, Check, ChevronDown, ChevronUp, Infinity,
 } from 'lucide-react'
 import { useDashboard } from '../../../components/DashboardShell'
 import { useT } from '../../../lib/i18n/LanguageContext'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
-type MembershipStatus = 'Active' | 'Inactive'
+
+type PlanType = 'SUBSCRIPTION' | 'SINGLE_PASS' | 'TRIAL'
+
+interface ClassAccessRule {
+  classId: string
+  included: boolean
+  unlimited: boolean
+  limit: string        // string for input binding
+  limitType: 'PER_WEEK' | 'PER_MONTH' | 'TOTAL'
+}
+
+interface ClassAccessConfig {
+  classRules: ClassAccessRule[]
+  globalLimit: string
+  globalLimitType: 'PER_WEEK' | 'PER_MONTH'
+}
+
+interface PlanRow {
+  id: string
+  name: string
+  description: string | null
+  price: number
+  currency: string
+  planType: PlanType
+  billingCycle: string
+  validityDays: number | null
+  isPublic: boolean
+  isPopular: boolean
+  isActive: boolean
+  classAccess: ClassAccessConfig | Record<string, never>
+  stripePriceId: string | null
+  memberCount: number
+}
+
+interface ClassOption {
+  id: string
+  name: string
+}
+
+interface PlanForm {
+  name: string
+  description: string
+  price: string
+  currency: string
+  planType: PlanType
+  billingCycle: string
+  validityDays: string
+  validityPeriod: 'days' | 'weeks' | 'months'
+  isPublic: boolean
+  isPopular: boolean
+  isActive: boolean
+  stripePriceId: string
+  classRules: ClassAccessRule[]
+  globalLimit: string
+  globalLimitType: 'PER_WEEK' | 'PER_MONTH'
+}
+
 type TabId = 'subscriptions' | 'single-passes' | 'trials'
 
-interface Membership {
-  id: number
-  image: string
-  name: string
-  classes: string[]
-  price: string
-  billing: string
-  members: number
-  status: MembershipStatus
-  public: boolean
-  stripe?: string
+// ── Helpers ────────────────────────────────────────────────────────────────────
+
+const BILLING_CYCLE_LABELS: Record<string, string> = {
+  monthly: 'Monthly',
+  quarterly: 'Every 3 months',
+  annual: 'Annual',
+  'two-weekly': 'Every 2 weeks',
+  'one-off': 'One-off',
 }
 
-// ── Mock data ──────────────────────────────────────────────────────────────────
-const SUBSCRIPTIONS: Membership[] = [
-  { id:1, image:'/roger-gracie-malaga.jpg',     name:'Jiu Jitsu Mensual',    classes:['BJJ','NOGI','Open Mat'],              price:'€65.00',  billing:'Every Month',     members:89, status:'Active',   public:true,  stripe:'price_1P2a' },
-  { id:2, image:'/mathouse.jpg',                name:'Jiu Jitsu Trimestral', classes:['BJJ','NOGI','Open Mat','Wrestling'],   price:'€180.00', billing:'Every 3 Months',  members:31, status:'Active',   public:true,  stripe:'price_1P2b' },
-  { id:3, image:'/five-elements-jiu-jitsu.jpg', name:'Jiu Jitsu Infantil',   classes:['BJJ Kids','BJJ'],                     price:'€50.00',  billing:'Every Month',     members:24, status:'Active',   public:true,  stripe:'price_1P2c' },
-  { id:4, image:'/mathouse.jpg',                name:'Family Jiu Jitsu',     classes:['BJJ','NOGI','BJJ Kids','Open Mat'],    price:'€100.00', billing:'Every Month',     members:8,  status:'Active',   public:true,  stripe:'price_1P2d' },
-  { id:5, image:'/roger-gracie-malaga.jpg',     name:'2 Semanas',            classes:['BJJ','NOGI'],                         price:'€35.00',  billing:'Every 2 Weeks',   members:12, status:'Active',   public:true,  stripe:'price_1P2e' },
-  { id:6, image:'',                             name:'Kids Family',          classes:['BJJ Kids'],                           price:'€0.00',   billing:'Every Month',     members:6,  status:'Active',   public:false, stripe:''           },
-  { id:7, image:'',                             name:'BJJ Competición',      classes:['BJJ Comp','BJJ'],                     price:'€85.00',  billing:'Every Month',     members:0,  status:'Inactive', public:false, stripe:'price_1P2f' },
-]
-
-const SINGLE_PASSES: Membership[] = [
-  { id:1, image:'/roger-gracie-malaga.jpg',     name:'Drop-in Class',   classes:['BJJ','NOGI','Wrestling'], price:'€12.00', billing:'Single use', members:45, status:'Active', public:true  },
-  { id:2, image:'',                             name:'Open Mat Pass',   classes:['Open Mat'],               price:'€8.00',  billing:'Single use', members:23, status:'Active', public:true  },
-  { id:3, image:'/mathouse.jpg',                name:'Seminar Pass',    classes:['BJJ Comp'],               price:'€25.00', billing:'Single use', members:12, status:'Active', public:false },
-]
-
-const TRIAL_MEMBERSHIPS: Membership[] = [
-  { id:1, image:'/roger-gracie-malaga.jpg',     name:'7-Day Free Trial', classes:['BJJ','NOGI','Open Mat'], price:'€0.00',  billing:'7 Days',  members:18, status:'Active', public:true  },
-  { id:2, image:'/five-elements-jiu-jitsu.jpg', name:'30-Day Trial',     classes:['BJJ','NOGI'],            price:'€29.00', billing:'30 Days', members:7,  status:'Active', public:true  },
-]
-
-// Activity types for class access selection
-const ACTIVITY_TYPES = [
-  { key: 'BJJ',          bg: '#EFF6FF', color: '#1D4ED8', border: '#BFDBFE' },
-  { key: 'NOGI',         bg: '#F5F3FF', color: '#6D28D9', border: '#DDD6FE' },
-  { key: 'Wrestling',    bg: '#FFF7ED', color: '#C2410C', border: '#FED7AA' },
-  { key: 'BJJ Kids',     bg: '#F0FDF4', color: '#15803D', border: '#BBF7D0' },
-  { key: 'Yoga',         bg: '#F0FDFA', color: '#0F766E', border: '#99F6E4' },
-  { key: 'Open Mat',     bg: '#F9FAFB', color: '#374151', border: '#E5E7EB' },
-  { key: 'BJJ Comp',     bg: '#FEF2F2', color: '#B91C1C', border: '#FECACA' },
-  { key: 'Self Defence', bg: '#FFFBEB', color: '#B45309', border: '#FDE68A' },
-]
-
-const CLASS_COLORS: Record<string, { bg: string; color: string; border: string }> = {
-  'BJJ':       { bg: '#EFF6FF', color: '#1D4ED8', border: '#BFDBFE' },
-  'NOGI':      { bg: '#F5F3FF', color: '#6D28D9', border: '#DDD6FE' },
-  'Wrestling': { bg: '#FFF7ED', color: '#C2410C', border: '#FED7AA' },
-  'BJJ Kids':  { bg: '#F0FDF4', color: '#15803D', border: '#BBF7D0' },
-  'Open Mat':  { bg: '#F9FAFB', color: '#374151', border: '#E5E7EB' },
-  'BJJ Comp':  { bg: '#FEF2F2', color: '#B91C1C', border: '#FECACA' },
-}
-function classChipStyle(cls: string) {
-  return CLASS_COLORS[cls] ?? { bg: '#F3F4F6', color: '#6B7280', border: '#E5E7EB' }
+const PLAN_TYPE_MAP: Record<TabId, PlanType> = {
+  subscriptions: 'SUBSCRIPTION',
+  'single-passes': 'SINGLE_PASS',
+  trials: 'TRIAL',
 }
 
-const ITEMS_PER_PAGE = 8
-
-function getPaginationPages(current: number, total: number): (number | '...')[] {
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
-  if (current <= 4) return [1, 2, 3, 4, 5, '...', total]
-  if (current >= total - 3) return [1, '...', total - 4, total - 3, total - 2, total - 1, total]
-  return [1, '...', current - 1, current, current + 1, '...', total]
+function planTypeForTab(tab: TabId): PlanType {
+  return PLAN_TYPE_MAP[tab]
 }
 
-// ── Class chips (compact) ──────────────────────────────────────────────────────
-function ClassChips({ classes, max = 2 }: { classes: string[]; max?: number }) {
-  const shown    = classes.slice(0, max)
-  const overflow = classes.length - shown.length
+function tabForPlanType(pt: PlanType): TabId {
+  if (pt === 'SINGLE_PASS') return 'single-passes'
+  if (pt === 'TRIAL') return 'trials'
+  return 'subscriptions'
+}
+
+function fmtPrice(price: number, currency: string): string {
+  const sym = currency === 'EUR' ? '€' : currency === 'USD' ? '$' : currency === 'GBP' ? '£' : currency
+  return `${sym}${price % 1 === 0 ? price : price.toFixed(2)}`
+}
+
+function validityDaysToForm(days: number | null): { validityDays: string; validityPeriod: 'days' | 'weeks' | 'months' } {
+  if (!days) return { validityDays: '30', validityPeriod: 'days' }
+  if (days % 30 === 0) return { validityDays: String(days / 30), validityPeriod: 'months' }
+  if (days % 7 === 0) return { validityDays: String(days / 7), validityPeriod: 'weeks' }
+  return { validityDays: String(days), validityPeriod: 'days' }
+}
+
+function formToValidityDays(days: string, period: 'days' | 'weeks' | 'months'): number | null {
+  const n = parseInt(days) || 0
+  if (!n) return null
+  if (period === 'months') return n * 30
+  if (period === 'weeks') return n * 7
+  return n
+}
+
+function buildDefaultClassRules(classes: ClassOption[]): ClassAccessRule[] {
+  return classes.map(c => ({
+    classId: c.id,
+    included: true,
+    unlimited: true,
+    limit: '4',
+    limitType: 'PER_WEEK',
+  }))
+}
+
+function planToForm(plan: PlanRow, classes: ClassOption[]): PlanForm {
+  const cfg = plan.classAccess as ClassAccessConfig
+  const ruleMap = Object.fromEntries((cfg.classRules ?? []).map(r => [r.classId, r]))
+  const classRules = classes.map(c => ruleMap[c.id] ?? {
+    classId: c.id,
+    included: true,
+    unlimited: true,
+    limit: '4',
+    limitType: 'PER_WEEK' as const,
+  })
+  const { validityDays, validityPeriod } = validityDaysToForm(plan.validityDays)
+  return {
+    name: plan.name,
+    description: plan.description ?? '',
+    price: String(plan.price),
+    currency: plan.currency,
+    planType: plan.planType,
+    billingCycle: plan.billingCycle,
+    validityDays,
+    validityPeriod,
+    isPublic: plan.isPublic,
+    isPopular: plan.isPopular,
+    isActive: plan.isActive,
+    stripePriceId: plan.stripePriceId ?? '',
+    classRules,
+    globalLimit: cfg.globalLimit ?? '',
+    globalLimitType: cfg.globalLimitType ?? 'PER_MONTH',
+  }
+}
+
+function formToPayload(form: PlanForm) {
+  return {
+    name: form.name,
+    description: form.description,
+    price: form.price !== '' ? Number(form.price) : 0,
+    currency: form.currency,
+    planType: form.planType,
+    billingCycle: form.billingCycle,
+    validityDays: formToValidityDays(form.validityDays, form.validityPeriod),
+    isPublic: form.isPublic,
+    isPopular: form.isPopular,
+    isActive: form.isActive,
+    stripePriceId: form.stripePriceId,
+    classAccess: {
+      classRules: form.classRules,
+      globalLimit: form.globalLimit,
+      globalLimitType: form.globalLimitType,
+    },
+  }
+}
+
+// ── Shared input styles ────────────────────────────────────────────────────────
+
+const inputSt: React.CSSProperties = {
+  width: '100%', border: '1px solid #E5E7EB', borderRadius: 10, padding: '9px 12px',
+  fontSize: 13, color: '#111827', background: '#fff', outline: 'none',
+}
+const labelSt: React.CSSProperties = {
+  display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 5,
+}
+
+// ── Toggle component ───────────────────────────────────────────────────────────
+function Toggle({ on, onChange, size = 'md' }: { on: boolean; onChange: (v: boolean) => void; size?: 'sm' | 'md' }) {
+  const w = size === 'sm' ? 32 : 40
+  const h = size === 'sm' ? 18 : 22
+  const dot = size === 'sm' ? 12 : 16
   return (
-    <div className="flex items-center gap-1 flex-wrap">
-      {shown.map(cls => {
-        const s = classChipStyle(cls)
-        return (
-          <span key={cls} style={{ fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 999,
-            background: s.bg, color: s.color, border: '1px solid ' + s.border, whiteSpace: 'nowrap' }}>
-            {cls}
+    <button type="button" onClick={() => onChange(!on)}
+      style={{ width: w, height: h, borderRadius: 999, border: 'none', cursor: 'pointer',
+        background: on ? '#0071E3' : '#D1D5DB', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+      <span style={{
+        position: 'absolute', top: (h - dot) / 2, borderRadius: '50%',
+        width: dot, height: dot, background: '#fff',
+        left: on ? w - dot - (h - dot) / 2 : (h - dot) / 2,
+        transition: 'left 0.2s',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+      }} />
+    </button>
+  )
+}
+
+// ── Class access builder ───────────────────────────────────────────────────────
+function ClassAccessBuilder({
+  classRules, classes, onChange,
+  globalLimit, globalLimitType, onGlobalChange,
+}: {
+  classRules: ClassAccessRule[]
+  classes: ClassOption[]
+  onChange: (rules: ClassAccessRule[]) => void
+  globalLimit: string
+  globalLimitType: 'PER_WEEK' | 'PER_MONTH'
+  onGlobalChange: (limit: string, type: 'PER_WEEK' | 'PER_MONTH') => void
+}) {
+  function updateRule(classId: string, patch: Partial<ClassAccessRule>) {
+    onChange(classRules.map(r => r.classId === classId ? { ...r, ...patch } : r))
+  }
+
+  const classMap = Object.fromEntries(classes.map(c => [c.id, c.name]))
+
+  return (
+    <div style={{ border: '1px solid #E5E7EB', borderRadius: 12, overflow: 'hidden' }}>
+      {/* Header row */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 100px 120px 110px',
+        gap: 0, padding: '8px 16px', background: '#F9FAFB', borderBottom: '1px solid #E5E7EB' }}>
+        <span style={{ fontSize: 11, fontWeight: 600, color: '#6B7280' }}>Class</span>
+        <span style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', textAlign: 'center' }}>Include</span>
+        <span style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', textAlign: 'center' }}>Unlimited</span>
+        <span style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', textAlign: 'center' }}>Limit</span>
+        <span style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', textAlign: 'center' }}>Per</span>
+      </div>
+
+      {classRules.map((rule, idx) => (
+        <div key={rule.classId}
+          style={{ display: 'grid', gridTemplateColumns: '1fr 80px 100px 120px 110px',
+            alignItems: 'center', gap: 0,
+            padding: '10px 16px',
+            borderBottom: idx < classRules.length - 1 ? '1px solid #F3F4F6' : 'none',
+            background: rule.included ? '#fff' : '#FAFAFA',
+            opacity: rule.included ? 1 : 0.5 }}>
+
+          {/* Class name */}
+          <span style={{ fontSize: 13, color: '#111827', fontWeight: 500 }}>
+            {classMap[rule.classId] ?? rule.classId}
           </span>
-        )
-      })}
-      {overflow > 0 && (
-        <span style={{ fontSize: 10, fontWeight: 500, color: '#9CA3AF', whiteSpace: 'nowrap' }}>
-          +{overflow}
+
+          {/* Included toggle */}
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <Toggle on={rule.included} onChange={v => updateRule(rule.classId, { included: v })} size="sm" />
+          </div>
+
+          {/* Unlimited toggle */}
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <Toggle
+              on={rule.unlimited}
+              onChange={v => updateRule(rule.classId, { unlimited: v })}
+              size="sm"
+            />
+          </div>
+
+          {/* Limit input */}
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            {rule.unlimited ? (
+              <Infinity size={16} style={{ color: '#9CA3AF' }} />
+            ) : (
+              <input
+                type="text" inputMode="numeric" value={rule.limit}
+                onChange={e => updateRule(rule.classId, { limit: e.target.value.replace(/\D/g, '') })}
+                style={{ width: 60, border: '1px solid #E5E7EB', borderRadius: 8, padding: '5px 8px',
+                  fontSize: 13, textAlign: 'center', outline: 'none' }}
+                disabled={!rule.included}
+              />
+            )}
+          </div>
+
+          {/* Limit type */}
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            {rule.unlimited ? (
+              <span style={{ fontSize: 11, color: '#9CA3AF' }}>—</span>
+            ) : (
+              <select value={rule.limitType}
+                onChange={e => updateRule(rule.classId, { limitType: e.target.value as ClassAccessRule['limitType'] })}
+                style={{ border: '1px solid #E5E7EB', borderRadius: 8, padding: '5px 8px',
+                  fontSize: 12, outline: 'none', cursor: 'pointer' }}
+                disabled={!rule.included}>
+                <option value="PER_WEEK">/ week</option>
+                <option value="PER_MONTH">/ month</option>
+                <option value="TOTAL">total</option>
+              </select>
+            )}
+          </div>
+        </div>
+      ))}
+
+      {/* Global cap */}
+      <div style={{ padding: '12px 16px', background: '#F9FAFB', borderTop: '1px solid #E5E7EB',
+        display: 'flex', alignItems: 'center', gap: 12 }}>
+        <span style={{ fontSize: 12, fontWeight: 600, color: '#374151', flex: 1 }}>
+          Total max bookings (all classes)
         </span>
-      )}
+        <input
+          type="text" inputMode="numeric" placeholder="∞"
+          value={globalLimit}
+          onChange={e => onGlobalChange(e.target.value.replace(/\D/g, ''), globalLimitType)}
+          style={{ width: 60, border: '1px solid #E5E7EB', borderRadius: 8, padding: '5px 8px',
+            fontSize: 13, textAlign: 'center', outline: 'none' }}
+        />
+        <select value={globalLimitType}
+          onChange={e => onGlobalChange(globalLimit, e.target.value as 'PER_WEEK' | 'PER_MONTH')}
+          style={{ border: '1px solid #E5E7EB', borderRadius: 8, padding: '5px 8px',
+            fontSize: 12, outline: 'none', cursor: 'pointer' }}>
+          <option value="PER_WEEK">/ week</option>
+          <option value="PER_MONTH">/ month</option>
+        </select>
+      </div>
     </div>
   )
 }
 
-// ── Status badge ───────────────────────────────────────────────────────────────
-function StatusBadge({ status }: { status: MembershipStatus }) {
-  const isActive = status === 'Active'
-  return (
-    <span className="inline-flex items-center gap-1"
-      style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999,
-        background: isActive ? '#F0FDF4' : '#F3F4F6',
-        color: isActive ? '#16A34A' : '#6B7280',
-        border: '1px solid ' + (isActive ? '#BBF7D0' : '#E5E7EB') }}>
-      {isActive
-        ? <Check size={9} strokeWidth={3} />
-        : <X size={9} strokeWidth={3} />}
-      {status}
-    </span>
-  )
-}
-
-// ── Per-activity access config ─────────────────────────────────────────────────
-type ActivityAccess = 'off' | 'unlimited' | 'limited'
-interface ActivityRow { key: string; bg: string; color: string; border: string; access: ActivityAccess; n: string; per: string }
-
-const DEFAULT_ACTIVITY_ROWS: ActivityRow[] = ACTIVITY_TYPES.map(a => ({
-  ...a, access: 'off', n: '4', per: 'Week',
-}))
-
-// ── Create Membership Drawer ───────────────────────────────────────────────────
-function CreateMembershipDrawer({ open, onClose, onSuccess }: {
-  open: boolean; onClose: () => void; onSuccess: () => void
+// ── Plan Drawer ────────────────────────────────────────────────────────────────
+function PlanDrawer({ open, onClose, onSaved, editPlan, classes, defaultTab }: {
+  open: boolean
+  onClose: () => void
+  onSaved: (plan: PlanRow) => void
+  editPlan: PlanRow | null
+  classes: ClassOption[]
+  defaultTab: TabId
 }) {
-  const [rows, setRows]             = useState<ActivityRow[]>(DEFAULT_ACTIVITY_ROWS.map(r => ({ ...r })))
-  const [freqUnit, setFreqUnit]     = useState('Month')
-  const [bannerDrag, setBannerDrag] = useState(false)
-  const [legalChecked, setLegalChecked] = useState({ terms: false, privacy: false })
-  const t = useT()
+  const defaultForm = (): PlanForm => ({
+    name: '',
+    description: '',
+    price: '',
+    currency: 'EUR',
+    planType: planTypeForTab(defaultTab),
+    billingCycle: 'monthly',
+    validityDays: '30',
+    validityPeriod: 'days',
+    isPublic: true,
+    isPopular: false,
+    isActive: true,
+    stripePriceId: '',
+    classRules: buildDefaultClassRules(classes),
+    globalLimit: '',
+    globalLimitType: 'PER_MONTH',
+  })
 
-  const inputStyle: React.CSSProperties = {
-    width: '100%', border: '1px solid #E5E7EB', borderRadius: 10, padding: '9px 12px',
-    fontSize: 13, color: '#111827', background: '#fff', outline: 'none',
-  }
-  const labelStyle: React.CSSProperties = {
-    display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 5,
+  const [form, setForm] = useState<PlanForm>(defaultForm)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (open) {
+      setError('')
+      if (editPlan) {
+        setForm(planToForm(editPlan, classes))
+      } else {
+        setForm({ ...defaultForm(), planType: planTypeForTab(defaultTab) })
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, editPlan, defaultTab])
+
+  function set<K extends keyof PlanForm>(k: K, v: PlanForm[K]) {
+    setForm(f => ({ ...f, [k]: v }))
   }
 
-  function setAccess(key: string, access: ActivityAccess) {
-    setRows(prev => prev.map(r => r.key === key ? { ...r, access } : r))
+  async function save() {
+    if (!form.name.trim()) { setError('Name is required'); return }
+    setSaving(true); setError('')
+    try {
+      const url = editPlan
+        ? `/api/dashboard/membership-plans/${editPlan.id}`
+        : '/api/dashboard/membership-plans'
+      const res = await fetch(url, {
+        method: editPlan ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formToPayload(form)),
+      })
+      if (!res.ok) throw new Error(await res.text())
+      const saved = await res.json()
+      onSaved({ ...saved, memberCount: editPlan?.memberCount ?? 0 })
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Error saving')
+    } finally {
+      setSaving(false)
+    }
   }
-  function setN(key: string, n: string) {
-    setRows(prev => prev.map(r => r.key === key ? { ...r, n } : r))
-  }
-  function setPer(key: string, per: string) {
-    setRows(prev => prev.map(r => r.key === key ? { ...r, per } : r))
-  }
+
+  const pt = form.planType
+  const isSubscription = pt === 'SUBSCRIPTION'
+  const isSinglePass = pt === 'SINGLE_PASS'
+  const isTrial = pt === 'TRIAL'
+
+  const title = editPlan
+    ? `Edit ${isSubscription ? 'Subscription' : isSinglePass ? 'Single Pass' : 'Trial'}`
+    : `Add ${isSubscription ? 'Subscription' : isSinglePass ? 'Single Pass' : 'Trial'}`
 
   return (
     <>
-      <div className="fixed inset-0 z-40 transition-opacity"
-        style={{ background: 'rgba(0,0,0,0.35)', opacity: open ? 1 : 0, pointerEvents: open ? 'auto' : 'none' }}
+      <div className="fixed inset-0 z-40"
+        style={{ background: 'rgba(0,0,0,0.35)', opacity: open ? 1 : 0,
+          pointerEvents: open ? 'auto' : 'none', transition: 'opacity 0.2s' }}
         onClick={onClose} />
 
-      <div className="fixed top-0 right-0 h-full z-50 flex flex-col overflow-hidden"
-        style={{ width: 'min(900px,96vw)', background: '#F9FAFB',
+      <div className="fixed top-0 right-0 h-full z-50 flex flex-col"
+        style={{ width: 'min(920px,96vw)', background: '#F9FAFB',
           boxShadow: '-4px 0 32px rgba(0,0,0,0.12)',
           transform: open ? 'translateX(0)' : 'translateX(100%)',
           transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)' }}>
@@ -178,10 +417,10 @@ function CreateMembershipDrawer({ open, onClose, onSuccess }: {
           style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
           <div>
             <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111827', margin: 0, letterSpacing: '-0.02em' }}>
-              {t.memberships.createMembership}
+              {title}
             </h2>
             <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>
-              {t.memberships.createMembershipDesc}
+              Configure class access rules, pricing and billing
             </p>
           </div>
           <button onClick={onClose}
@@ -195,249 +434,148 @@ function CreateMembershipDrawer({ open, onClose, onSuccess }: {
         <div className="flex-1 overflow-y-auto px-8 py-6">
           <div className="flex gap-8" style={{ alignItems: 'flex-start' }}>
 
-            {/* Left — form */}
+            {/* Left column */}
             <div className="flex-1 min-w-0 flex flex-col gap-5">
 
-              {/* Name + Visibility */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label style={labelStyle}>{t.memberships.membershipName}</label>
-                  <input type="text" placeholder={t.memberships.namePlaceholder} style={inputStyle} />
+              {/* Name + Public */}
+              <div className="flex gap-4">
+                <div style={{ flex: 2 }}>
+                  <label style={labelSt}>Name *</label>
+                  <input value={form.name} onChange={e => set('name', e.target.value)}
+                    placeholder="e.g. BJJ Monthly Unlimited" style={inputSt} />
                 </div>
-                <div>
-                  <label style={labelStyle}>{t.memberships.visibility}</label>
-                  <select style={inputStyle}>
-                    <option value="yes">{t.memberships.publicOption}</option>
-                    <option value="no">{t.memberships.privateOption}</option>
+                <div style={{ flex: 1 }}>
+                  <label style={labelSt}>Public</label>
+                  <select value={form.isPublic ? 'yes' : 'no'}
+                    onChange={e => set('isPublic', e.target.value === 'yes')}
+                    style={inputSt}>
+                    <option value="yes">Yes — visible on Explore</option>
+                    <option value="no">No — internal only</option>
                   </select>
                 </div>
               </div>
 
               {/* Description */}
               <div>
-                <label style={labelStyle}>{t.common.description}</label>
-                <textarea rows={3} placeholder={t.memberships.descPlaceholder}
-                  style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }} />
+                <label style={labelSt}>Description</label>
+                <textarea value={form.description} onChange={e => set('description', e.target.value)}
+                  rows={2} placeholder="Optional description shown to students"
+                  style={{ ...inputSt, resize: 'vertical' }} />
               </div>
 
-              {/* Price + Billing */}
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label style={labelStyle}>{t.common.price} (€)</label>
-                  <input type="number" placeholder="65.00" min={0} step={0.01} style={inputStyle} />
+              {/* Price + Currency */}
+              <div className="flex gap-4">
+                <div style={{ flex: 2 }}>
+                  <label style={labelSt}>Price</label>
+                  <input type="text" inputMode="numeric" value={form.price}
+                    onChange={e => set('price', e.target.value.replace(/[^0-9.]/g, ''))}
+                    placeholder="0" style={inputSt} />
                 </div>
-                <div>
-                  <label style={labelStyle}>{t.memberships.billingEvery}</label>
-                  <input type="number" placeholder="1" min={1} style={inputStyle} />
-                </div>
-                <div>
-                  <label style={labelStyle}>{t.memberships.frequency}</label>
-                  <select value={freqUnit} onChange={e => setFreqUnit(e.target.value)} style={inputStyle}>
-                    {[['Day', t.memberships.day], ['Week', t.memberships.week], ['Month', t.memberships.month], ['Year', t.memberships.year]].map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                <div style={{ flex: 1 }}>
+                  <label style={labelSt}>Currency</label>
+                  <select value={form.currency} onChange={e => set('currency', e.target.value)} style={inputSt}>
+                    <option value="EUR">EUR €</option>
+                    <option value="USD">USD $</option>
+                    <option value="GBP">GBP £</option>
                   </select>
                 </div>
+                {isSubscription && (
+                  <div style={{ flex: 2 }}>
+                    <label style={labelSt}>Billing cycle</label>
+                    <select value={form.billingCycle} onChange={e => set('billingCycle', e.target.value)} style={inputSt}>
+                      <option value="monthly">Monthly</option>
+                      <option value="two-weekly">Every 2 weeks</option>
+                      <option value="quarterly">Every 3 months</option>
+                      <option value="annual">Annual</option>
+                    </select>
+                  </div>
+                )}
+                {(isSinglePass || isTrial) && (
+                  <>
+                    <div style={{ flex: 1 }}>
+                      <label style={labelSt}>Valid for</label>
+                      <input type="text" inputMode="numeric" value={form.validityDays}
+                        onChange={e => set('validityDays', e.target.value.replace(/\D/g, ''))}
+                        placeholder="30" style={inputSt} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <label style={labelSt}>&nbsp;</label>
+                      <select value={form.validityPeriod} onChange={e => set('validityPeriod', e.target.value as PlanForm['validityPeriod'])} style={inputSt}>
+                        <option value="days">Days</option>
+                        <option value="weeks">Weeks</option>
+                        <option value="months">Months</option>
+                      </select>
+                    </div>
+                  </>
+                )}
               </div>
 
-              {/* Per-activity class access */}
+              {/* Stripe */}
               <div>
-                <div className="flex items-end justify-between mb-3">
-                  <div>
-                    <label style={{ ...labelStyle, marginBottom: 2 }}>Class Access</label>
-                    <p style={{ fontSize: 12, color: '#9CA3AF' }}>
-                      Set access rules per activity type
-                    </p>
-                  </div>
-                  {/* Quick actions */}
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => setRows(prev => prev.map(r => ({ ...r, access: 'unlimited' })))}
-                      className="cursor-pointer"
-                      style={{ fontSize: 11, fontWeight: 500, padding: '4px 10px', borderRadius: 7,
-                        border: '1px solid #E5E7EB', background: '#fff', color: '#6B7280' }}
-                      onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
-                      onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = '#fff'}>
-                      All unlimited
-                    </button>
-                    <button onClick={() => setRows(prev => prev.map(r => ({ ...r, access: 'off' })))}
-                      className="cursor-pointer"
-                      style={{ fontSize: 11, fontWeight: 500, padding: '4px 10px', borderRadius: 7,
-                        border: '1px solid #E5E7EB', background: '#fff', color: '#6B7280' }}
-                      onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
-                      onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = '#fff'}>
-                      Clear all
-                    </button>
-                  </div>
+                <label style={labelSt}>Stripe Price ID</label>
+                <input value={form.stripePriceId} onChange={e => set('stripePriceId', e.target.value)}
+                  placeholder="price_..." style={inputSt} />
+              </div>
+
+              {/* Class access */}
+              <div>
+                <label style={{ ...labelSt, marginBottom: 10 }}>Class Access Rules</label>
+                {classes.length === 0 ? (
+                  <p style={{ fontSize: 13, color: '#9CA3AF' }}>No active classes yet. Create classes first.</p>
+                ) : (
+                  <ClassAccessBuilder
+                    classRules={form.classRules}
+                    classes={classes}
+                    onChange={rules => set('classRules', rules)}
+                    globalLimit={form.globalLimit}
+                    globalLimitType={form.globalLimitType}
+                    onGlobalChange={(limit, type) => { set('globalLimit', limit); set('globalLimitType', type) }}
+                  />
+                )}
+              </div>
+
+            </div>
+
+            {/* Right column — toggles */}
+            <div style={{ width: 200, flexShrink: 0 }} className="flex flex-col gap-4">
+              <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: 16 }}>
+                <p style={{ fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 14 }}>Options</p>
+
+                <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
+                  <span style={{ fontSize: 13, color: '#374151' }}>Active</span>
+                  <Toggle on={form.isActive} onChange={v => set('isActive', v)} size="sm" />
                 </div>
-
-                <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
-                  {rows.map((row, idx) => {
-                    const isOn = row.access !== 'off'
-                    return (
-                      <div key={row.key}
-                        style={{ borderBottom: idx < rows.length - 1 ? '1px solid #F3F4F6' : 'none',
-                          padding: '12px 16px', opacity: isOn ? 1 : 0.55, transition: 'opacity 0.15s' }}>
-                        <div className="flex items-center gap-3 flex-wrap">
-
-                          {/* Activity chip */}
-                          <div style={{ width: 110, flexShrink: 0 }}>
-                            <span style={{ fontSize: 12, fontWeight: 700, padding: '4px 10px',
-                              borderRadius: 99, background: isOn ? row.bg : '#F3F4F6',
-                              color: isOn ? row.color : '#9CA3AF',
-                              border: '1.5px solid ' + (isOn ? row.border : '#E5E7EB'),
-                              display: 'inline-block', transition: 'all 0.15s' }}>
-                              {row.key}
-                            </span>
-                          </div>
-
-                          {/* Access mode selector — 3 pill buttons */}
-                          <div className="flex items-center rounded-lg overflow-hidden shrink-0"
-                            style={{ border: '1px solid #E5E7EB', background: '#F9FAFB' }}>
-                            {([
-                              { id: 'off' as ActivityAccess,       label: 'Off'       },
-                              { id: 'unlimited' as ActivityAccess, label: 'Unlimited' },
-                              { id: 'limited' as ActivityAccess,   label: 'Limited'   },
-                            ]).map(({ id, label }) => {
-                              const active = row.access === id
-                              return (
-                                <button key={id} onClick={() => setAccess(row.key, id)}
-                                  className="cursor-pointer"
-                                  style={{ fontSize: 12, fontWeight: active ? 600 : 400,
-                                    padding: '5px 12px', border: 'none',
-                                    background: active
-                                      ? id === 'off' ? '#F3F4F6'
-                                        : id === 'unlimited' ? '#EFF6FF'
-                                        : '#EFF6FF'
-                                      : 'transparent',
-                                    color: active
-                                      ? id === 'off' ? '#374151' : '#0071E3'
-                                      : '#9CA3AF',
-                                    boxShadow: active ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                                    transition: 'all 0.12s' }}>
-                                  {label}
-                                </button>
-                              )
-                            })}
-                          </div>
-
-                          {/* Limited config — inline, only when limited */}
-                          {row.access === 'limited' && (
-                            <div className="flex items-center gap-2 flex-1 min-w-0">
-                              <input type="number" value={row.n} min={1}
-                                onChange={e => setN(row.key, e.target.value)}
-                                style={{ border: '1px solid #E5E7EB', borderRadius: 8,
-                                  padding: '5px 8px', fontSize: 13, fontWeight: 700,
-                                  color: '#111827', background: '#fff', outline: 'none',
-                                  width: 56, textAlign: 'center' }} />
-                              <span style={{ fontSize: 12, color: '#9CA3AF', whiteSpace: 'nowrap' }}>per</span>
-                              <select value={row.per} onChange={e => setPer(row.key, e.target.value)}
-                                style={{ border: '1px solid #E5E7EB', borderRadius: 8,
-                                  padding: '5px 10px', fontSize: 12, color: '#374151',
-                                  background: '#fff', outline: 'none' }}>
-                                {['Day', 'Week', 'Month'].map(u => <option key={u}>{u}</option>)}
-                              </select>
-                            </div>
-                          )}
-
-                          {/* Unlimited label */}
-                          {row.access === 'unlimited' && (
-                            <span className="flex items-center gap-1"
-                              style={{ fontSize: 12, color: '#16A34A', fontWeight: 500 }}>
-                              <Infinity size={13} />
-                              No session limit
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )
-                  })}
+                <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
+                  <span style={{ fontSize: 13, color: '#374151' }}>Popular</span>
+                  <Toggle on={form.isPopular} onChange={v => set('isPopular', v)} size="sm" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span style={{ fontSize: 13, color: '#374151' }}>Public</span>
+                  <Toggle on={form.isPublic} onChange={v => set('isPublic', v)} size="sm" />
                 </div>
               </div>
             </div>
 
-            {/* Right — image */}
-            <div style={{ width: 240, flexShrink: 0 }}>
-              <label style={labelStyle}>Membership Image</label>
-              <div
-                onDragEnter={() => setBannerDrag(true)}
-                onDragLeave={() => setBannerDrag(false)}
-                onDrop={() => setBannerDrag(false)}
-                className="flex flex-col items-center justify-center gap-3 rounded-2xl cursor-pointer"
-                style={{ height: 180, border: `2px dashed ${bannerDrag ? '#0071E3' : '#D1D5DB'}`,
-                  background: bannerDrag ? '#EFF6FF' : '#fff' }}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-                  style={{ background: '#F3F4F6' }}>
-                  <Upload size={18} style={{ color: '#9CA3AF' }} />
-                </div>
-                <div className="text-center">
-                  <p style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>Drop image here</p>
-                  <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>PNG, JPG up to 5 MB</p>
-                </div>
-                <label className="px-3 py-1.5 rounded-lg cursor-pointer"
-                  style={{ fontSize: 12, fontWeight: 500, border: '1px solid #E5E7EB',
-                    background: '#fff', color: '#374151' }}>
-                  Browse<input type="file" accept="image/*" className="hidden" />
-                </label>
-              </div>
-              <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 8 }}>Recommended: 325 × 261px</p>
-
-              {/* Summary of selected classes */}
-              {rows.some(r => r.access !== 'off') && (
-                <div className="mt-5 rounded-xl p-4"
-                  style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: '#374151',
-                    textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>
-                    Access Summary
-                  </p>
-                  <div className="flex flex-col gap-2">
-                    {rows.filter(r => r.access !== 'off').map(r => (
-                      <div key={r.key} className="flex items-center justify-between">
-                        <span style={{ fontSize: 11, fontWeight: 600, color: r.color }}>{r.key}</span>
-                        <span style={{ fontSize: 11, color: '#6B7280' }}>
-                          {r.access === 'unlimited' ? '∞ Unlimited' : `${r.n}× / ${r.per}`}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="px-8 py-5 flex flex-col gap-4 shrink-0"
+        <div className="shrink-0 px-8 py-5 flex items-center justify-between"
           style={{ background: '#fff', borderTop: '1px solid #E5E7EB' }}>
-          <div className="flex flex-col gap-2">
-            {([
-              { key: 'terms',   label: 'I confirm the membership details are accurate and agree to the Terms & Conditions' },
-              { key: 'privacy', label: 'Member data will be handled in accordance with the Privacy Policy' },
-            ] as const).map(({ key, label }) => (
-              <label key={key} className="flex items-center gap-2 cursor-pointer">
-                <div onClick={() => setLegalChecked(p => ({ ...p, [key]: !p[key] }))}
-                  className="flex items-center justify-center rounded-md flex-shrink-0"
-                  style={{ width: 16, height: 16,
-                    border: `1.5px solid ${legalChecked[key] ? '#0071E3' : '#D1D5DB'}`,
-                    background: legalChecked[key] ? '#0071E3' : '#fff', cursor: 'pointer' }}>
-                  {legalChecked[key] && <Check size={10} style={{ color: '#fff' }} strokeWidth={3} />}
-                </div>
-                <span style={{ fontSize: 12, color: '#6B7280' }}>{label}</span>
-              </label>
-            ))}
+          <div>
+            {error && <p style={{ fontSize: 13, color: '#EF4444' }}>{error}</p>}
           </div>
-          <div className="flex items-center gap-3 justify-end">
+          <div className="flex gap-3">
             <button onClick={onClose}
-              className="px-5 py-2.5 rounded-xl cursor-pointer"
-              style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB',
-                background: '#fff', color: '#374151' }}>
+              style={{ padding: '9px 20px', borderRadius: 10, border: '1px solid #E5E7EB',
+                fontSize: 13, fontWeight: 600, color: '#374151', background: '#fff', cursor: 'pointer' }}>
               Cancel
             </button>
-            <button onClick={onSuccess}
-              disabled={!legalChecked.terms || !legalChecked.privacy}
-              className="px-6 py-2.5 rounded-xl cursor-pointer"
-              style={{ fontSize: 13, fontWeight: 600, border: 'none',
-                background: legalChecked.terms && legalChecked.privacy ? '#0071E3' : '#93C5FD',
-                color: '#fff',
-                cursor: legalChecked.terms && legalChecked.privacy ? 'pointer' : 'not-allowed' }}>
-              Create Membership
+            <button onClick={save} disabled={saving}
+              style={{ padding: '9px 24px', borderRadius: 10, border: 'none',
+                fontSize: 13, fontWeight: 600, color: '#fff',
+                background: saving ? '#93C5FD' : '#0071E3', cursor: saving ? 'not-allowed' : 'pointer' }}>
+              {saving ? 'Saving…' : editPlan ? 'Save changes' : 'Create plan'}
             </button>
           </div>
         </div>
@@ -446,427 +584,293 @@ function CreateMembershipDrawer({ open, onClose, onSuccess }: {
   )
 }
 
-// ── Success modal ──────────────────────────────────────────────────────────────
-function SuccessModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  if (!open) return null
+// ── Delete modal ───────────────────────────────────────────────────────────────
+function DeleteModal({ plan, onClose, onDeleted }: {
+  plan: PlanRow; onClose: () => void; onDeleted: (id: string) => void
+}) {
+  const [loading, setLoading] = useState(false)
+
+  async function confirm() {
+    setLoading(true)
+    await fetch(`/api/dashboard/membership-plans/${plan.id}`, { method: 'DELETE' })
+    onDeleted(plan.id)
+  }
+
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onClose}>
-      <div className="rounded-2xl p-8 flex flex-col items-center text-center gap-4"
-        style={{ background: '#fff', width: 360, boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}
-        onClick={e => e.stopPropagation()}>
-        <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: '#F0FDF4' }}>
-          <Check size={32} style={{ color: '#16A34A' }} strokeWidth={2.5} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{ background: 'rgba(0,0,0,0.4)' }}>
+      <div style={{ background: '#fff', borderRadius: 16, padding: 32, maxWidth: 420, width: '90%',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+        <h3 style={{ fontSize: 17, fontWeight: 700, color: '#111827', marginBottom: 8 }}>Delete plan?</h3>
+        <p style={{ fontSize: 14, color: '#6B7280', marginBottom: 24 }}>
+          <strong>{plan.name}</strong> will be permanently deleted.
+          {plan.memberCount > 0 && ` ${plan.memberCount} active member(s) use this plan.`}
+        </p>
+        <div className="flex gap-3 justify-end">
+          <button onClick={onClose}
+            style={{ padding: '9px 20px', borderRadius: 10, border: '1px solid #E5E7EB',
+              fontSize: 13, fontWeight: 600, color: '#374151', background: '#fff', cursor: 'pointer' }}>
+            Cancel
+          </button>
+          <button onClick={confirm} disabled={loading}
+            style={{ padding: '9px 20px', borderRadius: 10, border: 'none',
+              fontSize: 13, fontWeight: 600, color: '#fff',
+              background: loading ? '#FCA5A5' : '#EF4444', cursor: 'pointer' }}>
+            {loading ? 'Deleting…' : 'Delete'}
+          </button>
         </div>
-        <div>
-          <h3 style={{ fontSize: 18, fontWeight: 700, color: '#111827', margin: 0 }}>Membership Created!</h3>
-          <p style={{ fontSize: 13, color: '#6B7280', marginTop: 6 }}>The new plan is now active and available to members.</p>
+      </div>
+    </div>
+  )
+}
+
+// ── Status badge ───────────────────────────────────────────────────────────────
+function StatusBadge({ active }: { active: boolean }) {
+  return (
+    <span className="inline-flex items-center gap-1"
+      style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999,
+        background: active ? '#F0FDF4' : '#F3F4F6',
+        color: active ? '#16A34A' : '#6B7280',
+        border: '1px solid ' + (active ? '#BBF7D0' : '#E5E7EB') }}>
+      {active ? <Check size={9} strokeWidth={3} /> : <X size={9} strokeWidth={3} />}
+      {active ? 'Active' : 'Inactive'}
+    </span>
+  )
+}
+
+// ── Plan card (table row) ──────────────────────────────────────────────────────
+function PlanRow({ plan, classes, onEdit, onDelete }: {
+  plan: PlanRow
+  classes: ClassOption[]
+  onEdit: (p: PlanRow) => void
+  onDelete: (p: PlanRow) => void
+}) {
+  const cfg = plan.classAccess as ClassAccessConfig
+  const includedRules = (cfg.classRules ?? []).filter(r => r.included)
+  const classMap = Object.fromEntries(classes.map(c => [c.id, c.name]))
+
+  const accessSummary = () => {
+    if (!includedRules.length) return 'No classes'
+    const allClasses = classes.length
+    const included = includedRules.length
+    if (included === allClasses) return 'All classes'
+    return `${included} class${included > 1 ? 'es' : ''}`
+  }
+
+  const billingLabel = plan.planType === 'SUBSCRIPTION'
+    ? (BILLING_CYCLE_LABELS[plan.billingCycle] ?? plan.billingCycle)
+    : plan.validityDays
+      ? `${plan.validityDays} days`
+      : '—'
+
+  return (
+    <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
+      <td style={{ padding: '14px 16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div>
+            <p style={{ fontSize: 14, fontWeight: 600, color: '#111827', margin: 0 }}>{plan.name}</p>
+            {plan.description && (
+              <p style={{ fontSize: 12, color: '#9CA3AF', margin: '2px 0 0', lineHeight: 1.4 }}>
+                {plan.description.slice(0, 60)}{plan.description.length > 60 ? '…' : ''}
+              </p>
+            )}
+          </div>
+          {plan.isPopular && (
+            <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 999,
+              background: '#FEF3C7', color: '#B45309', border: '1px solid #FDE68A' }}>
+              Popular
+            </span>
+          )}
         </div>
-        <button onClick={onClose} className="w-full py-2.5 rounded-xl cursor-pointer"
-          style={{ fontSize: 13, fontWeight: 600, border: 'none', background: '#0071E3', color: '#fff' }}>
-          Done
+      </td>
+      <td style={{ padding: '14px 16px', fontSize: 13, color: '#374151' }}>
+        {fmtPrice(plan.price, plan.currency)}
+        <span style={{ fontSize: 11, color: '#9CA3AF', display: 'block' }}>{billingLabel}</span>
+      </td>
+      <td style={{ padding: '14px 16px', fontSize: 13, color: '#374151' }}>{accessSummary()}</td>
+      <td style={{ padding: '14px 16px', fontSize: 13, color: '#374151' }}>
+        {plan.memberCount}
+        <span style={{ fontSize: 11, color: '#9CA3AF', display: 'block' }}>members</span>
+      </td>
+      <td style={{ padding: '14px 16px' }}><StatusBadge active={plan.isActive} /></td>
+      <td style={{ padding: '14px 16px' }}>
+        <div className="flex items-center gap-2">
+          <button onClick={() => onEdit(plan)}
+            className="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer"
+            style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
+            <Pencil size={13} style={{ color: '#6B7280' }} />
+          </button>
+          <button onClick={() => onDelete(plan)}
+            className="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer"
+            style={{ border: '1px solid #FECACA', background: '#FFF5F5' }}>
+            <Trash2 size={13} style={{ color: '#EF4444' }} />
+          </button>
+        </div>
+      </td>
+    </tr>
+  )
+}
+
+// ── Main client ────────────────────────────────────────────────────────────────
+export default function MembershipsClient() {
+  useDashboard()
+  useT()
+
+  const [plans, setPlans] = useState<PlanRow[]>([])
+  const [classes, setClasses] = useState<ClassOption[]>([])
+  const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState<TabId>('subscriptions')
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [editPlan, setEditPlan] = useState<PlanRow | null>(null)
+  const [deletePlan, setDeletePlan] = useState<PlanRow | null>(null)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/dashboard/membership-plans')
+      if (res.ok) {
+        const data = await res.json()
+        setPlans(data.plans)
+        setClasses(data.classes)
+      }
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { load() }, [load])
+
+  function openCreate() {
+    setEditPlan(null)
+    setDrawerOpen(true)
+  }
+
+  function openEdit(plan: PlanRow) {
+    setEditPlan(plan)
+    setDrawerOpen(true)
+  }
+
+  function handleSaved(plan: PlanRow) {
+    setPlans(prev => {
+      const exists = prev.find(p => p.id === plan.id)
+      return exists ? prev.map(p => p.id === plan.id ? plan : p) : [plan, ...prev]
+    })
+    setDrawerOpen(false)
+  }
+
+  function handleDeleted(id: string) {
+    setPlans(prev => prev.filter(p => p.id !== id))
+    setDeletePlan(null)
+  }
+
+  const tabPlanType = planTypeForTab(activeTab)
+  const filtered = plans.filter(p => p.planType === tabPlanType)
+
+  const TAB_LABELS: Record<TabId, string> = {
+    subscriptions: 'Subscriptions',
+    'single-passes': 'Single Passes',
+    trials: 'Trials',
+  }
+
+  const ADD_LABELS: Record<TabId, string> = {
+    subscriptions: 'Add Subscription',
+    'single-passes': 'Add Single Pass',
+    trials: 'Add Trial',
+  }
+
+  return (
+    <div className="flex flex-col h-full">
+
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-8 py-5 shrink-0"
+        style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
+        <div className="flex gap-1" style={{ background: '#F3F4F6', borderRadius: 10, padding: 4 }}>
+          {(['subscriptions', 'single-passes', 'trials'] as TabId[]).map(tab => (
+            <button key={tab} onClick={() => setActiveTab(tab)}
+              style={{
+                padding: '6px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600,
+                background: activeTab === tab ? '#fff' : 'transparent',
+                color: activeTab === tab ? '#111827' : '#6B7280',
+                boxShadow: activeTab === tab ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                transition: 'all 0.15s',
+              }}>
+              {TAB_LABELS[tab]}
+              {plans.filter(p => p.planType === PLAN_TYPE_MAP[tab]).length > 0 && (
+                <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 700,
+                  background: activeTab === tab ? '#EFF6FF' : '#E5E7EB',
+                  color: activeTab === tab ? '#1D4ED8' : '#9CA3AF',
+                  padding: '1px 6px', borderRadius: 999 }}>
+                  {plans.filter(p => p.planType === PLAN_TYPE_MAP[tab]).length}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        <button onClick={openCreate}
+          className="flex items-center gap-2 cursor-pointer"
+          style={{ padding: '9px 18px', borderRadius: 10, border: 'none',
+            background: '#0071E3', color: '#fff', fontSize: 13, fontWeight: 600 }}>
+          <Plus size={15} />
+          {ADD_LABELS[activeTab]}
         </button>
       </div>
-    </div>
-  )
-}
 
-// ── Membership table ───────────────────────────────────────────────────────────
-function MembershipTable({
-  data, search, filterStatus, openMenuId, setOpenMenuId,
-}: {
-  data: Membership[]
-  search: string
-  filterStatus: 'All' | MembershipStatus
-  openMenuId: number | null
-  setOpenMenuId: (id: number | null) => void
-}) {
-  const [page, setPage] = useState(1)
-
-  const filtered = data.filter(m => {
-    const q = search.toLowerCase()
-    const matchSearch = search === '' || m.name.toLowerCase().includes(q)
-    const matchStatus = filterStatus === 'All' || m.status === filterStatus
-    return matchSearch && matchStatus
-  })
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE))
-  const safePage   = Math.min(page, totalPages)
-  const paginated  = filtered.slice((safePage - 1) * ITEMS_PER_PAGE, safePage * ITEMS_PER_PAGE)
-  const pages      = getPaginationPages(safePage, totalPages)
-
-  return (
-    <div className="rounded-2xl overflow-hidden" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-      <table className="w-full">
-        <thead>
-          <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
-            {[
-              { label: 'Image',        cls: 'hidden sm:table-cell' },
-              { label: 'Name',         cls: '' },
-              { label: 'Includes',     cls: 'hidden lg:table-cell' },
-              { label: 'Price',        cls: 'hidden sm:table-cell' },
-              { label: 'Billing',      cls: 'hidden md:table-cell' },
-              { label: 'Members',      cls: 'hidden md:table-cell' },
-              { label: 'Status',       cls: '' },
-              { label: 'Actions',      cls: '' },
-            ].map(h => (
-              <th key={h.label} className={`px-5 py-3 text-left ${h.cls}`}
-                style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF',
-                  textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                {h.label}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {paginated.map((m, idx) => (
-            <tr key={m.id}
-              className="hover:bg-[#FAFAFA] transition-colors cursor-pointer"
-              style={{ borderBottom: idx < paginated.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
-
-              {/* Image */}
-              <td className="hidden sm:table-cell px-5 py-3">
-                <div className="rounded-xl overflow-hidden relative shrink-0"
-                  style={{ width: 56, height: 44, background: '#F3F4F6', flexShrink: 0 }}>
-                  {m.image ? (
-                    <Image src={m.image} alt={m.name} fill className="object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Award size={20} style={{ color: '#D1D5DB' }} />
-                    </div>
-                  )}
-                </div>
-              </td>
-
-              {/* Name */}
-              <td className="px-5 py-3">
-                <p style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{m.name}</p>
-                {m.stripe && (
-                  <p style={{ fontSize: 10, color: '#C4C9D4', marginTop: 1, fontFamily: 'monospace' }}>
-                    {m.stripe}
-                  </p>
-                )}
-              </td>
-
-              {/* Classes */}
-              <td className="hidden lg:table-cell px-5 py-3">
-                <ClassChips classes={m.classes} max={2} />
-              </td>
-
-              {/* Price */}
-              <td className="hidden sm:table-cell px-5 py-3">
-                <span style={{ fontSize: 15, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em' }}>
-                  {m.price}
-                </span>
-              </td>
-
-              {/* Billing */}
-              <td className="hidden md:table-cell px-5 py-3">
-                <div className="flex items-center gap-1.5">
-                  <RefreshCw size={11} style={{ color: '#9CA3AF' }} />
-                  <span style={{ fontSize: 12, color: '#6B7280' }}>{m.billing}</span>
-                </div>
-              </td>
-
-              {/* Members */}
-              <td className="hidden md:table-cell px-5 py-3">
-                <div className="flex items-center gap-1.5">
-                  <Users size={11} style={{ color: '#9CA3AF' }} />
-                  <span style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>{m.members}</span>
-                </div>
-              </td>
-
-              {/* Status */}
-              <td className="px-5 py-3">
-                <StatusBadge status={m.status} />
-              </td>
-
-              {/* Actions */}
-              <td className="px-5 py-3 relative">
-                <div className="flex items-center gap-1">
-                  <button
-                    className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
-                    style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
-                    title="View members"
-                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
-                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                    <Eye size={14} />
-                  </button>
-                  <button
-                    onClick={e => { e.stopPropagation(); setOpenMenuId(openMenuId === m.id ? null : m.id) }}
-                    className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
-                    style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
-                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
-                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                    <MoreHorizontal size={15} />
-                  </button>
-                </div>
-                {openMenuId === m.id && (
-                  <>
-                    <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
-                    <div className="absolute right-4 rounded-xl z-20 py-1 overflow-hidden"
-                      style={{ background: '#fff', border: '1px solid #E5E7EB',
-                        boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 160, top: '100%' }}>
-                      {[
-                        { label: 'View members', icon: Eye },
-                        { label: 'Edit plan',    icon: ToggleLeft },
-                        { label: 'Duplicate',    icon: RefreshCw },
-                      ].map(({ label, icon: Icon }) => (
-                        <button key={label} onClick={() => setOpenMenuId(null)}
-                          className="w-full text-left px-4 py-2.5 transition-colors cursor-pointer flex items-center gap-2.5"
-                          style={{ fontSize: 13, color: '#374151', background: 'transparent', border: 'none' }}
-                          onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
-                          onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                          <Icon size={13} style={{ color: '#9CA3AF' }} />{label}
-                        </button>
-                      ))}
-                      <div style={{ borderTop: '1px solid #F3F4F6', margin: '2px 0' }} />
-                      <button onClick={() => setOpenMenuId(null)}
-                        className="w-full text-left px-4 py-2.5 transition-colors cursor-pointer flex items-center gap-2.5"
-                        style={{ fontSize: 13, color: '#DC2626', background: 'transparent', border: 'none' }}
-                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#FEF2F2'}
-                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                        <X size={13} style={{ color: '#DC2626' }} />Deactivate
-                      </button>
-                    </div>
-                  </>
-                )}
-              </td>
-            </tr>
-          ))}
-          {paginated.length === 0 && (
-            <tr>
-              <td colSpan={8} style={{ textAlign: 'center', padding: '48px 0' }}>
-                <Award size={28} style={{ color: '#E5E7EB', margin: '0 auto 10px' }} />
-                <p style={{ fontSize: 14, color: '#9CA3AF' }}>No memberships found</p>
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between px-6 py-3" style={{ borderTop: '1px solid #F3F4F6' }}>
-          <p style={{ fontSize: 13, color: '#6B7280' }}>
-            Showing{' '}
-            <span style={{ fontWeight: 600, color: '#111827' }}>
-              {(safePage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(safePage * ITEMS_PER_PAGE, filtered.length)}
-            </span>
-            {' of '}
-            <span style={{ fontWeight: 600, color: '#111827' }}>{filtered.length}</span>
-          </p>
-          <div className="flex items-center gap-1">
-            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage === 1}
-              style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff',
-                color: safePage === 1 ? '#D1D5DB' : '#374151', cursor: safePage === 1 ? 'not-allowed' : 'pointer',
-                borderRadius: 8, padding: '6px 12px' }}>Prev</button>
-            {pages.map((p, i) =>
-              p === '...'
-                ? <span key={'e' + i} style={{ fontSize: 13, color: '#9CA3AF', padding: '0 4px' }}>…</span>
-                : (
-                  <button key={p} onClick={() => setPage(p as number)}
-                    className="w-9 h-9 flex items-center justify-center rounded-lg cursor-pointer"
-                    style={{ fontSize: 13, fontWeight: p === safePage ? 600 : 400, border: 'none',
-                      background: p === safePage ? '#F3F4F6' : 'transparent',
-                      color: p === safePage ? '#111827' : '#6B7280' }}>{p}</button>
-                )
-            )}
-            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages}
-              style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff',
-                color: safePage === totalPages ? '#D1D5DB' : '#374151', cursor: safePage === totalPages ? 'not-allowed' : 'pointer',
-                borderRadius: 8, padding: '6px 12px' }}>Next</button>
+      {/* Table */}
+      <div className="flex-1 overflow-auto px-8 py-6">
+        {loading ? (
+          <div className="flex items-center justify-center" style={{ height: 200 }}>
+            <p style={{ color: '#9CA3AF', fontSize: 14 }}>Loading…</p>
           </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ── Main ───────────────────────────────────────────────────────────────────────
-const TABS: { id: TabId; label: string; data: Membership[]; icon: React.ElementType }[] = [
-  { id: 'subscriptions',  label: 'Subscriptions',    data: SUBSCRIPTIONS,    icon: RefreshCw },
-  { id: 'single-passes',  label: 'Single Passes',    data: SINGLE_PASSES,    icon: Zap       },
-  { id: 'trials',         label: 'Trial Memberships', data: TRIAL_MEMBERSHIPS, icon: Clock    },
-]
-
-export default function MembershipsClient() {
-  const { menuOpen, setMenuOpen } = useDashboard()
-  const [activeTab, setActiveTab]     = useState<TabId>('subscriptions')
-  const [search, setSearch]           = useState('')
-  const [filterStatus, setFilterStatus] = useState<'All' | MembershipStatus>('All')
-  const [openMenuId, setOpenMenuId]   = useState<number | null>(null)
-  const [drawerOpen, setDrawerOpen]   = useState(false)
-  const [successOpen, setSuccessOpen] = useState(false)
-
-  const currentTab  = TABS.find(t => t.id === activeTab)!
-  const totalActive = [...SUBSCRIPTIONS, ...SINGLE_PASSES, ...TRIAL_MEMBERSHIPS].filter(m => m.status === 'Active').length
-  const totalMembers = SUBSCRIPTIONS.reduce((s, m) => s + m.members, 0)
-
-  // Approximate MRR
-  const mrr = SUBSCRIPTIONS.filter(m => m.status === 'Active').reduce((sum, m) => {
-    const price = parseFloat(m.price.replace('€', '')) || 0
-    const factor = m.billing.includes('2 Week') ? 2.17 : m.billing.includes('3 Month') ? 1 / 3 : m.billing.includes('Month') ? 1 : 0
-    return sum + price * factor * m.members
-  }, 0)
-
-  const STATS = [
-    { label: 'Total Plans',      value: String(SUBSCRIPTIONS.length + SINGLE_PASSES.length + TRIAL_MEMBERSHIPS.length), sub: 'across all types',   icon: Award,     color: '#0071E3', bg: '#EFF6FF' },
-    { label: 'Active Plans',     value: String(totalActive),   sub: 'currently live',       icon: Check,     color: '#16A34A', bg: '#F0FDF4' },
-    { label: 'MRR',              value: '€' + Math.round(mrr).toLocaleString(), sub: 'monthly recurring',  icon: TrendingUp, color: '#6D28D9', bg: '#F5F3FF' },
-    { label: 'Active Members',   value: String(totalMembers),  sub: 'with a subscription',  icon: Users,     color: '#C2410C', bg: '#FFF7ED' },
-  ]
-
-  return (
-    <>
-      <main style={{ flex: 1, minWidth: 0 }}>
-
-          {/* Topbar */}
-          <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20 flex-wrap"
-            style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
-            <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
-              style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(!menuOpen)}>
-              <Menu size={16} style={{ color: '#374151' }} />
-            </button>
-
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 max-w-xs"
-              style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-              <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
-              <input type="text" placeholder="Search memberships…" value={search}
-                onChange={e => setSearch(e.target.value)}
-                style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
-            </div>
-
-            <div className="flex-1" />
-
-            <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl"
-              style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', fontSize: 13, color: '#374151', whiteSpace: 'nowrap' }}>
-              <Clock size={13} style={{ color: '#9CA3AF' }} />
-              04 Jun 2026
-            </div>
-
-            <button className="relative w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
-              style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-              <Bell size={15} style={{ color: '#374151' }} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: '#DC2626' }} />
-            </button>
-
-            <button onClick={() => setDrawerOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
-              style={{ background: '#0071E3', border: 'none', color: '#fff', fontSize: 13, fontWeight: 600 }}>
-              <Plus size={15} />
-              Add Subscription
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center" style={{ height: 240, gap: 12 }}>
+            <p style={{ fontSize: 15, color: '#9CA3AF' }}>No {TAB_LABELS[activeTab].toLowerCase()} yet</p>
+            <button onClick={openCreate}
+              style={{ padding: '9px 20px', borderRadius: 10, border: 'none',
+                background: '#0071E3', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              {ADD_LABELS[activeTab]}
             </button>
           </div>
-
-          <div className="px-4 md:px-8 py-6 flex flex-col gap-6">
-
-            {/* Page title */}
-            <div>
-              <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>
-                Memberships
-              </h1>
-              <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>
-                Manage subscription plans, single passes and trials
-              </p>
-            </div>
-
-            {/* KPI Stats — Stripe style: bigger cards with icon + progress */}
-            <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-              {STATS.map(stat => (
-                <div key={stat.label} className="rounded-2xl"
-                  style={{ background: '#fff', border: '1px solid #E5E7EB', padding: '18px 20px' }}>
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-                      style={{ background: stat.bg }}>
-                      <stat.icon size={16} style={{ color: stat.color }} />
-                    </div>
-                    <span style={{ fontSize: 11, color: '#9CA3AF' }}>{stat.sub}</span>
-                  </div>
-                  <p style={{ fontSize: 28, fontWeight: 700, color: '#111827',
-                    letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 4 }}>
-                    {stat.value}
-                  </p>
-                  <p style={{ fontSize: 12, fontWeight: 500, color: '#6B7280' }}>{stat.label}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Tabs — NZZL underline style */}
-            <div>
-              <div className="flex items-center gap-1 border-b" style={{ borderColor: '#E5E7EB' }}>
-                {TABS.map(tab => {
-                  const isActive = activeTab === tab.id
-                  const activeCount = tab.data.filter(m => m.status === 'Active').length
-                  return (
-                    <button key={tab.id}
-                      onClick={() => { setActiveTab(tab.id); setFilterStatus('All'); setSearch('') }}
-                      className="flex items-center gap-2 px-4 py-3 cursor-pointer relative"
-                      style={{ fontSize: 14, fontWeight: isActive ? 600 : 400, border: 'none', background: 'transparent',
-                        color: isActive ? '#111827' : '#6B7280' }}>
-                      <tab.icon size={14} style={{ color: isActive ? '#0071E3' : '#9CA3AF' }} />
-                      {tab.label}
-                      <span style={{ fontSize: 11, fontWeight: 600, padding: '1px 7px', borderRadius: 999,
-                        background: isActive ? '#EFF6FF' : '#F3F4F6',
-                        color: isActive ? '#0071E3' : '#9CA3AF' }}>
-                        {activeCount}
-                      </span>
-                      {isActive && (
-                        <div className="absolute bottom-0 left-0 right-0"
-                          style={{ height: 2, background: '#0071E3', borderRadius: '2px 2px 0 0' }} />
-                      )}
-                    </button>
-                  )
-                })}
-              </div>
-
-              {/* Filter chips — Stripe style */}
-              <div className="flex items-center gap-2 mt-4 flex-wrap">
-                <span style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF',
-                  textTransform: 'uppercase', letterSpacing: '0.04em' }}>Status</span>
-                {(['All', 'Active', 'Inactive'] as const).map(f => {
-                  const count = f === 'All' ? currentTab.data.length
-                    : currentTab.data.filter(m => m.status === f).length
-                  const isOn = filterStatus === f
-                  return (
-                    <button key={f} onClick={() => setFilterStatus(f)}
-                      className="flex items-center gap-1.5 cursor-pointer"
-                      style={{ fontSize: 12, fontWeight: isOn ? 600 : 400, borderRadius: 8,
-                        padding: '4px 12px',
-                        background: isOn
-                          ? f === 'Active' ? '#F0FDF4' : f === 'Inactive' ? '#F3F4F6' : '#111827'
-                          : '#fff',
-                        color: isOn
-                          ? f === 'Active' ? '#16A34A' : f === 'Inactive' ? '#6B7280' : '#fff'
-                          : '#6B7280',
-                        border: isOn
-                          ? '1.5px solid ' + (f === 'Active' ? '#BBF7D0' : f === 'Inactive' ? '#E5E7EB' : '#111827')
-                          : '1.5px solid #E5E7EB' }}>
-                      {f === 'Active' && isOn && <Check size={10} strokeWidth={3} />}
-                      {f} <span style={{ opacity: 0.7 }}>{count}</span>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Table */}
-            <MembershipTable
-              data={currentTab.data}
-              search={search}
-              filterStatus={filterStatus}
-              openMenuId={openMenuId}
-              setOpenMenuId={setOpenMenuId}
-            />
+        ) : (
+          <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 14, overflow: 'hidden' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background: '#F9FAFB', borderBottom: '1px solid #E5E7EB' }}>
+                  {['Plan', 'Price', 'Classes', 'Members', 'Status', 'Actions'].map(h => (
+                    <th key={h} style={{ padding: '10px 16px', fontSize: 11, fontWeight: 600,
+                      color: '#6B7280', textAlign: 'left', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(plan => (
+                  <PlanRow key={plan.id} plan={plan} classes={classes}
+                    onEdit={openEdit} onDelete={setDeletePlan} />
+                ))}
+              </tbody>
+            </table>
           </div>
-      </main>
+        )}
+      </div>
 
-      <CreateMembershipDrawer
+      <PlanDrawer
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        onSuccess={() => { setDrawerOpen(false); setSuccessOpen(true) }}
+        onSaved={handleSaved}
+        editPlan={editPlan}
+        classes={classes}
+        defaultTab={activeTab}
       />
-      <SuccessModal open={successOpen} onClose={() => setSuccessOpen(false)} />
-    </>
+
+      {deletePlan && (
+        <DeleteModal
+          plan={deletePlan}
+          onClose={() => setDeletePlan(null)}
+          onDeleted={handleDeleted}
+        />
+      )}
+    </div>
   )
 }

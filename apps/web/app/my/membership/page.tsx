@@ -15,7 +15,7 @@ type Membership = {
   classesUsed: number
   paymentMethod: string
   school: { id: string; name: string; slug: string; logoUrl: string | null; city: string | null }
-  plan: { classLimit: number | null } | null
+  plan: { classAccess: Record<string, unknown> } | null
 }
 
 const STATUS_CONFIG: Record<string, { label: string; cls: string }> = {
@@ -75,8 +75,6 @@ export default function MyMembershipPage() {
           <>
             {/* Active memberships */}
             {active.map(m => {
-              const classLimit = m.plan?.classLimit
-              const pct = classLimit ? Math.min(100, (m.classesUsed / classLimit) * 100) : null
               const days = m.endDate ? daysLeft(m.endDate) : null
 
               return (
@@ -114,22 +112,12 @@ export default function MyMembershipPage() {
                     </div>
 
                     {/* Class usage bar */}
-                    {classLimit && (
+                    {m.classesUsed > 0 && (
                       <div>
                         <div className="flex items-center justify-between mb-1.5">
                           <p className="text-xs text-gray-500">Classes used</p>
-                          <p className="text-xs font-semibold text-gray-700">{m.classesUsed} / {classLimit}</p>
+                          <p className="text-xs font-semibold text-gray-700">{m.classesUsed}</p>
                         </div>
-                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all"
-                            style={{
-                              width: `${pct}%`,
-                              background: pct! > 80 ? '#EF4444' : '#0870E2',
-                            }}
-                          />
-                        </div>
-                        <p className="text-[11px] text-gray-400 mt-1">{classLimit - m.classesUsed} classes remaining</p>
                       </div>
                     )}
 
