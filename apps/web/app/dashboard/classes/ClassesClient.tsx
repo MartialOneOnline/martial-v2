@@ -33,6 +33,7 @@ interface ClassRow {
   schedule: ScheduleSlot[] | null
   instructor: Instructor | null
   discipline: Discipline | null
+  coverUrl: string | null
   createdAt: string
 }
 
@@ -1031,9 +1032,12 @@ export default function ClassesClient() {
                       {/* Class */}
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
-                          <div className="shrink-0 rounded-lg flex items-center justify-center"
+                          <div className="shrink-0 rounded-lg overflow-hidden flex items-center justify-center"
                             style={{ width: 36, height: 36, background: '#EFF6FF' }}>
-                            <Calendar size={16} style={{ color: '#0071E3' }} />
+                            {cls.coverUrl
+                              ? <img src={cls.coverUrl} alt={cls.name} style={{ width: 36, height: 36, objectFit: 'cover' }} />
+                              : <Calendar size={16} style={{ color: '#0071E3' }} />
+                            }
                           </div>
                           <div>
                             <p style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{cls.name}</p>
