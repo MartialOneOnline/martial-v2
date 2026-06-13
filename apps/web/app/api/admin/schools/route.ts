@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { guardSuperadmin } from '@/lib/auth/server'
 
 // POST /api/admin/schools — create school directly (manual add)
 export async function POST(req: NextRequest) {
+  const deny = await guardSuperadmin(req)
+  if (deny) return deny
+
   const body = await req.json()
   const {
     name, email, phone, website,

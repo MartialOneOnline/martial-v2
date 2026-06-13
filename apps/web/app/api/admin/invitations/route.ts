@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { sendInviteEmail } from '@/lib/email/sendInvite'
+import { guardSuperadmin } from '@/lib/auth/server'
 
 // GET /api/admin/invitations — list invitations with optional search/filter/pagination
 export async function GET(req: NextRequest) {
+  const deny = await guardSuperadmin(req)
+  if (deny) return deny
+
   const { searchParams } = new URL(req.url)
   const search = searchParams.get('search') || ''
   const status = searchParams.get('status') || ''
@@ -38,6 +42,9 @@ export async function GET(req: NextRequest) {
 
 // PATCH /api/admin/invitations — send a pending invite
 export async function PATCH(req: NextRequest) {
+  const deny = await guardSuperadmin(req)
+  if (deny) return deny
+
   const { id, action } = await req.json()
   if (!id || action !== 'send') return NextResponse.json({ error: 'Invalid' }, { status: 400 })
 
@@ -58,6 +65,9 @@ export async function PATCH(req: NextRequest) {
 
 // POST /api/admin/invitations — create single invite
 export async function POST(req: NextRequest) {
+  const deny = await guardSuperadmin(req)
+  if (deny) return deny
+
   const body = await req.json()
   const { name, email, phone, city, country, activities, website, notes } = body
 

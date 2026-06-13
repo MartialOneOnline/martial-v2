@@ -190,11 +190,23 @@ export default function DashboardClient({ userName, userEmail }: Props) {
   const { currentSchool, loading: ctxLoading } = useSchoolContext()
 
   const [period, setPeriod]         = useState<Period>('12 months')
-  const [activeDay, setActiveDay]   = useState(() => {
-    const todayNum = new Date().getDate()
+  const [activeDay, setActiveDay]   = useState(0)
+  // Resolved after mount to avoid SSR/client hydration mismatch (#418)
+  const [dateLabel, setDateLabel]   = useState('')
+  const [longDateLabel, setLongDateLabel] = useState('')
+  const [greeting, setGreeting]     = useState(t.dashboard.goodMorning)
+
+  useEffect(() => {
+    const now = new Date()
+    const todayNum = now.getDate()
     const idx = DAYS.findIndex(d => d.num === todayNum)
-    return idx >= 0 ? idx : 0
-  })
+    setActiveDay(idx >= 0 ? idx : 0)
+    setDateLabel(now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }))
+    setLongDateLabel(now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }))
+    const hour = now.getHours()
+    setGreeting(hour < 12 ? t.dashboard.goodMorning : hour < 18 ? t.dashboard.goodAfternoon : t.dashboard.goodEvening)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   const { menuOpen, setMenuOpen } = useDashboard()
 
   // Real data
@@ -232,8 +244,6 @@ export default function DashboardClient({ userName, userEmail }: Props) {
   const bellRef                                    = useRef<HTMLDivElement>(null)
 
   const firstName = userName.split(' ')[0] ?? 'there'
-  const hour      = new Date().getHours()
-  const greeting  = hour < 12 ? t.dashboard.goodMorning : hour < 18 ? t.dashboard.goodAfternoon : t.dashboard.goodEvening
 
   const STATS = [
     {
@@ -321,7 +331,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl"
             style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', fontSize: 13, color: '#374151', whiteSpace: 'nowrap' }}>
             <Clock size={13} style={{ color: '#9CA3AF' }} />
-            {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+            {dateLabel}
           </div>
 
           {/* Bell + Notifications popup */}
@@ -460,7 +470,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
               <p style={{ fontSize: 12, color: '#9CA3AF' }}>{t.dashboard.upcomingClasses}</p>
               <div className="flex items-center gap-1.5 mt-0.5">
                 <p style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>
-                  {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
+                  {longDateLabel}
                 </p>
                 <Calendar size={13} style={{ color: '#9CA3AF' }} />
               </div>
@@ -700,7 +710,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
             <p style={{ fontSize: 12, color: '#9CA3AF' }}>{t.dashboard.upcomingClasses}</p>
             <div className="flex items-center gap-1.5 mt-0.5">
               <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>
-                {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
+                {longDateLabel}
               </p>
               <Calendar size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
             </div>

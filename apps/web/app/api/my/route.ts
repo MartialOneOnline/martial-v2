@@ -27,7 +27,6 @@ export async function GET() {
           status: true, startDate: true, endDate: true,
           classesUsed: true, paymentMethod: true,
           school: { select: { id: true, name: true, slug: true, logoUrl: true, city: true } },
-          plan: { select: { classLimit: true } },
         },
       },
       bookings: {

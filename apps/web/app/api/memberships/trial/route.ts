@@ -16,7 +16,20 @@ export async function POST(req: NextRequest) {
   const { schoolId } = await req.json()
   if (!schoolId) return NextResponse.json({ error: 'Missing schoolId' }, { status: 400 })
 
-  // Get V2 user
+  // Validate school exists and offers free trials
+  const school = await prisma.school.findUnique({
+    where: { id: schoolId },
+    select: { id: true, hasFreeTrialCls: true, status: true },
+  })
+  if (!school) return NextResponse.json({ error: 'School not found' }, { status: 404 })
+  if (school.status === 'SUSPENDED') {
+    return NextResponse.json({ error: 'School is not available' }, { status: 403 })
+  }
+  if (!school.hasFreeTrialCls) {
+    return NextResponse.json({ error: 'This school does not offer free trials' }, { status: 403 })
+  }
+
+  // Get or create V2 user
   let dbUser = await prisma.user.findUnique({ where: { supabaseAuthId: user.id } })
   if (!dbUser) {
     dbUser = await prisma.user.create({
@@ -28,44 +41,60 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  // Check not already a member
-  const existing = await prisma.schoolMember.findFirst({
+  // Block repeat trials — any previous membership at this school (including expired/cancelled) counts
+  const previousMembership = await prisma.membership.findFirst({
     where: { schoolId, userId: dbUser.id },
+    select: { id: true },
   })
-  if (existing) {
-    return NextResponse.json({ error: 'Already a member of this school' }, { status: 409 })
+  if (previousMembership) {
+    return NextResponse.json(
+      { error: 'You have already used a trial at this school' },
+      { status: 409 },
+    )
   }
 
-  // Create trial membership
+  // Race-condition protection: use a transaction
   const startDate = new Date()
   const endDate = new Date(startDate)
   endDate.setDate(endDate.getDate() + 7)
 
-  await prisma.$transaction([
-    prisma.schoolMember.create({
-      data: {
-        schoolId,
-        userId: dbUser.id,
-        role: 'STUDENT',
-        status: 'ACTIVE',
-        joinedAt: startDate,
-        notes: 'Free trial — 1 week',
-      },
-    }),
-    prisma.membership.create({
-      data: {
-        userId: dbUser.id,
-        schoolId,
-        planName: 'Free Trial — 1 Week',
-        price: 0,
-        currency: 'EUR',
-        paymentMethod: 'CASH',
-        status: 'ACTIVE',
-        startDate,
-        endDate,
-      },
-    }),
-  ])
+  try {
+    await prisma.$transaction([
+      prisma.schoolMember.create({
+        data: {
+          schoolId,
+          userId: dbUser.id,
+          role: 'STUDENT',
+          status: 'ACTIVE',
+          joinedAt: startDate,
+          notes: 'Free trial — 1 week',
+        },
+      }),
+      prisma.membership.create({
+        data: {
+          userId: dbUser.id,
+          schoolId,
+          planName: 'Free Trial — 1 Week',
+          price: 0,
+          currency: 'EUR',
+          paymentMethod: 'CASH',
+          status: 'ACTIVE',
+          startDate,
+          endDate,
+        },
+      }),
+    ])
+  } catch (err: unknown) {
+    // Unique constraint violation — duplicate concurrent request
+    const code = (err as { code?: string }).code
+    if (code === 'P2002') {
+      return NextResponse.json(
+        { error: 'You have already used a trial at this school' },
+        { status: 409 },
+      )
+    }
+    throw err
+  }
 
   return NextResponse.json({ success: true, trialEnds: endDate })
 }

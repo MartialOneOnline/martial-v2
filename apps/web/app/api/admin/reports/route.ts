@@ -1,7 +1,11 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { guardSuperadmin } from '@/lib/auth/server'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const deny = await guardSuperadmin(req)
+  if (deny) return deny
+
   const now = new Date()
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
   const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)

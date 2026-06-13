@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { guardSuperadmin } from '@/lib/auth/server'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const deny = await guardSuperadmin(req)
+  if (deny) return deny
+
   const schools = await prisma.school.findMany({
     where: { status: 'CLAIMED' },
     orderBy: { updatedAt: 'desc' },
@@ -18,6 +22,9 @@ export async function GET() {
 }
 
 export async function PATCH(req: NextRequest) {
+  const deny = await guardSuperadmin(req)
+  if (deny) return deny
+
   const { id, action } = await req.json()
   if (!id || !action) return NextResponse.json({ error: 'Missing id or action' }, { status: 400 })
 

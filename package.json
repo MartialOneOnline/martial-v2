@@ -10,6 +10,7 @@
     "db:seed": "npx tsx prisma/seed.ts"
   },
   "devDependencies": {
+    "csv-parse": "^6.2.1",
     "prettier": "^3.7.4",
     "prisma": "^7.8.0",
     "tsx": "^4.22.4",

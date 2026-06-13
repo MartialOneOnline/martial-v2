@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 22 completada ✅ — Color System v1.0 implementado (tokens, shared badges, CSS vars, UsersClient migrado)
+**Estado:** Sesión 23 completada ✅ — Estabilización y seguridad: admin guard, booking validation, free trial, hydration, public data filters, env unification, 27 tests
 
 ---
 
@@ -244,6 +244,21 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 ---
 
 ## Historial de sesiones
+
+### Sesión 23 — 2026-06-13 ✅
+- **`guardSuperadmin()`** — helper reutilizable en `lib/auth/server.ts`
+- **10 admin API routes protegidos** — users, stats, reports, schools, schools/all, schools/verify (GET+PATCH), invitations (GET+PATCH+POST), invitations/import, email-preview → 401/403
+- **Admin pages** — `app/admin/layout.tsx` convertido a server component con redirect si no SUPERADMIN
+- **`/api/classes`** — añadido `isPublished: true` + `status: { not: 'SUSPENDED' }` en school
+- **`/api/schools`** — excluye escuelas SUSPENDED
+- **`/api/bookings`** — validación completa: clase activa+publicada, fecha futura, dayOfWeek match, membresía activa, capacidad, duplicados
+- **`/api/memberships/trial`** — comprueba `hasFreeTrialCls`, bloquea repetición aunque membresía cancelada/expirada
+- **Hidratación #418 corregida** — `DashboardClient.tsx` (greeting, fechas) y `WeeklyTimetable.tsx` (activeDay) usan `useEffect` para resolver fechas client-side
+- **`SUPABASE_SERVICE_ROLE_KEY` eliminado** — unificado a `SUPABASE_SECRET_KEY` en 4 archivos
+- **27 tests automatizados** — guardSuperadmin (4), bookingValidation (9), trialEligibility (5), nextOccurrence (5) + 4 de duplicate + otros
+- **Vitest configurado** — `vitest.config.ts`, `package.json` con script `test`
+- **Type errors pre-existentes corregidos** — `classLimit` y `features` en `/api/my` y `school/[slug]/page.tsx`
+- Verificado: `check-types` ✅, `test` 27/27 ✅, `build` ✅
 
 ### Sesión 1 — 2026-05-27 ✅
 Entorno local · repo GitHub · monorepo Turborepo · CONTEXT.md · push inicial

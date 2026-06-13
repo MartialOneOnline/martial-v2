@@ -1,6 +1,11 @@
+import { NextRequest } from 'next/server'
 import { buildInviteSchoolEmail } from '@/lib/email/templates/inviteSchool'
+import { guardSuperadmin } from '@/lib/auth/server'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const deny = await guardSuperadmin(req)
+  if (deny) return deny
+
   const html = buildInviteSchoolEmail({
     schoolName: 'Roger Gracie Málaga',
     inviteUrl: '#',

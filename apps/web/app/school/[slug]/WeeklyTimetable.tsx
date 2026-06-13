@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import ClassBookingModal from './ClassBookingModal'
 
 type ScheduleEntry = { dayOfWeek: number; startTime: string; endTime: string }
@@ -49,9 +49,13 @@ export default function WeeklyTimetable({
   schoolSlug: string
   plans: Plan[]
 }) {
-  const today = new Date().getDay()
-  const defaultDay = today >= 1 && today <= 6 ? today : 1
-  const [activeDay, setActiveDay] = useState(defaultDay)
+  // Default to Monday to keep SSR/client consistent; set to today after mount
+  const [activeDay, setActiveDay] = useState(1)
+
+  useEffect(() => {
+    const today = new Date().getDay()
+    setActiveDay(today >= 1 && today <= 6 ? today : 1)
+  }, [])
   const [modalSession, setModalSession] = useState<SessionItem | null>(null)
 
   // Build map: dayOfWeek → sessions[]

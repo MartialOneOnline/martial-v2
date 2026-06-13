@@ -1,7 +1,11 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { guardSuperadmin } from '@/lib/auth/server'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const deny = await guardSuperadmin(req)
+  if (deny) return deny
+
   const [
     totalSchools,
     verifiedSchools,
@@ -41,7 +45,6 @@ export async function GET() {
       take: 5,
       select: { id: true, name: true, city: true, country: true, status: true, createdAt: true },
     }),
-    // Invitations per month (last 6 months)
     prisma.$queryRaw<{ month: string; count: bigint }[]>`
       SELECT
         TO_CHAR("createdAt", 'Mon') as month,
