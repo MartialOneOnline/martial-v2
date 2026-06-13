@@ -701,19 +701,19 @@ export default function EventsClient() {
       <main style={{ flex: 1, minWidth: 0 }}>
 
         {/* Topbar */}
-        <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20 flex-wrap"
+        <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20"
           style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
           <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
             style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(!menuOpen)}>
             <Menu size={16} style={{ color: '#374151' }} />
           </button>
 
-          <div className="flex items-center gap-2 px-3 py-2 rounded-xl"
-            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', minWidth: 200 }}>
+          <div className="flex flex-1 items-center gap-2 px-3 py-2 rounded-xl"
+            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', minWidth: 0 }}>
             <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
             <input type="text" placeholder={t.classes.eventsSearchPlaceholder} value={search}
               onChange={e => handleSearch(e.target.value)}
-              style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: 150 }} />
+              style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%', minWidth: 0 }} />
           </div>
 
           <div className="flex-1" />
@@ -733,10 +733,10 @@ export default function EventsClient() {
           <DashboardLanguageSelector />
 
           <button onClick={openCreate}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer shrink-0"
             style={{ background: '#0071E3', border: 'none', color: '#fff', fontSize: 13, fontWeight: 600 }}>
             <Plus size={15} />
-            {t.classes.createEvent}
+            <span className="hidden sm:inline">{t.classes.createEvent}</span>
           </button>
         </div>
 

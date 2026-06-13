@@ -413,7 +413,7 @@ export default function PaymentSubscriptionsClient() {
     <main style={{ flex: 1, minWidth: 0, width: "100%", overflow: "auto" }}>
 
           {/* Topbar */}
-          <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20 flex-wrap"
+          <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20"
             style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
             <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
               style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(!menuOpen)}>
@@ -440,9 +440,9 @@ export default function PaymentSubscriptionsClient() {
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: '#DC2626' }} />
             </button>
             <button onClick={() => setDrawerOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer shrink-0"
               style={{ background: '#0071E3', border: 'none', color: '#fff', fontSize: 13, fontWeight: 600 }}>
-              <Plus size={15} />{t.paymentsPage.subscriptionsTitle}
+              <Plus size={15} /><span className="hidden sm:inline">{t.paymentsPage.subscriptionsTitle}</span>
             </button>
           </div>
 

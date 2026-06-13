@@ -437,7 +437,7 @@ function FiltersDropdown({
         }}
       >
         <SlidersHorizontal size={13} />
-        Filtrar
+        <span className="hidden sm:inline">Filtrar</span>
         {activeCount > 0 && (
           <span style={{
             background: '#0071E3', color: '#fff', fontSize: 10, fontWeight: 700,
@@ -1269,7 +1269,7 @@ export default function UsersClient({ students: initialStudents }: { students: S
         </div>
 
         {/* Filter tabs */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none" style={{ WebkitOverflowScrolling: 'touch' }}>
           {(['All', 'Active', 'Pending', 'Lead', 'Inactive', 'Archived'] as FilterType[]).map(f => {
             const filterLabels: Record<FilterType, string> = {
               All: t.common.all, Active: t.common.active, Pending: t.common.pending,

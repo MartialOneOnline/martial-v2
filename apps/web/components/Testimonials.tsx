@@ -26,7 +26,7 @@ export default function Testimonials() {
               key={t.id}
               initial={{ opacity: 0, scale: 0.96 }}
               whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
+              viewport={{ once: true, amount: 0 }}
               transition={{ delay: idx * 0.15 }}
               whileHover={{ y: -4 }}
               className="bg-white border border-gray-100 p-6 rounded-2xl shadow-xs hover:shadow-lg flex flex-col justify-between relative overflow-hidden group"

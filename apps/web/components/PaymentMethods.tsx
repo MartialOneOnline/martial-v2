@@ -27,7 +27,7 @@ export default function PaymentMethods() {
         <div className="flex flex-wrap items-center justify-center gap-8 md:gap-14">
           {PAYMENTS.map((p, i) => (
             <motion.div key={p.name}
-              initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
+              initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0 }} transition={{ delay: i * 0.08 }}
               whileHover={{ scale: 1.05 }}
               className="px-6 py-3 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center min-w-[120px] shadow-sm hover:shadow-md transition-shadow">
               {p.logo}
