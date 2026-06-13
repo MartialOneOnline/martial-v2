@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 25 completada ✅ — Mobile view perfection: topbars, animations, filter tabs, responsive buttons
+**Estado:** Sesión 28 completada ✅ — Booking real, dashboard/preview split, publish workflow, lint estable
 
 ---
 
@@ -244,6 +244,36 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 ---
 
 ## Historial de sesiones
+
+### Sesión 28 — 2026-06-13 ✅
+**Estabilización: booking real, dashboard/preview, publish workflow, lint** — commits `14942c3`, `fd7a032`, `568fd0f`, `8fa06b1`, `40e63e7`
+- **`lib/scheduling.ts`** — `nextOccurrence()` extraído como módulo reutilizable tipado; UTC por defecto (sin `School.timezone` todavía); documentado
+- **`ClassBookingModal`** — `scheduledAt` calculado con `nextOccurrence()` desde slot seleccionado; nunca usa `new Date()` como sustituto
+- **Booking server** — valida que `scheduledAt` coincide con entrada real del schedule; mantiene todas las validaciones de `c161577`
+- **`TrialBookingCTA`** — sustituye `mailto:` por flujo interno; 1 trial → directo; varias → picker; ninguna → email/WhatsApp fallback
+- **`proxy.ts`** — `/dashboard/preview` siempre público; `/dashboard/**` requiere sesión; eliminado `middleware.ts` duplicado (conflicto Next.js 16)
+- **`DashboardOnboarding`** — nuevo componente para usuarios sin escuela (en lugar de 403)
+- **`DashboardClient`** — elimina fallbacks silenciosos a datos ficticios
+- **`ClassesClient`** — controles Draft/Published visibles; solo OWNER/ADMIN pueden publicar
+- **`explore/page.tsx`** — filtra `isActive=true AND isPublished=true`
+- **`scripts/publish-classes.ts`** — script dry-run seguro; `--apply` explícito requerido para escribir
+- **ESLint 9** en `apps/api`; turbo lint wired; 0 errores / 250 warnings cosméticos
+- **43 tests pasando** (scheduling + nextOccurrence + booking edge cases)
+- **Build limpio** — `npm run build` OK en Next.js 16 / Turbopack
+
+### Sesión 27 — 2026-06-13 ✅
+**Memberships module** — commit `c34a597`
+- `MembershipPlan`: `classAccess Json` (reglas flexibles por clase), `planType`, `validityDays`, `isPublic`; eliminado `classLimit` + `features`
+- API routes: `GET/POST /api/dashboard/membership-plans` + `PUT/DELETE /[id]`; devuelve `memberCount` en tiempo real
+- `MembershipsClient`: 3 tabs (Subscriptions / Single Passes / Trials); drawer con `ClassAccessBuilder` — toggle incluir/excluir, unlimited/limited, limit + frecuencia (week/month/total), cap global
+- Schema `db push` sin reset; Prisma client regenerado
+
+### Sesión 26 — 2026-06-13 ✅
+**Classes + Events avanzado** — commits `354bf74`, `c161577`
+- `bookingSettings Json?` en `Class` + `defaultBookingSettings Json` en `School`; tipo `BookingSettings` con helpers `minsToHoursAndMins`/`hoursAndMinsToTotal`
+- `ClassesClient`: banner upload, inputs numéricos `inputMode="numeric"`, multi-slot por día, payment method chips, `isPublished` toggle, `BookingSettingsSection` colapsable
+- `EventsClient`: reescritura completa con API real; `EventTicket` model (Option B); ticket builder UI; payment method toggles
+- Seguridad `c161577`: `guardSuperadmin()`, 10 rutas admin protegidas, validación booking server-side (auth, clase activa+publicada, fecha futura, membresía, capacidad, duplicados)
 
 ### Sesión 25 — 2026-06-13 ✅
 **Mobile view perfection** — `fix(mobile)` commit `0d7bd05`
