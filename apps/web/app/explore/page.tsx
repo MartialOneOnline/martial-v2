@@ -510,7 +510,7 @@ export default function ExplorePage() {
 
   // Booking modal — for classes tab + quick view CTA
   const [bookingModal, setBookingModal] = useState<{
-    session: { classId: string; className: string; level: string; startTime: string; endTime: string; dayLabel: string }
+    session: { classId: string; className: string; level: string; startTime: string; endTime: string; dayLabel: string; dayOfWeek: number; schedule: { dayOfWeek: number; startTime: string; endTime: string }[] }
     schoolSlug: string
     plans: Plan[]
   } | null>(null)
@@ -612,6 +612,8 @@ export default function ExplorePage() {
         startTime: next.startTime,
         endTime: next.endTime,
         dayLabel,
+        dayOfWeek: next.dayOfWeek,
+        schedule: cls.schedule,
       },
       schoolSlug: cls.school.slug,
       plans: cls.school.membershipPlans,

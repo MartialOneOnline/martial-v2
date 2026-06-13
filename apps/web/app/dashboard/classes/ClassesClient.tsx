@@ -874,6 +874,24 @@ export default function ClassesClient() {
     loadClasses()
   }
 
+  async function togglePublish(cls: ClassRow) {
+    setOpenMenuId(null)
+    const next = !cls.isPublished
+    await fetch(`/api/dashboard/classes/${cls.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: cls.name,
+        isActive: cls.isActive,
+        isPublished: next,
+        isTrial: cls.isTrial,
+        currency: cls.currency,
+      }),
+    })
+    setSuccessMsg(next ? 'Class published' : 'Class unpublished')
+    loadClasses()
+  }
+
   function handleSaved() {
     setDrawerOpen(false)
     setSuccessMsg(editingClass ? 'Class updated' : t.classes.classCreated)
@@ -1067,7 +1085,16 @@ export default function ClassesClient() {
 
                       {/* Status */}
                       <td className="px-5 py-3">
-                        <StatusBadge active={cls.isActive} />
+                        <div className="flex flex-col gap-1">
+                          <StatusBadge active={cls.isActive} />
+                          <span style={{
+                            fontSize: 10, fontWeight: 600, padding: '1px 6px', borderRadius: 999,
+                            background: cls.isPublished ? '#EFF6FF' : '#F3F4F6',
+                            color: cls.isPublished ? '#0870E2' : '#9CA3AF',
+                          }}>
+                            {cls.isPublished ? 'Published' : 'Draft'}
+                          </span>
+                        </div>
                       </td>
 
                       {/* Actions */}
@@ -1092,6 +1119,13 @@ export default function ClassesClient() {
                                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
                                 onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
                                 <Pencil size={13} /> {t.common.edit}
+                              </button>
+                              <button onClick={() => togglePublish(cls)}
+                                className="w-full text-left px-4 py-2 transition-colors cursor-pointer flex items-center gap-2"
+                                style={{ fontSize: 13, color: cls.isPublished ? '#D97706' : '#0870E2', background: 'transparent', border: 'none' }}
+                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
+                                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+                                {cls.isPublished ? '⊘ Unpublish' : '↑ Publish'}
                               </button>
                               <button onClick={() => { setOpenMenuId(null); setDeleteClass(cls) }}
                                 className="w-full text-left px-4 py-2 transition-colors cursor-pointer flex items-center gap-2"
