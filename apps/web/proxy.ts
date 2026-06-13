@@ -1,62 +1,68 @@
+/**
+ * Next.js proxy (middleware) — route protection.
+ *
+ * Rules:
+ * - /dashboard/preview → always public (demo mode)
+ * - /dashboard/**      → requires Supabase session; no session → /login?next=<url>
+ * - /admin/**          → requires Supabase session; no session → /login?next=<url>
+ * - All other routes   → pass through
+ *
+ * NOTE: Middleware only checks the session cookie. Authorisation (school access,
+ * SUPERADMIN role) is enforced again inside page components and API routes.
+ * Do NOT rely solely on middleware for data authorisation.
+ */
+
+import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
-import { NextResponse, type NextRequest } from 'next/server'
 
 export async function proxy(request: NextRequest) {
-  // Creamos la respuesta base — el middleware DEBE devolver siempre una respuesta
+  const { pathname } = request.nextUrl
+
+  // /dashboard/preview is always public — skip all checks
+  if (pathname === '/dashboard/preview' || pathname.startsWith('/dashboard/preview/')) {
+    return NextResponse.next({ request })
+  }
+
+  // Protect /dashboard/** and /admin/**
+  const isDashboard = pathname.startsWith('/dashboard')
+  const isAdmin     = pathname.startsWith('/admin')
+
+  if (!isDashboard && !isAdmin) {
+    return NextResponse.next({ request })
+  }
+
+  // Build a response to forward cookies (required by Supabase SSR)
   let supabaseResponse = NextResponse.next({ request })
 
-  // Cliente Supabase en el contexto del middleware
-  // Necesita leer y escribir cookies para mantener la sesión activa
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
       cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          // Escribimos las cookies tanto en el request como en la respuesta
-          // Esto es necesario para que los Server Components las lean correctamente
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          )
+        getAll: () => request.cookies.getAll(),
+        setAll: (cookies) => {
+          cookies.forEach(({ name, value }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({ request })
-          cookiesToSet.forEach(({ name, value, options }) =>
+          cookies.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           )
         },
       },
-    }
+    },
   )
 
-  // getUser refresca el token si ha expirado — IMPORTANTE: usar getUser, nunca getSession aquí
   const { data: { user } } = await supabase.auth.getUser()
 
-  const pathname = request.nextUrl.pathname
-
-  // Protect /admin/* — redirect to login if not authenticated
-  if (pathname.startsWith('/admin')) {
-    if (!user) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/login'
-      url.searchParams.set('next', pathname)
-      return NextResponse.redirect(url)
-    }
-  }
-
-  // Si ya tiene sesión y va a login o register, redirigir al dashboard
-  if (user && (pathname === '/login' || pathname === '/register')) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
-    return NextResponse.redirect(url)
+  // No session → redirect to login with return URL
+  if (!user) {
+    const loginUrl = new URL('/login', request.url)
+    loginUrl.searchParams.set('next', pathname)
+    return NextResponse.redirect(loginUrl)
   }
 
   return supabaseResponse
 }
 
-// El matcher excluye archivos estáticos y assets de Next.js
-// Solo se ejecuta en rutas de página reales
 export const config = {
   matcher: [
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',

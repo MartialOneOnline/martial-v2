@@ -1,24 +1,19 @@
+import { redirect } from 'next/navigation'
 import { createClient } from '../../lib/supabase/server'
 import type { User, ApiResponse } from '@repo/types'
 import DashboardClient from './DashboardClient'
-
-// Demo data shown to non-authenticated visitors
-const DEMO_USER = {
-  userName: 'Academy Owner',
-  userEmail: 'demo@martial.app',
-  userRole: 'academy',
-}
+import DashboardOnboarding from './DashboardOnboarding'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  // No session → show public demo dashboard
+  // Middleware should have redirected, but guard here too
   if (!user) {
-    return <DashboardClient {...DEMO_USER} />
+    redirect('/login?next=/dashboard')
   }
 
-  // Logged in → fetch real user data
+  // Fetch real user data from API
   const { data: { session } } = await supabase.auth.getSession()
 
   let dbUser: User | null = null
@@ -31,7 +26,7 @@ export default async function DashboardPage() {
       const body = (await res.json()) as ApiResponse<User>
       if (body.success) dbUser = body.data
     } catch {
-      // API not available — continue with Supabase user data
+      // API not available — continue with Supabase user data only
     }
   }
 
@@ -39,6 +34,11 @@ export default async function DashboardPage() {
   const userEmail   = dbUser?.email ?? user.email ?? ''
   const userRole    = dbUser?.role ?? user.user_metadata?.role ?? 'academy'
 
+  // User has no school yet → show onboarding state (not a generic 403)
+  // Check if the user has any school membership
+  const hasSchool = dbUser != null && (dbUser as any).schoolMembers?.length > 0
+
+  // We pass the data through; DashboardClient will show onboarding if no school data arrives
   return (
     <DashboardClient
       userName={displayName}
