@@ -43,6 +43,7 @@ export type ClassMinAggregateOutputType = {
   schoolId: string | null
   name: string | null
   description: string | null
+  coverUrl: string | null
   disciplineId: string | null
   level: string | null
   duration: number | null
@@ -62,6 +63,7 @@ export type ClassMaxAggregateOutputType = {
   schoolId: string | null
   name: string | null
   description: string | null
+  coverUrl: string | null
   disciplineId: string | null
   level: string | null
   duration: number | null
@@ -81,6 +83,7 @@ export type ClassCountAggregateOutputType = {
   schoolId: number
   name: number
   description: number
+  coverUrl: number
   disciplineId: number
   level: number
   duration: number
@@ -117,6 +120,7 @@ export type ClassMinAggregateInputType = {
   schoolId?: true
   name?: true
   description?: true
+  coverUrl?: true
   disciplineId?: true
   level?: true
   duration?: true
@@ -136,6 +140,7 @@ export type ClassMaxAggregateInputType = {
   schoolId?: true
   name?: true
   description?: true
+  coverUrl?: true
   disciplineId?: true
   level?: true
   duration?: true
@@ -155,6 +160,7 @@ export type ClassCountAggregateInputType = {
   schoolId?: true
   name?: true
   description?: true
+  coverUrl?: true
   disciplineId?: true
   level?: true
   duration?: true
@@ -264,6 +270,7 @@ export type ClassGroupByOutputType = {
   schoolId: string
   name: string
   description: string | null
+  coverUrl: string | null
   disciplineId: string | null
   level: string | null
   duration: number | null
@@ -309,6 +316,7 @@ export type ClassWhereInput = {
   schoolId?: Prisma.StringFilter<"Class"> | string
   name?: Prisma.StringFilter<"Class"> | string
   description?: Prisma.StringNullableFilter<"Class"> | string | null
+  coverUrl?: Prisma.StringNullableFilter<"Class"> | string | null
   disciplineId?: Prisma.StringNullableFilter<"Class"> | string | null
   level?: Prisma.StringNullableFilter<"Class"> | string | null
   duration?: Prisma.IntNullableFilter<"Class"> | number | null
@@ -335,6 +343,7 @@ export type ClassOrderByWithRelationInput = {
   schoolId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  coverUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   disciplineId?: Prisma.SortOrderInput | Prisma.SortOrder
   level?: Prisma.SortOrderInput | Prisma.SortOrder
   duration?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -364,6 +373,7 @@ export type ClassWhereUniqueInput = Prisma.AtLeast<{
   schoolId?: Prisma.StringFilter<"Class"> | string
   name?: Prisma.StringFilter<"Class"> | string
   description?: Prisma.StringNullableFilter<"Class"> | string | null
+  coverUrl?: Prisma.StringNullableFilter<"Class"> | string | null
   disciplineId?: Prisma.StringNullableFilter<"Class"> | string | null
   level?: Prisma.StringNullableFilter<"Class"> | string | null
   duration?: Prisma.IntNullableFilter<"Class"> | number | null
@@ -390,6 +400,7 @@ export type ClassOrderByWithAggregationInput = {
   schoolId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  coverUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   disciplineId?: Prisma.SortOrderInput | Prisma.SortOrder
   level?: Prisma.SortOrderInput | Prisma.SortOrder
   duration?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -420,6 +431,7 @@ export type ClassScalarWhereWithAggregatesInput = {
   schoolId?: Prisma.StringWithAggregatesFilter<"Class"> | string
   name?: Prisma.StringWithAggregatesFilter<"Class"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"Class"> | string | null
+  coverUrl?: Prisma.StringNullableWithAggregatesFilter<"Class"> | string | null
   disciplineId?: Prisma.StringNullableWithAggregatesFilter<"Class"> | string | null
   level?: Prisma.StringNullableWithAggregatesFilter<"Class"> | string | null
   duration?: Prisma.IntNullableWithAggregatesFilter<"Class"> | number | null
@@ -441,6 +453,7 @@ export type ClassCreateInput = {
   id?: string
   name: string
   description?: string | null
+  coverUrl?: string | null
   level?: string | null
   duration?: number | null
   capacity?: number | null
@@ -465,6 +478,7 @@ export type ClassUncheckedCreateInput = {
   schoolId: string
   name: string
   description?: string | null
+  coverUrl?: string | null
   disciplineId?: string | null
   level?: string | null
   duration?: number | null
@@ -487,6 +501,7 @@ export type ClassUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   duration?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -511,6 +526,7 @@ export type ClassUncheckedUpdateInput = {
   schoolId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   disciplineId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   duration?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -534,6 +550,7 @@ export type ClassCreateManyInput = {
   schoolId: string
   name: string
   description?: string | null
+  coverUrl?: string | null
   disciplineId?: string | null
   level?: string | null
   duration?: number | null
@@ -555,6 +572,7 @@ export type ClassUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   duration?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -575,6 +593,7 @@ export type ClassUncheckedUpdateManyInput = {
   schoolId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   disciplineId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   duration?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -607,6 +626,7 @@ export type ClassCountOrderByAggregateInput = {
   schoolId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  coverUrl?: Prisma.SortOrder
   disciplineId?: Prisma.SortOrder
   level?: Prisma.SortOrder
   duration?: Prisma.SortOrder
@@ -635,6 +655,7 @@ export type ClassMaxOrderByAggregateInput = {
   schoolId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  coverUrl?: Prisma.SortOrder
   disciplineId?: Prisma.SortOrder
   level?: Prisma.SortOrder
   duration?: Prisma.SortOrder
@@ -654,6 +675,7 @@ export type ClassMinOrderByAggregateInput = {
   schoolId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  coverUrl?: Prisma.SortOrder
   disciplineId?: Prisma.SortOrder
   level?: Prisma.SortOrder
   duration?: Prisma.SortOrder
@@ -832,6 +854,7 @@ export type ClassCreateWithoutDisciplineInput = {
   id?: string
   name: string
   description?: string | null
+  coverUrl?: string | null
   level?: string | null
   duration?: number | null
   capacity?: number | null
@@ -855,6 +878,7 @@ export type ClassUncheckedCreateWithoutDisciplineInput = {
   schoolId: string
   name: string
   description?: string | null
+  coverUrl?: string | null
   level?: string | null
   duration?: number | null
   capacity?: number | null
@@ -906,6 +930,7 @@ export type ClassScalarWhereInput = {
   schoolId?: Prisma.StringFilter<"Class"> | string
   name?: Prisma.StringFilter<"Class"> | string
   description?: Prisma.StringNullableFilter<"Class"> | string | null
+  coverUrl?: Prisma.StringNullableFilter<"Class"> | string | null
   disciplineId?: Prisma.StringNullableFilter<"Class"> | string | null
   level?: Prisma.StringNullableFilter<"Class"> | string | null
   duration?: Prisma.IntNullableFilter<"Class"> | number | null
@@ -927,6 +952,7 @@ export type ClassCreateWithoutSchoolInput = {
   id?: string
   name: string
   description?: string | null
+  coverUrl?: string | null
   level?: string | null
   duration?: number | null
   capacity?: number | null
@@ -949,6 +975,7 @@ export type ClassUncheckedCreateWithoutSchoolInput = {
   id?: string
   name: string
   description?: string | null
+  coverUrl?: string | null
   disciplineId?: string | null
   level?: string | null
   duration?: number | null
@@ -997,6 +1024,7 @@ export type ClassCreateWithoutInstructorInput = {
   id?: string
   name: string
   description?: string | null
+  coverUrl?: string | null
   level?: string | null
   duration?: number | null
   capacity?: number | null
@@ -1020,6 +1048,7 @@ export type ClassUncheckedCreateWithoutInstructorInput = {
   schoolId: string
   name: string
   description?: string | null
+  coverUrl?: string | null
   disciplineId?: string | null
   level?: string | null
   duration?: number | null
@@ -1067,6 +1096,7 @@ export type ClassCreateWithoutBookingsInput = {
   id?: string
   name: string
   description?: string | null
+  coverUrl?: string | null
   level?: string | null
   duration?: number | null
   capacity?: number | null
@@ -1090,6 +1120,7 @@ export type ClassUncheckedCreateWithoutBookingsInput = {
   schoolId: string
   name: string
   description?: string | null
+  coverUrl?: string | null
   disciplineId?: string | null
   level?: string | null
   duration?: number | null
@@ -1127,6 +1158,7 @@ export type ClassUpdateWithoutBookingsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   duration?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1150,6 +1182,7 @@ export type ClassUncheckedUpdateWithoutBookingsInput = {
   schoolId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   disciplineId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   duration?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1172,6 +1205,7 @@ export type ClassCreateManyDisciplineInput = {
   schoolId: string
   name: string
   description?: string | null
+  coverUrl?: string | null
   level?: string | null
   duration?: number | null
   capacity?: number | null
@@ -1192,6 +1226,7 @@ export type ClassUpdateWithoutDisciplineInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   duration?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1215,6 +1250,7 @@ export type ClassUncheckedUpdateWithoutDisciplineInput = {
   schoolId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   duration?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1237,6 +1273,7 @@ export type ClassUncheckedUpdateManyWithoutDisciplineInput = {
   schoolId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   duration?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1257,6 +1294,7 @@ export type ClassCreateManySchoolInput = {
   id?: string
   name: string
   description?: string | null
+  coverUrl?: string | null
   disciplineId?: string | null
   level?: string | null
   duration?: number | null
@@ -1278,6 +1316,7 @@ export type ClassUpdateWithoutSchoolInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   duration?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1300,6 +1339,7 @@ export type ClassUncheckedUpdateWithoutSchoolInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   disciplineId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   duration?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1322,6 +1362,7 @@ export type ClassUncheckedUpdateManyWithoutSchoolInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   disciplineId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   duration?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1344,6 +1385,7 @@ export type ClassCreateManyInstructorInput = {
   schoolId: string
   name: string
   description?: string | null
+  coverUrl?: string | null
   disciplineId?: string | null
   level?: string | null
   duration?: number | null
@@ -1364,6 +1406,7 @@ export type ClassUpdateWithoutInstructorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   duration?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1387,6 +1430,7 @@ export type ClassUncheckedUpdateWithoutInstructorInput = {
   schoolId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   disciplineId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   duration?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1409,6 +1453,7 @@ export type ClassUncheckedUpdateManyWithoutInstructorInput = {
   schoolId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   disciplineId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   duration?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1461,6 +1506,7 @@ export type ClassSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   schoolId?: boolean
   name?: boolean
   description?: boolean
+  coverUrl?: boolean
   disciplineId?: boolean
   level?: boolean
   duration?: boolean
@@ -1488,6 +1534,7 @@ export type ClassSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   schoolId?: boolean
   name?: boolean
   description?: boolean
+  coverUrl?: boolean
   disciplineId?: boolean
   level?: boolean
   duration?: boolean
@@ -1513,6 +1560,7 @@ export type ClassSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   schoolId?: boolean
   name?: boolean
   description?: boolean
+  coverUrl?: boolean
   disciplineId?: boolean
   level?: boolean
   duration?: boolean
@@ -1538,6 +1586,7 @@ export type ClassSelectScalar = {
   schoolId?: boolean
   name?: boolean
   description?: boolean
+  coverUrl?: boolean
   disciplineId?: boolean
   level?: boolean
   duration?: boolean
@@ -1555,7 +1604,7 @@ export type ClassSelectScalar = {
   updatedAt?: boolean
 }
 
-export type ClassOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "name" | "description" | "disciplineId" | "level" | "duration" | "capacity" | "price" | "currency" | "isTrial" | "isActive" | "isPublished" | "paymentMethods" | "bookingSettings" | "schedule" | "instructorId" | "createdAt" | "updatedAt", ExtArgs["result"]["class"]>
+export type ClassOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "name" | "description" | "coverUrl" | "disciplineId" | "level" | "duration" | "capacity" | "price" | "currency" | "isTrial" | "isActive" | "isPublished" | "paymentMethods" | "bookingSettings" | "schedule" | "instructorId" | "createdAt" | "updatedAt", ExtArgs["result"]["class"]>
 export type ClassInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   discipline?: boolean | Prisma.Class$disciplineArgs<ExtArgs>
@@ -1587,6 +1636,7 @@ export type $ClassPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     schoolId: string
     name: string
     description: string | null
+    coverUrl: string | null
     disciplineId: string | null
     level: string | null
     duration: number | null
@@ -2033,6 +2083,7 @@ export interface ClassFieldRefs {
   readonly schoolId: Prisma.FieldRef<"Class", 'String'>
   readonly name: Prisma.FieldRef<"Class", 'String'>
   readonly description: Prisma.FieldRef<"Class", 'String'>
+  readonly coverUrl: Prisma.FieldRef<"Class", 'String'>
   readonly disciplineId: Prisma.FieldRef<"Class", 'String'>
   readonly level: Prisma.FieldRef<"Class", 'String'>
   readonly duration: Prisma.FieldRef<"Class", 'Int'>

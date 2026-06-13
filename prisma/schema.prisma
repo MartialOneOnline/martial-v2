@@ -491,17 +491,19 @@ model MembershipPlan {
 
   name         String
   description  String?
-  price        Float
+  price        Float    @default(0)
   currency     String   @default("EUR")
-  billingCycle String   // "monthly" | "quarterly" | "annual" | "one-off"
-  features     String[]
+  planType     String   @default("SUBSCRIPTION") // SUBSCRIPTION | SINGLE_PASS | TRIAL
+  billingCycle String   @default("monthly")      // monthly | quarterly | annual | one-off
+  validityDays Int?                               // for SINGLE_PASS / TRIAL: days valid after activation
+  isPublic     Boolean  @default(true)
   isPopular    Boolean  @default(false)
   isActive     Boolean  @default(true)
   sortOrder    Int      @default(0)
 
-  // Class-limited plans (e.g. "Bono 8 clases")
-  // null = unlimited classes included
-  classLimit   Int?
+  // Flexible per-class access rules
+  // { classRules: [{classId, unlimited, limit?, limitType?}], globalLimit?, globalLimitType? }
+  classAccess  Json     @default("{}")
 
   // Content platform access (e.g. Roger Gracie TV)
   contentPlatformId String?
@@ -556,6 +558,7 @@ model Class {
 
   name         String
   description  String?
+  coverUrl     String?    // class banner/image
   disciplineId String?
   discipline   Discipline? @relation(fields: [disciplineId], references: [id])
   level        String?    // "Beginner" | "Intermediate" | "Advanced" | "All levels"
@@ -694,7 +697,7 @@ model Membership {
   startDate     DateTime
   endDate       DateTime?
 
-  // For class-limited plans (bono 8 clases, etc.)
+  // Usage tracking — computed from bookings count, but cached here for perf
   classesUsed   Int              @default(0)
 
   stripeSubId   String?
