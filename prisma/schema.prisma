@@ -150,6 +150,13 @@ enum TransactionCategory {
   OTHER
 }
 
+enum TransactionStatus {
+  PAID
+  PENDING
+  FAILED
+  REFUNDED
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // AFFILIATION
 // Martial arts organizations / associations that affiliate academies
@@ -1003,6 +1010,7 @@ model Transaction {
   school      School              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   type        TransactionType
+  status      TransactionStatus   @default(PAID)
   category    TransactionCategory @default(OTHER)
   amount      Float
   currency    String              @default("EUR")

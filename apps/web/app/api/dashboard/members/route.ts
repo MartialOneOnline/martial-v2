@@ -35,7 +35,7 @@ export async function GET() {
   const memberships = await prisma.membership.findMany({
     where: { userId: { in: userIds }, schoolId, status: 'ACTIVE' },
     include: {
-      plan: { select: { name: true, classAccess: true } },
+      plan: { select: { name: true, classAccess: true, planType: true } },
     },
     orderBy: { startDate: 'desc' },
   })
@@ -76,9 +76,12 @@ export async function GET() {
       activeMembership: mem ? {
         id: mem.id,
         planName: mem.plan?.name ?? mem.planName,
+        planType: mem.plan?.planType ?? 'SUBSCRIPTION',
         status: mem.status,
         startDate: mem.startDate.toISOString(),
         endDate: mem.endDate?.toISOString() ?? null,
+        price: Number(mem.price),
+        currency: mem.currency,
         consumed: mem.consumed,
         totalLimit,
       } : null,

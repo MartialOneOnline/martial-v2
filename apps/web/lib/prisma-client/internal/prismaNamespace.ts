@@ -3503,6 +3503,7 @@ export const TransactionScalarFieldEnum = {
   id: 'id',
   schoolId: 'schoolId',
   type: 'type',
+  status: 'status',
   category: 'category',
   amount: 'amount',
   currency: 'currency',
@@ -3969,6 +3970,20 @@ export type EnumTransactionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$
  * Reference to a field of type 'TransactionType[]'
  */
 export type ListEnumTransactionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TransactionType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'TransactionStatus'
+ */
+export type EnumTransactionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TransactionStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'TransactionStatus[]'
+ */
+export type ListEnumTransactionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TransactionStatus[]'>
     
 
 

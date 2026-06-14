@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import {
-  X, Plus, Pencil, Trash2, Check, ChevronDown, ChevronUp, Infinity,
+  X, Plus, Pencil, Trash2, Check, ChevronDown, ChevronUp, Infinity, Menu,
 } from 'lucide-react'
 import { useDashboard } from '../../../components/DashboardShell'
 import { useT } from '../../../lib/i18n/LanguageContext'
@@ -413,7 +413,7 @@ function PlanDrawer({ open, onClose, onSaved, editPlan, classes, defaultTab }: {
           transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)' }}>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-8 py-5 shrink-0"
+        <div className="flex items-center justify-between px-4 md:px-8 py-5 shrink-0"
           style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
           <div>
             <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111827', margin: 0, letterSpacing: '-0.02em' }}>
@@ -431,8 +431,8 @@ function PlanDrawer({ open, onClose, onSaved, editPlan, classes, defaultTab }: {
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-8 py-6">
-          <div className="flex gap-8" style={{ alignItems: 'flex-start' }}>
+        <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6">
+          <div className="flex flex-col md:flex-row gap-6 md:gap-8" style={{ alignItems: 'flex-start' }}>
 
             {/* Left column */}
             <div className="flex-1 min-w-0 flex flex-col gap-5">
@@ -560,7 +560,7 @@ function PlanDrawer({ open, onClose, onSaved, editPlan, classes, defaultTab }: {
         </div>
 
         {/* Footer */}
-        <div className="shrink-0 px-8 py-5 flex items-center justify-between"
+        <div className="shrink-0 px-4 md:px-8 py-5 flex items-center justify-between"
           style={{ background: '#fff', borderTop: '1px solid #E5E7EB' }}>
           <div>
             {error && <p style={{ fontSize: 13, color: '#EF4444' }}>{error}</p>}
@@ -713,7 +713,7 @@ function PlanRow({ plan, classes, onEdit, onDelete }: {
 
 // ── Main client ────────────────────────────────────────────────────────────────
 export default function MembershipsClient() {
-  useDashboard()
+  const { setMenuOpen } = useDashboard()
   useT()
 
   const [plans, setPlans] = useState<PlanRow[]>([])
@@ -782,42 +782,53 @@ export default function MembershipsClient() {
     <div className="flex flex-col h-full">
 
       {/* Top bar */}
-      <div className="flex items-center justify-between px-8 py-5 shrink-0"
+      <div className="flex items-center gap-3 px-4 md:px-8 py-3 shrink-0"
         style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
-        <div className="flex gap-1" style={{ background: '#F3F4F6', borderRadius: 10, padding: 4 }}>
-          {(['subscriptions', 'single-passes', 'trials'] as TabId[]).map(tab => (
-            <button key={tab} onClick={() => setActiveTab(tab)}
-              style={{
-                padding: '6px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600,
-                background: activeTab === tab ? '#fff' : 'transparent',
-                color: activeTab === tab ? '#111827' : '#6B7280',
-                boxShadow: activeTab === tab ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                transition: 'all 0.15s',
-              }}>
-              {TAB_LABELS[tab]}
-              {plans.filter(p => p.planType === PLAN_TYPE_MAP[tab]).length > 0 && (
-                <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 700,
-                  background: activeTab === tab ? '#EFF6FF' : '#E5E7EB',
-                  color: activeTab === tab ? '#1D4ED8' : '#9CA3AF',
-                  padding: '1px 6px', borderRadius: 999 }}>
-                  {plans.filter(p => p.planType === PLAN_TYPE_MAP[tab]).length}
-                </span>
-              )}
-            </button>
-          ))}
+        {/* Hamburger — mobile only */}
+        <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
+          style={{ border: '1px solid #E5E7EB', background: '#F9FAFB' }}
+          onClick={() => setMenuOpen(true)}>
+          <Menu size={16} style={{ color: '#374151' }} />
+        </button>
+
+        {/* Tab pills — scrollable on mobile */}
+        <div className="flex-1 overflow-x-auto scrollbar-none" style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
+          <div className="flex gap-1 w-max" style={{ background: '#F3F4F6', borderRadius: 10, padding: 4 }}>
+            {(['subscriptions', 'single-passes', 'trials'] as TabId[]).map(tab => (
+              <button key={tab} onClick={() => setActiveTab(tab)}
+                style={{
+                  padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600,
+                  whiteSpace: 'nowrap',
+                  background: activeTab === tab ? '#fff' : 'transparent',
+                  color: activeTab === tab ? '#111827' : '#6B7280',
+                  boxShadow: activeTab === tab ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  transition: 'all 0.15s',
+                }}>
+                {TAB_LABELS[tab]}
+                {plans.filter(p => p.planType === PLAN_TYPE_MAP[tab]).length > 0 && (
+                  <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 700,
+                    background: activeTab === tab ? '#EFF6FF' : '#E5E7EB',
+                    color: activeTab === tab ? '#1D4ED8' : '#9CA3AF',
+                    padding: '1px 6px', borderRadius: 999 }}>
+                    {plans.filter(p => p.planType === PLAN_TYPE_MAP[tab]).length}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
         </div>
 
         <button onClick={openCreate}
-          className="flex items-center gap-2 cursor-pointer"
+          className="flex items-center gap-2 cursor-pointer shrink-0"
           style={{ padding: '9px 18px', borderRadius: 10, border: 'none',
             background: '#0071E3', color: '#fff', fontSize: 13, fontWeight: 600 }}>
           <Plus size={15} />
-          {ADD_LABELS[activeTab]}
+          <span className="hidden sm:inline">{ADD_LABELS[activeTab]}</span>
         </button>
       </div>
 
       {/* Table */}
-      <div className="flex-1 overflow-auto px-8 py-6">
+      <div className="flex-1 overflow-auto px-4 md:px-8 py-6">
         {loading ? (
           <div className="flex items-center justify-center" style={{ height: 200 }}>
             <p style={{ color: '#9CA3AF', fontSize: 14 }}>Loading…</p>

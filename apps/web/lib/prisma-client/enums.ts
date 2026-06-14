@@ -191,6 +191,16 @@ export const TransactionCategory = {
 export type TransactionCategory = (typeof TransactionCategory)[keyof typeof TransactionCategory]
 
 
+export const TransactionStatus = {
+  PAID: 'PAID',
+  PENDING: 'PENDING',
+  FAILED: 'FAILED',
+  REFUNDED: 'REFUNDED'
+} as const
+
+export type TransactionStatus = (typeof TransactionStatus)[keyof typeof TransactionStatus]
+
+
 export const InvitationStatus = {
   PENDING: 'PENDING',
   SENT: 'SENT',

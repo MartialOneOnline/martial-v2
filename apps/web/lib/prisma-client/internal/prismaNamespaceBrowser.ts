@@ -614,6 +614,7 @@ export const TransactionScalarFieldEnum = {
   id: 'id',
   schoolId: 'schoolId',
   type: 'type',
+  status: 'status',
   category: 'category',
   amount: 'amount',
   currency: 'currency',
