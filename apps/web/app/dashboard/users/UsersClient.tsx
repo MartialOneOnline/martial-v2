@@ -8,6 +8,7 @@ import {
   ChevronDown, UserCheck, Archive, Shield,
   Mail, Upload, FileText, CheckCircle, AlertCircle,
   SlidersHorizontal, Eye, Send, Trash2,
+  QrCode, Pencil, MessageSquare, RefreshCw, CreditCard, Receipt,
 } from 'lucide-react'
 import { useDashboard } from '../../../components/DashboardShell'
 import DashboardLanguageSelector from '../../../components/DashboardLanguageSelector'
@@ -151,6 +152,12 @@ function ActionsMenu({
   onResendInvite,
   onDelete,
   onDeleteUser,
+  onEdit,
+  onSendMsg,
+  onQRCode,
+  onMarkPaid,
+  onSyncMembership,
+  showToast,
 }: {
   student: Student
   onStatusChange: (id: string, status: string) => void
@@ -158,6 +165,12 @@ function ActionsMenu({
   onResendInvite: (student: Student) => void
   onDelete: (id: string) => void
   onDeleteUser: (id: string) => void
+  onEdit: (student: Student) => void
+  onSendMsg: (student: Student) => void
+  onQRCode: (student: Student) => void
+  onMarkPaid: (student: Student) => void
+  onSyncMembership: (student: Student) => void
+  showToast: (msg: string, type?: 'success' | 'error' | 'info') => void
 }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -221,11 +234,27 @@ function ActionsMenu({
             () => { closeAll(); router.push(`/dashboard/users/${student.id}`) },
           )}
 
-          {/* Resend invite — only for PENDING */}
-          {student.status === 'PENDING' && menuItem(
-            <Send size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
-            'Reenviar invitación',
-            () => { closeAll(); onResendInvite(student) },
+          {/* Edit */}
+          {menuItem(
+            <Pencil size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
+            'Editar',
+            () => { closeAll(); onEdit(student) },
+          )}
+
+          <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
+
+          {/* Send message */}
+          {menuItem(
+            <MessageSquare size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
+            'Enviar mensaje',
+            () => { closeAll(); onSendMsg(student) },
+          )}
+
+          {/* QR Code */}
+          {menuItem(
+            <QrCode size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
+            'QR Code',
+            () => { closeAll(); onQRCode(student) },
           )}
 
           <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
@@ -327,6 +356,45 @@ function ActionsMenu({
 
           <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
 
+          {/* Sync Membership */}
+          {menuItem(
+            <RefreshCw size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
+            'Sync Membership',
+            () => { closeAll(); onSyncMembership(student) },
+          )}
+
+          {/* Mark as Paid */}
+          {menuItem(
+            <CreditCard size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
+            'Mark as Paid',
+            () => { closeAll(); onMarkPaid(student) },
+          )}
+
+          {/* Invoice */}
+          {menuItem(
+            <Receipt size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
+            'Invoice',
+            () => { closeAll(); showToast('Invoice — Coming soon', 'info') },
+          )}
+
+          {/* Send Waiver */}
+          {menuItem(
+            <FileText size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
+            'Send Waiver',
+            () => { closeAll(); showToast('Send Waiver — Coming soon', 'info') },
+          )}
+
+          <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
+
+          {/* Resend invite — only for PENDING */}
+          {student.status === 'PENDING' && menuItem(
+            <Send size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
+            'Reenviar invitación',
+            () => { closeAll(); onResendInvite(student) },
+          )}
+
+          {student.status === 'PENDING' && <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />}
+
           {/* Archive */}
           {menuItem(
             <Archive size={13} style={{ flexShrink: 0 }} />,
@@ -365,6 +433,236 @@ function ActionsMenu({
           )}
         </div>
       )}
+    </div>
+  )
+}
+
+// ── Edit Student Modal ────────────────────────────────────────────────────────
+function EditStudentModal({ student, onClose, onSaved }: {
+  student: Student
+  onClose: () => void
+  onSaved: (updated: Partial<Student>) => void
+}) {
+  const [belt, setBelt]         = useState(student.belt ?? 'Blanco')
+  const [degree, setDegree]     = useState(student.beltDegree ?? 0)
+  const [status, setStatus]     = useState(student.status)
+  const [saving, setSaving]     = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) onClose() }
+    document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
+  }, [onClose])
+
+  const save = async () => {
+    setSaving(true)
+    try {
+      await fetch(`/api/dashboard/members/${student.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ belt, beltDegree: degree, status }),
+      })
+      onSaved({ belt, beltDegree: degree, status })
+      onClose()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
+      <div ref={ref} className="w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden" style={{ background: '#fff' }}>
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid #E5E7EB' }}>
+          <p style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>Editar — {student.name}</p>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF' }}><X size={16} /></button>
+        </div>
+        <div className="px-5 py-4 flex flex-col gap-4">
+          {/* Read-only info */}
+          <div className="rounded-xl px-3 py-2.5" style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
+            <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 2 }}>Email (cuenta de acceso)</p>
+            <p style={{ fontSize: 13, color: '#374151' }}>{student.email}</p>
+          </div>
+          {/* Status */}
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Estado</label>
+            <select value={status} onChange={e => setStatus(e.target.value)}
+              style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #E5E7EB', fontSize: 13, color: '#111827', background: '#fff', outline: 'none' }}>
+              {STATUSES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+            </select>
+          </div>
+          {/* Belt */}
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Cinturón</label>
+            <select value={belt} onChange={e => setBelt(e.target.value)}
+              style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #E5E7EB', fontSize: 13, color: '#111827', background: '#fff', outline: 'none' }}>
+              {BELTS.map(b => <option key={b} value={b}>{BELT_DISPLAY[b]?.label ?? b}</option>)}
+            </select>
+          </div>
+          {/* Belt degree */}
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Grados (rayas)</label>
+            <div className="flex gap-2">
+              {[0,1,2,3,4].map(d => (
+                <button key={d} onClick={() => setDegree(d)}
+                  style={{ flex: 1, padding: '6px 0', borderRadius: 8, fontSize: 13, fontWeight: degree === d ? 700 : 400,
+                    border: `1px solid ${degree === d ? '#0071E3' : '#E5E7EB'}`,
+                    background: degree === d ? '#EFF6FF' : '#fff', color: degree === d ? '#0071E3' : '#6B7280', cursor: 'pointer' }}>
+                  {d}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="flex gap-2 px-5 pb-5">
+          <button onClick={onClose} style={{ flex: 1, padding: '9px 0', borderRadius: 10, fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151', cursor: 'pointer' }}>Cancelar</button>
+          <button onClick={save} disabled={saving} style={{ flex: 2, padding: '9px 0', borderRadius: 10, fontSize: 13, fontWeight: 600, border: 'none', background: '#0071E3', color: '#fff', cursor: 'pointer', opacity: saving ? 0.7 : 1 }}>
+            {saving ? 'Guardando…' : 'Guardar cambios'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Send Message Modal ────────────────────────────────────────────────────────
+function SendMessageModal({ student, onClose, onSent }: {
+  student: Student
+  onClose: () => void
+  onSent: () => void
+}) {
+  const [message, setMessage] = useState('')
+  const [sending, setSending] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) onClose() }
+    document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
+  }, [onClose])
+
+  const send = async () => {
+    if (!message.trim()) return
+    setSending(true)
+    await new Promise(r => setTimeout(r, 600)) // stub
+    setSending(false)
+    onSent()
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
+      <div ref={ref} className="w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden" style={{ background: '#fff' }}>
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid #E5E7EB' }}>
+          <div>
+            <p style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>Enviar mensaje</p>
+            <p style={{ fontSize: 12, color: '#6B7280' }}>→ {student.name} · {student.email}</p>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF' }}><X size={16} /></button>
+        </div>
+        <div className="px-5 py-4">
+          <textarea
+            value={message} onChange={e => setMessage(e.target.value)}
+            placeholder="Escribe tu mensaje aquí…"
+            rows={5}
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid #E5E7EB', fontSize: 13, color: '#111827', outline: 'none', resize: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }}
+          />
+        </div>
+        <div className="flex gap-2 px-5 pb-5">
+          <button onClick={onClose} style={{ flex: 1, padding: '9px 0', borderRadius: 10, fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151', cursor: 'pointer' }}>Cancelar</button>
+          <button onClick={send} disabled={sending || !message.trim()} style={{ flex: 2, padding: '9px 0', borderRadius: 10, fontSize: 13, fontWeight: 600, border: 'none', background: '#0071E3', color: '#fff', cursor: 'pointer', opacity: (sending || !message.trim()) ? 0.5 : 1 }}>
+            {sending ? 'Enviando…' : 'Enviar mensaje'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Student QR Modal ──────────────────────────────────────────────────────────
+function StudentQRModal({ student, onClose }: { student: Student; onClose: () => void }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const appUrl = typeof window !== 'undefined' ? window.location.origin : ''
+  const qrText = `${appUrl}/dashboard/users/${student.id}`
+
+  useEffect(() => {
+    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) onClose() }
+    document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
+  }, [onClose])
+
+  useEffect(() => {
+    import('toqr').then(({ toQR }) => {
+      const matrix = toQR(qrText)
+      const size = Math.round(Math.sqrt(matrix.length))
+      const canvas = canvasRef.current
+      if (!canvas) return
+      const scale = Math.floor(200 / size)
+      canvas.width = size * scale
+      canvas.height = size * scale
+      const ctx = canvas.getContext('2d')!
+      ctx.fillStyle = '#fff'
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      ctx.fillStyle = '#111827'
+      for (let i = 0; i < size; i++) {
+        for (let j = 0; j < size; j++) {
+          if (matrix[i * size + j]) ctx.fillRect(j * scale, i * scale, scale, scale)
+        }
+      }
+    })
+  }, [qrText])
+
+  const download = () => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const a = document.createElement('a')
+    a.download = `qr-${student.name.replace(/\s+/g, '-')}.png`
+    a.href = canvas.toDataURL('image/png')
+    a.click()
+  }
+
+  const initials = (student.name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
+      <div ref={ref} className="w-full max-w-xs rounded-2xl shadow-2xl overflow-hidden" style={{ background: '#fff' }}>
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid #E5E7EB' }}>
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#EEF2FF' }}>
+              <QrCode size={15} style={{ color: '#6366F1' }} />
+            </div>
+            <div>
+              <p style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>QR — {student.name}</p>
+              <p style={{ fontSize: 11, color: '#9CA3AF' }}>Perfil del alumno</p>
+            </div>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF' }}><X size={16} /></button>
+        </div>
+        <div className="flex flex-col items-center gap-4 px-5 py-6">
+          <div style={{ background: '#fff', padding: 12, borderRadius: 12, border: '1px solid #E5E7EB', lineHeight: 0 }}>
+            <canvas ref={canvasRef} style={{ display: 'block', imageRendering: 'pixelated' }} />
+          </div>
+          <div className="flex items-center gap-3">
+            {student.avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={student.avatarUrl} alt={student.name} style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: '2px solid #E5E7EB' }} />
+            ) : (
+              <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {initials}
+              </div>
+            )}
+            <div>
+              <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{student.name}</p>
+              <p style={{ fontSize: 11, color: '#9CA3AF' }}>{student.email}</p>
+            </div>
+          </div>
+          <button onClick={download} className="flex items-center gap-2 w-full justify-center py-2.5 rounded-xl cursor-pointer"
+            style={{ background: '#0071E3', border: 'none', color: '#fff', fontSize: 13, fontWeight: 600 }}>
+            <Download size={14} /> Descargar QR
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
@@ -1094,12 +1392,15 @@ export default function UsersClient({ students: initialStudents }: { students: S
   const router = useRouter()
   const { toasts, show: showToast, remove: removeToast } = useToast()
 
-  const [students, setStudents] = useState<Student[]>(initialStudents)
+  const [students, setStudents]       = useState<Student[]>(initialStudents)
   const [showAddModal, setShowAddModal] = useState(false)
   const [activeFilter, setActiveFilter] = useState<FilterType>('All')
   const [advFilters, setAdvFilters]     = useState<ActiveFilters>({ belts: [], statuses: [], roles: [] })
   const [search, setSearch]             = useState('')
   const [currentPage, setCurrentPage]   = useState(1)
+  const [editStudent, setEditStudent]   = useState<Student | null>(null)
+  const [msgStudent, setMsgStudent]     = useState<Student | null>(null)
+  const [qrStudent, setQrStudent]       = useState<Student | null>(null)
 
   const activeCount = students.filter(s => s.status === 'ACTIVE').length
   const STATS = [
@@ -1176,6 +1477,71 @@ export default function UsersClient({ students: initialStudents }: { students: S
     }
   }
 
+  const handleEditSaved = (id: string, updated: Partial<Student>) => {
+    setStudents(prev => prev.map(s => s.id === id ? { ...s, ...updated } : s))
+  }
+
+  const handleMarkAsPaid = async (student: Student) => {
+    if (!student.activeMembership) {
+      showToast('No hay membresía activa para este alumno', 'error')
+      return
+    }
+    try {
+      const res = await fetch('/api/dashboard/transactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: student.id,
+          description: student.activeMembership.planName,
+          amount: 0,
+          currency: 'EUR',
+          date: new Date().toISOString(),
+          type: 'INCOME',
+          status: 'PAID',
+          paymentMethod: 'CASH',
+        }),
+      })
+      if (res.ok) showToast(`Pago registrado para ${student.name}`, 'success')
+      else showToast('Error al registrar el pago', 'error')
+    } catch {
+      showToast('Error al registrar el pago', 'error')
+    }
+  }
+
+  const handleSyncMembership = async (student: Student) => {
+    showToast(`Sync Membership — Coming soon (${student.name})`, 'info')
+  }
+
+  const handleSendMessage = (_student: Student) => {
+    // onSent callback fires toast from parent
+  }
+
+  const handleExport = () => {
+    const headers = ['Nombre', 'Email', 'Cinturón', 'Grados', 'Estado', 'Rol', 'Plan', 'Estado Membresía', 'Inicio Membresía', 'Fin Membresía', 'Alta']
+    const rows = filtered.map(s => [
+      s.name,
+      s.email,
+      BELT_DISPLAY[s.belt]?.label ?? s.belt ?? '',
+      String(s.beltDegree ?? 0),
+      STATUS_DISPLAY[s.status] ?? s.status,
+      s.role,
+      s.activeMembership?.planName ?? '',
+      s.activeMembership?.status ?? '',
+      s.activeMembership?.startDate ? new Date(s.activeMembership.startDate).toLocaleDateString('es-ES') : '',
+      s.activeMembership?.endDate   ? new Date(s.activeMembership.endDate).toLocaleDateString('es-ES')   : '',
+      s.joinedAt ? new Date(s.joinedAt).toLocaleDateString('es-ES') : '',
+    ])
+    const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `alumnos-${new Date().toISOString().slice(0,10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+    showToast(`${filtered.length} alumnos exportados`, 'success')
+  }
+
   const handleCreated = (newStudents: Student[]) => {
     setStudents(prev => [...newStudents, ...prev])
   }
@@ -1186,6 +1552,23 @@ export default function UsersClient({ students: initialStudents }: { students: S
 
       {showAddModal && (
         <AddStudentModal onClose={() => setShowAddModal(false)} onCreated={handleCreated} />
+      )}
+      {editStudent && (
+        <EditStudentModal
+          student={editStudent}
+          onClose={() => setEditStudent(null)}
+          onSaved={updated => { handleEditSaved(editStudent.id, updated); showToast(`${editStudent.name} actualizado`, 'success') }}
+        />
+      )}
+      {msgStudent && (
+        <SendMessageModal
+          student={msgStudent}
+          onClose={() => setMsgStudent(null)}
+          onSent={() => showToast(`Mensaje enviado a ${msgStudent.name}`, 'success')}
+        />
+      )}
+      {qrStudent && (
+        <StudentQRModal student={qrStudent} onClose={() => setQrStudent(null)} />
       )}
 
       {/* Topbar */}
@@ -1244,7 +1627,7 @@ export default function UsersClient({ students: initialStudents }: { students: S
               {filtered.length} {t.common.of} {students.length} {t.users.ofMembers}
             </p>
           </div>
-          <button className="hidden sm:flex items-center gap-2 cursor-pointer"
+          <button onClick={handleExport} className="hidden sm:flex items-center gap-2 cursor-pointer"
             style={{ fontSize: 13, fontWeight: 500, color: '#374151', background: '#fff',
               border: '1px solid #E5E7EB', borderRadius: 8, padding: '7px 14px' }}>
             <Download size={13} style={{ color: '#6B7280' }} />
@@ -1457,6 +1840,12 @@ export default function UsersClient({ students: initialStudents }: { students: S
                       onResendInvite={handleResendInvite}
                       onDelete={handleArchive}
                       onDeleteUser={handleDeleteUser}
+                      onEdit={s => setEditStudent(s)}
+                      onSendMsg={s => setMsgStudent(s)}
+                      onQRCode={s => setQrStudent(s)}
+                      onMarkPaid={handleMarkAsPaid}
+                      onSyncMembership={handleSyncMembership}
+                      showToast={showToast}
                     />
                   </td>
                 </tr>
