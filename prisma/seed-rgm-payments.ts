@@ -113,11 +113,9 @@ const ACCOUNT_CATEGORY: Record<string, string> = {
 async function main() {
   console.log('💳 Seeding Roger Gracie Málaga — Payments module\n')
 
-  // Load student v1_id → email map (from existing JSON)
-  const students: { v1_id: string; email: string }[] = JSON.parse(
-    readFileSync(resolve(__dirname, 'rgm-students.json'), 'utf-8')
-  )
-  const v1IdToEmail = new Map(students.map(s => [s.v1_id, s.email]))
+  // Build v1 user_id → email map from v1-users.csv (covers all RGM students)
+  const v1UsersRaw = parseCSV('../scripts/v1-users.csv')
+  const v1IdToEmail = new Map(v1UsersRaw.map(u => [u.id, u.email?.toLowerCase()]).filter(([, e]) => e))
 
   // ── 1. MembershipPlans ───────────────────────────────────────────────────────
   console.log('📋 Creating MembershipPlans...')
