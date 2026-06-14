@@ -101,39 +101,38 @@ export default function PaymentSubscriptionsClient() {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/dashboard/members?pageSize=500')
+      const params = new URLSearchParams({ pageSize: '500' })
+      if (activeFilter !== 'ALL') params.set('status', activeFilter)
+      if (search) params.set('search', search)
+      const res = await fetch(`/api/dashboard/memberships?${params}`)
       if (!res.ok) return
       const data = await res.json()
-      const members = data.members ?? data
-
-      // Flatten: one row per membership (could be multiple per user in history)
-      // For subscriptions view: show members with any membership (active or not)
-      const rows: SubRow[] = []
-      for (const m of members) {
-        if (!m.activeMembership) continue
-        const mem = m.activeMembership
-        rows.push({
-          memberId:   m.id,
-          userId:     m.userId ?? m.id,
-          memberName: m.name ?? m.email,
-          memberEmail: m.email,
-          belt:       m.belt ?? 'Blanco',
-          planName:   mem.planName,
-          planType:   'SUBSCRIPTION',
-          amount:     mem.price ?? 0,
-          currency:   mem.currency ?? 'EUR',
-          startDate:  mem.startDate,
-          endDate:    mem.endDate ?? null,
-          status:     mem.status as MemStatus,
-          consumed:   mem.consumed ?? 0,
-          totalLimit: mem.totalLimit ?? null,
-        })
-      }
+      const memberships = data.memberships ?? []
+      const rows: SubRow[] = memberships.map((m: {
+        id: string; userId?: string; userName: string; userEmail?: string; userAvatar?: string;
+        planName: string; paymentMethod?: string; price: number; currency?: string;
+        startDate: string; endDate?: string; status: MemStatus; consumed?: number; totalLimit?: number;
+      }) => ({
+        memberId:    m.id,
+        userId:      m.userId ?? m.id,
+        memberName:  m.userName,
+        memberEmail: m.userEmail ?? '',
+        belt:        'Blanco',
+        planName:    m.planName,
+        planType:    'SUBSCRIPTION',
+        amount:      m.price ?? 0,
+        currency:    m.currency ?? 'EUR',
+        startDate:   m.startDate,
+        endDate:     m.endDate ?? null,
+        status:      m.status,
+        consumed:    m.consumed ?? 0,
+        totalLimit:  m.totalLimit ?? null,
+      }))
       setSubs(rows)
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [activeFilter, search])
 
   useEffect(() => { load() }, [load])
 
