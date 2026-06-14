@@ -38,3 +38,4 @@ yarn-error.log*
 *.pem
 
 /generated/prisma
+prisma/v1-*.csv
