@@ -3,6 +3,91 @@ import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 
+// GET /api/dashboard/members — list all school members with active membership
+export async function GET() {
+  const user = await getAuthUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const schoolId = await getCurrentSchoolId()
+  if (!schoolId) return NextResponse.json({ error: 'No school context' }, { status: 400 })
+
+  if (user.role !== 'SUPERADMIN') {
+    try {
+      const member = await requireSchoolAccess(user.id, schoolId)
+      if (!['OWNER', 'ADMIN', 'INSTRUCTOR'].includes(member.role)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
+    } catch {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+  }
+
+  const members = await prisma.schoolMember.findMany({
+    where: { schoolId },
+    include: {
+      user: { select: { id: true, name: true, email: true, avatarUrl: true } },
+    },
+    orderBy: { joinedAt: 'desc' },
+  })
+
+  // Fetch active memberships for all members in one query
+  const userIds = members.map(m => m.userId)
+  const memberships = await prisma.membership.findMany({
+    where: { userId: { in: userIds }, schoolId, status: 'ACTIVE' },
+    include: {
+      plan: { select: { name: true, classAccess: true } },
+    },
+    orderBy: { startDate: 'desc' },
+  })
+
+  // Count bookings per membership for usage
+  const membershipIds = memberships.map(m => m.id)
+  const usageCounts = await prisma.booking.groupBy({
+    by: ['membershipId'],
+    where: { membershipId: { in: membershipIds }, status: { not: 'CANCELLED' } },
+    _count: { id: true },
+  })
+  const usageMap = Object.fromEntries(usageCounts.map(u => [u.membershipId, u._count.id]))
+
+  // Map membership by userId (take first active one per user)
+  const membershipByUserId: Record<string, typeof memberships[0] & { consumed: number }> = {}
+  for (const m of memberships) {
+    if (!membershipByUserId[m.userId]) {
+      membershipByUserId[m.userId] = { ...m, consumed: usageMap[m.id] ?? m.classesUsed }
+    }
+  }
+
+  const result = members.map(m => {
+    const mem = membershipByUserId[m.userId]
+    const classAccess = mem?.plan?.classAccess as { classRules?: { limitType?: string; limit?: string }[]; globalLimit?: string } | null
+    const totalLimit = classAccess?.globalLimit ? parseInt(classAccess.globalLimit) : null
+
+    return {
+      id: m.id,
+      userId: m.user.id,
+      name: m.user.name ?? m.user.email,
+      email: m.user.email,
+      avatarUrl: m.user.avatarUrl ?? null,
+      belt: m.belt ?? 'Blanco',
+      beltDegree: m.beltDegree ?? 0,
+      status: m.status,
+      role: m.role,
+      joinedAt: m.joinedAt?.toISOString() ?? null,
+      activeMembership: mem ? {
+        id: mem.id,
+        planName: mem.plan?.name ?? mem.planName,
+        status: mem.status,
+        startDate: mem.startDate.toISOString(),
+        endDate: mem.endDate?.toISOString() ?? null,
+        consumed: mem.consumed,
+        totalLimit,
+      } : null,
+    }
+  })
+
+  return NextResponse.json(result)
+}
+
 // POST /api/dashboard/members — create a new member (student) in the current school
 export async function POST(req: NextRequest) {
   const user = await getAuthUser()

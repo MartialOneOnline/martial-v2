@@ -39,17 +39,51 @@ async function UsersPageWithSchool({ schoolId }: { schoolId: string }) {
     orderBy: { joinedAt: 'desc' },
   })
 
-  const students = members.map(m => ({
-    id: m.id,
-    name: m.user.name ?? m.user.email,
-    email: m.user.email,
-    avatarUrl: m.user.avatarUrl ?? null,
-    belt: m.belt ?? 'Blanco',
-    beltDegree: m.beltDegree ?? 0,
-    status: m.status,
-    role: m.role,
-    joinedAt: m.joinedAt?.toISOString() ?? null,
-  }))
+  const userIds = members.map(m => m.userId)
+  const [activeMemberships, usageCounts] = await Promise.all([
+    prisma.membership.findMany({
+      where: { userId: { in: userIds }, schoolId, status: 'ACTIVE' },
+      include: { plan: { select: { name: true, classAccess: true } } },
+      orderBy: { startDate: 'desc' },
+    }),
+    prisma.booking.groupBy({
+      by: ['membershipId'],
+      where: { userId: { in: userIds }, status: { not: 'CANCELLED' } },
+      _count: { id: true },
+    }),
+  ])
+
+  const usageMap = Object.fromEntries(usageCounts.map(u => [u.membershipId, u._count.id]))
+  const membershipByUser: Record<string, typeof activeMemberships[0]> = {}
+  for (const m of activeMemberships) {
+    if (!membershipByUser[m.userId]) membershipByUser[m.userId] = m
+  }
+
+  const students = members.map(m => {
+    const mem = membershipByUser[m.userId]
+    const classAccess = mem?.plan?.classAccess as { globalLimit?: string } | null
+    const totalLimit = classAccess?.globalLimit ? parseInt(classAccess.globalLimit) || null : null
+    return {
+      id: m.id,
+      name: m.user.name ?? m.user.email,
+      email: m.user.email,
+      avatarUrl: m.user.avatarUrl ?? null,
+      belt: m.belt ?? 'Blanco',
+      beltDegree: m.beltDegree ?? 0,
+      status: m.status,
+      role: m.role,
+      joinedAt: m.joinedAt?.toISOString() ?? null,
+      activeMembership: mem ? {
+        id: mem.id,
+        planName: mem.plan?.name ?? mem.planName,
+        status: mem.status,
+        startDate: mem.startDate.toISOString(),
+        endDate: mem.endDate?.toISOString() ?? null,
+        consumed: usageMap[mem.id] ?? mem.classesUsed,
+        totalLimit,
+      } : null,
+    }
+  })
 
   return <UsersClient students={students} />
 }

@@ -42,27 +42,42 @@ export default async function StudentProfilePage({
   if (!member) notFound()
 
   // Recent bookings
-  const bookings = await prisma.booking.findMany({
-    where: { userId: member.userId },
-    orderBy: { createdAt: 'desc' },
-    take: 5,
-    include: {
-      class: { select: { name: true } },
-    },
-  }).catch(() => [])
+  const [bookings, transactions, memberships, membershipPlans] = await Promise.all([
+    prisma.booking.findMany({
+      where: { userId: member.userId },
+      orderBy: { scheduledAt: 'desc' },
+      take: 50,
+      include: { class: { select: { name: true } } },
+    }).catch(() => []),
+    prisma.transaction.findMany({
+      where: { userId: member.userId },
+      orderBy: { date: 'desc' },
+      take: 50,
+    }).catch(() => []),
+    prisma.membership.findMany({
+      where: { userId: member.userId, schoolId: member.schoolId },
+      include: { plan: { select: { name: true, price: true, billingCycle: true, planType: true } } },
+      orderBy: { startDate: 'desc' },
+    }).catch(() => []),
+    prisma.membershipPlan.findMany({
+      where: { schoolId: member.schoolId, isActive: true },
+      select: { id: true, name: true, price: true, currency: true, planType: true, billingCycle: true, validityDays: true },
+      orderBy: { sortOrder: 'asc' },
+    }).catch(() => []),
+  ])
 
-  // Recent transactions
-  const transactions = await prisma.transaction.findMany({
-    where: { userId: member.userId },
-    orderBy: { createdAt: 'desc' },
-    take: 5,
-  }).catch(() => [])
+  // Count bookings used per membership
+  const membershipIds = memberships.map(m => m.id)
+  const usageCounts = membershipIds.length
+    ? await prisma.booking.groupBy({
+        by: ['membershipId'],
+        where: { membershipId: { in: membershipIds }, status: { not: 'CANCELLED' } },
+        _count: { id: true },
+      }).catch(() => [])
+    : []
+  const usageMap = Object.fromEntries(usageCounts.map(u => [u.membershipId, u._count.id]))
 
-  // Active membership
-  const membership = await prisma.membership.findFirst({
-    where: { userId: member.userId, status: 'ACTIVE' },
-    include: { plan: { select: { name: true, price: true, billingCycle: true } } },
-  }).catch(() => null)
+  const activeMembership = memberships.find(m => m.status === 'ACTIVE') ?? null
 
   const profile = {
     memberId: member.id,
@@ -88,6 +103,7 @@ export default async function StudentProfilePage({
       className: b.class?.name ?? 'Clase',
       date: b.scheduledAt?.toISOString() ?? b.createdAt.toISOString(),
       status: b.status,
+      attendedAt: b.attendedAt?.toISOString() ?? null,
     })),
     transactions: transactions.map(t => ({
       id: t.id,
@@ -98,13 +114,37 @@ export default async function StudentProfilePage({
       date: t.date.toISOString(),
       description: t.description ?? t.category ?? '—',
     })),
-    membership: membership ? {
-      planName: membership.plan?.name ?? 'Plan',
-      status: membership.status,
-      expiresAt: membership.endDate?.toISOString() ?? null,
-      price: Number(membership.plan?.price ?? 0),
-      interval: membership.plan?.billingCycle ?? null,
+    memberships: memberships.map(m => ({
+      id: m.id,
+      planName: m.plan?.name ?? m.planName,
+      planType: m.plan?.planType ?? 'SUBSCRIPTION',
+      billingCycle: m.plan?.billingCycle ?? null,
+      price: Number(m.price),
+      currency: m.currency,
+      status: m.status,
+      startDate: m.startDate.toISOString(),
+      endDate: m.endDate?.toISOString() ?? null,
+      consumed: usageMap[m.id] ?? m.classesUsed,
+    })),
+    activeMembership: activeMembership ? {
+      id: activeMembership.id,
+      planName: activeMembership.plan?.name ?? activeMembership.planName,
+      status: activeMembership.status,
+      startDate: activeMembership.startDate.toISOString(),
+      expiresAt: activeMembership.endDate?.toISOString() ?? null,
+      price: Number(activeMembership.plan?.price ?? activeMembership.price),
+      interval: activeMembership.plan?.billingCycle ?? null,
+      consumed: usageMap[activeMembership.id] ?? activeMembership.classesUsed,
     } : null,
+    availablePlans: membershipPlans.map(p => ({
+      id: p.id,
+      name: p.name,
+      price: Number(p.price),
+      currency: p.currency,
+      planType: p.planType,
+      billingCycle: p.billingCycle,
+      validityDays: p.validityDays,
+    })),
   }
 
   return <StudentProfileClient profile={profile} />

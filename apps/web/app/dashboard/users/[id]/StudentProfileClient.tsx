@@ -6,13 +6,26 @@ import {
   ArrowLeft, Mail, Phone, Calendar, Shield, Edit2,
   Send, MoreHorizontal, Sparkles, CreditCard,
   BookOpen, TrendingUp, Clock, AlertCircle, ChevronRight,
-  User, Heart, FileText, Dumbbell, X,
+  User, Heart, FileText, Dumbbell, X, Plus, Check, CheckCircle,
 } from 'lucide-react'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
-type Booking = { id: string; className: string; date: string; status: string }
+type Booking = { id: string; className: string; date: string; status: string; attendedAt: string | null }
 type Transaction = { id: string; amount: number; currency: string; method: string; status: string; date: string; description: string }
-type MembershipInfo = { planName: string; status: string; expiresAt: string | null; price: number; interval: string | null }
+type MembershipRecord = {
+  id: string; planName: string; planType: string; billingCycle: string | null
+  price: number; currency: string; status: string
+  startDate: string; endDate: string | null; consumed: number
+}
+type ActiveMembership = {
+  id: string; planName: string; status: string
+  startDate: string; expiresAt: string | null
+  price: number; interval: string | null; consumed: number
+}
+type AvailablePlan = {
+  id: string; name: string; price: number; currency: string
+  planType: string; billingCycle: string | null; validityDays: number | null
+}
 
 type Profile = {
   memberId: string
@@ -35,7 +48,9 @@ type Profile = {
   schoolName: string
   bookings: Booking[]
   transactions: Transaction[]
-  membership: MembershipInfo | null
+  memberships: MembershipRecord[]
+  activeMembership: ActiveMembership | null
+  availablePlans: AvailablePlan[]
 }
 
 // ── Design tokens ──────────────────────────────────────────────────────────────
@@ -413,12 +428,285 @@ function EditDrawer({
 }
 
 // ── Main component ─────────────────────────────────────────────────────────────
+// ── Booking status map ─────────────────────────────────────────────────────────
+const BOOKING_STATUS: Record<string, { bg: string; color: string; label: string }> = {
+  CONFIRMED:  { bg: '#EFF6FF', color: '#2563EB', label: 'Confirmed' },
+  PENDING:    { bg: '#FFFBEB', color: '#D97706', label: 'Pending' },
+  COMPLETED:  { bg: '#F0FDF4', color: '#16A34A', label: 'Attended' },
+  CANCELLED:  { bg: '#F3F4F6', color: '#9CA3AF', label: 'Cancelled' },
+  NO_SHOW:    { bg: '#FEF2F2', color: '#DC2626', label: 'No-show' },
+}
+
+const MEM_STATUS: Record<string, { bg: string; color: string; label: string }> = {
+  ACTIVE:    { bg: '#F0FDF4', color: '#16A34A', label: 'Active' },
+  PAUSED:    { bg: '#FFFBEB', color: '#D97706', label: 'Paused' },
+  CANCELLED: { bg: '#F3F4F6', color: '#6B7280', label: 'Cancelled' },
+  EXPIRED:   { bg: '#FEF2F2', color: '#9CA3AF', label: 'Expired' },
+}
+
+// ── Assign Plan Modal ──────────────────────────────────────────────────────────
+function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
+  memberId: string
+  plans: AvailablePlan[]
+  onClose: () => void
+  onAssigned: (m: ActiveMembership) => void
+}) {
+  const [planId, setPlanId] = useState(plans[0]?.id ?? '')
+  const [startDate, setStartDate] = useState(new Date().toISOString().substring(0, 10))
+  const [paymentMethod, setPaymentMethod] = useState('CASH')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  const selected = plans.find(p => p.id === planId)
+  const sym = (c: string) => c === 'EUR' ? '€' : c === 'USD' ? '$' : c === 'GBP' ? '£' : c
+
+  async function save() {
+    if (!planId) { setError('Select a plan'); return }
+    setSaving(true); setError('')
+    try {
+      const res = await fetch(`/api/dashboard/members/${memberId}/membership`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planId, startDate, paymentMethod }),
+      })
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? 'Error'); }
+      const data = await res.json()
+      onAssigned({
+        id: data.id,
+        planName: data.plan?.name ?? data.planName,
+        status: data.status,
+        startDate: data.startDate,
+        expiresAt: data.endDate ?? null,
+        price: Number(data.price),
+        interval: data.plan?.billingCycle ?? null,
+        consumed: 0,
+      })
+      onClose()
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Error')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.45)' }}>
+      <div style={{ background: '#fff', borderRadius: 16, width: 480, maxWidth: '95vw', padding: 28, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+        <div className="flex items-center justify-between" style={{ marginBottom: 20 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>Assign membership plan</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF' }}><X size={18} /></button>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          {/* Plan selector */}
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 8 }}>Plan</label>
+            <div className="flex flex-col gap-2">
+              {plans.map(p => (
+                <button key={p.id} onClick={() => setPlanId(p.id)}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '10px 14px', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
+                    border: planId === p.id ? '2px solid #0071E3' : '1px solid #E5E7EB',
+                    background: planId === p.id ? '#EFF6FF' : '#fff' }}>
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>{p.name}</p>
+                    <p style={{ fontSize: 11, color: '#9CA3AF', margin: '2px 0 0' }}>
+                      {p.planType === 'TRIAL' ? 'Trial' : p.planType === 'SINGLE_PASS' ? 'Single pass' : 'Subscription'}
+                      {p.validityDays ? ` · ${p.validityDays} days` : p.billingCycle ? ` · ${p.billingCycle}` : ''}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>
+                      {sym(p.currency)}{p.price % 1 === 0 ? p.price : p.price.toFixed(2)}
+                    </span>
+                    {planId === p.id && <Check size={14} style={{ color: '#0071E3' }} />}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Start date + payment */}
+          <div className="flex gap-3">
+            <div style={{ flex: 1 }}>
+              <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Start date</label>
+              <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', fontSize: 13, border: '1px solid #E5E7EB', borderRadius: 8, outline: 'none' }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Payment method</label>
+              <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', fontSize: 13, border: '1px solid #E5E7EB', borderRadius: 8, outline: 'none' }}>
+                <option value="CASH">Cash</option>
+                <option value="BANK_TRANSFER">Bank transfer</option>
+                <option value="STRIPE">Stripe</option>
+              </select>
+            </div>
+          </div>
+
+          {selected && selected.validityDays && (
+            <p style={{ fontSize: 12, color: '#6B7280', background: '#F9FAFB', padding: '8px 12px', borderRadius: 8, margin: 0 }}>
+              Expires on: <strong>{new Date(new Date(startDate).getTime() + selected.validityDays * 86400000).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</strong>
+            </p>
+          )}
+        </div>
+
+        {error && <p style={{ fontSize: 12, color: '#EF4444', marginTop: 12, marginBottom: 0 }}>{error}</p>}
+
+        <div className="flex gap-3 justify-end" style={{ marginTop: 20 }}>
+          <button onClick={onClose}
+            style={{ padding: '9px 20px', borderRadius: 10, border: '1px solid #E5E7EB', fontSize: 13, fontWeight: 600, color: '#374151', background: '#fff', cursor: 'pointer' }}>
+            Cancel
+          </button>
+          <button onClick={save} disabled={saving || !planId}
+            style={{ padding: '9px 24px', borderRadius: 10, border: 'none', fontSize: 13, fontWeight: 600, color: '#fff',
+              background: saving || !planId ? '#93C5FD' : '#0071E3', cursor: saving || !planId ? 'not-allowed' : 'pointer' }}>
+            {saving ? 'Assigning…' : 'Assign plan'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Membership Section ─────────────────────────────────────────────────────────
+function MembershipSection({ memberId, activeMembership, memberships, availablePlans, onAssigned }: {
+  memberId: string
+  activeMembership: ActiveMembership | null
+  memberships: MembershipRecord[]
+  availablePlans: AvailablePlan[]
+  onAssigned: (m: ActiveMembership) => void
+}) {
+  const [showModal, setShowModal] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
+
+  return (
+    <Card>
+      <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
+        <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>Membership</p>
+        <button onClick={() => setShowModal(true)}
+          className="flex items-center gap-1.5"
+          style={{ fontSize: 12, fontWeight: 600, color: '#0071E3', background: '#EFF6FF', border: 'none',
+            padding: '5px 12px', borderRadius: 8, cursor: 'pointer' }}>
+          <Plus size={12} />
+          {activeMembership ? 'Change plan' : 'Assign plan'}
+        </button>
+      </div>
+
+      {activeMembership ? (
+        <div>
+          {/* Active plan card */}
+          <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 12, padding: '14px 16px', marginBottom: 12 }}>
+            <div className="flex items-start justify-between">
+              <div>
+                <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: '0 0 2px' }}>{activeMembership.planName}</p>
+                <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>
+                  Started {new Date(activeMembership.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                  {activeMembership.expiresAt && ` · Expires ${new Date(activeMembership.expiresAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>
+                  {activeMembership.price === 0 ? 'Free' : `€${activeMembership.price % 1 === 0 ? activeMembership.price : activeMembership.price.toFixed(2)}`}
+                  {activeMembership.interval && <span style={{ fontSize: 11, fontWeight: 400, color: '#9CA3AF' }}>/{activeMembership.interval}</span>}
+                </span>
+                <span style={{ fontSize: 11, fontWeight: 600, background: '#16A34A', color: '#fff', padding: '2px 10px', borderRadius: 999 }}>
+                  Active
+                </span>
+              </div>
+            </div>
+
+            {/* Usage bar — only if consumed > 0 */}
+            {activeMembership.consumed > 0 && (
+              <div style={{ marginTop: 10 }}>
+                <div className="flex justify-between" style={{ marginBottom: 4 }}>
+                  <span style={{ fontSize: 11, color: '#6B7280' }}>Classes used</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#111827' }}>{activeMembership.consumed}</span>
+                </div>
+                <div style={{ height: 4, background: '#D1FAE5', borderRadius: 999 }}>
+                  <div style={{ height: '100%', width: '100%', background: '#16A34A', borderRadius: 999 }} />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* History toggle */}
+          {memberships.length > 1 && (
+            <button onClick={() => setShowHistory(v => !v)}
+              className="flex items-center gap-1.5"
+              style={{ fontSize: 12, color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              <ChevronRight size={13} style={{ transform: showHistory ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s' }} />
+              {showHistory ? 'Hide' : 'Show'} history ({memberships.length - 1} previous)
+            </button>
+          )}
+        </div>
+      ) : (
+        <div style={{ textAlign: 'center', padding: '20px 0' }}>
+          <CreditCard size={28} style={{ color: '#E5E7EB', marginBottom: 8 }} />
+          <p style={{ fontSize: 13, color: '#9CA3AF', margin: '0 0 12px' }}>No active membership</p>
+          {availablePlans.length > 0 && (
+            <button onClick={() => setShowModal(true)}
+              style={{ fontSize: 12, fontWeight: 600, color: '#0071E3', background: '#EFF6FF', border: 'none',
+                padding: '7px 16px', borderRadius: 8, cursor: 'pointer' }}>
+              Assign a plan
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* History list */}
+      {showHistory && memberships.filter(m => m.status !== 'ACTIVE').length > 0 && (
+        <div style={{ marginTop: 12, borderTop: '1px solid #F3F4F6', paddingTop: 12 }}>
+          <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 8px' }}>History</p>
+          <div className="flex flex-col gap-2">
+            {memberships.filter(m => m.status !== 'ACTIVE').map(m => {
+              const ms = MEM_STATUS[m.status] ?? { bg: '#F3F4F6', color: '#6B7280', label: m.status }
+              return (
+                <div key={m.id} className="flex items-center justify-between"
+                  style={{ padding: '8px 10px', borderRadius: 8, background: '#F9FAFB' }}>
+                  <div>
+                    <p style={{ fontSize: 12, fontWeight: 600, color: '#374151', margin: 0 }}>{m.planName}</p>
+                    <p style={{ fontSize: 11, color: '#9CA3AF', margin: '1px 0 0' }}>
+                      {new Date(m.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      {m.endDate && ` → ${new Date(m.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`}
+                      {m.consumed > 0 && ` · ${m.consumed} classes`}
+                    </p>
+                  </div>
+                  <span style={{ fontSize: 10, fontWeight: 600, background: ms.bg, color: ms.color, padding: '2px 8px', borderRadius: 999 }}>
+                    {ms.label}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {showModal && (
+        <AssignPlanModal
+          memberId={memberId}
+          plans={availablePlans}
+          onClose={() => setShowModal(false)}
+          onAssigned={m => { onAssigned(m); setShowModal(false) }}
+        />
+      )}
+    </Card>
+  )
+}
+
+// ── Main component ─────────────────────────────────────────────────────────────
 export default function StudentProfileClient({ profile: initialProfile }: { profile: Profile }) {
   const router = useRouter()
   const [profile, setProfile] = useState(initialProfile)
   const [notesValue, setNotesValue] = useState(initialProfile.notes ?? '')
   const [savingNotes, setSavingNotes] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [activeMembership, setActiveMembership] = useState(initialProfile.activeMembership)
+  const [memberships, setMemberships] = useState(initialProfile.memberships)
+  const [bookings] = useState(initialProfile.bookings)
+  const [transactions] = useState(initialProfile.transactions)
+  const [bookingsShown, setBookingsShown] = useState(10)
+  const [txShown, setTxShown] = useState(10)
 
   const belt = BELT_COLORS[profile.belt] ?? BELT_COLORS['Blanco']!
   const status = STATUS_MAP[profile.status] ?? { bg: '#F3F4F6', color: '#6B7280', label: profile.status }
@@ -646,87 +934,102 @@ export default function StudentProfileClient({ profile: initialProfile }: { prof
               ))}
             </div>
 
-            {/* Membership */}
-            <Card>
-              <CardHeader title="Membresía" action={
-                <button style={{ fontSize: 12, color: '#0071E3', background: 'none', border: 'none', cursor: 'pointer' }}>
-                  Ver todo <ChevronRight size={12} style={{ display: 'inline' }} />
-                </button>
-              } />
-              {profile.membership ? (
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p style={{ fontSize: 14, fontWeight: 600, color: '#111827', margin: '0 0 4px' }}>{profile.membership.planName}</p>
-                    <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>
-                      {profile.membership.expiresAt ? `Expira el ${fmt(profile.membership.expiresAt)}` : 'Sin fecha de expiración'}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>
-                      €{profile.membership.price}
-                      <span style={{ fontSize: 11, fontWeight: 400, color: '#9CA3AF' }}>/{profile.membership.interval ?? 'mes'}</span>
-                    </span>
-                    <span style={{ fontSize: 11, fontWeight: 600, background: '#F0FDF4', color: '#16A34A', padding: '2px 10px', borderRadius: 999 }}>
-                      {profile.membership.status}
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <EmptyState icon={CreditCard} text="Sin membresía activa" />
-              )}
-            </Card>
+            {/* Membership — active + history + assign */}
+            <MembershipSection
+              memberId={profile.memberId}
+              activeMembership={activeMembership}
+              memberships={memberships}
+              availablePlans={profile.availablePlans}
+              onAssigned={m => {
+                setActiveMembership(m)
+                setMemberships(prev => [{
+                  id: m.id, planName: m.planName, planType: 'SUBSCRIPTION',
+                  billingCycle: m.interval, price: m.price, currency: 'EUR',
+                  status: m.status, startDate: m.startDate, endDate: m.expiresAt, consumed: 0,
+                } satisfies MembershipRecord, ...prev])
+              }}
+            />
 
-            {/* Recent bookings + Transactions side by side */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* Bookings + Transactions side by side */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-              {/* Bookings */}
+              {/* Bookings — full list with show more */}
               <Card>
-                <CardHeader title="Clases recientes" action={
-                  <button style={{ fontSize: 12, color: '#0071E3', background: 'none', border: 'none', cursor: 'pointer' }}>Ver todo</button>
-                } />
-                {profile.bookings.length === 0 ? (
+                <CardHeader title="Historial de clases" />
+                {bookings.length === 0 ? (
                   <EmptyState icon={BookOpen} text="Sin clases registradas" />
                 ) : (
-                  <div className="flex flex-col gap-2">
-                    {profile.bookings.map(b => (
-                      <div key={b.id} className="flex items-center justify-between" style={{ padding: '8px 0', borderBottom: '1px solid #F9FAFB' }}>
-                        <div>
-                          <p style={{ fontSize: 13, fontWeight: 500, color: '#111827', margin: 0 }}>{b.className}</p>
-                          <p style={{ fontSize: 11, color: '#9CA3AF', margin: '2px 0 0' }}>{fmt(b.date)}</p>
-                        </div>
-                        <span style={{ fontSize: 11, fontWeight: 600, background: '#F0FDF4', color: '#16A34A', padding: '2px 8px', borderRadius: 999 }}>
-                          {b.status}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                  <>
+                    <div className="flex flex-col">
+                      {bookings.slice(0, bookingsShown).map((b, i) => {
+                        const bk = BOOKING_STATUS[b.status] ?? { bg: '#F3F4F6', color: '#6B7280', label: b.status }
+                        const isPast = new Date(b.date) < new Date()
+                        return (
+                          <div key={b.id} className="flex items-center justify-between"
+                            style={{ padding: '10px 0', borderBottom: i < Math.min(bookings.length, bookingsShown) - 1 ? '1px solid #F3F4F6' : 'none' }}>
+                            <div className="flex items-center gap-3">
+                              <div style={{ width: 32, height: 32, borderRadius: 8, background: '#F9FAFB',
+                                border: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                {b.attendedAt
+                                  ? <CheckCircle size={14} style={{ color: '#16A34A' }} />
+                                  : isPast
+                                    ? <Clock size={14} style={{ color: '#9CA3AF' }} />
+                                    : <BookOpen size={14} style={{ color: '#0071E3' }} />}
+                              </div>
+                              <div>
+                                <p style={{ fontSize: 13, fontWeight: 500, color: '#111827', margin: 0 }}>{b.className}</p>
+                                <p style={{ fontSize: 11, color: '#9CA3AF', margin: '1px 0 0' }}>{fmt(b.date)}</p>
+                              </div>
+                            </div>
+                            <span style={{ fontSize: 10, fontWeight: 600, background: bk.bg, color: bk.color,
+                              padding: '2px 8px', borderRadius: 999, whiteSpace: 'nowrap' }}>
+                              {bk.label}
+                            </span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                    {bookings.length > bookingsShown && (
+                      <button onClick={() => setBookingsShown(n => n + 10)}
+                        style={{ width: '100%', marginTop: 10, padding: '7px 0', fontSize: 12, fontWeight: 600,
+                          color: '#0071E3', background: '#EFF6FF', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
+                        Ver {Math.min(10, bookings.length - bookingsShown)} más ({bookings.length - bookingsShown} restantes)
+                      </button>
+                    )}
+                  </>
                 )}
               </Card>
 
               {/* Transactions */}
               <Card>
-                <CardHeader title="Pagos recientes" action={
-                  <button style={{ fontSize: 12, color: '#0071E3', background: 'none', border: 'none', cursor: 'pointer' }}>Ver todo</button>
-                } />
-                {profile.transactions.length === 0 ? (
+                <CardHeader title="Historial de pagos" />
+                {transactions.length === 0 ? (
                   <EmptyState icon={CreditCard} text="Sin transacciones" />
                 ) : (
-                  <div className="flex flex-col gap-2">
-                    {profile.transactions.map(t => {
+                  <div className="flex flex-col">
+                    {transactions.slice(0, txShown).map((t, i) => {
                       const ts = TX_STATUS[t.status] ?? { bg: '#F3F4F6', color: '#6B7280' }
                       return (
-                        <div key={t.id} className="flex items-center justify-between" style={{ padding: '8px 0', borderBottom: '1px solid #F9FAFB' }}>
+                        <div key={t.id} className="flex items-center justify-between"
+                          style={{ padding: '10px 0', borderBottom: i < Math.min(transactions.length, txShown) - 1 ? '1px solid #F3F4F6' : 'none' }}>
                           <div>
                             <p style={{ fontSize: 13, fontWeight: 500, color: '#111827', margin: 0 }}>{t.description}</p>
-                            <p style={{ fontSize: 11, color: '#9CA3AF', margin: '2px 0 0' }}>{fmt(t.date)} · {t.method}</p>
+                            <p style={{ fontSize: 11, color: '#9CA3AF', margin: '1px 0 0' }}>{fmt(t.date)} · {t.method}</p>
                           </div>
                           <div className="flex flex-col items-end gap-1">
-                            <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>€{t.amount.toFixed(2)}</span>
+                            <span style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>€{t.amount.toFixed(2)}</span>
                             <span style={{ fontSize: 10, fontWeight: 600, background: ts.bg, color: ts.color, padding: '1px 6px', borderRadius: 999 }}>{t.status}</span>
                           </div>
                         </div>
                       )
                     })}
+                    {transactions.length > txShown && (
+                      <button onClick={() => setTxShown(n => n + 10)}
+                        style={{ width: '100%', marginTop: 10, padding: '7px 0', fontSize: 12, fontWeight: 600,
+                          color: '#0071E3', background: '#EFF6FF', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
+                        Ver {Math.min(10, transactions.length - txShown)} más
+                      </button>
+                    )}
                   </div>
                 )}
               </Card>

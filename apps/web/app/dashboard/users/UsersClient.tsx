@@ -71,6 +71,15 @@ type Student = {
   role: string
   joinedAt: string | null
   avatarUrl: string | null
+  activeMembership: {
+    id: string
+    planName: string
+    status: string
+    startDate: string
+    endDate: string | null
+    consumed: number
+    totalLimit: number | null
+  } | null
 }
 
 const BELT_DISPLAY: Record<string, { label: string; colorKey: string }> = {
@@ -1387,12 +1396,42 @@ export default function UsersClient({ students: initialStudents }: { students: S
 
                   {/* Membership */}
                   <td className="hidden lg:table-cell px-6 py-4">
-                    <span style={{ fontSize: 13, color: '#9CA3AF' }}>—</span>
+                    {student.activeMembership ? (
+                      <div>
+                        <p style={{ fontSize: 13, fontWeight: 500, color: '#111827', margin: 0 }}>
+                          {student.activeMembership.planName}
+                        </p>
+                        {student.activeMembership.endDate && (
+                          <p style={{ fontSize: 11, color: '#9CA3AF', margin: '1px 0 0' }}>
+                            Until {new Date(student.activeMembership.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <span style={{ fontSize: 12, color: '#D1D5DB' }}>No plan</span>
+                    )}
                   </td>
 
-                  {/* Classes */}
+                  {/* Classes used */}
                   <td className="hidden lg:table-cell px-6 py-4">
-                    <span style={{ fontSize: 13, color: '#9CA3AF' }}>—</span>
+                    {student.activeMembership && student.activeMembership.consumed > 0 ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>
+                          {student.activeMembership.consumed}
+                          {student.activeMembership.totalLimit ? `/${student.activeMembership.totalLimit}` : ''}
+                        </span>
+                        {student.activeMembership.totalLimit && (
+                          <div style={{ width: 40, height: 4, background: '#E5E7EB', borderRadius: 999 }}>
+                            <div style={{
+                              height: '100%', borderRadius: 999, background: '#0071E3',
+                              width: `${Math.min(100, (student.activeMembership.consumed / student.activeMembership.totalLimit) * 100)}%`,
+                            }} />
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <span style={{ fontSize: 12, color: '#D1D5DB' }}>—</span>
+                    )}
                   </td>
 
                   {/* Joined */}
