@@ -25,8 +25,9 @@ export async function GET(req: NextRequest) {
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const { searchParams } = new URL(req.url)
-  const status   = searchParams.get('status')   // ACTIVE|CANCELLED|EXPIRED|PAUSED|ALL
-  const search   = searchParams.get('search')   || ''
+  const status  = searchParams.get('status')  // ACTIVE|CANCELLED|EXPIRED|PAUSED|ALL
+  const method  = searchParams.get('method')  // STRIPE|CASH|BANK_TRANSFER|DIRECT_DEBIT|OTHER|ALL
+  const search  = searchParams.get('search')  || ''
   const page     = Math.max(1, parseInt(searchParams.get('page') || '1'))
   const pageSize = Math.min(100, parseInt(searchParams.get('pageSize') || '20'))
 
@@ -34,6 +35,7 @@ export async function GET(req: NextRequest) {
   const where: any = {
     schoolId: auth.schoolId,
     ...(status && status !== 'ALL' ? { status } : {}),
+    ...(method && method !== 'ALL' ? { paymentMethod: method } : {}),
     ...(search ? {
       OR: [
         { planName: { contains: search, mode: 'insensitive' } },
@@ -43,7 +45,7 @@ export async function GET(req: NextRequest) {
     } : {}),
   }
 
-  const [memberships, total, stats] = await Promise.all([
+  const [memberships, total, stats, methodStats] = await Promise.all([
     prisma.membership.findMany({
       where,
       include: { user: { select: { name: true, email: true, avatarUrl: true } } },
@@ -57,6 +59,11 @@ export async function GET(req: NextRequest) {
       where: { schoolId: auth.schoolId },
       _count: { id: true },
       _sum: { price: true },
+    }),
+    prisma.membership.groupBy({
+      by: ['paymentMethod'],
+      where: { schoolId: auth.schoolId },
+      _count: { id: true },
     }),
   ])
 
@@ -87,5 +94,6 @@ export async function GET(req: NextRequest) {
       EXPIRED:   statMap['EXPIRED']?.count   ?? 0,
       PAUSED:    statMap['PAUSED']?.count    ?? 0,
     },
+    countByMethod: Object.fromEntries(methodStats.map(m => [m.paymentMethod, m._count.id])),
   })
 }

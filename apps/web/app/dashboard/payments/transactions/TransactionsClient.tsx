@@ -82,14 +82,16 @@ export default function TransactionsClient() {
   const t = useT()
 
   const [memberships,   setMemberships]   = useState<MembershipRow[]>([])
-  const [total,         setTotal]         = useState(0)
-  const [totalRevenue,  setTotalRevenue]  = useState(0)
-  const [countByStatus, setCountByStatus] = useState<StatusCounts>({ ACTIVE: 0, CANCELLED: 0, EXPIRED: 0, PAUSED: 0 })
-  const [loading,       setLoading]       = useState(true)
+  const [total,          setTotal]          = useState(0)
+  const [totalRevenue,   setTotalRevenue]   = useState(0)
+  const [countByStatus,  setCountByStatus]  = useState<StatusCounts>({ ACTIVE: 0, CANCELLED: 0, EXPIRED: 0, PAUSED: 0 })
+  const [countByMethod,  setCountByMethod]  = useState<Record<string, number>>({})
+  const [loading,        setLoading]        = useState(true)
 
-  const [activeFilter, setActiveFilter] = useState<FilterTab>('ALL')
-  const [search,       setSearch]       = useState('')
-  const [page,         setPage]         = useState(1)
+  const [activeFilter,   setActiveFilter]   = useState<FilterTab>('ALL')
+  const [activeMethod,   setActiveMethod]   = useState<string>('ALL')
+  const [search,         setSearch]         = useState('')
+  const [page,           setPage]           = useState(1)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -97,6 +99,7 @@ export default function TransactionsClient() {
       page: String(page),
       pageSize: String(PAGE_SIZE),
       ...(activeFilter !== 'ALL' ? { status: activeFilter } : {}),
+      ...(activeMethod !== 'ALL' ? { method: activeMethod } : {}),
       ...(search ? { search } : {}),
     })
     const res = await fetch(`/api/dashboard/memberships?${params}`)
@@ -106,8 +109,9 @@ export default function TransactionsClient() {
     setTotal(data.total)
     setTotalRevenue(data.totalRevenue)
     setCountByStatus(data.countByStatus)
+    setCountByMethod(data.countByMethod ?? {})
     setLoading(false)
-  }, [page, activeFilter, search])
+  }, [page, activeFilter, activeMethod, search])
 
   useEffect(() => { load() }, [load])
 
@@ -115,13 +119,22 @@ export default function TransactionsClient() {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
   const pages = getPaginationPages(page, totalPages)
 
-  const FILTERS: { id: FilterTab; label: string; count: number }[] = [
-    { id: 'ALL',       label: t.common.all,       count: totalCount },
-    { id: 'ACTIVE',    label: 'Active',            count: countByStatus.ACTIVE    },
-    { id: 'CANCELLED', label: 'Cancelled',         count: countByStatus.CANCELLED },
-    { id: 'EXPIRED',   label: 'Expired',           count: countByStatus.EXPIRED   },
-    { id: 'PAUSED',    label: 'Paused',            count: countByStatus.PAUSED    },
+  const STATUS_FILTERS: { id: FilterTab; label: string; count: number }[] = [
+    { id: 'ALL',       label: t.common.all, count: totalCount           },
+    { id: 'ACTIVE',    label: 'Active',     count: countByStatus.ACTIVE    },
+    { id: 'CANCELLED', label: 'Cancelled',  count: countByStatus.CANCELLED },
+    { id: 'EXPIRED',   label: 'Expired',    count: countByStatus.EXPIRED   },
+    { id: 'PAUSED',    label: 'Paused',     count: countByStatus.PAUSED    },
   ]
+
+  const METHOD_FILTERS = [
+    { id: 'ALL',           label: 'All Methods' },
+    { id: 'CASH',          label: 'Cash'        },
+    { id: 'STRIPE',        label: 'Stripe'      },
+    { id: 'BANK_TRANSFER', label: 'Transfer'    },
+    { id: 'DIRECT_DEBIT',  label: 'Direct Debit'},
+    { id: 'OTHER',         label: 'Other'       },
+  ].filter(f => f.id === 'ALL' || (countByMethod[f.id] ?? 0) > 0)
 
   return (
     <main style={{ flex: 1, minWidth: 0, width: '100%', overflow: 'auto' }}>
@@ -163,9 +176,9 @@ export default function TransactionsClient() {
           </div>
         </div>
 
-        {/* Filter tabs */}
+        {/* Status filter tabs */}
         <div className="flex items-center gap-2 flex-wrap">
-          {FILTERS.map(f => {
+          {STATUS_FILTERS.map(f => {
             const isOn = activeFilter === f.id
             return (
               <button key={f.id} onClick={() => { setActiveFilter(f.id); setPage(1) }} className="cursor-pointer"
@@ -177,6 +190,28 @@ export default function TransactionsClient() {
             )
           })}
         </div>
+
+        {/* Method filter chips */}
+        {METHOD_FILTERS.length > 1 && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Method:</span>
+            {METHOD_FILTERS.map(f => {
+              const isOn = activeMethod === f.id
+              const mc = METHOD_COLORS[f.id] ?? { bg: '#F3F4F6', color: '#374151' }
+              return (
+                <button key={f.id} onClick={() => { setActiveMethod(f.id); setPage(1) }} className="cursor-pointer"
+                  style={{ fontSize: 12, fontWeight: isOn ? 600 : 400, padding: '4px 12px', borderRadius: 999,
+                    background: isOn ? mc.bg : '#F9FAFB',
+                    color: isOn ? mc.color : '#6B7280',
+                    border: isOn ? `1.5px solid ${mc.color}33` : '1.5px solid #E5E7EB' }}>
+                  {f.id !== 'ALL' && (countByMethod[f.id] ?? 0) > 0
+                    ? <>{f.label} <span style={{ opacity: 0.65 }}>{countByMethod[f.id]}</span></>
+                    : f.label}
+                </button>
+              )
+            })}
+          </div>
+        )}
 
         {/* Table */}
         <div className="rounded-2xl overflow-hidden" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
@@ -197,7 +232,7 @@ export default function TransactionsClient() {
               ) : memberships.length === 0 ? (
                 <tr><td colSpan={6} className="px-5 py-12 text-center" style={{ fontSize: 13, color: '#9CA3AF' }}>No memberships found</td></tr>
               ) : memberships.map((m, idx) => {
-                const sc  = STATUS_MAP[m.status]
+                const sc  = STATUS_MAP[m.status] ?? { bg: '#F3F4F6', color: '#6B7280', border: '#E5E7EB', icon: Check, label: m.status }
                 const StatusIcon = sc.icon
                 const methodKey = (m.paymentMethod ?? 'OTHER').toUpperCase()
                 const mc = METHOD_COLORS[methodKey] ?? { bg: '#F9FAFB', color: '#6B7280' }
