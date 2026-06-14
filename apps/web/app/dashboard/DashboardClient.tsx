@@ -20,6 +20,7 @@ import QRCodeModal               from '../../components/popups/QRCodeModal'
 import EditSchoolModal           from '../../components/popups/EditSchoolModal'
 import AIMessagesModal           from '../../components/popups/AIMessagesModal'
 import ClassCapacityPopup        from '../../components/popups/ClassCapacityPopup'
+import ClassDetailPopup          from '../../components/popups/ClassDetailPopup'
 import { TransactionActionsButton } from '../../components/popups/TransactionActionsPopup'
 import { useT }                  from '../../lib/i18n/LanguageContext'
 import DashboardLanguageSelector  from '../../components/DashboardLanguageSelector'
@@ -253,6 +254,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
   const [showEditSchool, setShowEditSchool]        = useState(false)
   const [showAIMessages, setShowAIMessages]        = useState(false)
   const [selectedClass, setSelectedClass]         = useState<TodayClass | null>(null)
+  const [detailClass,   setDetailClass]           = useState<TodayClass | null>(null)
   const bellRef                                    = useRef<HTMLDivElement>(null)
 
   const firstName = userName.split(' ')[0] ?? 'there'
@@ -501,19 +503,21 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                 const capacityColor = pct >= 1 ? '#DC2626' : pct > 0.7 ? '#D97706' : '#16A34A'
                 return (
                   <div key={cls.id} className="flex items-center gap-3" style={{ paddingBottom: i < 4 ? 12 : 0, borderBottom: i < 4 ? '1px solid #F9FAFB' : 'none' }}>
-                    <div className="shrink-0 rounded-xl overflow-hidden relative" style={{ width: 52, height: 52 }}>
-                      <Image src={cls.image ?? '/martial-logo.png'} alt={cls.name} fill className="object-cover" />
-                    </div>
+                    <button onClick={() => setDetailClass(cls)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', flexShrink: 0 }}>
+                      <div className="rounded-xl overflow-hidden relative" style={{ width: 52, height: 52 }}>
+                        <Image src={cls.image ?? '/martial-logo.png'} alt={cls.name} fill className="object-cover" />
+                      </div>
+                    </button>
                     {/* Name + time */}
-                    <div className="flex-1 min-w-0 pl-1">
+                    <button onClick={() => setDetailClass(cls)} className="flex-1 min-w-0 pl-1 text-left" style={{ background: 'none', border: 'none', padding: '0 0 0 4px', cursor: 'pointer' }}>
                       <p style={{ fontSize: 14, fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cls.name}</p>
                       <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 3 }}>{cls.time}</p>
-                    </div>
+                    </button>
                     {/* Capacity + badge stacked, centered */}
-                    <div className="shrink-0 flex flex-col items-center gap-1.5">
+                    <button onClick={() => setSelectedClass(cls)} className="shrink-0 flex flex-col items-center gap-1.5" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                       <span style={{ fontSize: 13, fontWeight: 700, color: capacityColor }}>{cls.enrolled}/{cls.cap}</span>
                       <StatusBadge status={cls.status} />
-                    </div>
+                    </button>
                   </div>
                 )
               })}
@@ -753,7 +757,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <button onClick={() => setSelectedClass(cls)}
+                      <button onClick={() => setDetailClass(cls)}
                         style={{ fontSize: 11, fontWeight: 600, color: '#111827', lineHeight: 1.3, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left' }}>
                         {cls.name}
                       </button>
@@ -808,6 +812,12 @@ export default function DashboardClient({ userName, userEmail }: Props) {
         <ClassCapacityPopup
           cls={selectedClass}
           onClose={() => setSelectedClass(null)}
+        />
+      )}
+      {detailClass && (
+        <ClassDetailPopup
+          cls={detailClass}
+          onClose={() => setDetailClass(null)}
         />
       )}
     </>
