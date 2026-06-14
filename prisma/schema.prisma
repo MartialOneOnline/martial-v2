@@ -516,6 +516,9 @@ model MembershipPlan {
   contentPlatformId String?
   contentPlatform   ContentPlatform? @relation(fields: [contentPlatformId], references: [id])
 
+  // Media
+  imageUrl      String?
+
   // Stripe (Phase 5)
   stripePriceId String?
 

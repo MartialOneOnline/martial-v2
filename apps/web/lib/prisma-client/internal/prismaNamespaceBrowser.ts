@@ -304,6 +304,7 @@ export const MembershipPlanScalarFieldEnum = {
   sortOrder: 'sortOrder',
   classAccess: 'classAccess',
   contentPlatformId: 'contentPlatformId',
+  imageUrl: 'imageUrl',
   stripePriceId: 'stripePriceId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
