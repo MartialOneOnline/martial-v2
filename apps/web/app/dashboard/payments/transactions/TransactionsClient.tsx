@@ -200,7 +200,7 @@ export default function TransactionsClient() {
                 const sc  = STATUS_MAP[m.status]
                 const StatusIcon = sc.icon
                 const methodKey = (m.paymentMethod ?? 'OTHER').toUpperCase()
-                const mc = METHOD_COLORS[methodKey] ?? METHOD_COLORS['OTHER']
+                const mc = METHOD_COLORS[methodKey] ?? { bg: '#F9FAFB', color: '#6B7280' }
                 return (
                   <tr key={m.id} className="hover:bg-[#FAFAFA] transition-colors cursor-pointer"
                     style={{ borderBottom: idx < memberships.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
