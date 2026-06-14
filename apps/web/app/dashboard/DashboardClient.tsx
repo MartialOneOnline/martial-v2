@@ -227,8 +227,8 @@ export default function DashboardClient({ userName, userEmail }: Props) {
   const [todayClasses, setTodayClasses] = useState<TodayClass[]>([])
   const [recentTx, setRecentTx]     = useState<{
     id: string; userName: string; userAvatar: string | null
-    planName: string; paymentMethod: string; price: number
-    currency: string; status: string; startDate: string
+    method: string; amount: number; currency: string
+    date: string; status: string; description: string | null
   }[]>([])
 
   useEffect(() => {
@@ -240,9 +240,9 @@ export default function DashboardClient({ userName, userEmail }: Props) {
     fetch(`/api/dashboard/classes/today?schoolId=${sid}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => d?.classes && setTodayClasses(d.classes))
-    fetch('/api/dashboard/memberships?pageSize=6&page=1')
+    fetch('/api/dashboard/transactions?pageSize=6&page=1&type=INCOME')
       .then(r => r.ok ? r.json() : null)
-      .then(d => d?.memberships && setRecentTx(d.memberships))
+      .then(d => d?.transactions && setRecentTx(d.transactions))
   }, [currentSchool?.schoolId])
   const [aiInput, setAiInput]       = useState('')
   const [aiMessages, setAiMessages] = useState<{ role: 'ai' | 'user'; text: string }[]>([
@@ -592,7 +592,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                 <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
                   {[
                     { label: t.common.member,    cls: '' },
-                    { label: 'Plan',             cls: 'hidden sm:table-cell' },
+                    { label: 'Description',       cls: 'hidden sm:table-cell' },
                     { label: t.dashboard.method, cls: 'hidden sm:table-cell' },
                     { label: t.dashboard.amount, cls: '' },
                     { label: t.dashboard.date,   cls: 'hidden md:table-cell' },
@@ -612,10 +612,10 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                   const initials = (tx.userName || '?').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
                   const methodLabel: Record<string, string> = { STRIPE: 'Stripe', CASH: 'Cash', BANK_TRANSFER: 'Transfer', DIRECT_DEBIT: 'Direct Debit', OTHER: 'Other', FREE: 'Free' }
                   const statusStyle: Record<string, { bg: string; color: string }> = {
-                    ACTIVE:    { bg: '#F0FDF4', color: '#16A34A' },
-                    CANCELLED: { bg: '#FEF2F2', color: '#DC2626' },
-                    EXPIRED:   { bg: '#FFFBEB', color: '#D97706' },
-                    PAUSED:    { bg: '#F5F3FF', color: '#6D28D9' },
+                    PAID:      { bg: '#F0FDF4', color: '#16A34A' },
+                    PENDING:   { bg: '#FFFBEB', color: '#D97706' },
+                    FAILED:    { bg: '#FEF2F2', color: '#DC2626' },
+                    REFUNDED:  { bg: '#F5F3FF', color: '#6D28D9' },
                   }
                   const ss = statusStyle[tx.status] ?? { bg: '#F3F4F6', color: '#6B7280' }
                   return (
@@ -637,19 +637,19 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                         </div>
                       </td>
                       <td className="hidden sm:table-cell px-4 md:px-7 py-4">
-                        <span style={{ fontSize: 13, color: '#374151' }}>{tx.planName}</span>
+                        <span style={{ fontSize: 13, color: '#374151' }}>{tx.description ?? '—'}</span>
                       </td>
                       <td className="hidden sm:table-cell px-4 md:px-7 py-4">
-                        <span style={{ fontSize: 13, color: '#6B7280' }}>{methodLabel[tx.paymentMethod] ?? tx.paymentMethod}</span>
+                        <span style={{ fontSize: 13, color: '#6B7280' }}>{methodLabel[tx.method] ?? tx.method}</span>
                       </td>
                       <td className="px-4 md:px-7 py-4" style={{ whiteSpace: 'nowrap' }}>
                         <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>
-                          {new Intl.NumberFormat('es-ES', { style: 'currency', currency: tx.currency }).format(tx.price)}
+                          {new Intl.NumberFormat('es-ES', { style: 'currency', currency: tx.currency }).format(tx.amount)}
                         </span>
                       </td>
                       <td className="hidden md:table-cell px-4 md:px-7 py-4" style={{ whiteSpace: 'nowrap' }}>
                         <span style={{ fontSize: 13, color: '#6B7280' }}>
-                          {new Date(tx.startDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                          {new Date(tx.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </span>
                       </td>
                       <td className="hidden sm:table-cell px-4 md:px-7 py-4">
