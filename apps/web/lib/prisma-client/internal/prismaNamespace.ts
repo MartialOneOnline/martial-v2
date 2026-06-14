@@ -3508,6 +3508,7 @@ export const TransactionScalarFieldEnum = {
   type: 'type',
   status: 'status',
   category: 'category',
+  paymentMethod: 'paymentMethod',
   amount: 'amount',
   currency: 'currency',
   description: 'description',

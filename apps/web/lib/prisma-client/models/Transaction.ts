@@ -40,6 +40,7 @@ export type TransactionMinAggregateOutputType = {
   type: $Enums.TransactionType | null
   status: $Enums.TransactionStatus | null
   category: $Enums.TransactionCategory | null
+  paymentMethod: $Enums.PaymentMethod | null
   amount: number | null
   currency: string | null
   description: string | null
@@ -59,6 +60,7 @@ export type TransactionMaxAggregateOutputType = {
   type: $Enums.TransactionType | null
   status: $Enums.TransactionStatus | null
   category: $Enums.TransactionCategory | null
+  paymentMethod: $Enums.PaymentMethod | null
   amount: number | null
   currency: string | null
   description: string | null
@@ -78,6 +80,7 @@ export type TransactionCountAggregateOutputType = {
   type: number
   status: number
   category: number
+  paymentMethod: number
   amount: number
   currency: number
   description: number
@@ -107,6 +110,7 @@ export type TransactionMinAggregateInputType = {
   type?: true
   status?: true
   category?: true
+  paymentMethod?: true
   amount?: true
   currency?: true
   description?: true
@@ -126,6 +130,7 @@ export type TransactionMaxAggregateInputType = {
   type?: true
   status?: true
   category?: true
+  paymentMethod?: true
   amount?: true
   currency?: true
   description?: true
@@ -145,6 +150,7 @@ export type TransactionCountAggregateInputType = {
   type?: true
   status?: true
   category?: true
+  paymentMethod?: true
   amount?: true
   currency?: true
   description?: true
@@ -251,6 +257,7 @@ export type TransactionGroupByOutputType = {
   type: $Enums.TransactionType
   status: $Enums.TransactionStatus
   category: $Enums.TransactionCategory
+  paymentMethod: $Enums.PaymentMethod | null
   amount: number
   currency: string
   description: string | null
@@ -293,6 +300,7 @@ export type TransactionWhereInput = {
   type?: Prisma.EnumTransactionTypeFilter<"Transaction"> | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFilter<"Transaction"> | $Enums.TransactionStatus
   category?: Prisma.EnumTransactionCategoryFilter<"Transaction"> | $Enums.TransactionCategory
+  paymentMethod?: Prisma.EnumPaymentMethodNullableFilter<"Transaction"> | $Enums.PaymentMethod | null
   amount?: Prisma.FloatFilter<"Transaction"> | number
   currency?: Prisma.StringFilter<"Transaction"> | string
   description?: Prisma.StringNullableFilter<"Transaction"> | string | null
@@ -315,6 +323,7 @@ export type TransactionOrderByWithRelationInput = {
   type?: Prisma.SortOrder
   status?: Prisma.SortOrder
   category?: Prisma.SortOrder
+  paymentMethod?: Prisma.SortOrderInput | Prisma.SortOrder
   amount?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -340,6 +349,7 @@ export type TransactionWhereUniqueInput = Prisma.AtLeast<{
   type?: Prisma.EnumTransactionTypeFilter<"Transaction"> | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFilter<"Transaction"> | $Enums.TransactionStatus
   category?: Prisma.EnumTransactionCategoryFilter<"Transaction"> | $Enums.TransactionCategory
+  paymentMethod?: Prisma.EnumPaymentMethodNullableFilter<"Transaction"> | $Enums.PaymentMethod | null
   amount?: Prisma.FloatFilter<"Transaction"> | number
   currency?: Prisma.StringFilter<"Transaction"> | string
   description?: Prisma.StringNullableFilter<"Transaction"> | string | null
@@ -362,6 +372,7 @@ export type TransactionOrderByWithAggregationInput = {
   type?: Prisma.SortOrder
   status?: Prisma.SortOrder
   category?: Prisma.SortOrder
+  paymentMethod?: Prisma.SortOrderInput | Prisma.SortOrder
   amount?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -389,6 +400,7 @@ export type TransactionScalarWhereWithAggregatesInput = {
   type?: Prisma.EnumTransactionTypeWithAggregatesFilter<"Transaction"> | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusWithAggregatesFilter<"Transaction"> | $Enums.TransactionStatus
   category?: Prisma.EnumTransactionCategoryWithAggregatesFilter<"Transaction"> | $Enums.TransactionCategory
+  paymentMethod?: Prisma.EnumPaymentMethodNullableWithAggregatesFilter<"Transaction"> | $Enums.PaymentMethod | null
   amount?: Prisma.FloatWithAggregatesFilter<"Transaction"> | number
   currency?: Prisma.StringWithAggregatesFilter<"Transaction"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
@@ -407,6 +419,7 @@ export type TransactionCreateInput = {
   type: $Enums.TransactionType
   status?: $Enums.TransactionStatus
   category?: $Enums.TransactionCategory
+  paymentMethod?: $Enums.PaymentMethod | null
   amount: number
   currency?: string
   description?: string | null
@@ -427,6 +440,7 @@ export type TransactionUncheckedCreateInput = {
   type: $Enums.TransactionType
   status?: $Enums.TransactionStatus
   category?: $Enums.TransactionCategory
+  paymentMethod?: $Enums.PaymentMethod | null
   amount: number
   currency?: string
   description?: string | null
@@ -445,6 +459,7 @@ export type TransactionUpdateInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
   category?: Prisma.EnumTransactionCategoryFieldUpdateOperationsInput | $Enums.TransactionCategory
+  paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -465,6 +480,7 @@ export type TransactionUncheckedUpdateInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
   category?: Prisma.EnumTransactionCategoryFieldUpdateOperationsInput | $Enums.TransactionCategory
+  paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -484,6 +500,7 @@ export type TransactionCreateManyInput = {
   type: $Enums.TransactionType
   status?: $Enums.TransactionStatus
   category?: $Enums.TransactionCategory
+  paymentMethod?: $Enums.PaymentMethod | null
   amount: number
   currency?: string
   description?: string | null
@@ -502,6 +519,7 @@ export type TransactionUpdateManyMutationInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
   category?: Prisma.EnumTransactionCategoryFieldUpdateOperationsInput | $Enums.TransactionCategory
+  paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -519,6 +537,7 @@ export type TransactionUncheckedUpdateManyInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
   category?: Prisma.EnumTransactionCategoryFieldUpdateOperationsInput | $Enums.TransactionCategory
+  paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -548,6 +567,7 @@ export type TransactionCountOrderByAggregateInput = {
   type?: Prisma.SortOrder
   status?: Prisma.SortOrder
   category?: Prisma.SortOrder
+  paymentMethod?: Prisma.SortOrder
   amount?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   description?: Prisma.SortOrder
@@ -571,6 +591,7 @@ export type TransactionMaxOrderByAggregateInput = {
   type?: Prisma.SortOrder
   status?: Prisma.SortOrder
   category?: Prisma.SortOrder
+  paymentMethod?: Prisma.SortOrder
   amount?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   description?: Prisma.SortOrder
@@ -590,6 +611,7 @@ export type TransactionMinOrderByAggregateInput = {
   type?: Prisma.SortOrder
   status?: Prisma.SortOrder
   category?: Prisma.SortOrder
+  paymentMethod?: Prisma.SortOrder
   amount?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   description?: Prisma.SortOrder
@@ -745,11 +767,16 @@ export type EnumTransactionCategoryFieldUpdateOperationsInput = {
   set?: $Enums.TransactionCategory
 }
 
+export type NullableEnumPaymentMethodFieldUpdateOperationsInput = {
+  set?: $Enums.PaymentMethod | null
+}
+
 export type TransactionCreateWithoutUserInput = {
   id?: string
   type: $Enums.TransactionType
   status?: $Enums.TransactionStatus
   category?: $Enums.TransactionCategory
+  paymentMethod?: $Enums.PaymentMethod | null
   amount: number
   currency?: string
   description?: string | null
@@ -769,6 +796,7 @@ export type TransactionUncheckedCreateWithoutUserInput = {
   type: $Enums.TransactionType
   status?: $Enums.TransactionStatus
   category?: $Enums.TransactionCategory
+  paymentMethod?: $Enums.PaymentMethod | null
   amount: number
   currency?: string
   description?: string | null
@@ -816,6 +844,7 @@ export type TransactionScalarWhereInput = {
   type?: Prisma.EnumTransactionTypeFilter<"Transaction"> | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFilter<"Transaction"> | $Enums.TransactionStatus
   category?: Prisma.EnumTransactionCategoryFilter<"Transaction"> | $Enums.TransactionCategory
+  paymentMethod?: Prisma.EnumPaymentMethodNullableFilter<"Transaction"> | $Enums.PaymentMethod | null
   amount?: Prisma.FloatFilter<"Transaction"> | number
   currency?: Prisma.StringFilter<"Transaction"> | string
   description?: Prisma.StringNullableFilter<"Transaction"> | string | null
@@ -834,6 +863,7 @@ export type TransactionCreateWithoutSchoolInput = {
   type: $Enums.TransactionType
   status?: $Enums.TransactionStatus
   category?: $Enums.TransactionCategory
+  paymentMethod?: $Enums.PaymentMethod | null
   amount: number
   currency?: string
   description?: string | null
@@ -852,6 +882,7 @@ export type TransactionUncheckedCreateWithoutSchoolInput = {
   type: $Enums.TransactionType
   status?: $Enums.TransactionStatus
   category?: $Enums.TransactionCategory
+  paymentMethod?: $Enums.PaymentMethod | null
   amount: number
   currency?: string
   description?: string | null
@@ -896,6 +927,7 @@ export type TransactionCreateWithoutMembershipInput = {
   type: $Enums.TransactionType
   status?: $Enums.TransactionStatus
   category?: $Enums.TransactionCategory
+  paymentMethod?: $Enums.PaymentMethod | null
   amount: number
   currency?: string
   description?: string | null
@@ -915,6 +947,7 @@ export type TransactionUncheckedCreateWithoutMembershipInput = {
   type: $Enums.TransactionType
   status?: $Enums.TransactionStatus
   category?: $Enums.TransactionCategory
+  paymentMethod?: $Enums.PaymentMethod | null
   amount: number
   currency?: string
   description?: string | null
@@ -959,6 +992,7 @@ export type TransactionCreateManyUserInput = {
   type: $Enums.TransactionType
   status?: $Enums.TransactionStatus
   category?: $Enums.TransactionCategory
+  paymentMethod?: $Enums.PaymentMethod | null
   amount: number
   currency?: string
   description?: string | null
@@ -976,6 +1010,7 @@ export type TransactionUpdateWithoutUserInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
   category?: Prisma.EnumTransactionCategoryFieldUpdateOperationsInput | $Enums.TransactionCategory
+  paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -995,6 +1030,7 @@ export type TransactionUncheckedUpdateWithoutUserInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
   category?: Prisma.EnumTransactionCategoryFieldUpdateOperationsInput | $Enums.TransactionCategory
+  paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1013,6 +1049,7 @@ export type TransactionUncheckedUpdateManyWithoutUserInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
   category?: Prisma.EnumTransactionCategoryFieldUpdateOperationsInput | $Enums.TransactionCategory
+  paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1030,6 +1067,7 @@ export type TransactionCreateManySchoolInput = {
   type: $Enums.TransactionType
   status?: $Enums.TransactionStatus
   category?: $Enums.TransactionCategory
+  paymentMethod?: $Enums.PaymentMethod | null
   amount: number
   currency?: string
   description?: string | null
@@ -1048,6 +1086,7 @@ export type TransactionUpdateWithoutSchoolInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
   category?: Prisma.EnumTransactionCategoryFieldUpdateOperationsInput | $Enums.TransactionCategory
+  paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1066,6 +1105,7 @@ export type TransactionUncheckedUpdateWithoutSchoolInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
   category?: Prisma.EnumTransactionCategoryFieldUpdateOperationsInput | $Enums.TransactionCategory
+  paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1084,6 +1124,7 @@ export type TransactionUncheckedUpdateManyWithoutSchoolInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
   category?: Prisma.EnumTransactionCategoryFieldUpdateOperationsInput | $Enums.TransactionCategory
+  paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1103,6 +1144,7 @@ export type TransactionCreateManyMembershipInput = {
   type: $Enums.TransactionType
   status?: $Enums.TransactionStatus
   category?: $Enums.TransactionCategory
+  paymentMethod?: $Enums.PaymentMethod | null
   amount: number
   currency?: string
   description?: string | null
@@ -1120,6 +1162,7 @@ export type TransactionUpdateWithoutMembershipInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
   category?: Prisma.EnumTransactionCategoryFieldUpdateOperationsInput | $Enums.TransactionCategory
+  paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1139,6 +1182,7 @@ export type TransactionUncheckedUpdateWithoutMembershipInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
   category?: Prisma.EnumTransactionCategoryFieldUpdateOperationsInput | $Enums.TransactionCategory
+  paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1157,6 +1201,7 @@ export type TransactionUncheckedUpdateManyWithoutMembershipInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
   category?: Prisma.EnumTransactionCategoryFieldUpdateOperationsInput | $Enums.TransactionCategory
+  paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1177,6 +1222,7 @@ export type TransactionSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   type?: boolean
   status?: boolean
   category?: boolean
+  paymentMethod?: boolean
   amount?: boolean
   currency?: boolean
   description?: boolean
@@ -1199,6 +1245,7 @@ export type TransactionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   type?: boolean
   status?: boolean
   category?: boolean
+  paymentMethod?: boolean
   amount?: boolean
   currency?: boolean
   description?: boolean
@@ -1221,6 +1268,7 @@ export type TransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   type?: boolean
   status?: boolean
   category?: boolean
+  paymentMethod?: boolean
   amount?: boolean
   currency?: boolean
   description?: boolean
@@ -1243,6 +1291,7 @@ export type TransactionSelectScalar = {
   type?: boolean
   status?: boolean
   category?: boolean
+  paymentMethod?: boolean
   amount?: boolean
   currency?: boolean
   description?: boolean
@@ -1256,7 +1305,7 @@ export type TransactionSelectScalar = {
   updatedAt?: boolean
 }
 
-export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "type" | "status" | "category" | "amount" | "currency" | "description" | "date" | "membershipId" | "bookingId" | "userId" | "stripePaymentIntentId" | "notes" | "createdAt" | "updatedAt", ExtArgs["result"]["transaction"]>
+export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "type" | "status" | "category" | "paymentMethod" | "amount" | "currency" | "description" | "date" | "membershipId" | "bookingId" | "userId" | "stripePaymentIntentId" | "notes" | "createdAt" | "updatedAt", ExtArgs["result"]["transaction"]>
 export type TransactionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   membership?: boolean | Prisma.Transaction$membershipArgs<ExtArgs>
@@ -1286,6 +1335,7 @@ export type $TransactionPayload<ExtArgs extends runtime.Types.Extensions.Interna
     type: $Enums.TransactionType
     status: $Enums.TransactionStatus
     category: $Enums.TransactionCategory
+    paymentMethod: $Enums.PaymentMethod | null
     amount: number
     currency: string
     description: string | null
@@ -1728,6 +1778,7 @@ export interface TransactionFieldRefs {
   readonly type: Prisma.FieldRef<"Transaction", 'TransactionType'>
   readonly status: Prisma.FieldRef<"Transaction", 'TransactionStatus'>
   readonly category: Prisma.FieldRef<"Transaction", 'TransactionCategory'>
+  readonly paymentMethod: Prisma.FieldRef<"Transaction", 'PaymentMethod'>
   readonly amount: Prisma.FieldRef<"Transaction", 'Float'>
   readonly currency: Prisma.FieldRef<"Transaction", 'String'>
   readonly description: Prisma.FieldRef<"Transaction", 'String'>

@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import {
-  Bell, CreditCard,
-  Menu, X, Search, ChevronLeft, ChevronRight, Check, X as XIcon,
-  Clock, Download, TrendingUp, TrendingDown,
-  AlertCircle, RefreshCw, MoreHorizontal, Eye, Plus,
+  CreditCard,
+  Menu, X, Search, Check, X as XIcon,
+  Clock, Download,
+  AlertCircle, RefreshCw, MoreHorizontal, Plus,
 } from 'lucide-react'
 import { useDashboard } from '../../../../components/DashboardShell'
 import { useT } from '../../../../lib/i18n/LanguageContext'
@@ -42,15 +42,23 @@ const STATUS_MAP: Record<TxStatus, { bg: string; color: string; border: string; 
   REFUNDED: { bg: '#F5F3FF', color: '#6D28D9', border: '#DDD6FE', icon: RefreshCw,  label: 'Refunded' },
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
-  MEMBERSHIP: 'Membership', CLASS_BOOKING: 'Class', PRODUCT_SALE: 'Product',
-  SALARY: 'Salary', RENT: 'Rent', EQUIPMENT: 'Equipment', MARKETING: 'Marketing', OTHER: 'Other',
+const METHOD_LABELS: Record<string, string> = {
+  STRIPE:           'Stripe',
+  CASH:             'Cash',
+  BANK_TRANSFER:    'Transfer',
+  GOCARDLESS:       'GoCardless',
+  PAYPAL:           'PayPal',
+  FREE:             'Free',
+  OTHER:            'Other',
 }
 
 const METHOD_COLORS: Record<string, { bg: string; color: string }> = {
-  MEMBERSHIP:    { bg: '#EFF6FF', color: '#2563EB' },
-  CLASS_BOOKING: { bg: '#F0FDF4', color: '#15803D' },
-  PRODUCT_SALE:  { bg: '#FDF4FF', color: '#7C3AED' },
+  STRIPE:        { bg: '#EFF6FF', color: '#2563EB' },
+  GOCARDLESS:    { bg: '#EEF2FF', color: '#4F46E5' },
+  PAYPAL:        { bg: '#FFF7ED', color: '#C2410C' },
+  CASH:          { bg: '#F3F4F6', color: '#374151' },
+  BANK_TRANSFER: { bg: '#ECFDF5', color: '#065F46' },
+  FREE:          { bg: '#F9FAFB', color: '#9CA3AF' },
   OTHER:         { bg: '#F3F4F6', color: '#6B7280' },
 }
 
@@ -252,7 +260,7 @@ function AddTransactionDrawer({ open, onClose, onSuccess }: {
             <div>
               <label style={labelStyle}>Categoría</label>
               <select value={category} onChange={e => setCategory(e.target.value)} style={inputStyle}>
-                {Object.entries(CATEGORY_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                {Object.entries(METHOD_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
               </select>
             </div>
             <div>
@@ -378,13 +386,6 @@ export default function TransactionsClient() {
 
   const totalCount = Object.values(countByStatus).reduce((a, b) => a + b, 0)
 
-  const STATS = [
-    { label: t.paymentsPage.totalRevenue, value: fmtAmount(totalRevenue, 'EUR'), icon: TrendingUp, color: '#16A34A', bg: '#F0FDF4' },
-    { label: t.common.paid,               value: String(countByStatus.PAID),     icon: Check,      color: '#0071E3', bg: '#EFF6FF' },
-    { label: t.common.pending,            value: String(countByStatus.PENDING),  icon: Clock,      color: '#D97706', bg: '#FFFBEB' },
-    { label: t.common.failed,             value: String(countByStatus.FAILED),   icon: AlertCircle,color: '#DC2626', bg: '#FEF2F2' },
-  ]
-
   const FILTERS: { id: TxFilter; label: string; count: number }[] = [
     { id: 'ALL',      label: t.common.all,      count: totalCount },
     { id: 'PAID',     label: t.common.paid,     count: countByStatus.PAID },
@@ -429,34 +430,21 @@ export default function TransactionsClient() {
         </button>
       </div>
 
-      <div className="px-4 md:px-8 py-6 flex flex-col gap-6">
+      <div className="px-4 md:px-8 py-6 flex flex-col gap-4">
 
         {/* Header */}
-        <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>
-            {t.paymentsPage.transactionsTitle}
-          </h1>
-          <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>
-            {t.paymentsPage.transactionsSubtitle}
-          </p>
-        </div>
-
-        {/* KPI cards */}
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-          {STATS.map(s => (
-            <div key={s.label} className="rounded-2xl"
-              style={{ background: '#fff', border: '1px solid #E5E7EB', padding: '18px 20px' }}>
-              <div className="flex items-start justify-between mb-3">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: s.bg }}>
-                  <s.icon size={16} style={{ color: s.color }} />
-                </div>
-              </div>
-              <p style={{ fontSize: 26, fontWeight: 700, color: '#111827', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 4 }}>
-                {loading ? '—' : s.value}
-              </p>
-              <p style={{ fontSize: 12, fontWeight: 500, color: '#6B7280' }}>{s.label}</p>
-            </div>
-          ))}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>
+              {t.paymentsPage.transactionsTitle}
+            </h1>
+            <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>
+              {t.paymentsPage.transactionsSubtitle}
+            </p>
+          </div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#16A34A' }}>
+            {!loading && fmtAmount(totalRevenue, 'EUR')}
+          </div>
         </div>
 
         {/* Filter tabs */}
@@ -495,7 +483,7 @@ export default function TransactionsClient() {
                 {[
                   { label: t.common.member,           cls: '' },
                   { label: t.paymentsPage.colPlan,    cls: 'hidden md:table-cell' },
-                  { label: 'Categoría',               cls: 'hidden sm:table-cell' },
+                  { label: 'Method',                  cls: 'hidden sm:table-cell' },
                   { label: t.common.amount,           cls: '' },
                   { label: t.common.date,             cls: 'hidden lg:table-cell' },
                   { label: t.common.status,           cls: '' },
@@ -525,7 +513,8 @@ export default function TransactionsClient() {
                 </tr>
               ) : transactions.map((tx, idx) => {
                 const sc = STATUS_MAP[tx.status]
-                const mc = METHOD_COLORS[tx.method] ?? METHOD_COLORS.OTHER!
+                const methodKey = (tx.method ?? 'OTHER').toUpperCase()
+                const mc = METHOD_COLORS[methodKey] ?? METHOD_COLORS.OTHER!
                 const StatusIcon = sc.icon
                 const initials = (tx.userName || '?').charAt(0).toUpperCase()
                 return (
@@ -551,9 +540,9 @@ export default function TransactionsClient() {
                     </td>
 
                     <td className="hidden sm:table-cell px-5 py-3">
-                      <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px',
+                      <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px',
                         borderRadius: 999, background: mc.bg, color: mc.color }}>
-                        {CATEGORY_LABELS[tx.method] ?? tx.method}
+                        {METHOD_LABELS[methodKey] ?? methodKey}
                       </span>
                     </td>
 

@@ -1021,13 +1021,14 @@ model Transaction {
   schoolId    String
   school      School              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
-  type        TransactionType
-  status      TransactionStatus   @default(PAID)
-  category    TransactionCategory @default(OTHER)
-  amount      Float
-  currency    String              @default("EUR")
-  description String?
-  date        DateTime
+  type          TransactionType
+  status        TransactionStatus   @default(PAID)
+  category      TransactionCategory @default(OTHER)
+  paymentMethod PaymentMethod?
+  amount        Float
+  currency      String              @default("EUR")
+  description   String?
+  date          DateTime
 
   // Optional links to source record
   membershipId String?

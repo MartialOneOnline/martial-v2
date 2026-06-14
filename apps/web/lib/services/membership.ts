@@ -136,6 +136,7 @@ export async function assignPlan(input: AssignPlanInput) {
           type: TransactionType.INCOME,
           status: TransactionStatus.PAID,
           category: TransactionCategory.MEMBERSHIP,
+          paymentMethod: (paymentMethod ?? PaymentMethod.CASH),
           amount: plan.price,
           currency: plan.currency,
           description: `${plan.name} — ${plan.planType === 'SUBSCRIPTION' ? plan.billingCycle : `${plan.validityDays ?? 0}d`}`,
