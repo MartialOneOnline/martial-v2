@@ -67,10 +67,9 @@ async function main() {
   const rgmLeads = records.filter(r => r.user_id === '798')
   console.log(`Found ${rgmLeads.length} RGM leads out of ${records.length} total`)
 
-  // Build V1 userId → V2 userId map for conversion linking
+  // Build email → V2 userId map for conversion linking
   const v2Users = await prisma.user.findMany({
-    where: { v1UserId: { not: null } },
-    select: { id: true, v1UserId: true, email: true },
+    select: { id: true, email: true },
   })
   const userByEmail = new Map(v2Users.map(u => [u.email?.toLowerCase(), u.id]))
 

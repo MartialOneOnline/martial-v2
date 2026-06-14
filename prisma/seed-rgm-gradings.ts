@@ -31,16 +31,16 @@ async function main() {
   // Get all RGM members with a belt set
   const members = await prisma.schoolMember.findMany({
     where: { schoolId: SCHOOL_ID },
-    include: { user: { select: { id: true, belt: true, beltDegree: true, createdAt: true } } },
+    select: { userId: true, belt: true, beltDegree: true, createdAt: true },
   })
 
-  const withBelt = members.filter(m => m.user.belt && m.user.belt !== 'Blanco')
+  const withBelt = members.filter(m => m.belt && m.belt !== 'Blanco')
   console.log(`RGM members: ${members.length} total, ${withBelt.length} with non-White belt`)
 
   let imported = 0, skipped = 0
 
   for (const m of withBelt) {
-    const { id: userId, belt, beltDegree, createdAt } = m.user
+    const { userId, belt, beltDegree, createdAt } = m
     if (!belt) continue
 
     const existing = await prisma.grading.findFirst({

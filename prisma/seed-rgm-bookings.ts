@@ -18,8 +18,9 @@ import { parse } from 'csv-parse'
 import { prisma } from '../apps/web/lib/db'
 import { BookingStatus, PaymentMethod } from '../apps/web/lib/prisma-client/enums'
 
-const SCHOOL_ID = 'cmq6k2n5t0000x4o0rcvlmhmv'
-const CSV_PATH  = resolve(__dirname, 'v1-bookings.csv')
+const SCHOOL_ID    = 'cmq6k2n5t0000x4o0rcvlmhmv'
+const CSV_PATH     = resolve(__dirname, 'v1-bookings.csv')
+const USERS_CSV    = resolve(__dirname, '../scripts/v1-users.csv')
 
 // V1 status: 1=booked/active, 2=cancelled
 // V1 attendance: 1=present, 2=attended(confirmed), null=no-show/pending
@@ -35,13 +36,31 @@ function parseDate(raw: string | null): Date | null {
   return isNaN(d.getTime()) ? null : d
 }
 
-async function main() {
-  // Build V1 userId → V2 userId map
-  const users = await prisma.user.findMany({
-    where: { v1UserId: { not: null } },
-    select: { id: true, v1UserId: true },
+async function readCsv(filePath: string): Promise<any[]> {
+  return new Promise((resolve, reject) => {
+    const rows: any[] = []
+    createReadStream(filePath)
+      .pipe(parse({ columns: true, skip_empty_lines: true, trim: true, relax_quotes: true }))
+      .on('data', (r: any) => rows.push(r))
+      .on('end', () => resolve(rows))
+      .on('error', reject)
   })
-  const userMap = new Map(users.map(u => [u.v1UserId!, u.id]))
+}
+
+async function main() {
+  // Build V1 userId → V2 userId via v1-users.csv (id→email) + prisma (email→id)
+  const v1Users = await readCsv(USERS_CSV)
+  const v1EmailMap = new Map(v1Users.map(u => [parseInt(u.id), u.email?.toLowerCase()]))
+
+  const v2Users = await prisma.user.findMany({ select: { id: true, email: true } })
+  const v2EmailMap = new Map(v2Users.map(u => [u.email?.toLowerCase(), u.id]))
+
+  const userMap = new Map<number, string>()
+  for (const [v1Id, email] of v1EmailMap) {
+    const v2Id = email ? v2EmailMap.get(email) : undefined
+    if (v2Id) userMap.set(v1Id, v2Id)
+  }
+  console.log(`User map: ${userMap.size} V1 users resolved to V2 ids`)
 
   // Fetch RGM classes — used to distribute V1 class_ids
   const classes = await prisma.class.findMany({
@@ -54,14 +73,7 @@ async function main() {
   // Build V1 class_id → V2 class_id map (modulo distribution for historical data)
   const classIdMap = new Map<number, string>()
 
-  const records: any[] = []
-  await new Promise<void>((resolve, reject) => {
-    createReadStream(CSV_PATH)
-      .pipe(parse({ columns: true, skip_empty_lines: true, trim: true, relax_quotes: true }))
-      .on('data', (row: any) => records.push(row))
-      .on('end', resolve)
-      .on('error', reject)
-  })
+  const records = await readCsv(CSV_PATH)
 
   let imported = 0, skipped = 0, duplicates = 0
 
