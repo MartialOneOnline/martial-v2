@@ -352,8 +352,8 @@ export default function LeadsClient() {
                   </td>
                 </tr>
               ) : leads.map((lead, idx) => {
-                const sc  = STATUS_STYLE[lead.status]  ?? STATUS_STYLE['NEW']
-                const src = SOURCE_STYLE[lead.source]  ?? SOURCE_STYLE['OTHER']
+                const sc  = STATUS_STYLE[lead.status]  ?? { bg: '#F3F4F6', color: '#6B7280', border: '#D1D5DB' }
+                const src = SOURCE_STYLE[lead.source]  ?? { bg: '#F3F4F6', color: '#6B7280' }
                 const date = new Date(lead.createdAt).toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' })
                 return (
                   <tr key={lead.id} className="hover:bg-[#FAFAFA] transition-colors cursor-pointer"
