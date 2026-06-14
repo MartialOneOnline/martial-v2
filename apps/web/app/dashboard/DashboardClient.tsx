@@ -225,6 +225,11 @@ export default function DashboardClient({ userName, userEmail }: Props) {
   // Real data
   const [stats, setStats]           = useState<DashStats | null>(null)
   const [todayClasses, setTodayClasses] = useState<TodayClass[]>([])
+  const [recentTx, setRecentTx]     = useState<{
+    id: string; userName: string; userAvatar: string | null
+    planName: string; paymentMethod: string; price: number
+    currency: string; status: string; startDate: string
+  }[]>([])
 
   useEffect(() => {
     const sid = currentSchool?.schoolId
@@ -235,6 +240,9 @@ export default function DashboardClient({ userName, userEmail }: Props) {
     fetch(`/api/dashboard/classes/today?schoolId=${sid}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => d?.classes && setTodayClasses(d.classes))
+    fetch('/api/dashboard/memberships?pageSize=6&page=1')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => d?.memberships && setRecentTx(d.memberships))
   }, [currentSchool?.schoolId])
   const [aiInput, setAiInput]       = useState('')
   const [aiMessages, setAiMessages] = useState<{ role: 'ai' | 'user'; text: string }[]>([
@@ -571,10 +579,10 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           >
             <div className="flex items-center justify-between px-7 py-4" style={{ borderBottom: '1px solid #F3F4F6' }}>
               <div className="flex items-center gap-3">
-                <p style={{ fontSize: 16, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>{TRANSACTIONS.length} {t.dashboard.recent}</p>
+                <p style={{ fontSize: 16, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>{recentTx.length} {t.dashboard.recent}</p>
                 <p style={{ fontSize: 12, color: '#6B7280' }}>{t.dashboard.latestTransactions}</p>
               </div>
-              <Link href="#" style={{ fontSize: 12, fontWeight: 600, color: '#0071E3' }} className="no-underline flex items-center gap-1">
+              <Link href="/dashboard/payments/transactions" style={{ fontSize: 12, fontWeight: 600, color: '#0071E3' }} className="no-underline flex items-center gap-1">
                 {t.dashboard.viewAllLink} <ChevronRight size={12} />
               </Link>
             </div>
@@ -583,12 +591,12 @@ export default function DashboardClient({ userName, userEmail }: Props) {
               <thead>
                 <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
                   {[
-                    { label: t.common.member,  cls: '' },
-                    { label: t.dashboard.method,  cls: 'hidden sm:table-cell' },
-                    { label: t.dashboard.amount,  cls: '' },
-                    { label: t.dashboard.date,    cls: 'hidden md:table-cell' },
-                    { label: t.dashboard.status,  cls: 'hidden sm:table-cell' },
-                    { label: '',        cls: 'hidden sm:table-cell' },
+                    { label: t.common.member,    cls: '' },
+                    { label: 'Plan',             cls: 'hidden sm:table-cell' },
+                    { label: t.dashboard.method, cls: 'hidden sm:table-cell' },
+                    { label: t.dashboard.amount, cls: '' },
+                    { label: t.dashboard.date,   cls: 'hidden md:table-cell' },
+                    { label: t.dashboard.status, cls: 'hidden sm:table-cell' },
                   ].map(h => (
                     <th key={h.label} className={`px-4 md:px-7 py-3 text-left ${h.cls}`}
                       style={{ fontSize: 12, fontWeight: 500, color: '#9CA3AF' }}>
@@ -598,38 +606,60 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                 </tr>
               </thead>
               <tbody>
-                {TRANSACTIONS.map((tx, idx) => (
-                  <tr
-                    key={tx.id}
-                    style={{ borderBottom: idx < TRANSACTIONS.length - 1 ? '1px solid #F9FAFB' : 'none' }}
-                    className="hover:bg-[#FAFAFA] transition-colors"
-                  >
-                    <td className="px-4 md:px-7 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-[#E5E7EB]">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={tx.avatar} alt={tx.name} width={32} height={32} style={{ width: 32, height: 32, objectFit: 'cover' }} />
+                {recentTx.length === 0 ? (
+                  <tr><td colSpan={6} style={{ padding: '32px 28px', fontSize: 13, color: '#9CA3AF', textAlign: 'center' }}>Loading…</td></tr>
+                ) : recentTx.map((tx, idx) => {
+                  const initials = (tx.userName || '?').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
+                  const methodLabel: Record<string, string> = { STRIPE: 'Stripe', CASH: 'Cash', BANK_TRANSFER: 'Transfer', DIRECT_DEBIT: 'Direct Debit', OTHER: 'Other', FREE: 'Free' }
+                  const statusStyle: Record<string, { bg: string; color: string }> = {
+                    ACTIVE:    { bg: '#F0FDF4', color: '#16A34A' },
+                    CANCELLED: { bg: '#FEF2F2', color: '#DC2626' },
+                    EXPIRED:   { bg: '#FFFBEB', color: '#D97706' },
+                    PAUSED:    { bg: '#F5F3FF', color: '#6D28D9' },
+                  }
+                  const ss = statusStyle[tx.status] ?? { bg: '#F3F4F6', color: '#6B7280' }
+                  return (
+                    <tr key={tx.id}
+                      style={{ borderBottom: idx < recentTx.length - 1 ? '1px solid #F9FAFB' : 'none' }}
+                      className="hover:bg-[#FAFAFA] transition-colors">
+                      <td className="px-4 md:px-7 py-4">
+                        <div className="flex items-center gap-3">
+                          {tx.userAvatar ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={tx.userAvatar} alt={tx.userName} width={32} height={32}
+                              style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: '50%', border: '1px solid #E5E7EB' }} />
+                          ) : (
+                            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', color: '#fff', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              {initials}
+                            </div>
+                          )}
+                          <span style={{ fontSize: 14, color: '#111827', whiteSpace: 'nowrap' }}>{tx.userName}</span>
                         </div>
-                        <span style={{ fontSize: 14, color: '#111827', whiteSpace: 'nowrap' }}>{tx.name}</span>
-                      </div>
-                    </td>
-                    <td className="hidden sm:table-cell px-4 md:px-7 py-4">
-                      <span style={{ fontSize: 14, color: '#6B7280' }}>{tx.method}</span>
-                    </td>
-                    <td className="px-4 md:px-7 py-4" style={{ whiteSpace: 'nowrap' }}>
-                      <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{tx.price}</span>
-                    </td>
-                    <td className="hidden md:table-cell px-4 md:px-7 py-4" style={{ whiteSpace: 'nowrap' }}>
-                      <span style={{ fontSize: 13, color: '#6B7280' }}>{tx.date}</span>
-                    </td>
-                    <td className="hidden sm:table-cell px-4 md:px-7 py-4">
-                      <StatusBadge status={tx.status} />
-                    </td>
-                    <td className="hidden sm:table-cell px-4 md:px-7 py-4">
-                      <TransactionActionsButton transaction={{ id: tx.id, name: tx.name, status: tx.status, price: tx.price }} />
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="hidden sm:table-cell px-4 md:px-7 py-4">
+                        <span style={{ fontSize: 13, color: '#374151' }}>{tx.planName}</span>
+                      </td>
+                      <td className="hidden sm:table-cell px-4 md:px-7 py-4">
+                        <span style={{ fontSize: 13, color: '#6B7280' }}>{methodLabel[tx.paymentMethod] ?? tx.paymentMethod}</span>
+                      </td>
+                      <td className="px-4 md:px-7 py-4" style={{ whiteSpace: 'nowrap' }}>
+                        <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>
+                          {new Intl.NumberFormat('es-ES', { style: 'currency', currency: tx.currency }).format(tx.price)}
+                        </span>
+                      </td>
+                      <td className="hidden md:table-cell px-4 md:px-7 py-4" style={{ whiteSpace: 'nowrap' }}>
+                        <span style={{ fontSize: 13, color: '#6B7280' }}>
+                          {new Date(tx.startDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </span>
+                      </td>
+                      <td className="hidden sm:table-cell px-4 md:px-7 py-4">
+                        <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999, background: ss.bg, color: ss.color }}>
+                          {tx.status.charAt(0) + tx.status.slice(1).toLowerCase()}
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>

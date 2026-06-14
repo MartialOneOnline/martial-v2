@@ -27,10 +27,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const bookings = await prisma.booking.findMany({
     where: {
-      schoolId,
       classId,
       scheduledAt: { gte: startOfDay, lt: endOfDay },
       status: { not: 'CANCELLED' },
+      class: { schoolId },
     },
     include: {
       user: { select: { name: true, avatarUrl: true } },
