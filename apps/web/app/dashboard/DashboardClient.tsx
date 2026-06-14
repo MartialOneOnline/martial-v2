@@ -319,13 +319,13 @@ export default function DashboardClient({ userName, userEmail }: Props) {
             style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}
             onClick={() => setMenuOpen(!menuOpen)}
           >
-            <Menu size={16} style={{ color: '#374151' }} />
+            <Menu size={16} strokeWidth={1.5} style={{ color: '#374151' }} />
           </button>
 
           {/* Search — hidden on mobile */}
           <div className="hidden sm:flex flex-1 max-w-xs items-center gap-2 px-3 py-2 rounded-xl"
             style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-            <Filter size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
+            <Filter size={13} strokeWidth={1.5} style={{ color: '#9CA3AF', flexShrink: 0 }} />
             <input type="text" placeholder={t.dashboard.searchPlaceholder}
               style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
           </div>
@@ -352,7 +352,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           {/* Date — hidden on mobile */}
           <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl"
             style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', fontSize: 13, color: '#374151', whiteSpace: 'nowrap' }}>
-            <Clock size={13} style={{ color: '#9CA3AF' }} />
+            <Clock size={13} strokeWidth={1.5} style={{ color: '#9CA3AF' }} />
             {dateLabel}
           </div>
 
@@ -363,7 +363,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
               className="relative w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
               style={{ background: showNotifications ? '#EFF6FF' : '#F9FAFB', border: '1px solid #E5E7EB' }}
             >
-              <Bell size={15} style={{ color: '#374151' }} />
+              <Bell size={15} strokeWidth={1.5} style={{ color: '#374151' }} />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: '#DC2626' }} />
             </button>
             {showNotifications && (
@@ -381,7 +381,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
             background: '#fff', border: '1px solid #E5E7EB',
             borderRadius: 8, padding: '7px 14px', cursor: 'pointer',
           }}>
-            <Download size={13} style={{ color: '#6B7280' }} />
+            <Download size={13} strokeWidth={1.5} style={{ color: '#6B7280' }} />
             {t.common.export}
           </button>
         </div>
@@ -404,10 +404,10 @@ export default function DashboardClient({ userName, userEmail }: Props) {
               <p style={{ fontSize: 12, color: '#9CA3AF' }}>{t.dashboard.jiuJitsuAcademy}</p>
             </div>
             <div className="px-4 pb-4 flex gap-2" style={{ borderTop: '1px solid #F3F4F6', paddingTop: 12 }}>
-              <button onClick={() => setShowInvite(true)} title={t.dashboard.inviteUser} className="flex-1 h-9 flex items-center justify-center rounded-xl cursor-pointer" style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}><UserPlus size={15} style={{ color: '#0071E3' }} /></button>
-              <button onClick={() => setShowSend(true)} title={t.dashboard.send} className="flex-1 h-9 flex items-center justify-center rounded-xl cursor-pointer" style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}><Send size={15} style={{ color: '#0071E3' }} /></button>
-              <button onClick={() => setShowQR(true)} title={t.dashboard.qrCode} className="flex-1 h-9 flex items-center justify-center rounded-xl cursor-pointer" style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}><QrCode size={15} style={{ color: '#0071E3' }} /></button>
-              <button onClick={() => setShowEditSchool(true)} title={t.dashboard.edit} className="flex-1 h-9 flex items-center justify-center rounded-xl cursor-pointer" style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}><Pencil size={15} style={{ color: '#0071E3' }} /></button>
+              <button onClick={() => setShowInvite(true)} title={t.dashboard.inviteUser} className="flex-1 h-9 flex items-center justify-center rounded-xl cursor-pointer" style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}><UserPlus size={15} strokeWidth={1.5} style={{ color: '#0071E3' }} /></button>
+              <button onClick={() => setShowSend(true)} title={t.dashboard.send} className="flex-1 h-9 flex items-center justify-center rounded-xl cursor-pointer" style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}><Send size={15} strokeWidth={1.5} style={{ color: '#0071E3' }} /></button>
+              <button onClick={() => setShowQR(true)} title={t.dashboard.qrCode} className="flex-1 h-9 flex items-center justify-center rounded-xl cursor-pointer" style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}><QrCode size={15} strokeWidth={1.5} style={{ color: '#0071E3' }} /></button>
+              <button onClick={() => setShowEditSchool(true)} title={t.dashboard.edit} className="flex-1 h-9 flex items-center justify-center rounded-xl cursor-pointer" style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}><Pencil size={15} strokeWidth={1.5} style={{ color: '#0071E3' }} /></button>
             </div>
           </div>
 
@@ -417,7 +417,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center"
                   style={{ background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)' }}>
-                  <Sparkles size={13} style={{ color: '#fff' }} />
+                  <Sparkles size={13} strokeWidth={1.5} style={{ color: '#fff' }} />
                 </div>
                 <div>
                   <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', lineHeight: 1.2 }}>AI Assistant</p>
@@ -494,7 +494,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                 <p style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>
                   {longDateLabel}
                 </p>
-                <Calendar size={13} style={{ color: '#9CA3AF' }} />
+                <Calendar size={13} strokeWidth={1.5} style={{ color: '#9CA3AF' }} />
               </div>
             </div>
             <div className="flex gap-1 px-3 py-2" style={{ borderBottom: '1px solid #F3F4F6', overflowX: 'auto', scrollbarWidth: 'none' }}>
@@ -583,7 +583,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                 <p style={{ fontSize: 12, color: '#6B7280' }}>{t.dashboard.latestTransactions}</p>
               </div>
               <Link href="/dashboard/payments/transactions" style={{ fontSize: 12, fontWeight: 600, color: '#0071E3' }} className="no-underline flex items-center gap-1">
-                {t.dashboard.viewAllLink} <ChevronRight size={12} />
+                {t.dashboard.viewAllLink} <ChevronRight size={12} strokeWidth={1.5} />
               </Link>
             </div>
 
@@ -720,7 +720,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg flex items-center justify-center"
                 style={{ background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)' }}>
-                <Sparkles size={13} style={{ color: '#fff' }} />
+                <Sparkles size={13} strokeWidth={1.5} style={{ color: '#fff' }} />
               </div>
               <div>
                 <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', lineHeight: 1.2 }}>{t.dashboard.aiAssistant}</p>
@@ -759,7 +759,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                 {longDateLabel}
               </p>
               <Link href="/dashboard/classes/calendar" title="Open calendar">
-                <Calendar size={13} style={{ color: '#0071E3', flexShrink: 0, cursor: 'pointer' }} />
+                <Calendar size={13} strokeWidth={1.5} style={{ color: '#0071E3', flexShrink: 0, cursor: 'pointer' }} />
               </Link>
             </div>
           </div>

@@ -42,7 +42,7 @@ function NavGroup({ item }: { item: NavItem }) {
         onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = '#F9FAFB' }}
         onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
       >
-        <item.icon size={16} style={{ color: isActive ? '#0071E3' : '#9CA3AF', flexShrink: 0 }} />
+        <item.icon size={16} strokeWidth={1.5} style={{ color: isActive ? '#0071E3' : '#9CA3AF', flexShrink: 0 }} />
         {item.label}
       </Link>
     )
@@ -63,11 +63,11 @@ function NavGroup({ item }: { item: NavItem }) {
         onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#F9FAFB' }}
         onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = isActive && !open ? '#EFF6FF' : 'transparent' }}
       >
-        <item.icon size={16} style={{ color: isActive ? '#0071E3' : '#9CA3AF', flexShrink: 0 }} />
+        <item.icon size={16} strokeWidth={1.5} style={{ color: isActive ? '#0071E3' : '#9CA3AF', flexShrink: 0 }} />
         <span className="flex-1">{item.label}</span>
         {open
-          ? <ChevronDown size={13} style={{ color: '#9CA3AF' }} />
-          : <ChevronRight size={13} style={{ color: '#9CA3AF' }} />
+          ? <ChevronDown size={13} strokeWidth={1.5} style={{ color: '#9CA3AF' }} />
+          : <ChevronRight size={13} strokeWidth={1.5} style={{ color: '#9CA3AF' }} />
         }
       </button>
       {open && (
@@ -199,7 +199,7 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen }: Props) {
                     className="flex items-center justify-center w-6 h-6 rounded-md hover:bg-gray-100 transition-colors cursor-pointer"
                     title="Switch school"
                   >
-                    <ChevronsUpDown size={13} style={{ color: '#9CA3AF' }} />
+                    <ChevronsUpDown size={13} strokeWidth={1.5} style={{ color: '#9CA3AF' }} />
                   </button>
                   {switcherOpen && (
                     <>
@@ -233,7 +233,7 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen }: Props) {
                 onClick={() => setMenuOpen(false)}
                 aria-label="Close menu"
               >
-                <X size={14} style={{ color: '#6B7280' }} />
+                <X size={14} strokeWidth={1.5} style={{ color: '#6B7280' }} />
               </button>
             </div>
           </div>
@@ -259,7 +259,7 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen }: Props) {
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#F9FAFB' }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
             >
-              <LogOut size={16} style={{ color: '#9CA3AF' }} />
+              <LogOut size={16} strokeWidth={1.5} style={{ color: '#9CA3AF' }} />
               {t.sidebar.signOut}
             </button>
           </form>
