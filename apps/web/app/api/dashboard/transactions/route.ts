@@ -77,7 +77,7 @@ export async function GET(req: NextRequest) {
       userName:    t.user?.name ?? '—',
       userEmail:   t.user?.email ?? null,
       userAvatar:  t.user?.avatarUrl ?? null,
-      description:   t.description ?? t.category,
+      description:   (t.description && t.description !== 'NULL') ? t.description : null,
       method:        t.paymentMethod ?? t.category,
       amount:      Number(t.amount),
       currency:    t.currency,

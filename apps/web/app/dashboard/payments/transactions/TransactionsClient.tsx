@@ -19,7 +19,7 @@ interface TxRow {
   userName: string
   userEmail: string | null
   userAvatar: string | null
-  description: string
+  description: string | null
   method: string
   amount: number
   currency: string
@@ -536,7 +536,7 @@ export default function TransactionsClient() {
                     </td>
 
                     <td className="hidden md:table-cell px-5 py-3">
-                      <span style={{ fontSize: 13, color: '#374151' }}>{tx.description}</span>
+                      <span style={{ fontSize: 13, color: tx.description ? '#374151' : '#D1D5DB' }}>{tx.description ?? '—'}</span>
                     </td>
 
                     <td className="hidden sm:table-cell px-5 py-3">
