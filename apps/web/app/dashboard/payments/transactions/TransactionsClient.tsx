@@ -151,7 +151,7 @@ export default function TransactionsClient() {
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>
-              {t.payments.transactionsTitle}
+              {t.paymentsPage.transactionsTitle}
             </h1>
             <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>All membership subscriptions for your academy</p>
           </div>
