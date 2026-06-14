@@ -724,7 +724,9 @@ export default function DashboardClient({ userName, userEmail }: Props) {
               <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>
                 {longDateLabel}
               </p>
-              <Calendar size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
+              <Link href="/dashboard/classes/calendar" title="Open calendar">
+                <Calendar size={13} style={{ color: '#0071E3', flexShrink: 0, cursor: 'pointer' }} />
+              </Link>
             </div>
           </div>
           <div className="shrink-0 flex gap-1 px-3 py-2"
@@ -751,7 +753,10 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <p style={{ fontSize: 11, fontWeight: 600, color: '#111827', lineHeight: 1.3, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cls.name}</p>
+                      <button onClick={() => setSelectedClass(cls)}
+                        style={{ fontSize: 11, fontWeight: 600, color: '#111827', lineHeight: 1.3, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left' }}>
+                        {cls.name}
+                      </button>
                       <button
                         onClick={() => setSelectedClass(cls)}
                         style={{ fontSize: 11, fontWeight: 700, color: capacityColor, whiteSpace: 'nowrap', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
