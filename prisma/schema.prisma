@@ -713,10 +713,19 @@ model Membership {
   stripeSubId   String?
   notes         String?
 
+  // Renewal chain — points to the membership this one renewed/replaced
+  renewedFromId String?
+  renewedFrom   Membership?  @relation("MembershipRenewal", fields: [renewedFromId], references: [id])
+  renewals      Membership[] @relation("MembershipRenewal")
+
+  // Soft cancel timestamp (status=CANCELLED set at same time)
+  cancelledAt   DateTime?
+
   // Content platform access granted by this membership
   contentAccess ContentAccess?
 
   bookings      Booking[]
+  transactions  Transaction[] @relation("MembershipTransactions")
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -1022,6 +1031,7 @@ model Transaction {
 
   // Optional links to source record
   membershipId String?
+  membership   Membership? @relation("MembershipTransactions", fields: [membershipId], references: [id])
   bookingId    String?
   userId       String?
   user         User?   @relation("TransactionUser", fields: [userId], references: [id])

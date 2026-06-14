@@ -454,11 +454,35 @@ function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
   const [planId, setPlanId] = useState(plans[0]?.id ?? '')
   const [startDate, setStartDate] = useState(new Date().toISOString().substring(0, 10))
   const [paymentMethod, setPaymentMethod] = useState('CASH')
+  const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
   const selected = plans.find(p => p.id === planId)
   const sym = (c: string) => c === 'EUR' ? '€' : c === 'USD' ? '$' : c === 'GBP' ? '£' : c
+
+  // Compute preview end date based on selected plan
+  const previewEndDate = (() => {
+    if (!selected) return null
+    const start = new Date(startDate)
+    if (selected.planType === 'SUBSCRIPTION') {
+      const end = new Date(start)
+      switch (selected.billingCycle) {
+        case 'monthly':    end.setMonth(end.getMonth() + 1); break
+        case 'quarterly':  end.setMonth(end.getMonth() + 3); break
+        case 'annual':     end.setFullYear(end.getFullYear() + 1); break
+        case 'two-weekly': end.setDate(end.getDate() + 14); break
+        default: return null
+      }
+      return end
+    }
+    if (selected.validityDays) {
+      const end = new Date(start)
+      end.setDate(end.getDate() + selected.validityDays)
+      return end
+    }
+    return null
+  })()
 
   async function save() {
     if (!planId) { setError('Select a plan'); return }
@@ -467,7 +491,7 @@ function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
       const res = await fetch(`/api/dashboard/members/${memberId}/membership`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planId, startDate, paymentMethod }),
+        body: JSON.stringify({ planId, startDate, paymentMethod, notes: notes.trim() || undefined }),
       })
       if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? 'Error'); }
       const data = await res.json()
@@ -544,11 +568,24 @@ function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
             </div>
           </div>
 
-          {selected && selected.validityDays && (
+          {previewEndDate && (
             <p style={{ fontSize: 12, color: '#6B7280', background: '#F9FAFB', padding: '8px 12px', borderRadius: 8, margin: 0 }}>
-              Expires on: <strong>{new Date(new Date(startDate).getTime() + selected.validityDays * 86400000).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</strong>
+              {selected?.planType === 'SUBSCRIPTION' ? 'Next renewal' : 'Expires'} on:{' '}
+              <strong>{previewEndDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</strong>
             </p>
           )}
+
+          {/* Notes */}
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Notes <span style={{ fontWeight: 400, color: '#9CA3AF' }}>(optional)</span></label>
+            <input
+              type="text"
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              placeholder="e.g. Paid in cash at reception"
+              style={{ width: '100%', padding: '8px 12px', fontSize: 13, border: '1px solid #E5E7EB', borderRadius: 8, outline: 'none' }}
+            />
+          </div>
         </div>
 
         {error && <p style={{ fontSize: 12, color: '#EF4444', marginTop: 12, marginBottom: 0 }}>{error}</p>}
@@ -570,27 +607,71 @@ function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
 }
 
 // ── Membership Section ─────────────────────────────────────────────────────────
-function MembershipSection({ memberId, activeMembership, memberships, availablePlans, onAssigned }: {
+function MembershipSection({ memberId, activeMembership: initialActiveMembership, memberships: initialMemberships, availablePlans, onAssigned }: {
   memberId: string
   activeMembership: ActiveMembership | null
   memberships: MembershipRecord[]
   availablePlans: AvailablePlan[]
   onAssigned: (m: ActiveMembership) => void
 }) {
+  const [activeMembership, setActiveMembership] = useState(initialActiveMembership)
+  const [memberships, setMemberships] = useState(initialMemberships)
   const [showModal, setShowModal] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
+
+  async function handleCancel() {
+    if (!activeMembership || !confirm('Cancel this membership?')) return
+    setCancelling(true)
+    try {
+      const res = await fetch(`/api/dashboard/members/${memberId}/membership`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ membershipId: activeMembership.id, action: 'cancel' }),
+      })
+      if (res.ok) {
+        const updated: MembershipRecord = {
+          id: activeMembership.id,
+          planName: activeMembership.planName,
+          planType: 'SUBSCRIPTION',
+          billingCycle: activeMembership.interval,
+          price: activeMembership.price,
+          currency: 'EUR',
+          status: 'CANCELLED',
+          startDate: activeMembership.startDate,
+          endDate: activeMembership.expiresAt,
+          consumed: activeMembership.consumed,
+        }
+        setActiveMembership(null)
+        setMemberships(prev => prev.map(m => m.id === activeMembership.id ? updated : m))
+      }
+    } finally {
+      setCancelling(false)
+    }
+  }
 
   return (
     <Card>
       <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
         <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>Membership</p>
-        <button onClick={() => setShowModal(true)}
-          className="flex items-center gap-1.5"
-          style={{ fontSize: 12, fontWeight: 600, color: '#0071E3', background: '#EFF6FF', border: 'none',
-            padding: '5px 12px', borderRadius: 8, cursor: 'pointer' }}>
-          <Plus size={12} />
-          {activeMembership ? 'Change plan' : 'Assign plan'}
-        </button>
+        <div className="flex items-center gap-2">
+          {activeMembership && (
+            <button onClick={handleCancel} disabled={cancelling}
+              className="flex items-center gap-1"
+              style={{ fontSize: 12, fontWeight: 600, color: '#EF4444', background: '#FEF2F2', border: 'none',
+                padding: '5px 10px', borderRadius: 8, cursor: cancelling ? 'not-allowed' : 'pointer', opacity: cancelling ? 0.6 : 1 }}>
+              <X size={11} />
+              {cancelling ? 'Cancelling…' : 'Cancel'}
+            </button>
+          )}
+          <button onClick={() => setShowModal(true)}
+            className="flex items-center gap-1.5"
+            style={{ fontSize: 12, fontWeight: 600, color: '#0071E3', background: '#EFF6FF', border: 'none',
+              padding: '5px 12px', borderRadius: 8, cursor: 'pointer' }}>
+            <Plus size={12} />
+            {activeMembership ? 'Change plan' : 'Assign plan'}
+          </button>
+        </div>
       </div>
 
       {activeMembership ? (
@@ -687,7 +768,17 @@ function MembershipSection({ memberId, activeMembership, memberships, availableP
           memberId={memberId}
           plans={availablePlans}
           onClose={() => setShowModal(false)}
-          onAssigned={m => { onAssigned(m); setShowModal(false) }}
+          onAssigned={m => {
+            setActiveMembership(m)
+            setMemberships(prev => [
+              { id: m.id, planName: m.planName, planType: 'SUBSCRIPTION', billingCycle: m.interval,
+                price: m.price, currency: 'EUR', status: 'ACTIVE',
+                startDate: m.startDate, endDate: m.expiresAt, consumed: 0 },
+              ...prev.map(p => p.status === 'ACTIVE' ? { ...p, status: 'CANCELLED' } : p),
+            ])
+            onAssigned(m)
+            setShowModal(false)
+          }}
         />
       )}
     </Card>

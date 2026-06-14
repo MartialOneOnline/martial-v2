@@ -431,6 +431,8 @@ export const MembershipScalarFieldEnum = {
   classesUsed: 'classesUsed',
   stripeSubId: 'stripeSubId',
   notes: 'notes',
+  renewedFromId: 'renewedFromId',
+  cancelledAt: 'cancelledAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
