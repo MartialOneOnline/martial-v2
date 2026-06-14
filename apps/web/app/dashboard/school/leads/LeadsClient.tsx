@@ -263,7 +263,7 @@ export default function LeadsClient() {
         <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 max-w-xs"
           style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
           <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
-          <input type="text" placeholder={t.school.searchLeads} value={search}
+          <input type="text" placeholder={t.school.searchLeads} value={search ?? ''}
             onChange={e => { setSearch(e.target.value); setCurrentPage(1) }}
             style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
         </div>
