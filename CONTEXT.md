@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 28 completada ✅ — Booking real, dashboard/preview split, publish workflow, lint estable
+**Estado:** Sesión 29 completada ✅ — Payments module conectado a datos reales (transactions + subscriptions)
 
 ---
 
@@ -244,6 +244,15 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 ---
 
 ## Historial de sesiones
+
+### Sesión 29 — 2026-06-14 ✅
+**Payments module: transactions + subscriptions con datos reales** — commit `b14df5b`
+- **Schema** — nuevo enum `TransactionStatus` (PAID/PENDING/FAILED/REFUNDED) + campo `status` en `Transaction` (default PAID); `db push` sin pérdida de datos
+- **`/api/dashboard/transactions`** (nuevo) — GET con filtros (status, search, page, pageSize), aggregates (totalRevenue, countByStatus); POST crea transacciones
+- **`TransactionsClient.tsx`** — reescrito: fetch server-side con paginación real, drawer carga miembros reales desde `/api/dashboard/members`, guarda en API real
+- **`PaymentSubscriptionsClient.tsx`** — reescrito: carga membresías activas desde `/api/dashboard/members`; KPIs calculados de datos reales; botón "Asignar membresía" enlaza a `/dashboard/users`
+- **`/api/dashboard/members`** — extendido `activeMembership` con `price`, `currency`, `planType`
+- Eliminados todos los mocks `TRANSACTIONS[]` y `SUBSCRIPTIONS[]` hardcodeados
 
 ### Sesión 28 — 2026-06-13 ✅
 **Estabilización: booking real, dashboard/preview, publish workflow, lint** — commits `14942c3`, `fd7a032`, `568fd0f`, `8fa06b1`, `40e63e7`
