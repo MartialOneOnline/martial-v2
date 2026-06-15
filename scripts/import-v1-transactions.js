@@ -111,9 +111,14 @@ async function main() {
     if (!userId) noUser++
 
     const planTitle = v1PlanTitle[b.subscription_id] ?? 'Membresía'
-    const date = b.activated_at && b.activated_at !== 'NULL' && b.activated_at !== ''
-      ? new Date(b.activated_at).toISOString()
-      : new Date(b.created_at).toISOString()
+
+    function parseDate(val) {
+      return val && val !== 'NULL' && val !== '' ? new Date(val).toISOString() : null
+    }
+
+    const periodStart = parseDate(b.activated_at)
+    const periodEnd   = parseDate(b.expires_at)
+    const date = periodStart ?? new Date(b.created_at).toISOString()
 
     const now = new Date().toISOString()
     toInsert.push({
@@ -129,6 +134,8 @@ async function main() {
       status:        'PAID',
       paymentMethod: mapMethod(b.method),
       notes:         `v1_booking:${bookingId}`,
+      periodStart,
+      periodEnd,
       createdAt:     now,
       updatedAt:     now,
     })

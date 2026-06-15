@@ -92,6 +92,8 @@ export async function GET(req: NextRequest) {
       status:      t.status,
       type:        t.type,
       notes:       t.notes ?? null,
+      periodStart: t.periodStart?.toISOString() ?? null,
+      periodEnd:   t.periodEnd?.toISOString()   ?? null,
     })),
     total,
     page,

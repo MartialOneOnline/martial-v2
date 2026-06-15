@@ -29,6 +29,8 @@ interface TxRow {
   status: TxStatus
   type: string
   notes: string | null
+  periodStart: string | null
+  periodEnd: string | null
 }
 
 interface StatusCounts { PAID: number; PENDING: number; FAILED: number; REFUNDED: number }
@@ -284,6 +286,16 @@ function TxDetailDrawer({ tx, onClose }: { tx: TxRow; onClose: () => void }) {
         </span>
       ) : <span style={{ color: '#9CA3AF' }}>—</span> },
     { label: 'Submitted', value: <span style={{ color: '#374151' }}>{fmtDate(tx.date)}</span> },
+    ...(tx.periodStart || tx.periodEnd ? [{
+      label: 'Period',
+      value: (
+        <span style={{ fontSize: 12, color: '#374151', fontWeight: 500 }}>
+          {tx.periodStart ? fmtDate(tx.periodStart) : '—'}
+          {' · '}
+          <span style={{ color: '#DC2626' }}>Expires {tx.periodEnd ? fmtDate(tx.periodEnd) : '—'}</span>
+        </span>
+      ),
+    }] : []),
     { label: 'Status',
       value: (
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5,

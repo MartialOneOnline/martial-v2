@@ -1041,6 +1041,8 @@ model Transaction {
   stripePaymentIntentId String?
 
   notes       String?
+  periodStart DateTime?
+  periodEnd   DateTime?
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
