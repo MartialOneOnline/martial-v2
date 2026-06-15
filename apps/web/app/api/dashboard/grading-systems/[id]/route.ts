@@ -17,12 +17,12 @@ async function auth() {
   return { schoolId }
 }
 
-// PATCH /api/dashboard/grading-systems/[id]
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const a = await auth()
   if ('error' in a) return NextResponse.json({ error: a.error }, { status: a.status })
 
-  const existing = await prisma.gradingSystem.findFirst({ where: { id: params.id, schoolId: a.schoolId } })
+  const { id } = await params
+  const existing = await prisma.gradingSystem.findFirst({ where: { id, schoolId: a.schoolId } })
   if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const body = await req.json()
@@ -32,7 +32,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 
   const system = await prisma.gradingSystem.update({
-    where: { id: params.id },
+    where: { id },
     data: {
       ...(body.name !== undefined        && { name: body.name }),
       ...(body.activity !== undefined    && { activity: body.activity }),
@@ -48,15 +48,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   return NextResponse.json({ system })
 }
 
-// DELETE /api/dashboard/grading-systems/[id]
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const a = await auth()
   if ('error' in a) return NextResponse.json({ error: a.error }, { status: a.status })
 
-  const existing = await prisma.gradingSystem.findFirst({ where: { id: params.id, schoolId: a.schoolId } })
+  const { id } = await params
+  const existing = await prisma.gradingSystem.findFirst({ where: { id, schoolId: a.schoolId } })
   if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  // Soft delete
-  await prisma.gradingSystem.update({ where: { id: params.id }, data: { isActive: false } })
+  await prisma.gradingSystem.update({ where: { id }, data: { isActive: false } })
   return NextResponse.json({ ok: true })
 }

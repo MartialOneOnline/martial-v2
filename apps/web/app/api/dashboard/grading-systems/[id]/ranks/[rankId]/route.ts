@@ -17,19 +17,19 @@ async function auth() {
   return { schoolId }
 }
 
-// PATCH /api/dashboard/grading-systems/[id]/ranks/[rankId]
-export async function PATCH(req: NextRequest, { params }: { params: { id: string; rankId: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string; rankId: string }> }) {
   const a = await auth()
   if ('error' in a) return NextResponse.json({ error: a.error }, { status: a.status })
 
+  const { id, rankId } = await params
   const rank = await prisma.beltRank.findFirst({
-    where: { id: params.rankId, systemId: params.id, system: { schoolId: a.schoolId } },
+    where: { id: rankId, systemId: id, system: { schoolId: a.schoolId } },
   })
   if (!rank) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const body = await req.json()
   const updated = await prisma.beltRank.update({
-    where: { id: params.rankId },
+    where: { id: rankId },
     data: {
       ...(body.name !== undefined                && { name: body.name }),
       ...(body.color !== undefined               && { color: body.color }),
@@ -46,16 +46,16 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   return NextResponse.json({ rank: updated })
 }
 
-// DELETE /api/dashboard/grading-systems/[id]/ranks/[rankId]
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string; rankId: string } }) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string; rankId: string }> }) {
   const a = await auth()
   if ('error' in a) return NextResponse.json({ error: a.error }, { status: a.status })
 
+  const { id, rankId } = await params
   const rank = await prisma.beltRank.findFirst({
-    where: { id: params.rankId, systemId: params.id, system: { schoolId: a.schoolId } },
+    where: { id: rankId, systemId: id, system: { schoolId: a.schoolId } },
   })
   if (!rank) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  await prisma.beltRank.delete({ where: { id: params.rankId } })
+  await prisma.beltRank.delete({ where: { id: rankId } })
   return NextResponse.json({ ok: true })
 }
