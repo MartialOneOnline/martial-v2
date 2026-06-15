@@ -184,10 +184,11 @@ const BELT_COLORS: Record<string, { bg: string; color: string }> = {
 // ── Tab contents ───────────────────────────────────────────────────────────────
 function ProfileTab() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', avatarUrl: '' })
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved]   = useState(false)
-  const [error, setError]   = useState('')
+  const [loading,    setLoading]    = useState(true)
+  const [saving,     setSaving]     = useState(false)
+  const [saved,      setSaved]      = useState(false)
+  const [error,      setError]      = useState('')
+  const [uploading,  setUploading]  = useState(false)
 
   useEffect(() => {
     fetch('/api/dashboard/profile').then(r => r.json()).then(d => {
@@ -196,6 +197,25 @@ function ProfileTab() {
   }, [])
 
   function set(k: string, v: string) { setForm(p => ({ ...p, [k]: v })) }
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true); setError('')
+    const fd = new FormData()
+    fd.append('file', file)
+    const res = await fetch('/api/dashboard/upload?bucket=avatars', { method: 'POST', body: fd })
+    if (!res.ok) { setError('Upload failed'); setUploading(false); return }
+    const { url } = await res.json()
+    // Save avatarUrl immediately
+    await fetch('/api/dashboard/profile', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ avatarUrl: url }),
+    })
+    setForm(p => ({ ...p, avatarUrl: url }))
+    setUploading(false)
+    setSaved(true); setTimeout(() => setSaved(false), 2500)
+  }
 
   async function save() {
     setSaving(true); setError('')
@@ -219,16 +239,24 @@ function ProfileTab() {
           <div className="relative">
             <div className="w-24 h-24 rounded-full overflow-hidden flex items-center justify-center"
               style={{ background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', border: '3px solid #E5E7EB' }}>
-              {form.avatarUrl
-                ? <img src={form.avatarUrl} alt={form.name} className="w-full h-full object-cover" />
-                : <span style={{ fontSize: 32, fontWeight: 700, color: '#fff' }}>{initials}</span>
+              {uploading
+                ? <RefreshCw size={24} style={{ color: '#fff' }} className="animate-spin" />
+                : form.avatarUrl
+                  ? <img src={form.avatarUrl} alt={form.name} className="w-full h-full object-cover" />
+                  : <span style={{ fontSize: 32, fontWeight: 700, color: '#fff' }}>{initials}</span>
               }
             </div>
+            <label className="absolute bottom-0 right-0 w-7 h-7 rounded-full flex items-center justify-center cursor-pointer"
+              style={{ background: '#0071E3', border: '2px solid #fff' }}>
+              <Upload size={11} style={{ color: '#fff' }} />
+              <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleAvatarChange} />
+            </label>
           </div>
           <div className="text-center">
             <p style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>{loading ? '…' : (form.name || '—')}</p>
             <p style={{ fontSize: 11, color: '#9CA3AF' }}>School owner</p>
           </div>
+          <p style={{ fontSize: 11, color: '#9CA3AF', textAlign: 'center' }}>Click the blue button to change photo</p>
         </div>
 
         {/* Form */}
