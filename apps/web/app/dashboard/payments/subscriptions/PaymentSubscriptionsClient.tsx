@@ -100,6 +100,184 @@ function SuccessToast({ message, onClose }: { message: string; onClose: () => vo
   )
 }
 
+// ── Assign Membership Modal ───────────────────────────────────────────────────
+const MEM_INP: React.CSSProperties = {
+  width: '100%', border: '1px solid #E5E7EB', borderRadius: 10, padding: '9px 12px',
+  fontSize: 13, color: '#111827', background: '#fff', outline: 'none',
+}
+const MEM_LBL: React.CSSProperties = {
+  display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 5,
+}
+
+function AssignMembershipModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
+  const [members, setMembers] = useState<{ id: string; name: string; email: string }[]>([])
+  const [plans,   setPlans]   = useState<{ id: string; name: string; price: number; planType: string }[]>([])
+  const [form, setForm] = useState({
+    userId: '', planId: '', paymentMethod: 'CASH',
+    startDate: new Date().toISOString().slice(0, 10),
+    endDate: '', status: 'ACTIVE', notes: '',
+  })
+  const [saving, setSaving] = useState(false)
+  const [error,  setError]  = useState('')
+
+  useEffect(() => {
+    fetch('/api/dashboard/members').then(r => r.json()).then(d =>
+      setMembers((d.members ?? []).map((m: { userId: string; name: string; email: string }) => ({ id: m.userId, name: m.name, email: m.email })))
+    )
+    fetch('/api/dashboard/membership-plans').then(r => r.json()).then(d =>
+      setPlans((d.plans ?? []).map((p: { id: string; name: string; price: number; planType: string }) => ({ id: p.id, name: p.name, price: p.price, planType: p.planType })))
+    )
+  }, [])
+
+  function set(k: string, v: string) { setForm(p => ({ ...p, [k]: v })) }
+
+  function pickPlan(planId: string) {
+    const plan = plans.find(p => p.id === planId)
+    if (!plan) { set('planId', planId); return }
+    // Auto-fill endDate based on plan type
+    const start = new Date(form.startDate || new Date())
+    let end = ''
+    if (plan.planType === 'SUBSCRIPTION') {
+      const d = new Date(start); d.setMonth(d.getMonth() + 1); end = d.toISOString().slice(0, 10)
+    } else if (plan.planType === 'SINGLE_PASS') {
+      const d = new Date(start); d.setDate(d.getDate() + 30); end = d.toISOString().slice(0, 10)
+    } else if (plan.planType === 'TRIAL') {
+      const d = new Date(start); d.setDate(d.getDate() + 7); end = d.toISOString().slice(0, 10)
+    }
+    setForm(p => ({ ...p, planId, endDate: end }))
+  }
+
+  async function handleSave() {
+    if (!form.userId) { setError('Select a member'); return }
+    if (!form.planId) { setError('Select a plan'); return }
+    setSaving(true); setError('')
+    const plan = plans.find(p => p.id === form.planId)
+    const res = await fetch('/api/dashboard/memberships', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId:        form.userId,
+        planId:        form.planId,
+        planName:      plan?.name ?? '',
+        price:         plan?.price ?? 0,
+        currency:      'EUR',
+        paymentMethod: form.paymentMethod,
+        startDate:     form.startDate,
+        endDate:       form.endDate || null,
+        status:        form.status,
+        notes:         form.notes || null,
+      }),
+    })
+    setSaving(false)
+    if (!res.ok) { const d = await res.json(); setError(d.error ?? 'Error'); return }
+    onSaved()
+  }
+
+  const selectedPlan = plans.find(p => p.id === form.planId)
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40" style={{ background: 'rgba(0,0,0,0.35)' }} onClick={onClose} />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-md rounded-2xl flex flex-col" style={{ background: '#fff', boxShadow: '0 20px 60px rgba(0,0,0,0.18)', maxHeight: '90vh', overflow: 'hidden' }}>
+
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #F3F4F6', flexShrink: 0 }}>
+            <div>
+              <p style={{ fontSize: 17, fontWeight: 700, color: '#111827', margin: 0 }}>Assign Membership</p>
+              <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>Link a plan to a member</p>
+            </div>
+            <button onClick={onClose} style={{ background: '#F3F4F6', border: 'none', borderRadius: 8, padding: 6, cursor: 'pointer', display: 'flex' }}>
+              <X size={15} style={{ color: '#6B7280' }} />
+            </button>
+          </div>
+
+          {/* Body */}
+          <div className="overflow-y-auto px-6 py-5 flex flex-col gap-4">
+
+            {/* Member */}
+            <div>
+              <label style={MEM_LBL}>Member</label>
+              <select value={form.userId} onChange={e => set('userId', e.target.value)} style={MEM_INP}>
+                <option value="">Select member…</option>
+                {members.map(m => <option key={m.id} value={m.id}>{m.name} — {m.email}</option>)}
+              </select>
+            </div>
+
+            {/* Plan */}
+            <div>
+              <label style={MEM_LBL}>Plan</label>
+              <select value={form.planId} onChange={e => pickPlan(e.target.value)} style={MEM_INP}>
+                <option value="">Select plan…</option>
+                {plans.map(p => <option key={p.id} value={p.id}>{p.name} — €{p.price} ({p.planType})</option>)}
+              </select>
+              {selectedPlan && (
+                <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>
+                  {selectedPlan.planType} · €{selectedPlan.price}
+                </p>
+              )}
+            </div>
+
+            {/* Dates */}
+            <div className="flex gap-3">
+              <div style={{ flex: 1 }}>
+                <label style={MEM_LBL}>Start date</label>
+                <input type="date" value={form.startDate} onChange={e => set('startDate', e.target.value)} style={MEM_INP} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={MEM_LBL}>End date</label>
+                <input type="date" value={form.endDate} onChange={e => set('endDate', e.target.value)} style={MEM_INP} />
+              </div>
+            </div>
+
+            {/* Method + Status */}
+            <div className="flex gap-3">
+              <div style={{ flex: 1 }}>
+                <label style={MEM_LBL}>Payment method</label>
+                <select value={form.paymentMethod} onChange={e => set('paymentMethod', e.target.value)} style={MEM_INP}>
+                  <option value="CASH">Cash</option>
+                  <option value="BANK_TRANSFER">Bank Transfer</option>
+                  <option value="STRIPE">Stripe</option>
+                  <option value="DIRECT_DEBIT">Direct Debit</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={MEM_LBL}>Status</label>
+                <select value={form.status} onChange={e => set('status', e.target.value)} style={MEM_INP}>
+                  <option value="ACTIVE">Active</option>
+                  <option value="PAUSED">Paused</option>
+                  <option value="CANCELLED">Cancelled</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Notes */}
+            <div>
+              <label style={MEM_LBL}>Notes (optional)</label>
+              <input type="text" placeholder="Internal notes…" value={form.notes}
+                onChange={e => set('notes', e.target.value)} style={MEM_INP} />
+            </div>
+
+            {error && <p style={{ fontSize: 12, color: '#DC2626', fontWeight: 500 }}>{error}</p>}
+          </div>
+
+          {/* Footer */}
+          <div className="flex gap-3 px-6 py-4" style={{ borderTop: '1px solid #F3F4F6', flexShrink: 0 }}>
+            <button onClick={onClose} style={{ flex: 1, padding: '10px', borderRadius: 10, border: '1px solid #E5E7EB',
+              background: '#fff', fontSize: 13, fontWeight: 500, color: '#374151', cursor: 'pointer' }}>
+              Cancel
+            </button>
+            <button onClick={handleSave} disabled={saving} style={{ flex: 2, padding: '10px', borderRadius: 10, border: 'none',
+              background: '#0071E3', fontSize: 13, fontWeight: 600, color: '#fff', cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.7 : 1 }}>
+              {saving ? 'Saving…' : 'Assign Membership'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
 // ── Main ───────────────────────────────────────────────────────────────────────
 export default function PaymentSubscriptionsClient() {
   const { menuOpen, setMenuOpen } = useDashboard()
@@ -108,7 +286,8 @@ export default function PaymentSubscriptionsClient() {
   const [search, setSearch]             = useState('')
   const [currentPage, setCurrentPage]   = useState(1)
   const [openMenuId, setOpenMenuId]     = useState<string | null>(null)
-  const [toast, setToast]               = useState(false)
+  const [toast, setToast]                    = useState(false)
+  const [showAssignModal, setShowAssignModal] = useState(false)
 
   const [subs, setSubs]       = useState<SubRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -214,11 +393,11 @@ export default function PaymentSubscriptionsClient() {
 
         <div className="flex-1" />
 
-        <a href="/dashboard/users"
+        <button onClick={() => setShowAssignModal(true)}
           className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer shrink-0"
-          style={{ background: '#0071E3', border: 'none', color: '#fff', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>
+          style={{ background: '#0071E3', border: 'none', color: '#fff', fontSize: 13, fontWeight: 600 }}>
           <Plus size={15} /><span className="hidden sm:inline">Asignar membresía</span>
-        </a>
+        </button>
       </div>
 
       <div className="px-4 md:px-8 py-6 flex flex-col gap-6">
@@ -454,6 +633,12 @@ export default function PaymentSubscriptionsClient() {
     </main>
 
     {toast && <SuccessToast message={t.paymentsPage.txRecorded} onClose={() => setToast(false)} />}
+    {showAssignModal && (
+      <AssignMembershipModal
+        onClose={() => setShowAssignModal(false)}
+        onSaved={() => { setShowAssignModal(false); setToast(true); load() }}
+      />
+    )}
     </>
   )
 }

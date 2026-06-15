@@ -114,3 +114,34 @@ export async function GET(req: NextRequest) {
     countByMethod: Object.fromEntries(methodStats.map(m => [m.paymentMethod, m._count.id])),
   })
 }
+
+// POST /api/dashboard/memberships — assign a plan to a member
+export async function POST(req: NextRequest) {
+  const auth = await authorise()
+  if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
+
+  const body = await req.json()
+  const { userId, planId, planName, price, currency, paymentMethod, startDate, endDate, status, notes } = body
+
+  if (!userId || !planName || !startDate) {
+    return NextResponse.json({ error: 'userId, planName and startDate are required' }, { status: 400 })
+  }
+
+  const membership = await prisma.membership.create({
+    data: {
+      schoolId:      auth.schoolId,
+      userId,
+      planId:        planId || null,
+      planName,
+      price:         parseFloat(price) || 0,
+      currency:      currency ?? 'EUR',
+      paymentMethod: paymentMethod ?? 'CASH',
+      startDate:     new Date(startDate),
+      endDate:       endDate ? new Date(endDate) : null,
+      status:        status ?? 'ACTIVE',
+      notes:         notes || null,
+    },
+  })
+
+  return NextResponse.json(membership, { status: 201 })
+}

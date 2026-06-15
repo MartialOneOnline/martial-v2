@@ -424,6 +424,178 @@ function TxDetailDrawer({ tx, onClose }: { tx: TxRow; onClose: () => void }) {
   )
 }
 
+// ── Add Payment Modal ─────────────────────────────────────────────────────────
+const MODAL_INP: React.CSSProperties = {
+  width: '100%', border: '1px solid #E5E7EB', borderRadius: 10, padding: '9px 12px',
+  fontSize: 13, color: '#111827', background: '#fff', outline: 'none',
+}
+const MODAL_LBL: React.CSSProperties = {
+  display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 5,
+}
+
+function AddPaymentModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
+  const [members, setMembers] = useState<{ id: string; name: string; email: string }[]>([])
+  const [plans,   setPlans]   = useState<{ id: string; name: string; price: number }[]>([])
+  const [form, setForm] = useState({
+    userId: '', description: '', amount: '', currency: 'EUR',
+    date: new Date().toISOString().slice(0, 10), status: 'PAID',
+    type: 'INCOME', category: 'MEMBERSHIP', paymentMethod: 'CASH', notes: '',
+  })
+  const [saving, setSaving] = useState(false)
+  const [error,  setError]  = useState('')
+
+  useEffect(() => {
+    fetch('/api/dashboard/members').then(r => r.json()).then(d =>
+      setMembers((d.members ?? []).map((m: { userId: string; name: string; email: string }) => ({ id: m.userId, name: m.name, email: m.email })))
+    )
+    fetch('/api/dashboard/membership-plans').then(r => r.json()).then(d =>
+      setPlans((d.plans ?? []).map((p: { id: string; name: string; price: number }) => ({ id: p.id, name: p.name, price: p.price })))
+    )
+  }, [])
+
+  function set(k: string, v: string) { setForm(p => ({ ...p, [k]: v })) }
+
+  function pickPlan(planName: string) {
+    const plan = plans.find(p => p.name === planName)
+    setForm(p => ({ ...p, description: planName, amount: plan ? String(plan.price) : p.amount }))
+  }
+
+  async function handleSave() {
+    if (!form.userId)     { setError('Select a member'); return }
+    if (!form.amount)     { setError('Enter an amount'); return }
+    if (!form.date)       { setError('Enter a date'); return }
+    setSaving(true); setError('')
+    const res = await fetch('/api/dashboard/transactions', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...form, amount: parseFloat(form.amount) }),
+    })
+    setSaving(false)
+    if (!res.ok) { const d = await res.json(); setError(d.error ?? 'Error'); return }
+    onSaved()
+  }
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40" style={{ background: 'rgba(0,0,0,0.35)' }} onClick={onClose} />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-md rounded-2xl flex flex-col" style={{ background: '#fff', boxShadow: '0 20px 60px rgba(0,0,0,0.18)', maxHeight: '90vh', overflow: 'hidden' }}>
+
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #F3F4F6', flexShrink: 0 }}>
+            <div>
+              <p style={{ fontSize: 17, fontWeight: 700, color: '#111827', margin: 0 }}>Add Payment</p>
+              <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>Record a manual payment</p>
+            </div>
+            <button onClick={onClose} style={{ background: '#F3F4F6', border: 'none', borderRadius: 8, padding: 6, cursor: 'pointer', display: 'flex' }}>
+              <X size={15} style={{ color: '#6B7280' }} />
+            </button>
+          </div>
+
+          {/* Body */}
+          <div className="overflow-y-auto px-6 py-5 flex flex-col gap-4">
+
+            {/* Member */}
+            <div>
+              <label style={MODAL_LBL}>Member</label>
+              <select value={form.userId} onChange={e => set('userId', e.target.value)} style={MODAL_INP}>
+                <option value="">Select member…</option>
+                {members.map(m => <option key={m.id} value={m.id}>{m.name} — {m.email}</option>)}
+              </select>
+            </div>
+
+            {/* Membership plan */}
+            <div>
+              <label style={MODAL_LBL}>Membership / Description</label>
+              <select value={form.description} onChange={e => pickPlan(e.target.value)} style={{ ...MODAL_INP, marginBottom: 6 }}>
+                <option value="">Select plan…</option>
+                {plans.map(p => <option key={p.id} value={p.name}>{p.name} — €{p.price}</option>)}
+                <option value="__custom">Custom description</option>
+              </select>
+              {(form.description === '__custom' || !plans.find(p => p.name === form.description)) && (
+                <input type="text" placeholder="Custom description" value={form.description === '__custom' ? '' : form.description}
+                  onChange={e => set('description', e.target.value)} style={MODAL_INP} />
+              )}
+            </div>
+
+            {/* Amount + Currency */}
+            <div className="flex gap-3">
+              <div style={{ flex: 2 }}>
+                <label style={MODAL_LBL}>Amount</label>
+                <input type="number" min="0" step="0.01" placeholder="0.00" value={form.amount}
+                  onChange={e => set('amount', e.target.value)} style={MODAL_INP} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={MODAL_LBL}>Currency</label>
+                <select value={form.currency} onChange={e => set('currency', e.target.value)} style={MODAL_INP}>
+                  <option>EUR</option><option>GBP</option><option>USD</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Date + Method */}
+            <div className="flex gap-3">
+              <div style={{ flex: 1 }}>
+                <label style={MODAL_LBL}>Date</label>
+                <input type="date" value={form.date} onChange={e => set('date', e.target.value)} style={MODAL_INP} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={MODAL_LBL}>Method</label>
+                <select value={form.paymentMethod} onChange={e => set('paymentMethod', e.target.value)} style={MODAL_INP}>
+                  <option value="CASH">Cash</option>
+                  <option value="BANK_TRANSFER">Bank Transfer</option>
+                  <option value="STRIPE">Stripe</option>
+                  <option value="DIRECT_DEBIT">Direct Debit</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Type + Status */}
+            <div className="flex gap-3">
+              <div style={{ flex: 1 }}>
+                <label style={MODAL_LBL}>Type</label>
+                <select value={form.type} onChange={e => set('type', e.target.value)} style={MODAL_INP}>
+                  <option value="INCOME">Income</option>
+                  <option value="EXPENSE">Expense</option>
+                </select>
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={MODAL_LBL}>Status</label>
+                <select value={form.status} onChange={e => set('status', e.target.value)} style={MODAL_INP}>
+                  <option value="PAID">Paid</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="FAILED">Failed</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Notes */}
+            <div>
+              <label style={MODAL_LBL}>Notes (optional)</label>
+              <input type="text" placeholder="Internal notes…" value={form.notes}
+                onChange={e => set('notes', e.target.value)} style={MODAL_INP} />
+            </div>
+
+            {error && <p style={{ fontSize: 12, color: '#DC2626', fontWeight: 500 }}>{error}</p>}
+          </div>
+
+          {/* Footer */}
+          <div className="flex gap-3 px-6 py-4" style={{ borderTop: '1px solid #F3F4F6', flexShrink: 0 }}>
+            <button onClick={onClose} style={{ flex: 1, padding: '10px', borderRadius: 10, border: '1px solid #E5E7EB',
+              background: '#fff', fontSize: 13, fontWeight: 500, color: '#374151', cursor: 'pointer' }}>
+              Cancel
+            </button>
+            <button onClick={handleSave} disabled={saving} style={{ flex: 2, padding: '10px', borderRadius: 10, border: 'none',
+              background: '#0870E2', fontSize: 13, fontWeight: 600, color: '#fff', cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.7 : 1 }}>
+              {saving ? 'Saving…' : 'Add Payment'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function TransactionsClient() {
   const { setMenuOpen } = useDashboard()
@@ -433,8 +605,9 @@ export default function TransactionsClient() {
   const [total,         setTotal]         = useState(0)
   const [totalAmount,   setTotalAmount]   = useState(0)
   const [countByStatus, setCountByStatus] = useState<StatusCounts>({ PAID: 0, PENDING: 0, FAILED: 0, REFUNDED: 0 })
-  const [loading,       setLoading]       = useState(true)
-  const [selectedTx,    setSelectedTx]    = useState<TxRow | null>(null)
+  const [loading,        setLoading]       = useState(true)
+  const [selectedTx,     setSelectedTx]   = useState<TxRow | null>(null)
+  const [showAddPayment, setShowAddPayment] = useState(false)
 
   const [activeFilter,  setActiveFilter]  = useState<FilterTab>('ALL')
   const [activeType,    setActiveType]    = useState<TypeFilter>('INCOME')
@@ -536,7 +709,7 @@ export default function TransactionsClient() {
           style={{ background: '#fff', border: '1px solid #E5E7EB', color: '#374151', fontSize: 13, fontWeight: 500 }}>
           <Download size={14} /> Export
         </button>
-        <button className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
+        <button onClick={() => setShowAddPayment(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
           style={{ background: '#0870E2', border: 'none', color: '#fff', fontSize: 13, fontWeight: 600 }}>
           <Plus size={14} /> Add Payment
         </button>
@@ -750,6 +923,12 @@ export default function TransactionsClient() {
     </main>
 
     {selectedTx && <TxDetailDrawer tx={selectedTx} onClose={() => setSelectedTx(null)} />}
+    {showAddPayment && (
+      <AddPaymentModal
+        onClose={() => setShowAddPayment(false)}
+        onSaved={() => { setShowAddPayment(false); load() }}
+      />
+    )}
     </>
   )
 }
