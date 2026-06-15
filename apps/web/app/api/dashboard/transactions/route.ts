@@ -92,8 +92,10 @@ export async function GET(req: NextRequest) {
       status:      t.status,
       type:        t.type,
       notes:       t.notes ?? null,
-      periodStart: t.periodStart?.toISOString() ?? null,
-      periodEnd:   t.periodEnd?.toISOString()   ?? null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      periodStart: (t as any).periodStart ? new Date((t as any).periodStart).toISOString() : null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      periodEnd:   (t as any).periodEnd   ? new Date((t as any).periodEnd).toISOString()   : null,
     })),
     total,
     page,
