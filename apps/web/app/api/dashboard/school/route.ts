@@ -46,6 +46,7 @@ export async function GET(req: NextRequest) {
       youtube: true,
       tiktok: true,
       language: true,
+      defaultBookingSettings: true,
       stripeAccountId: true,
     },
   })
@@ -76,7 +77,8 @@ export async function PATCH(req: NextRequest) {
 
   const body = await req.json()
   const { language, name, phone, email, website, instagram, facebook, youtube, tiktok,
-          description, tagline, address, postcode, city, country, logoUrl } = body
+          description, tagline, address, postcode, city, country, logoUrl,
+          defaultBookingSettings } = body
 
   const VALID_LANGS = ['en', 'es', 'pt', 'fr']
 
@@ -98,7 +100,8 @@ export async function PATCH(req: NextRequest) {
       ...(postcode    !== undefined && { postcode:    postcode?.trim()    || null }),
       ...(city        !== undefined && { city:        city?.trim()        || null }),
       ...(country     !== undefined && { country:     country?.trim()     || null }),
-      ...(logoUrl     !== undefined && { logoUrl:     logoUrl?.trim()     || null }),
+      ...(logoUrl                !== undefined && { logoUrl: logoUrl?.trim() || null }),
+      ...(defaultBookingSettings !== undefined && { defaultBookingSettings }),
     },
     select: { id: true, language: true, name: true },
   })

@@ -647,8 +647,18 @@ function StaffTab() {
   )
 }
 
+const PAYMENT_METHODS = [
+  { key: 'CASH',          label: 'Cash',          description: 'Accept cash payments in person' },
+  { key: 'STRIPE',        label: 'Stripe',         description: 'Online card payments via Stripe' },
+  { key: 'BANK_TRANSFER', label: 'Bank Transfer',  description: 'Direct bank / SEPA transfers' },
+  { key: 'DIRECT_DEBIT',  label: 'Direct Debit',   description: 'Recurring SEPA direct debits' },
+  { key: 'PAYPAL',        label: 'PayPal',          description: 'Payments via PayPal' },
+  { key: 'OTHER',         label: 'Other',           description: 'Any other payment method' },
+] as const
+
 function PaymentsTab() {
   const [connected] = useState(true)
+  const [acceptedMethods, setAcceptedMethods] = useState<string[]>(['CASH', 'STRIPE', 'BANK_TRANSFER'])
   const [autoCharge, setAutoCharge] = useState(true)
   const [invoiceEmails, setInvoiceEmails] = useState(true)
   const [receiptEmails, setReceiptEmails] = useState(true)
@@ -657,7 +667,27 @@ function PaymentsTab() {
   const [latePaymentPct, setLatePaymentPct] = useState(5)
   const [processingPct, setProcessingPct] = useState(3)
   const [saved, setSaved] = useState(false)
-  function save() { setSaved(true); setTimeout(() => setSaved(false), 2000) }
+
+  useEffect(() => {
+    fetch('/api/dashboard/school').then(r => r.json()).then(d => {
+      const settings = d.school?.defaultBookingSettings
+      if (settings?.acceptedMethods?.length) setAcceptedMethods(settings.acceptedMethods)
+    })
+  }, [])
+
+  function toggleMethod(key: string) {
+    setAcceptedMethods(prev =>
+      prev.includes(key) ? prev.filter(m => m !== key) : [...prev, key]
+    )
+  }
+
+  async function save() {
+    await fetch('/api/dashboard/school', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ defaultBookingSettings: { acceptedMethods } }),
+    })
+    setSaved(true); setTimeout(() => setSaved(false), 2000)
+  }
 
   return (
     <div className="flex flex-col gap-5">
@@ -692,6 +722,33 @@ function PaymentsTab() {
               color: connected ? '#DC2626' : '#fff' }}>
             {connected ? 'Disconnect' : 'Connect Stripe'}
           </button>
+        </div>
+      </div>
+
+      {/* Accepted payment methods */}
+      <div className="rounded-2xl p-6 flex flex-col gap-4" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+        <SectionHeader title="Accepted Payment Methods" />
+        <p style={{ fontSize: 13, color: '#6B7280', marginTop: -8 }}>Choose which methods your school accepts from members.</p>
+        <div className="grid grid-cols-1 gap-2">
+          {PAYMENT_METHODS.map(m => {
+            const active = acceptedMethods.includes(m.key)
+            return (
+              <button key={m.key} onClick={() => toggleMethod(m.key)}
+                style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px',
+                  border: `2px solid ${active ? '#0870E2' : '#E5E7EB'}`,
+                  borderRadius: 12, background: active ? '#EFF6FF' : '#fff',
+                  cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s' }}>
+                <div style={{ width: 20, height: 20, borderRadius: 6, border: `2px solid ${active ? '#0870E2' : '#D1D5DB'}`,
+                  background: active ? '#0870E2' : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  {active && <Check size={12} style={{ color: '#fff' }} strokeWidth={3} />}
+                </div>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: active ? '#0870E2' : '#111827', margin: 0 }}>{m.label}</p>
+                  <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>{m.description}</p>
+                </div>
+              </button>
+            )
+          })}
         </div>
       </div>
 
