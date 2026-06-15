@@ -18,7 +18,8 @@ interface TxRow {
   userEmail: string | null
   userAvatar: string | null
   description: string | null
-  method: string
+  method: string | null
+  category: string
   amount: number
   currency: string
   date: string
@@ -122,10 +123,10 @@ export default function TransactionsClient() {
 
   useEffect(() => { load() }, [load])
 
-  // Compute method counts client-side from loaded page (approximate)
+  // Compute method counts from loaded page (approximate)
   const methodCounts: Record<string, number> = {}
   for (const tx of transactions) {
-    const k = (tx.method ?? 'OTHER').toUpperCase()
+    const k = tx.method ? tx.method.toUpperCase() : 'OTHER'
     methodCounts[k] = (methodCounts[k] ?? 0) + 1
   }
 
@@ -153,7 +154,7 @@ export default function TransactionsClient() {
   const handleExport = () => {
     const headers = ['Member', 'Email', 'Description', 'Method', 'Amount', 'Currency', 'Date', 'Status']
     const rows = transactions.map(tx => [
-      tx.userName, tx.userEmail ?? '', tx.description ?? '', tx.method,
+      tx.userName, tx.userEmail ?? '', tx.description ?? '', tx.method ?? '',
       String(tx.amount), tx.currency,
       new Date(tx.date).toLocaleDateString('es-ES'), tx.status,
     ])
@@ -278,8 +279,8 @@ export default function TransactionsClient() {
               ) : transactions.map((tx, idx) => {
                 const sc = STATUS_MAP[tx.status] ?? STATUS_MAP.PAID
                 const StatusIcon = sc.icon
-                const methodKey = (tx.method ?? 'OTHER').toUpperCase()
-                const mc = METHOD_COLORS[methodKey] ?? { bg: '#F9FAFB', color: '#6B7280' }
+                const methodKey = tx.method ? tx.method.toUpperCase() : null
+                const mc = methodKey ? (METHOD_COLORS[methodKey] ?? { bg: '#F9FAFB', color: '#6B7280' }) : null
                 return (
                   <tr key={tx.id} className="hover:bg-[#FAFAFA] transition-colors"
                     style={{ borderBottom: idx < transactions.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
@@ -296,10 +297,14 @@ export default function TransactionsClient() {
                       <span style={{ fontSize: 13, color: '#374151' }}>{tx.description ?? '—'}</span>
                     </td>
                     <td className="hidden sm:table-cell px-5 py-3">
-                      <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999,
-                        background: mc.bg, color: mc.color }}>
-                        {METHOD_LABELS[methodKey] ?? tx.method}
-                      </span>
+                      {mc && methodKey ? (
+                        <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999,
+                          background: mc.bg, color: mc.color }}>
+                          {METHOD_LABELS[methodKey] ?? methodKey}
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: 13, color: '#D1D5DB' }}>—</span>
+                      )}
                     </td>
                     <td className="px-5 py-3">
                       <span style={{ fontSize: 14, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em' }}>

@@ -26,6 +26,8 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url)
   const status   = searchParams.get('status')   // PAID|PENDING|FAILED|REFUNDED|ALL
+  const method   = searchParams.get('method')   // STRIPE|CASH|BANK_TRANSFER|DIRECT_DEBIT|OTHER|ALL
+  const type     = searchParams.get('type')     // INCOME|EXPENSE|ALL
   const search   = searchParams.get('search')   || ''
   const page     = Math.max(1, parseInt(searchParams.get('page') || '1'))
   const pageSize = Math.min(100, parseInt(searchParams.get('pageSize') || '20'))
@@ -33,7 +35,9 @@ export async function GET(req: NextRequest) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const where: any = {
     schoolId: auth.schoolId,
-    ...(status && status !== 'ALL' ? { status: status as 'PAID' | 'PENDING' | 'FAILED' | 'REFUNDED' } : {}),
+    ...(status && status !== 'ALL' ? { status } : {}),
+    ...(method && method !== 'ALL' ? { paymentMethod: method } : {}),
+    ...(type   && type   !== 'ALL' ? { type }   : {}),
     ...(search ? {
       OR: [
         { description: { contains: search, mode: 'insensitive' } },
@@ -78,7 +82,8 @@ export async function GET(req: NextRequest) {
       userEmail:   t.user?.email ?? null,
       userAvatar:  t.user?.avatarUrl ?? null,
       description:   (t.description && t.description !== 'NULL') ? t.description : null,
-      method:        t.paymentMethod ?? t.category,
+      method:        t.paymentMethod ?? null,
+      category:      t.category,
       amount:      Number(t.amount),
       currency:    t.currency,
       date:        t.date.toISOString(),

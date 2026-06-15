@@ -48,7 +48,10 @@ export async function GET(req: NextRequest) {
   const [memberships, total, stats, methodStats] = await Promise.all([
     prisma.membership.findMany({
       where,
-      include: { user: { select: { name: true, email: true, avatarUrl: true } } },
+      include: {
+        user: { select: { name: true, email: true, avatarUrl: true } },
+        plan: { select: { planType: true } },
+      },
       orderBy: { startDate: 'desc' },
       skip: (page - 1) * pageSize,
       take: pageSize,
@@ -67,22 +70,36 @@ export async function GET(req: NextRequest) {
     }),
   ])
 
+  // Batch-fetch belts from SchoolMember
+  const userIds = [...new Set(memberships.map(m => m.userId))]
+  const schoolMembers = userIds.length
+    ? await prisma.schoolMember.findMany({
+        where: { schoolId: auth.schoolId, userId: { in: userIds } },
+        select: { userId: true, belt: true },
+      })
+    : []
+  const beltMap = Object.fromEntries(schoolMembers.map(sm => [sm.userId, sm.belt ?? null]))
+
   const statMap = Object.fromEntries(stats.map(s => [s.status, { count: s._count.id, sum: s._sum.price ?? 0 }]))
   const totalRevenue = statMap['ACTIVE']?.sum ?? 0
 
   return NextResponse.json({
     memberships: memberships.map(m => ({
       id:            m.id,
+      userId:        m.userId,
       userName:      m.user?.name  ?? '—',
       userEmail:     m.user?.email ?? null,
       userAvatar:    m.user?.avatarUrl ?? null,
+      belt:          beltMap[m.userId] ?? null,
       planName:      m.planName,
+      planType:      m.plan?.planType ?? 'SUBSCRIPTION',
       paymentMethod: m.paymentMethod,
       price:         m.price,
       currency:      m.currency,
       status:        m.status,
       startDate:     m.startDate.toISOString(),
       endDate:       m.endDate?.toISOString() ?? null,
+      classesUsed:   m.classesUsed,
     })),
     total,
     page,

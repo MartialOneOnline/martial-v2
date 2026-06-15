@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   Menu, X, Search, Check, Clock,
   TrendingUp, TrendingDown, RefreshCw, MoreHorizontal,
-  PauseCircle, XCircle, Zap, Plus,
+  PauseCircle, XCircle, Plus,
 } from 'lucide-react'
 import { useDashboard } from '../../../../components/DashboardShell'
 import { useT } from '../../../../lib/i18n/LanguageContext'
@@ -97,64 +97,61 @@ export default function PaymentSubscriptionsClient() {
 
   const [subs, setSubs]       = useState<SubRow[]>([])
   const [loading, setLoading] = useState(true)
+  const [serverCounts, setServerCounts] = useState({ ALL: 0, ACTIVE: 0, PAUSED: 0, CANCELLED: 0, EXPIRED: 0 })
+  const [mrr, setMrr] = useState(0)
 
   const load = useCallback(async () => {
     setLoading(true)
     try {
+      // Always fetch ALL to keep counts accurate; filter client-side
       const params = new URLSearchParams({ pageSize: '500' })
-      if (activeFilter !== 'ALL') params.set('status', activeFilter)
       if (search) params.set('search', search)
       const res = await fetch(`/api/dashboard/memberships?${params}`)
       if (!res.ok) return
       const data = await res.json()
       const memberships = data.memberships ?? []
+      const cs = data.countByStatus ?? {}
+      const total = (cs.ACTIVE ?? 0) + (cs.PAUSED ?? 0) + (cs.CANCELLED ?? 0) + (cs.EXPIRED ?? 0)
+      setServerCounts({ ALL: total, ACTIVE: cs.ACTIVE ?? 0, PAUSED: cs.PAUSED ?? 0, CANCELLED: cs.CANCELLED ?? 0, EXPIRED: cs.EXPIRED ?? 0 })
+
       const rows: SubRow[] = memberships.map((m: {
         id: string; userId?: string; userName: string; userEmail?: string; userAvatar?: string;
-        planName: string; paymentMethod?: string; price: number; currency?: string;
-        startDate: string; endDate?: string; status: MemStatus; consumed?: number; totalLimit?: number;
+        belt?: string | null; planName: string; planType?: string; paymentMethod?: string;
+        price: number; currency?: string; startDate: string; endDate?: string; status: MemStatus;
+        classesUsed?: number; totalLimit?: number;
       }) => ({
         memberId:    m.id,
         userId:      m.userId ?? m.id,
         memberName:  m.userName,
         memberEmail: m.userEmail ?? '',
-        belt:        'Blanco',
+        belt:        m.belt ?? 'Blanco',
         planName:    m.planName,
-        planType:    'SUBSCRIPTION',
+        planType:    m.planType ?? 'SUBSCRIPTION',
         amount:      m.price ?? 0,
         currency:    m.currency ?? 'EUR',
         startDate:   m.startDate,
         endDate:     m.endDate ?? null,
         status:      m.status,
-        consumed:    m.consumed ?? 0,
+        consumed:    m.classesUsed ?? 0,
         totalLimit:  m.totalLimit ?? null,
       }))
       setSubs(rows)
+
+      const activeSubs = rows.filter(r => r.status === 'ACTIVE')
+      setMrr(activeSubs.reduce((sum, s) => sum + s.amount, 0))
     } finally {
       setLoading(false)
     }
-  }, [activeFilter, search])
+  }, [search])
 
   useEffect(() => { load() }, [load])
 
   const filtered = subs.filter(s => {
-    const matchFilter = activeFilter === 'ALL' || s.status === activeFilter
-    const q = search.toLowerCase()
-    const matchSearch = search === '' ||
-      s.memberName.toLowerCase().includes(q) ||
-      s.planName.toLowerCase().includes(q) ||
-      s.memberEmail.toLowerCase().includes(q)
-    return matchFilter && matchSearch
+    if (activeFilter !== 'ALL' && s.status !== activeFilter) return false
+    return true
   })
 
-  const counts = {
-    ALL:       subs.length,
-    ACTIVE:    subs.filter(s => s.status === 'ACTIVE').length,
-    PAUSED:    subs.filter(s => s.status === 'PAUSED').length,
-    CANCELLED: subs.filter(s => s.status === 'CANCELLED').length,
-    EXPIRED:   subs.filter(s => s.status === 'EXPIRED').length,
-  }
-
-  const mrr = subs.filter(s => s.status === 'ACTIVE').reduce((sum, s) => sum + s.amount, 0)
+  const counts = serverCounts
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE))
   const safePage   = Math.min(currentPage, totalPages)
