@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import {
   Bell,
@@ -183,90 +183,89 @@ const BELT_COLORS: Record<string, { bg: string; color: string }> = {
 
 // ── Tab contents ───────────────────────────────────────────────────────────────
 function ProfileTab() {
-  const [saved, setSaved] = useState(false)
-  function save() { setSaved(true); setTimeout(() => setSaved(false), 2000) }
+  const [form, setForm] = useState({ name: '', email: '', phone: '', avatarUrl: '' })
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved]   = useState(false)
+  const [error, setError]   = useState('')
+
+  useEffect(() => {
+    fetch('/api/dashboard/profile').then(r => r.json()).then(d => {
+      if (d.profile) setForm({ name: d.profile.name ?? '', email: d.profile.email ?? '', phone: d.profile.phone ?? '', avatarUrl: d.profile.avatarUrl ?? '' })
+    }).finally(() => setLoading(false))
+  }, [])
+
+  function set(k: string, v: string) { setForm(p => ({ ...p, [k]: v })) }
+
+  async function save() {
+    setSaving(true); setError('')
+    const res = await fetch('/api/dashboard/profile', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: form.name, phone: form.phone }),
+    })
+    setSaving(false)
+    if (!res.ok) { setError('Error saving profile'); return }
+    setSaved(true); setTimeout(() => setSaved(false), 2500)
+  }
+
+  const initials = (form.name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Avatar + stats card */}
       <div className="flex gap-6 flex-wrap">
+        {/* Avatar card */}
         <div className="rounded-2xl p-6 flex flex-col items-center gap-4 shrink-0"
           style={{ background: '#fff', border: '1px solid #E5E7EB', width: 200 }}>
           <div className="relative">
             <div className="w-24 h-24 rounded-full overflow-hidden flex items-center justify-center"
-              style={{ background: '#F3F4F6', border: '3px solid #E5E7EB' }}>
-              <img src="https://i.pravatar.cc/96?u=owner" alt="avatar" className="w-full h-full object-cover" />
+              style={{ background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', border: '3px solid #E5E7EB' }}>
+              {form.avatarUrl
+                ? <img src={form.avatarUrl} alt={form.name} className="w-full h-full object-cover" />
+                : <span style={{ fontSize: 32, fontWeight: 700, color: '#fff' }}>{initials}</span>
+              }
             </div>
-            <label className="absolute bottom-0 right-0 w-7 h-7 rounded-full flex items-center justify-center cursor-pointer"
-              style={{ background: '#0071E3', border: '2px solid #fff' }}>
-              <Upload size={11} style={{ color: '#fff' }} />
-              <input type="file" accept="image/*" className="hidden" />
-            </label>
           </div>
           <div className="text-center">
-            <p style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>Carlos Silva</p>
-            <p style={{ fontSize: 11, color: '#9CA3AF' }}>Academy Owner</p>
-          </div>
-          <div className="w-full grid grid-cols-3 gap-2" style={{ borderTop: '1px solid #F3F4F6', paddingTop: 12 }}>
-            {[{ label: 'Belt', value: 'Black' }, { label: 'Classes', value: '247' }, { label: 'Years', value: '12' }].map(s => (
-              <div key={s.label} className="flex flex-col items-center">
-                <p style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{s.value}</p>
-                <p style={{ fontSize: 10, color: '#9CA3AF' }}>{s.label}</p>
-              </div>
-            ))}
+            <p style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>{loading ? '…' : (form.name || '—')}</p>
+            <p style={{ fontSize: 11, color: '#9CA3AF' }}>School owner</p>
           </div>
         </div>
 
         {/* Form */}
         <div className="flex-1 min-w-0 rounded-2xl p-6 flex flex-col gap-4"
           style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label style={labelStyle}>First Name</label>
-              <input type="text" defaultValue="Carlos" style={inputStyle} />
-            </div>
-            <div>
-              <label style={labelStyle}>Last Name</label>
-              <input type="text" defaultValue="Silva" style={inputStyle} />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label style={labelStyle}>Email</label>
-              <input type="email" defaultValue="carlos@academy.com" style={inputStyle} />
-            </div>
-            <div>
-              <label style={labelStyle}>Phone</label>
-              <input type="tel" defaultValue="+34 611 222 333" style={inputStyle} />
-            </div>
-          </div>
-          <div>
-            <label style={labelStyle}>Bio</label>
-            <textarea rows={3} defaultValue="Head instructor and founder of the academy. Black belt in Brazilian Jiu-Jitsu with 12 years of teaching experience."
-              style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }} />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label style={labelStyle}>Timezone</label>
-              <select style={inputStyle} defaultValue="Europe/Madrid">
-                {['Europe/Madrid', 'Europe/London', 'America/New_York', 'America/Los_Angeles', 'Asia/Tokyo'].map(tz => (
-                  <option key={tz} value={tz}>{tz}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label style={labelStyle}>Language</label>
-              <select style={inputStyle} defaultValue="en">
-                <option value="en">English</option>
-                <option value="es">Español</option>
-                <option value="pt">Português</option>
-                <option value="fr">Français</option>
-              </select>
-            </div>
-          </div>
+          {loading ? (
+            <p style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</p>
+          ) : (
+            <>
+              <div>
+                <label style={labelStyle}>Full Name</label>
+                <input type="text" value={form.name} onChange={e => set('name', e.target.value)} style={inputStyle} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label style={labelStyle}>Email</label>
+                  <input type="email" value={form.email} disabled style={{ ...inputStyle, background: '#F9FAFB', color: '#9CA3AF', cursor: 'not-allowed' }} />
+                  <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 3 }}>Email cannot be changed here</p>
+                </div>
+                <div>
+                  <label style={labelStyle}>Phone</label>
+                  <input type="tel" value={form.phone} onChange={e => set('phone', e.target.value)} style={inputStyle} />
+                </div>
+              </div>
+              {error && <p style={{ fontSize: 12, color: '#E11D48' }}>{error}</p>}
+            </>
+          )}
         </div>
       </div>
       <SaveBar onSave={save} />
+      {saving && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl"
+          style={{ background: '#fff', border: '1px solid #E5E7EB', boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}>
+          <RefreshCw size={14} style={{ color: '#9CA3AF' }} className="animate-spin" />
+          <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>Saving…</p>
+        </div>
+      )}
       {saved && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl"
           style={{ background: '#fff', border: '1px solid #BBF7D0', boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}>
@@ -354,121 +353,177 @@ function SchoolLanguageCard() {
 }
 
 function SchoolTab() {
-  const [saved, setSaved] = useState(false)
-  function save() { setSaved(true); setTimeout(() => setSaved(false), 2000) }
+  const [form, setForm] = useState({
+    name: '', tagline: '', description: '',
+    address: '', city: '', country: '', postcode: '',
+    phone: '', email: '', website: '',
+    instagram: '', facebook: '', youtube: '', tiktok: '',
+    logoUrl: '',
+  })
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving]   = useState(false)
+  const [saved, setSaved]     = useState(false)
+  const [error, setError]     = useState('')
+
+  useEffect(() => {
+    fetch('/api/dashboard/school').then(r => r.json()).then(d => {
+      if (d.school) setForm({
+        name:        d.school.name        ?? '',
+        tagline:     d.school.tagline     ?? '',
+        description: d.school.description ?? '',
+        address:     d.school.address     ?? '',
+        city:        d.school.city        ?? '',
+        country:     d.school.country     ?? '',
+        postcode:    d.school.postcode    ?? '',
+        phone:       d.school.phone       ?? '',
+        email:       d.school.email       ?? '',
+        website:     d.school.website     ?? '',
+        instagram:   d.school.instagram   ?? '',
+        facebook:    d.school.facebook    ?? '',
+        youtube:     d.school.youtube     ?? '',
+        tiktok:      d.school.tiktok      ?? '',
+        logoUrl:     d.school.logoUrl     ?? '',
+      })
+    }).finally(() => setLoading(false))
+  }, [])
+
+  function set(k: string, v: string) { setForm(p => ({ ...p, [k]: v })) }
+
+  async function save() {
+    setSaving(true); setError('')
+    const res = await fetch('/api/dashboard/school', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form),
+    })
+    setSaving(false)
+    if (!res.ok) { setError('Error saving school settings'); return }
+    setSaved(true); setTimeout(() => setSaved(false), 2500)
+  }
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Logo + banner */}
-      <div className="rounded-2xl p-6 flex flex-col gap-4" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-        <SectionHeader title="Identity" />
-        <div className="flex items-start gap-6 flex-wrap">
-          <div>
-            <label style={labelStyle}>School Logo</label>
-            <div className="w-20 h-20 rounded-2xl flex items-center justify-center cursor-pointer relative overflow-hidden"
-              style={{ background: '#F3F4F6', border: '2px dashed #D1D5DB' }}>
-              <Upload size={20} style={{ color: '#9CA3AF' }} />
-              <input type="file" accept="image/*" className="hidden absolute inset-0 cursor-pointer opacity-0" />
+      {loading ? (
+        <div className="rounded-2xl p-6" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+          <p style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</p>
+        </div>
+      ) : (
+        <>
+          {/* Identity */}
+          <div className="rounded-2xl p-6 flex flex-col gap-4" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+            <SectionHeader title="Identity" />
+            <div className="flex items-start gap-6 flex-wrap">
+              <div>
+                <label style={labelStyle}>School Logo</label>
+                <div className="w-20 h-20 rounded-2xl flex items-center justify-center cursor-pointer relative overflow-hidden"
+                  style={{ background: '#F3F4F6', border: '2px dashed #D1D5DB' }}>
+                  {form.logoUrl
+                    ? <img src={form.logoUrl} alt="logo" className="w-full h-full object-cover" />
+                    : <Upload size={20} style={{ color: '#9CA3AF' }} />
+                  }
+                </div>
+              </div>
+              <div className="flex-1 min-w-0 flex flex-col gap-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label style={labelStyle}>Academy Name</label>
+                    <input type="text" value={form.name} onChange={e => set('name', e.target.value)} style={inputStyle} />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Tagline</label>
+                    <input type="text" value={form.tagline} onChange={e => set('tagline', e.target.value)} placeholder="e.g. Train Hard. Live Better." style={inputStyle} />
+                  </div>
+                </div>
+                <div>
+                  <label style={labelStyle}>Description</label>
+                  <textarea rows={3} value={form.description} onChange={e => set('description', e.target.value)}
+                    style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }} />
+                </div>
+              </div>
             </div>
           </div>
-          <div className="flex-1 min-w-0 flex flex-col gap-4">
-            <div className="grid grid-cols-2 gap-4">
+
+          {/* Address */}
+          <div className="rounded-2xl p-6 flex flex-col gap-4" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+            <SectionHeader title="Address" />
+            <div>
+              <label style={labelStyle}>Street Address</label>
+              <input type="text" value={form.address} onChange={e => set('address', e.target.value)} style={inputStyle} />
+            </div>
+            <div className="grid grid-cols-3 gap-4">
               <div>
-                <label style={labelStyle}>Academy Name</label>
-                <input type="text" defaultValue="Martial Academy" style={inputStyle} />
+                <label style={labelStyle}>City</label>
+                <input type="text" value={form.city} onChange={e => set('city', e.target.value)} style={inputStyle} />
               </div>
               <div>
-                <label style={labelStyle}>Tagline</label>
-                <input type="text" defaultValue="Train Hard. Live Better." style={inputStyle} />
+                <label style={labelStyle}>Country</label>
+                <input type="text" value={form.country} onChange={e => set('country', e.target.value)} placeholder="ES" style={inputStyle} />
+              </div>
+              <div>
+                <label style={labelStyle}>Postal Code</label>
+                <input type="text" value={form.postcode} onChange={e => set('postcode', e.target.value)} style={inputStyle} />
+              </div>
+            </div>
+          </div>
+
+          {/* Contact */}
+          <div className="rounded-2xl p-6 flex flex-col gap-4" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+            <SectionHeader title="Contact" />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label style={labelStyle}>Phone</label>
+                <input type="tel" value={form.phone} onChange={e => set('phone', e.target.value)} style={inputStyle} />
+              </div>
+              <div>
+                <label style={labelStyle}>Email</label>
+                <input type="email" value={form.email} onChange={e => set('email', e.target.value)} style={inputStyle} />
               </div>
             </div>
             <div>
-              <label style={labelStyle}>School Type</label>
-              <select style={inputStyle} defaultValue="bjj">
-                <option value="bjj">Brazilian Jiu-Jitsu</option>
-                <option value="mma">Mixed Martial Arts</option>
-                <option value="muay">Muay Thai</option>
-                <option value="wrestling">Wrestling</option>
-                <option value="multi">Multi-discipline</option>
-              </select>
+              <label style={labelStyle}>Website</label>
+              <input type="url" value={form.website} onChange={e => set('website', e.target.value)} placeholder="https://" style={inputStyle} />
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Address */}
-      <div className="rounded-2xl p-6 flex flex-col gap-4" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-        <SectionHeader title="Address" />
-        <div>
-          <label style={labelStyle}><MapPin size={11} style={{ display:'inline', marginRight:4 }} />Street Address</label>
-          <input type="text" defaultValue="Calle Gran Vía 28" style={inputStyle} />
-        </div>
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <label style={labelStyle}>City</label>
-            <input type="text" defaultValue="Málaga" style={inputStyle} />
-          </div>
-          <div>
-            <label style={labelStyle}>Country</label>
-            <select style={inputStyle} defaultValue="ES">
-              <option value="ES">Spain</option>
-              <option value="PT">Portugal</option>
-              <option value="GB">United Kingdom</option>
-              <option value="FR">France</option>
-              <option value="DE">Germany</option>
-            </select>
-          </div>
-          <div>
-            <label style={labelStyle}>Postal Code</label>
-            <input type="text" defaultValue="29001" style={inputStyle} />
-          </div>
-        </div>
-      </div>
-
-      {/* Contact */}
-      <div className="rounded-2xl p-6 flex flex-col gap-4" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-        <SectionHeader title="Contact" />
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label style={labelStyle}><Phone size={11} style={{ display:'inline', marginRight:4 }} />Phone</label>
-            <input type="tel" defaultValue="+34 952 000 000" style={inputStyle} />
-          </div>
-          <div>
-            <label style={labelStyle}><Mail size={11} style={{ display:'inline', marginRight:4 }} />Email</label>
-            <input type="email" defaultValue="info@martialacademy.com" style={inputStyle} />
-          </div>
-        </div>
-        <div>
-          <label style={labelStyle}><Globe size={11} style={{ display:'inline', marginRight:4 }} />Website</label>
-          <input type="url" defaultValue="https://martialacademy.com" style={inputStyle} />
-        </div>
-      </div>
-
-      {/* Social */}
-      <div className="rounded-2xl p-6 flex flex-col gap-4" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-        <SectionHeader title="Social Links" />
-        <div className="grid grid-cols-1 gap-3">
-          {[
-            { icon: Globe, label: 'Instagram', placeholder: '@martialacademy', defaultValue: '@martialacademy_malaga' },
-            { icon: Globe, label: 'YouTube',   placeholder: 'Channel URL', defaultValue: '' },
-            { icon: Globe, label: 'Facebook',  placeholder: 'Page URL', defaultValue: 'facebook.com/martialacademy' },
-          ].map(s => (
-            <div key={s.label} className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-                style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-                <s.icon size={14} style={{ color: '#6B7280' }} />
-              </div>
-              <input type="text" placeholder={s.placeholder} defaultValue={s.defaultValue}
-                style={{ ...inputStyle, flex: 1 }} />
+          {/* Social */}
+          <div className="rounded-2xl p-6 flex flex-col gap-4" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+            <SectionHeader title="Social Links" />
+            <div className="flex flex-col gap-3">
+              {([
+                { key: 'instagram', label: 'Instagram', placeholder: '@youracademy' },
+                { key: 'facebook',  label: 'Facebook',  placeholder: 'facebook.com/youracademy' },
+                { key: 'youtube',   label: 'YouTube',   placeholder: 'youtube.com/@youracademy' },
+                { key: 'tiktok',    label: 'TikTok',    placeholder: '@youracademy' },
+              ] as const).map(s => (
+                <div key={s.key} className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+                    style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
+                    <Globe size={14} style={{ color: '#6B7280' }} />
+                  </div>
+                  <div style={{ width: 80, flexShrink: 0 }}>
+                    <p style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>{s.label}</p>
+                  </div>
+                  <input type="text" value={form[s.key]} onChange={e => set(s.key, e.target.value)}
+                    placeholder={s.placeholder} style={{ ...inputStyle, flex: 1 }} />
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </div>
+          </div>
 
-      {/* Communications language */}
-      <SchoolLanguageCard />
+          {/* Communications language */}
+          <SchoolLanguageCard />
+
+          {error && <p style={{ fontSize: 12, color: '#E11D48' }}>{error}</p>}
+        </>
+      )}
 
       <SaveBar onSave={save} />
+      {saving && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl"
+          style={{ background: '#fff', border: '1px solid #E5E7EB', boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}>
+          <RefreshCw size={14} style={{ color: '#9CA3AF' }} className="animate-spin" />
+          <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>Saving…</p>
+        </div>
+      )}
       {saved && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl"
           style={{ background: '#fff', border: '1px solid #BBF7D0', boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}>

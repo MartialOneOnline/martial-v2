@@ -32,11 +32,20 @@ export async function GET(req: NextRequest) {
       status: true,
       city: true,
       country: true,
+      address: true,
+      postcode: true,
       logoUrl: true,
+      coverUrl: true,
       email: true,
       phone: true,
       website: true,
+      description: true,
+      tagline: true,
       instagram: true,
+      facebook: true,
+      youtube: true,
+      tiktok: true,
+      language: true,
       stripeAccountId: true,
     },
   })
@@ -66,19 +75,30 @@ export async function PATCH(req: NextRequest) {
   }
 
   const body = await req.json()
-  const { language, name, phone, email, website, instagram } = body
+  const { language, name, phone, email, website, instagram, facebook, youtube, tiktok,
+          description, tagline, address, postcode, city, country, logoUrl } = body
 
   const VALID_LANGS = ['en', 'es', 'pt', 'fr']
 
   const updated = await prisma.school.update({
     where: { id: schoolId },
     data: {
-      ...(language !== undefined && VALID_LANGS.includes(language) && { language }),
-      ...(name !== undefined && { name: name.trim() }),
-      ...(phone !== undefined && { phone: phone?.trim() || null }),
-      ...(email !== undefined && { email: email?.trim() || null }),
-      ...(website !== undefined && { website: website?.trim() || null }),
-      ...(instagram !== undefined && { instagram: instagram?.trim() || null }),
+      ...(language    !== undefined && VALID_LANGS.includes(language) && { language }),
+      ...(name        !== undefined && { name: name.trim() }),
+      ...(phone       !== undefined && { phone:       phone?.trim()       || null }),
+      ...(email       !== undefined && { email:       email?.trim()       || null }),
+      ...(website     !== undefined && { website:     website?.trim()     || null }),
+      ...(instagram   !== undefined && { instagram:   instagram?.trim()   || null }),
+      ...(facebook    !== undefined && { facebook:    facebook?.trim()    || null }),
+      ...(youtube     !== undefined && { youtube:     youtube?.trim()     || null }),
+      ...(tiktok      !== undefined && { tiktok:      tiktok?.trim()      || null }),
+      ...(description !== undefined && { description: description?.trim() || null }),
+      ...(tagline     !== undefined && { tagline:     tagline?.trim()     || null }),
+      ...(address     !== undefined && { address:     address?.trim()     || null }),
+      ...(postcode    !== undefined && { postcode:    postcode?.trim()    || null }),
+      ...(city        !== undefined && { city:        city?.trim()        || null }),
+      ...(country     !== undefined && { country:     country?.trim()     || null }),
+      ...(logoUrl     !== undefined && { logoUrl:     logoUrl?.trim()     || null }),
     },
     select: { id: true, language: true, name: true },
   })
