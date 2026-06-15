@@ -18,6 +18,7 @@ interface SubRow {
   userId: string
   memberName: string
   memberEmail: string
+  memberAvatar: string | null
   belt: string
   planName: string
   planType: string
@@ -28,6 +29,20 @@ interface SubRow {
   status: MemStatus
   consumed: number
   totalLimit: number | null
+}
+
+function Avatar({ name, avatarUrl, size = 32 }: { name: string; avatarUrl: string | null; size?: number }) {
+  const initials = (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+  if (avatarUrl) return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={avatarUrl} alt={name} style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid #E5E7EB', flexShrink: 0 }} />
+  )
+  return (
+    <div style={{ width: size, height: size, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+      background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', color: '#fff', fontSize: size * 0.33, fontWeight: 700 }}>
+      {initials}
+    </div>
+  )
 }
 
 const STATUS_MAP: Record<MemStatus, { bg: string; color: string; border: string; icon: React.ElementType; label: string }> = {
@@ -122,9 +137,10 @@ export default function PaymentSubscriptionsClient() {
       }) => ({
         memberId:    m.id,
         userId:      m.userId ?? m.id,
-        memberName:  m.userName,
-        memberEmail: m.userEmail ?? '',
-        belt:        m.belt ?? 'Blanco',
+        memberName:   m.userName,
+        memberEmail:  m.userEmail ?? '',
+        memberAvatar: m.userAvatar ?? null,
+        belt:         m.belt ?? 'Blanco',
         planName:    m.planName,
         planType:    m.planType ?? 'SUBSCRIPTION',
         amount:      m.price ?? 0,
@@ -305,7 +321,6 @@ export default function PaymentSubscriptionsClient() {
                 const bc  = BELT_COLORS[sub.belt] ?? BELT_COLORS['Blanco']!
                 const pt  = PLAN_TYPE_MAP[sub.planType] ?? PLAN_TYPE_MAP.SUBSCRIPTION!
                 const StatusIcon = sc.icon
-                const initials = sub.memberName.charAt(0).toUpperCase()
                 return (
                   <tr key={sub.memberId}
                     className="hover:bg-[#FAFAFA] transition-colors cursor-pointer"
@@ -313,10 +328,7 @@ export default function PaymentSubscriptionsClient() {
 
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-                          style={{ background: '#0071E3' }}>
-                          {initials}
-                        </div>
+                        <Avatar name={sub.memberName} avatarUrl={sub.memberAvatar} />
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
                             <p style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{sub.memberName}</p>

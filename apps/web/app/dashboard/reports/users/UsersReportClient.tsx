@@ -11,6 +11,20 @@ import {
 
 const ITEMS_PER_PAGE = 10
 
+function Avatar({ name, avatarUrl, size = 32 }: { name: string; avatarUrl: string | null; size?: number }) {
+  const initials = (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+  if (avatarUrl) return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={avatarUrl} alt={name} style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+  )
+  return (
+    <div style={{ width: size, height: size, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+      background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', color: '#fff', fontSize: size * 0.33, fontWeight: 700 }}>
+      {initials}
+    </div>
+  )
+}
+
 function getPaginationPages(current: number, total: number): (number | '...')[] {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
   if (current <= 4) return [1, 2, 3, 4, 5, '...', total]
@@ -254,7 +268,7 @@ export default function UsersReportClient() {
                           style={{ borderBottom: idx < paginated.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
                           <td className="px-5 py-3">
                             <div className="flex items-center gap-2.5">
-                              <img src={m.avatar} alt={m.name} width={32} height={32} className="rounded-full" style={{ flexShrink: 0 }} />
+                              <Avatar name={m.name} avatarUrl={m.avatar} size={32} />
                               <div>
                                 <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{m.name}</p>
                                 <p style={{ fontSize: 11, color: '#9CA3AF' }}>{m.email}</p>
