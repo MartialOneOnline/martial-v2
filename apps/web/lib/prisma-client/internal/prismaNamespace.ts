@@ -405,6 +405,8 @@ export const ModelName = {
   CampBooking: 'CampBooking',
   SchoolMember: 'SchoolMember',
   SchoolClaim: 'SchoolClaim',
+  GradingSystem: 'GradingSystem',
+  BeltRank: 'BeltRank',
   Grading: 'Grading',
   Lead: 'Lead',
   LeadNote: 'LeadNote',
@@ -433,7 +435,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "user" | "discipline" | "schoolDiscipline" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "event" | "eventTicket" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "schoolClaim" | "grading" | "lead" | "leadNote" | "schoolInvitation" | "waiver" | "userWaiver" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "partner"
+    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "user" | "discipline" | "schoolDiscipline" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "event" | "eventTicket" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "schoolClaim" | "gradingSystem" | "beltRank" | "grading" | "lead" | "leadNote" | "schoolInvitation" | "waiver" | "userWaiver" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "partner"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1991,6 +1993,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    GradingSystem: {
+      payload: Prisma.$GradingSystemPayload<ExtArgs>
+      fields: Prisma.GradingSystemFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.GradingSystemFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradingSystemPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.GradingSystemFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradingSystemPayload>
+        }
+        findFirst: {
+          args: Prisma.GradingSystemFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradingSystemPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.GradingSystemFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradingSystemPayload>
+        }
+        findMany: {
+          args: Prisma.GradingSystemFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradingSystemPayload>[]
+        }
+        create: {
+          args: Prisma.GradingSystemCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradingSystemPayload>
+        }
+        createMany: {
+          args: Prisma.GradingSystemCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.GradingSystemCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradingSystemPayload>[]
+        }
+        delete: {
+          args: Prisma.GradingSystemDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradingSystemPayload>
+        }
+        update: {
+          args: Prisma.GradingSystemUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradingSystemPayload>
+        }
+        deleteMany: {
+          args: Prisma.GradingSystemDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.GradingSystemUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.GradingSystemUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradingSystemPayload>[]
+        }
+        upsert: {
+          args: Prisma.GradingSystemUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradingSystemPayload>
+        }
+        aggregate: {
+          args: Prisma.GradingSystemAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateGradingSystem>
+        }
+        groupBy: {
+          args: Prisma.GradingSystemGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GradingSystemGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.GradingSystemCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GradingSystemCountAggregateOutputType> | number
+        }
+      }
+    }
+    BeltRank: {
+      payload: Prisma.$BeltRankPayload<ExtArgs>
+      fields: Prisma.BeltRankFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BeltRankFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BeltRankPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BeltRankFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BeltRankPayload>
+        }
+        findFirst: {
+          args: Prisma.BeltRankFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BeltRankPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BeltRankFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BeltRankPayload>
+        }
+        findMany: {
+          args: Prisma.BeltRankFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BeltRankPayload>[]
+        }
+        create: {
+          args: Prisma.BeltRankCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BeltRankPayload>
+        }
+        createMany: {
+          args: Prisma.BeltRankCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BeltRankCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BeltRankPayload>[]
+        }
+        delete: {
+          args: Prisma.BeltRankDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BeltRankPayload>
+        }
+        update: {
+          args: Prisma.BeltRankUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BeltRankPayload>
+        }
+        deleteMany: {
+          args: Prisma.BeltRankDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BeltRankUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BeltRankUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BeltRankPayload>[]
+        }
+        upsert: {
+          args: Prisma.BeltRankUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BeltRankPayload>
+        }
+        aggregate: {
+          args: Prisma.BeltRankAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBeltRank>
+        }
+        groupBy: {
+          args: Prisma.BeltRankGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BeltRankGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BeltRankCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BeltRankCountAggregateOutputType> | number
+        }
+      }
+    }
     Grading: {
       payload: Prisma.$GradingPayload<ExtArgs>
       fields: Prisma.GradingFieldRefs
@@ -3402,6 +3552,44 @@ export const SchoolClaimScalarFieldEnum = {
 export type SchoolClaimScalarFieldEnum = (typeof SchoolClaimScalarFieldEnum)[keyof typeof SchoolClaimScalarFieldEnum]
 
 
+export const GradingSystemScalarFieldEnum = {
+  id: 'id',
+  schoolId: 'schoolId',
+  name: 'name',
+  activity: 'activity',
+  isDefault: 'isDefault',
+  isActive: 'isActive',
+  requireApproval: 'requireApproval',
+  gradingFee: 'gradingFee',
+  notifyStudent: 'notifyStudent',
+  notifyInstructor: 'notifyInstructor',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GradingSystemScalarFieldEnum = (typeof GradingSystemScalarFieldEnum)[keyof typeof GradingSystemScalarFieldEnum]
+
+
+export const BeltRankScalarFieldEnum = {
+  id: 'id',
+  systemId: 'systemId',
+  order: 'order',
+  name: 'name',
+  color: 'color',
+  maxDegrees: 'maxDegrees',
+  minAge: 'minAge',
+  minMonthsAtPrevious: 'minMonthsAtPrevious',
+  totalClassesRequired: 'totalClassesRequired',
+  classesPerPeriod: 'classesPerPeriod',
+  periodType: 'periodType',
+  classTypeIds: 'classTypeIds',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BeltRankScalarFieldEnum = (typeof BeltRankScalarFieldEnum)[keyof typeof BeltRankScalarFieldEnum]
+
+
 export const GradingScalarFieldEnum = {
   id: 'id',
   schoolId: 'schoolId',
@@ -3518,6 +3706,8 @@ export const TransactionScalarFieldEnum = {
   userId: 'userId',
   stripePaymentIntentId: 'stripePaymentIntentId',
   notes: 'notes',
+  periodStart: 'periodStart',
+  periodEnd: 'periodEnd',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -4135,6 +4325,8 @@ export type GlobalOmitConfig = {
   campBooking?: Prisma.CampBookingOmit
   schoolMember?: Prisma.SchoolMemberOmit
   schoolClaim?: Prisma.SchoolClaimOmit
+  gradingSystem?: Prisma.GradingSystemOmit
+  beltRank?: Prisma.BeltRankOmit
   grading?: Prisma.GradingOmit
   lead?: Prisma.LeadOmit
   leadNote?: Prisma.LeadNoteOmit

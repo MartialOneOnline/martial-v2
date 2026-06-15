@@ -72,6 +72,8 @@ export const ModelName = {
   CampBooking: 'CampBooking',
   SchoolMember: 'SchoolMember',
   SchoolClaim: 'SchoolClaim',
+  GradingSystem: 'GradingSystem',
+  BeltRank: 'BeltRank',
   Grading: 'Grading',
   Lead: 'Lead',
   LeadNote: 'LeadNote',
@@ -513,6 +515,44 @@ export const SchoolClaimScalarFieldEnum = {
 export type SchoolClaimScalarFieldEnum = (typeof SchoolClaimScalarFieldEnum)[keyof typeof SchoolClaimScalarFieldEnum]
 
 
+export const GradingSystemScalarFieldEnum = {
+  id: 'id',
+  schoolId: 'schoolId',
+  name: 'name',
+  activity: 'activity',
+  isDefault: 'isDefault',
+  isActive: 'isActive',
+  requireApproval: 'requireApproval',
+  gradingFee: 'gradingFee',
+  notifyStudent: 'notifyStudent',
+  notifyInstructor: 'notifyInstructor',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GradingSystemScalarFieldEnum = (typeof GradingSystemScalarFieldEnum)[keyof typeof GradingSystemScalarFieldEnum]
+
+
+export const BeltRankScalarFieldEnum = {
+  id: 'id',
+  systemId: 'systemId',
+  order: 'order',
+  name: 'name',
+  color: 'color',
+  maxDegrees: 'maxDegrees',
+  minAge: 'minAge',
+  minMonthsAtPrevious: 'minMonthsAtPrevious',
+  totalClassesRequired: 'totalClassesRequired',
+  classesPerPeriod: 'classesPerPeriod',
+  periodType: 'periodType',
+  classTypeIds: 'classTypeIds',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BeltRankScalarFieldEnum = (typeof BeltRankScalarFieldEnum)[keyof typeof BeltRankScalarFieldEnum]
+
+
 export const GradingScalarFieldEnum = {
   id: 'id',
   schoolId: 'schoolId',
@@ -629,6 +669,8 @@ export const TransactionScalarFieldEnum = {
   userId: 'userId',
   stripePaymentIntentId: 'stripePaymentIntentId',
   notes: 'notes',
+  periodStart: 'periodStart',
+  periodEnd: 'periodEnd',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

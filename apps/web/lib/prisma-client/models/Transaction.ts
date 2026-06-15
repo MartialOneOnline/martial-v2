@@ -50,6 +50,8 @@ export type TransactionMinAggregateOutputType = {
   userId: string | null
   stripePaymentIntentId: string | null
   notes: string | null
+  periodStart: Date | null
+  periodEnd: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -70,6 +72,8 @@ export type TransactionMaxAggregateOutputType = {
   userId: string | null
   stripePaymentIntentId: string | null
   notes: string | null
+  periodStart: Date | null
+  periodEnd: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -90,6 +94,8 @@ export type TransactionCountAggregateOutputType = {
   userId: number
   stripePaymentIntentId: number
   notes: number
+  periodStart: number
+  periodEnd: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -120,6 +126,8 @@ export type TransactionMinAggregateInputType = {
   userId?: true
   stripePaymentIntentId?: true
   notes?: true
+  periodStart?: true
+  periodEnd?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -140,6 +148,8 @@ export type TransactionMaxAggregateInputType = {
   userId?: true
   stripePaymentIntentId?: true
   notes?: true
+  periodStart?: true
+  periodEnd?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -160,6 +170,8 @@ export type TransactionCountAggregateInputType = {
   userId?: true
   stripePaymentIntentId?: true
   notes?: true
+  periodStart?: true
+  periodEnd?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -267,6 +279,8 @@ export type TransactionGroupByOutputType = {
   userId: string | null
   stripePaymentIntentId: string | null
   notes: string | null
+  periodStart: Date | null
+  periodEnd: Date | null
   createdAt: Date
   updatedAt: Date
   _count: TransactionCountAggregateOutputType | null
@@ -310,6 +324,8 @@ export type TransactionWhereInput = {
   userId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   stripePaymentIntentId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   notes?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  periodStart?: Prisma.DateTimeNullableFilter<"Transaction"> | Date | string | null
+  periodEnd?: Prisma.DateTimeNullableFilter<"Transaction"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   school?: Prisma.XOR<Prisma.SchoolScalarRelationFilter, Prisma.SchoolWhereInput>
@@ -333,6 +349,8 @@ export type TransactionOrderByWithRelationInput = {
   userId?: Prisma.SortOrderInput | Prisma.SortOrder
   stripePaymentIntentId?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
+  periodStart?: Prisma.SortOrderInput | Prisma.SortOrder
+  periodEnd?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   school?: Prisma.SchoolOrderByWithRelationInput
@@ -359,6 +377,8 @@ export type TransactionWhereUniqueInput = Prisma.AtLeast<{
   userId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   stripePaymentIntentId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   notes?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  periodStart?: Prisma.DateTimeNullableFilter<"Transaction"> | Date | string | null
+  periodEnd?: Prisma.DateTimeNullableFilter<"Transaction"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   school?: Prisma.XOR<Prisma.SchoolScalarRelationFilter, Prisma.SchoolWhereInput>
@@ -382,6 +402,8 @@ export type TransactionOrderByWithAggregationInput = {
   userId?: Prisma.SortOrderInput | Prisma.SortOrder
   stripePaymentIntentId?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
+  periodStart?: Prisma.SortOrderInput | Prisma.SortOrder
+  periodEnd?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.TransactionCountOrderByAggregateInput
@@ -410,6 +432,8 @@ export type TransactionScalarWhereWithAggregatesInput = {
   userId?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
   stripePaymentIntentId?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
   notes?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
+  periodStart?: Prisma.DateTimeNullableWithAggregatesFilter<"Transaction"> | Date | string | null
+  periodEnd?: Prisma.DateTimeNullableWithAggregatesFilter<"Transaction"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Transaction"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Transaction"> | Date | string
 }
@@ -427,6 +451,8 @@ export type TransactionCreateInput = {
   bookingId?: string | null
   stripePaymentIntentId?: string | null
   notes?: string | null
+  periodStart?: Date | string | null
+  periodEnd?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school: Prisma.SchoolCreateNestedOneWithoutTransactionsInput
@@ -450,6 +476,8 @@ export type TransactionUncheckedCreateInput = {
   userId?: string | null
   stripePaymentIntentId?: string | null
   notes?: string | null
+  periodStart?: Date | string | null
+  periodEnd?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -467,6 +495,8 @@ export type TransactionUpdateInput = {
   bookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneRequiredWithoutTransactionsNestedInput
@@ -490,6 +520,8 @@ export type TransactionUncheckedUpdateInput = {
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -510,6 +542,8 @@ export type TransactionCreateManyInput = {
   userId?: string | null
   stripePaymentIntentId?: string | null
   notes?: string | null
+  periodStart?: Date | string | null
+  periodEnd?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -527,6 +561,8 @@ export type TransactionUpdateManyMutationInput = {
   bookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -547,6 +583,8 @@ export type TransactionUncheckedUpdateManyInput = {
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -577,6 +615,8 @@ export type TransactionCountOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   stripePaymentIntentId?: Prisma.SortOrder
   notes?: Prisma.SortOrder
+  periodStart?: Prisma.SortOrder
+  periodEnd?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -601,6 +641,8 @@ export type TransactionMaxOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   stripePaymentIntentId?: Prisma.SortOrder
   notes?: Prisma.SortOrder
+  periodStart?: Prisma.SortOrder
+  periodEnd?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -621,6 +663,8 @@ export type TransactionMinOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   stripePaymentIntentId?: Prisma.SortOrder
   notes?: Prisma.SortOrder
+  periodStart?: Prisma.SortOrder
+  periodEnd?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -784,6 +828,8 @@ export type TransactionCreateWithoutUserInput = {
   bookingId?: string | null
   stripePaymentIntentId?: string | null
   notes?: string | null
+  periodStart?: Date | string | null
+  periodEnd?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school: Prisma.SchoolCreateNestedOneWithoutTransactionsInput
@@ -805,6 +851,8 @@ export type TransactionUncheckedCreateWithoutUserInput = {
   bookingId?: string | null
   stripePaymentIntentId?: string | null
   notes?: string | null
+  periodStart?: Date | string | null
+  periodEnd?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -854,6 +902,8 @@ export type TransactionScalarWhereInput = {
   userId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   stripePaymentIntentId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   notes?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  periodStart?: Prisma.DateTimeNullableFilter<"Transaction"> | Date | string | null
+  periodEnd?: Prisma.DateTimeNullableFilter<"Transaction"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
 }
@@ -871,6 +921,8 @@ export type TransactionCreateWithoutSchoolInput = {
   bookingId?: string | null
   stripePaymentIntentId?: string | null
   notes?: string | null
+  periodStart?: Date | string | null
+  periodEnd?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   membership?: Prisma.MembershipCreateNestedOneWithoutTransactionsInput
@@ -892,6 +944,8 @@ export type TransactionUncheckedCreateWithoutSchoolInput = {
   userId?: string | null
   stripePaymentIntentId?: string | null
   notes?: string | null
+  periodStart?: Date | string | null
+  periodEnd?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -935,6 +989,8 @@ export type TransactionCreateWithoutMembershipInput = {
   bookingId?: string | null
   stripePaymentIntentId?: string | null
   notes?: string | null
+  periodStart?: Date | string | null
+  periodEnd?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school: Prisma.SchoolCreateNestedOneWithoutTransactionsInput
@@ -956,6 +1012,8 @@ export type TransactionUncheckedCreateWithoutMembershipInput = {
   userId?: string | null
   stripePaymentIntentId?: string | null
   notes?: string | null
+  periodStart?: Date | string | null
+  periodEnd?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1001,6 +1059,8 @@ export type TransactionCreateManyUserInput = {
   bookingId?: string | null
   stripePaymentIntentId?: string | null
   notes?: string | null
+  periodStart?: Date | string | null
+  periodEnd?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1018,6 +1078,8 @@ export type TransactionUpdateWithoutUserInput = {
   bookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneRequiredWithoutTransactionsNestedInput
@@ -1039,6 +1101,8 @@ export type TransactionUncheckedUpdateWithoutUserInput = {
   bookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1058,6 +1122,8 @@ export type TransactionUncheckedUpdateManyWithoutUserInput = {
   bookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1077,6 +1143,8 @@ export type TransactionCreateManySchoolInput = {
   userId?: string | null
   stripePaymentIntentId?: string | null
   notes?: string | null
+  periodStart?: Date | string | null
+  periodEnd?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1094,6 +1162,8 @@ export type TransactionUpdateWithoutSchoolInput = {
   bookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   membership?: Prisma.MembershipUpdateOneWithoutTransactionsNestedInput
@@ -1115,6 +1185,8 @@ export type TransactionUncheckedUpdateWithoutSchoolInput = {
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1134,6 +1206,8 @@ export type TransactionUncheckedUpdateManyWithoutSchoolInput = {
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1153,6 +1227,8 @@ export type TransactionCreateManyMembershipInput = {
   userId?: string | null
   stripePaymentIntentId?: string | null
   notes?: string | null
+  periodStart?: Date | string | null
+  periodEnd?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1170,6 +1246,8 @@ export type TransactionUpdateWithoutMembershipInput = {
   bookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneRequiredWithoutTransactionsNestedInput
@@ -1191,6 +1269,8 @@ export type TransactionUncheckedUpdateWithoutMembershipInput = {
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1210,6 +1290,8 @@ export type TransactionUncheckedUpdateManyWithoutMembershipInput = {
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1232,6 +1314,8 @@ export type TransactionSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   userId?: boolean
   stripePaymentIntentId?: boolean
   notes?: boolean
+  periodStart?: boolean
+  periodEnd?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
@@ -1255,6 +1339,8 @@ export type TransactionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   userId?: boolean
   stripePaymentIntentId?: boolean
   notes?: boolean
+  periodStart?: boolean
+  periodEnd?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
@@ -1278,6 +1364,8 @@ export type TransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   userId?: boolean
   stripePaymentIntentId?: boolean
   notes?: boolean
+  periodStart?: boolean
+  periodEnd?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
@@ -1301,11 +1389,13 @@ export type TransactionSelectScalar = {
   userId?: boolean
   stripePaymentIntentId?: boolean
   notes?: boolean
+  periodStart?: boolean
+  periodEnd?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "type" | "status" | "category" | "paymentMethod" | "amount" | "currency" | "description" | "date" | "membershipId" | "bookingId" | "userId" | "stripePaymentIntentId" | "notes" | "createdAt" | "updatedAt", ExtArgs["result"]["transaction"]>
+export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "type" | "status" | "category" | "paymentMethod" | "amount" | "currency" | "description" | "date" | "membershipId" | "bookingId" | "userId" | "stripePaymentIntentId" | "notes" | "periodStart" | "periodEnd" | "createdAt" | "updatedAt", ExtArgs["result"]["transaction"]>
 export type TransactionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   membership?: boolean | Prisma.Transaction$membershipArgs<ExtArgs>
@@ -1345,6 +1435,8 @@ export type $TransactionPayload<ExtArgs extends runtime.Types.Extensions.Interna
     userId: string | null
     stripePaymentIntentId: string | null
     notes: string | null
+    periodStart: Date | null
+    periodEnd: Date | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["transaction"]>
@@ -1788,6 +1880,8 @@ export interface TransactionFieldRefs {
   readonly userId: Prisma.FieldRef<"Transaction", 'String'>
   readonly stripePaymentIntentId: Prisma.FieldRef<"Transaction", 'String'>
   readonly notes: Prisma.FieldRef<"Transaction", 'String'>
+  readonly periodStart: Prisma.FieldRef<"Transaction", 'DateTime'>
+  readonly periodEnd: Prisma.FieldRef<"Transaction", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Transaction", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Transaction", 'DateTime'>
 }

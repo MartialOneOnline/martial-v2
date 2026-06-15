@@ -147,6 +147,16 @@ export type SchoolMember = Prisma.SchoolMemberModel
  */
 export type SchoolClaim = Prisma.SchoolClaimModel
 /**
+ * Model GradingSystem
+ * 
+ */
+export type GradingSystem = Prisma.GradingSystemModel
+/**
+ * Model BeltRank
+ * 
+ */
+export type BeltRank = Prisma.BeltRankModel
+/**
  * Model Grading
  * 
  */
