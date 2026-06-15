@@ -445,6 +445,17 @@ interface ClassDrawerProps {
   disciplines: Discipline[]
 }
 
+const drawerInputStyle: React.CSSProperties = {
+  width: '100%', border: '1px solid #E5E7EB', borderRadius: 10, padding: '9px 12px',
+  fontSize: 13, color: '#111827', background: '#fff', outline: 'none',
+}
+const drawerLabelStyle: React.CSSProperties = {
+  display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 5,
+}
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return <div><label style={drawerLabelStyle}>{label}</label>{children}</div>
+}
+
 function ClassDrawer({ open, onClose, onSaved, editing, instructors, disciplines }: ClassDrawerProps) {
   const t = useT()
   const [form, setForm] = useState<ClassFormData>(EMPTY_FORM)
@@ -504,18 +515,6 @@ function ClassDrawer({ open, onClose, onSaved, editing, instructors, disciplines
     }
   }
 
-  const inputStyle: React.CSSProperties = {
-    width: '100%', border: '1px solid #E5E7EB', borderRadius: 10, padding: '9px 12px',
-    fontSize: 13, color: '#111827', background: '#fff', outline: 'none',
-  }
-  const labelStyle: React.CSSProperties = {
-    display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 5,
-  }
-
-  function Field({ label, children }: { label: string; children: React.ReactNode }) {
-    return <div><label style={labelStyle}>{label}</label>{children}</div>
-  }
-
   return (
     <>
       <div className="fixed inset-0 z-40 transition-opacity"
@@ -555,18 +554,18 @@ function ClassDrawer({ open, onClose, onSaved, editing, instructors, disciplines
 
               <Field label={t.classes.classTitle}>
                 <input type="text" placeholder={t.classes.classTitlePlaceholder}
-                  value={form.name} onChange={e => set('name', e.target.value)} style={inputStyle} />
+                  value={form.name} onChange={e => set('name', e.target.value)} style={drawerInputStyle} />
               </Field>
 
               <div className="grid grid-cols-2 gap-4">
                 <Field label={t.classes.instructors}>
-                  <select value={form.instructorId} onChange={e => set('instructorId', e.target.value)} style={inputStyle}>
+                  <select value={form.instructorId} onChange={e => set('instructorId', e.target.value)} style={drawerInputStyle}>
                     <option value="">{t.classes.selectInstructor}</option>
                     {instructors.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
                   </select>
                 </Field>
                 <Field label={t.common.activity}>
-                  <select value={form.disciplineId} onChange={e => set('disciplineId', e.target.value)} style={inputStyle}>
+                  <select value={form.disciplineId} onChange={e => set('disciplineId', e.target.value)} style={drawerInputStyle}>
                     <option value="">{t.classes.selectActivity}</option>
                     {disciplines.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                   </select>
@@ -575,25 +574,25 @@ function ClassDrawer({ open, onClose, onSaved, editing, instructors, disciplines
 
               <div className="grid grid-cols-2 gap-4">
                 <Field label="Level">
-                  <select value={form.level} onChange={e => set('level', e.target.value)} style={inputStyle}>
+                  <select value={form.level} onChange={e => set('level', e.target.value)} style={drawerInputStyle}>
                     <option value="">All levels</option>
                     {LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
                   </select>
                 </Field>
                 <Field label="Duration (min)">
                   <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="60"
-                    value={form.duration} onChange={e => set('duration', e.target.value.replace(/\D/g, ''))} style={inputStyle} />
+                    value={form.duration} onChange={e => set('duration', e.target.value.replace(/\D/g, ''))} style={drawerInputStyle} />
                 </Field>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <Field label={t.common.capacity}>
                   <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="20"
-                    value={form.capacity} onChange={e => set('capacity', e.target.value.replace(/\D/g, ''))} style={inputStyle} />
+                    value={form.capacity} onChange={e => set('capacity', e.target.value.replace(/\D/g, ''))} style={drawerInputStyle} />
                 </Field>
                 <Field label={t.classes.classFees}>
                   <input type="text" inputMode="decimal" placeholder="0 = included in membership"
-                    value={form.price} onChange={e => set('price', e.target.value.replace(/[^0-9.]/g, ''))} style={inputStyle} />
+                    value={form.price} onChange={e => set('price', e.target.value.replace(/[^0-9.]/g, ''))} style={drawerInputStyle} />
                 </Field>
               </div>
 
@@ -605,7 +604,7 @@ function ClassDrawer({ open, onClose, onSaved, editing, instructors, disciplines
               <Field label={t.common.description}>
                 <textarea rows={3} placeholder={t.classes.describeClass}
                   value={form.description} onChange={e => set('description', e.target.value)}
-                  style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.5 }} />
+                  style={{ ...drawerInputStyle, resize: 'vertical', lineHeight: 1.5 }} />
               </Field>
 
               {/* Toggles */}
