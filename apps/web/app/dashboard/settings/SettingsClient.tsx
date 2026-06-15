@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   Bell, Menu, X, Check, Upload, Eye, EyeOff, Plus, Minus,
   User, Building2, Users2, Wallet, GraduationCap,
   Lock, Trash2, AlertTriangle,
   Globe, Phone, Mail, MapPin, Zap, RefreshCw, Clock,
   ChevronDown, ChevronRight, CreditCard, Award, Calendar, LogOut, Users, ArrowRight,
+  GripVertical, ChevronUp, Edit2, Settings2,
 } from 'lucide-react'
 import { useDashboard } from '../../../components/DashboardShell'
 import { useT } from '../../../lib/i18n/LanguageContext'
@@ -590,102 +591,490 @@ function PaymentsTab() {
 }
 
 // ── Grading Tab ───────────────────────────────────────────────────────────────
-function GradingTab() {
-  const [whiteToBlue,   setWhiteToBlue]   = useState(12)
-  const [blueToPurple,  setBlueToPurple]  = useState(24)
-  const [purpleToBrown, setPurpleToBrown] = useState(36)
-  const [brownToBlack,  setBrownToBlack]  = useState(48)
-  const [requireApproval,  setRequireApproval]  = useState(true)
-  const [minAttendance,    setMinAttendance]     = useState(75)
-  const [notifyStudent,    setNotifyStudent]     = useState(true)
-  const [notifyInstructor, setNotifyInstructor]  = useState(true)
-  const [gradingFee,       setGradingFee]        = useState(0)
-  const [saved, setSaved] = useState(false)
-  function save() { setSaved(true); setTimeout(() => setSaved(false), 2000) }
+interface BeltRank {
+  id: string; order: number; name: string; color: string; maxDegrees: number
+  minAge: number | null; minMonthsAtPrevious: number | null
+  totalClassesRequired: number | null; classesPerPeriod: number | null; periodType: string | null
+  classTypeIds: string[]
+}
+interface GradingSystem {
+  id: string; name: string; activity: string | null; isDefault: boolean
+  requireApproval: boolean; gradingFee: number; notifyStudent: boolean; notifyInstructor: boolean
+  ranks: BeltRank[]
+}
 
-  const belts = [
-    { label: 'White → Blue',   dot: '#2563EB', value: whiteToBlue,   onChange: setWhiteToBlue   },
-    { label: 'Blue → Purple',  dot: '#7C3AED', value: blueToPurple,  onChange: setBlueToPurple  },
-    { label: 'Purple → Brown', dot: '#92400E', value: purpleToBrown, onChange: setPurpleToBrown },
-    { label: 'Brown → Black',  dot: '#111827', value: brownToBlack,  onChange: setBrownToBlack  },
-  ]
+const PERIOD_OPTS = [{ value: 'WEEK', label: 'per week' }, { value: 'MONTH', label: 'per month' }]
+
+const COLOR_PRESETS = [
+  '#9CA3AF', // white/grey
+  '#2563EB', // blue
+  '#7C3AED', // purple
+  '#92400E', // brown
+  '#111827', // black
+  '#EAB308', // yellow
+  '#F97316', // orange
+  '#16A34A', // green
+  '#DC2626', // red
+]
+
+function RankRow({
+  rank, systemId, onUpdate, onDelete, isLast,
+}: {
+  rank: BeltRank; systemId: string
+  onUpdate: (r: BeltRank) => void; onDelete: () => void; isLast: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const [form, setForm] = useState(rank)
+  const [saving, setSaving] = useState(false)
+
+  function set<K extends keyof BeltRank>(k: K, v: BeltRank[K]) {
+    setForm(p => ({ ...p, [k]: v }))
+  }
+
+  async function save() {
+    setSaving(true)
+    const res = await fetch(`/api/dashboard/grading-systems/${systemId}/ranks/${rank.id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form),
+    })
+    setSaving(false)
+    if (!res.ok) return
+    const { rank: updated } = await res.json()
+    onUpdate(updated)
+    setOpen(false)
+  }
+
+  const INP: React.CSSProperties = {
+    border: '1.5px solid #E5E7EB', borderRadius: 8, padding: '7px 10px',
+    fontSize: 13, color: '#111827', background: '#fff', outline: 'none', width: '100%',
+  }
 
   return (
-    <div className="flex flex-col gap-8" style={{ maxWidth: 600 }}>
+    <div style={{ borderBottom: isLast ? 'none' : '1px solid #F3F4F6' }}>
+      {/* Rank header row */}
+      <div className="flex items-center gap-3 py-3 px-1">
+        <div className="w-5 h-5 rounded-full shrink-0 border-2 border-white shadow-sm"
+          style={{ background: form.color }} />
+        <p style={{ fontSize: 14, fontWeight: 500, color: '#111827', flex: 1, margin: 0 }}>{form.name}</p>
+        {form.maxDegrees > 0 && (
+          <span style={{ fontSize: 11, color: '#9CA3AF' }}>{form.maxDegrees} stripes</span>
+        )}
+        {form.totalClassesRequired && (
+          <span style={{ fontSize: 11, color: '#6B7280', background: '#F3F4F6', padding: '2px 8px', borderRadius: 999 }}>
+            {form.totalClassesRequired} classes
+          </span>
+        )}
+        {form.minMonthsAtPrevious && (
+          <span style={{ fontSize: 11, color: '#6B7280', background: '#F3F4F6', padding: '2px 8px', borderRadius: 999 }}>
+            {form.minMonthsAtPrevious} mo
+          </span>
+        )}
+        <button onClick={() => setOpen(o => !o)}
+          className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
+          style={{ background: open ? '#F3F4F6' : 'transparent', border: 'none', color: '#6B7280' }}>
+          <Edit2 size={13} />
+        </button>
+        <button onClick={onDelete}
+          className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
+          style={{ background: 'transparent', border: 'none', color: '#D1D5DB' }}
+          onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#DC2626'}
+          onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#D1D5DB'}>
+          <Trash2 size={13} />
+        </button>
+      </div>
 
-      {/* Link to full Gradings module */}
+      {/* Expandable edit form */}
+      {open && (
+        <div className="mx-1 mb-3 p-4 rounded-xl flex flex-col gap-4"
+          style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>Name</label>
+              <input value={form.name} onChange={e => set('name', e.target.value)} style={INP} />
+            </div>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>Stripes / Degrees</label>
+              <select value={form.maxDegrees} onChange={e => set('maxDegrees', Number(e.target.value))} style={INP}>
+                <option value={0}>No stripes</option>
+                {[1, 2, 3, 4].map(n => <option key={n} value={n}>{n} stripes</option>)}
+              </select>
+            </div>
+          </div>
+
+          {/* Color */}
+          <div>
+            <label style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>Color</label>
+            <div className="flex items-center gap-2 flex-wrap">
+              {COLOR_PRESETS.map(c => (
+                <button key={c} onClick={() => set('color', c)}
+                  style={{ width: 24, height: 24, borderRadius: '50%', background: c, border: form.color === c ? '3px solid #0870E2' : '2px solid transparent', cursor: 'pointer', outline: 'none' }} />
+              ))}
+              <input type="color" value={form.color} onChange={e => set('color', e.target.value)}
+                style={{ width: 32, height: 32, borderRadius: 8, border: '1.5px solid #E5E7EB', cursor: 'pointer', padding: 2, background: '#fff' }} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>Min age</label>
+              <input type="number" min={0} max={99} value={form.minAge ?? ''} placeholder="—"
+                onChange={e => set('minAge', e.target.value ? Number(e.target.value) : null)} style={INP} />
+            </div>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>Months at prev.</label>
+              <input type="number" min={0} value={form.minMonthsAtPrevious ?? ''} placeholder="—"
+                onChange={e => set('minMonthsAtPrevious', e.target.value ? Number(e.target.value) : null)} style={INP} />
+            </div>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>Total classes</label>
+              <input type="number" min={0} value={form.totalClassesRequired ?? ''} placeholder="—"
+                onChange={e => set('totalClassesRequired', e.target.value ? Number(e.target.value) : null)} style={INP} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>Min classes</label>
+              <input type="number" min={0} value={form.classesPerPeriod ?? ''} placeholder="—"
+                onChange={e => set('classesPerPeriod', e.target.value ? Number(e.target.value) : null)} style={INP} />
+            </div>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>Period</label>
+              <select value={form.periodType ?? ''} onChange={e => set('periodType', e.target.value || null)} style={INP}>
+                <option value="">—</option>
+                {PERIOD_OPTS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div className="flex gap-2 justify-end">
+            <button onClick={() => { setForm(rank); setOpen(false) }}
+              style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', color: '#374151', fontSize: 13, cursor: 'pointer' }}>
+              Cancel
+            </button>
+            <button onClick={save} disabled={saving}
+              style={{ padding: '7px 16px', borderRadius: 8, border: 'none', background: '#0870E2', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              {saving ? 'Saving…' : 'Save rank'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SystemEditor({ system, onUpdate, onDelete }: {
+  system: GradingSystem
+  onUpdate: (s: GradingSystem) => void
+  onDelete: () => void
+}) {
+  const [expanded, setExpanded]   = useState(false)
+  const [addingRank, setAddingRank] = useState(false)
+  const [newRankName, setNewRankName] = useState('')
+  const [newRankColor, setNewRankColor] = useState('#9CA3AF')
+  const [saving, setSaving]       = useState(false)
+  const [editName, setEditName]   = useState(false)
+  const [nameVal, setNameVal]     = useState(system.name)
+  const [actVal, setActVal]       = useState(system.activity ?? '')
+
+  async function saveName() {
+    if (!nameVal.trim()) return
+    const res = await fetch(`/api/dashboard/grading-systems/${system.id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: nameVal, activity: actVal || null }),
+    })
+    if (!res.ok) return
+    const { system: s } = await res.json()
+    onUpdate(s); setEditName(false)
+  }
+
+  async function toggleSetting(key: keyof GradingSystem, value: boolean | number) {
+    const res = await fetch(`/api/dashboard/grading-systems/${system.id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ [key]: value }),
+    })
+    if (!res.ok) return
+    const { system: s } = await res.json()
+    onUpdate(s)
+  }
+
+  async function addRank() {
+    if (!newRankName.trim()) return
+    setSaving(true)
+    const res = await fetch(`/api/dashboard/grading-systems/${system.id}/ranks`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newRankName, color: newRankColor }),
+    })
+    setSaving(false)
+    if (!res.ok) return
+    const { rank } = await res.json()
+    onUpdate({ ...system, ranks: [...system.ranks, rank] })
+    setNewRankName(''); setNewRankColor('#9CA3AF'); setAddingRank(false)
+  }
+
+  async function deleteRank(rankId: string) {
+    await fetch(`/api/dashboard/grading-systems/${system.id}/ranks/${rankId}`, { method: 'DELETE' })
+    onUpdate({ ...system, ranks: system.ranks.filter(r => r.id !== rankId) })
+  }
+
+  function updateRank(updated: BeltRank) {
+    onUpdate({ ...system, ranks: system.ranks.map(r => r.id === updated.id ? updated : r) })
+  }
+
+  const INP: React.CSSProperties = {
+    border: '1.5px solid #E5E7EB', borderRadius: 8, padding: '7px 10px',
+    fontSize: 13, color: '#111827', background: '#fff', outline: 'none',
+  }
+
+  return (
+    <div className="rounded-2xl overflow-hidden" style={{ border: '1.5px solid #E5E7EB', background: '#fff' }}>
+      {/* System header */}
+      <div className="flex items-center gap-3 px-5 py-4" style={{ borderBottom: expanded ? '1px solid #F3F4F6' : 'none' }}>
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          {/* Color preview strip */}
+          <div className="flex gap-0.5 shrink-0">
+            {system.ranks.slice(0, 6).map(r => (
+              <div key={r.id} className="w-2 h-5 rounded-sm" style={{ background: r.color }} />
+            ))}
+            {system.ranks.length === 0 && <div className="w-2 h-5 rounded-sm" style={{ background: '#E5E7EB' }} />}
+          </div>
+          {editName ? (
+            <div className="flex items-center gap-2 flex-1">
+              <input value={nameVal} onChange={e => setNameVal(e.target.value)} style={{ ...INP, width: 160 }}
+                placeholder="System name" autoFocus />
+              <input value={actVal} onChange={e => setActVal(e.target.value)} style={{ ...INP, width: 120 }}
+                placeholder="Activity (BJJ…)" />
+              <button onClick={saveName}
+                style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: '#0870E2', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                Save
+              </button>
+              <button onClick={() => setEditName(false)}
+                style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, cursor: 'pointer' }}>
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 min-w-0">
+              <p style={{ fontSize: 15, fontWeight: 600, color: '#111827', margin: 0 }}>{system.name}</p>
+              {system.activity && (
+                <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 999,
+                  background: '#F0F7FF', color: '#0870E2', border: '1px solid #BFDBFE' }}>
+                  {system.activity}
+                </span>
+              )}
+              {system.isDefault && (
+                <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 999,
+                  background: '#F0FDF4', color: '#16A34A', border: '1px solid #BBF7D0' }}>
+                  Default
+                </span>
+              )}
+              <button onClick={() => setEditName(true)}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#9CA3AF', padding: 4 }}>
+                <Edit2 size={12} />
+              </button>
+            </div>
+          )}
+        </div>
+        <span style={{ fontSize: 12, color: '#9CA3AF' }}>{system.ranks.length} ranks</span>
+        <button onClick={onDelete}
+          style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#D1D5DB', padding: 4 }}
+          onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#DC2626'}
+          onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#D1D5DB'}>
+          <Trash2 size={14} />
+        </button>
+        <button onClick={() => setExpanded(o => !o)}
+          style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 8, cursor: 'pointer', padding: '6px 10px', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#374151' }}>
+          {expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+          {expanded ? 'Collapse' : 'Edit ranks'}
+        </button>
+      </div>
+
+      {expanded && (
+        <div className="px-5 pb-4">
+          {/* Ranks list */}
+          <div className="mt-2">
+            {system.ranks.length === 0 ? (
+              <p style={{ fontSize: 13, color: '#9CA3AF', padding: '16px 0', textAlign: 'center' }}>
+                No ranks yet. Add the first rank below.
+              </p>
+            ) : (
+              system.ranks.map((rank, idx) => (
+                <RankRow key={rank.id} rank={rank} systemId={system.id}
+                  onUpdate={updateRank} onDelete={() => deleteRank(rank.id)}
+                  isLast={idx === system.ranks.length - 1} />
+              ))
+            )}
+          </div>
+
+          {/* Add rank */}
+          {addingRank ? (
+            <div className="flex items-center gap-2 mt-3 p-3 rounded-xl" style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
+              <input value={newRankName} onChange={e => setNewRankName(e.target.value)}
+                placeholder="Rank name (e.g. Azul)" autoFocus
+                style={{ flex: 1, border: '1.5px solid #E5E7EB', borderRadius: 8, padding: '7px 10px', fontSize: 13, outline: 'none' }}
+                onKeyDown={e => e.key === 'Enter' && addRank()} />
+              <div className="flex gap-1">
+                {COLOR_PRESETS.slice(0, 6).map(c => (
+                  <button key={c} onClick={() => setNewRankColor(c)}
+                    style={{ width: 20, height: 20, borderRadius: '50%', background: c,
+                      border: newRankColor === c ? '2.5px solid #0870E2' : '2px solid transparent', cursor: 'pointer' }} />
+                ))}
+              </div>
+              <button onClick={addRank} disabled={saving || !newRankName.trim()}
+                style={{ padding: '7px 14px', borderRadius: 8, border: 'none', background: '#0870E2', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                {saving ? '…' : 'Add'}
+              </button>
+              <button onClick={() => setAddingRank(false)}
+                style={{ padding: '7px 10px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', fontSize: 13, cursor: 'pointer' }}>
+                <X size={13} style={{ color: '#9CA3AF' }} />
+              </button>
+            </div>
+          ) : (
+            <button onClick={() => setAddingRank(true)}
+              className="flex items-center gap-2 mt-3 cursor-pointer"
+              style={{ fontSize: 13, color: '#0870E2', fontWeight: 500, background: 'transparent', border: 'none', padding: '4px 0' }}>
+              <Plus size={14} /> Add rank
+            </button>
+          )}
+
+          <hr style={{ border: 'none', borderTop: '1px solid #F3F4F6', margin: '16px 0' }} />
+
+          {/* System-level rules */}
+          <p style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 12 }}>Rules for this system</p>
+          <div className="flex flex-col">
+            {[
+              { key: 'requireApproval' as const,  label: 'Require instructor approval', desc: 'Manual approval before each promotion' },
+              { key: 'notifyStudent' as const,    label: 'Notify student on promotion',  desc: 'Email sent when promoted' },
+              { key: 'notifyInstructor' as const, label: 'Notify instructor',            desc: 'Summary after each grading' },
+            ].map(row => (
+              <div key={row.key} className="flex items-center justify-between py-3" style={{ borderBottom: '1px solid #F9FAFB' }}>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 500, color: '#111827', margin: 0 }}>{row.label}</p>
+                  <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>{row.desc}</p>
+                </div>
+                <Toggle value={system[row.key] as boolean} onChange={v => toggleSetting(row.key, v)} />
+              </div>
+            ))}
+            <div className="flex items-center justify-between py-3">
+              <div>
+                <p style={{ fontSize: 13, fontWeight: 500, color: '#111827', margin: 0 }}>Grading fee</p>
+                <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>Default fee per student per grading event</p>
+              </div>
+              <Stepper value={system.gradingFee} unit="€" min={0} max={500}
+                onChange={v => toggleSetting('gradingFee', v)} />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function GradingTab() {
+  const [systems, setSystems]   = useState<GradingSystem[]>([])
+  const [loading, setLoading]   = useState(true)
+  const [adding,  setAdding]    = useState(false)
+  const [newName, setNewName]   = useState('')
+  const [newAct,  setNewAct]    = useState('')
+  const [saving,  setSaving]    = useState(false)
+
+  useEffect(() => {
+    fetch('/api/dashboard/grading-systems').then(r => r.json()).then(d => {
+      setSystems(d.systems ?? [])
+      setLoading(false)
+    })
+  }, [])
+
+  async function createSystem() {
+    if (!newName.trim()) return
+    setSaving(true)
+    const res = await fetch('/api/dashboard/grading-systems', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newName, activity: newAct || null, isDefault: systems.length === 0 }),
+    })
+    setSaving(false)
+    if (!res.ok) return
+    const { system } = await res.json()
+    setSystems(prev => [...prev, system])
+    setNewName(''); setNewAct(''); setAdding(false)
+  }
+
+  async function deleteSystem(id: string) {
+    if (!confirm('Delete this grading system?')) return
+    await fetch(`/api/dashboard/grading-systems/${id}`, { method: 'DELETE' })
+    setSystems(prev => prev.filter(s => s.id !== id))
+  }
+
+  function updateSystem(updated: GradingSystem) {
+    setSystems(prev => prev.map(s => s.id === updated.id ? updated : s))
+  }
+
+  return (
+    <div className="flex flex-col gap-6" style={{ maxWidth: 700 }}>
+      {/* Link to Gradings module */}
       <div className="flex items-center justify-between p-4 rounded-2xl" style={{ background: '#F0F7FF', border: '1px solid #BFDBFE' }}>
         <div>
-          <p style={{ fontSize: 14, fontWeight: 600, color: '#1E40AF', margin: 0 }}>Grading events &amp; results</p>
-          <p style={{ fontSize: 13, color: '#3B82F6', marginTop: 2 }}>Schedule events, record promotions and view history in the Gradings module.</p>
+          <p style={{ fontSize: 14, fontWeight: 600, color: '#1E40AF', margin: 0 }}>Grading events &amp; history</p>
+          <p style={{ fontSize: 13, color: '#3B82F6', marginTop: 2 }}>Record promotions and view full history in the Gradings module.</p>
         </div>
         <a href="/dashboard/school/gradings"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', borderRadius: 10, background: '#0870E2', color: '#fff', fontSize: 13, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', borderRadius: 10,
+            background: '#0870E2', color: '#fff', fontSize: 13, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>
           Go to Gradings <ArrowRight size={13} />
         </a>
       </div>
 
-      {/* Belt progression */}
-      <div>
-        <p style={SECTION_TITLE}>Belt progression</p>
-        <p style={SECTION_SUB}>Minimum months at each belt before promotion</p>
-        <div className="flex flex-col">
-          {belts.map(b => (
-            <div key={b.label} className="flex items-center justify-between py-3"
-              style={{ borderBottom: '1px solid #F3F4F6' }}>
-              <div className="flex items-center gap-3">
-                <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: b.dot }} />
-                <p style={{ fontSize: 14, fontWeight: 500, color: '#111827', margin: 0 }}>{b.label}</p>
-              </div>
-              <Stepper value={b.value} unit="mo" min={1} max={120} onChange={b.onChange} />
-            </div>
-          ))}
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <p style={SECTION_TITLE}>Grading Systems</p>
+          <p style={SECTION_SUB}>One system per activity (BJJ, Judo, Karate…). Each system has its own belt progression and rules.</p>
         </div>
-      </div>
-
-      <hr style={DIVIDER} />
-
-      {/* Promotion rules */}
-      <div>
-        <p style={SECTION_TITLE}>Promotion rules</p>
-        <p style={SECTION_SUB}>Requirements before a student can be promoted</p>
-        <ToggleRow label="Require instructor approval" description="An instructor must manually approve each promotion" value={requireApproval} onChange={setRequireApproval} />
-        <div className="flex items-center justify-between py-4" style={{ borderBottom: '1px solid #F3F4F6' }}>
-          <div>
-            <p style={{ fontSize: 14, fontWeight: 500, color: '#111827', margin: 0 }}>Minimum attendance rate</p>
-            <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>Student must have attended at least this % of classes</p>
-          </div>
-          <Stepper value={minAttendance} unit="%" min={0} max={100} onChange={setMinAttendance} />
-        </div>
-      </div>
-
-      <hr style={DIVIDER} />
-
-      {/* Grading fee */}
-      <div>
-        <p style={SECTION_TITLE}>Grading fee</p>
-        <p style={SECTION_SUB}>Default amount charged per student per grading event (0 = free)</p>
-        <Stepper value={gradingFee} unit="€" min={0} max={500} onChange={setGradingFee} />
-      </div>
-
-      <hr style={DIVIDER} />
-
-      {/* Notifications */}
-      <div>
-        <p style={SECTION_TITLE}>Notifications</p>
-        <p style={SECTION_SUB}>Who gets notified for gradings and promotions</p>
-        <ToggleRow label="Notify student on promotion" description="Send an email when a student is promoted" value={notifyStudent} onChange={setNotifyStudent} />
-        <ToggleRow label="Notify instructor" description="Send a summary to the instructor after each grading" value={notifyInstructor} onChange={setNotifyInstructor} />
-      </div>
-
-      <div>
-        <button onClick={save}
-          style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: '#0870E2', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-          Save changes
+        <button onClick={() => setAdding(true)}
+          className="flex items-center gap-2 cursor-pointer"
+          style={{ padding: '9px 16px', borderRadius: 10, border: 'none', background: '#0870E2', color: '#fff', fontSize: 13, fontWeight: 600 }}>
+          <Plus size={14} /> New system
         </button>
       </div>
 
-      <SaveToast show={saved} text="Grading settings saved" />
+      {/* New system form */}
+      {adding && (
+        <div className="flex items-center gap-3 p-4 rounded-2xl" style={{ background: '#F9FAFB', border: '1.5px solid #E5E7EB' }}>
+          <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="System name (e.g. BJJ Adultos)"
+            autoFocus style={{ flex: 2, border: '1.5px solid #E5E7EB', borderRadius: 8, padding: '8px 12px', fontSize: 13, outline: 'none' }}
+            onKeyDown={e => e.key === 'Enter' && createSystem()} />
+          <input value={newAct} onChange={e => setNewAct(e.target.value)} placeholder="Activity (BJJ, Judo…)"
+            style={{ flex: 1, border: '1.5px solid #E5E7EB', borderRadius: 8, padding: '8px 12px', fontSize: 13, outline: 'none' }} />
+          <button onClick={createSystem} disabled={saving || !newName.trim()}
+            style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: '#0870E2', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            {saving ? '…' : 'Create'}
+          </button>
+          <button onClick={() => setAdding(false)}
+            style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', cursor: 'pointer' }}>
+            <X size={14} style={{ color: '#9CA3AF' }} />
+          </button>
+        </div>
+      )}
+
+      {/* Systems list */}
+      {loading ? (
+        <p style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</p>
+      ) : systems.length === 0 ? (
+        <div className="flex flex-col items-center gap-3 py-12" style={{ border: '2px dashed #E5E7EB', borderRadius: 16 }}>
+          <Award size={28} style={{ color: '#D1D5DB' }} />
+          <p style={{ fontSize: 14, color: '#9CA3AF', margin: 0 }}>No grading systems yet</p>
+          <button onClick={() => setAdding(true)}
+            style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: '#0870E2', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            Create first system
+          </button>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {systems.map(s => (
+            <SystemEditor key={s.id} system={s} onUpdate={updateSystem} onDelete={() => deleteSystem(s.id)} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

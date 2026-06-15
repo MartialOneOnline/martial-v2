@@ -445,6 +445,7 @@ model School {
   members         SchoolMember[]
   claims          SchoolClaim[]
   gradings        Grading[]
+  gradingSystems  GradingSystem[]
   leads           Lead[]
   waivers         Waiver[]
   transactions    Transaction[]
@@ -842,6 +843,61 @@ model SchoolClaim {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GRADING
+// ─────────────────────────────────────────────────────────────────────────────
+// GRADING SYSTEM + BELT RANKS
+// Each school can have multiple grading systems (one per activity/discipline).
+// ─────────────────────────────────────────────────────────────────────────────
+
+model GradingSystem {
+  id           String   @id @default(cuid())
+  schoolId     String
+  school       School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  name         String   // "BJJ Adultos", "Judo All Ages"
+  activity     String?  // free text: "BJJ", "Judo", "Karate" — matches Class.type if set
+  isDefault    Boolean  @default(false)
+  isActive     Boolean  @default(true)
+
+  // Global rules for this system
+  requireApproval   Boolean @default(true)
+  gradingFee        Int     @default(0) // in cents
+  notifyStudent     Boolean @default(true)
+  notifyInstructor  Boolean @default(true)
+
+  ranks        BeltRank[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("grading_systems")
+}
+
+model BeltRank {
+  id        String        @id @default(cuid())
+  systemId  String
+  system    GradingSystem @relation(fields: [systemId], references: [id], onDelete: Cascade)
+
+  order     Int           // 0-based position in progression
+  name      String        // "Blanco", "Azul", "1er Dan"
+  color     String        @default("#9CA3AF") // hex color
+
+  // Stripes / degrees within this rank
+  maxDegrees Int          @default(0) // 0 = no stripes, 4 = up to 4 stripes
+
+  // Requirements to REACH this rank
+  minAge               Int?    // minimum age
+  minMonthsAtPrevious  Int?    // months at previous rank before eligible
+  totalClassesRequired Int?    // total class count required
+  classesPerPeriod     Int?    // min classes per period
+  periodType           String? // "WEEK" | "MONTH"
+  classTypeIds         String[] // which class types count (empty = all)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("belt_ranks")
+}
+
 // Belt promotion records. Maps V1 promote_students + studnet_grading_notes.
 // ─────────────────────────────────────────────────────────────────────────────
 
