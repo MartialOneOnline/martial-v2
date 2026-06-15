@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { useDashboard } from '../../../../components/DashboardShell'
 import { useT } from '../../../../lib/i18n/LanguageContext'
+import { fmtPrice } from '../../../../lib/format'
 
 type TxStatus  = 'PAID' | 'PENDING' | 'FAILED' | 'REFUNDED'
 type FilterTab = 'ALL' | TxStatus
@@ -105,16 +106,24 @@ function fmtDate(iso: string, withTime = false) {
   return `${date} ${time}`
 }
 
-function fmtPrice(amount: number, currency = 'EUR') {
-  return new Intl.NumberFormat('es-ES', { style: 'currency', currency }).format(amount)
-}
-
-// ── Method Filter Dropdown ────────────────────────────────────────────────────
+// ── Filters ───────────────────────────────────────────────────────────────────
 interface FiltersState {
   method: MethodFilter
   dateFrom: string
   dateTo: string
   membership: string
+  belt: string
+}
+
+const EMPTY_FILTERS: FiltersState = { method: 'ALL', dateFrom: '', dateTo: '', membership: '', belt: '' }
+
+const BELT_OPTIONS = ['Blanco', 'Azul', 'Morado', 'Marrón', 'Negro']
+const BELT_STYLES: Record<string, { bg: string; color: string; border: string }> = {
+  Blanco: { bg: '#F9FAFB', color: '#374151', border: '#D1D5DB' },
+  Azul:   { bg: '#EFF6FF', color: '#1D4ED8', border: '#BFDBFE' },
+  Morado: { bg: '#F5F3FF', color: '#6D28D9', border: '#DDD6FE' },
+  Marrón: { bg: '#FFF7ED', color: '#C2410C', border: '#FED7AA' },
+  Negro:  { bg: '#1F2937', color: '#F9FAFB', border: '#374151' },
 }
 
 function FiltersPanel({ filters, onChange }: {
@@ -139,14 +148,16 @@ function FiltersPanel({ filters, onChange }: {
     filters.method !== 'ALL',
     !!filters.dateFrom || !!filters.dateTo,
     !!filters.membership,
+    !!filters.belt,
   ].filter(Boolean).length
 
   function apply() { onChange(local); setOpen(false) }
-  function clear()  { const empty = { method: 'ALL' as MethodFilter, dateFrom: '', dateTo: '', membership: '' }; setLocal(empty); onChange(empty); setOpen(false) }
+  function clear()  { setLocal(EMPTY_FILTERS); onChange(EMPTY_FILTERS); setOpen(false) }
 
   const inp: React.CSSProperties = {
-    width: '100%', border: '1px solid #E5E7EB', borderRadius: 8, padding: '7px 10px',
-    fontSize: 12, color: '#111827', background: '#fff', outline: 'none',
+    width: '100%', border: '1.5px solid #E5E7EB', borderRadius: 8, padding: '7px 10px',
+    fontSize: 12, color: '#111827', background: '#fff', outline: 'none', boxShadow: 'none',
+    WebkitAppearance: 'none', colorScheme: 'light',
   }
   const sectionLabel: React.CSSProperties = {
     fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase',
@@ -158,7 +169,7 @@ function FiltersPanel({ filters, onChange }: {
       <button onClick={() => setOpen(o => !o)}
         style={{ display: 'flex', alignItems: 'center', gap: 5, height: 34, padding: '0 12px',
           borderRadius: 8, border: activeCount ? '1.5px solid #0870E2' : '1px solid #E5E7EB',
-          background: activeCount ? '#EFF6FF' : '#fff', cursor: 'pointer', position: 'relative' }}>
+          background: activeCount ? '#EFF6FF' : '#fff', cursor: 'pointer' }}>
         <Filter size={13} style={{ color: activeCount ? '#0870E2' : '#6B7280' }} />
         <span style={{ fontSize: 12, fontWeight: 500, color: activeCount ? '#0870E2' : '#6B7280' }}>Filters</span>
         {activeCount > 0 && (
@@ -169,8 +180,8 @@ function FiltersPanel({ filters, onChange }: {
 
       {open && (
         <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 6, zIndex: 30,
-          background: '#fff', border: '1px solid #E5E7EB', borderRadius: 14,
-          boxShadow: '0 8px 24px rgba(0,0,0,0.12)', width: 280, padding: 16 }}>
+          background: '#fff', border: '1px solid #E5E7EB', borderRadius: 16,
+          boxShadow: '0 12px 32px rgba(0,0,0,0.12)', width: 320, padding: '16px 16px 14px' }}>
 
           {/* Date range */}
           <div style={{ marginBottom: 16 }}>
@@ -178,23 +189,56 @@ function FiltersPanel({ filters, onChange }: {
             <div style={{ display: 'flex', gap: 8 }}>
               <div style={{ flex: 1 }}>
                 <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 }}>From</label>
-                <input type="date" value={local.dateFrom} onChange={e => setLocal(p => ({ ...p, dateFrom: e.target.value }))} style={inp} />
+                <input type="date" value={local.dateFrom}
+                  onChange={e => setLocal(p => ({ ...p, dateFrom: e.target.value }))}
+                  style={inp} />
               </div>
               <div style={{ flex: 1 }}>
                 <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 }}>To</label>
-                <input type="date" value={local.dateTo} onChange={e => setLocal(p => ({ ...p, dateTo: e.target.value }))} style={inp} />
+                <input type="date" value={local.dateTo}
+                  onChange={e => setLocal(p => ({ ...p, dateTo: e.target.value }))}
+                  style={inp} />
               </div>
             </div>
           </div>
 
-          {/* Membership type */}
+          {/* Activity / plan */}
           <div style={{ marginBottom: 16 }}>
-            <span style={sectionLabel}>Membership type</span>
+            <span style={sectionLabel}>Activity / Plan</span>
             <input type="text" placeholder="e.g. Jiu Jitsu Mensual"
-              value={local.membership} onChange={e => setLocal(p => ({ ...p, membership: e.target.value }))} style={inp} />
+              value={local.membership}
+              onChange={e => setLocal(p => ({ ...p, membership: e.target.value }))}
+              style={inp} />
           </div>
 
-          {/* Status — quick pills */}
+          {/* Belt */}
+          <div style={{ marginBottom: 16 }}>
+            <span style={sectionLabel}>Belt</span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              <button onClick={() => setLocal(p => ({ ...p, belt: '' }))}
+                style={{ fontSize: 11, fontWeight: 500, padding: '4px 11px', borderRadius: 999, cursor: 'pointer',
+                  border: !local.belt ? '1.5px solid #0870E2' : '1px solid #E5E7EB',
+                  background: !local.belt ? '#EFF6FF' : '#F9FAFB',
+                  color: !local.belt ? '#0870E2' : '#6B7280' }}>
+                All
+              </button>
+              {BELT_OPTIONS.map(b => {
+                const bs = BELT_STYLES[b]!
+                const isOn = local.belt === b
+                return (
+                  <button key={b} onClick={() => setLocal(p => ({ ...p, belt: isOn ? '' : b }))}
+                    style={{ fontSize: 11, fontWeight: 600, padding: '4px 11px', borderRadius: 999, cursor: 'pointer',
+                      border: isOn ? `1.5px solid ${bs.border}` : '1px solid #E5E7EB',
+                      background: isOn ? bs.bg : '#F9FAFB',
+                      color: isOn ? bs.color : '#6B7280' }}>
+                    {b}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Method */}
           <div style={{ marginBottom: 16 }}>
             <span style={sectionLabel}>Method</span>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -714,7 +758,7 @@ export default function TransactionsClient() {
   const [activeType,    setActiveType]    = useState<TypeFilter>('INCOME')
   const [search,        setSearch]        = useState('')
   const [page,          setPage]          = useState(1)
-  const [filters, setFilters] = useState<FiltersState>({ method: 'ALL', dateFrom: '', dateTo: '', membership: '' })
+  const [filters, setFilters] = useState<FiltersState>(EMPTY_FILTERS)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -727,6 +771,7 @@ export default function TransactionsClient() {
       ...(filters.dateFrom            ? { dateFrom: filters.dateFrom } : {}),
       ...(filters.dateTo              ? { dateTo:   filters.dateTo   } : {}),
       ...(filters.membership          ? { membership: filters.membership } : {}),
+      ...(filters.belt                ? { belt: filters.belt         } : {}),
       ...(search ? { search } : {}),
     })
     const res = await fetch(`/api/dashboard/transactions?${params}`)

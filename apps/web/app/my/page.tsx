@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ChevronRight, Play, Calendar, Clock, Award, MapPin } from 'lucide-react'
+import { fmtPrice } from '../../lib/format'
 
 type UserData = {
   user: {
@@ -314,7 +315,7 @@ export default function MyHomePage() {
               </div>
               <div className="text-right">
                 <p className="text-base font-bold text-[#0870E2]">
-                  {activeMembership.currency === 'GBP' ? '£' : activeMembership.currency === 'EUR' ? '€' : '$'}{activeMembership.price.toFixed(0)}
+                  {fmtPrice(activeMembership.price, activeMembership.currency)}
                 </p>
                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600">Active</span>
               </div>

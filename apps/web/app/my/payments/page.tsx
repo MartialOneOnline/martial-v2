@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { CreditCard, ChevronLeft, ChevronRight, ArrowUpRight, ArrowDownLeft } from 'lucide-react'
+import { fmtPrice } from '../../../lib/format'
 
 type Transaction = {
   id: string
@@ -19,9 +20,8 @@ function fmtDate(iso: string) {
 }
 
 function fmtAmount(amount: number, currency: string, type: string) {
-  const sym = currency === 'EUR' ? '€' : currency
   const sign = type === 'INCOME' || type === 'PAYMENT' ? '-' : '+'
-  return `${sign}${sym}${Math.abs(amount).toFixed(2)}`
+  return `${sign}${fmtPrice(Math.abs(amount), currency)}`
 }
 
 export default function MyPaymentsPage() {
@@ -55,7 +55,7 @@ export default function MyPaymentsPage() {
         {transactions.length > 0 && (
           <div className="bg-[#0870E2] rounded-2xl p-5 text-white">
             <p className="text-xs font-semibold opacity-70 uppercase tracking-wide mb-1">Total this page</p>
-            <p className="text-3xl font-bold">€{totalSpent.toFixed(2)}</p>
+            <p className="text-3xl font-bold">{fmtPrice(totalSpent, 'EUR')}</p>
             <p className="text-sm opacity-70 mt-0.5">{transactions.length} transactions</p>
           </div>
         )}

@@ -4,6 +4,7 @@ import { useDashboard } from '../../../../components/DashboardShell'
 import { useState, useEffect, useCallback } from 'react'
 import { Menu, Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
+import { fmtPrice as fmtAmt } from '../../../../lib/format'
 import {
   AreaChart, Area, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -44,9 +45,6 @@ interface Entry {
 
 interface ChartPoint { date: string; income: number; expenses: number }
 
-function fmtAmt(n: number, currency = 'EUR') {
-  return new Intl.NumberFormat('es-ES', { style: 'currency', currency, maximumFractionDigits: 0 }).format(n)
-}
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })

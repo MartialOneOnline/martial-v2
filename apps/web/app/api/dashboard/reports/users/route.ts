@@ -69,6 +69,10 @@ export async function GET(req: NextRequest) {
 
   // ── Member list ──────────────────────────────────────────────────────────────
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const belt     = searchParams.get('belt')     ?? ''
+  const dateFrom = searchParams.get('dateFrom') ?? ''
+  const dateTo   = searchParams.get('dateTo')   ?? ''
+
   const where: any = {
     schoolId: auth.schoolId,
     role: 'STUDENT',
@@ -77,6 +81,13 @@ export async function GET(req: NextRequest) {
         { name:  { contains: search, mode: 'insensitive' } },
         { email: { contains: search, mode: 'insensitive' } },
       ]},
+    } : {}),
+    ...(belt ? { belt } : {}),
+    ...(dateFrom || dateTo ? {
+      createdAt: {
+        ...(dateFrom ? { gte: new Date(dateFrom) } : {}),
+        ...(dateTo   ? { lte: new Date(dateTo + 'T23:59:59') } : {}),
+      },
     } : {}),
     ...(status === 'ACTIVE'   ? { status: 'ACTIVE' } : {}),
     ...(status === 'INACTIVE' ? { status: { in: ['INACTIVE', 'FROZEN', 'LEAD'] } } : {}),

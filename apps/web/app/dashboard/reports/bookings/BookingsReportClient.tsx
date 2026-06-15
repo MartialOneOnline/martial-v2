@@ -1,15 +1,21 @@
 'use client'
 
 import { useDashboard } from '../../../../components/DashboardShell'
-import { useState } from 'react'
-import {Users, Calendar, CreditCard, BarChart2, Settings, Bell, ChevronRight, ChevronDown, Menu, X, Search, ChevronLeft} from 'lucide-react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { Menu, Bell, Search, ChevronLeft, ChevronRight, Filter, MoreVertical } from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import {
   AreaChart, Area, BarChart, Bar,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
 
-const ITEMS_PER_PAGE = 10
+const ITEMS_PER_PAGE = 15
+
+const STATUS_STYLES: Record<string, { bg: string; color: string; border: string; label: string }> = {
+  CONFIRMED:  { bg: '#F0FDF4', color: '#16A34A', border: '#BBF7D0', label: 'Confirmed'  },
+  COMPLETED:  { bg: '#EFF6FF', color: '#0870E2', border: '#BFDBFE', label: 'Completed'  },
+  CANCELLED:  { bg: '#FEF2F2', color: '#DC2626', border: '#FECACA', label: 'Cancelled'  },
+}
 
 function Avatar({ name, avatarUrl, size = 28 }: { name: string; avatarUrl: string | null; size?: number }) {
   const initials = (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
@@ -31,302 +37,343 @@ function getPaginationPages(current: number, total: number): (number | '...')[] 
   if (current >= total - 3) return [1, '...', total - 4, total - 3, total - 2, total - 1, total]
   return [1, '...', current - 1, current, current + 1, '...', total]
 }
-
-const AREA_DATA: Record<string, { date: string; bookings: number }[]> = {
-  '7d': [
-    { date: 'Mon', bookings: 18 },
-    { date: 'Tue', bookings: 24 },
-    { date: 'Wed', bookings: 21 },
-    { date: 'Thu', bookings: 30 },
-    { date: 'Fri', bookings: 27 },
-    { date: 'Sat', bookings: 35 },
-    { date: 'Sun', bookings: 12 },
-  ],
-  '30d': [
-    { date: 'May 6',  bookings: 45 }, { date: 'May 9',  bookings: 52 }, { date: 'May 12', bookings: 48 },
-    { date: 'May 15', bookings: 61 }, { date: 'May 18', bookings: 57 }, { date: 'May 21', bookings: 70 },
-    { date: 'May 24', bookings: 65 }, { date: 'May 27', bookings: 74 }, { date: 'May 30', bookings: 68 },
-    { date: 'Jun 2',  bookings: 80 },
-  ],
-  '90d': [
-    { date: 'Mar',    bookings: 210 }, { date: 'Mar 2', bookings: 234 }, { date: 'Apr',    bookings: 260 },
-    { date: 'Apr 2',  bookings: 245 }, { date: 'May',   bookings: 290 }, { date: 'May 2',  bookings: 310 },
-  ],
-  '12m': [
-    { date: 'Jun', bookings: 380 }, { date: 'Jul', bookings: 420 }, { date: 'Aug', bookings: 395 },
-    { date: 'Sep', bookings: 450 }, { date: 'Oct', bookings: 480 }, { date: 'Nov', bookings: 440 },
-    { date: 'Dec', bookings: 390 }, { date: 'Jan', bookings: 510 }, { date: 'Feb', bookings: 490 },
-    { date: 'Mar', bookings: 530 }, { date: 'Apr', bookings: 560 }, { date: 'May', bookings: 580 },
-  ],
+function fmtDateTime(iso: string) {
+  const d = new Date(iso)
+  return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) + ' · ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
 }
 
-const BAR_DATA = [
-  { name: 'BJJ',      bookings: 312, fill: '#0071E3' },
-  { name: 'NOGI',     bookings: 187, fill: '#6D28D9' },
-  { name: 'Wrestling',bookings: 94,  fill: '#C2410C' },
-  { name: 'BJJ Kids', bookings: 143, fill: '#15803D' },
-  { name: 'Open Mat', bookings: 78,  fill: '#0F766E' },
-  { name: 'Yoga',     bookings: 55,  fill: '#B45309' },
-]
+const INP: React.CSSProperties = { width: '100%', border: '1px solid #E5E7EB', borderRadius: 8, padding: '7px 10px', fontSize: 12, color: '#111827', background: '#fff', outline: 'none' }
+const SEC: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8, display: 'block' }
 
-type BookingStatus = 'Confirmed' | 'Cancelled' | 'No-show'
+interface FiltersState { className: string; dateFrom: string; dateTo: string }
+const EMPTY_FILTERS: FiltersState = { className: '', dateFrom: '', dateTo: '' }
 
-interface Booking {
-  id: number
-  avatar: string
-  name: string
-  classType: string
-  date: string
-  time: string
-  instructor: string
-  status: BookingStatus
+function FiltersPanel({ filters, onChange }: { filters: FiltersState; onChange: (f: FiltersState) => void }) {
+  const [open, setOpen] = useState(false)
+  const [local, setLocal] = useState<FiltersState>(filters)
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => { setLocal(filters) }, [filters])
+  useEffect(() => {
+    function h(e: MouseEvent) { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
+    document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
+  }, [])
+  const activeCount = [!!filters.className, !!filters.dateFrom || !!filters.dateTo].filter(Boolean).length
+  function apply() { onChange(local); setOpen(false) }
+  function clear() { setLocal(EMPTY_FILTERS); onChange(EMPTY_FILTERS); setOpen(false) }
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button onClick={() => setOpen(o => !o)}
+        style={{ display: 'flex', alignItems: 'center', gap: 5, height: 34, padding: '0 12px', borderRadius: 8, cursor: 'pointer',
+          border: activeCount ? '1.5px solid #0870E2' : '1px solid #E5E7EB', background: activeCount ? '#EFF6FF' : '#fff' }}>
+        <Filter size={13} style={{ color: activeCount ? '#0870E2' : '#6B7280' }} />
+        <span style={{ fontSize: 12, fontWeight: 500, color: activeCount ? '#0870E2' : '#6B7280' }}>Filters</span>
+        {activeCount > 0 && <span style={{ background: '#0870E2', color: '#fff', borderRadius: 999, fontSize: 10, fontWeight: 700, padding: '1px 6px' }}>{activeCount}</span>}
+      </button>
+      {open && (
+        <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: 6, zIndex: 40, background: '#fff', border: '1px solid #E5E7EB', borderRadius: 14, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', width: 280, padding: 16 }}>
+          <div style={{ marginBottom: 16 }}>
+            <span style={SEC}>Class name</span>
+            <input type="text" placeholder="e.g. BJJ, Nogi…" value={local.className} onChange={e => setLocal(p => ({ ...p, className: e.target.value }))} style={INP} />
+          </div>
+          <div style={{ marginBottom: 16 }}>
+            <span style={SEC}>Date range</span>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 }}>From</label>
+                <input type="date" value={local.dateFrom} onChange={e => setLocal(p => ({ ...p, dateFrom: e.target.value }))} style={INP} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 }}>To</label>
+                <input type="date" value={local.dateTo} onChange={e => setLocal(p => ({ ...p, dateTo: e.target.value }))} style={INP} />
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 8, paddingTop: 12, borderTop: '1px solid #F3F4F6' }}>
+            <button onClick={clear} style={{ flex: 1, padding: 8, borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, fontWeight: 500, color: '#6B7280', cursor: 'pointer' }}>Clear</button>
+            <button onClick={apply} style={{ flex: 1, padding: 8, borderRadius: 8, border: 'none', background: '#111827', fontSize: 12, fontWeight: 600, color: '#fff', cursor: 'pointer' }}>Apply</button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
-const BOOKINGS: Booking[] = [
-  { id:1,  avatar:'https://i.pravatar.cc/32?img=1',  name:'Carlos Mendez',    classType:'BJJ',       date:'Jun 5',  time:'18:00', instructor:'Pablo Cabo',   status:'Confirmed'  },
-  { id:2,  avatar:'https://i.pravatar.cc/32?img=2',  name:'Ana García',       classType:'NOGI',      date:'Jun 5',  time:'19:30', instructor:'Rafa Torres',  status:'Confirmed'  },
-  { id:3,  avatar:'https://i.pravatar.cc/32?img=3',  name:'Miguel López',     classType:'Wrestling', date:'Jun 4',  time:'10:00', instructor:'Pablo Cabo',   status:'No-show'    },
-  { id:4,  avatar:'https://i.pravatar.cc/32?img=4',  name:'Laura Martínez',   classType:'BJJ Kids',  date:'Jun 4',  time:'17:00', instructor:'Maria Ruiz',   status:'Confirmed'  },
-  { id:5,  avatar:'https://i.pravatar.cc/32?img=5',  name:'David Sánchez',    classType:'Open Mat',  date:'Jun 3',  time:'12:00', instructor:'Pablo Cabo',   status:'Cancelled'  },
-  { id:6,  avatar:'https://i.pravatar.cc/32?img=6',  name:'Sofía Fernández',  classType:'BJJ',       date:'Jun 3',  time:'18:00', instructor:'Rafa Torres',  status:'Confirmed'  },
-  { id:7,  avatar:'https://i.pravatar.cc/32?img=7',  name:'Javier Romero',    classType:'NOGI',      date:'Jun 2',  time:'19:30', instructor:'Pablo Cabo',   status:'Confirmed'  },
-  { id:8,  avatar:'https://i.pravatar.cc/32?img=8',  name:'Elena Díaz',       classType:'Yoga',      date:'Jun 2',  time:'09:00', instructor:'Maria Ruiz',   status:'No-show'    },
-  { id:9,  avatar:'https://i.pravatar.cc/32?img=9',  name:'Pedro Jiménez',    classType:'BJJ',       date:'Jun 1',  time:'18:00', instructor:'Pablo Cabo',   status:'Confirmed'  },
-  { id:10, avatar:'https://i.pravatar.cc/32?img=10', name:'Isabel Moreno',    classType:'BJJ Kids',  date:'Jun 1',  time:'17:00', instructor:'Maria Ruiz',   status:'Cancelled'  },
-  { id:11, avatar:'https://i.pravatar.cc/32?img=11', name:'Antonio Ruiz',     classType:'Wrestling', date:'May 31', time:'10:00', instructor:'Rafa Torres',  status:'Confirmed'  },
-  { id:12, avatar:'https://i.pravatar.cc/32?img=12', name:'Carmen Álvarez',   classType:'BJJ',       date:'May 31', time:'18:00', instructor:'Pablo Cabo',   status:'Confirmed'  },
-  { id:13, avatar:'https://i.pravatar.cc/32?img=13', name:'Francisco Torres', classType:'Open Mat',  date:'May 30', time:'12:00', instructor:'Pablo Cabo',   status:'No-show'    },
-  { id:14, avatar:'https://i.pravatar.cc/32?img=14', name:'Beatriz González', classType:'NOGI',      date:'May 30', time:'19:30', instructor:'Rafa Torres',  status:'Confirmed'  },
-  { id:15, avatar:'https://i.pravatar.cc/32?img=15', name:'Roberto Herrera',  classType:'BJJ',       date:'May 29', time:'18:00', instructor:'Pablo Cabo',   status:'Cancelled'  },
-]
-
-const STATUS_COLORS: Record<BookingStatus, { bg: string; color: string; border: string }> = {
-  'Confirmed': { bg: '#F0FDF4', color: '#16A34A', border: '#BBF7D0' },
-  'Cancelled': { bg: '#FEF2F2', color: '#DC2626', border: '#FECACA' },
-  'No-show':   { bg: '#FFFBEB', color: '#D97706', border: '#FDE68A' },
+function RowMenu({ items }: { items: { label: string; onClick: () => void; variant?: 'danger' }[] }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    function h(e: MouseEvent) { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
+    document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
+  }, [])
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button onClick={() => setOpen(o => !o)} className="cursor-pointer"
+        style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #E5E7EB', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <MoreVertical size={13} style={{ color: '#6B7280' }} />
+      </button>
+      {open && (
+        <div style={{ position: 'absolute', right: 0, top: '100%', marginTop: 4, zIndex: 50, background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, boxShadow: '0 6px 20px rgba(0,0,0,0.1)', minWidth: 160, overflow: 'hidden' }}>
+          {items.map(item => (
+            <button key={item.label} onClick={() => { item.onClick(); setOpen(false) }}
+              className="w-full text-left cursor-pointer hover:bg-[#F9FAFB]"
+              style={{ padding: '9px 14px', fontSize: 12, fontWeight: 500, color: item.variant === 'danger' ? '#DC2626' : '#374151', border: 'none', background: 'transparent', display: 'block' }}>
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
 }
 
-const CLASS_COLORS: Record<string, { bg: string; color: string; border: string }> = {
-  'BJJ':       { bg: '#EFF6FF', color: '#1D4ED8', border: '#BFDBFE' },
-  'NOGI':      { bg: '#F5F3FF', color: '#6D28D9', border: '#DDD6FE' },
-  'Wrestling': { bg: '#FFF7ED', color: '#C2410C', border: '#FED7AA' },
-  'BJJ Kids':  { bg: '#F0FDF4', color: '#15803D', border: '#BBF7D0' },
-  'Open Mat':  { bg: '#F9FAFB', color: '#374151', border: '#E5E7EB' },
-  'Yoga':      { bg: '#F0FDFA', color: '#0F766E', border: '#99F6E4' },
+interface BookingRow {
+  id: string; userName: string; userEmail: string; userAvatar: string | null
+  className: string; scheduledAt: string; status: string
+}
+interface ReportData {
+  stats: { totalPeriod: number; confirmedPeriod: number; cancelledPeriod: number; attendanceRate: number }
+  chartData:   { date: string; confirmed: number; cancelled: number }[]
+  byClassData: { name: string; bookings: number; fill: string }[]
+  bookings:    BookingRow[]
+  total:       number
 }
 
 export default function BookingsReportClient() {
   const { setMenuOpen } = useDashboard()
   const t = useT()
-  const [period, setPeriod] = useState<'7d' | '30d' | '90d' | '12m'>('30d')
-  const [filterTab, setFilterTab] = useState<'All' | BookingStatus>('All')
-  const [page, setPage] = useState(1)
 
-  const filtered = filterTab === 'All' ? BOOKINGS : BOOKINGS.filter(b => b.status === filterTab)
-  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE))
-  const safePage = Math.min(page, totalPages)
-  const paginated = filtered.slice((safePage - 1) * ITEMS_PER_PAGE, safePage * ITEMS_PER_PAGE)
-  const pages = getPaginationPages(safePage, totalPages)
+  const [period,    setPeriod]    = useState<'7d' | '30d' | '90d' | '12m'>('30d')
+  const [filterTab, setFilterTab] = useState<'ALL' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED'>('ALL')
+  const [search,    setSearch]    = useState('')
+  const [page,      setPage]      = useState(1)
+  const [filters,   setFilters]   = useState<FiltersState>(EMPTY_FILTERS)
+  const [data,      setData]      = useState<ReportData | null>(null)
+  const [loading,   setLoading]   = useState(true)
+  const [toast,     setToast]     = useState('')
 
-  const areaData = AREA_DATA[period] ?? []
-  const totalBookings = areaData.reduce((s, d) => s + d.bookings, 0)
-  const avgPerDay = areaData.length ? Math.round(totalBookings / areaData.length) : 0
-  const cancellations = BOOKINGS.filter(b => b.status === 'Cancelled').length
-  const confirmed = BOOKINGS.filter(b => b.status === 'Confirmed').length
-  const attendanceRate = Math.round((confirmed / BOOKINGS.length) * 100)
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2200) }
 
-  const STATS = [
-    { label: t.reports.totalBookings,   value: String(totalBookings), sub: t.common.thisMonth,     color: '#0071E3', bg: '#EFF6FF' },
-    { label: 'Avg per Day',             value: String(avgPerDay),     sub: 'daily average',        color: '#6D28D9', bg: '#F5F3FF' },
-    { label: t.common.cancelled,        value: String(cancellations), sub: t.common.thisMonth,     color: '#DC2626', bg: '#FEF2F2' },
-    { label: t.reports.attendanceRate,  value: attendanceRate + '%',  sub: 'of bookings',          color: '#16A34A', bg: '#F0FDF4' },
+  const load = useCallback(async () => {
+    setLoading(true)
+    const params = new URLSearchParams({ period, status: filterTab, search, page: String(page) })
+    if (filters.className) params.set('className', filters.className)
+    if (filters.dateFrom)  params.set('dateFrom', filters.dateFrom)
+    if (filters.dateTo)    params.set('dateTo', filters.dateTo)
+    const res = await fetch(`/api/dashboard/reports/bookings?${params}`)
+    if (res.ok) setData(await res.json())
+    setLoading(false)
+  }, [period, filterTab, search, page, filters])
+
+  useEffect(() => { load() }, [load])
+  useEffect(() => { setPage(1) }, [period, filterTab, search, filters])
+
+  const totalPages = data ? Math.max(1, Math.ceil(data.total / ITEMS_PER_PAGE)) : 1
+  const pages = getPaginationPages(page, totalPages)
+  const stats = data?.stats
+
+  const STAT_CARDS = [
+    { label: 'Total Bookings',  value: stats?.totalPeriod     ?? '—', sub: 'this period',        color: '#0870E2' },
+    { label: 'Confirmed',       value: stats?.confirmedPeriod ?? '—', sub: 'attended',            color: '#16A34A' },
+    { label: 'Cancelled',       value: stats?.cancelledPeriod ?? '—', sub: 'cancelled',           color: '#DC2626' },
+    { label: 'Attendance Rate', value: stats ? stats.attendanceRate + '%' : '—', sub: 'confirmed vs total', color: '#6D28D9' },
   ]
 
   return (
+    <main style={{ flex: 1, minWidth: 0, width: '100%', overflow: 'auto' }}>
+      {toast && (
+        <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 100,
+          background: '#111827', color: '#fff', borderRadius: 10, padding: '10px 20px', fontSize: 13, fontWeight: 500 }}>
+          {toast}
+        </div>
+      )}
 
-        <main style={{ flex: 1, minWidth: 0, width: "100%", overflow: "auto" }}>
-          <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20"
-            style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
-            <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
-              style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(true)}>
-              <Menu size={16} style={{ color: '#374151' }} />
+      <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20"
+        style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
+        <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
+          style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(true)}>
+          <Menu size={16} style={{ color: '#374151' }} />
+        </button>
+        <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 max-w-xs"
+          style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
+          <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
+          <input type="text" placeholder="Search member or class…" value={search} onChange={e => setSearch(e.target.value)}
+            style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
+        </div>
+        <div className="flex-1" />
+        <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: '#F3F4F6' }}>
+          {(['7d', '30d', '90d', '12m'] as const).map(p => (
+            <button key={p} onClick={() => setPeriod(p)} className="cursor-pointer"
+              style={{ fontSize: 12, fontWeight: period === p ? 600 : 400, padding: '5px 12px', borderRadius: 8, border: 'none',
+                background: period === p ? '#fff' : 'transparent', color: period === p ? '#111827' : '#6B7280',
+                boxShadow: period === p ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}>
+              {p.toUpperCase()}
             </button>
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 max-w-xs"
-              style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-              <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
-              <input type="text" placeholder="Search bookings…"
-                style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
+          ))}
+        </div>
+        <button className="relative w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
+          style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
+          <Bell size={15} style={{ color: '#374151' }} />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: '#DC2626' }} />
+        </button>
+      </div>
+
+      <div className="px-4 md:px-8 py-6 flex flex-col gap-6">
+        <div>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>{t.reports.bookingsTitle}</h1>
+          <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>Class attendance and booking activity</p>
+        </div>
+
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+          {STAT_CARDS.map(stat => (
+            <div key={stat.label} className="rounded-2xl" style={{ background: '#fff', border: '1px solid #E5E7EB', padding: '18px 20px' }}>
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-2 h-2 rounded-full" style={{ background: stat.color }} />
+                <span style={{ fontSize: 11, color: '#9CA3AF' }}>{stat.sub}</span>
+              </div>
+              <p style={{ fontSize: 28, fontWeight: 700, color: '#111827', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 4 }}>
+                {loading ? '…' : stat.value}
+              </p>
+              <p style={{ fontSize: 12, fontWeight: 500, color: '#6B7280' }}>{stat.label}</p>
             </div>
-            <div className="flex-1" />
-            <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: '#F3F4F6' }}>
-              {(['7d', '30d', '90d', '12m'] as const).map(p => (
-                <button key={p} onClick={() => setPeriod(p)}
-                  className="cursor-pointer"
-                  style={{ fontSize: 12, fontWeight: period === p ? 600 : 400, padding: '5px 12px',
-                    borderRadius: 8, border: 'none',
-                    background: period === p ? '#fff' : 'transparent',
-                    color: period === p ? '#111827' : '#6B7280',
-                    boxShadow: period === p ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}>
-                  {p.toUpperCase()}
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <div className="rounded-2xl p-5" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 4 }}>Bookings Over Time</p>
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 16 }}>Confirmed vs cancelled per period</p>
+            {loading ? <div style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</p></div> : (
+              <ResponsiveContainer width="100%" height={260}>
+                <AreaChart data={data?.chartData ?? []}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
+                  <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12 }} />
+                  <Area type="monotone" dataKey="confirmed" name="Confirmed" stroke="#0870E2" fill="#0870E2" fillOpacity={0.12} strokeWidth={2} />
+                  <Area type="monotone" dataKey="cancelled" name="Cancelled" stroke="#DC2626" fill="#DC2626" fillOpacity={0.08} strokeWidth={1.5} />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+          <div className="rounded-2xl p-5" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 4 }}>Bookings by Class</p>
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 16 }}>Top 6 classes by confirmed bookings</p>
+            {loading ? <div style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</p></div> : (
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={data?.byClassData ?? []} layout="vertical" margin={{ left: 8, right: 16 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" horizontal={false} />
+                  <XAxis type="number" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
+                  <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: '#6B7280' }} axisLine={false} tickLine={false} width={100} />
+                  <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12 }} />
+                  <Bar dataKey="bookings" name="Bookings" radius={[0, 6, 6, 0]} fill="#0870E2" />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <div className="flex items-center gap-2 mb-4 flex-wrap">
+            {([
+              { key: 'ALL', label: 'All' }, { key: 'CONFIRMED', label: 'Confirmed' },
+              { key: 'COMPLETED', label: 'Completed' }, { key: 'CANCELLED', label: 'Cancelled' },
+            ] as const).map(tab => {
+              const isOn = filterTab === tab.key
+              return (
+                <button key={tab.key} onClick={() => setFilterTab(tab.key)} className="cursor-pointer"
+                  style={{ fontSize: 12, fontWeight: isOn ? 600 : 400, padding: '5px 14px', borderRadius: 8,
+                    background: isOn ? '#111827' : '#fff', color: isOn ? '#fff' : '#6B7280',
+                    border: isOn ? '1.5px solid #111827' : '1.5px solid #E5E7EB' }}>
+                  {tab.label}
+                  {!loading && tab.key === 'ALL' && data && <span style={{ opacity: 0.6, marginLeft: 4 }}>{data.total}</span>}
                 </button>
-              ))}
+              )
+            })}
+            <div style={{ marginLeft: 'auto' }}>
+              <FiltersPanel filters={filters} onChange={f => { setFilters(f); setPage(1) }} />
             </div>
-            <button className="relative w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
-              style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-              <Bell size={15} style={{ color: '#374151' }} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: '#DC2626' }} />
-            </button>
           </div>
 
-          <div className="px-4 md:px-8 py-6 flex flex-col gap-6">
-            <div>
-              <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>{t.reports.bookingsTitle}</h1>
-              <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>{t.reports.bookingsSubtitle}</p>
-            </div>
-
-            <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-              {STATS.map(stat => (
-                <div key={stat.label} className="rounded-2xl" style={{ background: '#fff', border: '1px solid #E5E7EB', padding: '18px 20px' }}>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-2 h-2 rounded-full" style={{ background: stat.color }} />
-                    <span style={{ fontSize: 11, color: '#9CA3AF' }}>{stat.sub}</span>
-                  </div>
-                  <p style={{ fontSize: 28, fontWeight: 700, color: '#111827', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 4 }}>{stat.value}</p>
-                  <p style={{ fontSize: 12, fontWeight: 500, color: '#6B7280' }}>{stat.label}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-              <div className="rounded-2xl p-5" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-                <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 16 }}>Bookings Over Time</p>
-                <ResponsiveContainer width="100%" height={260}>
-                  <AreaChart data={areaData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
-                    <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12 }} />
-                    <Area type="monotone" dataKey="bookings" stroke="#0071E3" fill="#0071E3" fillOpacity={0.15} strokeWidth={2} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-
-              <div className="rounded-2xl p-5" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-                <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 16 }}>Bookings by Class Type</p>
-                <ResponsiveContainer width="100%" height={260}>
-                  <BarChart data={BAR_DATA}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
-                    <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12 }} />
-                    <Bar dataKey="bookings" radius={[4, 4, 0, 0]}>
-                      {BAR_DATA.map((entry, index) => (
-                        <rect key={`cell-${index}`} fill={entry.fill} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center gap-1 mb-4 flex-wrap">
-                {(['All', 'Confirmed', 'Cancelled', 'No-show'] as const).map(tab => {
-                  const count = tab === 'All' ? BOOKINGS.length : BOOKINGS.filter(b => b.status === tab).length
-                  const isOn = filterTab === tab
-                  return (
-                    <button key={tab} onClick={() => { setFilterTab(tab); setPage(1) }}
-                      className="cursor-pointer"
-                      style={{ fontSize: 12, fontWeight: isOn ? 600 : 400, padding: '5px 14px', borderRadius: 8,
-                        background: isOn ? '#111827' : '#fff',
-                        color: isOn ? '#fff' : '#6B7280',
-                        border: isOn ? '1.5px solid #111827' : '1.5px solid #E5E7EB' }}>
-                      {tab} <span style={{ opacity: 0.7, marginLeft: 2 }}>{count}</span>
-                    </button>
-                  )
-                })}
-              </div>
-
-              <div className="rounded-2xl overflow-hidden" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-                <table className="w-full">
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
-                      {['Member', 'Class', 'Date & Time', 'Instructor', 'Status'].map(h => (
-                        <th key={h} className="px-5 py-3 text-left"
-                          style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginated.map((b, idx) => {
-                      const sc = STATUS_COLORS[b.status]
-                      const cc = CLASS_COLORS[b.classType] ?? { bg: '#F3F4F6', color: '#6B7280', border: '#E5E7EB' }
-                      return (
-                        <tr key={b.id} className="hover:bg-[#FAFAFA] transition-colors"
-                          style={{ borderBottom: idx < paginated.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
-                          <td className="px-5 py-3">
-                            <div className="flex items-center gap-2.5">
-                              <Avatar name={b.name} avatarUrl={b.avatar} size={28} />
-                              <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{b.name}</span>
+          <div className="rounded-2xl overflow-hidden" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+            <table className="w-full">
+              <thead>
+                <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
+                  {['Member', 'Class', 'Date & Time', 'Status', ''].map(h => (
+                    <th key={h} className="px-5 py-3 text-left"
+                      style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr><td colSpan={5} className="px-5 py-8 text-center" style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</td></tr>
+                ) : (data?.bookings ?? []).length === 0 ? (
+                  <tr><td colSpan={5} className="px-5 py-8 text-center" style={{ fontSize: 13, color: '#9CA3AF' }}>No bookings found</td></tr>
+                ) : (
+                  (data?.bookings ?? []).map((b, idx) => {
+                    const ss = STATUS_STYLES[b.status] ?? STATUS_STYLES['CONFIRMED']!
+                    return (
+                      <tr key={b.id} className="hover:bg-[#FAFAFA] transition-colors"
+                        style={{ borderBottom: idx < (data?.bookings.length ?? 0) - 1 ? '1px solid #F9FAFB' : 'none' }}>
+                        <td className="px-5 py-3">
+                          <div className="flex items-center gap-2.5">
+                            <Avatar name={b.userName} avatarUrl={b.userAvatar} size={28} />
+                            <div>
+                              <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{b.userName}</p>
+                              <p style={{ fontSize: 11, color: '#9CA3AF' }}>{b.userEmail}</p>
                             </div>
-                          </td>
-                          <td className="px-5 py-3">
-                            <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999,
-                              background: cc.bg, color: cc.color, border: '1px solid ' + cc.border }}>
-                              {b.classType}
-                            </span>
-                          </td>
-                          <td className="px-5 py-3">
-                            <p style={{ fontSize: 13, color: '#111827', fontWeight: 500 }}>{b.date}</p>
-                            <p style={{ fontSize: 11, color: '#9CA3AF' }}>{b.time}</p>
-                          </td>
-                          <td className="px-5 py-3">
-                            <span style={{ fontSize: 13, color: '#6B7280' }}>{b.instructor}</span>
-                          </td>
-                          <td className="px-5 py-3">
-                            <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999,
-                              background: sc.bg, color: sc.color, border: '1px solid ' + sc.border }}>
-                              {b.status}
-                            </span>
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-                {totalPages > 1 && (
-                  <div className="flex items-center justify-between px-6 py-3" style={{ borderTop: '1px solid #F3F4F6' }}>
-                    <p style={{ fontSize: 13, color: '#6B7280' }}>
-                      Showing <span style={{ fontWeight: 600, color: '#111827' }}>{(safePage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(safePage * ITEMS_PER_PAGE, filtered.length)}</span> of <span style={{ fontWeight: 600, color: '#111827' }}>{filtered.length}</span>
-                    </p>
-                    <div className="flex items-center gap-1">
-                      <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage === 1}
-                        style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff',
-                          color: safePage === 1 ? '#D1D5DB' : '#374151', cursor: safePage === 1 ? 'not-allowed' : 'pointer', borderRadius: 8, padding: '6px 12px' }}>
-                        <ChevronLeft size={14} />
-                      </button>
-                      {pages.map((p, i) =>
-                        p === '...' ? <span key={'e' + i} style={{ fontSize: 13, color: '#9CA3AF', padding: '0 4px' }}>…</span> : (
-                          <button key={p} onClick={() => setPage(p as number)}
-                            className="w-9 h-9 flex items-center justify-center rounded-lg cursor-pointer"
-                            style={{ fontSize: 13, fontWeight: p === safePage ? 600 : 400, border: 'none',
-                              background: p === safePage ? '#F3F4F6' : 'transparent',
-                              color: p === safePage ? '#111827' : '#6B7280' }}>{p}</button>
-                        )
-                      )}
-                      <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages}
-                        style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff',
-                          color: safePage === totalPages ? '#D1D5DB' : '#374151', cursor: safePage === totalPages ? 'not-allowed' : 'pointer', borderRadius: 8, padding: '6px 12px' }}>
-                        <ChevronRight size={14} />
-                      </button>
-                    </div>
-                  </div>
+                          </div>
+                        </td>
+                        <td className="px-5 py-3"><span style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>{b.className}</span></td>
+                        <td className="px-5 py-3"><span style={{ fontSize: 12, color: '#9CA3AF' }}>{fmtDateTime(b.scheduledAt)}</span></td>
+                        <td className="px-5 py-3">
+                          <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999, background: ss.bg, color: ss.color, border: '1px solid ' + ss.border }}>
+                            {ss.label}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3">
+                          <RowMenu items={[
+                            { label: 'Copy member email', onClick: () => { navigator.clipboard.writeText(b.userEmail); showToast('Email copied') } },
+                            { label: `Copy class: ${b.className}`, onClick: () => { navigator.clipboard.writeText(b.className); showToast('Class name copied') } },
+                            { label: 'Copy date & time', onClick: () => { navigator.clipboard.writeText(fmtDateTime(b.scheduledAt)); showToast('Date copied') } },
+                          ]} />
+                        </td>
+                      </tr>
+                    )
+                  })
                 )}
+              </tbody>
+            </table>
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between px-6 py-3" style={{ borderTop: '1px solid #F3F4F6' }}>
+                <p style={{ fontSize: 13, color: '#6B7280' }}>
+                  Showing <span style={{ fontWeight: 600, color: '#111827' }}>{(page - 1) * ITEMS_PER_PAGE + 1}–{Math.min(page * ITEMS_PER_PAGE, data?.total ?? 0)}</span> of <span style={{ fontWeight: 600, color: '#111827' }}>{data?.total ?? 0}</span>
+                </p>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+                    style={{ border: '1px solid #E5E7EB', background: '#fff', color: page === 1 ? '#D1D5DB' : '#374151', cursor: page === 1 ? 'not-allowed' : 'pointer', borderRadius: 8, padding: '6px 10px' }}>
+                    <ChevronLeft size={14} />
+                  </button>
+                  {pages.map((p, i) =>
+                    p === '...' ? <span key={'e' + i} style={{ fontSize: 13, color: '#9CA3AF', padding: '0 4px' }}>…</span> : (
+                      <button key={p} onClick={() => setPage(p as number)} className="w-9 h-9 flex items-center justify-center rounded-lg cursor-pointer"
+                        style={{ fontSize: 13, fontWeight: p === page ? 600 : 400, border: 'none', background: p === page ? '#F3F4F6' : 'transparent', color: p === page ? '#111827' : '#6B7280' }}>{p}</button>
+                    )
+                  )}
+                  <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+                    style={{ border: '1px solid #E5E7EB', background: '#fff', color: page === totalPages ? '#D1D5DB' : '#374151', cursor: page === totalPages ? 'not-allowed' : 'pointer', borderRadius: 8, padding: '6px 10px' }}>
+                    <ChevronRight size={14} />
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
-        </main>
+        </div>
+      </div>
+    </main>
   )
 }

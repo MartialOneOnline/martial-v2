@@ -1,15 +1,16 @@
 'use client'
 
 import { useDashboard } from '../../../../components/DashboardShell'
-import { useState } from 'react'
-import {Users, Calendar, CreditCard, BarChart2, Settings, Bell, ChevronRight, ChevronDown, Menu, X, Search, ChevronLeft} from 'lucide-react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { Menu, Bell, Search, ChevronLeft, ChevronRight, Filter, MoreVertical } from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
+import { fmtPrice as fmtAmt } from '../../../../lib/format'
 import {
   AreaChart, Area, BarChart, Bar, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
 
-const ITEMS_PER_PAGE = 10
+const ITEMS_PER_PAGE = 15
 
 function getPaginationPages(current: number, total: number): (number | '...')[] {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
@@ -17,293 +18,417 @@ function getPaginationPages(current: number, total: number): (number | '...')[] 
   if (current >= total - 3) return [1, '...', total - 4, total - 3, total - 2, total - 1, total]
   return [1, '...', current - 1, current, current + 1, '...', total]
 }
-
-const REVENUE_DATA: Record<string, { date: string; revenue: number }[]> = {
-  '7d': [
-    { date: 'Mon', revenue: 340 }, { date: 'Tue', revenue: 520 }, { date: 'Wed', revenue: 480 },
-    { date: 'Thu', revenue: 610 }, { date: 'Fri', revenue: 570 }, { date: 'Sat', revenue: 720 },
-    { date: 'Sun', revenue: 290 },
-  ],
-  '30d': [
-    { date: 'May 6',  revenue: 1200 }, { date: 'May 9',  revenue: 1540 }, { date: 'May 12', revenue: 1380 },
-    { date: 'May 15', revenue: 1720 }, { date: 'May 18', revenue: 1650 }, { date: 'May 21', revenue: 1900 },
-    { date: 'May 24', revenue: 1780 }, { date: 'May 27', revenue: 2100 }, { date: 'May 30', revenue: 1960 },
-    { date: 'Jun 2',  revenue: 2240 },
-  ],
-  '90d': [
-    { date: 'Mar',   revenue: 5800 }, { date: 'Mar 2', revenue: 6200 }, { date: 'Apr',   revenue: 7100 },
-    { date: 'Apr 2', revenue: 6800 }, { date: 'May',   revenue: 7600 }, { date: 'May 2', revenue: 8100 },
-  ],
-  '12m': [
-    { date: 'Jun', revenue: 9800 }, { date: 'Jul', revenue: 10200 }, { date: 'Aug', revenue: 9600 },
-    { date: 'Sep', revenue: 11000 }, { date: 'Oct', revenue: 11800 }, { date: 'Nov', revenue: 10900 },
-    { date: 'Dec', revenue: 9400 }, { date: 'Jan', revenue: 12100 }, { date: 'Feb', revenue: 11700 },
-    { date: 'Mar', revenue: 12600 }, { date: 'Apr', revenue: 13200 }, { date: 'May', revenue: 13800 },
-  ],
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-const METHOD_DATA = [
-  { name: 'Stripe',   amount: 8420, fill: '#6D28D9' },
-  { name: 'Cash',     amount: 1230, fill: '#16A34A' },
-  { name: 'Transfer', amount: 680,  fill: '#0071E3' },
-  { name: 'Free',     amount: 0,    fill: '#9CA3AF' },
-]
+function Avatar({ name, avatarUrl, size = 28 }: { name: string; avatarUrl: string | null; size?: number }) {
+  const initials = (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+  if (avatarUrl) return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={avatarUrl} alt={name} style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+  )
+  return (
+    <div style={{ width: size, height: size, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+      background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', color: '#fff', fontSize: size * 0.33, fontWeight: 700 }}>
+      {initials}
+    </div>
+  )
+}
 
+const STATUS_STYLES: Record<string, { bg: string; color: string; border: string; label: string }> = {
+  PAID:     { bg: '#F0FDF4', color: '#16A34A', border: '#BBF7D0', label: 'Paid'     },
+  PENDING:  { bg: '#FFFBEB', color: '#D97706', border: '#FDE68A', label: 'Pending'  },
+  FAILED:   { bg: '#FEF2F2', color: '#DC2626', border: '#FECACA', label: 'Failed'   },
+  REFUNDED: { bg: '#F5F3FF', color: '#6D28D9', border: '#DDD6FE', label: 'Refunded' },
+}
 const METHOD_STYLES: Record<string, { bg: string; color: string; border: string }> = {
-  'Stripe':   { bg: '#F5F3FF', color: '#6D28D9', border: '#DDD6FE' },
-  'Cash':     { bg: '#F0FDF4', color: '#16A34A', border: '#BBF7D0' },
-  'Transfer': { bg: '#EFF6FF', color: '#1D4ED8', border: '#BFDBFE' },
-  'Free':     { bg: '#F9FAFB', color: '#9CA3AF', border: '#E5E7EB' },
+  STRIPE:        { bg: '#F5F3FF', color: '#6D28D9', border: '#DDD6FE' },
+  CASH:          { bg: '#F0FDF4', color: '#16A34A', border: '#BBF7D0' },
+  BANK_TRANSFER: { bg: '#EFF6FF', color: '#1D4ED8', border: '#BFDBFE' },
+  DIRECT_DEBIT:  { bg: '#F0FDFA', color: '#0F766E', border: '#99F6E4' },
+  OTHER:         { bg: '#F9FAFB', color: '#6B7280', border: '#E5E7EB' },
 }
-
-type TxStatus = 'Paid' | 'Pending' | 'Failed' | 'Refunded'
-
-const STATUS_STYLES: Record<TxStatus, { bg: string; color: string; border: string }> = {
-  'Paid':     { bg: '#F0FDF4', color: '#16A34A', border: '#BBF7D0' },
-  'Pending':  { bg: '#FFFBEB', color: '#D97706', border: '#FDE68A' },
-  'Failed':   { bg: '#FEF2F2', color: '#DC2626', border: '#FECACA' },
-  'Refunded': { bg: '#F5F3FF', color: '#6D28D9', border: '#DDD6FE' },
-}
-
-interface Transaction {
-  id: number
-  avatar: string
-  member: string
-  plan: string
-  method: string
-  amount: string
-  date: string
-  status: TxStatus
-}
-
-const TRANSACTIONS: Transaction[] = [
-  { id:1,  avatar:'https://i.pravatar.cc/32?img=1',  member:'Carlos Mendez',    plan:'Jiu Jitsu Mensual',    method:'Stripe',   amount:'€65.00',  date:'Jun 5',  status:'Paid'     },
-  { id:2,  avatar:'https://i.pravatar.cc/32?img=2',  member:'Ana García',       plan:'Jiu Jitsu Trimestral', method:'Stripe',   amount:'€180.00', date:'Jun 4',  status:'Paid'     },
-  { id:3,  avatar:'https://i.pravatar.cc/32?img=3',  member:'Miguel López',     plan:'Jiu Jitsu Mensual',    method:'Cash',     amount:'€65.00',  date:'Jun 4',  status:'Paid'     },
-  { id:4,  avatar:'https://i.pravatar.cc/32?img=4',  member:'Laura Martínez',   plan:'Jiu Jitsu Infantil',   method:'Stripe',   amount:'€50.00',  date:'Jun 3',  status:'Pending'  },
-  { id:5,  avatar:'https://i.pravatar.cc/32?img=5',  member:'David Sánchez',    plan:'Family Jiu Jitsu',     method:'Transfer', amount:'€100.00', date:'Jun 3',  status:'Paid'     },
-  { id:6,  avatar:'https://i.pravatar.cc/32?img=6',  member:'Sofía Fernández',  plan:'Drop-in Class',        method:'Stripe',   amount:'€12.00',  date:'Jun 2',  status:'Failed'   },
-  { id:7,  avatar:'https://i.pravatar.cc/32?img=7',  member:'Javier Romero',    plan:'Jiu Jitsu Mensual',    method:'Stripe',   amount:'€65.00',  date:'Jun 2',  status:'Paid'     },
-  { id:8,  avatar:'https://i.pravatar.cc/32?img=8',  member:'Elena Díaz',       plan:'7-Day Free Trial',     method:'Free',     amount:'€0.00',   date:'Jun 1',  status:'Paid'     },
-  { id:9,  avatar:'https://i.pravatar.cc/32?img=9',  member:'Pedro Jiménez',    plan:'2 Semanas',            method:'Stripe',   amount:'€35.00',  date:'Jun 1',  status:'Refunded' },
-  { id:10, avatar:'https://i.pravatar.cc/32?img=10', member:'Isabel Moreno',    plan:'Jiu Jitsu Infantil',   method:'Cash',     amount:'€50.00',  date:'May 31', status:'Paid'     },
-  { id:11, avatar:'https://i.pravatar.cc/32?img=11', member:'Antonio Ruiz',     plan:'Jiu Jitsu Mensual',    method:'Stripe',   amount:'€65.00',  date:'May 31', status:'Paid'     },
-  { id:12, avatar:'https://i.pravatar.cc/32?img=12', member:'Carmen Álvarez',   plan:'Drop-in Class',        method:'Cash',     amount:'€12.00',  date:'May 30', status:'Paid'     },
-  { id:13, avatar:'https://i.pravatar.cc/32?img=13', member:'Francisco Torres', plan:'Jiu Jitsu Trimestral', method:'Stripe',   amount:'€180.00', date:'May 30', status:'Pending'  },
-  { id:14, avatar:'https://i.pravatar.cc/32?img=14', member:'Beatriz González', plan:'Family Jiu Jitsu',     method:'Transfer', amount:'€100.00', date:'May 29', status:'Paid'     },
-  { id:15, avatar:'https://i.pravatar.cc/32?img=15', member:'Roberto Herrera',  plan:'Jiu Jitsu Mensual',    method:'Stripe',   amount:'€65.00',  date:'May 29', status:'Failed'   },
+const METHOD_OPTIONS = [
+  { id: 'STRIPE',        label: 'Stripe'        },
+  { id: 'CASH',          label: 'Cash'          },
+  { id: 'BANK_TRANSFER', label: 'Bank Transfer' },
+  { id: 'DIRECT_DEBIT',  label: 'Direct Debit'  },
+  { id: 'OTHER',         label: 'Other'         },
 ]
+
+const INP: React.CSSProperties = { width: '100%', border: '1px solid #E5E7EB', borderRadius: 8, padding: '7px 10px', fontSize: 12, color: '#111827', background: '#fff', outline: 'none' }
+const SEC: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8, display: 'block' }
+
+interface FiltersState { method: string; dateFrom: string; dateTo: string; minAmount: string; maxAmount: string }
+const EMPTY_FILTERS: FiltersState = { method: '', dateFrom: '', dateTo: '', minAmount: '', maxAmount: '' }
+
+function FiltersPanel({ filters, onChange }: { filters: FiltersState; onChange: (f: FiltersState) => void }) {
+  const [open, setOpen] = useState(false)
+  const [local, setLocal] = useState<FiltersState>(filters)
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => { setLocal(filters) }, [filters])
+  useEffect(() => {
+    function h(e: MouseEvent) { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
+    document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
+  }, [])
+  const activeCount = [!!filters.method, !!filters.dateFrom || !!filters.dateTo, !!filters.minAmount || !!filters.maxAmount].filter(Boolean).length
+  function apply() { onChange(local); setOpen(false) }
+  function clear() { setLocal(EMPTY_FILTERS); onChange(EMPTY_FILTERS); setOpen(false) }
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button onClick={() => setOpen(o => !o)}
+        style={{ display: 'flex', alignItems: 'center', gap: 5, height: 34, padding: '0 12px', borderRadius: 8, cursor: 'pointer',
+          border: activeCount ? '1.5px solid #0870E2' : '1px solid #E5E7EB', background: activeCount ? '#EFF6FF' : '#fff' }}>
+        <Filter size={13} style={{ color: activeCount ? '#0870E2' : '#6B7280' }} />
+        <span style={{ fontSize: 12, fontWeight: 500, color: activeCount ? '#0870E2' : '#6B7280' }}>Filters</span>
+        {activeCount > 0 && <span style={{ background: '#0870E2', color: '#fff', borderRadius: 999, fontSize: 10, fontWeight: 700, padding: '1px 6px' }}>{activeCount}</span>}
+      </button>
+      {open && (
+        <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: 6, zIndex: 40, background: '#fff', border: '1px solid #E5E7EB', borderRadius: 14, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', width: 300, padding: 16 }}>
+          <div style={{ marginBottom: 16 }}>
+            <span style={SEC}>Payment method</span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {METHOD_OPTIONS.map(m => (
+                <button key={m.id} onClick={() => setLocal(p => ({ ...p, method: p.method === m.id ? '' : m.id }))}
+                  style={{ fontSize: 11, fontWeight: 500, padding: '4px 10px', borderRadius: 999, cursor: 'pointer',
+                    border: local.method === m.id ? '1.5px solid #0870E2' : '1px solid #E5E7EB',
+                    background: local.method === m.id ? '#EFF6FF' : '#F9FAFB',
+                    color: local.method === m.id ? '#0870E2' : '#6B7280' }}>{m.label}</button>
+              ))}
+            </div>
+          </div>
+          <div style={{ marginBottom: 16 }}>
+            <span style={SEC}>Date range</span>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 }}>From</label>
+                <input type="date" value={local.dateFrom} onChange={e => setLocal(p => ({ ...p, dateFrom: e.target.value }))} style={INP} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 }}>To</label>
+                <input type="date" value={local.dateTo} onChange={e => setLocal(p => ({ ...p, dateTo: e.target.value }))} style={INP} />
+              </div>
+            </div>
+          </div>
+          <div style={{ marginBottom: 16 }}>
+            <span style={SEC}>Amount range (€)</span>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input type="number" min={0} placeholder="Min" value={local.minAmount} onChange={e => setLocal(p => ({ ...p, minAmount: e.target.value }))} style={{ ...INP, width: '50%' }} />
+              <input type="number" min={0} placeholder="Max" value={local.maxAmount} onChange={e => setLocal(p => ({ ...p, maxAmount: e.target.value }))} style={{ ...INP, width: '50%' }} />
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 8, paddingTop: 12, borderTop: '1px solid #F3F4F6' }}>
+            <button onClick={clear} style={{ flex: 1, padding: 8, borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, fontWeight: 500, color: '#6B7280', cursor: 'pointer' }}>Clear</button>
+            <button onClick={apply} style={{ flex: 1, padding: 8, borderRadius: 8, border: 'none', background: '#111827', fontSize: 12, fontWeight: 600, color: '#fff', cursor: 'pointer' }}>Apply</button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function RowMenu({ items }: { items: { label: string; onClick: () => void; variant?: 'danger' }[] }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    function h(e: MouseEvent) { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
+    document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
+  }, [])
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button onClick={() => setOpen(o => !o)} className="cursor-pointer"
+        style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #E5E7EB', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <MoreVertical size={13} style={{ color: '#6B7280' }} />
+      </button>
+      {open && (
+        <div style={{ position: 'absolute', right: 0, top: '100%', marginTop: 4, zIndex: 50, background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, boxShadow: '0 6px 20px rgba(0,0,0,0.1)', minWidth: 160, overflow: 'hidden' }}>
+          {items.map(item => (
+            <button key={item.label} onClick={() => { item.onClick(); setOpen(false) }}
+              className="w-full text-left cursor-pointer hover:bg-[#F9FAFB]"
+              style={{ padding: '9px 14px', fontSize: 12, fontWeight: 500, color: item.variant === 'danger' ? '#DC2626' : '#374151', border: 'none', background: 'transparent', display: 'block' }}>
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+interface TxRow {
+  id: string; userName: string; userEmail: string; userAvatar: string | null
+  description: string; method: string; methodKey: string
+  amount: number; currency: string; date: string; status: string
+}
+interface MethodPoint { name: string; amount: number; fill: string }
+interface ReportData {
+  stats: { totalRevenue: number; mrr: number; pendingCount: number; failedRate: number }
+  revenueData: { date: string; revenue: number }[]
+  methodData:  MethodPoint[]
+  transactions: TxRow[]
+  total: number
+}
 
 export default function PaymentsReportClient() {
   const { setMenuOpen } = useDashboard()
   const t = useT()
-  const [period, setPeriod] = useState<'7d' | '30d' | '90d' | '12m'>('30d')
-  const [filterTab, setFilterTab] = useState<'All' | TxStatus>('All')
-  const [page, setPage] = useState(1)
 
-  const filtered = filterTab === 'All' ? TRANSACTIONS : TRANSACTIONS.filter(t => t.status === filterTab)
-  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE))
-  const safePage = Math.min(page, totalPages)
-  const paginated = filtered.slice((safePage - 1) * ITEMS_PER_PAGE, safePage * ITEMS_PER_PAGE)
-  const pages = getPaginationPages(safePage, totalPages)
+  const [period,    setPeriod]    = useState<'7d' | '30d' | '90d' | '12m'>('30d')
+  const [filterTab, setFilterTab] = useState<'ALL' | 'PAID' | 'PENDING' | 'FAILED' | 'REFUNDED'>('ALL')
+  const [search,    setSearch]    = useState('')
+  const [page,      setPage]      = useState(1)
+  const [filters,   setFilters]   = useState<FiltersState>(EMPTY_FILTERS)
+  const [data,      setData]      = useState<ReportData | null>(null)
+  const [loading,   setLoading]   = useState(true)
+  const [toast,     setToast]     = useState('')
 
-  const revenueData = REVENUE_DATA[period] ?? []
-  const totalRevenue = revenueData.reduce((s, d) => s + d.revenue, 0)
-  const paid = TRANSACTIONS.filter(t => t.status === 'Paid')
-  const avgTx = paid.length ? Math.round(paid.reduce((s, t) => s + parseFloat(t.amount.replace('€', '')), 0) / paid.length) : 0
-  const failedRate = Math.round((TRANSACTIONS.filter(t => t.status === 'Failed').length / TRANSACTIONS.length) * 100)
-  const mrr = 8420
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2200) }
 
-  const STATS = [
-    { label: 'Total Revenue',    value: '€' + totalRevenue.toLocaleString(), sub: 'this period',  color: '#16A34A' },
-    { label: 'MRR',              value: '€' + mrr.toLocaleString(),          sub: 'monthly recur', color: '#0071E3' },
-    { label: 'Avg Transaction',  value: '€' + avgTx,                          sub: 'per payment',   color: '#6D28D9' },
-    { label: 'Failed Rate',      value: failedRate + '%',                      sub: 'of all txns',   color: '#DC2626' },
+  const load = useCallback(async () => {
+    setLoading(true)
+    const params = new URLSearchParams({ period, status: filterTab, search, page: String(page) })
+    if (filters.method)    params.set('method', filters.method)
+    if (filters.dateFrom)  params.set('dateFrom', filters.dateFrom)
+    if (filters.dateTo)    params.set('dateTo', filters.dateTo)
+    if (filters.minAmount) params.set('minAmount', filters.minAmount)
+    if (filters.maxAmount) params.set('maxAmount', filters.maxAmount)
+    const res = await fetch(`/api/dashboard/reports/payments?${params}`)
+    if (res.ok) setData(await res.json())
+    setLoading(false)
+  }, [period, filterTab, search, page, filters])
+
+  useEffect(() => { load() }, [load])
+  useEffect(() => { setPage(1) }, [period, filterTab, search, filters])
+
+  async function updateTxStatus(id: string, status: string, label: string) {
+    const res = await fetch(`/api/dashboard/transactions/${id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }),
+    })
+    if (res.ok) { showToast(`Marked as ${label}`); load() }
+    else showToast('Error updating transaction')
+  }
+
+  const totalPages = data ? Math.max(1, Math.ceil(data.total / ITEMS_PER_PAGE)) : 1
+  const pages = getPaginationPages(page, totalPages)
+  const stats = data?.stats
+
+  const STAT_CARDS = [
+    { label: 'Total Revenue',   value: stats ? fmtAmt(stats.totalRevenue) : '—', sub: 'this period',   color: '#16A34A' },
+    { label: 'MRR',             value: stats ? fmtAmt(stats.mrr)          : '—', sub: 'current month', color: '#0870E2' },
+    { label: 'Pending',         value: stats?.pendingCount ?? '—',                sub: 'awaiting',      color: '#D97706' },
+    { label: 'Failed Rate',     value: stats ? stats.failedRate + '%'      : '—', sub: 'of all income', color: '#DC2626' },
   ]
 
   return (
-        <main style={{ flex: 1, minWidth: 0, width: "100%", overflow: "auto" }}>
-          <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20"
-            style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
-            <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
-              style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(true)}>
-              <Menu size={16} style={{ color: '#374151' }} />
+    <main style={{ flex: 1, minWidth: 0, width: '100%', overflow: 'auto' }}>
+      {toast && (
+        <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 100,
+          background: '#111827', color: '#fff', borderRadius: 10, padding: '10px 20px', fontSize: 13, fontWeight: 500 }}>
+          {toast}
+        </div>
+      )}
+
+      <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20"
+        style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
+        <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
+          style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(true)}>
+          <Menu size={16} style={{ color: '#374151' }} />
+        </button>
+        <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 max-w-xs"
+          style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
+          <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
+          <input type="text" placeholder="Search member or description…" value={search} onChange={e => setSearch(e.target.value)}
+            style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
+        </div>
+        <div className="flex-1" />
+        <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: '#F3F4F6' }}>
+          {(['7d', '30d', '90d', '12m'] as const).map(p => (
+            <button key={p} onClick={() => setPeriod(p)} className="cursor-pointer"
+              style={{ fontSize: 12, fontWeight: period === p ? 600 : 400, padding: '5px 12px', borderRadius: 8, border: 'none',
+                background: period === p ? '#fff' : 'transparent', color: period === p ? '#111827' : '#6B7280',
+                boxShadow: period === p ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}>
+              {p.toUpperCase()}
             </button>
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 max-w-xs"
-              style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-              <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
-              <input type="text" placeholder="Search payments…"
-                style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
+          ))}
+        </div>
+        <button className="relative w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
+          style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
+          <Bell size={15} style={{ color: '#374151' }} />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: '#DC2626' }} />
+        </button>
+      </div>
+
+      <div className="px-4 md:px-8 py-6 flex flex-col gap-6">
+        <div>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>{t.reports.paymentsTitle}</h1>
+          <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>Revenue, transactions and payment method breakdown</p>
+        </div>
+
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+          {STAT_CARDS.map(stat => (
+            <div key={stat.label} className="rounded-2xl" style={{ background: '#fff', border: '1px solid #E5E7EB', padding: '18px 20px' }}>
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-2 h-2 rounded-full" style={{ background: stat.color }} />
+                <span style={{ fontSize: 11, color: '#9CA3AF' }}>{stat.sub}</span>
+              </div>
+              <p style={{ fontSize: 26, fontWeight: 700, color: '#111827', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 4 }}>
+                {loading ? '…' : stat.value}
+              </p>
+              <p style={{ fontSize: 12, fontWeight: 500, color: '#6B7280' }}>{stat.label}</p>
             </div>
-            <div className="flex-1" />
-            <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: '#F3F4F6' }}>
-              {(['7d', '30d', '90d', '12m'] as const).map(p => (
-                <button key={p} onClick={() => setPeriod(p)} className="cursor-pointer"
-                  style={{ fontSize: 12, fontWeight: period === p ? 600 : 400, padding: '5px 12px', borderRadius: 8, border: 'none',
-                    background: period === p ? '#fff' : 'transparent',
-                    color: period === p ? '#111827' : '#6B7280',
-                    boxShadow: period === p ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}>
-                  {p.toUpperCase()}
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <div className="rounded-2xl p-5" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 4 }}>Revenue Over Time</p>
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 16 }}>Paid income per time point</p>
+            {loading ? <div style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</p></div> : (
+              <ResponsiveContainer width="100%" height={260}>
+                <AreaChart data={data?.revenueData ?? []}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
+                  <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12 }}
+                    formatter={(v: unknown) => [fmtAmt(v as number), 'Revenue']} />
+                  <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#16A34A" fill="#16A34A" fillOpacity={0.12} strokeWidth={2} />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+          <div className="rounded-2xl p-5" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 4 }}>Revenue by Payment Method</p>
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 16 }}>Paid income breakdown</p>
+            {loading ? <div style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</p></div> : (
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={data?.methodData ?? []}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12 }}
+                    formatter={(v: unknown) => [fmtAmt(v as number), 'Amount']} />
+                  <Bar dataKey="amount" name="Amount" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                    {(data?.methodData ?? []).map((entry, i) => <Cell key={i} fill={entry.fill} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <div className="flex items-center gap-2 mb-4 flex-wrap">
+            {([
+              { key: 'ALL', label: 'All' }, { key: 'PAID', label: 'Paid' },
+              { key: 'PENDING', label: 'Pending' }, { key: 'FAILED', label: 'Failed' }, { key: 'REFUNDED', label: 'Refunded' },
+            ] as const).map(tab => {
+              const isOn = filterTab === tab.key
+              return (
+                <button key={tab.key} onClick={() => setFilterTab(tab.key)} className="cursor-pointer"
+                  style={{ fontSize: 12, fontWeight: isOn ? 600 : 400, padding: '5px 14px', borderRadius: 8,
+                    background: isOn ? '#111827' : '#fff', color: isOn ? '#fff' : '#6B7280',
+                    border: isOn ? '1.5px solid #111827' : '1.5px solid #E5E7EB' }}>
+                  {tab.label}
+                  {!loading && tab.key === 'ALL' && data && <span style={{ opacity: 0.6, marginLeft: 4 }}>{data.total}</span>}
                 </button>
-              ))}
+              )
+            })}
+            <div style={{ marginLeft: 'auto' }}>
+              <FiltersPanel filters={filters} onChange={f => { setFilters(f); setPage(1) }} />
             </div>
-            <button className="relative w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
-              style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-              <Bell size={15} style={{ color: '#374151' }} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: '#DC2626' }} />
-            </button>
           </div>
 
-          <div className="px-4 md:px-8 py-6 flex flex-col gap-6">
-            <div>
-              <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>{t.reports.paymentsTitle}</h1>
-              <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>Revenue, transactions and payment method breakdown</p>
-            </div>
-
-            <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-              {STATS.map(stat => (
-                <div key={stat.label} className="rounded-2xl" style={{ background: '#fff', border: '1px solid #E5E7EB', padding: '18px 20px' }}>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-2 h-2 rounded-full" style={{ background: stat.color }} />
-                    <span style={{ fontSize: 11, color: '#9CA3AF' }}>{stat.sub}</span>
-                  </div>
-                  <p style={{ fontSize: 26, fontWeight: 700, color: '#111827', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 4 }}>{stat.value}</p>
-                  <p style={{ fontSize: 12, fontWeight: 500, color: '#6B7280' }}>{stat.label}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-              <div className="rounded-2xl p-5" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-                <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 16 }}>Revenue Over Time</p>
-                <ResponsiveContainer width="100%" height={260}>
-                  <AreaChart data={revenueData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
-                    <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12 }}
-                      formatter={(v: unknown) => ['€' + (v as number).toLocaleString(), 'Revenue']} />
-                    <Area type="monotone" dataKey="revenue" stroke="#16A34A" fill="#16A34A" fillOpacity={0.15} strokeWidth={2} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-
-              <div className="rounded-2xl p-5" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-                <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 16 }}>Revenue by Payment Method</p>
-                <ResponsiveContainer width="100%" height={260}>
-                  <BarChart data={METHOD_DATA}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
-                    <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12 }}
-                      formatter={(v: unknown) => ['€' + (v as number).toLocaleString(), 'Amount']} />
-                    <Bar dataKey="amount" isAnimationActive={false}>
-                      {METHOD_DATA.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} radius={4} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2 mb-4 flex-wrap">
-                {(['All', 'Paid', 'Pending', 'Failed', 'Refunded'] as const).map(tab => {
-                  const count = tab === 'All' ? TRANSACTIONS.length : TRANSACTIONS.filter(t => t.status === tab).length
-                  const isOn = filterTab === tab
-                  return (
-                    <button key={tab} onClick={() => { setFilterTab(tab); setPage(1) }} className="cursor-pointer"
-                      style={{ fontSize: 12, fontWeight: isOn ? 600 : 400, padding: '5px 14px', borderRadius: 8,
-                        background: isOn ? '#111827' : '#fff',
-                        color: isOn ? '#fff' : '#6B7280',
-                        border: isOn ? '1.5px solid #111827' : '1.5px solid #E5E7EB' }}>
-                      {tab} <span style={{ opacity: 0.7, marginLeft: 2 }}>{count}</span>
-                    </button>
-                  )
-                })}
-              </div>
-
-              <div className="rounded-2xl overflow-hidden" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-                <table className="w-full">
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
-                      {['Member', 'Plan', 'Method', 'Amount', 'Date', 'Status'].map(h => (
-                        <th key={h} className="px-5 py-3 text-left"
-                          style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginated.map((t, idx) => {
-                      const ms = METHOD_STYLES[t.method] ?? { bg: '#F3F4F6', color: '#6B7280', border: '#E5E7EB' }
-                      const ss = STATUS_STYLES[t.status]
-                      return (
-                        <tr key={t.id} className="hover:bg-[#FAFAFA] transition-colors"
-                          style={{ borderBottom: idx < paginated.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
-                          <td className="px-5 py-3">
-                            <div className="flex items-center gap-2.5">
-                              <img src={t.avatar} alt={t.member} width={28} height={28} className="rounded-full" style={{ flexShrink: 0 }} />
-                              <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{t.member}</span>
+          <div className="rounded-2xl overflow-hidden" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+            <table className="w-full">
+              <thead>
+                <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
+                  {['Member', 'Description', 'Method', 'Amount', 'Date', 'Status', ''].map(h => (
+                    <th key={h} className="px-5 py-3 text-left"
+                      style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr><td colSpan={7} className="px-5 py-8 text-center" style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</td></tr>
+                ) : (data?.transactions ?? []).length === 0 ? (
+                  <tr><td colSpan={7} className="px-5 py-8 text-center" style={{ fontSize: 13, color: '#9CA3AF' }}>No transactions found</td></tr>
+                ) : (
+                  (data?.transactions ?? []).map((tx, idx) => {
+                    const ms = METHOD_STYLES[tx.methodKey] ?? METHOD_STYLES['OTHER']!
+                    const ss = STATUS_STYLES[tx.status] ?? STATUS_STYLES['PAID']!
+                    return (
+                      <tr key={tx.id} className="hover:bg-[#FAFAFA] transition-colors"
+                        style={{ borderBottom: idx < (data?.transactions.length ?? 0) - 1 ? '1px solid #F9FAFB' : 'none' }}>
+                        <td className="px-5 py-3">
+                          <div className="flex items-center gap-2.5">
+                            <Avatar name={tx.userName} avatarUrl={tx.userAvatar} size={28} />
+                            <div>
+                              <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{tx.userName}</p>
+                              <p style={{ fontSize: 11, color: '#9CA3AF' }}>{tx.userEmail}</p>
                             </div>
-                          </td>
-                          <td className="px-5 py-3">
-                            <span style={{ fontSize: 12, color: '#6B7280' }}>{t.plan}</span>
-                          </td>
-                          <td className="px-5 py-3">
-                            <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999,
-                              background: ms.bg, color: ms.color, border: '1px solid ' + ms.border }}>
-                              {t.method}
-                            </span>
-                          </td>
-                          <td className="px-5 py-3">
-                            <span style={{ fontSize: 14, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em' }}>{t.amount}</span>
-                          </td>
-                          <td className="px-5 py-3">
-                            <span style={{ fontSize: 13, color: '#6B7280' }}>{t.date}</span>
-                          </td>
-                          <td className="px-5 py-3">
-                            <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999,
-                              background: ss.bg, color: ss.color, border: '1px solid ' + ss.border }}>
-                              {t.status}
-                            </span>
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-                {totalPages > 1 && (
-                  <div className="flex items-center justify-between px-6 py-3" style={{ borderTop: '1px solid #F3F4F6' }}>
-                    <p style={{ fontSize: 13, color: '#6B7280' }}>
-                      Showing <span style={{ fontWeight: 600, color: '#111827' }}>{(safePage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(safePage * ITEMS_PER_PAGE, filtered.length)}</span> of <span style={{ fontWeight: 600, color: '#111827' }}>{filtered.length}</span>
-                    </p>
-                    <div className="flex items-center gap-1">
-                      <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage === 1}
-                        style={{ fontSize: 13, border: '1px solid #E5E7EB', background: '#fff', color: safePage === 1 ? '#D1D5DB' : '#374151', cursor: safePage === 1 ? 'not-allowed' : 'pointer', borderRadius: 8, padding: '6px 12px' }}>
-                        <ChevronLeft size={14} />
-                      </button>
-                      {pages.map((p, i) =>
-                        p === '...' ? <span key={'e' + i} style={{ fontSize: 13, color: '#9CA3AF', padding: '0 4px' }}>…</span> : (
-                          <button key={p} onClick={() => setPage(p as number)}
-                            className="w-9 h-9 flex items-center justify-center rounded-lg cursor-pointer"
-                            style={{ fontSize: 13, fontWeight: p === safePage ? 600 : 400, border: 'none',
-                              background: p === safePage ? '#F3F4F6' : 'transparent',
-                              color: p === safePage ? '#111827' : '#6B7280' }}>{p}</button>
-                        )
-                      )}
-                      <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages}
-                        style={{ fontSize: 13, border: '1px solid #E5E7EB', background: '#fff', color: safePage === totalPages ? '#D1D5DB' : '#374151', cursor: safePage === totalPages ? 'not-allowed' : 'pointer', borderRadius: 8, padding: '6px 12px' }}>
-                        <ChevronRight size={14} />
-                      </button>
-                    </div>
-                  </div>
+                          </div>
+                        </td>
+                        <td className="px-5 py-3"><span style={{ fontSize: 12, color: '#6B7280' }}>{tx.description}</span></td>
+                        <td className="px-5 py-3">
+                          <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999, background: ms.bg, color: ms.color, border: '1px solid ' + ms.border }}>
+                            {tx.method}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3">
+                          <span style={{ fontSize: 14, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em' }}>{fmtAmt(tx.amount, tx.currency)}</span>
+                        </td>
+                        <td className="px-5 py-3"><span style={{ fontSize: 12, color: '#6B7280' }}>{fmtDate(tx.date)}</span></td>
+                        <td className="px-5 py-3">
+                          <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999, background: ss.bg, color: ss.color, border: '1px solid ' + ss.border }}>
+                            {ss.label}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3">
+                          <RowMenu items={[
+                            { label: 'Copy member email', onClick: () => { navigator.clipboard.writeText(tx.userEmail); showToast('Email copied') } },
+                            ...(tx.status === 'PENDING' ? [{ label: 'Mark as paid', onClick: () => updateTxStatus(tx.id, 'PAID', 'paid') }] : []),
+                            ...(tx.status === 'PAID'    ? [{ label: 'Mark as refunded', onClick: () => updateTxStatus(tx.id, 'REFUNDED', 'refunded'), variant: 'danger' as const }] : []),
+                            ...(tx.status === 'FAILED'  ? [{ label: 'Retry — mark as pending', onClick: () => updateTxStatus(tx.id, 'PENDING', 'pending') }] : []),
+                          ]} />
+                        </td>
+                      </tr>
+                    )
+                  })
                 )}
+              </tbody>
+            </table>
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between px-6 py-3" style={{ borderTop: '1px solid #F3F4F6' }}>
+                <p style={{ fontSize: 13, color: '#6B7280' }}>
+                  Showing <span style={{ fontWeight: 600, color: '#111827' }}>{(page - 1) * ITEMS_PER_PAGE + 1}–{Math.min(page * ITEMS_PER_PAGE, data?.total ?? 0)}</span> of <span style={{ fontWeight: 600, color: '#111827' }}>{data?.total ?? 0}</span>
+                </p>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+                    style={{ border: '1px solid #E5E7EB', background: '#fff', color: page === 1 ? '#D1D5DB' : '#374151', cursor: page === 1 ? 'not-allowed' : 'pointer', borderRadius: 8, padding: '6px 10px' }}>
+                    <ChevronLeft size={14} />
+                  </button>
+                  {pages.map((p, i) =>
+                    p === '...' ? <span key={'e' + i} style={{ fontSize: 13, color: '#9CA3AF', padding: '0 4px' }}>…</span> : (
+                      <button key={p} onClick={() => setPage(p as number)} className="w-9 h-9 flex items-center justify-center rounded-lg cursor-pointer"
+                        style={{ fontSize: 13, fontWeight: p === page ? 600 : 400, border: 'none', background: p === page ? '#F3F4F6' : 'transparent', color: p === page ? '#111827' : '#6B7280' }}>{p}</button>
+                    )
+                  )}
+                  <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+                    style={{ border: '1px solid #E5E7EB', background: '#fff', color: page === totalPages ? '#D1D5DB' : '#374151', cursor: page === totalPages ? 'not-allowed' : 'pointer', borderRadius: 8, padding: '6px 10px' }}>
+                    <ChevronRight size={14} />
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
-        </main>
+        </div>
+      </div>
+    </main>
   )
 }

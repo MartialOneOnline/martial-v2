@@ -30,6 +30,7 @@ export async function GET(req: NextRequest) {
   const type        = searchParams.get('type')        // INCOME|EXPENSE|ALL
   const search      = searchParams.get('search')      || ''
   const membership  = searchParams.get('membership')  || '' // filter by description (plan name)
+  const belt        = searchParams.get('belt')        || '' // filter by member's belt
   const dateFrom    = searchParams.get('dateFrom')    || '' // ISO date string
   const dateTo      = searchParams.get('dateTo')      || '' // ISO date string
   const page        = Math.max(1, parseInt(searchParams.get('page') || '1'))
@@ -42,6 +43,7 @@ export async function GET(req: NextRequest) {
     ...(method     && method !== 'ALL'  ? { paymentMethod: method }           : {}),
     ...(type       && type   !== 'ALL'  ? { type }                            : {}),
     ...(membership ? { description: { contains: membership, mode: 'insensitive' } } : {}),
+    ...(belt ? { user: { schoolMembers: { some: { schoolId: auth.schoolId, belt } } } } : {}),
     ...(dateFrom || dateTo ? {
       date: {
         ...(dateFrom ? { gte: new Date(dateFrom) } : {}),

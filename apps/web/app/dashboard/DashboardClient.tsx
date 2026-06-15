@@ -24,6 +24,7 @@ import ClassDetailPopup          from '../../components/popups/ClassDetailPopup'
 import { TransactionActionsButton } from '../../components/popups/TransactionActionsPopup'
 import { useT }                  from '../../lib/i18n/LanguageContext'
 import DashboardLanguageSelector  from '../../components/DashboardLanguageSelector'
+import { fmtPrice } from '../../lib/format'
 
 // ── Design tokens ──────────────────────────────────────────────────────────────
 // bg:       #F9FAFB
@@ -644,7 +645,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                       </td>
                       <td className="px-4 md:px-7 py-4" style={{ whiteSpace: 'nowrap' }}>
                         <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>
-                          {new Intl.NumberFormat('es-ES', { style: 'currency', currency: tx.currency }).format(tx.amount)}
+                          {fmtPrice(tx.amount, tx.currency)}
                         </span>
                       </td>
                       <td className="hidden md:table-cell px-4 md:px-7 py-4" style={{ whiteSpace: 'nowrap' }}>

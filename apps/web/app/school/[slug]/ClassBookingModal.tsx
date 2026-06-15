@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { X, Clock, Calendar, CheckCircle, LogIn, CreditCard, Loader2 } from 'lucide-react'
 import { nextOccurrence, type ScheduleSlot } from '@/lib/scheduling'
+import { fmtPrice } from '@/lib/format'
 
 type Plan = { id: string; name: string; price: number; currency: string; billingCycle: string; isPopular: boolean }
 
@@ -218,7 +219,6 @@ export default function ClassBookingModal({ session, schoolSlug, plans, onClose 
               {/* Paid plans */}
               <div className="space-y-2">
                 {plans.filter(p => p.price > 0).map(plan => {
-                  const sym = CURRENCY_SYM[plan.currency] ?? '€'
                   const suffix = plan.billingCycle === 'monthly' ? '/mo' : plan.billingCycle === 'quarterly' ? '/qtr' : ''
                   return (
                     <div key={plan.id} className={`flex items-center justify-between gap-3 border rounded-xl px-4 py-3 ${plan.isPopular ? 'border-[#0870E2] bg-[#f0f9ff]' : 'border-[#E5E7EB]'}`}>
@@ -229,7 +229,7 @@ export default function ClassBookingModal({ session, schoolSlug, plans, onClose 
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="text-base font-bold text-[#0870E2]">{sym}{plan.price}<span className="text-xs font-normal text-[#6B7280]">{suffix}</span></div>
+                        <div className="text-base font-bold text-[#0870E2]">{fmtPrice(plan.price, plan.currency)}<span className="text-xs font-normal text-[#6B7280]">{suffix}</span></div>
                       </div>
                     </div>
                   )

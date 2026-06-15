@@ -1,11 +1,14 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   X, Plus, Pencil, Trash2, Check, Infinity, Menu, Image as ImageIcon,
+  Users, Share2, Copy, Mail, Upload, MoreVertical,
 } from 'lucide-react'
+import { QRCodeSVG } from 'qrcode.react'
 import { useDashboard } from '../../../components/DashboardShell'
 import { useT } from '../../../lib/i18n/LanguageContext'
+import { fmtPrice } from '../../../lib/format'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -68,6 +71,18 @@ interface PlanForm {
   globalLimitType: 'PER_WEEK' | 'PER_MONTH'
 }
 
+interface PlanMember {
+  id: string
+  userId: string
+  name: string
+  email: string
+  avatarUrl: string | null
+  status: string
+  startDate: string
+  endDate: string | null
+  planName: string
+}
+
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 const BILLING_CYCLE_LABELS: Record<string, string> = {
@@ -78,9 +93,9 @@ const BILLING_CYCLE_LABELS: Record<string, string> = {
   'one-off': 'One-off',
 }
 
-function fmtPrice(price: number, currency: string): string {
-  const sym = currency === 'EUR' ? '€' : currency === 'USD' ? '$' : currency === 'GBP' ? '£' : currency
-  return `${sym}${price % 1 === 0 ? price : price.toFixed(2)}`
+
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 function validityDaysToForm(days: number | null): { validityDays: string; validityPeriod: 'days' | 'weeks' | 'months' } {
@@ -182,40 +197,97 @@ function Toggle({ on, onChange, size = 'md' }: { on: boolean; onChange: (v: bool
 
 // ── Image upload zone ──────────────────────────────────────────────────────────
 function ImageUploadZone({ value, onChange }: { value: string; onChange: (url: string) => void }) {
+  const [uploading, setUploading] = useState(false)
+  const [dragOver, setDragOver]   = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  async function uploadFile(file: File) {
+    if (!file.type.startsWith('image/')) return
+    setUploading(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch('/api/dashboard/upload?bucket=class-images', { method: 'POST', body: fd })
+      if (res.ok) {
+        const { url } = await res.json()
+        onChange(url)
+      }
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  function onDrop(e: React.DragEvent) {
+    e.preventDefault(); setDragOver(false)
+    const file = e.dataTransfer.files[0]
+    if (file) uploadFile(file)
+  }
+
+  function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) uploadFile(file)
+  }
+
   return (
     <div>
       <label style={labelSt}>Image</label>
       {value ? (
-        <div className="relative" style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid #E5E7EB' }}>
+        <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid #E5E7EB', position: 'relative' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={value} alt="Plan image" style={{ width: '100%', height: 140, objectFit: 'cover', display: 'block' }} />
-          <button
-            type="button"
-            onClick={() => onChange('')}
-            className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full cursor-pointer"
-            style={{ background: 'rgba(0,0,0,0.5)', border: 'none' }}>
+          <button type="button" onClick={() => onChange('')}
+            style={{ position: 'absolute', top: 8, right: 8, width: 28, height: 28,
+              background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
             <X size={13} style={{ color: '#fff' }} />
+          </button>
+          <button type="button" onClick={() => fileRef.current?.click()}
+            style={{ position: 'absolute', top: 8, right: 44, width: 28, height: 28,
+              background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+            <Upload size={12} style={{ color: '#fff' }} />
           </button>
         </div>
       ) : (
-        <div style={{ border: '1.5px dashed #D1D5DB', borderRadius: 12, padding: '20px 16px',
-          background: '#FAFAFA', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-          <ImageIcon size={24} style={{ color: '#D1D5DB' }} />
-          <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>Paste image URL below</p>
-          <input
-            type="url"
-            placeholder="https://..."
-            value={value}
-            onChange={e => onChange(e.target.value)}
-            style={{ ...inputSt, marginTop: 4, fontSize: 12 }}
-          />
+        <div
+          onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={onDrop}
+          style={{ border: `1.5px dashed ${dragOver ? '#0071E3' : '#D1D5DB'}`, borderRadius: 12,
+            padding: '28px 16px', background: dragOver ? '#EFF6FF' : '#FAFAFA',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, transition: 'all 0.15s' }}>
+          {uploading ? (
+            <p style={{ fontSize: 13, color: '#6B7280', margin: 0 }}>Uploading…</p>
+          ) : (
+            <>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: '#F3F4F6',
+                display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Upload size={20} style={{ color: '#9CA3AF' }} />
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ fontSize: 13, color: '#374151', margin: 0, fontWeight: 500 }}>
+                  Drag & drop or{' '}
+                  <button type="button" onClick={() => fileRef.current?.click()}
+                    style={{ border: 'none', background: 'none', color: '#0071E3', cursor: 'pointer',
+                      fontWeight: 600, fontSize: 13, padding: 0 }}>
+                    Browse
+                  </button>
+                </p>
+                <p style={{ fontSize: 11, color: '#9CA3AF', margin: '4px 0 0' }}>PNG, JPG, WEBP up to 5MB</p>
+              </div>
+              <div style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ flex: 1, height: 1, background: '#E5E7EB' }} />
+                <span style={{ fontSize: 11, color: '#9CA3AF' }}>or paste URL</span>
+                <div style={{ flex: 1, height: 1, background: '#E5E7EB' }} />
+              </div>
+              <input type="url" placeholder="https://..." value={value}
+                onChange={e => onChange(e.target.value)}
+                style={{ ...inputSt, fontSize: 12 }} />
+            </>
+          )}
         </div>
       )}
-      {value && (
-        <input type="url" placeholder="https://..." value={value}
-          onChange={e => onChange(e.target.value)}
-          style={{ ...inputSt, marginTop: 8, fontSize: 12 }} />
-      )}
+      <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={onFileChange} />
     </div>
   )
 }
@@ -637,6 +709,210 @@ function DeleteModal({ plan, onClose, onDeleted }: {
   )
 }
 
+// ── Members modal ──────────────────────────────────────────────────────────────
+const MEMBERSHIP_STATUS_COLORS: Record<string, { bg: string; color: string }> = {
+  ACTIVE:   { bg: '#F0FDF4', color: '#16A34A' },
+  INACTIVE: { bg: '#F3F4F6', color: '#6B7280' },
+  PAUSED:   { bg: '#FEF3C7', color: '#B45309' },
+  CANCELLED:{ bg: '#FFF1F2', color: '#E11D48' },
+}
+
+function PlanMembersModal({ plan, onClose }: { plan: PlanRow; onClose: () => void }) {
+  const [members, setMembers] = useState<PlanMember[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch(`/api/dashboard/membership-plans/${plan.id}/members`)
+      .then(r => r.json())
+      .then(d => setMembers(d.members ?? []))
+      .finally(() => setLoading(false))
+  }, [plan.id])
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{ background: 'rgba(0,0,0,0.4)' }}>
+      <div style={{ background: '#fff', borderRadius: 20, width: 'min(640px,94vw)',
+        maxHeight: '80vh', display: 'flex', flexDirection: 'column',
+        boxShadow: '0 24px 64px rgba(0,0,0,0.18)' }}>
+
+        {/* Header */}
+        <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid #F3F4F6',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>Members</h3>
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{plan.name}</p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 999,
+              background: '#EFF6FF', color: '#1D4ED8' }}>
+              {members.length} member{members.length !== 1 ? 's' : ''}
+            </span>
+            <button onClick={onClose}
+              style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid #E5E7EB',
+                background: '#F9FAFB', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <X size={14} style={{ color: '#6B7280' }} />
+            </button>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div style={{ overflowY: 'auto', flex: 1, padding: '8px 0' }}>
+          {loading ? (
+            <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 14 }}>Loading…</div>
+          ) : members.length === 0 ? (
+            <div style={{ padding: 40, textAlign: 'center' }}>
+              <Users size={32} style={{ color: '#D1D5DB', marginBottom: 12 }} />
+              <p style={{ fontSize: 14, color: '#9CA3AF', margin: 0 }}>No members on this plan yet</p>
+            </div>
+          ) : members.map(m => {
+            const sc = MEMBERSHIP_STATUS_COLORS[m.status] ?? { bg: '#F3F4F6', color: '#6B7280' }
+            return (
+              <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 12,
+                padding: '10px 24px', borderBottom: '1px solid #F9FAFB' }}>
+                {/* Avatar */}
+                <div style={{ width: 36, height: 36, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
+                  background: '#F3F4F6', border: '1px solid #E5E7EB',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {m.avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={m.avatarUrl} alt={m.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#9CA3AF' }}>
+                      {m.name.charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                {/* Info */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0, whiteSpace: 'nowrap',
+                    overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.name}</p>
+                  <p style={{ fontSize: 11, color: '#9CA3AF', margin: '2px 0 0', whiteSpace: 'nowrap',
+                    overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.email}</p>
+                </div>
+                {/* Dates */}
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <p style={{ fontSize: 11, color: '#374151', margin: 0 }}>
+                    {fmtDate(m.startDate)}
+                  </p>
+                  {m.endDate && (
+                    <p style={{ fontSize: 11, color: '#9CA3AF', margin: '2px 0 0' }}>
+                      → {fmtDate(m.endDate)}
+                    </p>
+                  )}
+                </div>
+                {/* Status badge */}
+                <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 999,
+                  background: sc.bg, color: sc.color, flexShrink: 0, whiteSpace: 'nowrap' }}>
+                  {m.status}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Share modal ────────────────────────────────────────────────────────────────
+function SharePlanModal({ plan, schoolSlug, onClose }: {
+  plan: PlanRow; schoolSlug: string | null; onClose: () => void
+}) {
+  const origin = typeof window !== 'undefined' ? window.location.origin : ''
+  const slug = schoolSlug ?? plan.id
+  const url = `${origin}/join/${slug}/${plan.id}`
+
+  const [copied, setCopied] = useState(false)
+
+  function copyLink() {
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  function sendEmail() {
+    const subject = encodeURIComponent(`Join ${plan.name}`)
+    const body = encodeURIComponent(
+      `Hi,\n\nI'd like to invite you to join our "${plan.name}" membership plan.\n\nClick the link below to sign up:\n${url}\n\nSee you on the mat!`
+    )
+    window.open(`mailto:?subject=${subject}&body=${body}`, '_blank')
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{ background: 'rgba(0,0,0,0.4)' }}>
+      <div style={{ background: '#fff', borderRadius: 20, width: 'min(480px,94vw)',
+        boxShadow: '0 24px 64px rgba(0,0,0,0.18)', overflow: 'hidden' }}>
+
+        {/* Header */}
+        <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid #F3F4F6',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>Share plan</h3>
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{plan.name}</p>
+          </div>
+          <button onClick={onClose}
+            style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid #E5E7EB',
+              background: '#F9FAFB', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+            <X size={14} style={{ color: '#6B7280' }} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+          {/* QR Code */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+            <div style={{ padding: 16, background: '#F9FAFB', borderRadius: 16, border: '1px solid #E5E7EB' }}>
+              <QRCodeSVG value={url} size={160} level="M" />
+            </div>
+            <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0, textAlign: 'center' }}>
+              Scan to join this membership plan
+            </p>
+          </div>
+
+          {/* Link copy */}
+          <div>
+            <label style={labelSt}>Shareable link</label>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ flex: 1, border: '1px solid #E5E7EB', borderRadius: 10, padding: '9px 12px',
+                fontSize: 12, color: '#6B7280', background: '#F9FAFB', overflow: 'hidden',
+                whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                {url}
+              </div>
+              <button onClick={copyLink}
+                style={{ padding: '9px 16px', borderRadius: 10, border: '1px solid #E5E7EB',
+                  background: copied ? '#F0FDF4' : '#fff', color: copied ? '#16A34A' : '#374151',
+                  fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex',
+                  alignItems: 'center', gap: 6, flexShrink: 0, transition: 'all 0.15s' }}>
+                {copied ? <Check size={13} /> : <Copy size={13} />}
+                {copied ? 'Copied!' : 'Copy'}
+              </button>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button onClick={sendEmail}
+              style={{ flex: 1, padding: '10px 16px', borderRadius: 10, border: '1px solid #E5E7EB',
+                background: '#fff', color: '#374151', fontSize: 13, fontWeight: 600,
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              <Mail size={14} />
+              Send by email
+            </button>
+            <button onClick={onClose}
+              style={{ flex: 1, padding: '10px 16px', borderRadius: 10, border: 'none',
+                background: '#0071E3', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              Done
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Plan type badge ────────────────────────────────────────────────────────────
 const PLAN_TYPE_COLORS: Record<PlanType, { bg: string; color: string; label: string }> = {
   SUBSCRIPTION: { bg: '#EFF6FF', color: '#1D4ED8', label: 'Subscription' },
@@ -644,12 +920,64 @@ const PLAN_TYPE_COLORS: Record<PlanType, { bg: string; color: string; label: str
   TRIAL:        { bg: '#F5F3FF', color: '#6D28D9', label: 'Trial'        },
 }
 
+// ── Row menu ───────────────────────────────────────────────────────────────────
+function PlanRowMenu({ plan, onMembers, onShare }: {
+  plan: PlanRow
+  onMembers: () => void
+  onShare: () => void
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button onClick={() => setOpen(o => !o)}
+        className="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer"
+        style={{ border: '1px solid #E5E7EB', background: open ? '#F3F4F6' : '#fff' }}>
+        <MoreVertical size={14} style={{ color: '#6B7280' }} />
+      </button>
+
+      {open && (
+        <div style={{ position: 'absolute', right: 0, top: '100%', marginTop: 4, zIndex: 30,
+          background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.1)', minWidth: 160, overflow: 'hidden' }}>
+          <button onClick={() => { setOpen(false); onMembers() }}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+              padding: '10px 14px', border: 'none', background: 'none',
+              fontSize: 13, color: '#374151', cursor: 'pointer', textAlign: 'left' }}>
+            <Users size={14} style={{ color: '#6B7280' }} />
+            View members
+          </button>
+          <button onClick={() => { setOpen(false); onShare() }}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+              padding: '10px 14px', border: 'none', background: 'none', borderTop: '1px solid #F3F4F6',
+              fontSize: 13, color: '#374151', cursor: 'pointer', textAlign: 'left' }}>
+            <Share2 size={14} style={{ color: '#6B7280' }} />
+            Share / QR code
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Table row ─────────────────────────────────────────────────────────────────
-function PlanTableRow({ plan, classes, onEdit, onDelete }: {
+function PlanTableRow({ plan, classes, onEdit, onDelete, onMembers, onShare }: {
   plan: PlanRow
   classes: ClassOption[]
   onEdit: (p: PlanRow) => void
   onDelete: (p: PlanRow) => void
+  onMembers: (p: PlanRow) => void
+  onShare: (p: PlanRow) => void
 }) {
   const cfg = plan.classAccess as ClassAccessConfig
   const includedRules = (cfg.classRules ?? []).filter(r => r.included)
@@ -677,7 +1005,6 @@ function PlanTableRow({ plan, classes, onEdit, onDelete }: {
       {/* Plan name + image */}
       <td style={{ padding: '12px 20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {/* Image or placeholder */}
           <div style={{ width: 44, height: 44, borderRadius: 10, overflow: 'hidden', flexShrink: 0,
             border: '1px solid #E5E7EB', background: '#F3F4F6',
             display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -731,8 +1058,12 @@ function PlanTableRow({ plan, classes, onEdit, onDelete }: {
 
       {/* Members */}
       <td className="hidden lg:table-cell" style={{ padding: '12px 20px' }}>
-        <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{plan.memberCount}</span>
-        <span style={{ fontSize: 11, color: '#9CA3AF', display: 'block' }}>members</span>
+        <button onClick={() => onMembers(plan)}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none',
+            cursor: 'pointer', padding: 0 }}>
+          <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{plan.memberCount}</span>
+          <span style={{ fontSize: 11, color: '#9CA3AF' }}>members</span>
+        </button>
       </td>
 
       {/* Status */}
@@ -760,6 +1091,7 @@ function PlanTableRow({ plan, classes, onEdit, onDelete }: {
             style={{ border: '1px solid #FECACA', background: '#FFF5F5' }}>
             <Trash2 size={13} style={{ color: '#EF4444' }} />
           </button>
+          <PlanRowMenu plan={plan} onMembers={() => onMembers(plan)} onShare={() => onShare(plan)} />
         </div>
       </td>
     </tr>
@@ -780,13 +1112,16 @@ export default function MembershipsClient() {
   const { setMenuOpen, menuOpen } = useDashboard()
   useT()
 
-  const [plans, setPlans]         = useState<PlanRow[]>([])
-  const [classes, setClasses]     = useState<ClassOption[]>([])
-  const [loading, setLoading]     = useState(true)
-  const [activeTab, setActiveTab] = useState<TabId>('subscriptions')
+  const [plans, setPlans]           = useState<PlanRow[]>([])
+  const [classes, setClasses]       = useState<ClassOption[]>([])
+  const [schoolSlug, setSchoolSlug] = useState<string | null>(null)
+  const [loading, setLoading]       = useState(true)
+  const [activeTab, setActiveTab]   = useState<TabId>('subscriptions')
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [editPlan, setEditPlan]   = useState<PlanRow | null>(null)
+  const [editPlan, setEditPlan]     = useState<PlanRow | null>(null)
   const [deletePlan, setDeletePlan] = useState<PlanRow | null>(null)
+  const [membersPlan, setMembersPlan] = useState<PlanRow | null>(null)
+  const [sharePlan, setSharePlan]   = useState<PlanRow | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -796,6 +1131,7 @@ export default function MembershipsClient() {
         const data = await res.json()
         setPlans(data.plans)
         setClasses(data.classes)
+        setSchoolSlug(data.schoolSlug ?? null)
       }
     } finally {
       setLoading(false)
@@ -924,7 +1260,8 @@ export default function MembershipsClient() {
               <tbody>
                 {filtered.map(plan => (
                   <PlanTableRow key={plan.id} plan={plan} classes={classes}
-                    onEdit={openEdit} onDelete={setDeletePlan} />
+                    onEdit={openEdit} onDelete={setDeletePlan}
+                    onMembers={setMembersPlan} onShare={setSharePlan} />
                 ))}
               </tbody>
             </table>
@@ -942,6 +1279,14 @@ export default function MembershipsClient() {
 
       {deletePlan && (
         <DeleteModal plan={deletePlan} onClose={() => setDeletePlan(null)} onDeleted={handleDeleted} />
+      )}
+
+      {membersPlan && (
+        <PlanMembersModal plan={membersPlan} onClose={() => setMembersPlan(null)} />
+      )}
+
+      {sharePlan && (
+        <SharePlanModal plan={sharePlan} schoolSlug={schoolSlug} onClose={() => setSharePlan(null)} />
       )}
     </main>
   )

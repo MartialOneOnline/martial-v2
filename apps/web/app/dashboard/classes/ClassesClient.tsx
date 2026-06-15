@@ -10,6 +10,7 @@ import { useDashboard } from '../../../components/DashboardShell'
 import DashboardLanguageSelector from '../../../components/DashboardLanguageSelector'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { type BookingSettings, minsToHoursAndMins, hoursAndMinsToTotal } from '../../../lib/types/booking-settings'
+import { fmtPrice as _fmtP } from '../../../lib/format'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -69,7 +70,7 @@ function scheduleLabel(slots: ScheduleSlot[] | null): string {
 function fmtPrice(price: number | null, currency: string): string {
   if (price === null) return '—'
   if (price === 0) return 'Free'
-  return `${currency === 'EUR' ? '€' : currency}${price}`
+  return _fmtP(price, currency)
 }
 
 // ── Status badge ───────────────────────────────────────────────────────────────

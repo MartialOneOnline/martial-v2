@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { fmtPrice } from '../../../lib/format'
 
 type Plan = {
   id: string
@@ -37,12 +38,11 @@ function categorise(plans: Plan[]) {
 }
 
 function PriceLabel({ price, currency, billingCycle }: { price: number; currency: string; billingCycle: string }) {
-  const sym = currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : '$'
   if (price === 0) return <span className="text-2xl font-bold text-emerald-600">Free</span>
   const suffix = billingCycle === 'monthly' ? '/mo' : billingCycle === 'quarterly' ? '/qtr' : billingCycle === 'annual' ? '/yr' : ''
   return (
     <span className="text-2xl font-bold text-[#0870E2]">
-      {sym}{price}<span className="text-sm font-normal text-[#4f4f4f]">{suffix}</span>
+      {fmtPrice(price, currency)}<span className="text-sm font-normal text-[#4f4f4f]">{suffix}</span>
     </span>
   )
 }

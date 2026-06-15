@@ -1,13 +1,14 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {
-  Menu, X, Search, Check, Clock,
+  Menu, X, Search, Check, Clock, Filter,
   TrendingUp, TrendingDown, RefreshCw, MoreHorizontal,
   PauseCircle, XCircle, Plus,
 } from 'lucide-react'
 import { useDashboard } from '../../../../components/DashboardShell'
 import { useT } from '../../../../lib/i18n/LanguageContext'
+import { fmtPrice } from '../../../../lib/format'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type MemStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED' | 'EXPIRED'
@@ -82,6 +83,147 @@ function getPaginationPages(current: number, total: number): (number | '...')[] 
   if (current <= 4) return [1, 2, 3, 4, 5, '...', total]
   if (current >= total - 3) return [1, '...', total - 4, total - 3, total - 2, total - 1, total]
   return [1, '...', current - 1, current, current + 1, '...', total]
+}
+
+// ── Subscriptions filters ─────────────────────────────────────────────────────
+interface SubFilters {
+  belt: string
+  plan: string
+  dateFrom: string
+  dateTo: string
+}
+const EMPTY_SUB_FILTERS: SubFilters = { belt: '', plan: '', dateFrom: '', dateTo: '' }
+
+const SUB_BELT_OPTIONS = ['Blanco', 'Azul', 'Morado', 'Marrón', 'Negro']
+const SUB_BELT_STYLES: Record<string, { bg: string; color: string; border: string }> = {
+  Blanco: { bg: '#F9FAFB', color: '#374151', border: '#D1D5DB' },
+  Azul:   { bg: '#EFF6FF', color: '#1D4ED8', border: '#BFDBFE' },
+  Morado: { bg: '#F5F3FF', color: '#6D28D9', border: '#DDD6FE' },
+  Marrón: { bg: '#FFF7ED', color: '#C2410C', border: '#FED7AA' },
+  Negro:  { bg: '#1F2937', color: '#F9FAFB', border: '#374151' },
+}
+
+function SubFiltersPanel({ filters, onChange }: {
+  filters: SubFilters
+  onChange: (f: SubFilters) => void
+}) {
+  const [open, setOpen]   = useState(false)
+  const [local, setLocal] = useState<SubFilters>(filters)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => { setLocal(filters) }, [filters])
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const activeCount = [!!filters.belt, !!filters.plan, !!filters.dateFrom || !!filters.dateTo].filter(Boolean).length
+
+  function apply() { onChange(local); setOpen(false) }
+  function clear() { setLocal(EMPTY_SUB_FILTERS); onChange(EMPTY_SUB_FILTERS); setOpen(false) }
+
+  const inp: React.CSSProperties = {
+    width: '100%', border: '1.5px solid #E5E7EB', borderRadius: 8, padding: '7px 10px',
+    fontSize: 12, color: '#111827', background: '#fff', outline: 'none', boxShadow: 'none',
+    WebkitAppearance: 'none', colorScheme: 'light',
+  }
+  const sectionLabel: React.CSSProperties = {
+    fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase',
+    letterSpacing: '0.06em', marginBottom: 8, display: 'block',
+  }
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button onClick={() => setOpen(o => !o)}
+        style={{ display: 'flex', alignItems: 'center', gap: 5, height: 34, padding: '0 12px',
+          borderRadius: 8, border: activeCount ? '1.5px solid #0071E3' : '1px solid #E5E7EB',
+          background: activeCount ? '#EFF6FF' : '#fff', cursor: 'pointer' }}>
+        <Filter size={13} style={{ color: activeCount ? '#0071E3' : '#6B7280' }} />
+        <span style={{ fontSize: 12, fontWeight: 500, color: activeCount ? '#0071E3' : '#6B7280' }}>Filters</span>
+        {activeCount > 0 && (
+          <span style={{ background: '#0071E3', color: '#fff', borderRadius: 999, fontSize: 10,
+            fontWeight: 700, padding: '1px 6px', lineHeight: 1.4 }}>{activeCount}</span>
+        )}
+      </button>
+
+      {open && (
+        <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 6, zIndex: 30,
+          background: '#fff', border: '1px solid #E5E7EB', borderRadius: 16,
+          boxShadow: '0 12px 32px rgba(0,0,0,0.12)', width: 300, padding: '16px 16px 14px' }}>
+
+          {/* Date range */}
+          <div style={{ marginBottom: 16 }}>
+            <span style={sectionLabel}>Date range</span>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 }}>From</label>
+                <input type="date" value={local.dateFrom}
+                  onChange={e => setLocal(p => ({ ...p, dateFrom: e.target.value }))} style={inp} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 }}>To</label>
+                <input type="date" value={local.dateTo}
+                  onChange={e => setLocal(p => ({ ...p, dateTo: e.target.value }))} style={inp} />
+              </div>
+            </div>
+          </div>
+
+          {/* Plan name */}
+          <div style={{ marginBottom: 16 }}>
+            <span style={sectionLabel}>Plan / Membership</span>
+            <input type="text" placeholder="e.g. Jiu Jitsu Mensual"
+              value={local.plan}
+              onChange={e => setLocal(p => ({ ...p, plan: e.target.value }))}
+              style={inp} />
+          </div>
+
+          {/* Belt */}
+          <div style={{ marginBottom: 16 }}>
+            <span style={sectionLabel}>Belt</span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              <button onClick={() => setLocal(p => ({ ...p, belt: '' }))}
+                style={{ fontSize: 11, fontWeight: 500, padding: '4px 11px', borderRadius: 999, cursor: 'pointer',
+                  border: !local.belt ? '1.5px solid #0071E3' : '1px solid #E5E7EB',
+                  background: !local.belt ? '#EFF6FF' : '#F9FAFB',
+                  color: !local.belt ? '#0071E3' : '#6B7280' }}>
+                All
+              </button>
+              {SUB_BELT_OPTIONS.map(b => {
+                const bs = SUB_BELT_STYLES[b]!
+                const isOn = local.belt === b
+                return (
+                  <button key={b} onClick={() => setLocal(p => ({ ...p, belt: isOn ? '' : b }))}
+                    style={{ fontSize: 11, fontWeight: 600, padding: '4px 11px', borderRadius: 999, cursor: 'pointer',
+                      border: isOn ? `1.5px solid ${bs.border}` : '1px solid #E5E7EB',
+                      background: isOn ? bs.bg : '#F9FAFB',
+                      color: isOn ? bs.color : '#6B7280' }}>
+                    {b}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div style={{ display: 'flex', gap: 8, paddingTop: 12, borderTop: '1px solid #F3F4F6' }}>
+            <button onClick={clear}
+              style={{ flex: 1, padding: '8px', borderRadius: 8, border: '1px solid #E5E7EB',
+                background: '#fff', fontSize: 12, fontWeight: 500, color: '#6B7280', cursor: 'pointer' }}>
+              Clear all
+            </button>
+            <button onClick={apply}
+              style={{ flex: 1, padding: '8px', borderRadius: 8, border: 'none',
+                background: '#0071E3', fontSize: 12, fontWeight: 600, color: '#fff', cursor: 'pointer' }}>
+              Apply
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
 // ── Success toast ──────────────────────────────────────────────────────────────
@@ -359,6 +501,7 @@ export default function PaymentSubscriptionsClient() {
   const [openMenuId, setOpenMenuId]     = useState<string | null>(null)
   const [toast, setToast]                    = useState(false)
   const [showAssignModal, setShowAssignModal] = useState(false)
+  const [subFilters, setSubFilters]     = useState<SubFilters>(EMPTY_SUB_FILTERS)
 
   const [subs, setSubs]       = useState<SubRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -414,6 +557,10 @@ export default function PaymentSubscriptionsClient() {
 
   const filtered = subs.filter(s => {
     if (activeFilter !== 'ALL' && s.status !== activeFilter) return false
+    if (subFilters.belt && s.belt !== subFilters.belt) return false
+    if (subFilters.plan && !s.planName.toLowerCase().includes(subFilters.plan.toLowerCase())) return false
+    if (subFilters.dateFrom && new Date(s.startDate) < new Date(subFilters.dateFrom)) return false
+    if (subFilters.dateTo   && new Date(s.startDate) > new Date(subFilters.dateTo + 'T23:59:59')) return false
     return true
   })
 
@@ -426,7 +573,7 @@ export default function PaymentSubscriptionsClient() {
 
   const STATS = [
     { label: t.paymentsPage.activeNow, value: String(counts.ACTIVE), icon: Check,       color: '#16A34A', bg: '#F0FDF4' },
-    { label: t.paymentsPage.mrrLabel,  value: '€' + mrr.toLocaleString('es-ES', { minimumFractionDigits: 2 }), icon: TrendingUp,  color: '#0071E3', bg: '#EFF6FF' },
+    { label: t.paymentsPage.mrrLabel,  value: fmtPrice(mrr, 'EUR'), icon: TrendingUp,  color: '#0071E3', bg: '#EFF6FF' },
     { label: 'Pausadas',               value: String(counts.PAUSED),  icon: PauseCircle, color: '#D97706', bg: '#FFFBEB' },
     { label: t.paymentsPage.churn,     value: String(counts.CANCELLED + counts.EXPIRED), icon: TrendingDown, color: '#DC2626', bg: '#FEF2F2' },
   ]
@@ -461,6 +608,8 @@ export default function PaymentSubscriptionsClient() {
             onChange={e => handleSearch(e.target.value)}
             style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
         </div>
+
+        <SubFiltersPanel filters={subFilters} onChange={f => { setSubFilters(f); setCurrentPage(1) }} />
 
         <div className="flex-1" />
 
@@ -601,7 +750,7 @@ export default function PaymentSubscriptionsClient() {
 
                     <td className="hidden sm:table-cell px-5 py-3">
                       <span style={{ fontSize: 15, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em' }}>
-                        €{sub.amount.toFixed(2)}
+                        {fmtPrice(sub.amount, sub.currency)}
                       </span>
                     </td>
 

@@ -8,6 +8,7 @@ import {
   BookOpen, TrendingUp, Clock, AlertCircle, ChevronRight,
   User, Heart, FileText, Dumbbell, X, Plus, Check, CheckCircle,
 } from 'lucide-react'
+import { fmtPrice } from '../../../../lib/format'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type Booking = { id: string; className: string; date: string; status: string; attendedAt: string | null }
@@ -20,7 +21,7 @@ type MembershipRecord = {
 type ActiveMembership = {
   id: string; planName: string; status: string
   startDate: string; expiresAt: string | null
-  price: number; interval: string | null; consumed: number
+  price: number; currency?: string; interval: string | null; consumed: number
 }
 type AvailablePlan = {
   id: string; name: string; price: number; currency: string
@@ -541,7 +542,7 @@ function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
                   </div>
                   <div className="flex items-center gap-2">
                     <span style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>
-                      {sym(p.currency)}{p.price % 1 === 0 ? p.price : p.price.toFixed(2)}
+                      {fmtPrice(p.price, p.currency)}
                     </span>
                     {planId === p.id && <Check size={14} style={{ color: '#0071E3' }} />}
                   </div>
@@ -688,7 +689,7 @@ function MembershipSection({ memberId, activeMembership: initialActiveMembership
               </div>
               <div className="flex items-center gap-2">
                 <span style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>
-                  {activeMembership.price === 0 ? 'Free' : `€${activeMembership.price % 1 === 0 ? activeMembership.price : activeMembership.price.toFixed(2)}`}
+                  {activeMembership.price === 0 ? 'Free' : fmtPrice(activeMembership.price, activeMembership.currency ?? 'EUR')}
                   {activeMembership.interval && <span style={{ fontSize: 11, fontWeight: 400, color: '#9CA3AF' }}>/{activeMembership.interval}</span>}
                 </span>
                 <span style={{ fontSize: 11, fontWeight: 600, background: '#16A34A', color: '#fff', padding: '2px 10px', borderRadius: 999 }}>
@@ -1108,7 +1109,7 @@ export default function StudentProfileClient({ profile: initialProfile }: { prof
                             <p style={{ fontSize: 11, color: '#9CA3AF', margin: '1px 0 0' }}>{fmt(t.date)} · {t.method}</p>
                           </div>
                           <div className="flex flex-col items-end gap-1">
-                            <span style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>€{t.amount.toFixed(2)}</span>
+                            <span style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>{fmtPrice(t.amount, t.currency)}</span>
                             <span style={{ fontSize: 10, fontWeight: 600, background: ts.bg, color: ts.color, padding: '1px 6px', borderRadius: 999 }}>{t.status}</span>
                           </div>
                         </div>

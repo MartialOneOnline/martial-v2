@@ -6,6 +6,7 @@ import {
   CreditCard, Building2, Zap, Clock, CalendarCheck,
   ChevronDown, ChevronUp, RefreshCw, CheckCircle2,
 } from 'lucide-react'
+import { fmtPrice } from '../../../lib/format'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -162,7 +163,7 @@ function ActiveMembershipCard({ m }: { m: Membership }) {
         <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
           <div>
             <span style={{ fontSize: 26, fontWeight: 800, color: '#111827', letterSpacing: '-0.03em' }}>
-              {sym(m.currency)}{m.price % 1 === 0 ? m.price : m.price.toFixed(2)}
+              {fmtPrice(m.price, m.currency)}
             </span>
             {billing && (
               <span style={{ fontSize: 12, color: '#9CA3AF', marginLeft: 3 }}>{billing}</span>

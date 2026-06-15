@@ -24,7 +24,7 @@ export async function GET() {
   const auth = await authorise(['OWNER', 'ADMIN', 'INSTRUCTOR'])
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
-  const [plans, classes, memberships] = await Promise.all([
+  const [plans, classes, memberships, school] = await Promise.all([
     prisma.membershipPlan.findMany({
       where: { schoolId: auth.schoolId },
       orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
@@ -40,6 +40,7 @@ export async function GET() {
       where: { schoolId: auth.schoolId, status: 'ACTIVE', planId: { not: null } },
       _count: { id: true },
     }),
+    prisma.school.findUnique({ where: { id: auth.schoolId }, select: { slug: true } }),
   ])
 
   const memberCountByPlan = Object.fromEntries(
@@ -49,6 +50,7 @@ export async function GET() {
   return NextResponse.json({
     plans: plans.map(p => ({ ...p, memberCount: memberCountByPlan[p.id] ?? 0 })),
     classes,
+    schoolSlug: school?.slug ?? null,
   })
 }
 
