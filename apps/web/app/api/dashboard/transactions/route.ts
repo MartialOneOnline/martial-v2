@@ -58,15 +58,17 @@ export async function GET(req: NextRequest) {
       take: pageSize,
     }),
     prisma.transaction.count({ where }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     prisma.transaction.groupBy({
       by: ['status'],
-      where: { schoolId: auth.schoolId },
+      where: { schoolId: auth.schoolId, ...(type && type !== 'ALL' ? { type: type as any } : {}) } as any,
       _count: { id: true },
       _sum: { amount: true },
-    }),
+    }) as any,
   ])
 
-  const statMap = Object.fromEntries(stats.map(s => [s.status, { count: s._count.id, sum: s._sum.amount ?? 0 }]))
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const statMap = Object.fromEntries((stats as any[]).map((s: any) => [s.status, { count: s._count?.id ?? 0, sum: s._sum?.amount ?? 0 }]))
   const totalRevenue = statMap['PAID']?.sum ?? 0
   const countByStatus = {
     PAID:     statMap['PAID']?.count     ?? 0,

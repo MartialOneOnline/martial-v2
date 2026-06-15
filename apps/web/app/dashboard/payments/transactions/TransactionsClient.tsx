@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   Menu, Search, Download, Plus, Check, Clock,
-  AlertCircle, XCircle, RefreshCw, ChevronLeft, ChevronRight,
+  AlertCircle, XCircle, RefreshCw, ChevronLeft, ChevronRight, X,
+  CreditCard, Banknote, Building2, Landmark,
 } from 'lucide-react'
 import { useDashboard } from '../../../../components/DashboardShell'
 import { useT } from '../../../../lib/i18n/LanguageContext'
@@ -52,6 +53,14 @@ const METHOD_COLORS: Record<string, { bg: string; color: string }> = {
   OTHER:         { bg: '#F9FAFB', color: '#6B7280' },
 }
 
+const METHOD_ICONS: Record<string, React.ElementType> = {
+  STRIPE:        CreditCard,
+  DIRECT_DEBIT:  Landmark,
+  CASH:          Banknote,
+  BANK_TRANSFER: Building2,
+  OTHER:         CreditCard,
+}
+
 const PAGE_SIZE = 20
 
 function getPaginationPages(current: number, total: number): (number | '...')[] {
@@ -61,12 +70,12 @@ function getPaginationPages(current: number, total: number): (number | '...')[] 
   return [1, '...', current - 1, current, current + 1, '...', total]
 }
 
-function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null }) {
+function Avatar({ name, avatarUrl, size = 36 }: { name: string; avatarUrl: string | null; size?: number }) {
   const initials = (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
-  if (avatarUrl) return <img src={avatarUrl} alt={name} className="w-9 h-9 rounded-full object-cover" style={{ border: '1.5px solid #E5E7EB' }} />
+  if (avatarUrl) return <img src={avatarUrl} alt={name} style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid #E5E7EB', flexShrink: 0 }} />
   return (
-    <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
-      style={{ background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', color: '#fff', fontSize: 12, fontWeight: 700 }}>
+    <div style={{ width: size, height: size, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+      background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', color: '#fff', fontSize: size * 0.33, fontWeight: 700 }}>
       {initials}
     </div>
   )
@@ -80,6 +89,137 @@ function fmtPrice(amount: number, currency = 'EUR') {
   return new Intl.NumberFormat('es-ES', { style: 'currency', currency }).format(amount)
 }
 
+// ── Details Drawer ─────────────────────────────────────────────────────────────
+function TxDetailDrawer({ tx, onClose }: { tx: TxRow; onClose: () => void }) {
+  const sc  = STATUS_MAP[tx.status] ?? STATUS_MAP.PAID
+  const StatusIcon = sc.icon
+  const methodKey = tx.method ? tx.method.toUpperCase() : null
+  const mc  = methodKey ? (METHOD_COLORS[methodKey] ?? METHOD_COLORS.OTHER) : null
+  const MIcon = methodKey ? (METHOD_ICONS[methodKey] ?? METHOD_ICONS.OTHER) : null
+
+  const rows: { label: string; value: React.ReactNode }[] = [
+    {
+      label: 'Membership',
+      value: tx.description
+        ? <span style={{ fontWeight: 600, color: '#111827' }}>{tx.description}</span>
+        : <span style={{ color: '#9CA3AF' }}>—</span>,
+    },
+    {
+      label: 'Price',
+      value: <span style={{ fontWeight: 700, fontSize: 15, color: '#111827' }}>{fmtPrice(tx.amount, tx.currency)}</span>,
+    },
+    {
+      label: 'Method',
+      value: mc && methodKey && MIcon ? (
+        <span className="inline-flex items-center gap-1.5"
+          style={{ fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 999, background: mc.bg, color: mc.color }}>
+          <MIcon size={11} />
+          {METHOD_LABELS[methodKey] ?? methodKey}
+        </span>
+      ) : <span style={{ color: '#9CA3AF' }}>—</span>,
+    },
+    {
+      label: 'Submitted',
+      value: <span style={{ color: '#374151' }}>{fmtDate(tx.date)}</span>,
+    },
+    {
+      label: 'Status',
+      value: (
+        <span className="inline-flex items-center gap-1.5"
+          style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999,
+            background: sc.bg, color: sc.color, border: '1px solid ' + sc.border }}>
+          <StatusIcon size={9} strokeWidth={2.5} />
+          {sc.label}
+        </span>
+      ),
+    },
+    {
+      label: 'Member',
+      value: (
+        <div className="flex items-center gap-2">
+          <Avatar name={tx.userName} avatarUrl={tx.userAvatar} size={24} />
+          <div>
+            <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', lineHeight: 1.2 }}>{tx.userName}</p>
+            {tx.userEmail && <p style={{ fontSize: 11, color: '#9CA3AF' }}>{tx.userEmail}</p>}
+          </div>
+        </div>
+      ),
+    },
+    {
+      label: 'Category',
+      value: <span style={{ fontSize: 12, fontWeight: 500, color: '#6B7280', textTransform: 'capitalize' }}>{tx.category?.toLowerCase().replace('_', ' ')}</span>,
+    },
+    ...(tx.notes ? [{
+      label: 'Notes',
+      value: <span style={{ fontSize: 12, color: '#6B7280', fontFamily: 'monospace' }}>{tx.notes}</span>,
+    }] : []),
+  ]
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div className="fixed inset-0 z-40" style={{ background: 'rgba(0,0,0,0.25)' }} onClick={onClose} />
+
+      {/* Drawer */}
+      <div className="fixed right-0 top-0 bottom-0 z-50 flex flex-col"
+        style={{ width: 360, background: '#fff', boxShadow: '-4px 0 24px rgba(0,0,0,0.10)', overflowY: 'auto' }}>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #F3F4F6' }}>
+          <div>
+            <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>
+              Payment Details
+            </p>
+            <p style={{ fontSize: 16, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em' }}>
+              {fmtPrice(tx.amount, tx.currency)}
+            </p>
+          </div>
+          <button onClick={onClose} style={{ background: '#F3F4F6', border: 'none', borderRadius: 8, padding: 6, cursor: 'pointer', display: 'flex' }}>
+            <X size={16} style={{ color: '#6B7280' }} />
+          </button>
+        </div>
+
+        {/* Member banner */}
+        <div className="flex items-center gap-3 px-6 py-4" style={{ background: '#F9FAFB', borderBottom: '1px solid #F3F4F6' }}>
+          <Avatar name={tx.userName} avatarUrl={tx.userAvatar} size={44} />
+          <div>
+            <p style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>{tx.userName}</p>
+            <p style={{ fontSize: 12, color: '#9CA3AF' }}>{tx.userEmail ?? '—'}</p>
+          </div>
+        </div>
+
+        {/* Detail rows */}
+        <div className="flex flex-col px-6 py-4 gap-0">
+          {rows.filter((_, i) => i !== 5).map(row => ( // skip Member row (already in banner)
+            <div key={row.label} className="flex items-start justify-between py-3"
+              style={{ borderBottom: '1px solid #F9FAFB' }}>
+              <span style={{ fontSize: 12, fontWeight: 500, color: '#9CA3AF', minWidth: 90 }}>{row.label}</span>
+              <div style={{ textAlign: 'right' }}>{row.value}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Actions */}
+        <div className="mt-auto px-6 py-5 flex flex-col gap-2" style={{ borderTop: '1px solid #F3F4F6' }}>
+          {tx.status !== 'REFUNDED' && (
+            <button className="w-full py-2.5 rounded-xl cursor-pointer"
+              style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626', fontSize: 13, fontWeight: 600 }}>
+              Mark as Refunded
+            </button>
+          )}
+          {tx.status === 'PENDING' && (
+            <button className="w-full py-2.5 rounded-xl cursor-pointer"
+              style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', color: '#16A34A', fontSize: 13, fontWeight: 600 }}>
+              Mark as Paid
+            </button>
+          )}
+        </div>
+      </div>
+    </>
+  )
+}
+
+// ── Main ──────────────────────────────────────────────────────────────────────
 export default function TransactionsClient() {
   const { setMenuOpen } = useDashboard()
   const t = useT()
@@ -89,6 +229,7 @@ export default function TransactionsClient() {
   const [totalAmount,   setTotalAmount]   = useState(0)
   const [countByStatus, setCountByStatus] = useState<StatusCounts>({ PAID: 0, PENDING: 0, FAILED: 0, REFUNDED: 0 })
   const [loading,       setLoading]       = useState(true)
+  const [selectedTx,    setSelectedTx]    = useState<TxRow | null>(null)
 
   const [activeFilter,  setActiveFilter]  = useState<FilterTab>('ALL')
   const [activeMethod,  setActiveMethod]  = useState<MethodFilter>('ALL')
@@ -123,7 +264,7 @@ export default function TransactionsClient() {
 
   useEffect(() => { load() }, [load])
 
-  // Compute method counts from loaded page (approximate)
+  // Method counts from current page (approximate)
   const methodCounts: Record<string, number> = {}
   for (const tx of transactions) {
     const k = tx.method ? tx.method.toUpperCase() : 'OTHER'
@@ -135,20 +276,20 @@ export default function TransactionsClient() {
   const pages = getPaginationPages(page, totalPages)
 
   const STATUS_FILTERS: { id: FilterTab; label: string; count: number }[] = [
-    { id: 'ALL',      label: t.common.all,  count: totalCount                  },
-    { id: 'PAID',     label: 'Paid',        count: countByStatus.PAID          },
-    { id: 'PENDING',  label: 'Pending',     count: countByStatus.PENDING       },
-    { id: 'FAILED',   label: 'Failed',      count: countByStatus.FAILED        },
-    { id: 'REFUNDED', label: 'Refunded',    count: countByStatus.REFUNDED      },
+    { id: 'ALL',      label: t.common.all,  count: totalCount             },
+    { id: 'PAID',     label: 'Paid',        count: countByStatus.PAID     },
+    { id: 'PENDING',  label: 'Pending',     count: countByStatus.PENDING  },
+    { id: 'FAILED',   label: 'Failed',      count: countByStatus.FAILED   },
+    { id: 'REFUNDED', label: 'Refunded',    count: countByStatus.REFUNDED },
   ]
 
   const METHOD_FILTERS: { id: MethodFilter; label: string }[] = [
-    { id: 'ALL',           label: 'All Methods' },
-    { id: 'CASH',          label: 'Cash'        },
-    { id: 'STRIPE',        label: 'Stripe'      },
-    { id: 'BANK_TRANSFER', label: 'Transfer'    },
-    { id: 'DIRECT_DEBIT',  label: 'Direct Debit'},
-    { id: 'OTHER',         label: 'Other'       },
+    { id: 'ALL',           label: 'All Methods'  },
+    { id: 'CASH',          label: 'Cash'         },
+    { id: 'STRIPE',        label: 'Stripe'       },
+    { id: 'BANK_TRANSFER', label: 'Transfer'     },
+    { id: 'DIRECT_DEBIT',  label: 'Direct Debit' },
+    { id: 'OTHER',         label: 'Other'        },
   ]
 
   const handleExport = () => {
@@ -167,6 +308,7 @@ export default function TransactionsClient() {
   }
 
   return (
+    <>
     <main style={{ flex: 1, minWidth: 0, width: '100%', overflow: 'auto' }}>
 
       {/* Topbar */}
@@ -257,9 +399,10 @@ export default function TransactionsClient() {
                   { label: 'Method',      cls: 'hidden sm:table-cell' },
                   { label: 'Amount',      cls: '' },
                   { label: 'Submitted',   cls: 'hidden md:table-cell' },
-                  { label: 'Status',      cls: '' },
-                ].map(h => (
-                  <th key={h.label} className={`px-5 py-3 text-left ${h.cls}`}
+                  { label: 'Status',      cls: 'hidden sm:table-cell' },
+                  { label: '',            cls: '' },
+                ].map((h, i) => (
+                  <th key={i} className={`px-5 py-3 text-left ${h.cls}`}
                     style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                     {h.label}
                   </th>
@@ -268,10 +411,10 @@ export default function TransactionsClient() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} className="px-5 py-12 text-center" style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</td></tr>
+                <tr><td colSpan={7} className="px-5 py-12 text-center" style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</td></tr>
               ) : transactions.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-5 py-12 text-center">
+                  <td colSpan={7} className="px-5 py-12 text-center">
                     <RefreshCw size={28} style={{ color: '#E5E7EB', margin: '0 auto 10px' }} />
                     <p style={{ fontSize: 13, color: '#9CA3AF' }}>No transactions found</p>
                   </td>
@@ -281,9 +424,14 @@ export default function TransactionsClient() {
                 const StatusIcon = sc.icon
                 const methodKey = tx.method ? tx.method.toUpperCase() : null
                 const mc = methodKey ? (METHOD_COLORS[methodKey] ?? { bg: '#F9FAFB', color: '#6B7280' }) : null
+                const isSelected = selectedTx?.id === tx.id
                 return (
-                  <tr key={tx.id} className="hover:bg-[#FAFAFA] transition-colors"
-                    style={{ borderBottom: idx < transactions.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
+                  <tr key={tx.id}
+                    onClick={() => setSelectedTx(isSelected ? null : tx)}
+                    className="hover:bg-[#FAFAFA] transition-colors cursor-pointer"
+                    style={{ borderBottom: idx < transactions.length - 1 ? '1px solid #F9FAFB' : 'none',
+                      background: isSelected ? '#F0F7FF' : undefined }}>
+
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
                         <Avatar name={tx.userName} avatarUrl={tx.userAvatar} />
@@ -293,9 +441,11 @@ export default function TransactionsClient() {
                         </div>
                       </div>
                     </td>
+
                     <td className="hidden md:table-cell px-5 py-3">
                       <span style={{ fontSize: 13, color: '#374151' }}>{tx.description ?? '—'}</span>
                     </td>
+
                     <td className="hidden sm:table-cell px-5 py-3">
                       {mc && methodKey ? (
                         <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999,
@@ -306,21 +456,34 @@ export default function TransactionsClient() {
                         <span style={{ fontSize: 13, color: '#D1D5DB' }}>—</span>
                       )}
                     </td>
+
                     <td className="px-5 py-3">
                       <span style={{ fontSize: 14, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em' }}>
                         {fmtPrice(tx.amount, tx.currency)}
                       </span>
                     </td>
+
                     <td className="hidden md:table-cell px-5 py-3">
                       <span style={{ fontSize: 13, color: '#6B7280' }}>{fmtDate(tx.date)}</span>
                     </td>
-                    <td className="px-5 py-3">
+
+                    <td className="hidden sm:table-cell px-5 py-3">
                       <span className="inline-flex items-center gap-1.5"
                         style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999,
-                          background: sc.bg, color: sc.color, border: '1px solid ' + sc.border, width: 'fit-content' }}>
+                          background: sc.bg, color: sc.color, border: '1px solid ' + sc.border, whiteSpace: 'nowrap' }}>
                         <StatusIcon size={10} />
                         {sc.label}
                       </span>
+                    </td>
+
+                    <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                      <button
+                        onClick={() => setSelectedTx(isSelected ? null : tx)}
+                        style={{ fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 8,
+                          background: isSelected ? '#0870E2' : '#F3F4F6',
+                          color: isSelected ? '#fff' : '#374151', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                        {isSelected ? 'Close' : 'Details'}
+                      </button>
                     </td>
                   </tr>
                 )
@@ -331,11 +494,13 @@ export default function TransactionsClient() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-6 py-3" style={{ borderTop: '1px solid #F3F4F6' }}>
               <p style={{ fontSize: 13, color: '#6B7280' }}>
-                Showing <span style={{ fontWeight: 600, color: '#111827' }}>{(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)}</span> of <span style={{ fontWeight: 600, color: '#111827' }}>{total}</span>
+                Showing <span style={{ fontWeight: 600, color: '#111827' }}>{(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)}</span> of{' '}
+                <span style={{ fontWeight: 600, color: '#111827' }}>{total}</span>
               </p>
               <div className="flex items-center gap-1">
                 <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-                  style={{ fontSize: 13, border: '1px solid #E5E7EB', background: '#fff', color: page === 1 ? '#D1D5DB' : '#374151', cursor: page === 1 ? 'not-allowed' : 'pointer', borderRadius: 8, padding: '6px 10px' }}>
+                  style={{ fontSize: 13, border: '1px solid #E5E7EB', background: '#fff', color: page === 1 ? '#D1D5DB' : '#374151',
+                    cursor: page === 1 ? 'not-allowed' : 'pointer', borderRadius: 8, padding: '6px 10px' }}>
                   <ChevronLeft size={14} />
                 </button>
                 {pages.map((p, i) =>
@@ -349,7 +514,8 @@ export default function TransactionsClient() {
                   )
                 )}
                 <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-                  style={{ fontSize: 13, border: '1px solid #E5E7EB', background: '#fff', color: page === totalPages ? '#D1D5DB' : '#374151', cursor: page === totalPages ? 'not-allowed' : 'pointer', borderRadius: 8, padding: '6px 10px' }}>
+                  style={{ fontSize: 13, border: '1px solid #E5E7EB', background: '#fff', color: page === totalPages ? '#D1D5DB' : '#374151',
+                    cursor: page === totalPages ? 'not-allowed' : 'pointer', borderRadius: 8, padding: '6px 10px' }}>
                   <ChevronRight size={14} />
                 </button>
               </div>
@@ -358,5 +524,8 @@ export default function TransactionsClient() {
         </div>
       </div>
     </main>
+
+    {selectedTx && <TxDetailDrawer tx={selectedTx} onClose={() => setSelectedTx(null)} />}
+    </>
   )
 }
