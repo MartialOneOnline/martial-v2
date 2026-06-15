@@ -1,24 +1,19 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {
-  Menu, Search, Download, Plus, Check, Clock,
+  Menu, Search, Download, Plus, Check, Clock, Filter,
   AlertCircle, XCircle, RefreshCw, ChevronLeft, ChevronRight, X,
-  CreditCard, Banknote, Building2, Landmark, TrendingUp, TrendingDown, LayoutList,
+  CreditCard, Banknote, Building2, Landmark, TrendingUp, TrendingDown,
+  LayoutList, Eye, MoreHorizontal, Trash2,
 } from 'lucide-react'
 import { useDashboard } from '../../../../components/DashboardShell'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 
-type TxStatus = 'PAID' | 'PENDING' | 'FAILED' | 'REFUNDED'
+type TxStatus  = 'PAID' | 'PENDING' | 'FAILED' | 'REFUNDED'
 type FilterTab = 'ALL' | TxStatus
 type MethodFilter = 'ALL' | 'STRIPE' | 'CASH' | 'BANK_TRANSFER' | 'DIRECT_DEBIT' | 'OTHER'
-type TypeFilter = 'ALL' | 'INCOME' | 'EXPENSE'
-
-const TYPE_OPTIONS: { id: TypeFilter; label: string; icon: React.ElementType; color: string; bg: string }[] = [
-  { id: 'ALL',     label: 'All',      icon: LayoutList,   color: '#374151', bg: '#F3F4F6' },
-  { id: 'INCOME',  label: 'Income',   icon: TrendingUp,   color: '#16A34A', bg: '#F0FDF4' },
-  { id: 'EXPENSE', label: 'Expenses', icon: TrendingDown, color: '#DC2626', bg: '#FEF2F2' },
-]
+type TypeFilter   = 'ALL' | 'INCOME' | 'EXPENSE'
 
 interface TxRow {
   id: string
@@ -61,12 +56,24 @@ const METHOD_COLORS: Record<string, { bg: string; color: string }> = {
 }
 
 const METHOD_ICONS: Record<string, React.ElementType> = {
-  STRIPE:        CreditCard,
-  DIRECT_DEBIT:  Landmark,
-  CASH:          Banknote,
-  BANK_TRANSFER: Building2,
-  OTHER:         CreditCard,
+  STRIPE: CreditCard, DIRECT_DEBIT: Landmark,
+  CASH: Banknote, BANK_TRANSFER: Building2, OTHER: CreditCard,
 }
+
+const TYPE_OPTIONS: { id: TypeFilter; label: string; icon: React.ElementType; activeColor: string; activeBg: string; activeBorder: string }[] = [
+  { id: 'ALL',     label: 'All',      icon: LayoutList,   activeColor: '#374151', activeBg: '#fff',    activeBorder: '#E5E7EB' },
+  { id: 'INCOME',  label: 'Income',   icon: TrendingUp,   activeColor: '#16A34A', activeBg: '#F0FDF4', activeBorder: '#BBF7D0' },
+  { id: 'EXPENSE', label: 'Expenses', icon: TrendingDown, activeColor: '#DC2626', activeBg: '#FEF2F2', activeBorder: '#FECACA' },
+]
+
+const ALL_METHODS: { id: MethodFilter; label: string }[] = [
+  { id: 'ALL',           label: 'All Methods'  },
+  { id: 'CASH',          label: 'Cash'         },
+  { id: 'STRIPE',        label: 'Stripe'       },
+  { id: 'BANK_TRANSFER', label: 'Transfer'     },
+  { id: 'DIRECT_DEBIT',  label: 'Direct Debit' },
+  { id: 'OTHER',         label: 'Other'        },
+]
 
 const PAGE_SIZE = 20
 
@@ -96,6 +103,162 @@ function fmtPrice(amount: number, currency = 'EUR') {
   return new Intl.NumberFormat('es-ES', { style: 'currency', currency }).format(amount)
 }
 
+// ── Method Filter Dropdown ────────────────────────────────────────────────────
+function MethodDropdown({ active, onChange }: { active: MethodFilter; onChange: (m: MethodFilter) => void }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const hasFilter = active !== 'ALL'
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button onClick={() => setOpen(o => !o)}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34,
+          borderRadius: 8, border: hasFilter ? '1.5px solid #0870E2' : '1px solid #E5E7EB',
+          background: hasFilter ? '#EFF6FF' : '#fff', cursor: 'pointer', position: 'relative' }}>
+        <Filter size={14} style={{ color: hasFilter ? '#0870E2' : '#6B7280' }} />
+        {hasFilter && (
+          <span style={{ position: 'absolute', top: -4, right: -4, width: 8, height: 8,
+            borderRadius: '50%', background: '#0870E2', border: '1.5px solid #fff' }} />
+        )}
+      </button>
+      {open && (
+        <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 6, zIndex: 30,
+          background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12,
+          boxShadow: '0 4px 16px rgba(0,0,0,0.10)', minWidth: 160, padding: '6px 0', overflow: 'hidden' }}>
+          <p style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase',
+            letterSpacing: '0.06em', padding: '6px 14px 4px' }}>Payment method</p>
+          {ALL_METHODS.map(m => (
+            <button key={m.id} onClick={() => { onChange(m.id); setOpen(false) }}
+              style={{ width: '100%', textAlign: 'left', padding: '8px 14px', fontSize: 13,
+                fontWeight: active === m.id ? 600 : 400, color: active === m.id ? '#0870E2' : '#374151',
+                background: active === m.id ? '#F0F7FF' : 'transparent', border: 'none', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: 8 }}>
+              {active === m.id && <Check size={11} style={{ color: '#0870E2', flexShrink: 0 }} />}
+              {active !== m.id && <span style={{ width: 11 }} />}
+              {m.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Row Actions Menu ──────────────────────────────────────────────────────────
+function RowActions({ tx, onStatusChange, onDelete, onView }: {
+  tx: TxRow
+  onStatusChange: (id: string, status: TxStatus) => Promise<void>
+  onDelete: (id: string) => Promise<void>
+  onView: () => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  async function act(fn: () => Promise<void>) {
+    setBusy(true); setOpen(false)
+    await fn()
+    setBusy(false)
+  }
+
+  return (
+    <div ref={ref} style={{ display: 'flex', alignItems: 'center' }}>
+      {/* More */}
+      <div style={{ position: 'relative' }}>
+        <button onClick={e => { e.stopPropagation(); setOpen(o => !o) }} disabled={busy}
+          style={{ width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            borderRadius: 7, border: 'none', background: 'transparent', cursor: busy ? 'wait' : 'pointer', color: '#9CA3AF' }}
+          onMouseEnter={e => (e.currentTarget.style.background = '#F3F4F6')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+          <MoreHorizontal size={14} />
+        </button>
+
+        {open && (
+          <>
+            <div style={{ position: 'fixed', inset: 0, zIndex: 10 }} onClick={() => setOpen(false)} />
+            <div style={{ position: 'absolute', right: 0, top: '100%', marginTop: 4, zIndex: 20,
+              background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12,
+              boxShadow: '0 4px 16px rgba(0,0,0,0.10)', minWidth: 170, padding: '4px 0', overflow: 'hidden' }}>
+
+              <button onClick={e => { e.stopPropagation(); setOpen(false); onView() }}
+                style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
+                  fontWeight: 500, color: '#374151', background: 'transparent', border: 'none', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 8 }}
+                onMouseEnter={e => (e.currentTarget.style.background = '#F9FAFB')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                <Eye size={13} /> View Details
+              </button>
+
+              <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
+
+              {tx.status === 'PENDING' && (
+                <button onClick={e => { e.stopPropagation(); act(() => onStatusChange(tx.id, 'PAID')) }}
+                  style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
+                    fontWeight: 500, color: '#16A34A', background: 'transparent', border: 'none', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 8 }}
+                  onMouseEnter={e => (e.currentTarget.style.background = '#F0FDF4')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                  <Check size={13} /> Mark as Paid
+                </button>
+              )}
+
+              {tx.status !== 'REFUNDED' && (
+                <button onClick={e => { e.stopPropagation(); act(() => onStatusChange(tx.id, 'REFUNDED')) }}
+                  style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
+                    fontWeight: 500, color: '#6D28D9', background: 'transparent', border: 'none', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 8 }}
+                  onMouseEnter={e => (e.currentTarget.style.background = '#F5F3FF')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                  <XCircle size={13} /> Mark as Refunded
+                </button>
+              )}
+
+              {tx.status !== 'FAILED' && (
+                <button onClick={e => { e.stopPropagation(); act(() => onStatusChange(tx.id, 'FAILED')) }}
+                  style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
+                    fontWeight: 500, color: '#D97706', background: 'transparent', border: 'none', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 8 }}
+                  onMouseEnter={e => (e.currentTarget.style.background = '#FFFBEB')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                  <AlertCircle size={13} /> Mark as Failed
+                </button>
+              )}
+
+              <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
+
+              <button onClick={e => { e.stopPropagation(); act(() => onDelete(tx.id)) }}
+                style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
+                  fontWeight: 500, color: '#DC2626', background: 'transparent', border: 'none', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 8 }}
+                onMouseEnter={e => (e.currentTarget.style.background = '#FEF2F2')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                <Trash2 size={13} /> Delete
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ── Details Drawer ─────────────────────────────────────────────────────────────
 function TxDetailDrawer({ tx, onClose }: { tx: TxRow; onClose: () => void }) {
   const sc  = STATUS_MAP[tx.status] ?? STATUS_MAP.PAID
@@ -105,80 +268,55 @@ function TxDetailDrawer({ tx, onClose }: { tx: TxRow; onClose: () => void }) {
   const MIcon = methodKey ? (METHOD_ICONS[methodKey] ?? METHOD_ICONS.OTHER) : null
 
   const rows: { label: string; value: React.ReactNode }[] = [
-    {
-      label: 'Membership',
+    { label: 'Membership',
       value: tx.description
         ? <span style={{ fontWeight: 600, color: '#111827' }}>{tx.description}</span>
-        : <span style={{ color: '#9CA3AF' }}>—</span>,
-    },
-    {
-      label: 'Price',
-      value: <span style={{ fontWeight: 700, fontSize: 15, color: '#111827' }}>{fmtPrice(tx.amount, tx.currency)}</span>,
-    },
-    {
-      label: 'Method',
+        : <span style={{ color: '#9CA3AF' }}>—</span> },
+    { label: 'Price',
+      value: <span style={{ fontWeight: 700, fontSize: 15, color: tx.type === 'EXPENSE' ? '#DC2626' : '#111827' }}>
+        {tx.type === 'EXPENSE' ? '−' : ''}{fmtPrice(tx.amount, tx.currency)}
+      </span> },
+    { label: 'Method',
       value: mc && methodKey && MIcon ? (
-        <span className="inline-flex items-center gap-1.5"
-          style={{ fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 999, background: mc.bg, color: mc.color }}>
-          <MIcon size={11} />
-          {METHOD_LABELS[methodKey] ?? methodKey}
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5,
+          fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 999, background: mc.bg, color: mc.color }}>
+          <MIcon size={11} />{METHOD_LABELS[methodKey] ?? methodKey}
         </span>
-      ) : <span style={{ color: '#9CA3AF' }}>—</span>,
-    },
-    {
-      label: 'Submitted',
-      value: <span style={{ color: '#374151' }}>{fmtDate(tx.date)}</span>,
-    },
-    {
-      label: 'Status',
+      ) : <span style={{ color: '#9CA3AF' }}>—</span> },
+    { label: 'Submitted', value: <span style={{ color: '#374151' }}>{fmtDate(tx.date)}</span> },
+    { label: 'Status',
       value: (
-        <span className="inline-flex items-center gap-1.5"
-          style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999,
-            background: sc.bg, color: sc.color, border: '1px solid ' + sc.border }}>
-          <StatusIcon size={9} strokeWidth={2.5} />
-          {sc.label}
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5,
+          fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999,
+          background: sc.bg, color: sc.color, border: '1px solid ' + sc.border }}>
+          <StatusIcon size={9} strokeWidth={2.5} />{sc.label}
         </span>
-      ),
-    },
-    {
-      label: 'Member',
-      value: (
-        <div className="flex items-center gap-2">
-          <Avatar name={tx.userName} avatarUrl={tx.userAvatar} size={24} />
-          <div>
-            <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', lineHeight: 1.2 }}>{tx.userName}</p>
-            {tx.userEmail && <p style={{ fontSize: 11, color: '#9CA3AF' }}>{tx.userEmail}</p>}
-          </div>
-        </div>
-      ),
-    },
-    {
-      label: 'Category',
-      value: <span style={{ fontSize: 12, fontWeight: 500, color: '#6B7280', textTransform: 'capitalize' }}>{tx.category?.toLowerCase().replace('_', ' ')}</span>,
-    },
-    ...(tx.notes ? [{
-      label: 'Notes',
-      value: <span style={{ fontSize: 12, color: '#6B7280', fontFamily: 'monospace' }}>{tx.notes}</span>,
-    }] : []),
+      ) },
+    { label: 'Type',
+      value: tx.type === 'EXPENSE'
+        ? <span style={{ fontSize: 12, fontWeight: 600, color: '#DC2626', display: 'inline-flex', alignItems: 'center', gap: 4 }}><TrendingDown size={11} /> Expense</span>
+        : <span style={{ fontSize: 12, fontWeight: 600, color: '#16A34A', display: 'inline-flex', alignItems: 'center', gap: 4 }}><TrendingUp size={11} /> Income</span> },
+    { label: 'Category',
+      value: <span style={{ fontSize: 12, fontWeight: 500, color: '#6B7280', textTransform: 'capitalize' }}>
+        {tx.category?.toLowerCase().replace(/_/g, ' ')}
+      </span> },
+    ...(tx.notes ? [{ label: 'Notes',
+      value: <span style={{ fontSize: 11, color: '#9CA3AF', fontFamily: 'monospace' }}>{tx.notes}</span> }] : []),
   ]
 
   return (
     <>
-      {/* Backdrop */}
-      <div className="fixed inset-0 z-40" style={{ background: 'rgba(0,0,0,0.25)' }} onClick={onClose} />
-
-      {/* Drawer */}
+      <div className="fixed inset-0 z-40" style={{ background: 'rgba(0,0,0,0.2)' }} onClick={onClose} />
       <div className="fixed right-0 top-0 bottom-0 z-50 flex flex-col"
         style={{ width: 360, background: '#fff', boxShadow: '-4px 0 24px rgba(0,0,0,0.10)', overflowY: 'auto' }}>
 
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #F3F4F6' }}>
           <div>
             <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>
               Payment Details
             </p>
-            <p style={{ fontSize: 16, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em' }}>
-              {fmtPrice(tx.amount, tx.currency)}
+            <p style={{ fontSize: 18, fontWeight: 700, color: tx.type === 'EXPENSE' ? '#DC2626' : '#111827', letterSpacing: '-0.02em' }}>
+              {tx.type === 'EXPENSE' ? '−' : ''}{fmtPrice(tx.amount, tx.currency)}
             </p>
           </div>
           <button onClick={onClose} style={{ background: '#F3F4F6', border: 'none', borderRadius: 8, padding: 6, cursor: 'pointer', display: 'flex' }}>
@@ -186,7 +324,6 @@ function TxDetailDrawer({ tx, onClose }: { tx: TxRow; onClose: () => void }) {
           </button>
         </div>
 
-        {/* Member banner */}
         <div className="flex items-center gap-3 px-6 py-4" style={{ background: '#F9FAFB', borderBottom: '1px solid #F3F4F6' }}>
           <Avatar name={tx.userName} avatarUrl={tx.userAvatar} size={44} />
           <div>
@@ -195,31 +332,14 @@ function TxDetailDrawer({ tx, onClose }: { tx: TxRow; onClose: () => void }) {
           </div>
         </div>
 
-        {/* Detail rows */}
-        <div className="flex flex-col px-6 py-4 gap-0">
-          {rows.filter((_, i) => i !== 5).map(row => ( // skip Member row (already in banner)
-            <div key={row.label} className="flex items-start justify-between py-3"
+        <div className="flex flex-col px-6 py-2">
+          {rows.map(row => (
+            <div key={row.label} className="flex items-center justify-between py-3"
               style={{ borderBottom: '1px solid #F9FAFB' }}>
               <span style={{ fontSize: 12, fontWeight: 500, color: '#9CA3AF', minWidth: 90 }}>{row.label}</span>
               <div style={{ textAlign: 'right' }}>{row.value}</div>
             </div>
           ))}
-        </div>
-
-        {/* Actions */}
-        <div className="mt-auto px-6 py-5 flex flex-col gap-2" style={{ borderTop: '1px solid #F3F4F6' }}>
-          {tx.status !== 'REFUNDED' && (
-            <button className="w-full py-2.5 rounded-xl cursor-pointer"
-              style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626', fontSize: 13, fontWeight: 600 }}>
-              Mark as Refunded
-            </button>
-          )}
-          {tx.status === 'PENDING' && (
-            <button className="w-full py-2.5 rounded-xl cursor-pointer"
-              style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', color: '#16A34A', fontSize: 13, fontWeight: 600 }}>
-              Mark as Paid
-            </button>
-          )}
         </div>
       </div>
     </>
@@ -240,7 +360,7 @@ export default function TransactionsClient() {
 
   const [activeFilter,  setActiveFilter]  = useState<FilterTab>('ALL')
   const [activeMethod,  setActiveMethod]  = useState<MethodFilter>('ALL')
-  const [activeType,    setActiveType]    = useState<TypeFilter>('ALL')
+  const [activeType,    setActiveType]    = useState<TypeFilter>('INCOME')
   const [search,        setSearch]        = useState('')
   const [page,          setPage]          = useState(1)
 
@@ -261,22 +381,31 @@ export default function TransactionsClient() {
     setTotal(data.total ?? 0)
     setTotalAmount(data.totalRevenue ?? 0)
     const cs = data.countByStatus ?? {}
-    setCountByStatus({
-      PAID:     cs.PAID     ?? 0,
-      PENDING:  cs.PENDING  ?? 0,
-      FAILED:   cs.FAILED   ?? 0,
-      REFUNDED: cs.REFUNDED ?? 0,
-    })
+    setCountByStatus({ PAID: cs.PAID ?? 0, PENDING: cs.PENDING ?? 0, FAILED: cs.FAILED ?? 0, REFUNDED: cs.REFUNDED ?? 0 })
     setLoading(false)
   }, [page, activeFilter, activeMethod, activeType, search])
 
   useEffect(() => { load() }, [load])
 
-  // Method counts from current page (approximate)
-  const methodCounts: Record<string, number> = {}
-  for (const tx of transactions) {
-    const k = tx.method ? tx.method.toUpperCase() : 'OTHER'
-    methodCounts[k] = (methodCounts[k] ?? 0) + 1
+  async function handleStatusChange(id: string, status: TxStatus) {
+    const res = await fetch(`/api/dashboard/transactions/${id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    })
+    if (res.ok) {
+      setTransactions(prev => prev.map(tx => tx.id === id ? { ...tx, status } : tx))
+      if (selectedTx?.id === id) setSelectedTx(prev => prev ? { ...prev, status } : null)
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm('Delete this transaction? This cannot be undone.')) return
+    const res = await fetch(`/api/dashboard/transactions/${id}`, { method: 'DELETE' })
+    if (res.ok) {
+      setTransactions(prev => prev.filter(tx => tx.id !== id))
+      if (selectedTx?.id === id) setSelectedTx(null)
+      setTotal(prev => prev - 1)
+    }
   }
 
   const totalCount = Object.values(countByStatus).reduce((a, b) => a + b, 0)
@@ -291,28 +420,16 @@ export default function TransactionsClient() {
     { id: 'REFUNDED', label: 'Refunded',    count: countByStatus.REFUNDED },
   ]
 
-  const METHOD_FILTERS: { id: MethodFilter; label: string }[] = [
-    { id: 'ALL',           label: 'All Methods'  },
-    { id: 'CASH',          label: 'Cash'         },
-    { id: 'STRIPE',        label: 'Stripe'       },
-    { id: 'BANK_TRANSFER', label: 'Transfer'     },
-    { id: 'DIRECT_DEBIT',  label: 'Direct Debit' },
-    { id: 'OTHER',         label: 'Other'        },
-  ]
-
   const handleExport = () => {
-    const headers = ['Member', 'Email', 'Description', 'Method', 'Amount', 'Currency', 'Date', 'Status']
+    const headers = ['Member', 'Email', 'Description', 'Method', 'Amount', 'Currency', 'Date', 'Status', 'Type']
     const rows = transactions.map(tx => [
       tx.userName, tx.userEmail ?? '', tx.description ?? '', tx.method ?? '',
-      String(tx.amount), tx.currency,
-      new Date(tx.date).toLocaleDateString('es-ES'), tx.status,
+      String(tx.amount), tx.currency, new Date(tx.date).toLocaleDateString('es-ES'), tx.status, tx.type,
     ])
     const csv = [headers, ...rows].map(r => r.map(v => `"${v.replace(/"/g, '""')}"`).join(',')).join('\n')
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
     const a = document.createElement('a')
-    a.href = URL.createObjectURL(blob)
-    a.download = `transactions-${new Date().toISOString().slice(0, 10)}.csv`
-    a.click()
+    a.href = URL.createObjectURL(blob); a.download = `transactions-${new Date().toISOString().slice(0, 10)}.csv`; a.click()
   }
 
   return (
@@ -344,7 +461,7 @@ export default function TransactionsClient() {
         </button>
       </div>
 
-      <div className="px-4 md:px-8 py-6 flex flex-col gap-6">
+      <div className="px-4 md:px-8 py-6 flex flex-col gap-5">
 
         {/* Title + total */}
         <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -354,77 +471,67 @@ export default function TransactionsClient() {
             </h1>
             <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>All payment records for your academy</p>
           </div>
-          {activeType !== 'EXPENSE' && (
-            <div className="rounded-2xl px-5 py-3" style={{ background: '#F0FDF4', border: '1px solid #BBF7D0' }}>
-              <p style={{ fontSize: 11, color: '#16A34A', fontWeight: 600, marginBottom: 2 }}>Total Collected</p>
-              <p style={{ fontSize: 22, fontWeight: 700, color: '#16A34A', letterSpacing: '-0.03em' }}>
-                {loading ? '—' : fmtPrice(totalAmount)}
-              </p>
-            </div>
-          )}
-          {activeType === 'EXPENSE' && (
-            <div className="rounded-2xl px-5 py-3" style={{ background: '#FEF2F2', border: '1px solid #FECACA' }}>
-              <p style={{ fontSize: 11, color: '#DC2626', fontWeight: 600, marginBottom: 2 }}>Total Expenses</p>
-              <p style={{ fontSize: 22, fontWeight: 700, color: '#DC2626', letterSpacing: '-0.03em' }}>
-                {loading ? '—' : fmtPrice(totalAmount)}
-              </p>
-            </div>
-          )}
+          <div className="rounded-2xl px-5 py-3"
+            style={{ background: activeType === 'EXPENSE' ? '#FEF2F2' : '#F0FDF4',
+              border: activeType === 'EXPENSE' ? '1px solid #FECACA' : '1px solid #BBF7D0' }}>
+            <p style={{ fontSize: 11, fontWeight: 600, marginBottom: 2,
+              color: activeType === 'EXPENSE' ? '#DC2626' : '#16A34A' }}>
+              {activeType === 'EXPENSE' ? 'Total Expenses' : 'Total Collected'}
+            </p>
+            <p style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.03em',
+              color: activeType === 'EXPENSE' ? '#DC2626' : '#16A34A' }}>
+              {loading ? '—' : fmtPrice(totalAmount)}
+            </p>
+          </div>
         </div>
 
-        {/* Type toggle: All / Income / Expenses */}
-        <div className="flex items-center gap-1 p-1 rounded-xl self-start"
-          style={{ background: '#F3F4F6', border: '1px solid #E5E7EB' }}>
-          {TYPE_OPTIONS.map(opt => {
-            const isOn = activeType === opt.id
-            const Icon = opt.icon
-            return (
-              <button key={opt.id} onClick={() => { setActiveType(opt.id); setPage(1) }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg cursor-pointer transition-all"
-                style={{ fontSize: 12, fontWeight: isOn ? 600 : 400,
-                  background: isOn ? (opt.id === 'EXPENSE' ? '#FEF2F2' : opt.id === 'INCOME' ? '#F0FDF4' : '#fff') : 'transparent',
-                  color: isOn ? opt.color : '#6B7280',
-                  border: isOn ? `1px solid ${opt.id === 'EXPENSE' ? '#FECACA' : opt.id === 'INCOME' ? '#BBF7D0' : '#E5E7EB'}` : '1px solid transparent',
-                  boxShadow: isOn ? '0 1px 3px rgba(0,0,0,0.06)' : 'none' }}>
-                <Icon size={12} />
-                {opt.label}
-              </button>
-            )
-          })}
-        </div>
-
-        {/* Status filter tabs */}
+        {/* ── Single filter row ── */}
         <div className="flex items-center gap-2 flex-wrap">
+
+          {/* Type toggle */}
+          <div className="flex items-center gap-0.5 p-0.5 rounded-lg" style={{ background: '#F3F4F6', border: '1px solid #E5E7EB' }}>
+            {TYPE_OPTIONS.map(opt => {
+              const isOn = activeType === opt.id
+              const Icon = opt.icon
+              return (
+                <button key={opt.id} onClick={() => { setActiveType(opt.id); setPage(1) }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md cursor-pointer"
+                  style={{ fontSize: 12, fontWeight: isOn ? 600 : 400,
+                    background: isOn ? opt.activeBg : 'transparent',
+                    color: isOn ? opt.activeColor : '#9CA3AF',
+                    border: isOn ? `1px solid ${opt.activeBorder}` : '1px solid transparent',
+                    transition: 'all 0.15s' }}>
+                  <Icon size={11} />
+                  {opt.label}
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Divider */}
+          <div style={{ width: 1, height: 20, background: '#E5E7EB', flexShrink: 0 }} />
+
+          {/* Status pills */}
           {STATUS_FILTERS.map(f => {
             const isOn = activeFilter === f.id
+            const sc = f.id !== 'ALL' ? STATUS_MAP[f.id as TxStatus] : null
             return (
-              <button key={f.id} onClick={() => { setActiveFilter(f.id); setPage(1) }} className="cursor-pointer"
-                style={{ fontSize: 12, fontWeight: isOn ? 600 : 400, padding: '5px 14px', borderRadius: 8,
-                  background: isOn ? '#111827' : '#fff', color: isOn ? '#fff' : '#6B7280',
-                  border: isOn ? '1.5px solid #111827' : '1.5px solid #E5E7EB' }}>
-                {f.label}{' '}<span style={{ opacity: 0.65 }}>{f.count}</span>
+              <button key={f.id} onClick={() => { setActiveFilter(f.id); setPage(1) }}
+                className="cursor-pointer"
+                style={{ fontSize: 12, fontWeight: isOn ? 600 : 400, padding: '5px 12px', borderRadius: 8,
+                  background: isOn ? (sc?.bg ?? '#111827') : '#fff',
+                  color: isOn ? (sc?.color ?? '#fff') : '#6B7280',
+                  border: isOn ? `1.5px solid ${sc?.border ?? '#111827'}` : '1.5px solid #E5E7EB' }}>
+                {f.label}{' '}<span style={{ opacity: 0.65, fontSize: 11 }}>{f.count}</span>
               </button>
             )
           })}
-        </div>
 
-        {/* Method chips */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <span style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Method:</span>
-          {METHOD_FILTERS.map(f => {
-            const isOn = activeMethod === f.id
-            const mc = METHOD_COLORS[f.id] ?? { bg: '#F3F4F6', color: '#374151' }
-            const cnt = methodCounts[f.id] ?? 0
-            if (f.id !== 'ALL' && cnt === 0) return null
-            return (
-              <button key={f.id} onClick={() => { setActiveMethod(f.id); setPage(1) }} className="cursor-pointer"
-                style={{ fontSize: 12, fontWeight: isOn ? 600 : 400, padding: '4px 12px', borderRadius: 999,
-                  background: isOn ? mc.bg : '#F9FAFB', color: isOn ? mc.color : '#6B7280',
-                  border: isOn ? `1.5px solid ${mc.color}33` : '1.5px solid #E5E7EB' }}>
-                {f.label}{f.id !== 'ALL' && cnt > 0 && <span style={{ opacity: 0.65, marginLeft: 4 }}>{cnt}</span>}
-              </button>
-            )
-          })}
+          {/* Divider */}
+          <div style={{ width: 1, height: 20, background: '#E5E7EB', flexShrink: 0 }} />
+
+          {/* Method filter icon */}
+          <MethodDropdown active={activeMethod} onChange={m => { setActiveMethod(m); setPage(1) }} />
         </div>
 
         {/* Table */}
@@ -437,7 +544,7 @@ export default function TransactionsClient() {
                   { label: 'Description', cls: 'hidden md:table-cell' },
                   { label: 'Method',      cls: 'hidden sm:table-cell' },
                   { label: 'Amount',      cls: '' },
-                  { label: 'Submitted',   cls: 'hidden md:table-cell' },
+                  { label: 'Date',        cls: 'hidden md:table-cell' },
                   { label: 'Status',      cls: 'hidden sm:table-cell' },
                   { label: '',            cls: '' },
                 ].map((h, i) => (
@@ -464,12 +571,12 @@ export default function TransactionsClient() {
                 const methodKey = tx.method ? tx.method.toUpperCase() : null
                 const mc = methodKey ? (METHOD_COLORS[methodKey] ?? { bg: '#F9FAFB', color: '#6B7280' }) : null
                 const isSelected = selectedTx?.id === tx.id
+                const isExpense = tx.type === 'EXPENSE'
                 return (
                   <tr key={tx.id}
-                    onClick={() => setSelectedTx(isSelected ? null : tx)}
-                    className="hover:bg-[#FAFAFA] transition-colors cursor-pointer"
                     style={{ borderBottom: idx < transactions.length - 1 ? '1px solid #F9FAFB' : 'none',
-                      background: isSelected ? '#F0F7FF' : undefined }}>
+                      background: isSelected ? '#F0F7FF' : undefined, transition: 'background 0.1s' }}
+                    className="hover:bg-[#FAFAFA]">
 
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
@@ -491,15 +598,13 @@ export default function TransactionsClient() {
                           background: mc.bg, color: mc.color }}>
                           {METHOD_LABELS[methodKey] ?? methodKey}
                         </span>
-                      ) : (
-                        <span style={{ fontSize: 13, color: '#D1D5DB' }}>—</span>
-                      )}
+                      ) : <span style={{ fontSize: 13, color: '#D1D5DB' }}>—</span>}
                     </td>
 
                     <td className="px-5 py-3">
                       <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.02em',
-                        color: tx.type === 'EXPENSE' ? '#DC2626' : '#111827' }}>
-                        {tx.type === 'EXPENSE' ? '−' : ''}{fmtPrice(tx.amount, tx.currency)}
+                        color: isExpense ? '#DC2626' : '#111827' }}>
+                        {isExpense ? '−' : ''}{fmtPrice(tx.amount, tx.currency)}
                       </span>
                     </td>
 
@@ -511,19 +616,17 @@ export default function TransactionsClient() {
                       <span className="inline-flex items-center gap-1.5"
                         style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999,
                           background: sc.bg, color: sc.color, border: '1px solid ' + sc.border, whiteSpace: 'nowrap' }}>
-                        <StatusIcon size={10} />
-                        {sc.label}
+                        <StatusIcon size={10} />{sc.label}
                       </span>
                     </td>
 
-                    <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
-                      <button
-                        onClick={() => setSelectedTx(isSelected ? null : tx)}
-                        style={{ fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 8,
-                          background: isSelected ? '#0870E2' : '#F3F4F6',
-                          color: isSelected ? '#fff' : '#374151', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                        {isSelected ? 'Close' : 'Details'}
-                      </button>
+                    <td className="px-4 py-3">
+                      <RowActions
+                        tx={tx}
+                        onStatusChange={handleStatusChange}
+                        onDelete={handleDelete}
+                        onView={() => setSelectedTx(isSelected ? null : tx)}
+                      />
                     </td>
                   </tr>
                 )
@@ -534,13 +637,13 @@ export default function TransactionsClient() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-6 py-3" style={{ borderTop: '1px solid #F3F4F6' }}>
               <p style={{ fontSize: 13, color: '#6B7280' }}>
-                Showing <span style={{ fontWeight: 600, color: '#111827' }}>{(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)}</span> of{' '}
-                <span style={{ fontWeight: 600, color: '#111827' }}>{total}</span>
+                Showing <span style={{ fontWeight: 600, color: '#111827' }}>{(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)}</span>{' '}
+                of <span style={{ fontWeight: 600, color: '#111827' }}>{total}</span>
               </p>
               <div className="flex items-center gap-1">
                 <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-                  style={{ fontSize: 13, border: '1px solid #E5E7EB', background: '#fff', color: page === 1 ? '#D1D5DB' : '#374151',
-                    cursor: page === 1 ? 'not-allowed' : 'pointer', borderRadius: 8, padding: '6px 10px' }}>
+                  style={{ fontSize: 13, border: '1px solid #E5E7EB', background: '#fff',
+                    color: page === 1 ? '#D1D5DB' : '#374151', cursor: page === 1 ? 'not-allowed' : 'pointer', borderRadius: 8, padding: '6px 10px' }}>
                   <ChevronLeft size={14} />
                 </button>
                 {pages.map((p, i) =>
@@ -554,8 +657,8 @@ export default function TransactionsClient() {
                   )
                 )}
                 <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-                  style={{ fontSize: 13, border: '1px solid #E5E7EB', background: '#fff', color: page === totalPages ? '#D1D5DB' : '#374151',
-                    cursor: page === totalPages ? 'not-allowed' : 'pointer', borderRadius: 8, padding: '6px 10px' }}>
+                  style={{ fontSize: 13, border: '1px solid #E5E7EB', background: '#fff',
+                    color: page === totalPages ? '#D1D5DB' : '#374151', cursor: page === totalPages ? 'not-allowed' : 'pointer', borderRadius: 8, padding: '6px 10px' }}>
                   <ChevronRight size={14} />
                 </button>
               </div>
