@@ -96,3 +96,51 @@ export async function GET(req: NextRequest) {
     promotionsByTransition,
   })
 }
+
+// POST /api/dashboard/gradings
+export async function POST(req: NextRequest) {
+  const auth = await authorise()
+  if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
+
+  const body = await req.json()
+  const { userId, fromBelt, toBelt, toDegree, gradedAt, notes } = body
+
+  if (!userId || !toBelt || !gradedAt) {
+    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+  }
+
+  const grading = await prisma.grading.create({
+    data: {
+      schoolId:    auth.schoolId,
+      userId,
+      fromBelt:    fromBelt ?? null,
+      toBelt,
+      toDegree:    toDegree ?? 0,
+      gradedAt:    new Date(gradedAt),
+      notes:       notes ?? null,
+      isPublic:    true,
+    },
+    include: {
+      user:       { select: { name: true, avatarUrl: true } },
+      promotedBy: { select: { name: true } },
+    },
+  })
+
+  // Update the member's current belt
+  await prisma.schoolMember.updateMany({
+    where: { userId, schoolId: auth.schoolId },
+    data: { belt: toBelt, beltDegree: toDegree ?? 0, beltDate: new Date(gradedAt) },
+  })
+
+  return NextResponse.json({
+    id:         grading.id,
+    userName:   grading.user?.name ?? '—',
+    userAvatar: grading.user?.avatarUrl ?? null,
+    fromBelt:   grading.fromBelt ?? null,
+    toBelt:     grading.toBelt,
+    toDegree:   grading.toDegree ?? 0,
+    gradedAt:   grading.gradedAt.toISOString(),
+    instructor: grading.promotedBy?.name ?? null,
+    notes:      grading.notes ?? null,
+  }, { status: 201 })
+}
