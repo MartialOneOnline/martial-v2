@@ -25,23 +25,33 @@ export async function GET(req: NextRequest) {
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const { searchParams } = new URL(req.url)
-  const status   = searchParams.get('status')   // PAID|PENDING|FAILED|REFUNDED|ALL
-  const method   = searchParams.get('method')   // STRIPE|CASH|BANK_TRANSFER|DIRECT_DEBIT|OTHER|ALL
-  const type     = searchParams.get('type')     // INCOME|EXPENSE|ALL
-  const search   = searchParams.get('search')   || ''
-  const page     = Math.max(1, parseInt(searchParams.get('page') || '1'))
-  const pageSize = Math.min(100, parseInt(searchParams.get('pageSize') || '20'))
+  const status      = searchParams.get('status')      // PAID|PENDING|FAILED|REFUNDED|ALL
+  const method      = searchParams.get('method')      // STRIPE|CASH|BANK_TRANSFER|DIRECT_DEBIT|OTHER|ALL
+  const type        = searchParams.get('type')        // INCOME|EXPENSE|ALL
+  const search      = searchParams.get('search')      || ''
+  const membership  = searchParams.get('membership')  || '' // filter by description (plan name)
+  const dateFrom    = searchParams.get('dateFrom')    || '' // ISO date string
+  const dateTo      = searchParams.get('dateTo')      || '' // ISO date string
+  const page        = Math.max(1, parseInt(searchParams.get('page') || '1'))
+  const pageSize    = Math.min(100, parseInt(searchParams.get('pageSize') || '20'))
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const where: any = {
     schoolId: auth.schoolId,
-    ...(status && status !== 'ALL' ? { status } : {}),
-    ...(method && method !== 'ALL' ? { paymentMethod: method } : {}),
-    ...(type   && type   !== 'ALL' ? { type }   : {}),
+    ...(status     && status !== 'ALL'  ? { status }                          : {}),
+    ...(method     && method !== 'ALL'  ? { paymentMethod: method }           : {}),
+    ...(type       && type   !== 'ALL'  ? { type }                            : {}),
+    ...(membership ? { description: { contains: membership, mode: 'insensitive' } } : {}),
+    ...(dateFrom || dateTo ? {
+      date: {
+        ...(dateFrom ? { gte: new Date(dateFrom) } : {}),
+        ...(dateTo   ? { lte: new Date(dateTo + 'T23:59:59.999Z') } : {}),
+      },
+    } : {}),
     ...(search ? {
       OR: [
         { description: { contains: search, mode: 'insensitive' } },
-        { user: { name: { contains: search, mode: 'insensitive' } } },
+        { user: { name:  { contains: search, mode: 'insensitive' } } },
         { user: { email: { contains: search, mode: 'insensitive' } } },
       ],
     } : {}),

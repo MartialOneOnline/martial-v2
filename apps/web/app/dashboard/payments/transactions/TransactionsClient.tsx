@@ -110,9 +110,22 @@ function fmtPrice(amount: number, currency = 'EUR') {
 }
 
 // ── Method Filter Dropdown ────────────────────────────────────────────────────
-function MethodDropdown({ active, onChange }: { active: MethodFilter; onChange: (m: MethodFilter) => void }) {
+interface FiltersState {
+  method: MethodFilter
+  dateFrom: string
+  dateTo: string
+  membership: string
+}
+
+function FiltersPanel({ filters, onChange }: {
+  filters: FiltersState
+  onChange: (f: FiltersState) => void
+}) {
   const [open, setOpen] = useState(false)
+  const [local, setLocal] = useState<FiltersState>(filters)
   const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => { setLocal(filters) }, [filters])
 
   useEffect(() => {
     function handler(e: MouseEvent) {
@@ -122,37 +135,94 @@ function MethodDropdown({ active, onChange }: { active: MethodFilter; onChange: 
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  const hasFilter = active !== 'ALL'
+  const activeCount = [
+    filters.method !== 'ALL',
+    !!filters.dateFrom || !!filters.dateTo,
+    !!filters.membership,
+  ].filter(Boolean).length
+
+  function apply() { onChange(local); setOpen(false) }
+  function clear()  { const empty = { method: 'ALL' as MethodFilter, dateFrom: '', dateTo: '', membership: '' }; setLocal(empty); onChange(empty); setOpen(false) }
+
+  const inp: React.CSSProperties = {
+    width: '100%', border: '1px solid #E5E7EB', borderRadius: 8, padding: '7px 10px',
+    fontSize: 12, color: '#111827', background: '#fff', outline: 'none',
+  }
+  const sectionLabel: React.CSSProperties = {
+    fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase',
+    letterSpacing: '0.06em', marginBottom: 8, display: 'block',
+  }
 
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       <button onClick={() => setOpen(o => !o)}
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34,
-          borderRadius: 8, border: hasFilter ? '1.5px solid #0870E2' : '1px solid #E5E7EB',
-          background: hasFilter ? '#EFF6FF' : '#fff', cursor: 'pointer', position: 'relative' }}>
-        <Filter size={14} style={{ color: hasFilter ? '#0870E2' : '#6B7280' }} />
-        {hasFilter && (
-          <span style={{ position: 'absolute', top: -4, right: -4, width: 8, height: 8,
-            borderRadius: '50%', background: '#0870E2', border: '1.5px solid #fff' }} />
+        style={{ display: 'flex', alignItems: 'center', gap: 5, height: 34, padding: '0 12px',
+          borderRadius: 8, border: activeCount ? '1.5px solid #0870E2' : '1px solid #E5E7EB',
+          background: activeCount ? '#EFF6FF' : '#fff', cursor: 'pointer', position: 'relative' }}>
+        <Filter size={13} style={{ color: activeCount ? '#0870E2' : '#6B7280' }} />
+        <span style={{ fontSize: 12, fontWeight: 500, color: activeCount ? '#0870E2' : '#6B7280' }}>Filters</span>
+        {activeCount > 0 && (
+          <span style={{ background: '#0870E2', color: '#fff', borderRadius: 999, fontSize: 10,
+            fontWeight: 700, padding: '1px 6px', lineHeight: 1.4 }}>{activeCount}</span>
         )}
       </button>
+
       {open && (
         <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 6, zIndex: 30,
-          background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12,
-          boxShadow: '0 4px 16px rgba(0,0,0,0.10)', minWidth: 160, padding: '6px 0', overflow: 'hidden' }}>
-          <p style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase',
-            letterSpacing: '0.06em', padding: '6px 14px 4px' }}>Payment method</p>
-          {ALL_METHODS.map(m => (
-            <button key={m.id} onClick={() => { onChange(m.id); setOpen(false) }}
-              style={{ width: '100%', textAlign: 'left', padding: '8px 14px', fontSize: 13,
-                fontWeight: active === m.id ? 600 : 400, color: active === m.id ? '#0870E2' : '#374151',
-                background: active === m.id ? '#F0F7FF' : 'transparent', border: 'none', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', gap: 8 }}>
-              {active === m.id && <Check size={11} style={{ color: '#0870E2', flexShrink: 0 }} />}
-              {active !== m.id && <span style={{ width: 11 }} />}
-              {m.label}
+          background: '#fff', border: '1px solid #E5E7EB', borderRadius: 14,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.12)', width: 280, padding: 16 }}>
+
+          {/* Date range */}
+          <div style={{ marginBottom: 16 }}>
+            <span style={sectionLabel}>Date range</span>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 }}>From</label>
+                <input type="date" value={local.dateFrom} onChange={e => setLocal(p => ({ ...p, dateFrom: e.target.value }))} style={inp} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 }}>To</label>
+                <input type="date" value={local.dateTo} onChange={e => setLocal(p => ({ ...p, dateTo: e.target.value }))} style={inp} />
+              </div>
+            </div>
+          </div>
+
+          {/* Membership type */}
+          <div style={{ marginBottom: 16 }}>
+            <span style={sectionLabel}>Membership type</span>
+            <input type="text" placeholder="e.g. Jiu Jitsu Mensual"
+              value={local.membership} onChange={e => setLocal(p => ({ ...p, membership: e.target.value }))} style={inp} />
+          </div>
+
+          {/* Status — quick pills */}
+          <div style={{ marginBottom: 16 }}>
+            <span style={sectionLabel}>Method</span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {ALL_METHODS.map(m => (
+                <button key={m.id} onClick={() => setLocal(p => ({ ...p, method: m.id }))}
+                  style={{ fontSize: 11, fontWeight: 500, padding: '4px 10px', borderRadius: 999, cursor: 'pointer',
+                    border: local.method === m.id ? '1.5px solid #0870E2' : '1px solid #E5E7EB',
+                    background: local.method === m.id ? '#EFF6FF' : '#F9FAFB',
+                    color: local.method === m.id ? '#0870E2' : '#6B7280' }}>
+                  {m.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div style={{ display: 'flex', gap: 8, paddingTop: 12, borderTop: '1px solid #F3F4F6' }}>
+            <button onClick={clear}
+              style={{ flex: 1, padding: '8px', borderRadius: 8, border: '1px solid #E5E7EB',
+                background: '#fff', fontSize: 12, fontWeight: 500, color: '#6B7280', cursor: 'pointer' }}>
+              Clear all
             </button>
-          ))}
+            <button onClick={apply}
+              style={{ flex: 1, padding: '8px', borderRadius: 8, border: 'none',
+                background: '#0870E2', fontSize: 12, fontWeight: 600, color: '#fff', cursor: 'pointer' }}>
+              Apply
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -367,19 +437,22 @@ export default function TransactionsClient() {
   const [selectedTx,    setSelectedTx]    = useState<TxRow | null>(null)
 
   const [activeFilter,  setActiveFilter]  = useState<FilterTab>('ALL')
-  const [activeMethod,  setActiveMethod]  = useState<MethodFilter>('ALL')
   const [activeType,    setActiveType]    = useState<TypeFilter>('INCOME')
   const [search,        setSearch]        = useState('')
   const [page,          setPage]          = useState(1)
+  const [filters, setFilters] = useState<FiltersState>({ method: 'ALL', dateFrom: '', dateTo: '', membership: '' })
 
   const load = useCallback(async () => {
     setLoading(true)
     const params = new URLSearchParams({
       page: String(page),
       pageSize: String(PAGE_SIZE),
-      ...(activeType   !== 'ALL' ? { type:   activeType   } : {}),
-      ...(activeFilter !== 'ALL' ? { status: activeFilter } : {}),
-      ...(activeMethod !== 'ALL' ? { method: activeMethod } : {}),
+      ...(activeType        !== 'ALL' ? { type:   activeType        } : {}),
+      ...(activeFilter      !== 'ALL' ? { status: activeFilter      } : {}),
+      ...(filters.method    !== 'ALL' ? { method: filters.method    } : {}),
+      ...(filters.dateFrom            ? { dateFrom: filters.dateFrom } : {}),
+      ...(filters.dateTo              ? { dateTo:   filters.dateTo   } : {}),
+      ...(filters.membership          ? { membership: filters.membership } : {}),
       ...(search ? { search } : {}),
     })
     const res = await fetch(`/api/dashboard/transactions?${params}`)
@@ -391,7 +464,7 @@ export default function TransactionsClient() {
     const cs = data.countByStatus ?? {}
     setCountByStatus({ PAID: cs.PAID ?? 0, PENDING: cs.PENDING ?? 0, FAILED: cs.FAILED ?? 0, REFUNDED: cs.REFUNDED ?? 0 })
     setLoading(false)
-  }, [page, activeFilter, activeMethod, activeType, search])
+  }, [page, activeFilter, filters, activeType, search])
 
   useEffect(() => { load() }, [load])
 
@@ -539,7 +612,7 @@ export default function TransactionsClient() {
           <div style={{ width: 1, height: 20, background: '#E5E7EB', flexShrink: 0 }} />
 
           {/* Method filter icon */}
-          <MethodDropdown active={activeMethod} onChange={m => { setActiveMethod(m); setPage(1) }} />
+          <FiltersPanel filters={filters} onChange={f => { setFilters(f); setPage(1) }} />
         </div>
 
         {/* Table */}
