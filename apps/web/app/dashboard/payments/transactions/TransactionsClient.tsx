@@ -424,6 +424,110 @@ function TxDetailDrawer({ tx, onClose }: { tx: TxRow; onClose: () => void }) {
   )
 }
 
+// ── Member search combobox ────────────────────────────────────────────────────
+interface MemberOption { id: string; name: string; email: string; avatarUrl?: string | null }
+
+function MemberSelect({ members, value, onChange, placeholder = 'Search member…' }: {
+  members: MemberOption[]
+  value: string
+  onChange: (id: string) => void
+  placeholder?: string
+}) {
+  const [query, setQuery]   = useState('')
+  const [open,  setOpen]    = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const selected = members.find(m => m.id === value)
+
+  const filtered = query.length < 1 ? members.slice(0, 50) :
+    members.filter(m =>
+      m.name.toLowerCase().includes(query.toLowerCase()) ||
+      m.email.toLowerCase().includes(query.toLowerCase())
+    ).slice(0, 50)
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  function pick(m: MemberOption) {
+    onChange(m.id)
+    setQuery('')
+    setOpen(false)
+  }
+
+  function clear(e: React.MouseEvent) {
+    e.stopPropagation()
+    onChange('')
+    setQuery('')
+    setOpen(false)
+  }
+
+  const triggerStyle: React.CSSProperties = {
+    width: '100%', border: '1px solid #E5E7EB', borderRadius: 10, padding: '8px 12px',
+    fontSize: 13, color: '#111827', background: '#fff', cursor: 'pointer',
+    display: 'flex', alignItems: 'center', gap: 8, minHeight: 40,
+  }
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      {/* Trigger */}
+      {!open ? (
+        <button type="button" onClick={() => { setOpen(true); setTimeout(() => inputRef.current?.focus(), 50) }}
+          style={triggerStyle}>
+          {selected ? (
+            <>
+              <Avatar name={selected.name} avatarUrl={selected.avatarUrl ?? null} size={22} />
+              <span style={{ flex: 1, textAlign: 'left' }}>{selected.name}</span>
+              <span style={{ fontSize: 11, color: '#9CA3AF' }}>{selected.email}</span>
+              <button type="button" onClick={clear} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', color: '#9CA3AF' }}>
+                <X size={13} />
+              </button>
+            </>
+          ) : (
+            <>
+              <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
+              <span style={{ color: '#9CA3AF' }}>{placeholder}</span>
+            </>
+          )}
+        </button>
+      ) : (
+        <div style={{ border: '1.5px solid #0870E2', borderRadius: 10, background: '#fff', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderBottom: '1px solid #F3F4F6' }}>
+            <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
+            <input ref={inputRef} type="text" value={query} onChange={e => setQuery(e.target.value)}
+              placeholder={placeholder}
+              style={{ flex: 1, border: 'none', outline: 'none', fontSize: 13, color: '#111827', background: 'transparent' }} />
+            {query && <button type="button" onClick={() => setQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', color: '#9CA3AF' }}><X size={13} /></button>}
+          </div>
+          <div style={{ maxHeight: 220, overflowY: 'auto' }}>
+            {filtered.length === 0 ? (
+              <p style={{ padding: '12px 14px', fontSize: 13, color: '#9CA3AF' }}>No members found</p>
+            ) : filtered.map(m => (
+              <button key={m.id} type="button" onClick={() => pick(m)}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px',
+                  border: 'none', background: m.id === value ? '#F0F7FF' : 'transparent', cursor: 'pointer', textAlign: 'left' }}
+                onMouseEnter={e => { if (m.id !== value) (e.currentTarget as HTMLElement).style.background = '#F9FAFB' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = m.id === value ? '#F0F7FF' : 'transparent' }}>
+                <Avatar name={m.name} avatarUrl={m.avatarUrl ?? null} size={28} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.name}</p>
+                  <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.email}</p>
+                </div>
+                {m.id === value && <Check size={13} style={{ color: '#0870E2', flexShrink: 0 }} />}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Add Payment Modal ─────────────────────────────────────────────────────────
 const MODAL_INP: React.CSSProperties = {
   width: '100%', border: '1px solid #E5E7EB', borderRadius: 10, padding: '9px 12px',
@@ -434,7 +538,7 @@ const MODAL_LBL: React.CSSProperties = {
 }
 
 function AddPaymentModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
-  const [members, setMembers] = useState<{ id: string; name: string; email: string }[]>([])
+  const [members, setMembers] = useState<MemberOption[]>([])
   const [plans,   setPlans]   = useState<{ id: string; name: string; price: number }[]>([])
   const [form, setForm] = useState({
     userId: '', description: '', amount: '', currency: 'EUR',
@@ -446,7 +550,7 @@ function AddPaymentModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
 
   useEffect(() => {
     fetch('/api/dashboard/members').then(r => r.json()).then(d =>
-      setMembers((d.members ?? []).map((m: { userId: string; name: string; email: string }) => ({ id: m.userId, name: m.name, email: m.email })))
+      setMembers((d.members ?? []).map((m: { userId: string; name: string; email: string; avatarUrl?: string | null }) => ({ id: m.userId, name: m.name, email: m.email, avatarUrl: m.avatarUrl ?? null })))
     )
     fetch('/api/dashboard/membership-plans').then(r => r.json()).then(d =>
       setPlans((d.plans ?? []).map((p: { id: string; name: string; price: number }) => ({ id: p.id, name: p.name, price: p.price })))
@@ -497,10 +601,7 @@ function AddPaymentModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
             {/* Member */}
             <div>
               <label style={MODAL_LBL}>Member</label>
-              <select value={form.userId} onChange={e => set('userId', e.target.value)} style={MODAL_INP}>
-                <option value="">Select member…</option>
-                {members.map(m => <option key={m.id} value={m.id}>{m.name} — {m.email}</option>)}
-              </select>
+              <MemberSelect members={members} value={form.userId} onChange={id => set('userId', id)} />
             </div>
 
             {/* Membership plan */}

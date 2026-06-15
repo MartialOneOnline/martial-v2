@@ -62,6 +62,7 @@ export async function GET(req: NextRequest) {
         status: booked >= cap ? 'Full' : 'Open',
         instructor: cls.instructor?.name ?? null,
         level: cls.level ?? null,
+        image: cls.coverUrl ?? null,
       }
     })
     .sort((a, b) => a.time.localeCompare(b.time))

@@ -100,6 +100,80 @@ function SuccessToast({ message, onClose }: { message: string; onClose: () => vo
   )
 }
 
+// ── Member combobox ───────────────────────────────────────────────────────────
+interface MemberOption { id: string; name: string; email: string; avatarUrl?: string | null }
+
+function MemberSelect({ members, value, onChange, placeholder = 'Search member…' }: {
+  members: MemberOption[]; value: string; onChange: (id: string) => void; placeholder?: string
+}) {
+  const [query, setQuery] = useState('')
+  const [open,  setOpen]  = useState(false)
+  const selected = members.find(m => m.id === value)
+  const filtered = query
+    ? members.filter(m => (m.name + m.email).toLowerCase().includes(query.toLowerCase())).slice(0, 50)
+    : members.slice(0, 50)
+
+  return (
+    <div style={{ position: 'relative' }}>
+      {open ? (
+        <div style={{ border: '1px solid #D1FAE5', borderRadius: 10, overflow: 'hidden', background: '#fff',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', padding: '8px 12px', gap: 8, borderBottom: '1px solid #F3F4F6' }}>
+            <Search size={14} style={{ color: '#9CA3AF', flexShrink: 0 }} />
+            <input autoFocus value={query} onChange={e => setQuery(e.target.value)}
+              placeholder={placeholder}
+              style={{ flex: 1, border: 'none', outline: 'none', fontSize: 13, color: '#111827', background: 'transparent' }} />
+            <button onClick={() => { setOpen(false); setQuery('') }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2 }}>
+              <X size={13} style={{ color: '#9CA3AF' }} />
+            </button>
+          </div>
+          <div style={{ maxHeight: 220, overflowY: 'auto' }}>
+            {filtered.length === 0 && (
+              <p style={{ fontSize: 13, color: '#9CA3AF', padding: '10px 14px' }}>No results</p>
+            )}
+            {filtered.map(m => (
+              <button key={m.id} onClick={() => { onChange(m.id); setOpen(false); setQuery('') }}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px',
+                  background: m.id === value ? '#EFF6FF' : 'transparent', border: 'none', cursor: 'pointer',
+                  textAlign: 'left' }}>
+                <Avatar name={m.name} avatarUrl={m.avatarUrl ?? null} size={28} />
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>{m.name}</p>
+                  <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0 }}>{m.email}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <button onClick={() => setOpen(true)}
+          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px',
+            border: '1px solid #E5E7EB', borderRadius: 10, background: '#fff', cursor: 'pointer', textAlign: 'left' }}>
+          {selected ? (
+            <>
+              <Avatar name={selected.name} avatarUrl={selected.avatarUrl ?? null} size={24} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>{selected.name}</p>
+                <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0 }}>{selected.email}</p>
+              </div>
+              <button onClick={e => { e.stopPropagation(); onChange('') }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, marginLeft: 'auto' }}>
+                <X size={13} style={{ color: '#9CA3AF' }} />
+              </button>
+            </>
+          ) : (
+            <>
+              <Search size={14} style={{ color: '#9CA3AF' }} />
+              <span style={{ fontSize: 13, color: '#9CA3AF' }}>{placeholder}</span>
+            </>
+          )}
+        </button>
+      )}
+    </div>
+  )
+}
+
 // ── Assign Membership Modal ───────────────────────────────────────────────────
 const MEM_INP: React.CSSProperties = {
   width: '100%', border: '1px solid #E5E7EB', borderRadius: 10, padding: '9px 12px',
@@ -110,7 +184,7 @@ const MEM_LBL: React.CSSProperties = {
 }
 
 function AssignMembershipModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
-  const [members, setMembers] = useState<{ id: string; name: string; email: string }[]>([])
+  const [members, setMembers] = useState<MemberOption[]>([])
   const [plans,   setPlans]   = useState<{ id: string; name: string; price: number; planType: string }[]>([])
   const [form, setForm] = useState({
     userId: '', planId: '', paymentMethod: 'CASH',
@@ -122,7 +196,7 @@ function AssignMembershipModal({ onClose, onSaved }: { onClose: () => void; onSa
 
   useEffect(() => {
     fetch('/api/dashboard/members').then(r => r.json()).then(d =>
-      setMembers((d.members ?? []).map((m: { userId: string; name: string; email: string }) => ({ id: m.userId, name: m.name, email: m.email })))
+      setMembers((d.members ?? []).map((m: { userId: string; name: string; email: string; avatarUrl?: string | null }) => ({ id: m.userId, name: m.name, email: m.email, avatarUrl: m.avatarUrl ?? null })))
     )
     fetch('/api/dashboard/membership-plans').then(r => r.json()).then(d =>
       setPlans((d.plans ?? []).map((p: { id: string; name: string; price: number; planType: string }) => ({ id: p.id, name: p.name, price: p.price, planType: p.planType })))
@@ -197,10 +271,7 @@ function AssignMembershipModal({ onClose, onSaved }: { onClose: () => void; onSa
             {/* Member */}
             <div>
               <label style={MEM_LBL}>Member</label>
-              <select value={form.userId} onChange={e => set('userId', e.target.value)} style={MEM_INP}>
-                <option value="">Select member…</option>
-                {members.map(m => <option key={m.id} value={m.id}>{m.name} — {m.email}</option>)}
-              </select>
+              <MemberSelect members={members} value={form.userId} onChange={id => set('userId', id)} />
             </div>
 
             {/* Plan */}
