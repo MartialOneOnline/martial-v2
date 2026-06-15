@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   Bell, Menu, X, Check, Upload, Eye, EyeOff, Plus, Minus,
   User, Building2, Users2, Wallet, GraduationCap,
   Lock, Trash2, AlertTriangle,
   Globe, Phone, Mail, MapPin, Zap, RefreshCw, Clock,
-  ChevronDown, ChevronRight, CreditCard, Award, Calendar, LogOut, Users,
+  ChevronDown, ChevronRight, CreditCard, Award, Calendar, LogOut, Users, ArrowRight,
 } from 'lucide-react'
 import { useDashboard } from '../../../components/DashboardShell'
 import { useT } from '../../../lib/i18n/LanguageContext'
@@ -214,10 +214,11 @@ function SchoolTab() {
     instagram: '', facebook: '', youtube: '', tiktok: '',
     logoUrl: '', language: 'en',
   })
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving]   = useState(false)
-  const [saved, setSaved]     = useState(false)
-  const [error, setError]     = useState('')
+  const [loading,    setLoading]    = useState(true)
+  const [saving,     setSaving]     = useState(false)
+  const [saved,      setSaved]      = useState(false)
+  const [error,      setError]      = useState('')
+  const [uploading,  setUploading]  = useState(false)
 
   useEffect(() => {
     fetch('/api/dashboard/school').then(r => r.json()).then(d => {
@@ -244,6 +245,19 @@ function SchoolTab() {
 
   function set(k: string, v: string) { setForm(p => ({ ...p, [k]: v })) }
 
+  async function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true); setError('')
+    const fd = new FormData(); fd.append('file', file)
+    const res = await fetch('/api/dashboard/upload?bucket=avatars', { method: 'POST', body: fd })
+    if (!res.ok) { setError('Upload failed'); setUploading(false); return }
+    const { url } = await res.json()
+    await fetch('/api/dashboard/school', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ logoUrl: url }) })
+    setForm(p => ({ ...p, logoUrl: url }))
+    setUploading(false); setSaved(true); setTimeout(() => setSaved(false), 2500)
+  }
+
   async function save() {
     setSaving(true); setError('')
     const res = await fetch('/api/dashboard/school', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
@@ -264,13 +278,23 @@ function SchoolTab() {
         <div className="flex items-start gap-5 mb-5">
           <div className="shrink-0">
             <label style={LBL}>Logo</label>
-            <div className="w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center"
-              style={{ background: '#F3F4F6', border: '2px dashed #D1D5DB', cursor: 'pointer', position: 'relative' }}>
-              {form.logoUrl
-                ? <img src={form.logoUrl} alt="logo" className="w-full h-full object-cover" />
-                : <Upload size={18} style={{ color: '#9CA3AF' }} />
-              }
-            </div>
+            <label className="block relative cursor-pointer group" style={{ width: 72, height: 72 }}>
+              <div className="w-full h-full rounded-2xl overflow-hidden flex items-center justify-center"
+                style={{ background: '#F3F4F6', border: '2px dashed #D1D5DB' }}>
+                {uploading
+                  ? <RefreshCw size={20} style={{ color: '#9CA3AF' }} className="animate-spin" />
+                  : form.logoUrl
+                    ? <img src={form.logoUrl} alt="logo" className="w-full h-full object-cover" />
+                    : <Upload size={20} style={{ color: '#9CA3AF' }} />
+                }
+              </div>
+              <div className="absolute inset-0 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ background: 'rgba(0,0,0,0.35)' }}>
+                <Upload size={16} style={{ color: '#fff' }} />
+              </div>
+              <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleLogoChange} />
+            </label>
+            <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 6, textAlign: 'center', maxWidth: 72 }}>Click to upload</p>
           </div>
           <div className="flex-1 flex flex-col gap-4">
             <div>
@@ -522,23 +546,19 @@ function PaymentsTab() {
       <div>
         <p style={SECTION_TITLE}>Accepted payment methods</p>
         <p style={SECTION_SUB}>Choose which methods your school accepts from members</p>
-        <div className="grid grid-cols-1 gap-2">
+        <div className="flex flex-wrap gap-2">
           {PAYMENT_METHODS.map(m => {
             const active = acceptedMethods.includes(m.key)
             return (
               <button key={m.key} onClick={() => toggleMethod(m.key)}
-                style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '13px 16px',
-                  border: `2px solid ${active ? '#0870E2' : '#E5E7EB'}`,
-                  borderRadius: 12, background: active ? '#EFF6FF' : '#fff',
-                  cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s' }}>
-                <div style={{ width: 20, height: 20, borderRadius: 6, border: `2px solid ${active ? '#0870E2' : '#D1D5DB'}`,
-                  background: active ? '#0870E2' : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  {active && <Check size={12} style={{ color: '#fff' }} strokeWidth={3} />}
-                </div>
-                <div>
-                  <p style={{ fontSize: 14, fontWeight: 600, color: active ? '#0870E2' : '#111827', margin: 0 }}>{m.label}</p>
-                  <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>{m.description}</p>
-                </div>
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 7,
+                  padding: '8px 16px', borderRadius: 999, cursor: 'pointer', transition: 'all 0.15s',
+                  fontSize: 13, fontWeight: active ? 600 : 500,
+                  border: `1.5px solid ${active ? '#0870E2' : '#E5E7EB'}`,
+                  background: active ? '#EFF6FF' : '#F9FAFB',
+                  color: active ? '#0870E2' : '#6B7280' }}>
+                {active && <Check size={11} strokeWidth={3} style={{ color: '#0870E2' }} />}
+                {m.label}
               </button>
             )
           })}
@@ -575,34 +595,47 @@ function GradingTab() {
   const [blueToPurple,  setBlueToPurple]  = useState(24)
   const [purpleToBrown, setPurpleToBrown] = useState(36)
   const [brownToBlack,  setBrownToBlack]  = useState(48)
-  const [requireApproval,   setRequireApproval]   = useState(true)
-  const [minAttendance,     setMinAttendance]      = useState(75)
-  const [notifyStudent,     setNotifyStudent]      = useState(true)
-  const [notifyInstructor,  setNotifyInstructor]   = useState(true)
-  const [gradingFee,        setGradingFee]         = useState(0)
+  const [requireApproval,  setRequireApproval]  = useState(true)
+  const [minAttendance,    setMinAttendance]     = useState(75)
+  const [notifyStudent,    setNotifyStudent]     = useState(true)
+  const [notifyInstructor, setNotifyInstructor]  = useState(true)
+  const [gradingFee,       setGradingFee]        = useState(0)
   const [saved, setSaved] = useState(false)
   function save() { setSaved(true); setTimeout(() => setSaved(false), 2000) }
 
   const belts = [
-    { label: 'White → Blue',   color: '#1D4ED8', value: whiteToBlue,   onChange: setWhiteToBlue   },
-    { label: 'Blue → Purple',  color: '#6D28D9', value: blueToPurple,  onChange: setBlueToPurple  },
-    { label: 'Purple → Brown', color: '#92400E', value: purpleToBrown, onChange: setPurpleToBrown },
-    { label: 'Brown → Black',  color: '#111827', value: brownToBlack,  onChange: setBrownToBlack  },
+    { label: 'White → Blue',   dot: '#2563EB', value: whiteToBlue,   onChange: setWhiteToBlue   },
+    { label: 'Blue → Purple',  dot: '#7C3AED', value: blueToPurple,  onChange: setBlueToPurple  },
+    { label: 'Purple → Brown', dot: '#92400E', value: purpleToBrown, onChange: setPurpleToBrown },
+    { label: 'Brown → Black',  dot: '#111827', value: brownToBlack,  onChange: setBrownToBlack  },
   ]
 
   return (
     <div className="flex flex-col gap-8" style={{ maxWidth: 600 }}>
+
+      {/* Link to full Gradings module */}
+      <div className="flex items-center justify-between p-4 rounded-2xl" style={{ background: '#F0F7FF', border: '1px solid #BFDBFE' }}>
+        <div>
+          <p style={{ fontSize: 14, fontWeight: 600, color: '#1E40AF', margin: 0 }}>Grading events &amp; results</p>
+          <p style={{ fontSize: 13, color: '#3B82F6', marginTop: 2 }}>Schedule events, record promotions and view history in the Gradings module.</p>
+        </div>
+        <a href="/dashboard/school/gradings"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', borderRadius: 10, background: '#0870E2', color: '#fff', fontSize: 13, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+          Go to Gradings <ArrowRight size={13} />
+        </a>
+      </div>
+
       {/* Belt progression */}
       <div>
         <p style={SECTION_TITLE}>Belt progression</p>
         <p style={SECTION_SUB}>Minimum months at each belt before promotion</p>
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col">
           {belts.map(b => (
             <div key={b.label} className="flex items-center justify-between py-3"
               style={{ borderBottom: '1px solid #F3F4F6' }}>
               <div className="flex items-center gap-3">
-                <div className="w-3 h-3 rounded-full shrink-0" style={{ background: b.color }} />
-                <p style={{ fontSize: 14, fontWeight: 500, color: '#111827' }}>{b.label}</p>
+                <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: b.dot }} />
+                <p style={{ fontSize: 14, fontWeight: 500, color: '#111827', margin: 0 }}>{b.label}</p>
               </div>
               <Stepper value={b.value} unit="mo" min={1} max={120} onChange={b.onChange} />
             </div>
@@ -628,23 +661,21 @@ function GradingTab() {
 
       <hr style={DIVIDER} />
 
+      {/* Grading fee */}
+      <div>
+        <p style={SECTION_TITLE}>Grading fee</p>
+        <p style={SECTION_SUB}>Default amount charged per student per grading event (0 = free)</p>
+        <Stepper value={gradingFee} unit="€" min={0} max={500} onChange={setGradingFee} />
+      </div>
+
+      <hr style={DIVIDER} />
+
       {/* Notifications */}
       <div>
         <p style={SECTION_TITLE}>Notifications</p>
         <p style={SECTION_SUB}>Who gets notified for gradings and promotions</p>
         <ToggleRow label="Notify student on promotion" description="Send an email when a student is promoted" value={notifyStudent} onChange={setNotifyStudent} />
         <ToggleRow label="Notify instructor" description="Send a summary to the instructor after each grading" value={notifyInstructor} onChange={setNotifyInstructor} />
-      </div>
-
-      <hr style={DIVIDER} />
-
-      {/* Grading fee */}
-      <div>
-        <p style={SECTION_TITLE}>Grading fee</p>
-        <p style={SECTION_SUB}>Amount charged per student per grading event (0 = free)</p>
-        <div className="flex items-center gap-4">
-          <Stepper value={gradingFee} unit="€" min={0} max={200} onChange={setGradingFee} />
-        </div>
       </div>
 
       <div>
