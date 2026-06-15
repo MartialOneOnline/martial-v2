@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   Menu, Search, Download, Plus, Check, Clock,
   AlertCircle, XCircle, RefreshCw, ChevronLeft, ChevronRight, X,
-  CreditCard, Banknote, Building2, Landmark,
+  CreditCard, Banknote, Building2, Landmark, TrendingUp, TrendingDown, LayoutList,
 } from 'lucide-react'
 import { useDashboard } from '../../../../components/DashboardShell'
 import { useT } from '../../../../lib/i18n/LanguageContext'
@@ -12,6 +12,13 @@ import { useT } from '../../../../lib/i18n/LanguageContext'
 type TxStatus = 'PAID' | 'PENDING' | 'FAILED' | 'REFUNDED'
 type FilterTab = 'ALL' | TxStatus
 type MethodFilter = 'ALL' | 'STRIPE' | 'CASH' | 'BANK_TRANSFER' | 'DIRECT_DEBIT' | 'OTHER'
+type TypeFilter = 'ALL' | 'INCOME' | 'EXPENSE'
+
+const TYPE_OPTIONS: { id: TypeFilter; label: string; icon: React.ElementType; color: string; bg: string }[] = [
+  { id: 'ALL',     label: 'All',      icon: LayoutList,   color: '#374151', bg: '#F3F4F6' },
+  { id: 'INCOME',  label: 'Income',   icon: TrendingUp,   color: '#16A34A', bg: '#F0FDF4' },
+  { id: 'EXPENSE', label: 'Expenses', icon: TrendingDown, color: '#DC2626', bg: '#FEF2F2' },
+]
 
 interface TxRow {
   id: string
@@ -233,6 +240,7 @@ export default function TransactionsClient() {
 
   const [activeFilter,  setActiveFilter]  = useState<FilterTab>('ALL')
   const [activeMethod,  setActiveMethod]  = useState<MethodFilter>('ALL')
+  const [activeType,    setActiveType]    = useState<TypeFilter>('ALL')
   const [search,        setSearch]        = useState('')
   const [page,          setPage]          = useState(1)
 
@@ -241,7 +249,7 @@ export default function TransactionsClient() {
     const params = new URLSearchParams({
       page: String(page),
       pageSize: String(PAGE_SIZE),
-      type: 'INCOME',
+      ...(activeType   !== 'ALL' ? { type:   activeType   } : {}),
       ...(activeFilter !== 'ALL' ? { status: activeFilter } : {}),
       ...(activeMethod !== 'ALL' ? { method: activeMethod } : {}),
       ...(search ? { search } : {}),
@@ -260,7 +268,7 @@ export default function TransactionsClient() {
       REFUNDED: cs.REFUNDED ?? 0,
     })
     setLoading(false)
-  }, [page, activeFilter, activeMethod, search])
+  }, [page, activeFilter, activeMethod, activeType, search])
 
   useEffect(() => { load() }, [load])
 
@@ -346,12 +354,43 @@ export default function TransactionsClient() {
             </h1>
             <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>All payment records for your academy</p>
           </div>
-          <div className="rounded-2xl px-5 py-3" style={{ background: '#F0FDF4', border: '1px solid #BBF7D0' }}>
-            <p style={{ fontSize: 11, color: '#16A34A', fontWeight: 600, marginBottom: 2 }}>Total Collected</p>
-            <p style={{ fontSize: 22, fontWeight: 700, color: '#16A34A', letterSpacing: '-0.03em' }}>
-              {loading ? '—' : fmtPrice(totalAmount)}
-            </p>
-          </div>
+          {activeType !== 'EXPENSE' && (
+            <div className="rounded-2xl px-5 py-3" style={{ background: '#F0FDF4', border: '1px solid #BBF7D0' }}>
+              <p style={{ fontSize: 11, color: '#16A34A', fontWeight: 600, marginBottom: 2 }}>Total Collected</p>
+              <p style={{ fontSize: 22, fontWeight: 700, color: '#16A34A', letterSpacing: '-0.03em' }}>
+                {loading ? '—' : fmtPrice(totalAmount)}
+              </p>
+            </div>
+          )}
+          {activeType === 'EXPENSE' && (
+            <div className="rounded-2xl px-5 py-3" style={{ background: '#FEF2F2', border: '1px solid #FECACA' }}>
+              <p style={{ fontSize: 11, color: '#DC2626', fontWeight: 600, marginBottom: 2 }}>Total Expenses</p>
+              <p style={{ fontSize: 22, fontWeight: 700, color: '#DC2626', letterSpacing: '-0.03em' }}>
+                {loading ? '—' : fmtPrice(totalAmount)}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Type toggle: All / Income / Expenses */}
+        <div className="flex items-center gap-1 p-1 rounded-xl self-start"
+          style={{ background: '#F3F4F6', border: '1px solid #E5E7EB' }}>
+          {TYPE_OPTIONS.map(opt => {
+            const isOn = activeType === opt.id
+            const Icon = opt.icon
+            return (
+              <button key={opt.id} onClick={() => { setActiveType(opt.id); setPage(1) }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg cursor-pointer transition-all"
+                style={{ fontSize: 12, fontWeight: isOn ? 600 : 400,
+                  background: isOn ? (opt.id === 'EXPENSE' ? '#FEF2F2' : opt.id === 'INCOME' ? '#F0FDF4' : '#fff') : 'transparent',
+                  color: isOn ? opt.color : '#6B7280',
+                  border: isOn ? `1px solid ${opt.id === 'EXPENSE' ? '#FECACA' : opt.id === 'INCOME' ? '#BBF7D0' : '#E5E7EB'}` : '1px solid transparent',
+                  boxShadow: isOn ? '0 1px 3px rgba(0,0,0,0.06)' : 'none' }}>
+                <Icon size={12} />
+                {opt.label}
+              </button>
+            )
+          })}
         </div>
 
         {/* Status filter tabs */}
@@ -458,8 +497,9 @@ export default function TransactionsClient() {
                     </td>
 
                     <td className="px-5 py-3">
-                      <span style={{ fontSize: 14, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em' }}>
-                        {fmtPrice(tx.amount, tx.currency)}
+                      <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.02em',
+                        color: tx.type === 'EXPENSE' ? '#DC2626' : '#111827' }}>
+                        {tx.type === 'EXPENSE' ? '−' : ''}{fmtPrice(tx.amount, tx.currency)}
                       </span>
                     </td>
 
