@@ -204,6 +204,15 @@ interface EventDrawerProps {
   instructors: Instructor[]
 }
 
+const eventInp: React.CSSProperties = {
+  width: '100%', border: '1px solid #E5E7EB', borderRadius: 10, padding: '9px 12px',
+  fontSize: 13, color: '#111827', background: '#fff', outline: 'none',
+}
+const eventLbl: React.CSSProperties = { display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 5 }
+function EventField({ label, children }: { label: string; children: React.ReactNode }) {
+  return <div><label style={eventLbl}>{label}</label>{children}</div>
+}
+
 function EventDrawer({ open, onClose, onSaved, editing, instructors }: EventDrawerProps) {
   const t = useT()
   const [form, setForm]     = useState<EventFormData>(EMPTY_FORM)
@@ -236,16 +245,6 @@ function EventDrawer({ open, onClose, onSaved, editing, instructors }: EventDraw
     } finally {
       setSaving(false)
     }
-  }
-
-  const inp: React.CSSProperties = {
-    width: '100%', border: '1px solid #E5E7EB', borderRadius: 10, padding: '9px 12px',
-    fontSize: 13, color: '#111827', background: '#fff', outline: 'none',
-  }
-  const lbl: React.CSSProperties = { display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 5 }
-
-  function Field({ label, children }: { label: string; children: React.ReactNode }) {
-    return <div><label style={lbl}>{label}</label>{children}</div>
   }
 
   return (
@@ -286,53 +285,53 @@ function EventDrawer({ open, onClose, onSaved, editing, instructors }: EventDraw
             <div className="flex-1 min-w-0 flex flex-col gap-5">
 
               <div className="grid grid-cols-2 gap-4">
-                <Field label={t.classes.eventTitle}>
+                <EventField label={t.classes.eventTitle}>
                   <input type="text" placeholder={t.classes.eventTitlePlaceholder}
-                    value={form.title} onChange={e => set('title', e.target.value)} style={inp} />
-                </Field>
-                <Field label={t.classes.eventType}>
-                  <select value={form.type} onChange={e => set('type', e.target.value as DbEventType)} style={inp}>
+                    value={form.title} onChange={e => set('title', e.target.value)} style={eventInp} />
+                </EventField>
+                <EventField label={t.classes.eventType}>
+                  <select value={form.type} onChange={e => set('type', e.target.value as DbEventType)} style={eventInp}>
                     {(Object.entries(TYPE_LABELS) as [DbEventType, string][]).map(([v, l]) => (
                       <option key={v} value={v}>{l}</option>
                     ))}
                   </select>
-                </Field>
+                </EventField>
               </div>
 
               <div className="grid grid-cols-3 gap-4">
-                <Field label={t.common.date}>
-                  <input type="date" value={form.startDate} onChange={e => set('startDate', e.target.value)} style={inp} />
-                </Field>
-                <Field label={t.classes.startTime}>
-                  <input type="time" value={form.startTime} onChange={e => set('startTime', e.target.value)} style={inp} />
-                </Field>
-                <Field label={t.classes.endTime}>
-                  <input type="time" value={form.endTime} onChange={e => set('endTime', e.target.value)} style={inp} />
-                </Field>
+                <EventField label={t.common.date}>
+                  <input type="date" value={form.startDate} onChange={e => set('startDate', e.target.value)} style={eventInp} />
+                </EventField>
+                <EventField label={t.classes.startTime}>
+                  <input type="time" value={form.startTime} onChange={e => set('startTime', e.target.value)} style={eventInp} />
+                </EventField>
+                <EventField label={t.classes.endTime}>
+                  <input type="time" value={form.endTime} onChange={e => set('endTime', e.target.value)} style={eventInp} />
+                </EventField>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <Field label={t.classes.instructorHost}>
-                  <select value={form.instructorId} onChange={e => set('instructorId', e.target.value)} style={inp}>
+                <EventField label={t.classes.instructorHost}>
+                  <select value={form.instructorId} onChange={e => set('instructorId', e.target.value)} style={eventInp}>
                     <option value="">No instructor / external guest</option>
                     {instructors.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
                   </select>
-                </Field>
-                <Field label={t.common.location}>
+                </EventField>
+                <EventField label={t.common.location}>
                   <input type="text" placeholder="e.g. Main Academy, Palacio de los Deportes…"
-                    value={form.location} onChange={e => set('location', e.target.value)} style={inp} />
-                </Field>
+                    value={form.location} onChange={e => set('location', e.target.value)} style={eventInp} />
+                </EventField>
               </div>
 
-              <Field label={t.classes.capacityMax}>
+              <EventField label={t.classes.capacityMax}>
                 <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="Total attendees (optional)"
-                  value={form.capacity} onChange={e => set('capacity', e.target.value.replace(/\D/g, ''))} style={inp} />
-              </Field>
+                  value={form.capacity} onChange={e => set('capacity', e.target.value.replace(/\D/g, ''))} style={eventInp} />
+              </EventField>
 
               {/* Ticket types */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label style={lbl}>Ticket types</label>
+                  <label style={eventLbl}>Ticket types</label>
                   <button type="button"
                     onClick={() => set('tickets', [...form.tickets, { ...EMPTY_TICKET }])}
                     className="flex items-center gap-1 px-2.5 py-1 rounded-lg cursor-pointer"
@@ -352,8 +351,8 @@ function EventDrawer({ open, onClose, onSaved, editing, instructors }: EventDraw
                       <input type="text" placeholder="Ticket name (e.g. Member, Early Bird, VIP)"
                         value={ticket.name}
                         onChange={e => updateTicket({ name: e.target.value })}
-                        style={{ ...inp, flex: 2, minWidth: 0 }} />
-                      <div className="flex items-center gap-1 shrink-0" style={{ ...inp, width: 'auto', padding: '9px 10px' }}>
+                        style={{ ...eventInp, flex: 2, minWidth: 0 }} />
+                      <div className="flex items-center gap-1 shrink-0" style={{ ...eventInp, width: 'auto', padding: '9px 10px' }}>
                         <span style={{ fontSize: 12, color: '#9CA3AF' }}>€</span>
                         <input type="text" inputMode="decimal" placeholder="0"
                           value={ticket.price === 0 ? '' : ticket.price}
@@ -363,7 +362,7 @@ function EventDrawer({ open, onClose, onSaved, editing, instructors }: EventDraw
                       <input type="text" inputMode="numeric" placeholder="Cap."
                         value={ticket.capacity}
                         onChange={e => updateTicket({ capacity: e.target.value.replace(/\D/g, '') })}
-                        style={{ ...inp, width: 70, flexShrink: 0 }} />
+                        style={{ ...eventInp, width: 70, flexShrink: 0 }} />
                       {form.tickets.length > 1 && (
                         <button type="button"
                           onClick={() => set('tickets', form.tickets.filter((_, i) => i !== idx))}
@@ -382,7 +381,7 @@ function EventDrawer({ open, onClose, onSaved, editing, instructors }: EventDraw
 
               {/* Payment methods */}
               <div>
-                <label style={lbl}>Payment methods</label>
+                <label style={eventLbl}>Payment methods</label>
                 <div className="flex flex-wrap gap-2 mt-1">
                   {PAYMENT_OPTIONS.map(opt => {
                     const active = form.paymentMethods.includes(opt.value)
@@ -415,16 +414,16 @@ function EventDrawer({ open, onClose, onSaved, editing, instructors }: EventDraw
                 </p>
               </div>
 
-              <Field label="External link (optional)">
+              <EventField label="External link (optional)">
                 <input type="url" placeholder="https://…"
-                  value={form.externalUrl} onChange={e => set('externalUrl', e.target.value)} style={inp} />
-              </Field>
+                  value={form.externalUrl} onChange={e => set('externalUrl', e.target.value)} style={eventInp} />
+              </EventField>
 
-              <Field label={t.common.description}>
+              <EventField label={t.common.description}>
                 <textarea rows={4} placeholder={t.classes.describeEvent}
                   value={form.description} onChange={e => set('description', e.target.value)}
-                  style={{ ...inp, resize: 'vertical', lineHeight: 1.6 }} />
-              </Field>
+                  style={{ ...eventInp, resize: 'vertical', lineHeight: 1.6 }} />
+              </EventField>
 
               {/* Public toggle */}
               <div className="flex items-center justify-between rounded-xl px-4 py-3"
@@ -457,7 +456,7 @@ function EventDrawer({ open, onClose, onSaved, editing, instructors }: EventDraw
 
             {/* Right — banner + preview */}
             <div style={{ width: 240, flexShrink: 0 }}>
-              <label style={lbl}>{t.classes.eventBanner}</label>
+              <label style={eventLbl}>{t.classes.eventBanner}</label>
               <div
                 onDragEnter={() => setBannerDrag(true)}
                 onDragLeave={() => setBannerDrag(false)}
