@@ -97,8 +97,12 @@ function Avatar({ name, avatarUrl, size = 36 }: { name: string; avatarUrl: strin
   )
 }
 
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
+function fmtDate(iso: string, withTime = false) {
+  const d = new Date(iso)
+  const date = d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
+  if (!withTime) return date
+  const time = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false })
+  return `${date} ${time}`
 }
 
 function fmtPrice(amount: number, currency = 'EUR') {
@@ -285,17 +289,9 @@ function TxDetailDrawer({ tx, onClose }: { tx: TxRow; onClose: () => void }) {
           <MIcon size={11} />{METHOD_LABELS[methodKey] ?? methodKey}
         </span>
       ) : <span style={{ color: '#9CA3AF' }}>—</span> },
-    { label: 'Submitted', value: <span style={{ color: '#374151' }}>{fmtDate(tx.date)}</span> },
-    ...(tx.periodStart || tx.periodEnd ? [{
-      label: 'Period',
-      value: (
-        <span style={{ fontSize: 12, color: '#374151', fontWeight: 500 }}>
-          {tx.periodStart ? fmtDate(tx.periodStart) : '—'}
-          {' · '}
-          <span style={{ color: '#DC2626' }}>Expires {tx.periodEnd ? fmtDate(tx.periodEnd) : '—'}</span>
-        </span>
-      ),
-    }] : []),
+    { label: 'Submitted', value: <span style={{ color: '#374151' }}>{fmtDate(tx.date, true)}</span> },
+    ...(tx.periodStart ? [{ label: 'Activated', value: <span style={{ color: '#374151' }}>{fmtDate(tx.periodStart, true)}</span> }] : []),
+    ...(tx.periodEnd   ? [{ label: 'Renew',     value: <span style={{ color: '#374151' }}>{fmtDate(tx.periodEnd, true)}</span> }] : []),
     { label: 'Status',
       value: (
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5,
