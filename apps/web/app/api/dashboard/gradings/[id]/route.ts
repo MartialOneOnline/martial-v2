@@ -20,15 +20,16 @@ async function authorise() {
 }
 
 // DELETE /api/dashboard/gradings/[id]
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await authorise()
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
+  const { id } = await params
   const grading = await prisma.grading.findFirst({
-    where: { id: params.id, schoolId: auth.schoolId },
+    where: { id, schoolId: auth.schoolId },
   })
   if (!grading) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  await prisma.grading.delete({ where: { id: params.id } })
+  await prisma.grading.delete({ where: { id } })
   return NextResponse.json({ ok: true })
 }
