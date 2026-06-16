@@ -20,16 +20,16 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const { id: classId } = await params
 
-  // Find the most recent scheduled occurrence for this class (today or future)
-  const now = new Date()
-  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const endOfDay   = new Date(startOfDay.getTime() + 86400000)
+  // Optional ?date=YYYY-MM-DD param; defaults to today (server timezone)
+  const dateParam = req.nextUrl.searchParams.get('date')
+  const base = dateParam ? new Date(dateParam) : new Date()
+  const startOfDay = new Date(base.getFullYear(), base.getMonth(), base.getDate())
+  const endOfDay   = new Date(startOfDay.getTime() + 86_400_000)
 
   const bookings = await prisma.booking.findMany({
     where: {
       classId,
       scheduledAt: { gte: startOfDay, lt: endOfDay },
-      status: { not: 'CANCELLED' },
       class: { schoolId },
     },
     include: {
@@ -41,10 +41,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   return NextResponse.json({
     bookings: bookings.map(b => ({
-      id:        b.id,
-      name:      b.user?.name ?? '—',
-      avatarUrl: b.user?.avatarUrl ?? null,
-      status:    b.status,
+      id:          b.id,
+      name:        b.user?.name ?? '—',
+      avatarUrl:   b.user?.avatarUrl ?? null,
+      status:      b.status,
+      attendedAt:  b.attendedAt?.toISOString() ?? null,
+      scheduledAt: b.scheduledAt.toISOString(),
     })),
   })
 }

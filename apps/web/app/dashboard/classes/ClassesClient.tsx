@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   Bell, Calendar, Menu, X, Plus, MoreHorizontal, Search,
   ChevronLeft, ChevronRight, TrendingUp, Check, Upload, Clock, Trash2, Pencil,
-  ChevronDown,
+  ChevronDown, Users, CheckCircle2,
 } from 'lucide-react'
 import { useDashboard } from '../../../components/DashboardShell'
 import DashboardLanguageSelector from '../../../components/DashboardLanguageSelector'
@@ -738,6 +738,199 @@ function ClassDrawer({ open, onClose, onSaved, editing, instructors, disciplines
   )
 }
 
+// ── Bookings drawer ─────────────────────────────────────────────────────────────
+
+interface BookingRow {
+  id: string
+  name: string
+  avatarUrl: string | null
+  status: string
+  attendedAt: string | null
+  scheduledAt: string
+}
+
+function todayIso() {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function BookingStatusBadge({ status }: { status: string }) {
+  const map: Record<string, { bg: string; color: string; label: string }> = {
+    PENDING:   { bg: '#FFF7ED', color: '#C2410C', label: 'Pending'   },
+    CONFIRMED: { bg: '#EFF6FF', color: '#1D4ED8', label: 'Confirmed' },
+    COMPLETED: { bg: '#F0FDF4', color: '#15803D', label: 'Attended'  },
+    CANCELLED: { bg: '#F3F4F6', color: '#6B7280', label: 'Cancelled' },
+    NO_SHOW:   { bg: '#FEF2F2', color: '#B91C1C', label: 'No-show'   },
+  }
+  const s = map[status] ?? map['PENDING']!
+  return (
+    <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 999,
+      background: s.bg, color: s.color }}>
+      {s.label}
+    </span>
+  )
+}
+
+function BookingsDrawer({ cls, open, onClose }: {
+  cls: ClassRow | null
+  open: boolean
+  onClose: () => void
+}) {
+  const [date, setDate]         = useState(todayIso)
+  const [bookings, setBookings] = useState<BookingRow[]>([])
+  const [loading, setLoading]   = useState(false)
+  const [marking, setMarking]   = useState<string | null>(null)
+
+  useEffect(() => {
+    if (open) setDate(todayIso())
+  }, [open])
+
+  useEffect(() => {
+    if (!open || !cls) return
+    setLoading(true)
+    fetch(`/api/dashboard/classes/${cls.id}/bookings?date=${date}`)
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(data => setBookings(data.bookings ?? []))
+      .catch(() => setBookings([]))
+      .finally(() => setLoading(false))
+  }, [open, cls, date])
+
+  async function markAttended(bookingId: string) {
+    setMarking(bookingId)
+    try {
+      const res = await fetch(`/api/dashboard/bookings/${bookingId}/attend`, { method: 'PATCH' })
+      if (res.ok) {
+        const data = await res.json()
+        setBookings(prev => prev.map(b =>
+          b.id === bookingId
+            ? { ...b, status: data.status, attendedAt: data.attendedAt }
+            : b
+        ))
+      }
+    } finally {
+      setMarking(null)
+    }
+  }
+
+  const attended  = bookings.filter(b => b.status === 'COMPLETED').length
+  const total     = bookings.filter(b => b.status !== 'CANCELLED').length
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 transition-opacity"
+        style={{ background: 'rgba(0,0,0,0.35)', opacity: open ? 1 : 0, pointerEvents: open ? 'auto' : 'none' }}
+        onClick={onClose} />
+
+      <div className="fixed top-0 right-0 h-full z-50 flex flex-col"
+        style={{
+          width: 'min(480px, 96vw)', background: '#F9FAFB',
+          boxShadow: '-4px 0 32px rgba(0,0,0,0.12)',
+          transform: open ? 'translateX(0)' : 'translateX(100%)',
+          transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)',
+        }}>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 shrink-0"
+          style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
+          <div>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>
+              {cls?.name ?? 'Bookings'}
+            </h2>
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>Attendance list</p>
+          </div>
+          <button onClick={onClose}
+            className="w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
+            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
+            <X size={15} style={{ color: '#6B7280' }} />
+          </button>
+        </div>
+
+        {/* Date picker */}
+        <div className="px-6 py-3 shrink-0" style={{ background: '#fff', borderBottom: '1px solid #F3F4F6' }}>
+          <div className="flex items-center gap-3">
+            <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', whiteSpace: 'nowrap' }}>Session date</label>
+            <input type="date" value={date} onChange={e => setDate(e.target.value)}
+              style={{ border: '1px solid #E5E7EB', borderRadius: 8, padding: '6px 10px',
+                fontSize: 13, color: '#111827', background: '#fff', outline: 'none' }} />
+            {!loading && bookings.length > 0 && (
+              <span style={{ fontSize: 12, color: '#6B7280', marginLeft: 'auto', whiteSpace: 'nowrap' }}>
+                {attended}/{total} attended
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Booking list */}
+        <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-2">
+          {loading && (
+            <div className="flex items-center justify-center py-12"
+              style={{ color: '#9CA3AF', fontSize: 13 }}>Loading…</div>
+          )}
+
+          {!loading && bookings.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-12 gap-3">
+              <Users size={28} style={{ color: '#E5E7EB' }} />
+              <p style={{ fontSize: 13, color: '#9CA3AF' }}>No bookings for this date</p>
+            </div>
+          )}
+
+          {!loading && bookings.map(b => {
+            const isAttended  = b.status === 'COMPLETED'
+            const isCancelled = b.status === 'CANCELLED'
+            const isMarking   = marking === b.id
+            return (
+              <div key={b.id}
+                className="flex items-center gap-3 rounded-xl px-4 py-3"
+                style={{ background: '#fff', border: '1px solid #F3F4F6',
+                  opacity: isCancelled ? 0.5 : 1 }}>
+
+                {/* Avatar */}
+                <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+                  style={{ background: '#EFF6FF', fontSize: 13, fontWeight: 700, color: '#0071E3' }}>
+                  {b.avatarUrl
+                    ? <img src={b.avatarUrl} alt={b.name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
+                    : b.name[0]?.toUpperCase() ?? '?'
+                  }
+                </div>
+
+                {/* Name + status */}
+                <div className="flex-1 min-w-0">
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0, whiteSpace: 'nowrap',
+                    overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.name}</p>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <BookingStatusBadge status={b.status} />
+                    {b.attendedAt && (
+                      <span style={{ fontSize: 10, color: '#9CA3AF' }}>
+                        {new Date(b.attendedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Action */}
+                {isAttended ? (
+                  <CheckCircle2 size={18} style={{ color: '#16A34A', flexShrink: 0 }} />
+                ) : !isCancelled ? (
+                  <button
+                    onClick={() => markAttended(b.id)}
+                    disabled={isMarking}
+                    className="px-3 py-1.5 rounded-lg cursor-pointer shrink-0"
+                    style={{ fontSize: 12, fontWeight: 600, border: '1px solid #0071E3',
+                      background: isMarking ? '#F3F4F6' : '#EFF6FF',
+                      color: isMarking ? '#9CA3AF' : '#0071E3',
+                      cursor: isMarking ? 'not-allowed' : 'pointer' }}>
+                    {isMarking ? '…' : 'Mark attended'}
+                  </button>
+                ) : null}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </>
+  )
+}
+
 // ── Delete confirm modal ────────────────────────────────────────────────────────
 
 function DeleteModal({ cls, onConfirm, onCancel }: {
@@ -822,9 +1015,10 @@ export default function ClassesClient() {
   const [currentPage, setCurrentPage]   = useState(1)
   const [drawerOpen, setDrawerOpen]     = useState(false)
   const [editingClass, setEditingClass] = useState<ClassRow | null>(null)
-  const [deleteClass, setDeleteClass]   = useState<ClassRow | null>(null)
-  const [successMsg, setSuccessMsg]     = useState('')
-  const [openMenuId, setOpenMenuId]     = useState<string | null>(null)
+  const [deleteClass, setDeleteClass]     = useState<ClassRow | null>(null)
+  const [bookingsClass, setBookingsClass] = useState<ClassRow | null>(null)
+  const [successMsg, setSuccessMsg]       = useState('')
+  const [openMenuId, setOpenMenuId]       = useState<string | null>(null)
 
   const loadClasses = useCallback(async () => {
     setLoading(true)
@@ -1113,6 +1307,13 @@ export default function ClassesClient() {
                             <div className="absolute right-6 mt-1 rounded-xl z-20 py-1 overflow-hidden"
                               style={{ background: '#fff', border: '1px solid #E5E7EB',
                                 boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 140, top: '100%' }}>
+                              <button onClick={() => { setOpenMenuId(null); setBookingsClass(cls) }}
+                                className="w-full text-left px-4 py-2 transition-colors cursor-pointer flex items-center gap-2"
+                                style={{ fontSize: 13, color: '#374151', background: 'transparent', border: 'none' }}
+                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
+                                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+                                <Users size={13} /> View bookings
+                              </button>
                               <button onClick={() => openEdit(cls)}
                                 className="w-full text-left px-4 py-2 transition-colors cursor-pointer flex items-center gap-2"
                                 style={{ fontSize: 13, color: '#374151', background: 'transparent', border: 'none' }}
@@ -1194,6 +1395,12 @@ export default function ClassesClient() {
 
         </div>
       </main>
+
+      <BookingsDrawer
+        cls={bookingsClass}
+        open={!!bookingsClass}
+        onClose={() => setBookingsClass(null)}
+      />
 
       <ClassDrawer
         open={drawerOpen}
