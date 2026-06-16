@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 30 completada ✅ — classAccess enforcement en booking API + auth guard student profile + fixes Users module
+**Estado:** Sesión 31 completada ✅ — Membership assignment unified through assignPlan() service
 
 ---
 
@@ -244,6 +244,15 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 ---
 
 ## Historial de sesiones
+
+### Sesión 31 — 2026-06-16 ✅
+**Payments: membership assignment unified through assignPlan() service** — commit `2710559`
+- `POST /api/dashboard/memberships` now delegates to `lib/services/membership.ts:assignPlan()` instead of calling `prisma.membership.create()` directly
+- Membership assignment from Payments / Subscriptions modal now atomically: creates a `Transaction` for paid plans, cancels any existing ACTIVE membership, promotes `SchoolMember.status` from PENDING/LEAD → ACTIVE, computes `endDate` from plan billing rules
+- Free/trial plans (price = 0) still skip transaction creation (existing `assignPlan` behavior preserved)
+- Route now requires `userId` + `planId` (was: `userId` + `planName` + `startDate`); resolves `User.id → SchoolMember.id` via one extra lookup
+- No Prisma schema changes, no Stripe work, no refund logic
+- **57 tests passing**
 
 ### Sesión 30 — 2026-06-16 ✅
 **Memberships classAccess enforcement + Users module fixes** — commits `278bd7c`, `dd5b250`, `0859ce2`
