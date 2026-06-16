@@ -124,12 +124,16 @@ function RowMenu({ items }: { items: { label: string; onClick: () => void; varia
 
 interface MemberRow {
   userId: string; name: string; email: string; avatarUrl: string | null
-  count: number; mostMissedClass: string; lastMissedAt: string
+  count: number; noShowCount: number; mostMissedClass: string; lastMissedAt: string
 }
 interface ReportData {
-  stats: { totalAbsences: number; uniqueMembers: number; avgCancellations: number; atRiskCount: number }
-  trendData: { date: string; absences: number }[]
-  dowData:   { day: string; absences: number }[]
+  stats: {
+    totalAbsences: number; totalNoShows: number
+    uniqueMembers: number; noShowMembers: number
+    avgCancellations: number; atRiskCount: number
+  }
+  trendData: { date: string; absences: number; noShows: number }[]
+  dowData:   { day: string; absences: number; noShows: number }[]
   members:   MemberRow[]
   total:     number
   atRiskThreshold: number
@@ -170,9 +174,10 @@ export default function AbsentsReportClient() {
   const threshold = data?.atRiskThreshold ?? 3
 
   const STAT_CARDS = [
-    { label: 'Total Absences',    value: stats?.totalAbsences    ?? '—', sub: 'this period',           color: '#DC2626' },
-    { label: 'Unique Members',    value: stats?.uniqueMembers    ?? '—', sub: 'affected',              color: '#D97706' },
-    { label: 'Avg Cancellations', value: stats?.avgCancellations ?? '—', sub: 'per member',            color: '#6D28D9' },
+    { label: 'Cancellations',     value: stats?.totalAbsences    ?? '—', sub: 'this period',                 color: '#DC2626' },
+    { label: 'No-Shows',          value: stats?.totalNoShows     ?? '—', sub: `${stats?.noShowMembers ?? 0} members`, color: '#B91C1C' },
+    { label: 'Avg Cancellations', value: stats?.avgCancellations ?? '—', sub: 'per member',                  color: '#6D28D9' },
+    { label: 'Unique Members',    value: stats?.uniqueMembers    ?? '—', sub: 'affected',                    color: '#D97706' },
     { label: 'At-Risk Members',   value: stats?.atRiskCount      ?? '—', sub: `${threshold}+ cancellations`, color: '#DC2626' },
   ]
 
@@ -221,7 +226,7 @@ export default function AbsentsReportClient() {
           <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>Cancelled bookings, at-risk members and day-of-week patterns</p>
         </div>
 
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 xl:grid-cols-5 gap-4">
           {STAT_CARDS.map(stat => (
             <div key={stat.label} className="rounded-2xl" style={{ background: '#fff', border: '1px solid #E5E7EB', padding: '18px 20px' }}>
               <div className="flex items-center justify-between mb-3">
@@ -239,7 +244,7 @@ export default function AbsentsReportClient() {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           <div className="rounded-2xl p-5" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
             <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 4 }}>Absences by Day of Week</p>
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 16 }}>Which days have the most cancellations</p>
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 16 }}>Cancellations and no-shows per day</p>
             {loading ? <div style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</p></div> : (
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={data?.dowData ?? []}>
@@ -247,14 +252,15 @@ export default function AbsentsReportClient() {
                   <XAxis dataKey="day" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
                   <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12 }} />
-                  <Bar dataKey="absences" name="Absences" fill="#D97706" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="absences" name="Cancellations" fill="#D97706" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="noShows"  name="No-Shows"      fill="#B91C1C" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}
           </div>
           <div className="rounded-2xl p-5" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
             <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 4 }}>Absence Trend</p>
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 16 }}>Cancellations over time</p>
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 16 }}>Cancellations and no-shows over time</p>
             {loading ? <div style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</p></div> : (
               <ResponsiveContainer width="100%" height={260}>
                 <AreaChart data={data?.trendData ?? []}>
@@ -262,7 +268,8 @@ export default function AbsentsReportClient() {
                   <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
                   <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12 }} />
-                  <Area type="monotone" dataKey="absences" name="Absences" stroke="#DC2626" fill="#DC2626" fillOpacity={0.12} strokeWidth={2} />
+                  <Area type="monotone" dataKey="absences" name="Cancellations" stroke="#DC2626" fill="#DC2626" fillOpacity={0.12} strokeWidth={2} />
+                  <Area type="monotone" dataKey="noShows"  name="No-Shows"      stroke="#B91C1C" fill="#B91C1C" fillOpacity={0.08} strokeWidth={2} strokeDasharray="4 2" />
                 </AreaChart>
               </ResponsiveContainer>
             )}
@@ -326,13 +333,22 @@ export default function AbsentsReportClient() {
                         </td>
                         <td className="px-5 py-3"><span style={{ fontSize: 12, color: '#374151', fontWeight: 500 }}>{m.mostMissedClass}</span></td>
                         <td className="px-5 py-3">
-                          <span className="inline-flex items-center gap-1"
-                            style={{ fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 999,
-                              background: isAtRisk ? '#FEF2F2' : '#F3F4F6', color: isAtRisk ? '#DC2626' : '#6B7280',
-                              border: '1px solid ' + (isAtRisk ? '#FECACA' : '#E5E7EB') }}>
-                            {isAtRisk && <AlertTriangle size={9} />}
-                            {m.count}x
-                          </span>
+                          <div className="flex flex-col gap-1">
+                            <span className="inline-flex items-center gap-1"
+                              style={{ fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 999,
+                                background: isAtRisk ? '#FEF2F2' : '#F3F4F6', color: isAtRisk ? '#DC2626' : '#6B7280',
+                                border: '1px solid ' + (isAtRisk ? '#FECACA' : '#E5E7EB') }}>
+                              {isAtRisk && <AlertTriangle size={9} />}
+                              {m.count}x cancelled
+                            </span>
+                            {m.noShowCount > 0 && (
+                              <span className="inline-flex items-center gap-1"
+                                style={{ fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 999,
+                                  background: '#FEF2F2', color: '#B91C1C', border: '1px solid #FECACA' }}>
+                                {m.noShowCount}x no-show
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-5 py-3"><span style={{ fontSize: 12, color: '#9CA3AF' }}>{fmtDate(m.lastMissedAt)}</span></td>
                         <td className="px-5 py-3">
