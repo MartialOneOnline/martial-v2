@@ -24,18 +24,18 @@ enum Role {
 }
 
 enum SchoolStatus {
-  UNVERIFIED   // Imported/seeded, not yet confirmed by owner
-  CLAIMED      // Owner signed up and confirmed listing
-  VERIFIED     // Stripe connected, fully operational
-  PARTNER      // Affiliated (Roger Gracie, Checkmat, etc.) — premium listing
+  UNVERIFIED // Imported/seeded, not yet confirmed by owner
+  CLAIMED // Owner signed up and confirmed listing
+  VERIFIED // Stripe connected, fully operational
+  PARTNER // Affiliated (Roger Gracie, Checkmat, etc.) — premium listing
   SUSPENDED
 }
 
 enum SchoolSource {
-  VONSEL          // Imported via Vonsel CSV
-  MANUAL          // Added by Superadmin
+  VONSEL // Imported via Vonsel CSV
+  MANUAL // Added by Superadmin
   SELF_REGISTERED // Academy registered themselves
-  AFFILIATE       // Added via affiliation import (e.g. Roger Gracie Association)
+  AFFILIATE // Added via affiliation import (e.g. Roger Gracie Association)
 }
 
 enum PaymentMethod {
@@ -79,9 +79,9 @@ enum SchoolRelationshipType {
 enum SchoolMemberStatus {
   ACTIVE
   INACTIVE
-  PENDING     // Invite sent, not yet accepted
-  LEAD        // Accepted invite, no membership yet
-  FROZEN      // Paused by student (injury, holiday)
+  PENDING // Invite sent, not yet accepted
+  LEAD // Accepted invite, no membership yet
+  FROZEN // Paused by student (injury, holiday)
   ARCHIVED
 }
 
@@ -95,7 +95,7 @@ enum BookingStatus {
   PENDING
   CONFIRMED
   CANCELLED
-  COMPLETED   // Class happened; see attendedAt for check-in timestamp
+  COMPLETED // Class happened; see attendedAt for check-in timestamp
   NO_SHOW
 }
 
@@ -110,7 +110,7 @@ enum LeadStatus {
   NEW
   CONTACTED
   TRIAL_BOOKED
-  CONVERTED   // Became a SchoolMember
+  CONVERTED // Became a SchoolMember
   LOST
 }
 
@@ -166,7 +166,7 @@ enum TransactionStatus {
 
 model Affiliation {
   id          String  @id @default(cuid())
-  name        String  // "Roger Gracie Association"
+  name        String // "Roger Gracie Association"
   slug        String  @unique // "roger-gracie"
   description String?
   logoUrl     String?
@@ -178,11 +178,11 @@ model Affiliation {
   // Resolved via ContentPlatform.affiliationId — no FK here to avoid circular
   // Access: affiliation.contentPlatforms
 
-  schools         School[]
+  schools          School[]
   contentPlatforms ContentPlatform[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("affiliations")
 }
@@ -196,19 +196,19 @@ model ContentPlatform {
   affiliationId String
   affiliation   Affiliation @relation(fields: [affiliationId], references: [id], onDelete: Cascade)
 
-  name        String  // "Roger Gracie TV"
+  name        String // "Roger Gracie TV"
   slug        String  @unique // "rg-tv"
   description String?
   logoUrl     String?
   bannerUrl   String?
   isActive    Boolean @default(true)
 
-  series       ContentSeries[]
-  accesses     ContentAccess[]
+  series          ContentSeries[]
+  accesses        ContentAccess[]
   membershipPlans MembershipPlan[] // Plans that include access to this platform
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("content_platforms")
 }
@@ -218,21 +218,21 @@ model ContentPlatform {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model ContentSeries {
-  id          String          @id @default(cuid())
-  platformId  String
-  platform    ContentPlatform @relation(fields: [platformId], references: [id], onDelete: Cascade)
+  id         String          @id @default(cuid())
+  platformId String
+  platform   ContentPlatform @relation(fields: [platformId], references: [id], onDelete: Cascade)
 
   title        String
   description  String?
-  level        String?  // "Beginner", "Intermediate", "Advanced", "All levels"
+  level        String? // "Beginner", "Intermediate", "Advanced", "All levels"
   thumbnailUrl String?
   sortOrder    Int     @default(0)
   isPublished  Boolean @default(false)
 
-  videos      ContentVideo[]
+  videos ContentVideo[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("content_series")
 }
@@ -242,21 +242,21 @@ model ContentSeries {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model ContentVideo {
-  id        String        @id @default(cuid())
-  seriesId  String
-  series    ContentSeries @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  id       String        @id @default(cuid())
+  seriesId String
+  series   ContentSeries @relation(fields: [seriesId], references: [id], onDelete: Cascade)
 
-  title        String
-  description  String?
-  durationMin  Int?     // minutes
-  videoUrl     String?  // Vimeo / YouTube / S3 signed URL
-  thumbnailUrl String?
-  sortOrder    Int     @default(0)
-  isPublished  Boolean @default(false)
+  title         String
+  description   String?
+  durationMin   Int? // minutes
+  videoUrl      String? // Vimeo / YouTube / S3 signed URL
+  thumbnailUrl  String?
+  sortOrder     Int     @default(0)
+  isPublished   Boolean @default(false)
   isFreePreview Boolean @default(false) // Visible without subscription
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("content_videos")
 }
@@ -267,23 +267,22 @@ model ContentVideo {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model ContentAccess {
-  id          String          @id @default(cuid())
-  userId      String
-  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  platformId  String
-  platform    ContentPlatform @relation(fields: [platformId], references: [id], onDelete: Cascade)
+  id           String          @id @default(cuid())
+  userId       String
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platformId   String
+  platform     ContentPlatform @relation(fields: [platformId], references: [id], onDelete: Cascade)
   membershipId String          @unique
-  membership  Membership      @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  membership   Membership      @relation(fields: [membershipId], references: [id], onDelete: Cascade)
 
-  startDate   DateTime
-  endDate     DateTime?  // null = active while membership is active
-  isActive    Boolean    @default(true)
-  revokedAt   DateTime?  // set when membership expires or is cancelled
+  startDate DateTime
+  endDate   DateTime? // null = active while membership is active
+  isActive  Boolean   @default(true)
+  revokedAt DateTime? // set when membership expires or is cancelled
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   @@unique([userId, platformId]) // one active access per platform per user
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
   @@map("content_accesses")
 }
 
@@ -292,41 +291,41 @@ model ContentAccess {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model User {
-  id             String   @id @default(cuid())
-  email          String   @unique
+  id             String    @id @default(cuid())
+  email          String    @unique
   name           String?
   phone          String?
   dateOfBirth    DateTime?
   avatarUrl      String?
-  supabaseAuthId String?  @unique @db.Uuid
-  role           Role     @default(STUDENT)
+  supabaseAuthId String?   @unique @db.Uuid
+  role           Role      @default(STUDENT)
 
   // School this user manages (if SCHOOL_OWNER or INSTRUCTOR)
-  schoolId       String?
-  school         School?  @relation("SchoolStaff", fields: [schoolId], references: [id])
+  schoolId String?
+  school   School? @relation("SchoolStaff", fields: [schoolId], references: [id])
 
   // Schools this user claimed ownership of
   claimedSchools School[] @relation("SchoolClaimer")
 
   // Relations
-  bookings         Booking[]
-  memberships      Membership[]
-  contentAccesses  ContentAccess[]
-  campBookings     CampBooking[]
-  reviews          Review[]
-  schoolMembers    SchoolMember[]
-  schoolClaims     SchoolClaim[]
-  gradings         Grading[]       @relation("GradingStudent")
-  gradingsGiven    Grading[]       @relation("GradingPromoter")
-  leads            Lead[]          @relation("LeadConvertedUser")
-  leadNotes        LeadNote[]
-  transactions     Transaction[]   @relation("TransactionUser")
-  userWaivers      UserWaiver[]
-  sentInvitations  SchoolInvitation[] @relation("InvitedByUser")
-  preference       UserPreference?
+  bookings        Booking[]
+  memberships     Membership[]
+  contentAccesses ContentAccess[]
+  campBookings    CampBooking[]
+  reviews         Review[]
+  schoolMembers   SchoolMember[]
+  schoolClaims    SchoolClaim[]
+  gradings        Grading[]          @relation("GradingStudent")
+  gradingsGiven   Grading[]          @relation("GradingPromoter")
+  leads           Lead[]             @relation("LeadConvertedUser")
+  leadNotes       LeadNote[]
+  transactions    Transaction[]      @relation("TransactionUser")
+  userWaivers     UserWaiver[]
+  sentInvitations SchoolInvitation[] @relation("InvitedByUser")
+  preference      UserPreference?
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("users")
 }
@@ -360,42 +359,42 @@ model SchoolDiscipline {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model School {
-  id          String       @id @default(cuid())
-  name        String
-  slug        String       @unique
-  status      SchoolStatus @default(UNVERIFIED)
-  source      SchoolSource @default(SELF_REGISTERED)
+  id     String       @id @default(cuid())
+  name   String
+  slug   String       @unique
+  status SchoolStatus @default(UNVERIFIED)
+  source SchoolSource @default(SELF_REGISTERED)
 
   // Affiliation (Roger Gracie, Checkmat, Alliance, etc.)
-  affiliationId   String?
-  affiliation     Affiliation? @relation(fields: [affiliationId], references: [id])
+  affiliationId String?
+  affiliation   Affiliation? @relation(fields: [affiliationId], references: [id])
 
   // Location
-  country     String?
-  city        String?
-  address     String?
-  postcode    String?
-  lat         Float?
-  lng         Float?
+  country  String?
+  city     String?
+  address  String?
+  postcode String?
+  lat      Float?
+  lng      Float?
 
   // Contact
-  phone       String?
-  email       String?
-  website     String?
-  language    String   @default("en") // en | es | pt | fr
+  phone    String?
+  email    String?
+  website  String?
+  language String  @default("en") // en | es | pt | fr
 
   // Social
-  instagram   String?
-  facebook    String?
-  youtube     String?
-  tiktok      String?
+  instagram String?
+  facebook  String?
+  youtube   String?
+  tiktok    String?
 
   // Profile
-  description     String?
-  tagline         String?  // "Elite BJJ training in the heart of Málaga"
-  logoUrl         String?
-  coverUrl        String?
-  photos          String[] // Array of image URLs
+  description String?
+  tagline     String? // "Elite BJJ training in the heart of Málaga"
+  logoUrl     String?
+  coverUrl    String?
+  photos      String[] // Array of image URLs
 
   // Public listing
   priceFrom       Float?
@@ -405,12 +404,12 @@ model School {
   totalStudents   Int?
 
   // Google
-  googleRating    Float?
-  googleReviews   Int?
-  googlePlaceId   String?
+  googleRating  Float?
+  googleReviews Int?
+  googlePlaceId String?
 
   // V1 migration reference
-  v1UserId        Int?     @unique // V1 user_id (e.g. 798 for Roger Gracie Málaga)
+  v1UserId Int? @unique // V1 user_id (e.g. 798 for Roger Gracie Málaga)
 
   // Booking defaults — inherited by all classes unless overridden per-class
   defaultBookingSettings Json @default("{}")
@@ -419,18 +418,18 @@ model School {
   stripeAccountId String?
 
   // Hierarchy (HQ / branch / franchise)
-  parentId                 String?
-  parent                   School?               @relation("SchoolHierarchy", fields: [parentId], references: [id])
-  branches                 School[]              @relation("SchoolHierarchy")
-  parentRelationshipType   SchoolRelationshipType?
+  parentId               String?
+  parent                 School?                 @relation("SchoolHierarchy", fields: [parentId], references: [id])
+  branches               School[]                @relation("SchoolHierarchy")
+  parentRelationshipType SchoolRelationshipType?
 
   // CRM pipeline (separate from platform status)
-  leadStage   LeadStage?
+  leadStage LeadStage?
 
   // Ownership
-  claimedBy    User?     @relation("SchoolClaimer", fields: [claimedById], references: [id])
-  claimedById  String?
-  claimedAt    DateTime?
+  claimedBy   User?     @relation("SchoolClaimer", fields: [claimedById], references: [id])
+  claimedById String?
+  claimedAt   DateTime?
 
   // Relations
   staff           User[]             @relation("SchoolStaff")
@@ -451,8 +450,8 @@ model School {
   transactions    Transaction[]
   invitations     SchoolInvitation[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("schools")
 }
@@ -463,26 +462,26 @@ model School {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Instructor {
-  id          String   @id @default(cuid())
-  schoolId    String
-  school      School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  userId      String?  @unique // Optional link to User account
+  id       String  @id @default(cuid())
+  schoolId String
+  school   School  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  userId   String? @unique // Optional link to User account
 
-  name        String
-  role        String   // "Head Instructor", "Instructor", "Kids Coach"
-  belt        String?  // "Black Belt 4th Degree" — free text, works for all arts
-  bio         String?
-  photoUrl    String?
-  instagram   String?
-  isHead      Boolean  @default(false)
-  isActive    Boolean  @default(true)
-  sortOrder   Int      @default(0)
+  name      String
+  role      String // "Head Instructor", "Instructor", "Kids Coach"
+  belt      String? // "Black Belt 4th Degree" — free text, works for all arts
+  bio       String?
+  photoUrl  String?
+  instagram String?
+  isHead    Boolean @default(false)
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
 
-  classes     Class[]
-  events      Event[]
+  classes Class[]
+  events  Event[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("instructors")
 }
@@ -493,40 +492,40 @@ model Instructor {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model MembershipPlan {
-  id           String   @id @default(cuid())
-  schoolId     String
-  school       School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  id       String @id @default(cuid())
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   name         String
   description  String?
-  price        Float    @default(0)
-  currency     String   @default("EUR")
-  planType     String   @default("SUBSCRIPTION") // SUBSCRIPTION | SINGLE_PASS | TRIAL
-  billingCycle String   @default("monthly")      // monthly | quarterly | annual | one-off
-  validityDays Int?                               // for SINGLE_PASS / TRIAL: days valid after activation
-  isPublic     Boolean  @default(true)
-  isPopular    Boolean  @default(false)
-  isActive     Boolean  @default(true)
-  sortOrder    Int      @default(0)
+  price        Float   @default(0)
+  currency     String  @default("EUR")
+  planType     String  @default("SUBSCRIPTION") // SUBSCRIPTION | SINGLE_PASS | TRIAL
+  billingCycle String  @default("monthly") // monthly | quarterly | annual | one-off
+  validityDays Int? // for SINGLE_PASS / TRIAL: days valid after activation
+  isPublic     Boolean @default(true)
+  isPopular    Boolean @default(false)
+  isActive     Boolean @default(true)
+  sortOrder    Int     @default(0)
 
   // Flexible per-class access rules
   // { classRules: [{classId, unlimited, limit?, limitType?}], globalLimit?, globalLimitType? }
-  classAccess  Json     @default("{}")
+  classAccess Json @default("{}")
 
   // Content platform access (e.g. Roger Gracie TV)
   contentPlatformId String?
   contentPlatform   ContentPlatform? @relation(fields: [contentPlatformId], references: [id])
 
   // Media
-  imageUrl      String?
+  imageUrl String?
 
   // Stripe (Phase 5)
   stripePriceId String?
 
-  memberships  Membership[] // Memberships created from this plan
+  memberships Membership[] // Memberships created from this plan
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("membership_plans")
 }
@@ -536,23 +535,23 @@ model MembershipPlan {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Review {
-  id          String   @id @default(cuid())
-  schoolId    String
-  school      School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  id       String @id @default(cuid())
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User   @relation(fields: [userId], references: [id])
 
-  rating      Int      // 1–5
+  rating      Int // 1–5
   title       String?
   text        String?
-  isVerified  Boolean  @default(false) // true when user has active membership
-  isPublished Boolean  @default(true)
+  isVerified  Boolean @default(false) // true when user has active membership
+  isPublished Boolean @default(true)
 
-  reply       String?
-  repliedAt   DateTime?
+  reply     String?
+  repliedAt DateTime?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("reviews")
 }
@@ -563,38 +562,38 @@ model Review {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Class {
-  id           String     @id @default(cuid())
-  schoolId     String
-  school       School     @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  id       String @id @default(cuid())
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
-  name         String
-  description  String?
-  coverUrl     String?    // class banner/image
-  disciplineId String?
-  discipline   Discipline? @relation(fields: [disciplineId], references: [id])
-  level        String?    // "Beginner" | "Intermediate" | "Advanced" | "All levels"
-  duration     Int?       // minutes
-  capacity     Int?
-  price        Float?     // 0 = included in membership
-  currency     String     @default("EUR")
-  isTrial        Boolean  @default(false)
-  isActive       Boolean  @default(true)
-  isPublished    Boolean  @default(false) // visible on Explore
-  paymentMethods String[] @default([])    // ["STRIPE","CASH","BANK_TRANSFER"]
+  name           String
+  description    String?
+  coverUrl       String? // class banner/image
+  disciplineId   String?
+  discipline     Discipline? @relation(fields: [disciplineId], references: [id])
+  level          String? // "Beginner" | "Intermediate" | "Advanced" | "All levels"
+  duration       Int? // minutes
+  capacity       Int?
+  price          Float? // 0 = included in membership
+  currency       String      @default("EUR")
+  isTrial        Boolean     @default(false)
+  isActive       Boolean     @default(true)
+  isPublished    Boolean     @default(false) // visible on Explore
+  paymentMethods String[]    @default([]) // ["STRIPE","CASH","BANK_TRANSFER"]
 
   // Booking settings — null = inherit school defaultBookingSettings
   bookingSettings Json?
 
   // Weekly schedule: [{ dayOfWeek: 1, startTime: "18:00", endTime: "19:30" }]
-  schedule     Json?
+  schedule Json?
 
   instructorId String?
   instructor   Instructor? @relation(fields: [instructorId], references: [id])
 
-  bookings     Booking[]
+  bookings Booking[]
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("classes")
 }
@@ -605,47 +604,47 @@ model Class {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Event {
-  id          String    @id @default(cuid())
-  schoolId    String
-  school      School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  id       String @id @default(cuid())
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
-  title       String
-  description String?
-  type        EventType @default(OTHER)
-  location    String?
-  startAt     DateTime
-  endAt       DateTime?
-  capacity    Int?
-  coverUrl    String?
-  isPublished    Boolean  @default(false)
-  isCancelled    Boolean  @default(false)
+  title          String
+  description    String?
+  type           EventType @default(OTHER)
+  location       String?
+  startAt        DateTime
+  endAt          DateTime?
+  capacity       Int?
+  coverUrl       String?
+  isPublished    Boolean   @default(false)
+  isCancelled    Boolean   @default(false)
   externalUrl    String?
-  paymentMethods String[] @default([]) // ["STRIPE","CASH","BANK_TRANSFER"]
+  paymentMethods String[]  @default([]) // ["STRIPE","CASH","BANK_TRANSFER"]
 
   instructorId String?
   instructor   Instructor?   @relation(fields: [instructorId], references: [id])
   tickets      EventTicket[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("events")
 }
 
 model EventTicket {
-  id            String  @id @default(cuid())
-  eventId       String
-  event         Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  eventId String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
-  name          String           // e.g. "Early Bird", "Member", "VIP"
+  name          String // e.g. "Early Bird", "Member", "VIP"
   description   String?
   price         Float   @default(0)
   currency      String  @default("EUR")
-  capacity      Int?              // null = unlimited
+  capacity      Int? // null = unlimited
   sortOrder     Int     @default(0)
-  stripePriceId String?           // wired when Stripe is connected
+  stripePriceId String? // wired when Stripe is connected
 
-  createdAt     DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@map("event_tickets")
 }
@@ -658,18 +657,18 @@ model EventTicket {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Booking {
-  id              String        @id @default(cuid())
-  userId          String
-  user            User          @relation(fields: [userId], references: [id])
-  classId         String
-  class           Class         @relation(fields: [classId], references: [id])
+  id      String @id @default(cuid())
+  userId  String
+  user    User   @relation(fields: [userId], references: [id])
+  classId String
+  class   Class  @relation(fields: [classId], references: [id])
 
   // Which membership covers this booking (optional: drop-ins can be paid directly)
-  membershipId    String?
-  membership      Membership?   @relation(fields: [membershipId], references: [id])
+  membershipId String?
+  membership   Membership? @relation(fields: [membershipId], references: [id])
 
   scheduledAt     DateTime
-  attendedAt      DateTime?     // null = pending / no-show; set = checked in
+  attendedAt      DateTime? // null = pending / no-show; set = checked in
   status          BookingStatus @default(PENDING)
   paymentMethod   PaymentMethod @default(STRIPE)
   amountPaid      Float?
@@ -677,9 +676,10 @@ model Booking {
   stripePaymentId String?
   notes           String?
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
+  @@index([userId, attendedAt])
   @@map("bookings")
 }
 
@@ -690,17 +690,17 @@ model Booking {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Membership {
-  id            String           @id @default(cuid())
-  userId        String
-  user          User             @relation(fields: [userId], references: [id])
-  schoolId      String
-  school        School           @relation(fields: [schoolId], references: [id])
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id])
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id])
 
   // Link to the plan that originated this membership (optional for legacy/manual)
-  planId        String?
-  plan          MembershipPlan?  @relation(fields: [planId], references: [id])
+  planId String?
+  plan   MembershipPlan? @relation(fields: [planId], references: [id])
 
-  planName      String           // Denormalised name for display / history
+  planName      String // Denormalised name for display / history
   price         Float
   currency      String           @default("EUR")
   paymentMethod PaymentMethod    @default(STRIPE)
@@ -709,10 +709,10 @@ model Membership {
   endDate       DateTime?
 
   // Usage tracking — computed from bookings count, but cached here for perf
-  classesUsed   Int              @default(0)
+  classesUsed Int @default(0)
 
-  stripeSubId   String?
-  notes         String?
+  stripeSubId String?
+  notes       String?
 
   // Renewal chain — points to the membership this one renewed/replaced
   renewedFromId String?
@@ -720,16 +720,16 @@ model Membership {
   renewals      Membership[] @relation("MembershipRenewal")
 
   // Soft cancel timestamp (status=CANCELLED set at same time)
-  cancelledAt   DateTime?
+  cancelledAt DateTime?
 
   // Content platform access granted by this membership
   contentAccess ContentAccess?
 
-  bookings      Booking[]
-  transactions  Transaction[] @relation("MembershipTransactions")
+  bookings     Booking[]
+  transactions Transaction[] @relation("MembershipTransactions")
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("memberships")
 }
@@ -739,9 +739,9 @@ model Membership {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Camp {
-  id          String   @id @default(cuid())
-  schoolId    String?
-  school      School?  @relation(fields: [schoolId], references: [id])
+  id       String  @id @default(cuid())
+  schoolId String?
+  school   School? @relation(fields: [schoolId], references: [id])
 
   name        String
   description String?
@@ -758,10 +758,10 @@ model Camp {
   // Instructors as JSON (may include external guests)
   instructors Json?
 
-  bookings    CampBooking[]
+  bookings CampBooking[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("camps")
 }
@@ -777,8 +777,8 @@ model CampBooking {
   currency        String        @default("EUR")
   stripePaymentId String?
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("camp_bookings")
 }
@@ -790,26 +790,26 @@ model CampBooking {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model SchoolMember {
-  id        String             @id @default(cuid())
-  schoolId  String
-  school    School             @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id       String @id @default(cuid())
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  role      SchoolMemberRole   @default(STUDENT)
-  status    SchoolMemberStatus @default(PENDING)
-  joinedAt  DateTime?
+  role     SchoolMemberRole   @default(STUDENT)
+  status   SchoolMemberStatus @default(PENDING)
+  joinedAt DateTime?
 
   // Belt / rank (current)
-  belt      String?    // "White Belt", "Blue Belt", "Purple Belt"
-  beltDegree Int?      // stripes/degrees: 0–4
-  beltDate  DateTime?  // date current belt was awarded
+  belt       String? // "White Belt", "Blue Belt", "Purple Belt"
+  beltDegree Int? // stripes/degrees: 0–4
+  beltDate   DateTime? // date current belt was awarded
 
   // Emergency & medical
-  emergencyContact String?  // "María García — +34 666 123 456"
-  medicalNotes     String?  // "Right knee injury, penicillin allergy"
+  emergencyContact String? // "María García — +34 666 123 456"
+  medicalNotes     String? // "Right knee injury, penicillin allergy"
 
-  notes     String?   // Internal school notes
+  notes String? // Internal school notes
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -823,11 +823,11 @@ model SchoolMember {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model SchoolClaim {
-  id         String      @id @default(cuid())
-  schoolId   String
-  school     School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  userId     String
-  user       User        @relation(fields: [userId], references: [id])
+  id       String @id @default(cuid())
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User   @relation(fields: [userId], references: [id])
 
   status     ClaimStatus @default(PENDING)
   evidence   String?
@@ -835,8 +835,8 @@ model SchoolClaim {
   reviewedBy String?
   reviewedAt DateTime?
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("school_claims")
 }
@@ -849,51 +849,51 @@ model SchoolClaim {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model GradingSystem {
-  id           String   @id @default(cuid())
-  schoolId     String
-  school       School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  id       String @id @default(cuid())
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
-  name         String   // "BJJ Adultos", "Judo All Ages"
-  activity     String?  // free text: "BJJ", "Judo", "Karate" — matches Class.type if set
-  isDefault    Boolean  @default(false)
-  isActive     Boolean  @default(true)
+  name      String // "BJJ Adultos", "Judo All Ages"
+  activity  String? // free text: "BJJ", "Judo", "Karate" — matches Class.type if set
+  isDefault Boolean @default(false)
+  isActive  Boolean @default(true)
 
   // Global rules for this system
-  requireApproval   Boolean @default(true)
-  gradingFee        Int     @default(0) // in cents
-  notifyStudent     Boolean @default(true)
-  notifyInstructor  Boolean @default(true)
+  requireApproval  Boolean @default(true)
+  gradingFee       Int     @default(0) // in cents
+  notifyStudent    Boolean @default(true)
+  notifyInstructor Boolean @default(true)
 
-  ranks        BeltRank[]
+  ranks BeltRank[]
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("grading_systems")
 }
 
 model BeltRank {
-  id        String        @id @default(cuid())
-  systemId  String
-  system    GradingSystem @relation(fields: [systemId], references: [id], onDelete: Cascade)
+  id       String        @id @default(cuid())
+  systemId String
+  system   GradingSystem @relation(fields: [systemId], references: [id], onDelete: Cascade)
 
-  order     Int           // 0-based position in progression
-  name      String        // "Blanco", "Azul", "1er Dan"
-  color     String        @default("#9CA3AF") // hex color
+  order Int // 0-based position in progression
+  name  String // "Blanco", "Azul", "1er Dan"
+  color String @default("#9CA3AF") // hex color
 
   // Stripes / degrees within this rank
-  maxDegrees Int          @default(0) // 0 = no stripes, 4 = up to 4 stripes
+  maxDegrees Int @default(0) // 0 = no stripes, 4 = up to 4 stripes
 
   // Requirements to REACH this rank
-  minAge               Int?    // minimum age
-  minMonthsAtPrevious  Int?    // months at previous rank before eligible
-  totalClassesRequired Int?    // total class count required
-  classesPerPeriod     Int?    // min classes per period
+  minAge               Int? // minimum age
+  minMonthsAtPrevious  Int? // months at previous rank before eligible
+  totalClassesRequired Int? // total class count required
+  classesPerPeriod     Int? // min classes per period
   periodType           String? // "WEEK" | "MONTH"
   classTypeIds         String[] // which class types count (empty = all)
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("belt_ranks")
 }
@@ -902,25 +902,25 @@ model BeltRank {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Grading {
-  id           String   @id @default(cuid())
-  schoolId     String
-  school       School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  id       String @id @default(cuid())
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
-  userId       String
-  user         User     @relation("GradingStudent", fields: [userId], references: [id])
+  userId String
+  user   User   @relation("GradingStudent", fields: [userId], references: [id])
 
   promotedById String?
-  promotedBy   User?    @relation("GradingPromoter", fields: [promotedById], references: [id])
+  promotedBy   User?   @relation("GradingPromoter", fields: [promotedById], references: [id])
 
-  fromBelt     String?  // "White Belt"
-  toBelt       String   // "Blue Belt"
-  toDegree     Int?     // 0 = plain belt, 1–4 = stripes/degrees
-  gradedAt     DateTime
-  notes        String?
-  isPublic     Boolean  @default(true) // show on student profile
+  fromBelt String? // "White Belt"
+  toBelt   String // "Blue Belt"
+  toDegree Int? // 0 = plain belt, 1–4 = stripes/degrees
+  gradedAt DateTime
+  notes    String?
+  isPublic Boolean  @default(true) // show on student profile
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("gradings")
 }
@@ -931,27 +931,27 @@ model Grading {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Lead {
-  id       String     @id @default(cuid())
+  id       String @id @default(cuid())
   schoolId String
-  school   School     @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   name         String
   email        String?
   phone        String?
   source       LeadSource @default(OTHER)
   status       LeadStatus @default(NEW)
-  message      String?    // Initial enquiry message
-  interestedIn String?    // "BJJ Adults", "Kids Class", "Private Lessons"
+  message      String? // Initial enquiry message
+  interestedIn String? // "BJJ Adults", "Kids Class", "Private Lessons"
 
   // If they converted to a member
   convertedUserId String?
-  convertedUser   User?    @relation("LeadConvertedUser", fields: [convertedUserId], references: [id])
+  convertedUser   User?     @relation("LeadConvertedUser", fields: [convertedUserId], references: [id])
   convertedAt     DateTime?
 
-  notes       LeadNote[]
+  notes LeadNote[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("leads")
 }
@@ -975,16 +975,16 @@ model LeadNote {
 // ─────────────────────────────────────────────────────────────────────────────
 
 enum InvitationStatus {
-  PENDING     // Created, email not yet sent
-  SENT        // Invite email sent
-  OPENED      // Link clicked
-  REGISTERED  // School completed onboarding → School record created
-  DECLINED    // School declined or unsubscribed
+  PENDING // Created, email not yet sent
+  SENT // Invite email sent
+  OPENED // Link clicked
+  REGISTERED // School completed onboarding → School record created
+  DECLINED // School declined or unsubscribed
 }
 
 enum InvitationSource {
-  MANUAL  // Admin typed name + email
-  IMPORT  // Bulk CSV/Excel import
+  MANUAL // Admin typed name + email
+  IMPORT // Bulk CSV/Excel import
 }
 
 model SchoolInvitation {
@@ -997,7 +997,7 @@ model SchoolInvitation {
   phone      String?
   city       String?
   country    String?
-  activities String?  // "BJJ, Grappling, MMA"
+  activities String? // "BJJ, Grappling, MMA"
   website    String?
   notes      String?
 
@@ -1020,11 +1020,10 @@ model SchoolInvitation {
   openedAt     DateTime?
   registeredAt DateTime?
 
-  @@index([schoolId, isActive])
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([schoolId, isActive])
   @@map("school_invitations")
 }
 
@@ -1034,16 +1033,16 @@ model SchoolInvitation {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Waiver {
-  id        String  @id @default(cuid())
-  schoolId  String
-  school    School  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  id       String @id @default(cuid())
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
-  title     String   // "Liability Waiver & Informed Consent"
-  content   String   // HTML or Markdown legal text
-  version   String   @default("1.0")
-  isActive  Boolean  @default(true)
+  title    String // "Liability Waiver & Informed Consent"
+  content  String // HTML or Markdown legal text
+  version  String  @default("1.0")
+  isActive Boolean @default(true)
 
-  signedBy  UserWaiver[]
+  signedBy UserWaiver[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1052,15 +1051,15 @@ model Waiver {
 }
 
 model UserWaiver {
-  id        String  @id @default(cuid())
-  waiverId  String
-  waiver    Waiver  @relation(fields: [waiverId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User    @relation(fields: [userId], references: [id])
+  id       String @id @default(cuid())
+  waiverId String
+  waiver   Waiver @relation(fields: [waiverId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User   @relation(fields: [userId], references: [id])
 
   signedAt  DateTime @default(now())
   ipAddress String?
-  signature String?  // base64 or typed name
+  signature String? // base64 or typed name
 
   @@unique([waiverId, userId])
   @@map("user_waivers")
@@ -1073,9 +1072,9 @@ model UserWaiver {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Transaction {
-  id          String              @id @default(cuid())
-  schoolId    String
-  school      School              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  id       String @id @default(cuid())
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   type          TransactionType
   status        TransactionStatus   @default(PAID)
@@ -1091,7 +1090,7 @@ model Transaction {
   membership   Membership? @relation("MembershipTransactions", fields: [membershipId], references: [id])
   bookingId    String?
   userId       String?
-  user         User?   @relation("TransactionUser", fields: [userId], references: [id])
+  user         User?       @relation("TransactionUser", fields: [userId], references: [id])
 
   // Stripe (Phase 5)
   stripePaymentIntentId String?
@@ -1100,8 +1099,8 @@ model Transaction {
   periodStart DateTime?
   periodEnd   DateTime?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("transactions")
 }
@@ -1113,16 +1112,16 @@ model Transaction {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model UserPreference {
-  id                  String   @id @default(cuid())
-  userId              String   @unique
-  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Last active school context — suggestion only, not authorization
-  lastSchoolId        String?
-  lastContextType     String?  // "SCHOOL" | "PERSONAL" | "ADMIN"
+  lastSchoolId    String?
+  lastContextType String? // "SCHOOL" | "PERSONAL" | "ADMIN"
 
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("user_preferences")
 }
@@ -1133,51 +1132,51 @@ model UserPreference {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model ProductCategory {
-  id        String    @id @default(cuid())
-  schoolId  String
-  name      String
-  slug      String
+  id       String @id @default(cuid())
+  schoolId String
+  name     String
+  slug     String
 
-  products  Product[]
+  products Product[]
 
   @@unique([schoolId, slug])
   @@map("product_categories")
 }
 
 model Product {
-  id          String          @id @default(cuid())
-  schoolId    String
-  categoryId  String?
-  category    ProductCategory? @relation(fields: [categoryId], references: [id])
+  id         String           @id @default(cuid())
+  schoolId   String
+  categoryId String?
+  category   ProductCategory? @relation(fields: [categoryId], references: [id])
 
   name        String
   description String?
   price       Float
-  currency    String   @default("EUR")
-  stock       Int?     // null = unlimited (e.g. digital products)
+  currency    String  @default("EUR")
+  stock       Int? // null = unlimited (e.g. digital products)
   imageUrl    String?
-  isActive    Boolean  @default(true)
+  isActive    Boolean @default(true)
 
-  orderItems  OrderItem[]
+  orderItems OrderItem[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("products")
 }
 
 model Order {
-  id        String  @id @default(cuid())
-  schoolId  String
-  userId    String
+  id       String @id @default(cuid())
+  schoolId String
+  userId   String
 
-  status    String  @default("PENDING") // PENDING | PAID | CANCELLED | REFUNDED
-  total     Float
-  currency  String  @default("EUR")
+  status   String @default("PENDING") // PENDING | PAID | CANCELLED | REFUNDED
+  total    Float
+  currency String @default("EUR")
 
   stripePaymentIntentId String?
 
-  items     OrderItem[]
+  items OrderItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1186,15 +1185,15 @@ model Order {
 }
 
 model OrderItem {
-  id         String  @id @default(cuid())
-  orderId    String
-  order      Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId  String
-  product    Product @relation(fields: [productId], references: [id])
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
 
-  quantity   Int
-  unitPrice  Float
-  currency   String @default("EUR")
+  quantity  Int
+  unitPrice Float
+  currency  String @default("EUR")
 
   @@map("order_items")
 }
@@ -1205,17 +1204,17 @@ model OrderItem {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Partner {
-  id          String   @id @default(cuid())
-  name        String   // "Roger Gracie", "Marcus Almeida Buchecha"
-  slug        String   @unique
-  title       String?  // "10x World Champion"
-  bio         String?
-  photoUrl    String?
-  instagram   String?
-  isActive    Boolean  @default(true)
+  id        String  @id @default(cuid())
+  name      String // "Roger Gracie", "Marcus Almeida Buchecha"
+  slug      String  @unique
+  title     String? // "10x World Champion"
+  bio       String?
+  photoUrl  String?
+  instagram String?
+  isActive  Boolean @default(true)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("partners")
 }
