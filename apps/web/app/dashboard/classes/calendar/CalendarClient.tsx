@@ -14,11 +14,6 @@ const END_HOUR    = 22
 const HOURS       = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => i + START_HOUR)
 const WEEK_DAYS   = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
-// Simulated today: June 4 2026 (Thursday)
-const TODAY = new Date(2026, 5, 4)
-const NOW_H = 10
-const NOW_M = 30
-
 // ── Activity colours ───────────────────────────────────────────────────────────
 const ACTIVITY_COLORS: Record<string, { bg: string; border: string; text: string }> = {
   'BJJ':          { bg: '#EFF6FF', border: '#BFDBFE', text: '#1D4ED8' },
@@ -31,68 +26,65 @@ const ACTIVITY_COLORS: Record<string, { bg: string; border: string; text: string
   'Self Defence': { bg: '#FFFBEB', border: '#FDE68A', text: '#B45309' },
 }
 
-// ── Locations & Rooms ──────────────────────────────────────────────────────────
-interface Location { id: number; name: string; city: string; color: string }
-interface Room     { id: number; name: string; capacity: number; locationId: number }
-
-const LOCATIONS: Location[] = [
-  { id: 1, name: 'Main Academy',  city: 'Madrid', color: '#0071E3' },
-  { id: 2, name: 'Branch Malaga', city: 'Malaga', color: '#7C3AED' },
-]
-const ROOMS: Room[] = [
-  { id: 1, name: 'Main Mat',     capacity: 30, locationId: 1 },
-  { id: 2, name: 'Kids Room',    capacity: 20, locationId: 1 },
-  { id: 3, name: 'Weights Area', capacity: 15, locationId: 1 },
-  { id: 4, name: 'Dojo Central', capacity: 25, locationId: 2 },
-  { id: 5, name: 'Fitness Room', capacity: 12, locationId: 2 },
-]
-function getRoom(id: number) { return ROOMS.find(r => r.id === id)! }
-function getLoc(id: number)  { return LOCATIONS.find(l => l.id === id)! }
-
-// ── Schedule data ──────────────────────────────────────────────────────────────
-interface ClassSlot {
-  id: number; day: number; startH: number; startM: number; durationM: number
-  name: string; activity: string; instructor: string; capacity: number; enrolled: number
-  roomId: number; locationId: number
+// ── Types ──────────────────────────────────────────────────────────────────────
+interface ApiClass {
+  id: string
+  name: string
+  capacity: number | null
+  isActive: boolean
+  isPublished: boolean
+  schedule: { dayOfWeek: number; startTime: string; endTime: string }[] | null
+  instructor: { id: string; name: string } | null
+  discipline: { id: string; name: string } | null
 }
 
-const SCHEDULE: ClassSlot[] = [
-  { id:1,  day:0, startH:7,  startM:0,  durationM:90, name:'BJJ All Levels',    activity:'BJJ',          instructor:'Carlos Silva',  capacity:20, enrolled:8,  roomId:1, locationId:1 },
-  { id:3,  day:0, startH:12, startM:0,  durationM:90, name:'BJJ Advanced',      activity:'BJJ',          instructor:'Jorge Sanchez', capacity:20, enrolled:18, roomId:1, locationId:1 },
-  { id:4,  day:0, startH:18, startM:0,  durationM:90, name:'NOGI Advanced',     activity:'NOGI',         instructor:'Jorge Sanchez', capacity:15, enrolled:14, roomId:1, locationId:1 },
-  { id:5,  day:0, startH:19, startM:0,  durationM:90, name:'BJJ Competition',   activity:'BJJ Comp',     instructor:'Carlos Silva',  capacity:15, enrolled:15, roomId:1, locationId:1 },
-  { id:2,  day:0, startH:9,  startM:30, durationM:60, name:'Kids BJJ',          activity:'BJJ Kids',     instructor:'Ana Torres',    capacity:20, enrolled:10, roomId:2, locationId:1 },
-  { id:6,  day:1, startH:8,  startM:30, durationM:60, name:'NOGI',              activity:'NOGI',         instructor:'Monti',         capacity:15, enrolled:15, roomId:1, locationId:1 },
-  { id:7,  day:1, startH:10, startM:0,  durationM:90, name:'BJJ Beginners',     activity:'BJJ',          instructor:'Carlos Silva',  capacity:25, enrolled:5,  roomId:1, locationId:1 },
-  { id:8,  day:1, startH:17, startM:0,  durationM:60, name:'Wrestling',         activity:'Wrestling',    instructor:'Monti',         capacity:15, enrolled:12, roomId:1, locationId:1 },
-  { id:9,  day:1, startH:19, startM:30, durationM:60, name:'BJJ Iniciacion',    activity:'BJJ',          instructor:'Ana Torres',    capacity:25, enrolled:3,  roomId:2, locationId:1 },
-  { id:10, day:2, startH:7,  startM:0,  durationM:90, name:'BJJ All Levels',    activity:'BJJ',          instructor:'Carlos Silva',  capacity:20, enrolled:8,  roomId:1, locationId:1 },
-  { id:11, day:2, startH:8,  startM:0,  durationM:60, name:'Yoga & Stretching', activity:'Yoga',         instructor:'Laura M.',      capacity:20, enrolled:11, roomId:2, locationId:1 },
-  { id:12, day:2, startH:9,  startM:30, durationM:60, name:'Kids BJJ',          activity:'BJJ Kids',     instructor:'Ana Torres',    capacity:20, enrolled:10, roomId:2, locationId:1 },
-  { id:13, day:2, startH:12, startM:0,  durationM:90, name:'BJJ Advanced',      activity:'BJJ',          instructor:'Jorge Sanchez', capacity:20, enrolled:18, roomId:1, locationId:1 },
-  { id:14, day:2, startH:18, startM:0,  durationM:90, name:'NOGI Advanced',     activity:'NOGI',         instructor:'Jorge Sanchez', capacity:15, enrolled:14, roomId:1, locationId:1 },
-  { id:15, day:2, startH:19, startM:0,  durationM:90, name:'BJJ Competition',   activity:'BJJ Comp',     instructor:'Carlos Silva',  capacity:15, enrolled:15, roomId:1, locationId:1 },
-  { id:16, day:3, startH:8,  startM:30, durationM:60, name:'NOGI',              activity:'NOGI',         instructor:'Monti',         capacity:15, enrolled:15, roomId:1, locationId:1 },
-  { id:17, day:3, startH:10, startM:0,  durationM:90, name:'BJJ Beginners',     activity:'BJJ',          instructor:'Carlos Silva',  capacity:25, enrolled:5,  roomId:1, locationId:1 },
-  { id:18, day:3, startH:17, startM:0,  durationM:60, name:'Wrestling',         activity:'Wrestling',    instructor:'Monti',         capacity:15, enrolled:12, roomId:1, locationId:1 },
-  { id:19, day:3, startH:19, startM:30, durationM:60, name:'BJJ Iniciacion',    activity:'BJJ',          instructor:'Ana Torres',    capacity:25, enrolled:3,  roomId:2, locationId:1 },
-  { id:20, day:4, startH:7,  startM:0,  durationM:90, name:'BJJ All Levels',    activity:'BJJ',          instructor:'Carlos Silva',  capacity:20, enrolled:8,  roomId:1, locationId:1 },
-  { id:21, day:4, startH:8,  startM:0,  durationM:60, name:'Yoga & Stretching', activity:'Yoga',         instructor:'Laura M.',      capacity:20, enrolled:11, roomId:2, locationId:1 },
-  { id:22, day:4, startH:12, startM:0,  durationM:90, name:'BJJ Advanced',      activity:'BJJ',          instructor:'Jorge Sanchez', capacity:20, enrolled:18, roomId:1, locationId:1 },
-  { id:23, day:4, startH:19, startM:0,  durationM:90, name:'BJJ Competition',   activity:'BJJ Comp',     instructor:'Carlos Silva',  capacity:15, enrolled:15, roomId:1, locationId:1 },
-  { id:24, day:5, startH:10, startM:0,  durationM:60, name:'Self Defence',      activity:'Self Defence', instructor:'Jorge Sanchez', capacity:20, enrolled:0,  roomId:4, locationId:2 },
-  { id:25, day:5, startH:11, startM:30, durationM:90, name:'Open Mat',          activity:'Open Mat',     instructor:'—',             capacity:25, enrolled:22, roomId:4, locationId:2 },
-  { id:26, day:6, startH:11, startM:30, durationM:90, name:'Open Mat',          activity:'Open Mat',     instructor:'—',             capacity:25, enrolled:20, roomId:4, locationId:2 },
-]
+interface ClassSlot {
+  id: string
+  day: number       // Mon=0 … Sun=6
+  startH: number
+  startM: number
+  durationM: number
+  name: string
+  activity: string  // discipline name, falls back to class name
+  instructor: string
+  capacity: number
+  enrolled: number  // TODO(attendance): populate from booking counts once attendance API lands
+}
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 /** Day-of-week index Mon=0 … Sun=6 */
 function dowMon(d: Date): number { return (d.getDay() + 6) % 7 }
 
-/** Classes for a given Date (matched by recurring day-of-week) */
-function classesForDate(date: Date, locFilter: number | null): ClassSlot[] {
+/**
+ * Convert an API class and its recurring schedule slots into CalendarClient
+ * ClassSlot items. ScheduleSlot.dayOfWeek uses JS convention (0=Sun…6=Sat);
+ * CalendarClient uses Mon=0…Sun=6, so we apply (dow + 6) % 7.
+ */
+function apiClassToSlots(cls: ApiClass): ClassSlot[] {
+  if (!cls.schedule || cls.schedule.length === 0) return []
+  return cls.schedule.map((slot, i) => {
+    const [startH = 0, startM = 0] = slot.startTime.split(':').map(Number)
+    const [endH = 0,   endM = 0]   = slot.endTime.split(':').map(Number)
+    const durationM = Math.max(30, (endH * 60 + endM) - (startH * 60 + startM))
+    return {
+      id:        `${cls.id}-${i}`,
+      day:       (slot.dayOfWeek + 6) % 7,
+      startH,
+      startM,
+      durationM,
+      name:      cls.name,
+      activity:  cls.discipline?.name ?? cls.name,
+      instructor: cls.instructor?.name ?? '—',
+      capacity:  cls.capacity ?? 0,
+      enrolled:  0,
+    }
+  })
+}
+
+/** Classes scheduled on a given date (matched by recurring day-of-week) */
+function classesForDate(date: Date, classes: ClassSlot[]): ClassSlot[] {
   const dow = dowMon(date)
-  return SCHEDULE.filter(s => s.day === dow && (locFilter === null || s.locationId === locFilter))
+  return classes.filter(s => s.day === dow)
 }
 
 /** Build a 5-or-6-week grid for a month */
@@ -171,13 +163,6 @@ function ClassPopup({ slot, onClose }: { slot: ClassSlot; onClose: () => void })
             </span>
           </div>
           <p style={{ fontSize: 11, color: '#6B7280' }}>{time} · {slot.instructor}</p>
-          <div className="flex items-center gap-1.5 mt-2">
-            <span style={{ fontSize: 10, fontWeight: 600, padding: '1px 6px', borderRadius: 99,
-              background: getLoc(slot.locationId).color + '18', color: getLoc(slot.locationId).color }}>
-              {getLoc(slot.locationId).name}
-            </span>
-            <span style={{ fontSize: 10, color: '#9CA3AF' }}>{getRoom(slot.roomId).name}</span>
-          </div>
           <div style={{ marginTop: 10, height: 4, background: '#F3F4F6', borderRadius: 99, overflow: 'hidden' }}>
             <div style={{ height: '100%', borderRadius: 99, background: barClr, width: pct + '%' }} />
           </div>
@@ -215,6 +200,7 @@ function DatePicker({
 }: { selected: Date; onSelect: (d: Date) => void; onClose: () => void }) {
   const t = useT()
   const monthNames = t.classes.monthNames.split(',')
+  const today = new Date()
   const [pickerYear,  setPickerYear]  = useState(selected.getFullYear())
   const [pickerMonth, setPickerMonth] = useState(selected.getMonth())
 
@@ -272,7 +258,7 @@ function DatePicker({
         <div className="grid grid-cols-7 gap-px">
           {grid.map((date, i) => {
             const isThisMonth = date.getMonth() === pickerMonth
-            const isToday     = isSameDay(date, TODAY)
+            const isToday     = isSameDay(date, today)
             const isSelected  = isSameDay(date, selected)
             return (
               <button key={i} onClick={() => { onSelect(date); onClose() }}
@@ -290,7 +276,7 @@ function DatePicker({
 
         {/* Footer: today button */}
         <div className="mt-3 pt-3" style={{ borderTop: '1px solid #F3F4F6' }}>
-          <button onClick={() => { onSelect(TODAY); onClose() }}
+          <button onClick={() => { onSelect(today); onClose() }}
             className="w-full py-1.5 rounded-lg cursor-pointer"
             style={{ fontSize: 12, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}
             onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
@@ -322,7 +308,6 @@ function WeekClassBlock({ slot, onSelect }: { slot: ClassSlot; onSelect: (s: Cla
       <p style={{ fontSize: 11, fontWeight: 700, color: colors.text, lineHeight: 1.2 }}>{slot.name}</p>
       {height > 36 && <p style={{ fontSize: 10, color: colors.text, opacity: 0.75 }}>{time}</p>}
       {height > 52 && <p style={{ fontSize: 10, color: colors.text, opacity: 0.6 }}>{slot.instructor}</p>}
-      {height > 64 && <p style={{ fontSize: 9, color: colors.text, opacity: 0.5 }}>{getRoom(slot.roomId).name}</p>}
       {height > 80 && (
         <div style={{ marginTop: 4 }}>
           <div style={{ height: 3, background: colors.border, borderRadius: 99 }}>
@@ -340,6 +325,19 @@ const INSTRUCTORS_LIST = ['Carlos Silva', 'Monti', 'Ana Torres', 'Jorge Sanchez'
 const ACTIVITIES_LIST  = Object.keys(ACTIVITY_COLORS)
 const DEFAULT_DAYS     = [true, true, true, true, true, false, false]
 
+// Stub location/room data for the Add Class form (TODO: replace with API data)
+const DRAWER_LOCATIONS = [
+  { id: 1, name: 'Main Academy',  city: 'Madrid', color: '#0071E3' },
+  { id: 2, name: 'Branch Malaga', city: 'Malaga', color: '#7C3AED' },
+]
+const DRAWER_ROOMS = [
+  { id: 1, name: 'Main Mat',     capacity: 30, locationId: 1 },
+  { id: 2, name: 'Kids Room',    capacity: 20, locationId: 1 },
+  { id: 3, name: 'Weights Area', capacity: 15, locationId: 1 },
+  { id: 4, name: 'Dojo Central', capacity: 25, locationId: 2 },
+  { id: 5, name: 'Fitness Room', capacity: 12, locationId: 2 },
+]
+
 function AddClassDrawer({ open, onClose, onSuccess }: { open: boolean; onClose: () => void; onSuccess: () => void }) {
   const t = useT()
   const daysOfWeek = t.classes.daysOfWeek.split(',')
@@ -352,7 +350,7 @@ function AddClassDrawer({ open, onClose, onSuccess }: { open: boolean; onClose: 
     if (open) { setSelLocId(''); setDayEnabled([...DEFAULT_DAYS]); setBannerDrag(false); setRepeat('Yes') }
   }, [open])
 
-  const availableRooms = selLocId !== '' ? ROOMS.filter(r => r.locationId === selLocId) : []
+  const availableRooms = selLocId !== '' ? DRAWER_ROOMS.filter(r => r.locationId === selLocId) : []
   const iStyle: React.CSSProperties = {
     border: '1px solid #E5E7EB', borderRadius: 8, padding: '8px 10px',
     fontSize: 12, color: '#111827', background: '#fff', outline: 'none', width: '100%',
@@ -418,7 +416,7 @@ function AddClassDrawer({ open, onClose, onSuccess }: { open: boolean; onClose: 
             <div>
               <label style={lStyle}>{t.common.location}</label>
               <select style={iStyle} value={selLocId} onChange={e => setSelLocId(e.target.value === '' ? '' : Number(e.target.value))}>
-                <option value="">{t.classes.selectLocation.replace('…','...')}</option>{LOCATIONS.map(l => <option key={l.id} value={l.id}>{l.name} — {l.city}</option>)}
+                <option value="">{t.classes.selectLocation.replace('…','...')}</option>{DRAWER_LOCATIONS.map(l => <option key={l.id} value={l.id}>{l.name} — {l.city}</option>)}
               </select>
             </div>
             <div>
@@ -525,23 +523,41 @@ export default function CalendarClient() {
   const t = useT()
   const monthNames = t.classes.monthNames.split(',')
   const weekDayLabels = t.classes.weekDays.split(',')
+  const [today]                           = useState(() => new Date())
+  const nowH = today.getHours()
+  const nowM = today.getMinutes()
   const [view, setView]                   = useState<'month' | 'week'>('month')
-  const [selectedDate, setSelectedDate]   = useState<Date>(TODAY)
-  const [filterLocId, setFilterLocId]     = useState<number | null>(null)
+  const [selectedDate, setSelectedDate]   = useState<Date>(() => new Date())
   const [selectedSlot, setSelectedSlot]   = useState<ClassSlot | null>(null)
   const [pickerOpen, setPickerOpen]       = useState(false)
   const [drawerOpen, setDrawerOpen]       = useState(false)
   const [successOpen, setSuccessOpen]     = useState(false)
   const [expandedDay, setExpandedDay]     = useState<string | null>(null)
+  const [classes, setClasses]             = useState<ClassSlot[]>([])
+  const [loading, setLoading]             = useState(true)
+  const [loadError, setLoadError]         = useState<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const pickerRef = useRef<HTMLDivElement>(null)
+
+  // Fetch real classes from API
+  useEffect(() => {
+    setLoading(true)
+    setLoadError(null)
+    fetch('/api/dashboard/classes')
+      .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
+      .then((data: { classes: ApiClass[] }) => {
+        setClasses(data.classes.flatMap(apiClassToSlots))
+      })
+      .catch(() => setLoadError('Failed to load classes'))
+      .finally(() => setLoading(false))
+  }, [])
 
   // Auto-scroll week view to current time
   useEffect(() => {
     if (view === 'week' && scrollRef.current) {
-      scrollRef.current.scrollTop = Math.max(0, classTop(NOW_H, NOW_M) - 120)
+      scrollRef.current.scrollTop = Math.max(0, classTop(nowH, nowM) - 120)
     }
-  }, [view])
+  }, [view, nowH, nowM])
 
   // Month/year derived from selectedDate
   const viewYear  = selectedDate.getFullYear()
@@ -550,8 +566,8 @@ export default function CalendarClient() {
   // Week view: Monday of selectedDate's week
   const weekMonday = weekMondayFor(selectedDate)
   const weekDates  = WEEK_DAYS.map((_, i) => { const d = new Date(weekMonday); d.setDate(weekMonday.getDate() + i); return d })
-  const todayWeekIdx = weekDates.findIndex(d => isSameDay(d, TODAY))
-  const nowTop = classTop(NOW_H, NOW_M)
+  const todayWeekIdx = weekDates.findIndex(d => isSameDay(d, today))
+  const nowTop = classTop(nowH, nowM)
 
   function prevPeriod() {
     if (view === 'month') {
@@ -575,11 +591,11 @@ export default function CalendarClient() {
       setSelectedDate(d)
     }
   }
-  function goToday() { setSelectedDate(TODAY) }
+  function goToday() { setSelectedDate(today) }
 
   function isCurrentPeriod() {
-    if (view === 'month') return selectedDate.getFullYear() === TODAY.getFullYear() && selectedDate.getMonth() === TODAY.getMonth()
-    return weekDates.some(d => isSameDay(d, TODAY))
+    if (view === 'month') return selectedDate.getFullYear() === today.getFullYear() && selectedDate.getMonth() === today.getMonth()
+    return weekDates.some(d => isSameDay(d, today))
   }
 
   const monthGrid = buildMonthGrid(viewYear, viewMonth)
@@ -674,7 +690,7 @@ export default function CalendarClient() {
             <div className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-xl"
               style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', fontSize: 12, color: '#374151', whiteSpace: 'nowrap' }}>
               <Clock size={12} style={{ color: '#9CA3AF' }} />
-              {TODAY.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+              {today.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
             </div>
             <button className="relative w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
               style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
@@ -687,33 +703,6 @@ export default function CalendarClient() {
               <Plus size={16} />
             </button>
           </div>
-        </div>
-
-        {/* Location filter */}
-        <div className="flex items-center gap-2 px-4 md:px-6 py-2 shrink-0"
-          style={{ background: '#fff', borderBottom: '1px solid #F3F4F6' }}>
-          <span style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF',
-            textTransform: 'uppercase', letterSpacing: '0.04em', marginRight: 4 }}>{t.classes.location}</span>
-          <button onClick={() => setFilterLocId(null)}
-            className="px-3 py-1 rounded-lg cursor-pointer"
-            style={{ fontSize: 12, fontWeight: filterLocId === null ? 600 : 400, border: 'none',
-              background: filterLocId === null ? '#111827' : '#F3F4F6',
-              color: filterLocId === null ? '#fff' : '#374151' }}>
-            {t.classes.allLocations}
-          </button>
-          {LOCATIONS.map(loc => (
-            <button key={loc.id} onClick={() => setFilterLocId(loc.id)}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-lg cursor-pointer"
-              style={{ fontSize: 12, fontWeight: filterLocId === loc.id ? 600 : 400, border: 'none',
-                background: filterLocId === loc.id ? loc.color : '#F3F4F6',
-                color: filterLocId === loc.id ? '#fff' : '#374151' }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%',
-                background: filterLocId === loc.id ? 'rgba(255,255,255,0.7)' : loc.color,
-                flexShrink: 0, display: 'inline-block' }} />
-              {loc.name}
-              <span style={{ fontSize: 11, opacity: 0.75 }}> · {loc.city}</span>
-            </button>
-          ))}
         </div>
 
         {/* ── MONTH VIEW ── */}
@@ -731,16 +720,29 @@ export default function CalendarClient() {
               ))}
             </div>
 
+            {/* Loading / error state */}
+            {loading && (
+              <div className="flex items-center justify-center py-16" style={{ color: '#9CA3AF', fontSize: 13 }}>
+                Loading classes…
+              </div>
+            )}
+            {loadError && (
+              <div className="flex items-center justify-center py-16" style={{ color: '#DC2626', fontSize: 13 }}>
+                {loadError}
+              </div>
+            )}
+
             {/* Day cells grid */}
+            {!loading && !loadError && (
             <div className="grid grid-cols-7"
               style={{ gridAutoRows: 'minmax(112px, 1fr)' }}>
               {monthGrid.map((date, i) => {
-                const isThisMonth = date.getMonth() === viewMonth
-                const isToday     = isSameDay(date, TODAY)
-                const isSelected  = isSameDay(date, selectedDate)
-                const classes     = classesForDate(date, filterLocId)
-                const shown       = classes.slice(0, MAX_CHIPS)
-                const overflow    = classes.length - shown.length
+                const isThisMonth  = date.getMonth() === viewMonth
+                const isToday      = isSameDay(date, today)
+                const isSelected   = isSameDay(date, selectedDate)
+                const dayClasses   = classesForDate(date, classes)
+                const shown        = dayClasses.slice(0, MAX_CHIPS)
+                const overflow     = dayClasses.length - shown.length
                 const dayKey      = date.toISOString().slice(0, 10)
                 const isExpanded  = expandedDay === dayKey
                 const col         = i % 7
@@ -769,8 +771,8 @@ export default function CalendarClient() {
                         onMouseLeave={e => { if (!isToday) (e.currentTarget as HTMLElement).style.background = 'transparent' }}>
                         {date.getDate()}
                       </button>
-                      {classes.length > 0 && (
-                        <span style={{ fontSize: 9, color: '#9CA3AF' }}>{classes.length} {classes.length !== 1 ? t.classes.classCountPlural : t.classes.classCount}</span>
+                      {dayClasses.length > 0 && (
+                        <span style={{ fontSize: 9, color: '#9CA3AF' }}>{dayClasses.length} {dayClasses.length !== 1 ? t.classes.classCountPlural : t.classes.classCount}</span>
                       )}
                     </div>
 
@@ -808,7 +810,7 @@ export default function CalendarClient() {
                         </button>
                       )}
                       {/* Expanded overflow */}
-                      {isExpanded && classes.slice(MAX_CHIPS).map(slot => {
+                      {isExpanded && dayClasses.slice(MAX_CHIPS).map(slot => {
                         const colors = ACTIVITY_COLORS[slot.activity] ?? ACTIVITY_COLORS['Open Mat']!
                         return (
                           <button key={slot.id}
@@ -835,6 +837,7 @@ export default function CalendarClient() {
                 )
               })}
             </div>
+            )}
           </div>
         )}
 
@@ -846,7 +849,7 @@ export default function CalendarClient() {
               <div style={{ width: 56, flexShrink: 0 }} />
               {WEEK_DAYS.map((day, i) => {
                 const date    = weekDates[i]!
-                const isToday = isSameDay(date, TODAY)
+                const isToday = isSameDay(date, today)
                 return (
                   <div key={day} className="flex-1 flex flex-col items-center py-2 border-l"
                     style={{ borderColor: '#F3F4F6', minWidth: 0 }}>
@@ -878,16 +881,16 @@ export default function CalendarClient() {
                 </div>
                 {WEEK_DAYS.map((day, dayIdx) => {
                   const date    = weekDates[dayIdx]!
-                  const isToday = isSameDay(date, TODAY)
+                  const isToday = isSameDay(date, today)
                   const dow     = dowMon(date)
-                  const slots   = SCHEDULE.filter(s => s.day === dow && (filterLocId === null || s.locationId === filterLocId))
+                  const slots   = classes.filter(s => s.day === dow)
                   return (
                     <div key={day} className="flex-1 border-l relative"
                       style={{ borderColor: '#F3F4F6', minWidth: 0, background: isToday ? '#FAFBFF' : 'transparent' }}>
                       {HOURS.map(h => (
                         <div key={h} style={{ height: HOUR_HEIGHT, borderBottom: '1px solid #F3F4F6' }} />
                       ))}
-                      {isToday && isSameDay(date, TODAY) && (
+                      {isToday && (
                         <div className="absolute left-0 right-0 pointer-events-none flex items-center"
                           style={{ top: nowTop, zIndex: 2 }}>
                           <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#EF4444', flexShrink: 0, marginLeft: -3.5 }} />
