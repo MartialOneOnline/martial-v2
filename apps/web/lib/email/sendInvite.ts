@@ -17,7 +17,11 @@ export async function sendInviteEmail(payload: InvitePayload) {
   const { invitationId, schoolName, recipientEmail } = payload
   const inviteUrl = `${APP_URL}/claim/${invitationId}`
 
-  const html = buildInviteSchoolEmail({ ...payload, inviteUrl })
+  const html = buildInviteSchoolEmail({
+    ...payload,
+    inviteUrl,
+    logoUrl: `${APP_URL}/martial-logo.png`,
+  })
 
   try {
     const { data, error } = await getResend().emails.send({

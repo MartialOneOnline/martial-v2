@@ -15,6 +15,8 @@ export async function GET(req: NextRequest) {
     website: 'https://rogergracie.com',
     googleRating: 4.9,
     googleReviews: 187,
+    logoUrl: '/martial-logo.png',
+    bannerUrl: '/roger-gracie-malaga.jpg',
   })
 
   return new Response(html, {
