@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 39 completada ✅ — BookingsDrawer: NO_SHOW marking action added
+**Estado:** Sesión 39 completada ✅ — Full module audit + P1 fixes + no-show write path + attendance index + repo clean
 
 ---
 
@@ -246,6 +246,43 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 ## Historial de sesiones
 
 ### Sesión 39 — 2026-06-16 ✅
+**Full module audit + P1 fixes + no-show write path + attendance index + repo clean**
+
+**Module audit completed (audit-only, no files modified):**
+- Users, Memberships, Payments, Classes/Attendance, Reports all reviewed
+- P1 bugs identified: `paymentMethod` not saved on manual transactions; student profile showing `t.type` instead of `t.paymentMethod`; NO_SHOW status unreachable from UI; no DB index on `Booking(userId, attendedAt)`
+
+**P1 fixes applied:**
+- `POST /api/dashboard/transactions` now saves `paymentMethod` from request body — commit `8ef4901`
+- Student profile `transactions[].method` now reads `t.paymentMethod ?? '—'` instead of hardcoded `t.type` — commit `8ef4901`
+- Student profile `transactions[].status` now reads `t.status` instead of hardcoded `'PAID'` — commit `adbe074`
+
+**NO_SHOW write path added** — commit `44a8332`
+- New `PATCH /api/dashboard/bookings/[id]/no-show` — staff-only (OWNER/ADMIN/INSTRUCTOR); sets `status = 'NO_SHOW'`; does not touch `attendedAt`; scoped to school via `class.schoolId`
+- Uses `canMarkNoShow(status)` from `lib/services/attendance.ts`; COMPLETED + CANCELLED blocked with 422; idempotent for already-NO_SHOW
+- `BookingsDrawer` PENDING/CONFIRMED rows now show "Attended" (blue) + "No-show" (red) buttons side by side; row updates in-place; NO_SHOW rows show badge only
+- Reports / Absents can now accumulate real no-show data from staff drawer actions
+
+**Users report lastAttendedAt** — commit `5649322`
+- `GET /api/dashboard/reports/users` batch-fetches `lastAttendedAt` per user from `Booking.attendedAt` (not null, desc, distinct by userId, school-scoped)
+- `UsersReportClient` adds "Last Attended" column; shows formatted date or `—`; colSpan updated to 7
+
+**DB index for attendance queries** — commit `d87d965`
+- `@@index([userId, attendedAt])` added to `Booking` in `prisma/schema.prisma`
+- Applied to Supabase via `npx prisma db push` (non-destructive, index-only change)
+
+**V1 email redesign committed** — commits `e9dedf1`, `9fdd747`, `0797797`
+- `apps/web/lib/email/sendInvite.ts` + `inviteSchool.ts` + admin email-preview route updated
+- `v1-email-redesign/` — new Blade layout + 5 partials + 4 templates for Zeeshan to apply to Laravel V1
+- `docs/v1-email-redesign-brief.md`, `v1-email-type-map.md`, `martial-email-patterns.md` committed
+- Generated HTML preview files and `.DS_Store` deleted
+
+**Repo housekeeping** — commits `343b7dc`, `610c03e`
+- Two stale Claude agent worktrees removed (`agent-aa50da30fe2c363af`, `agent-ac70638e929fb22f8`)
+- `canMarkNoShow` guard committed to `lib/services/attendance.ts`
+- Working tree clean, `main` up to date on origin
+- **63 tests passing**, types clean
+
 **Classes: No-show marking action in BookingsDrawer** — commit `44a8332`
 - New `PATCH /api/dashboard/bookings/[id]/no-show` — staff-only (OWNER/ADMIN/INSTRUCTOR); sets `status = 'NO_SHOW'`; does not touch `attendedAt`; booking scoped to current school via `class.schoolId` join
 - Uses `canMarkNoShow(status)` from `lib/services/attendance.ts` (pure guard, already existed); COMPLETED returns 422 "Cannot mark an attended booking as no-show"; CANCELLED returns 422; idempotent for already-NO_SHOW bookings
