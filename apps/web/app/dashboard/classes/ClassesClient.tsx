@@ -815,6 +815,21 @@ function BookingsDrawer({ cls, open, onClose }: {
     }
   }
 
+  async function markNoShow(bookingId: string) {
+    setMarking(bookingId)
+    try {
+      const res = await fetch(`/api/dashboard/bookings/${bookingId}/no-show`, { method: 'PATCH' })
+      if (res.ok) {
+        const data = await res.json()
+        setBookings(prev => prev.map(b =>
+          b.id === bookingId ? { ...b, status: data.status } : b
+        ))
+      }
+    } finally {
+      setMarking(null)
+    }
+  }
+
   async function markAllAttended() {
     const eligible = bookings.filter(b => b.status !== 'COMPLETED' && b.status !== 'CANCELLED')
     if (eligible.length === 0) return
@@ -956,17 +971,30 @@ function BookingsDrawer({ cls, open, onClose }: {
                 {/* Action */}
                 {isAttended ? (
                   <CheckCircle2 size={18} style={{ color: '#16A34A', flexShrink: 0 }} />
-                ) : !isCancelled ? (
-                  <button
-                    onClick={() => markAttended(b.id)}
-                    disabled={isMarking}
-                    className="px-3 py-1.5 rounded-lg cursor-pointer shrink-0"
-                    style={{ fontSize: 12, fontWeight: 600, border: '1px solid #0071E3',
-                      background: isMarking ? '#F3F4F6' : '#EFF6FF',
-                      color: isMarking ? '#9CA3AF' : '#0071E3',
-                      cursor: isMarking ? 'not-allowed' : 'pointer' }}>
-                    {isMarking ? '…' : 'Mark attended'}
-                  </button>
+                ) : b.status === 'NO_SHOW' ? null
+                  : !isCancelled ? (
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      onClick={() => markAttended(b.id)}
+                      disabled={isMarking}
+                      className="px-2.5 py-1.5 rounded-lg cursor-pointer"
+                      style={{ fontSize: 11, fontWeight: 600, border: '1px solid #0071E3',
+                        background: isMarking ? '#F3F4F6' : '#EFF6FF',
+                        color: isMarking ? '#9CA3AF' : '#0071E3',
+                        cursor: isMarking ? 'not-allowed' : 'pointer' }}>
+                      {isMarking ? '…' : 'Attended'}
+                    </button>
+                    <button
+                      onClick={() => markNoShow(b.id)}
+                      disabled={isMarking}
+                      className="px-2.5 py-1.5 rounded-lg cursor-pointer"
+                      style={{ fontSize: 11, fontWeight: 600, border: '1px solid #E5E7EB',
+                        background: isMarking ? '#F3F4F6' : '#FEF2F2',
+                        color: isMarking ? '#9CA3AF' : '#B91C1C',
+                        cursor: isMarking ? 'not-allowed' : 'pointer' }}>
+                      No-show
+                    </button>
+                  </div>
                 ) : null}
               </div>
             )
