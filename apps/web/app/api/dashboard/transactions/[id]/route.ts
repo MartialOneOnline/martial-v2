@@ -31,9 +31,18 @@ export async function PATCH(
   const body = await req.json()
   const { status } = body
 
-  const allowed = ['PAID', 'PENDING', 'FAILED', 'REFUNDED']
+  const allowed = ['PAID', 'PENDING', 'FAILED']
   if (!allowed.includes(status)) {
     return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
+  }
+
+  // TODO(phase-5-refunds): implement compensating transaction + membership void
+  // before allowing REFUNDED status transitions.
+  if (status === 'REFUNDED') {
+    return NextResponse.json(
+      { error: 'Refunds require Phase 5 accounting workflow.' },
+      { status: 403 },
+    )
   }
 
   const tx = await prisma.transaction.findFirst({
@@ -63,6 +72,15 @@ export async function DELETE(
     where: { id, schoolId: auth.schoolId },
   })
   if (!tx) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  // TODO(phase-5-audit-trail): replace hard delete with soft delete (deletedAt/deletedBy)
+  // and restrict deletion to PENDING/FAILED only once audit trail is implemented.
+  if (['PAID', 'REFUNDED'].includes(tx.status)) {
+    return NextResponse.json(
+      { error: 'Paid transactions cannot be deleted. Use Phase 5 refund workflow.' },
+      { status: 403 },
+    )
+  }
 
   await prisma.transaction.delete({ where: { id } })
   return NextResponse.json({ ok: true })

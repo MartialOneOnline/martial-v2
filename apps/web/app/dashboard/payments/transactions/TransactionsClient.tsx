@@ -339,16 +339,8 @@ function RowActions({ tx, onStatusChange, onDelete, onView }: {
                 </button>
               )}
 
-              {tx.status !== 'REFUNDED' && (
-                <button onClick={e => { e.stopPropagation(); act(() => onStatusChange(tx.id, 'REFUNDED')) }}
-                  style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
-                    fontWeight: 500, color: '#6D28D9', background: 'transparent', border: 'none', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', gap: 8 }}
-                  onMouseEnter={e => (e.currentTarget.style.background = '#F5F3FF')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-                  <XCircle size={13} /> Mark as Refunded
-                </button>
-              )}
+              {/* TODO(phase-5-refunds): restore "Mark as Refunded" once compensating
+                  transaction logic and membership void are implemented. */}
 
               {tx.status !== 'FAILED' && (
                 <button onClick={e => { e.stopPropagation(); act(() => onStatusChange(tx.id, 'FAILED')) }}
@@ -805,6 +797,9 @@ export default function TransactionsClient() {
       setTransactions(prev => prev.filter(tx => tx.id !== id))
       if (selectedTx?.id === id) setSelectedTx(null)
       setTotal(prev => prev - 1)
+    } else {
+      const data = await res.json().catch(() => ({}))
+      alert(data.error ?? 'Could not delete transaction.')
     }
   }
 
