@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 37 completada ✅ — Reports/Absents: NO_SHOW tracking added alongside CANCELLED
+**Estado:** Sesión 39 completada ✅ — BookingsDrawer: NO_SHOW marking action added
 
 ---
 
@@ -244,6 +244,23 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 ---
 
 ## Historial de sesiones
+
+### Sesión 39 — 2026-06-16 ✅
+**Classes: No-show marking action in BookingsDrawer** — commit `44a8332`
+- New `PATCH /api/dashboard/bookings/[id]/no-show` — staff-only (OWNER/ADMIN/INSTRUCTOR); sets `status = 'NO_SHOW'`; does not touch `attendedAt`; booking scoped to current school via `class.schoolId` join
+- Uses `canMarkNoShow(status)` from `lib/services/attendance.ts` (pure guard, already existed); COMPLETED returns 422 "Cannot mark an attended booking as no-show"; CANCELLED returns 422; idempotent for already-NO_SHOW bookings
+- `BookingsDrawer` (`ClassesClient.tsx`) — PENDING/CONFIRMED rows now show two buttons: "Attended" (blue) and "No-show" (red); clicking "No-show" calls the new endpoint and updates the row in-place (`status → NO_SHOW`); NO_SHOW rows show the red "No-show" badge from `BookingStatusBadge` with no further action available
+- Reports / Absents (`/dashboard/reports/absents`) can now accumulate real `NO_SHOW` data from staff action in the drawer — previously unreachable from the UI
+- No Prisma schema changes (`NO_SHOW` already existed as a `BookingStatus` enum value)
+- **63 tests passing**
+
+### Sesión 38 — 2026-06-16 ✅
+**Reports / Users: lastAttendedAt added to member list**
+- `apps/web/app/api/dashboard/reports/users/route.ts` — `lastAttended` query added in parallel with `activeMemberships` via `Promise.all`; single `prisma.booking.findMany` with `attendedAt: { not: null }`, `orderBy: { attendedAt: 'desc' }`, `distinct: ['userId']`, scoped to current school; builds `lastAttendedByUser` map; each member in response now includes `lastAttendedAt: string | null`
+- `apps/web/app/dashboard/reports/users/UsersReportClient.tsx` — `MemberRow` interface gains `lastAttendedAt: string | null`; "Last Attended" header added between Joined and Status (7 columns total); `<td>` renders `fmtDate(m.lastAttendedAt)` or `—` in muted grey when null; loading/empty `colSpan` updated from 6 → 7
+- All existing filters (belt, dateFrom, dateTo, status, search) and pagination unchanged
+- No Prisma schema changes (`attendedAt` already existed on `Booking`)
+- **63 tests passing**
 
 ### Sesión 37 — 2026-06-16 ✅
 **Reports / Absents: NO_SHOW tracking added alongside CANCELLED** — commit `6e18103`
