@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 29 completada ✅ — Payments module conectado a datos reales (transactions + subscriptions)
+**Estado:** Sesión 30 completada ✅ — classAccess enforcement en booking API + auth guard student profile + fixes Users module
 
 ---
 
@@ -244,6 +244,27 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 ---
 
 ## Historial de sesiones
+
+### Sesión 30 — 2026-06-16 ✅
+**Memberships classAccess enforcement + Users module fixes** — commits `278bd7c`, `dd5b250`, `0859ce2`
+
+**classAccess enforcement in booking API (commit `0859ce2`)**
+- New `apps/web/lib/services/classAccess.ts` — pure `checkClassAccess(classAccess, classId, counts)` function; no Prisma dependency; evaluates per-class rules (included/unlimited/PER_WEEK/PER_MONTH/TOTAL) and global booking cap
+- `apps/web/app/api/bookings/route.ts` — membership query now includes `plan.classAccess`; 5 parallel count queries (per-class ×3 + global ×2) run only when rules are present; returns 403 with descriptive message when any rule is exceeded; zero overhead for plans without classAccess rules
+- `apps/web/__tests__/bookingValidation.test.ts` — 14 new tests for `checkClassAccess()` covering all branches; **27 tests total, all passing**
+- No Stripe touched, no /join routes, no Prisma schema changes
+
+**Users module fixes (commit `278bd7c`)**
+- `UsersClient.tsx` — `handleMarkAsPaid` now sends real `amount` and `currency` from `activeMembership` instead of hardcoded `amount: 0` / `currency: 'EUR'`
+- `users/page.tsx` — `price` and `currency` added to the mapped `activeMembership` object so values flow to the client
+- `Student` type updated with `price: number` and `currency: string` on `activeMembership`
+
+**Auth guard on student profile (commit `278bd7c`)**
+- `dashboard/users/[id]/page.tsx` — added role guard (OWNER/ADMIN/INSTRUCTOR only) using `getAuthUser()` + `getCurrentSchoolId()` (with DB fallback) + `requireSchoolAccess()`; member query now requires both `id` AND `schoolId` (no conditional spread); students and wrong-school viewers get 404
+
+**Stub actions hidden (commit `dd5b250`)**
+- Hidden behind `TODO` comments: Send Message, Invoice, Send Waiver, Sync Membership (list menu) + Invitar + More button (student profile)
+- Tags: `TODO(send-message)`, `TODO(sync-membership)`, `TODO(invoice)`, `TODO(waiver)`, `TODO(profile-invite)`, `TODO(profile-more)`
 
 ### Sesión 29 — 2026-06-14 ✅
 **Payments module: transactions + subscriptions con datos reales** — commit `b14df5b`
