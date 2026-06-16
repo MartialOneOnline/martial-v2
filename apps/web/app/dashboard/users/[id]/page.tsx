@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/db'
-import { cookies } from 'next/headers'
+import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
+import { requireSchoolAccess } from '@/lib/auth/contexts'
 import StudentProfileClient from './StudentProfileClient'
 
 export default async function StudentProfilePage({
@@ -11,18 +11,23 @@ export default async function StudentProfilePage({
 }) {
   const { id } = await params
 
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) notFound()
+  const viewer = await getAuthUser()
+  if (!viewer) notFound()
 
-  const cookieStore = await cookies()
-  const schoolId = cookieStore.get('currentSchoolId')?.value
+  const schoolId = await getCurrentSchoolId()
+  if (!schoolId) notFound()
+
+  if (viewer.role !== 'SUPERADMIN') {
+    try {
+      const membership = await requireSchoolAccess(viewer.id, schoolId)
+      if (!['OWNER', 'ADMIN', 'INSTRUCTOR'].includes(membership.role)) notFound()
+    } catch {
+      notFound()
+    }
+  }
 
   const member = await prisma.schoolMember.findFirst({
-    where: {
-      id,
-      ...(schoolId ? { schoolId } : {}),
-    },
+    where: { id, schoolId },
     include: {
       user: {
         select: {

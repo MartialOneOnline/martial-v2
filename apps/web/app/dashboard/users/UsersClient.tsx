@@ -78,6 +78,8 @@ type Student = {
     status: string
     startDate: string
     endDate: string | null
+    price: number
+    currency: string
     consumed: number
     totalLimit: number | null
   } | null
@@ -1493,8 +1495,8 @@ export default function UsersClient({ students: initialStudents }: { students: S
         body: JSON.stringify({
           userId: student.id,
           description: student.activeMembership.planName,
-          amount: 0,
-          currency: 'EUR',
+          amount: student.activeMembership.price,
+          currency: student.activeMembership.currency,
           date: new Date().toISOString(),
           type: 'INCOME',
           status: 'PAID',

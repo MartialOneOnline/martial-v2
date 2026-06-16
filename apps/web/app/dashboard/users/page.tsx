@@ -79,6 +79,8 @@ async function UsersPageWithSchool({ schoolId }: { schoolId: string }) {
         status: mem.status,
         startDate: mem.startDate.toISOString(),
         endDate: mem.endDate?.toISOString() ?? null,
+        price: Number(mem.price),
+        currency: mem.currency,
         consumed: usageMap[mem.id] ?? mem.classesUsed,
         totalLimit,
       } : null,
