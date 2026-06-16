@@ -776,17 +776,20 @@ function BookingsDrawer({ cls, open, onClose }: {
   open: boolean
   onClose: () => void
 }) {
-  const [date, setDate]         = useState(todayIso)
-  const [bookings, setBookings] = useState<BookingRow[]>([])
-  const [loading, setLoading]   = useState(false)
-  const [marking, setMarking]   = useState<string | null>(null)
+  const [date, setDate]           = useState(todayIso)
+  const [bookings, setBookings]   = useState<BookingRow[]>([])
+  const [loading, setLoading]     = useState(false)
+  const [marking, setMarking]     = useState<string | null>(null)
+  const [markingAll, setMarkingAll] = useState(false)
+  const [bulkError, setBulkError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (open) setDate(todayIso())
+    if (open) { setDate(todayIso()); setBulkError(null) }
   }, [open])
 
   useEffect(() => {
     if (!open || !cls) return
+    setBulkError(null)
     setLoading(true)
     fetch(`/api/dashboard/classes/${cls.id}/bookings?date=${date}`)
       .then(r => r.ok ? r.json() : Promise.reject())
@@ -812,8 +815,33 @@ function BookingsDrawer({ cls, open, onClose }: {
     }
   }
 
+  async function markAllAttended() {
+    const eligible = bookings.filter(b => b.status !== 'COMPLETED' && b.status !== 'CANCELLED')
+    if (eligible.length === 0) return
+    setMarkingAll(true)
+    setBulkError(null)
+    const results = await Promise.allSettled(
+      eligible.map(b =>
+        fetch(`/api/dashboard/bookings/${b.id}/attend`, { method: 'PATCH' })
+          .then(r => r.ok ? r.json() : Promise.reject(new Error(r.statusText)))
+          .then(data => ({ id: b.id, status: data.status, attendedAt: data.attendedAt }))
+      )
+    )
+    const succeeded = results.flatMap(r => r.status === 'fulfilled' ? [r.value] : [])
+    const failCount = results.filter(r => r.status === 'rejected').length
+    if (succeeded.length > 0) {
+      setBookings(prev => prev.map(b => {
+        const updated = succeeded.find(s => s.id === b.id)
+        return updated ? { ...b, status: updated.status, attendedAt: updated.attendedAt } : b
+      }))
+    }
+    if (failCount > 0) setBulkError(`${failCount} booking${failCount > 1 ? 's' : ''} could not be marked attended`)
+    setMarkingAll(false)
+  }
+
   const attended  = bookings.filter(b => b.status === 'COMPLETED').length
   const total     = bookings.filter(b => b.status !== 'CANCELLED').length
+  const eligible  = bookings.filter(b => b.status !== 'COMPLETED' && b.status !== 'CANCELLED').length
 
   return (
     <>
@@ -845,7 +873,7 @@ function BookingsDrawer({ cls, open, onClose }: {
           </button>
         </div>
 
-        {/* Date picker */}
+        {/* Date picker + Mark All */}
         <div className="px-6 py-3 shrink-0" style={{ background: '#fff', borderBottom: '1px solid #F3F4F6' }}>
           <div className="flex items-center gap-3">
             <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', whiteSpace: 'nowrap' }}>Session date</label>
@@ -858,6 +886,24 @@ function BookingsDrawer({ cls, open, onClose }: {
               </span>
             )}
           </div>
+          {!loading && eligible > 0 && (
+            <div className="flex items-center justify-between mt-2">
+              <button
+                onClick={markAllAttended}
+                disabled={markingAll}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg cursor-pointer"
+                style={{ fontSize: 12, fontWeight: 600, border: '1px solid #16A34A',
+                  background: markingAll ? '#F3F4F6' : '#F0FDF4',
+                  color: markingAll ? '#9CA3AF' : '#16A34A',
+                  cursor: markingAll ? 'not-allowed' : 'pointer' }}>
+                <CheckCircle2 size={13} />
+                {markingAll ? 'Marking…' : `Mark all attended (${eligible})`}
+              </button>
+              {bulkError && (
+                <span style={{ fontSize: 11, color: '#DC2626' }}>{bulkError}</span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Booking list */}
