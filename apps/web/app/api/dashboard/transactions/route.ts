@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const body = await req.json()
-  const { userId, description, amount, currency, date, status, type, category, notes } = body
+  const { userId, description, amount, currency, date, status, type, category, notes, paymentMethod } = body
 
   if (!amount || !date || !type) {
     return NextResponse.json({ error: 'amount, date and type are required' }, { status: 400 })
@@ -131,16 +131,17 @@ export async function POST(req: NextRequest) {
 
   const tx = await prisma.transaction.create({
     data: {
-      schoolId:    auth.schoolId,
-      userId:      userId ?? null,
-      description: description?.trim() || null,
-      amount:      parseFloat(amount),
-      currency:    currency ?? 'EUR',
-      date:        new Date(date),
-      status:      status ?? 'PAID',
-      type:        type ?? 'INCOME',
-      category:    category ?? 'MEMBERSHIP',
-      notes:       notes?.trim() || null,
+      schoolId:      auth.schoolId,
+      userId:        userId ?? null,
+      description:   description?.trim() || null,
+      amount:        parseFloat(amount),
+      currency:      currency ?? 'EUR',
+      date:          new Date(date),
+      status:        status ?? 'PAID',
+      type:          type ?? 'INCOME',
+      category:      category ?? 'MEMBERSHIP',
+      notes:         notes?.trim() || null,
+      paymentMethod: paymentMethod ?? null,
     },
     include: { user: { select: { name: true, email: true } } },
   })
