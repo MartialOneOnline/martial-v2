@@ -910,12 +910,14 @@ export default function StudentProfileClient({ profile: initialProfile }: { prof
                   style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px', fontSize: 12, fontWeight: 500, border: '1px solid #E5E7EB', borderRadius: 8, background: '#fff', color: '#374151', cursor: 'pointer' }}>
                   <Edit2 size={12} /> Editar
                 </button>
+                {/* TODO(profile-invite): wire resend-invite API, then restore
                 <button style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px', fontSize: 12, fontWeight: 500, border: 'none', borderRadius: 8, background: '#0071E3', color: '#fff', cursor: 'pointer' }}>
                   <Send size={12} /> Invitar
-                </button>
+                </button> */}
+                {/* TODO(profile-more): define actions for MoreHorizontal dropdown, then restore
                 <button style={{ width: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #E5E7EB', borderRadius: 8, background: '#fff', color: '#6B7280', cursor: 'pointer' }}>
                   <MoreHorizontal size={14} />
-                </button>
+                </button> */}
               </div>
             </Card>
 

@@ -245,12 +245,12 @@ function ActionsMenu({
 
           <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
 
-          {/* Send message */}
+          {/* TODO(send-message): wire real email/notification API, then restore
           {menuItem(
             <MessageSquare size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
             'Enviar mensaje',
             () => { closeAll(); onSendMsg(student) },
-          )}
+          )} */}
 
           {/* QR Code */}
           {menuItem(
@@ -358,12 +358,12 @@ function ActionsMenu({
 
           <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
 
-          {/* Sync Membership */}
+          {/* TODO(sync-membership): implement Stripe/V1 sync, then restore
           {menuItem(
             <RefreshCw size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
             'Sync Membership',
             () => { closeAll(); onSyncMembership(student) },
-          )}
+          )} */}
 
           {/* Mark as Paid */}
           {menuItem(
@@ -372,19 +372,19 @@ function ActionsMenu({
             () => { closeAll(); onMarkPaid(student) },
           )}
 
-          {/* Invoice */}
+          {/* TODO(invoice): build invoice generation (PDF + Stripe), then restore
           {menuItem(
             <Receipt size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
             'Invoice',
             () => { closeAll(); showToast('Invoice — Coming soon', 'info') },
-          )}
+          )} */}
 
-          {/* Send Waiver */}
+          {/* TODO(waiver): build waiver document model + send flow, then restore
           {menuItem(
             <FileText size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
             'Send Waiver',
             () => { closeAll(); showToast('Send Waiver — Coming soon', 'info') },
-          )}
+          )} */}
 
           <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
 
