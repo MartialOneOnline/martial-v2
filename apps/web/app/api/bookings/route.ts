@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
 import { isValidScheduledAt, type ScheduleSlot } from '@/lib/scheduling'
+import { checkClassAccess, type ClassAccessConfig } from '@/lib/services/classAccess'
 
 export async function POST(req: NextRequest) {
   const cookieStore = await cookies()
@@ -71,12 +72,53 @@ export async function POST(req: NextRequest) {
       status: { in: ['ACTIVE'] },
       OR: [{ endDate: null }, { endDate: { gte: scheduledDate } }],
     },
+    include: { plan: { select: { classAccess: true } } },
   })
   if (!activeMembership) {
     return NextResponse.json(
       { error: 'No active membership for this school' },
       { status: 403 },
     )
+  }
+
+  // Enforce MembershipPlan.classAccess rules (per-class and global booking caps)
+  const classAccess = activeMembership.plan?.classAccess as ClassAccessConfig | null
+  const hasRules = !!classAccess &&
+    ((classAccess.classRules?.length ?? 0) > 0 || !!classAccess.globalLimit)
+
+  if (hasRules) {
+    const now = new Date()
+    // Monday 00:00:00 of the current week
+    const startOfWeek = new Date(now)
+    startOfWeek.setDate(now.getDate() - ((now.getDay() + 6) % 7))
+    startOfWeek.setHours(0, 0, 0, 0)
+    // 1st of the current month 00:00:00
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+
+    const [perWeek, perMonth, total, globalPerWeek, globalPerMonth] = await Promise.all([
+      // Per-class counts for this user
+      prisma.booking.count({
+        where: { userId: dbUser.id, classId, scheduledAt: { gte: startOfWeek }, status: { not: 'CANCELLED' } },
+      }),
+      prisma.booking.count({
+        where: { userId: dbUser.id, classId, scheduledAt: { gte: startOfMonth }, status: { not: 'CANCELLED' } },
+      }),
+      prisma.booking.count({
+        where: { userId: dbUser.id, classId, scheduledAt: { gte: activeMembership.startDate }, status: { not: 'CANCELLED' } },
+      }),
+      // Global counts across all classes at this school
+      prisma.booking.count({
+        where: { userId: dbUser.id, class: { schoolId: cls.schoolId }, scheduledAt: { gte: startOfWeek }, status: { not: 'CANCELLED' } },
+      }),
+      prisma.booking.count({
+        where: { userId: dbUser.id, class: { schoolId: cls.schoolId }, scheduledAt: { gte: startOfMonth }, status: { not: 'CANCELLED' } },
+      }),
+    ])
+
+    const access = checkClassAccess(classAccess, classId, { perWeek, perMonth, total, globalPerWeek, globalPerMonth })
+    if (!access.allowed) {
+      return NextResponse.json({ error: access.reason }, { status: 403 })
+    }
   }
 
   // Use a transaction to prevent race conditions on capacity and duplicate checks.

@@ -3,6 +3,7 @@
  * These test the pure validation helpers extracted below, not the full HTTP handler.
  */
 import { describe, it, expect } from 'vitest'
+import { checkClassAccess, type BookingCounts } from '../lib/services/classAccess'
 
 // ── Extracted validation helpers (mirrors route logic) ────────────────────────
 
@@ -104,5 +105,114 @@ describe('duplicate booking detection', () => {
       existing.classId === request.classId &&
       existing.scheduledAt === request.scheduledAt
     expect(isDuplicate).toBe(false)
+  })
+})
+
+// ── checkClassAccess() ────────────────────────────────────────────────────────
+
+const zeroCounts: BookingCounts = { perWeek: 0, perMonth: 0, total: 0, globalPerWeek: 0, globalPerMonth: 0 }
+
+describe('checkClassAccess()', () => {
+  it('allows when classAccess is null (no rules defined)', () => {
+    expect(checkClassAccess(null, 'class-1', zeroCounts).allowed).toBe(true)
+  })
+
+  it('allows when classAccess is empty object', () => {
+    expect(checkClassAccess({}, 'class-1', zeroCounts).allowed).toBe(true)
+  })
+
+  it('allows when classAccess has empty classRules and no globalLimit', () => {
+    expect(checkClassAccess({ classRules: [] }, 'class-1', zeroCounts).allowed).toBe(true)
+  })
+
+  it('allows when class has no explicit rule (unlisted classes are unrestricted)', () => {
+    const config = {
+      classRules: [{ classId: 'class-2', included: true, unlimited: true, limit: '4', limitType: 'PER_WEEK' as const }],
+    }
+    expect(checkClassAccess(config, 'class-1', zeroCounts).allowed).toBe(true)
+  })
+
+  it('blocks when class is explicitly excluded (included: false)', () => {
+    const config = {
+      classRules: [{ classId: 'class-1', included: false, unlimited: true, limit: '4', limitType: 'PER_WEEK' as const }],
+    }
+    const result = checkClassAccess(config, 'class-1', zeroCounts)
+    expect(result.allowed).toBe(false)
+    expect(result.reason).toMatch(/not included/)
+  })
+
+  it('allows when class is included with unlimited: true even if counts are high', () => {
+    const config = {
+      classRules: [{ classId: 'class-1', included: true, unlimited: true, limit: '2', limitType: 'PER_WEEK' as const }],
+    }
+    expect(checkClassAccess(config, 'class-1', { ...zeroCounts, perWeek: 999 }).allowed).toBe(true)
+  })
+
+  it('blocks when PER_WEEK limit is reached', () => {
+    const config = {
+      classRules: [{ classId: 'class-1', included: true, unlimited: false, limit: '2', limitType: 'PER_WEEK' as const }],
+    }
+    const result = checkClassAccess(config, 'class-1', { ...zeroCounts, perWeek: 2 })
+    expect(result.allowed).toBe(false)
+    expect(result.reason).toMatch(/this week/)
+  })
+
+  it('allows when PER_WEEK limit is not yet reached', () => {
+    const config = {
+      classRules: [{ classId: 'class-1', included: true, unlimited: false, limit: '3', limitType: 'PER_WEEK' as const }],
+    }
+    expect(checkClassAccess(config, 'class-1', { ...zeroCounts, perWeek: 2 }).allowed).toBe(true)
+  })
+
+  it('blocks when PER_MONTH limit is reached', () => {
+    const config = {
+      classRules: [{ classId: 'class-1', included: true, unlimited: false, limit: '8', limitType: 'PER_MONTH' as const }],
+    }
+    const result = checkClassAccess(config, 'class-1', { ...zeroCounts, perMonth: 8 })
+    expect(result.allowed).toBe(false)
+    expect(result.reason).toMatch(/this month/)
+  })
+
+  it('blocks when TOTAL limit is reached', () => {
+    const config = {
+      classRules: [{ classId: 'class-1', included: true, unlimited: false, limit: '10', limitType: 'TOTAL' as const }],
+    }
+    const result = checkClassAccess(config, 'class-1', { ...zeroCounts, total: 10 })
+    expect(result.allowed).toBe(false)
+    expect(result.reason).toMatch(/on this membership/)
+  })
+
+  it('blocks on global PER_WEEK cap even when per-class rule allows', () => {
+    const config = {
+      classRules: [{ classId: 'class-1', included: true, unlimited: true, limit: '4', limitType: 'PER_WEEK' as const }],
+      globalLimit: '5',
+      globalLimitType: 'PER_WEEK' as const,
+    }
+    const result = checkClassAccess(config, 'class-1', { ...zeroCounts, globalPerWeek: 5 })
+    expect(result.allowed).toBe(false)
+    expect(result.reason).toMatch(/this week/)
+  })
+
+  it('blocks on global PER_MONTH cap', () => {
+    const config = { globalLimit: '20', globalLimitType: 'PER_MONTH' as const }
+    const result = checkClassAccess(config, 'class-1', { ...zeroCounts, globalPerMonth: 20 })
+    expect(result.allowed).toBe(false)
+    expect(result.reason).toMatch(/this month/)
+  })
+
+  it('allows when global cap has empty string (no limit set)', () => {
+    const config = { globalLimit: '', globalLimitType: 'PER_MONTH' as const }
+    expect(checkClassAccess(config, 'class-1', { ...zeroCounts, globalPerMonth: 999 }).allowed).toBe(true)
+  })
+
+  it('class exclusion takes priority before global cap check', () => {
+    const config = {
+      classRules: [{ classId: 'class-1', included: false, unlimited: true, limit: '4', limitType: 'PER_WEEK' as const }],
+      globalLimit: '5',
+      globalLimitType: 'PER_WEEK' as const,
+    }
+    const result = checkClassAccess(config, 'class-1', zeroCounts)
+    expect(result.allowed).toBe(false)
+    expect(result.reason).toMatch(/not included/)
   })
 })
