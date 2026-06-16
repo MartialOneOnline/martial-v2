@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 32 completada ✅ — Payments safety hardening (Phase 5 guards on refunds + delete)
+**Estado:** Sesión 33 completada ✅ — Calendar real data fetch (hardcoded SCHEDULE removed)
 
 ---
 
@@ -244,6 +244,19 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 ---
 
 ## Historial de sesiones
+
+### Sesión 33 — 2026-06-16 ✅
+**Classes: Calendar fetches real class data from API (hardcoded demo removed)** — commit `4d0e469`
+- `CalendarClient.tsx` — removed `SCHEDULE` constant (26 fake entries) and hardcoded `TODAY = new Date(2026, 5, 4)` / `NOW_H = 10` / `NOW_M = 30`
+- Fetch effect on mount: calls `GET /api/dashboard/classes`, maps each `ApiClass` via new `apiClassToSlots()` helper into `ClassSlot[]`; `dayOfWeek` (JS: 0=Sun) converted to calendar convention (Mon=0…Sun=6) via `(dow + 6) % 7`
+- Month view: `classesForDate(date, classes)` uses live `classes` state; loading and error states shown while data is in flight
+- Week view: `classes.filter(s => s.day === dow)` replaces `SCHEDULE.filter`
+- Today derived from `useState(() => new Date())` — no hardcoded date; `nowH`/`nowM` derived from it for week-view auto-scroll
+- Fake location/room filter bar removed from live calendar; `DRAWER_LOCATIONS`/`DRAWER_ROOMS` stubs kept local to `AddClassDrawer` form only
+- `ClassPopup`: location/room section removed (fields no longer on `ClassSlot`)
+- `WeekClassBlock`: room name line removed
+- No new API endpoint (reuses existing `GET /api/dashboard/classes`), no Prisma schema changes
+- TypeScript clean, **57 tests passing**
 
 ### Sesión 32 — 2026-06-16 ✅
 **Payments: safety hardening — Phase 5 guards on refunds and deletes** — commit `be67282`
