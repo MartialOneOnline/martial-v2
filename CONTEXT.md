@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 34 completada ✅ — Attendance marking endpoint (PATCH /api/dashboard/bookings/[id]/attend)
+**Estado:** Sesión 35 completada ✅ — Attendance UI: BookingsDrawer with per-booking mark attended action
 
 ---
 
@@ -244,6 +244,17 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 ---
 
 ## Historial de sesiones
+
+### Sesión 35 — 2026-06-16 ✅
+**Classes: BookingsDrawer UI for per-booking attendance marking** — commit `13e4680`
+- `apps/web/app/dashboard/classes/ClassesClient.tsx` — new `BookingsDrawer` component; opens via "View bookings" in each class row's `⋯` menu; shows bookings for a selected date with a "Mark attended" button per row
+- "Mark attended" calls `PATCH /api/dashboard/bookings/[id]/attend`; row updates in-place (status → COMPLETED, attendedAt timestamp shown) without full reload
+- COMPLETED rows show a green `✓` (CheckCircle2) instead of the button; CANCELLED rows are dimmed with no action
+- Attendance summary counter shown in drawer header: `attended / total`
+- `GET /api/dashboard/classes/[id]/bookings` extended: accepts `?date=YYYY-MM-DD` param (defaults to today); response now includes `attendedAt` and `scheduledAt` fields; CANCELLED bookings are included so staff sees the full list
+- No QR check-in, no full class session page — drawer-only UI
+- No Prisma schema changes
+- **63 tests passing**
 
 ### Sesión 34 — 2026-06-16 ✅
 **Classes: per-booking attendance marking endpoint** — commit `6857d97`
