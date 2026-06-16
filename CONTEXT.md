@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 31 completada ✅ — Membership assignment unified through assignPlan() service
+**Estado:** Sesión 32 completada ✅ — Payments safety hardening (Phase 5 guards on refunds + delete)
 
 ---
 
@@ -244,6 +244,13 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 ---
 
 ## Historial de sesiones
+
+### Sesión 32 — 2026-06-16 ✅
+**Payments: safety hardening — Phase 5 guards on refunds and deletes** — commit `be67282`
+- `PATCH /api/dashboard/transactions/[id]`: REFUNDED removed from allowed statuses; returns 403 "Refunds require Phase 5 accounting workflow." — marked `TODO(phase-5-refunds)`
+- `DELETE /api/dashboard/transactions/[id]`: deletion blocked for PAID and REFUNDED transactions with 403 "Paid transactions cannot be deleted. Use Phase 5 refund workflow." — PENDING and FAILED still deletable — marked `TODO(phase-5-audit-trail)`
+- `TransactionsClient.tsx`: "Mark as Refunded" action removed from row menu; existing REFUNDED records remain visible in the filter tab and status badge; `handleDelete` now surfaces the API error message via alert instead of silently ignoring a rejected delete
+- No Prisma schema changes, no Stripe, no refund mirror transactions, no invoice, no direct debit
 
 ### Sesión 31 — 2026-06-16 ✅
 **Payments: membership assignment unified through assignPlan() service** — commit `2710559`
