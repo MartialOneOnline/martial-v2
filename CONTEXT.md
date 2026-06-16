@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 33 completada ✅ — Calendar real data fetch (hardcoded SCHEDULE removed)
+**Estado:** Sesión 34 completada ✅ — Attendance marking endpoint (PATCH /api/dashboard/bookings/[id]/attend)
 
 ---
 
@@ -244,6 +244,18 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 ---
 
 ## Historial de sesiones
+
+### Sesión 34 — 2026-06-16 ✅
+**Classes: per-booking attendance marking endpoint** — commit `6857d97`
+- New `PATCH /api/dashboard/bookings/[id]/attend` — staff-only (OWNER/ADMIN/INSTRUCTOR); sets `attendedAt = now` and `status = COMPLETED`
+- Booking scoped to current school via `class.schoolId` join — no cross-school access possible
+- CANCELLED bookings return 422 "Cannot mark a cancelled booking as attended"
+- Idempotent: already-COMPLETED + `attendedAt` set returns 200 without a DB write
+- New `apps/web/lib/services/attendance.ts` — pure `canMarkAttended(status, attendedAt)` helper extracted for testability; returns `{ ok, alreadyDone }` or `{ ok: false, reason, httpStatus }`
+- New `apps/web/__tests__/attendanceMarking.test.ts` — 6 unit tests covering: PENDING/CONFIRMED/NO_SHOW allowed, CANCELLED blocked (422), idempotent COMPLETED, COMPLETED-without-attendedAt edge case
+- No Prisma schema changes (`attendedAt` and `COMPLETED` status already existed in schema)
+- No QR check-in, no class session UI — backend-only
+- **63 tests passing**
 
 ### Sesión 33 — 2026-06-16 ✅
 **Classes: Calendar fetches real class data from API (hardcoded demo removed)** — commit `4d0e469`
