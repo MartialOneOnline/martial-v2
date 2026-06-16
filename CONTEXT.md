@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 36 completada ✅ — Mark All Attended added to BookingsDrawer
+**Estado:** Sesión 37 completada ✅ — Reports/Absents: NO_SHOW tracking added alongside CANCELLED
 
 ---
 
@@ -244,6 +244,14 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 ---
 
 ## Historial de sesiones
+
+### Sesión 37 — 2026-06-16 ✅
+**Reports / Absents: NO_SHOW tracking added alongside CANCELLED** — commit `6e18103`
+- `apps/web/app/api/dashboard/reports/absents/route.ts` — `NO_SHOW` bookings now fetched in parallel with `CANCELLED`; per-member `MemberAgg` gains `noShowCount` field; stats response adds `totalNoShows` and `noShowMembers`; `trendData` points and `dowData` day entries each include a `noShows` series
+- `apps/web/app/dashboard/reports/absents/AbsentsReportClient.tsx` — 5th stat card added for No-Shows (`totalNoShows` / `N members`); day-of-week bar chart gains second `<Bar>` for no-shows (dark red); absence trend chart gains second dashed `<Area>` for no-shows; member table Cancellations column shows `Nx cancelled` + `Nx no-show` sub-badge when `noShowCount > 0`
+- At-risk threshold (`3+ cancellations`) remains based on `CANCELLED` count only — `NO_SHOW` is tracked but does not affect the threshold
+- No Prisma schema changes (`NO_SHOW` already existed as a `BookingStatus` enum value)
+- **63 tests passing**
 
 ### Sesión 36 — 2026-06-16 ✅
 **Classes: Mark All Attended button in BookingsDrawer** — commit `2a6379f`
