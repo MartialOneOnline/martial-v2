@@ -105,16 +105,28 @@ export async function GET(req: NextRequest) {
     prisma.schoolMember.count({ where }),
   ])
 
-  // Fetch active membership plan names for these users
+  // Fetch active membership plan names + last attended class for these users
   const userIds = members.map(m => m.userId)
-  const activeMemberships = await prisma.membership.findMany({
-    where: { userId: { in: userIds }, schoolId: auth.schoolId, status: 'ACTIVE' },
-    select: { userId: true, planName: true },
-    orderBy: { startDate: 'desc' },
-  })
+  const [activeMemberships, lastAttended] = await Promise.all([
+    prisma.membership.findMany({
+      where: { userId: { in: userIds }, schoolId: auth.schoolId, status: 'ACTIVE' },
+      select: { userId: true, planName: true },
+      orderBy: { startDate: 'desc' },
+    }),
+    prisma.booking.findMany({
+      where: { userId: { in: userIds }, attendedAt: { not: null }, class: { schoolId: auth.schoolId } },
+      select: { userId: true, attendedAt: true },
+      orderBy: { attendedAt: 'desc' },
+      distinct: ['userId'],
+    }),
+  ])
   const planByUser: Record<string, string> = {}
   for (const mem of activeMemberships) {
     if (!planByUser[mem.userId]) planByUser[mem.userId] = mem.planName
+  }
+  const lastAttendedByUser: Record<string, string> = {}
+  for (const b of lastAttended) {
+    if (b.attendedAt) lastAttendedByUser[b.userId] = b.attendedAt.toISOString()
   }
 
   // ── Belt distribution ────────────────────────────────────────────────────────
@@ -165,9 +177,10 @@ export async function GET(req: NextRequest) {
       avatarUrl: m.user?.avatarUrl ?? null,
       belt:      m.belt           ?? '—',
       plan:      planByUser[m.userId] ?? '—',
-      status:    m.status,
-      joinedAt:  m.createdAt.toISOString(),
-      isNew:     m.createdAt >= newThreshold,
+      status:        m.status,
+      joinedAt:      m.createdAt.toISOString(),
+      isNew:         m.createdAt >= newThreshold,
+      lastAttendedAt: lastAttendedByUser[m.userId] ?? null,
     })),
     total,
     page,

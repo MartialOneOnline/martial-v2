@@ -158,6 +158,7 @@ function RowMenu({ items }: { items: { label: string; onClick: () => void; varia
 interface MemberRow {
   id: string; name: string; email: string; avatarUrl: string | null
   belt: string; plan: string; status: string; joinedAt: string; isNew: boolean
+  lastAttendedAt: string | null
 }
 interface ReportData {
   stats: { totalActive: number; newInPeriod: number; totalInactive: number; retentionRate: number }
@@ -354,7 +355,7 @@ export default function UsersReportClient() {
             <table className="w-full">
               <thead>
                 <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
-                  {['Member', 'Belt', 'Plan', 'Joined', 'Status', ''].map(h => (
+                  {['Member', 'Belt', 'Plan', 'Joined', 'Last Attended', 'Status', ''].map(h => (
                     <th key={h} className="px-5 py-3 text-left"
                       style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                       {h}
@@ -364,9 +365,9 @@ export default function UsersReportClient() {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={6} className="px-5 py-8 text-center" style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</td></tr>
+                  <tr><td colSpan={7} className="px-5 py-8 text-center" style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</td></tr>
                 ) : (data?.members ?? []).length === 0 ? (
-                  <tr><td colSpan={6} className="px-5 py-8 text-center" style={{ fontSize: 13, color: '#9CA3AF' }}>No members found</td></tr>
+                  <tr><td colSpan={7} className="px-5 py-8 text-center" style={{ fontSize: 13, color: '#9CA3AF' }}>No members found</td></tr>
                 ) : (
                   (data?.members ?? []).map((m, idx) => {
                     const ss = STATUS_STYLES[m.status] ?? STATUS_STYLES['INACTIVE']!
@@ -396,6 +397,11 @@ export default function UsersReportClient() {
                         </td>
                         <td className="px-5 py-3"><span style={{ fontSize: 12, color: '#6B7280' }}>{m.plan}</span></td>
                         <td className="px-5 py-3"><span style={{ fontSize: 12, color: '#9CA3AF' }}>{fmtDate(m.joinedAt)}</span></td>
+                        <td className="px-5 py-3">
+                          <span style={{ fontSize: 12, color: m.lastAttendedAt ? '#6B7280' : '#D1D5DB' }}>
+                            {m.lastAttendedAt ? fmtDate(m.lastAttendedAt) : '—'}
+                          </span>
+                        </td>
                         <td className="px-5 py-3">
                           <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999, background: ss.bg, color: ss.color, border: '1px solid ' + ss.border }}>
                             {ss.label}
