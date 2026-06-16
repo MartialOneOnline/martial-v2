@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { assignPlan } from '@/lib/services/membership'
 
 async function authorise() {
   const user = await getAuthUser()
@@ -121,27 +122,33 @@ export async function POST(req: NextRequest) {
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const body = await req.json()
-  const { userId, planId, planName, price, currency, paymentMethod, startDate, endDate, status, notes } = body
+  const { userId, planId, paymentMethod, startDate, notes } = body
 
-  if (!userId || !planName || !startDate) {
-    return NextResponse.json({ error: 'userId, planName and startDate are required' }, { status: 400 })
+  if (!userId || !planId) {
+    return NextResponse.json({ error: 'userId and planId are required' }, { status: 400 })
   }
 
-  const membership = await prisma.membership.create({
-    data: {
-      schoolId:      auth.schoolId,
-      userId,
-      planId:        planId || null,
-      planName,
-      price:         parseFloat(price) || 0,
-      currency:      currency ?? 'EUR',
-      paymentMethod: paymentMethod ?? 'CASH',
-      startDate:     new Date(startDate),
-      endDate:       endDate ? new Date(endDate) : null,
-      status:        status ?? 'ACTIVE',
-      notes:         notes || null,
-    },
+  // Resolve User.id → SchoolMember.id (assignPlan requires schoolMemberId)
+  const schoolMember = await prisma.schoolMember.findUnique({
+    where: { schoolId_userId: { schoolId: auth.schoolId, userId } },
+    select: { id: true },
   })
+  if (!schoolMember) {
+    return NextResponse.json({ error: 'Member not found in this school' }, { status: 404 })
+  }
 
-  return NextResponse.json(membership, { status: 201 })
+  try {
+    const membership = await assignPlan({
+      schoolMemberId: schoolMember.id,
+      schoolId:       auth.schoolId,
+      planId,
+      startDate:      startDate ? new Date(startDate) : undefined,
+      paymentMethod:  paymentMethod ?? undefined,
+      notes:          notes || undefined,
+    })
+    return NextResponse.json(membership, { status: 201 })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to assign plan'
+    return NextResponse.json({ error: message }, { status: 400 })
+  }
 }
