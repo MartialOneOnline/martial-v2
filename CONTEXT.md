@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 35 completada ✅ — Attendance UI: BookingsDrawer with per-booking mark attended action
+**Estado:** Sesión 36 completada ✅ — Mark All Attended added to BookingsDrawer
 
 ---
 
@@ -244,6 +244,15 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 ---
 
 ## Historial de sesiones
+
+### Sesión 36 — 2026-06-16 ✅
+**Classes: Mark All Attended button in BookingsDrawer** — commit `2a6379f`
+- "Mark all attended (N)" button added below the date picker in `BookingsDrawer`; visible only when eligible bookings exist (not COMPLETED, not CANCELLED); label shows live eligible count
+- Calls `PATCH /api/dashboard/bookings/[id]/attend` for all eligible bookings in parallel via `Promise.allSettled` — one failure does not block the rest
+- Successful rows update in-place immediately; button disables and shows "Marking…" while in flight
+- Partial failures surfaced as inline error: `N booking(s) could not be marked attended`; error resets on date change or drawer reopen
+- No new API endpoint (reuses existing per-booking attend endpoint), no Prisma schema changes, no QR check-in
+- **63 tests passing**
 
 ### Sesión 35 — 2026-06-16 ✅
 **Classes: BookingsDrawer UI for per-booking attendance marking** — commit `13e4680`
