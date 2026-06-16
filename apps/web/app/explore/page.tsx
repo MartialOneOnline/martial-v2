@@ -38,6 +38,7 @@ type DbSchool = {
   lat: number | null
   lng: number | null
   coverUrl: string | null
+  logoUrl: string | null
   googleRating: number | null
   googleReviews: number | null
   description: string | null
@@ -153,7 +154,7 @@ const LEVEL_STYLES: Record<string, string> = {
   'All levels':  'bg-blue-50 text-blue-700 border-blue-200',
 }
 
-const FALLBACK_COVER = 'https://images.unsplash.com/photo-1555597673-b21d5c935865?w=800&h=420&fit=crop&q=85'
+const FALLBACK_COVER = null
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -187,58 +188,109 @@ function CardSkeleton() {
   )
 }
 
-// ── School Card (full-bleed photo) ───────────────────────────────────────────
+// ── School Card (Airbnb-style: photo + white info panel) ─────────────────────
 
 function SchoolCard({ school, onClick }: { school: DbSchool; onClick: () => void }) {
   const disciplines = school.disciplines.map(d => d.discipline.name)
-  const cover = school.coverUrl ?? FALLBACK_COVER
+  const initials = school.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+
+  const [imgError, setImgError] = useState(false)
+
+  // Deterministic gradient per school (based on name)
+  const gradients = [
+    'from-[#0E3A7A] to-[#0870E2]',
+    'from-[#1a1a2e] to-[#16213e]',
+    'from-[#0f4c75] to-[#1b262c]',
+    'from-[#2d3561] to-[#c05c7e]',
+    'from-[#373b44] to-[#4286f4]',
+    'from-[#0f2027] to-[#203a43]',
+  ]
+  const gradientIdx = school.name.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % gradients.length
+  const gradient = gradients[gradientIdx]
+  const showGradient = !school.coverUrl || imgError
 
   return (
     <button
       onClick={onClick}
-      className="group relative w-full text-left rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 h-56"
+      className="group w-full text-left rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-lg transition-all duration-300 border border-[#E5E7EB]"
     >
       {/* Photo */}
-      <Image src={cover} alt={school.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
-      {/* Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/10" />
+      <div className={`relative w-full h-48 overflow-hidden ${showGradient ? `bg-gradient-to-br ${gradient}` : 'bg-[#E5E7EB]'}`}>
+        {school.coverUrl && !imgError && (
+          <Image src={school.coverUrl} alt={school.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" onError={() => setImgError(true)} />
+        )}
+        {showGradient && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 opacity-20">
+            <Dumbbell className="w-16 h-16 text-white" />
+          </div>
+        )}
 
-      {/* Top badges */}
-      <div className="absolute top-3 left-3 right-3 flex items-start justify-between">
-        <div className="flex flex-wrap gap-1.5">
-          {disciplines.slice(0, 2).map(d => (
-            <span key={d} className="text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full bg-black/30 backdrop-blur-sm text-white border border-white/15">
-              {d}
-            </span>
-          ))}
-        </div>
+        {/* Rating badge top-right */}
         {school.googleRating && (
-          <span className="flex items-center gap-1 bg-black/30 backdrop-blur-sm rounded-full px-2.5 py-1 text-xs font-bold text-white">
+          <span className="absolute top-3 right-3 flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-1 text-xs font-bold text-[#111827] shadow-sm">
             <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
             {school.googleRating.toFixed(1)}
           </span>
         )}
-      </div>
 
-      {/* Free trial */}
-      {school.hasFreeTrialCls && (
-        <div className="absolute top-3 left-1/2 -translate-x-1/2">
-          <span className="text-[10px] font-bold bg-emerald-500 text-white px-2.5 py-1 rounded-full uppercase tracking-wide">
+        {/* Free trial badge top-left */}
+        {school.hasFreeTrialCls && (
+          <span className="absolute top-3 left-3 text-[10px] font-bold bg-emerald-500 text-white px-2.5 py-1 rounded-full uppercase tracking-wide shadow-sm">
             Free Trial
           </span>
-        </div>
-      )}
+        )}
 
-      {/* Bottom info */}
-      <div className="absolute bottom-0 left-0 right-0 px-4 pb-4">
-        <h3 className="text-white font-bold text-base leading-tight line-clamp-1 mb-1">{school.name}</h3>
+        {/* School logo bottom-left */}
+        <div className="absolute bottom-0 left-0 right-0 px-4 pb-0 translate-y-1/2 flex items-end">
+          <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-md bg-white shrink-0">
+            {school.logoUrl ? (
+              <Image src={school.logoUrl} alt="" width={48} height={48} className="object-cover w-full h-full" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-sm font-bold text-white" style={{ background: BLUE }}>
+                {initials}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Info panel */}
+      <div className="px-4 pt-8 pb-4">
+        {/* Disciplines */}
+        <div className="flex flex-wrap gap-1 mb-2">
+          {disciplines.slice(0, 3).map(d => (
+            <span key={d} className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[#F3F4F6] text-[#6B7280]">
+              {d}
+            </span>
+          ))}
+          {disciplines.length > 3 && (
+            <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[#F3F4F6] text-[#6B7280]">
+              +{disciplines.length - 3}
+            </span>
+          )}
+        </div>
+
+        <h3 className="font-bold text-[#111827] text-sm leading-tight line-clamp-1 mb-1">{school.name}</h3>
+
+        <p className="flex items-center gap-1 text-xs text-[#6B7280] mb-2">
+          <MapPin className="w-3 h-3 shrink-0 text-[#9CA3AF]" />
+          {school.city}, {school.country}
+        </p>
+
+        {school.description && (
+          <p className="text-xs text-[#6B7280] leading-relaxed line-clamp-2 mb-3">{school.description}</p>
+        )}
+
         <div className="flex items-center justify-between">
-          <p className="flex items-center gap-1 text-white/75 text-xs">
-            <MapPin className="w-3 h-3 shrink-0" />
-            {school.city}, {school.country}
-          </p>
-          <span className="text-xs font-semibold text-white/80">
-            {school.priceFrom ? `from €${school.priceFrom}/mo` : 'Contact'}
+          <span className="text-sm font-bold text-[#111827]">
+            {school.priceFrom ? (
+              <><span className="font-normal text-[#6B7280] text-xs">from </span>€{school.priceFrom}<span className="font-normal text-[#6B7280] text-xs">/mo</span></>
+            ) : (
+              <span className="text-xs font-medium text-[#6B7280]">Contact for pricing</span>
+            )}
+          </span>
+          <span className="text-xs font-semibold text-[#0870E2] flex items-center gap-0.5">
+            View <ArrowRight className="w-3 h-3" />
           </span>
         </div>
       </div>
@@ -249,15 +301,15 @@ function SchoolCard({ school, onClick }: { school: DbSchool; onClick: () => void
 // ── Class Card (full-bleed photo) ─────────────────────────────────────────────
 
 function ClassCard({ cls, onClick }: { cls: DbClass; onClick: () => void }) {
-  const cover = cls.school.coverUrl ?? FALLBACK_COVER
   const nextSlot = getNextSlot(cls.schedule)
+  const hasCover = !!cls.school.coverUrl
 
   return (
     <button
       onClick={onClick}
-      className="group relative w-full text-left rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 h-56"
+      className={`group relative w-full text-left rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 h-56 ${!hasCover ? 'bg-gradient-to-br from-[#0E3A7A] to-[#0870E2]' : ''}`}
     >
-      <Image src={cover} alt={cls.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+      {hasCover && <Image src={cls.school.coverUrl!} alt={cls.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/10" />
 
       {/* Top */}
@@ -312,7 +364,7 @@ function SchoolQuickView({
   onBookClass: () => void
 }) {
   const [idx, setIdx] = useState(0)
-  const imgs = school.coverUrl ? [school.coverUrl] : [FALLBACK_COVER]
+  const imgs = school.coverUrl ? [school.coverUrl] : []
   const disciplines = school.disciplines.map(d => d.discipline.name.toUpperCase())
   const headInstructor = school.instructors.find(i => i.isHead)
 
@@ -342,8 +394,8 @@ function SchoolQuickView({
         </button>
 
         {/* Cover */}
-        <div className="relative w-full h-52 md:h-64 bg-[#111827] overflow-hidden md:rounded-t-3xl">
-          <Image src={imgs[idx] ?? FALLBACK_COVER} alt={school.name} fill className="object-cover" />
+        <div className="relative w-full h-52 md:h-64 bg-gradient-to-br from-[#0E3A7A] to-[#0870E2] overflow-hidden md:rounded-t-3xl">
+          {imgs[idx] && <Image src={imgs[idx]} alt={school.name} fill className="object-cover" />}
           {imgs.length > 1 && (
             <>
               <button onClick={() => setIdx(i => (i - 1 + imgs.length) % imgs.length)} className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-white shadow flex items-center justify-center">
