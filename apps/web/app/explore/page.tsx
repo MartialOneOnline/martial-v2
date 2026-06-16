@@ -717,7 +717,7 @@ export default function ExplorePage() {
 
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section className="relative bg-[#111827] overflow-hidden">
-        <Image src="/hero-2.jpg" alt="" fill className="object-cover opacity-30" priority />
+        <Image src="/explore-hero.jpg" alt="" fill className="object-cover opacity-55" priority style={{ objectPosition: 'center 30%' }} />
         <div className="absolute inset-0 bg-gradient-to-b from-[#111827]/70 via-[#111827]/60 to-[#111827]/85" />
         <div className="relative z-10 max-w-5xl mx-auto px-4 py-12 md:py-16 text-center">
           <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight">Find Your Academy</h1>
