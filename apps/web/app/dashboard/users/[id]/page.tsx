@@ -115,7 +115,7 @@ export default async function StudentProfilePage({
       amount: Number(t.amount),
       currency: t.currency ?? 'EUR',
       method: t.paymentMethod ?? '—',
-      status: 'PAID',
+      status: t.status,
       date: t.date.toISOString(),
       description: t.description ?? t.category ?? '—',
     })),
