@@ -16,10 +16,26 @@ export async function getAuthUser() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const dbUser = await prisma.user.findUnique({
+  let dbUser = await prisma.user.findUnique({
     where: { supabaseAuthId: user.id },
     select: { id: true, role: true, email: true, name: true },
   })
+
+  // Fallback: link by email if supabaseAuthId not set yet
+  if (!dbUser && user.email) {
+    const byEmail = await prisma.user.findUnique({
+      where: { email: user.email },
+      select: { id: true, role: true, email: true, name: true },
+    })
+    if (byEmail) {
+      await prisma.user.update({
+        where: { id: byEmail.id },
+        data: { supabaseAuthId: user.id },
+      })
+      dbUser = byEmail
+    }
+  }
+
   return dbUser ?? null
 }
 
