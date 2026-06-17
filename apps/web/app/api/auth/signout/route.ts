@@ -4,6 +4,9 @@ import { cookies } from 'next/headers'
 
 export async function GET() {
   const cookieStore = await cookies()
+  const response = NextResponse.redirect(
+    new URL('/', process.env.NEXT_PUBLIC_APP_URL ?? 'https://martial-v2-web.vercel.app'),
+  )
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -11,12 +14,13 @@ export async function GET() {
     {
       cookies: {
         getAll: () => cookieStore.getAll(),
-        setAll: (cs) => cs.forEach(({ name, value, options }) => cookieStore.set(name, value, options)),
+        setAll: (cs) =>
+          cs.forEach(({ name, value, options }) => response.cookies.set(name, value, options)),
       },
     },
   )
 
   await supabase.auth.signOut()
 
-  return NextResponse.redirect(new URL('/', process.env.NEXT_PUBLIC_APP_URL ?? 'https://martial-v2-web.vercel.app'))
+  return response
 }
