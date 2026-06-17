@@ -3,13 +3,13 @@
  *
  * Rules:
  * - /dashboard/preview → always public (demo mode)
- * - /dashboard/**      → requires Supabase session; no session → /login?next=<url>
- * - /admin/**          → requires Supabase session; no session → /login?next=<url>
+ * - /dashboard/**      → requires session (role check in layout server component)
+ * - /admin/**          → requires session (role check in layout server component)
+ * - /my/**             → requires session (any role)
  * - All other routes   → pass through
  *
- * NOTE: Middleware only checks the session cookie. Authorisation (school access,
- * SUPERADMIN role) is enforced again inside page components and API routes.
- * Do NOT rely solely on middleware for data authorisation.
+ * Middleware only checks session cookie. Role/school authorisation is enforced
+ * again inside page components and API routes — never rely solely on middleware.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -18,20 +18,19 @@ import { createServerClient } from '@supabase/ssr'
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // /dashboard/preview is always public — skip all checks
+  // /dashboard/preview is always public
   if (pathname === '/dashboard/preview' || pathname.startsWith('/dashboard/preview/')) {
     return NextResponse.next({ request })
   }
 
-  // Protect /dashboard/** and /admin/**
-  const isDashboard = pathname.startsWith('/dashboard')
-  const isAdmin     = pathname.startsWith('/admin')
+  const isProtected = pathname.startsWith('/dashboard')
+    || pathname.startsWith('/admin')
+    || pathname.startsWith('/my')
 
-  if (!isDashboard && !isAdmin) {
+  if (!isProtected) {
     return NextResponse.next({ request })
   }
 
-  // Build a response to forward cookies (required by Supabase SSR)
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -53,10 +52,9 @@ export async function proxy(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // No session → redirect to login with return URL
   if (!user) {
     const loginUrl = new URL('/login', request.url)
-    loginUrl.searchParams.set('next', pathname)
+    loginUrl.searchParams.set('redirect', pathname)
     return NextResponse.redirect(loginUrl)
   }
 
