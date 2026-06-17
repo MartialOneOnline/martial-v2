@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, ChevronDown } from 'lucide-react'
 import { useLanguage, useT } from '../lib/i18n/LanguageContext'
 import type { Locale } from '../lib/i18n/translations'
+import { createBrowserClient } from '@supabase/ssr'
 
 // ── Flag icons ────────────────────────────────────────────────────────────────
 function FlagIcon({ lang }: { lang: string }) {
@@ -64,8 +65,28 @@ interface HeaderProps {
 export default function Header({ onOpenLoginModal }: HeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [langOpen, setLangOpen]     = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const { locale, setLocale }       = useLanguage()
   const t                           = useT()
+
+  useEffect(() => {
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    )
+    supabase.auth.getSession().then(({ data }) => {
+      setIsLoggedIn(!!data.session)
+    })
+  }, [])
+
+  const handleSignOut = async () => {
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    )
+    await supabase.auth.signOut()
+    window.location.href = '/'
+  }
 
   const NAV_LINKS = [
     { label: t.nav.home,       href: '/' },
@@ -162,12 +183,21 @@ export default function Header({ onOpenLoginModal }: HeaderProps) {
               >
                 <span className="skew-x-[15deg] inline-block">{t.nav.dashboard}</span>
               </button>
-              <button
-                onClick={() => onOpenLoginModal?.()}
-                className="relative bg-slate-800 text-slate-200 font-extrabold text-[11px] uppercase tracking-widest py-2.5 px-6 rounded-r-md hover:bg-slate-900 border-l border-slate-700 -skew-x-[15deg] transition-all cursor-pointer"
-              >
-                <span className="skew-x-[15deg] inline-block">{t.nav.login}</span>
-              </button>
+              {isLoggedIn ? (
+                <button
+                  onClick={handleSignOut}
+                  className="relative bg-slate-800 text-slate-200 font-extrabold text-[11px] uppercase tracking-widest py-2.5 px-6 rounded-r-md hover:bg-slate-900 border-l border-slate-700 -skew-x-[15deg] transition-all cursor-pointer"
+                >
+                  <span className="skew-x-[15deg] inline-block">Sign out</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => onOpenLoginModal?.()}
+                  className="relative bg-slate-800 text-slate-200 font-extrabold text-[11px] uppercase tracking-widest py-2.5 px-6 rounded-r-md hover:bg-slate-900 border-l border-slate-700 -skew-x-[15deg] transition-all cursor-pointer"
+                >
+                  <span className="skew-x-[15deg] inline-block">{t.nav.login}</span>
+                </button>
+              )}
             </div>
 
           </div>
@@ -232,12 +262,21 @@ export default function Header({ onOpenLoginModal }: HeaderProps) {
                 >
                   {t.nav.dashboard}
                 </Link>
-                <button
-                  onClick={() => { setMobileOpen(false); onOpenLoginModal?.() }}
-                  className="w-full text-center py-3 bg-slate-800 hover:bg-slate-900 text-slate-200 font-black text-xs uppercase tracking-wider rounded-lg transition-colors cursor-pointer"
-                >
-                  {t.nav.login}
-                </button>
+                {isLoggedIn ? (
+                  <button
+                    onClick={() => { setMobileOpen(false); handleSignOut() }}
+                    className="w-full text-center py-3 bg-slate-800 hover:bg-slate-900 text-slate-200 font-black text-xs uppercase tracking-wider rounded-lg transition-colors cursor-pointer"
+                  >
+                    Sign out
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => { setMobileOpen(false); onOpenLoginModal?.() }}
+                    className="w-full text-center py-3 bg-slate-800 hover:bg-slate-900 text-slate-200 font-black text-xs uppercase tracking-wider rounded-lg transition-colors cursor-pointer"
+                  >
+                    {t.nav.login}
+                  </button>
+                )}
               </div>
             </div>
           </motion.div>
