@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { createBrowserClient } from '@supabase/ssr'
 import {
   LayoutDashboard, Users, Calendar, CreditCard, Award,
   BarChart2, Settings, Bell, HelpCircle, LogOut,
@@ -108,6 +109,15 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen }: Props) {
   const { currentSchool, schools, switchSchool } = useSchoolContext()
   const [switcherOpen, setSwitcherOpen] = useState(false)
   const t = useT()
+
+  const handleSignOut = async () => {
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    )
+    await supabase.auth.signOut()
+    window.location.href = '/'
+  }
 
   const NAV_MAIN: NavItem[] = [
     { label: t.sidebar.dashboard,   icon: Flame,      href: '/dashboard' },
@@ -251,18 +261,16 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen }: Props) {
           {NAV_BOTTOM.map(item => (
             <NavGroup key={item.label} item={item} />
           ))}
-          <form action="/auth/logout" method="post">
-            <button
-              type="submit"
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors text-left cursor-pointer"
-              style={{ color: '#374151', fontSize: 14, background: 'transparent', border: 'none' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#F9FAFB' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
-            >
-              <LogOut size={16} strokeWidth={1.5} style={{ color: '#9CA3AF' }} />
-              {t.sidebar.signOut}
-            </button>
-          </form>
+          <button
+            onClick={handleSignOut}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors text-left cursor-pointer"
+            style={{ color: '#374151', fontSize: 14, background: 'transparent', border: 'none' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#F9FAFB' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+          >
+            <LogOut size={16} strokeWidth={1.5} style={{ color: '#9CA3AF' }} />
+            {t.sidebar.signOut}
+          </button>
         </div>
       </aside>
     </>
