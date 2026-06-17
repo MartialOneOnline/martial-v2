@@ -8,6 +8,7 @@
 
 import { prisma } from '@/lib/db'
 import { PaymentMethod, MembershipStatus, TransactionType, TransactionCategory, TransactionStatus } from '@/lib/prisma-client/enums'
+import { sendMembershipReceiptEmail } from '@/lib/email/sendEmails'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -156,6 +157,33 @@ export async function assignPlan(input: AssignPlanInput) {
 
     return [m]
   })
+
+  // Send receipt email for paid plans
+  if (plan.price > 0) {
+    const userRecord = await prisma.user.findUnique({
+      where: { id: schoolMember.userId },
+      select: { email: true, name: true },
+    })
+    const schoolRecord = await prisma.school.findUnique({
+      where: { id: schoolId },
+      select: { name: true, city: true },
+    })
+    if (userRecord?.email && schoolRecord) {
+      sendMembershipReceiptEmail({
+        to: userRecord.email,
+        studentName: userRecord.name,
+        schoolName: schoolRecord.name,
+        schoolCity: schoolRecord.city,
+        planName: plan.name,
+        amount: plan.price,
+        currency: plan.currency,
+        paymentMethod: (paymentMethod ?? PaymentMethod.CASH).toString(),
+        startDate: start,
+        endDate,
+        membershipId: membership.id,
+      }).catch(err => console.error('[assignPlan] receipt email failed:', err))
+    }
+  }
 
   return membership
 }

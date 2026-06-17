@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
 import { isValidScheduledAt, type ScheduleSlot } from '@/lib/scheduling'
 import { checkClassAccess, type ClassAccessConfig } from '@/lib/services/classAccess'
+import { sendTrialConfirmedEmail } from '@/lib/email/sendEmails'
 
 export async function POST(req: NextRequest) {
   const cookieStore = await cookies()
@@ -30,12 +31,14 @@ export async function POST(req: NextRequest) {
     where: { id: classId },
     select: {
       id: true,
+      name: true,
       isActive: true,
       isPublished: true,
       schoolId: true,
       capacity: true,
       schedule: true,
       bookingSettings: true,
+      school: { select: { name: true, city: true } },
     },
   })
   if (!cls) return NextResponse.json({ error: 'Class not found' }, { status: 404 })
@@ -170,6 +173,19 @@ export async function POST(req: NextRequest) {
   })
 
   if (booking instanceof NextResponse) return booking
+
+  // Send trial confirmed email when the active membership is a free trial
+  const isTrial = activeMembership.price === 0 || activeMembership.planName.toLowerCase().includes('trial')
+  if (isTrial && cls.school && dbUser.email) {
+    sendTrialConfirmedEmail({
+      to: dbUser.email,
+      studentName: dbUser.name,
+      schoolName: cls.school.name,
+      schoolCity: cls.school.city,
+      className: cls.name,
+      scheduledAt: scheduledDate,
+    }).catch(err => console.error('[bookings] trial email failed:', err))
+  }
 
   return NextResponse.json({ success: true, bookingId: booking.id })
 }

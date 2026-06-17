@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createServerClient } from '@supabase/ssr'
 import { prisma } from '@/lib/db'
+import { sendWelcomeStudentEmail } from '@/lib/email/sendEmails'
 
 // POST /api/auth/activate-member — called after invite link is clicked
 // Sets all PENDING memberships for this user to LEAD
@@ -46,8 +47,25 @@ export async function POST() {
   const membership = await prisma.schoolMember.findFirst({
     where: { userId: dbUser.id },
     orderBy: { createdAt: 'asc' },
-    select: { role: true },
+    select: { role: true, school: { select: { name: true, city: true } } },
   })
   const isSchool = membership && ['OWNER', 'ADMIN', 'INSTRUCTOR'].includes(membership.role)
+
+  // Send welcome email to students only (not staff)
+  if (!isSchool && membership?.school) {
+    const fullUser = await prisma.user.findUnique({
+      where: { id: dbUser.id },
+      select: { name: true, email: true },
+    })
+    if (fullUser?.email) {
+      sendWelcomeStudentEmail({
+        to: fullUser.email,
+        studentName: fullUser.name,
+        schoolName: membership.school.name,
+        schoolCity: membership.school.city,
+      }).catch(err => console.error('[activate-member] welcome email failed:', err))
+    }
+  }
+
   return NextResponse.json({ ok: true, redirect: isSchool ? '/dashboard' : '/my' })
 }

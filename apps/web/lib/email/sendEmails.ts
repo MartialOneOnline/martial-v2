@@ -1,0 +1,130 @@
+import { getResend, FROM, APP_URL } from './resend'
+import { detectLang } from './templates/inviteStudent'
+import { buildWelcomeStudentEmail, getWelcomeStudentSubject } from './templates/welcomeStudent'
+import { buildTrialConfirmedEmail, getTrialConfirmedSubject } from './templates/trialConfirmed'
+import { buildMembershipReceiptEmail, getMembershipReceiptSubject } from './templates/membershipReceipt'
+
+type SendResult = { success: true; emailId?: string } | { success: false; error: string }
+
+async function send(to: string, subject: string, html: string): Promise<SendResult> {
+  try {
+    const { data, error } = await getResend().emails.send({ from: FROM, to, subject, html })
+    if (error) {
+      console.error('[sendEmails] Resend error:', error)
+      return { success: false, error: error.message }
+    }
+    return { success: true, emailId: data?.id }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Unknown error'
+    console.error('[sendEmails] Unexpected error:', msg)
+    return { success: false, error: msg }
+  }
+}
+
+// ── 1. Welcome student ─────────────────────────────────────────────────────────
+export async function sendWelcomeStudentEmail({
+  to,
+  studentName,
+  schoolName,
+  schoolCity,
+  lang,
+}: {
+  to: string
+  studentName?: string | null
+  schoolName: string
+  schoolCity?: string | null
+  lang?: string | null
+}): Promise<SendResult> {
+  const l = detectLang(lang)
+  const subject = getWelcomeStudentSubject(schoolName, l)
+  const html = buildWelcomeStudentEmail({
+    studentName,
+    schoolName,
+    schoolCity,
+    dashboardUrl: `${APP_URL}/my`,
+    lang,
+  })
+  return send(to, subject, html)
+}
+
+// ── 2. Trial confirmed ─────────────────────────────────────────────────────────
+export async function sendTrialConfirmedEmail({
+  to,
+  studentName,
+  schoolName,
+  schoolCity,
+  className,
+  scheduledAt,
+  location,
+  lang,
+}: {
+  to: string
+  studentName?: string | null
+  schoolName: string
+  schoolCity?: string | null
+  className: string
+  scheduledAt: Date
+  location?: string | null
+  lang?: string | null
+}): Promise<SendResult> {
+  const l = detectLang(lang)
+  const subject = getTrialConfirmedSubject(schoolName, l)
+  const html = buildTrialConfirmedEmail({
+    studentName,
+    schoolName,
+    schoolCity,
+    className,
+    scheduledAt,
+    location,
+    bookingUrl: `${APP_URL}/my/classes`,
+    lang,
+  })
+  return send(to, subject, html)
+}
+
+// ── 3. Membership receipt ──────────────────────────────────────────────────────
+export async function sendMembershipReceiptEmail({
+  to,
+  studentName,
+  schoolName,
+  schoolCity,
+  planName,
+  amount,
+  currency,
+  paymentMethod,
+  startDate,
+  endDate,
+  membershipId,
+  lang,
+}: {
+  to: string
+  studentName?: string | null
+  schoolName: string
+  schoolCity?: string | null
+  planName: string
+  amount: number
+  currency: string
+  paymentMethod: string
+  startDate: Date
+  endDate?: Date | null
+  membershipId: string
+  lang?: string | null
+}): Promise<SendResult> {
+  const l = detectLang(lang)
+  const subject = getMembershipReceiptSubject(planName, l)
+  const html = buildMembershipReceiptEmail({
+    studentName,
+    schoolName,
+    schoolCity,
+    planName,
+    amount,
+    currency,
+    paymentMethod,
+    startDate,
+    endDate,
+    membershipId,
+    dashboardUrl: `${APP_URL}/my/membership`,
+    lang,
+  })
+  return send(to, subject, html)
+}
