@@ -2,11 +2,9 @@ import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-export async function GET() {
+export async function GET(request: Request) {
   const cookieStore = await cookies()
-  const response = NextResponse.redirect(
-    new URL('/', process.env.NEXT_PUBLIC_APP_URL ?? 'https://martial-v2-web.vercel.app'),
-  )
+  const response = NextResponse.redirect(new URL('/', request.url))
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
