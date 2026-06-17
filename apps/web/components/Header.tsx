@@ -89,12 +89,11 @@ export default function Header({ onOpenLoginModal }: HeaderProps) {
   }
 
   const NAV_LINKS = [
-    { label: t.nav.home,       href: '/' },
-    { label: t.nav.explore,    href: '/explore' },
-    { label: t.nav.academy,    href: '/academy' },
-    { label: t.nav.dashboard,  href: '/dashboard' },
-    { label: t.nav.technology, href: '#technology' },
-    { label: t.nav.price,      href: '#payment-methods-section' },
+    { label: 'Explore',     href: '/explore' },
+    { label: 'For Schools', href: '#for-schools' },
+    { label: 'Camps',       href: '#camps' },
+    { label: 'Marketplace', href: '#marketplace' },
+    { label: 'Pricing',     href: '#pricing' },
   ]
 
   const selectLang = (code: Locale) => {
@@ -175,14 +174,14 @@ export default function Header({ onOpenLoginModal }: HeaderProps) {
               </AnimatePresence>
             </div>
 
-            {/* Parallelogram buttons */}
+            {/* CTA buttons */}
             <div className="flex items-center select-none">
-              <button
-                onClick={() => window.location.href = '/dashboard'}
-                className="relative bg-[#0870E2] text-white font-black text-[11px] uppercase tracking-wider py-2.5 px-6 rounded-l-md hover:bg-[#007cd7] shadow-sm -skew-x-[15deg] transition-all cursor-pointer"
+              <a
+                href="/claim"
+                className="relative bg-[#0870E2] text-white font-black text-[11px] uppercase tracking-wider py-2.5 px-6 rounded-l-md hover:bg-[#007cd7] shadow-sm -skew-x-[15deg] transition-all"
               >
-                <span className="skew-x-[15deg] inline-block">{t.nav.dashboard}</span>
-              </button>
+                <span className="skew-x-[15deg] inline-block">Claim Your School</span>
+              </a>
               {isLoggedIn ? (
                 <button
                   onClick={handleSignOut}
@@ -257,10 +256,10 @@ export default function Header({ onOpenLoginModal }: HeaderProps) {
 
               <div className="pt-4 border-t border-gray-100 flex flex-col gap-3">
                 <Link
-                  href="/dashboard"
+                  href="/claim"
                   className="w-full text-center py-3 bg-[#0870E2] hover:bg-[#007cd7] text-white font-black text-xs uppercase tracking-wider rounded-lg transition-colors"
                 >
-                  {t.nav.dashboard}
+                  Claim Your School
                 </Link>
                 {isLoggedIn ? (
                   <button

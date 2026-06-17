@@ -25,9 +25,9 @@ export default function HeroSection({ onOpenLoginModal }: HeroSectionProps) {
   const slide = HERO_SLIDES[activeIndex]!
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-sky-50/70 via-white to-white py-20 lg:py-28">
-      <div className="absolute top-0 right-0 -z-10 w-[600px] h-[600px] bg-sky-200/20 rounded-full blur-3xl" />
-      <div className="absolute bottom-10 left-10 -z-10 w-[400px] h-[400px] bg-indigo-100/30 rounded-full blur-3xl" />
+    <section className="relative overflow-hidden bg-gradient-to-br from-[#0E3A7A] via-[#0870E2]/90 to-[#0a2d5e] pb-16 pt-20 lg:pt-28 lg:pb-20">
+      <div className="absolute top-0 right-0 -z-0 w-[600px] h-[600px] bg-white/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-0 -z-0 w-[400px] h-[400px] bg-[#7DE7EC]/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="grid lg:grid-cols-12 gap-12 lg:gap-8 items-center">
@@ -40,37 +40,43 @@ export default function HeroSection({ onOpenLoginModal }: HeroSectionProps) {
                 <span className="w-4 h-1 bg-[#0870E2]/50 rounded-full" />
                 <span className="w-2.5 h-1 bg-[#0870E2]/30 rounded-full" />
               </div>
-              <span className="text-xs font-extrabold tracking-wider text-sky-600 uppercase mt-1">
-                {t.hero.badge}
+              <span className="text-xs font-extrabold tracking-wider text-[#7DE7EC] uppercase mt-1">
+                The Global Martial Arts Platform
               </span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#101828] leading-tight">
-              {t.hero.title} <br />
-              <span className="text-[#0870E2]">{t.hero.titleSub}</span>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight">
+              Discover, book and grow <br />
+              <span className="text-[#7DE7EC]">martial arts.</span>
             </h1>
 
-            <p className="text-lg text-[#667085] leading-relaxed max-w-xl">
-              {t.hero.subtitle}
+            <p className="text-lg text-white/70 leading-relaxed max-w-xl">
+              Find schools, book classes, manage your academy and connect with the global martial arts community.
             </p>
 
-            <div className="flex flex-wrap gap-4 items-center">
-              <button
-                onClick={() => onOpenLoginModal?.()}
-                className="px-8 py-4 bg-[#0870E2] text-white font-extrabold text-[15px] rounded-xl hover:bg-[#007cd7] shadow-lg shadow-sky-500/20 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+            <div className="flex flex-wrap gap-3 items-center">
+              <a
+                href="/explore"
+                className="px-8 py-4 bg-[#0870E2] text-white font-extrabold text-[15px] rounded-xl hover:bg-[#007cd7] shadow-lg shadow-sky-500/20 active:scale-95 transition-all flex items-center gap-2"
               >
-                {t.hero.cta}
+                Explore Schools
                 <motion.span
                   animate={{ x: [0, 5, 0] }}
                   transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
                   className="font-black"
                 >→</motion.span>
-              </button>
+              </a>
+              <a
+                href="/claim"
+                className="px-8 py-4 bg-white text-[#0E3A7A] font-extrabold text-[15px] rounded-xl border-2 border-[#0E3A7A]/20 hover:border-[#0870E2] hover:text-[#0870E2] active:scale-95 transition-all"
+              >
+                Claim Your School
+              </a>
             </div>
 
             {/* App badges */}
-            <div className="pt-6 border-t border-gray-100">
-              <p className="text-xs font-bold tracking-widest text-slate-400 uppercase mb-4">{t.hero.availableOn}</p>
+            <div className="pt-6 border-t border-white/10">
+              <p className="text-xs font-bold tracking-widest text-white/40 uppercase mb-4">{t.hero.availableOn}</p>
               <div className="flex flex-wrap items-center gap-4">
                 <a href="#" className="flex items-center gap-3 bg-slate-900 text-white px-5 py-2.5 rounded-lg border border-slate-800 hover:bg-slate-950 transition-colors shadow-sm">
                   <svg className="w-6 h-6 text-emerald-400" fill="currentColor" viewBox="0 0 24 24">
