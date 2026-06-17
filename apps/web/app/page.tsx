@@ -30,6 +30,8 @@ function HomeContent() {
   const openModal    = () => setShowModal(true)
   const openRegister = () => setShowRegisterModal(true)
 
+  const redirectAfterLogin = searchParams.get('redirect') ?? undefined
+
   // Auto-open modals when redirected from /login or /register
   useEffect(() => {
     if (searchParams.get('login') === 'true')    setShowModal(true)
@@ -39,7 +41,7 @@ function HomeContent() {
   return (
     <div className="min-h-screen bg-white text-[#061229] font-sans">
 
-      {showModal && <LoginModal onClose={() => setShowModal(false)} onOpenRegister={() => { setShowModal(false); openRegister() }} />}
+      {showModal && <LoginModal onClose={() => setShowModal(false)} onOpenRegister={() => { setShowModal(false); openRegister() }} redirectTo={redirectAfterLogin} />}
       {showRegisterModal && <RegisterModal onClose={() => setShowRegisterModal(false)} onOpenLogin={() => { setShowRegisterModal(false); openModal() }} />}
 
       {/* ── NAVBAR ──────────────────────────────────────────────── */}

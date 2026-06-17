@@ -61,10 +61,11 @@ function SSOButton({ icon, label, onClick }: { icon: React.ReactNode; label: str
 interface LoginModalProps {
   onClose: () => void
   onOpenRegister?: () => void
+  redirectTo?: string
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
-export default function LoginModal({ onClose, onOpenRegister }: LoginModalProps) {
+export default function LoginModal({ onClose, onOpenRegister, redirectTo }: LoginModalProps) {
   const router   = useRouter()
   const supabase = createClient()
 
@@ -80,6 +81,12 @@ export default function LoginModal({ onClose, onOpenRegister }: LoginModalProps)
 
   const resolveRedirect = async () => {
     try {
+      // If an explicit redirect was requested (e.g. from /admin), honour it
+      if (redirectTo) {
+        router.push(redirectTo)
+        return
+      }
+
       const res = await fetch('/api/auth/me')
       const json = await res.json()
 
