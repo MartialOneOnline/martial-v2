@@ -118,16 +118,10 @@ export default function LoginModal({ onClose, onOpenRegister, redirectTo }: Logi
         return
       }
 
-      // 3. Has student memberships → /my (or /explore for now)
-      if (schools.length > 0) {
-        router.push('/explore')
-        return
-      }
-
-      // 4. No context → /explore
-      router.push('/explore')
+      // 3. Student or no context → /my
+      router.push('/my')
     } catch {
-      router.push('/explore')
+      router.push('/my')
     }
   }
 
