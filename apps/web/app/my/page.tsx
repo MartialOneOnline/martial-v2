@@ -2,8 +2,35 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ChevronRight, Play, Calendar, Clock, Award, MapPin } from 'lucide-react'
+import { ChevronRight, Play, Calendar, Clock, MapPin, Users, Plus, CheckCircle2 } from 'lucide-react'
 import { fmtPrice } from '../../lib/format'
+
+type Occurrence = {
+  classId: string
+  className: string
+  scheduledAt: string
+  duration: number | null
+  level: string | null
+  capacity: number | null
+  coverUrl: string | null
+  school: { name: string; slug: string; logoUrl: string | null; city: string | null }
+  instructor: { name: string; photoUrl: string | null } | null
+  booked: number
+  alreadyBooked: boolean
+}
+
+const DISCIPLINE_COLORS: Record<string, string> = {
+  BJJ: 'linear-gradient(135deg, #1e3a5f 0%, #0870E2 100%)',
+  MMA: 'linear-gradient(135deg, #1a1a2e 0%, #e94560 100%)',
+  Muay: 'linear-gradient(135deg, #7f1d1d 0%, #dc2626 100%)',
+  Boxing: 'linear-gradient(135deg, #1c1917 0%, #d97706 100%)',
+  Judo: 'linear-gradient(135deg, #1e1b4b 0%, #4f46e5 100%)',
+  Kickboxing: 'linear-gradient(135deg, #14532d 0%, #16a34a 100%)',
+}
+function classGradient(name: string) {
+  const key = Object.keys(DISCIPLINE_COLORS).find(k => name.toLowerCase().includes(k.toLowerCase()))
+  return key ? DISCIPLINE_COLORS[key] : 'linear-gradient(135deg, #1e3a5f 0%, #0870E2 100%)'
+}
 
 type UserData = {
   user: {
@@ -74,16 +101,53 @@ function daysUntil(iso: string) {
   return Math.ceil((new Date(iso).getTime() - Date.now()) / 86400000)
 }
 
+function fmtDateShort(iso: string) {
+  const d = new Date(iso)
+  const today = new Date(); today.setHours(0,0,0,0)
+  const tomorrow = new Date(today); tomorrow.setDate(today.getDate()+1)
+  const day = new Date(iso); day.setHours(0,0,0,0)
+  if (day.getTime() === today.getTime()) return 'Today'
+  if (day.getTime() === tomorrow.getTime()) return 'Tomorrow'
+  return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+}
+
 export default function MyHomePage() {
   const [data, setData] = useState<UserData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [occurrences, setOccurrences] = useState<Occurrence[]>([])
+  const [bookingId, setBookingId] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/my')
       .then(r => r.json())
       .then(d => { setData(d); setLoading(false) })
       .catch(() => setLoading(false))
+    fetch('/api/my/school-classes')
+      .then(r => r.json())
+      .then(d => setOccurrences(d.occurrences ?? []))
+      .catch(() => {})
   }, [])
+
+  async function bookClass(occ: Occurrence) {
+    if (bookingId) return
+    setBookingId(`${occ.classId}:${occ.scheduledAt}`)
+    try {
+      const res = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ classId: occ.classId, scheduledAt: occ.scheduledAt }),
+      })
+      if (res.ok) {
+        setOccurrences(prev => prev.map(o =>
+          o.classId === occ.classId && o.scheduledAt === occ.scheduledAt
+            ? { ...o, alreadyBooked: true, booked: o.booked + 1 }
+            : o
+        ))
+      }
+    } finally {
+      setBookingId(null)
+    }
+  }
 
   if (loading) {
     return (
@@ -166,9 +230,74 @@ export default function MyHomePage() {
               <p className="text-sm font-semibold text-[#101828]">No upcoming classes</p>
               <p className="text-xs text-gray-400 mt-0.5">Find and book your next session</p>
             </div>
-            <Link href="/explore" className="text-xs font-semibold text-[#0870E2] shrink-0">
-              Explore →
+            <Link href="/my/classes" className="text-xs font-semibold text-[#0870E2] shrink-0">
+              Book a class →
             </Link>
+          </div>
+        )}
+
+        {/* ── Upcoming classes ── */}
+        {occurrences.length > 0 && (
+          <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50">
+              <p className="text-sm font-bold text-[#101828]">Upcoming classes</p>
+              <Link href="/my/classes" className="text-xs font-semibold text-[#0870E2]">View all →</Link>
+            </div>
+            <div className="p-3 space-y-2.5">
+              {occurrences.slice(0, 4).map(occ => {
+                const isFull = occ.capacity !== null && occ.booked >= occ.capacity
+                const isBooking = bookingId === `${occ.classId}:${occ.scheduledAt}`
+                const gradient = classGradient(occ.className)
+                return (
+                  <div key={`${occ.classId}:${occ.scheduledAt}`} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 transition-colors">
+                    {/* Class image / gradient */}
+                    <div className="w-12 h-12 rounded-xl shrink-0 overflow-hidden">
+                      {occ.coverUrl
+                        ? <img src={occ.coverUrl} alt="" className="w-full h-full object-cover" />
+                        : <div className="w-full h-full" style={{ background: gradient }} />
+                      }
+                    </div>
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-[#101828] truncate">{occ.className}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-xs text-gray-400">{fmtDateShort(occ.scheduledAt)}</span>
+                        <span className="text-gray-200">·</span>
+                        <span className="text-xs text-gray-400">
+                          {new Date(occ.scheduledAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        {occ.capacity !== null && (
+                          <>
+                            <span className="text-gray-200">·</span>
+                            <span className="text-xs text-gray-400">{occ.booked}/{occ.capacity}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    {/* Action */}
+                    {occ.alreadyBooked ? (
+                      <div className="flex items-center gap-1 text-emerald-500 shrink-0">
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span className="text-xs font-semibold">Booked</span>
+                      </div>
+                    ) : isFull ? (
+                      <span className="text-xs text-gray-400 shrink-0">Full</span>
+                    ) : (
+                      <button
+                        onClick={() => bookClass(occ)}
+                        disabled={!!bookingId}
+                        className="shrink-0 flex items-center gap-1 bg-[#0870E2] text-white text-xs font-semibold px-3 py-1.5 rounded-xl hover:bg-[#0558b0] transition-colors disabled:opacity-60"
+                      >
+                        {isBooking
+                          ? <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          : <><Plus className="w-3 h-3" />Book</>
+                        }
+                      </button>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
           </div>
         )}
 
