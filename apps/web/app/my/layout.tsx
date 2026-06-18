@@ -1,35 +1,38 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
-  LayoutDashboard, CalendarDays, Search, User,
+  LayoutDashboard, CalendarDays, User,
   LogOut, X, CreditCard, DollarSign, Settings,
   HelpCircle, Shield, QrCode, Medal, Menu,
 } from 'lucide-react'
 
-// ── Navigation structure ─────────────────────────────────────────────────────
-// Rule: one entry per destination. No duplicates.
+// ── Types ────────────────────────────────────────────────────────────────────
 
 type NavItem = { label: string; href: string; icon: React.ElementType; exact?: boolean }
-type NavSection = { label?: string; items: NavItem[] }
+type NavSection = { label?: string; schoolLabel?: boolean; items: NavItem[] }
+type School = { name: string; logoUrl: string | null } | null
+
+// ── Navigation ───────────────────────────────────────────────────────────────
+// Explore is intentionally absent — students stay within their school's space.
+// They can discover other schools from the public homepage.
 
 const SIDEBAR_NAV: NavSection[] = [
   {
     items: [
-      { label: 'Dashboard', href: '/my',           icon: LayoutDashboard, exact: true },
-      { label: 'Classes',   href: '/my/classes',   icon: CalendarDays },
-      { label: 'Ranking',   href: '/my/progress',  icon: Medal },
-      { label: 'Explore',   href: '/explore',      icon: Search,          exact: true },
+      { label: 'Dashboard', href: '/my',          icon: LayoutDashboard, exact: true },
+      { label: 'Classes',   href: '/my/classes',  icon: CalendarDays },
+      { label: 'Ranking',   href: '/my/progress', icon: Medal },
     ],
   },
   {
-    label: 'Academy',
+    schoolLabel: true, // replaced at render time with the student's school name
     items: [
-      { label: 'Membership',    href: '/my/membership', icon: CreditCard },
-      { label: 'Transactions',  href: '/my/payments',   icon: DollarSign },
+      { label: 'Membership',   href: '/my/membership', icon: CreditCard },
+      { label: 'Transactions', href: '/my/payments',   icon: DollarSign },
     ],
   },
   {
@@ -44,11 +47,10 @@ const SIDEBAR_NAV: NavSection[] = [
   },
 ]
 
-// Bottom nav: 4 items max, most-used actions on mobile
 const BOTTOM_NAV: NavItem[] = [
   { label: 'Home',     href: '/my',          icon: LayoutDashboard, exact: true },
   { label: 'Classes',  href: '/my/classes',  icon: CalendarDays },
-  { label: 'Explore',  href: '/explore',     icon: Search,          exact: true },
+  { label: 'Ranking',  href: '/my/progress', icon: Medal },
   { label: 'Profile',  href: '/my/profile',  icon: User },
 ]
 
@@ -59,13 +61,13 @@ function isActive(pathname: string, href: string, exact?: boolean) {
   return pathname === href || pathname.startsWith(href + '/')
 }
 
-// ── Components ───────────────────────────────────────────────────────────────
+// ── Bottom nav ───────────────────────────────────────────────────────────────
 
 function BottomNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 flex md:hidden safe-area-pb">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 flex md:hidden">
       {BOTTOM_NAV.map(item => {
         const active = isActive(pathname, item.href, item.exact)
         const Icon = item.icon
@@ -77,13 +79,13 @@ function BottomNav() {
               active ? 'text-[#0870E2]' : 'text-gray-400'
             }`}
           >
+            {active && (
+              <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-[#0870E2] rounded-full" />
+            )}
             <Icon className={`w-5 h-5 ${active ? 'stroke-[2.5]' : 'stroke-[1.5]'}`} />
             <span className={`text-[10px] ${active ? 'font-semibold' : 'font-medium'}`}>
               {item.label}
             </span>
-            {active && (
-              <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-[#0870E2] rounded-full" />
-            )}
           </Link>
         )
       })}
@@ -91,34 +93,51 @@ function BottomNav() {
   )
 }
 
-function SidebarContent({ onClose }: { onClose?: () => void }) {
+// ── Sidebar ───────────────────────────────────────────────────────────────────
+
+function SidebarContent({ school, onClose }: { school: School; onClose?: () => void }) {
   const pathname = usePathname()
 
   return (
     <div className="w-60 bg-white border-r border-gray-100 flex flex-col h-full">
-      {/* Logo */}
-      <div className="px-5 py-5 flex items-center justify-between border-b border-gray-50">
-        <Link href="/my" onClick={onClose} className="flex items-center gap-2.5">
-          <Image src="/logo.svg" alt="Martial" width={28} height={28} />
-          <div>
-            <p className="text-sm font-bold text-[#101828] leading-tight">Martial</p>
-            <p className="text-[10px] text-gray-400 leading-tight">My Account</p>
+
+      {/* School header — shows the student's school, not generic branding */}
+      <div className="px-5 py-4 flex items-center justify-between border-b border-gray-50">
+        <Link href="/my" onClick={onClose} className="flex items-center gap-3 min-w-0">
+          {school?.logoUrl ? (
+            <img
+              src={school.logoUrl}
+              alt={school.name}
+              className="w-8 h-8 rounded-xl object-cover shrink-0 border border-gray-100"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded-xl bg-[#0870E2]/10 flex items-center justify-center shrink-0">
+              <span className="text-[#0870E2] font-bold text-sm">
+                {school?.name?.[0] ?? 'M'}
+              </span>
+            </div>
+          )}
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-[#101828] leading-tight truncate">
+              {school?.name ?? 'My Academy'}
+            </p>
+            <p className="text-[10px] text-gray-400 leading-tight">Student portal</p>
           </div>
         </Link>
         {onClose && (
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 md:hidden p-1">
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 md:hidden p-1 shrink-0">
             <X className="w-4 h-4" />
           </button>
         )}
       </div>
 
-      {/* Nav */}
+      {/* Nav sections */}
       <div className="flex-1 overflow-y-auto py-3">
         {SIDEBAR_NAV.map((section, si) => (
           <div key={si} className="mb-1">
-            {section.label && (
-              <p className="px-5 pt-3 pb-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">
-                {section.label}
+            {(section.label || section.schoolLabel) && (
+              <p className="px-5 pt-3 pb-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-widest truncate">
+                {section.schoolLabel ? (school?.name ?? 'Academy') : section.label}
               </p>
             )}
             <div className="px-2.5 space-y-0.5">
@@ -167,16 +186,31 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
 
 export default function MyLayout({ children }: { children: React.ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [school, setSchool] = useState<School>(null)
+
+  // Fetch the student's primary school for sidebar branding
+  useEffect(() => {
+    fetch('/api/my')
+      .then(r => r.json())
+      .then(d => {
+        const membership = d.user?.memberships?.find((m: { status: string }) => m.status === 'ACTIVE')
+          ?? d.user?.memberships?.[0]
+        if (membership?.school) {
+          setSchool({ name: membership.school.name, logoUrl: membership.school.logoUrl })
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   return (
     <div className="min-h-screen flex bg-[#F8F9FB]">
 
       {/* Desktop sidebar */}
       <aside className="hidden md:flex flex-col w-60 shrink-0 fixed top-0 left-0 h-screen z-40">
-        <SidebarContent />
+        <SidebarContent school={school} />
       </aside>
 
-      {/* Mobile topbar — burger only, sidebar is drawer */}
+      {/* Mobile topbar */}
       <div className="fixed top-0 left-0 right-0 h-12 bg-white border-b border-gray-100 flex items-center px-4 z-40 md:hidden">
         <button
           onClick={() => setDrawerOpen(true)}
@@ -185,13 +219,16 @@ export default function MyLayout({ children }: { children: React.ReactNode }) {
         >
           <Menu className="w-5 h-5" />
         </button>
-        <div className="flex-1 flex justify-center">
-          <Link href="/my" className="flex items-center gap-2">
-            <Image src="/logo.svg" alt="Martial" width={22} height={22} />
-            <span className="text-sm font-bold text-[#101828]">Martial</span>
-          </Link>
+        <div className="flex-1 flex items-center justify-center gap-2">
+          {school?.logoUrl ? (
+            <img src={school.logoUrl} alt={school.name} className="w-6 h-6 rounded-lg object-cover" />
+          ) : (
+            <Image src="/logo.svg" alt="Martial" width={20} height={20} />
+          )}
+          <span className="text-sm font-bold text-[#101828] truncate max-w-[160px]">
+            {school?.name ?? 'Martial'}
+          </span>
         </div>
-        {/* Spacer to center the logo */}
         <div className="w-9" />
       </div>
 
@@ -199,7 +236,7 @@ export default function MyLayout({ children }: { children: React.ReactNode }) {
       {drawerOpen && (
         <div className="fixed inset-0 z-50 flex md:hidden">
           <div className="w-60 h-full shadow-2xl animate-in slide-in-from-left duration-200">
-            <SidebarContent onClose={() => setDrawerOpen(false)} />
+            <SidebarContent school={school} onClose={() => setDrawerOpen(false)} />
           </div>
           <div
             className="flex-1 bg-black/40 backdrop-blur-[2px]"
@@ -208,12 +245,11 @@ export default function MyLayout({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      {/* Main content — top padding on mobile for the topbar */}
+      {/* Main content */}
       <main className="flex-1 md:ml-60 min-h-screen pt-12 md:pt-0 pb-20 md:pb-0">
         {children}
       </main>
 
-      {/* Mobile bottom nav */}
       <BottomNav />
     </div>
   )
