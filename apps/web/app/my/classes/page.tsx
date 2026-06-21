@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import Link from 'next/link'
-import { Calendar, Clock, MapPin, ChevronLeft, ChevronRight, Users, CheckCircle2, Plus } from 'lucide-react'
+import { Calendar, Clock, MapPin, ChevronLeft, ChevronRight, Users, CheckCircle2, Plus, X } from 'lucide-react'
 
 /* ── Types ── */
 type Booking = {
@@ -119,9 +119,10 @@ function DateCarousel({ selected, onChange }: { selected: Date | null; onChange:
 }
 
 /* ── Booking card ── */
-function BookingCard({ booking }: { booking: Booking }) {
+function BookingCard({ booking, onCancel }: { booking: Booking; onCancel?: () => void }) {
   const cfg = STATUS_CONFIG[booking.status] ?? { label: booking.status, dot: '#9CA3AF' }
   const gradient = classGradient(booking.class.name)
+  const isCancellable = ['PENDING', 'CONFIRMED'].includes(booking.status) && new Date(booking.scheduledAt) > new Date()
 
   return (
     <div className="relative rounded-3xl overflow-hidden shadow-sm h-44 flex flex-col justify-end">
@@ -131,7 +132,16 @@ function BookingCard({ booking }: { booking: Booking }) {
         <div className="absolute inset-0" style={{ background: gradient }} />
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-      <div className="absolute top-3 right-3">
+      <div className="absolute top-3 right-3 flex items-center gap-2">
+        {isCancellable && onCancel && (
+          <button
+            onClick={onCancel}
+            className="flex items-center gap-1 bg-black/40 backdrop-blur-sm rounded-full px-2.5 py-1 hover:bg-red-500/80 transition-colors"
+          >
+            <X className="w-3 h-3 text-white" />
+            <span className="text-[10px] font-semibold text-white">Cancel</span>
+          </button>
+        )}
         <div className="flex items-center gap-1.5 bg-black/30 backdrop-blur-sm rounded-full px-2.5 py-1">
           <div className="w-1.5 h-1.5 rounded-full" style={{ background: cfg.dot }} />
           <span className="text-[10px] font-semibold text-white">{cfg.label}</span>
@@ -263,15 +273,37 @@ function groupByDate<T extends { scheduledAt: string }>(items: T[]) {
 
 /* ── Confirm modal ── */
 function ConfirmModal({
-  occ, onConfirm, onCancel, booking,
+  occ, onConfirm, onCancel, booking, success,
 }: {
   occ: Occurrence
   onConfirm: () => void
   onCancel: () => void
   booking: boolean
+  success: boolean
 }) {
   const date = new Date(occ.scheduledAt)
-  const dateStr = date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
+  const dateStr = date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })
+
+  if (success) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl text-center">
+          <div className="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
+            <CheckCircle2 className="w-7 h-7 text-emerald-500" />
+          </div>
+          <h2 className="text-base font-bold text-[#101828] mb-1">Booking confirmed!</h2>
+          <p className="text-sm text-gray-500 mb-1">{occ.className}</p>
+          <p className="text-xs text-gray-400 mb-5">{dateStr} · {fmtTime(occ.scheduledAt)}</p>
+          <button
+            onClick={onCancel}
+            className="w-full py-3 rounded-2xl bg-[#0870E2] text-white text-sm font-semibold hover:bg-[#0558b0] transition-colors"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
@@ -306,6 +338,48 @@ function ConfirmModal({
   )
 }
 
+/* ── Cancel confirm modal ── */
+function CancelModal({
+  booking, onConfirm, onClose, cancelling,
+}: {
+  booking: Booking
+  onConfirm: () => void
+  onClose: () => void
+  cancelling: boolean
+}) {
+  const dateStr = new Date(booking.scheduledAt).toLocaleDateString('en-GB', {
+    weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC',
+  })
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl">
+        <h2 className="text-base font-bold text-[#101828] mb-1">Cancel booking?</h2>
+        <p className="text-sm text-gray-500 mb-5">
+          {booking.class.name} · {dateStr} at {fmtTime(booking.scheduledAt)}
+        </p>
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            disabled={cancelling}
+            className="flex-1 py-3 rounded-2xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50"
+          >
+            Keep it
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={cancelling}
+            className="flex-1 py-3 rounded-2xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {cancelling ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : 'Cancel booking'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /* ── Main page ── */
 export default function MyClassesPage() {
   const [mainTab, setMainTab] = useState<'schedule' | 'book'>('book')
@@ -325,7 +399,12 @@ export default function MyClassesPage() {
   const [occDate, setOccDate] = useState<Date | null>(null)
   const [confirmOcc, setConfirmOcc] = useState<Occurrence | null>(null)
   const [booking, setBooking] = useState(false)
+  const [bookSuccess, setBookSuccess] = useState(false)
   const [bookError, setBookError] = useState<string | null>(null)
+
+  // --- Cancel state ---
+  const [cancelTarget, setCancelTarget] = useState<Booking | null>(null)
+  const [cancelling, setCancelling] = useState(false)
 
   /* Load bookings */
   const loadBookings = useCallback(() => {
@@ -382,13 +461,27 @@ export default function MyClassesPage() {
           ? { ...o, alreadyBooked: true, booked: o.booked + 1 }
           : o
       ))
-      setConfirmOcc(null)
       setBooking(false)
+      setBookSuccess(true)
       // Refresh bookings tab in background
       loadBookings()
     } catch {
       setBookError('Network error. Try again.')
       setBooking(false)
+    }
+  }
+
+  async function handleCancel() {
+    if (!cancelTarget) return
+    setCancelling(true)
+    try {
+      await fetch(`/api/my/bookings/${cancelTarget.id}`, { method: 'DELETE' })
+      setBookings(prev => prev.filter(b => b.id !== cancelTarget.id))
+      setCancelTarget(null)
+    } catch {
+      // silent
+    } finally {
+      setCancelling(false)
     }
   }
 
@@ -523,7 +616,13 @@ export default function MyClassesPage() {
                   <div key={g.label}>
                     <p className="text-xs font-bold text-[#101828] mb-2.5 uppercase tracking-widest px-1">{g.label}</p>
                     <div className="space-y-3">
-                      {g.items.map(b => <BookingCard key={b.id} booking={b} />)}
+                      {g.items.map(b => (
+                        <BookingCard
+                          key={b.id}
+                          booking={b}
+                          onCancel={() => setCancelTarget(b)}
+                        />
+                      ))}
                     </div>
                   </div>
                 ))}
@@ -555,8 +654,18 @@ export default function MyClassesPage() {
         <ConfirmModal
           occ={confirmOcc}
           booking={booking}
+          success={bookSuccess}
           onConfirm={handleBook}
-          onCancel={() => { setConfirmOcc(null); setBookError(null) }}
+          onCancel={() => { setConfirmOcc(null); setBookError(null); setBookSuccess(false) }}
+        />
+      )}
+
+      {cancelTarget && (
+        <CancelModal
+          booking={cancelTarget}
+          cancelling={cancelling}
+          onConfirm={handleCancel}
+          onClose={() => setCancelTarget(null)}
         />
       )}
 

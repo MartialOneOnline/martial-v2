@@ -33,7 +33,7 @@ const ACTIVITIES_LIST = Object.keys(ACTIVITY_COLORS)
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 interface ClassSlot {
-  id: string; day: number; startH: number; startM: number; durationM: number
+  id: string; classId: string; day: number; startH: number; startM: number; durationM: number
   name: string; activity: string; instructor: string; capacity: number; enrolled: number
 }
 
@@ -70,6 +70,7 @@ function classesToSlots(classes: DbClass[]): ClassSlot[] {
       const displayDay = (s.dayOfWeek + 6) % 7
       slots.push({
         id: `${cls.id}-${s.dayOfWeek}`,
+        classId: cls.id,
         day: displayDay,
         startH: start.h,
         startM: start.m,
@@ -202,17 +203,100 @@ function fmtTime(h: number, m: number): string {
 }
 
 // ── Class popup ────────────────────────────────────────────────────────────────
-function ClassPopup({ slot, onClose }: { slot: ClassSlot; onClose: () => void }) {
+function ClassPopup({ slot, date, onClose }: { slot: ClassSlot; date: Date; onClose: () => void }) {
   const t = useT()
   const colors  = ACTIVITY_COLORS[slot.activity] ?? ACTIVITY_COLORS['Open Mat']!
   const endMin  = slot.startH * 60 + slot.startM + slot.durationM
   const endH    = Math.floor(endMin / 60)
   const endMm   = endMin % 60
   const time    = fmtTime(slot.startH, slot.startM) + ' – ' + fmtTime(endH, endMm)
-  const pct     = slot.capacity > 0 ? Math.round((slot.enrolled / slot.capacity) * 100) : 0
-  const isFull  = slot.enrolled >= slot.capacity
+
+  const [studentsView, setStudentsView] = useState(false)
+  const [students, setStudents] = useState<{ id: string; name: string; avatarUrl: string | null; status: string }[]>([])
+  const [loadingStudents, setLoadingStudents] = useState(false)
+
+  async function loadStudents() {
+    setLoadingStudents(true)
+    const dateStr = date.toISOString().slice(0, 10)
+    try {
+      const res = await fetch(`/api/dashboard/classes/${slot.classId}/bookings?date=${dateStr}`)
+      if (res.ok) {
+        const data = await res.json()
+        setStudents(data.bookings ?? [])
+      }
+    } finally {
+      setLoadingStudents(false)
+    }
+  }
+
+  const bookedCount = students.length
+  const pct     = slot.capacity > 0 ? Math.round((bookedCount || slot.enrolled) / slot.capacity * 100) : 0
+  const isFull  = (bookedCount || slot.enrolled) >= slot.capacity
   const barColor = isFull ? '#DC2626' : pct >= 80 ? '#D97706' : '#16A34A'
   const capLabel = isFull ? t.common.full : pct >= 80 ? t.classes.almostFull : t.common.open
+
+  if (studentsView) {
+    return (
+      <>
+        <div className="fixed inset-0 z-40" onClick={onClose} />
+        <div className="fixed z-50 rounded-2xl overflow-hidden"
+          style={{ top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+            background: '#fff', width: 280, maxHeight: 420, display: 'flex', flexDirection: 'column',
+            boxShadow: '0 16px 48px rgba(0,0,0,0.2)', border: '1px solid #E5E7EB' }}>
+          {/* Header */}
+          <div className="px-4 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid #F3F4F6' }}>
+            <button onClick={() => setStudentsView(false)}
+              className="text-gray-400 hover:text-gray-600 cursor-pointer"
+              style={{ background: 'none', border: 'none', padding: 0, display: 'flex' }}>
+              <ChevronLeft size={16} />
+            </button>
+            <div className="flex-1 min-w-0">
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', margin: 0 }}>{slot.name}</p>
+              <p style={{ fontSize: 11, color: '#6B7280', margin: 0 }}>{time} · {students.length} students</p>
+            </div>
+          </div>
+          {/* List */}
+          <div style={{ overflowY: 'auto', flex: 1 }}>
+            {loadingStudents ? (
+              <div className="flex items-center justify-center py-10">
+                <div className="w-5 h-5 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : students.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-10 text-center px-4">
+                <Users size={28} style={{ color: '#D1D5DB', marginBottom: 8 }} />
+                <p style={{ fontSize: 13, color: '#6B7280', margin: 0 }}>No bookings for this session</p>
+              </div>
+            ) : (
+              students.map(s => (
+                <div key={s.id} className="flex items-center gap-3 px-4 py-2.5"
+                  style={{ borderBottom: '1px solid #F9FAFB' }}>
+                  {s.avatarUrl ? (
+                    <img src={s.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-[#0870E2]/10 flex items-center justify-center shrink-0">
+                      <span style={{ fontSize: 11, fontWeight: 700, color: '#0870E2' }}>
+                        {(s.name || '?').slice(0, 2).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0, truncate: true }}>{s.name || '—'}</p>
+                  </div>
+                  <span style={{
+                    fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 999,
+                    background: s.status === 'ATTENDED' ? '#F0FDF4' : s.status === 'CANCELLED' ? '#FEF2F2' : '#EFF6FF',
+                    color: s.status === 'ATTENDED' ? '#15803D' : s.status === 'CANCELLED' ? '#B91C1C' : '#1D4ED8',
+                  }}>
+                    {s.status === 'ATTENDED' ? 'Attended' : s.status === 'CANCELLED' ? 'Cancelled' : 'Booked'}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </>
+    )
+  }
 
   return (
     <>
@@ -239,12 +323,12 @@ function ClassPopup({ slot, onClose }: { slot: ClassSlot; onClose: () => void })
         </div>
         <div className="py-1">
           {[
-            { icon: Eye,    label: t.classes.viewStudentsAction, color: '#374151' },
-            { icon: Pencil, label: t.classes.editClass ?? 'Edit class', color: '#374151' },
-            { icon: Copy,   label: t.common.duplicate,     color: '#374151' },
-            { icon: Trash2, label: t.common.delete,        color: '#DC2626' },
-          ].map(({ icon: Icon, label, color }) => (
-            <button key={label} onClick={onClose}
+            { icon: Eye,    label: t.classes.viewStudentsAction, color: '#374151', action: () => { setStudentsView(true); loadStudents() } },
+            { icon: Pencil, label: t.classes.editClass ?? 'Edit class', color: '#374151', action: onClose },
+            { icon: Copy,   label: t.common.duplicate,     color: '#374151', action: onClose },
+            { icon: Trash2, label: t.common.delete,        color: '#DC2626', action: onClose },
+          ].map(({ icon: Icon, label, color, action }) => (
+            <button key={label} onClick={action}
               className="w-full flex items-center gap-2.5 px-4 py-2.5 cursor-pointer"
               style={{ background: 'transparent', border: 'none', fontSize: 13, color, textAlign: 'left' }}
               onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
@@ -782,7 +866,13 @@ export default function TimetableClient() {
           </div>
         )}
 
-      {selectedSlot && <ClassPopup slot={selectedSlot} onClose={() => setSelectedSlot(null)} />}
+      {selectedSlot && (
+        <ClassPopup
+          slot={selectedSlot}
+          date={weekDates[selectedSlot.day] ?? new Date()}
+          onClose={() => setSelectedSlot(null)}
+        />
+      )}
       <AddTimetableDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onSuccess={() => { setDrawerOpen(false); setSuccessOpen(true) }} />
       <SuccessModal open={successOpen} onClose={() => setSuccessOpen(false)} />
     </main>

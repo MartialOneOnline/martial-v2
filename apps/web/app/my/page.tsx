@@ -116,6 +116,7 @@ export default function MyHomePage() {
   const [loading, setLoading] = useState(true)
   const [occurrences, setOccurrences] = useState<Occurrence[]>([])
   const [bookingId, setBookingId] = useState<string | null>(null)
+  const [confirmedClass, setConfirmedClass] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/my')
@@ -143,6 +144,8 @@ export default function MyHomePage() {
             ? { ...o, alreadyBooked: true, booked: o.booked + 1 }
             : o
         ))
+        setConfirmedClass(occ.className)
+        setTimeout(() => setConfirmedClass(null), 3500)
       }
     } finally {
       setBookingId(null)
@@ -534,6 +537,14 @@ export default function MyHomePage() {
         </div>
 
       </div>
+
+      {/* Booking confirmation toast */}
+      {confirmedClass && (
+        <div className="fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 bg-[#101828] text-white text-sm font-semibold px-5 py-3 rounded-2xl shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>Booking confirmed — {confirmedClass}</span>
+        </div>
+      )}
     </div>
   )
 }
