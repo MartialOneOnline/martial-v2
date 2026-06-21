@@ -218,6 +218,7 @@ export default function MyHomePage() {
               </div>
               <Link
                 href="/my/classes"
+                prefetch={false}
                 className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold bg-white text-[#0870E2] px-4 py-2 rounded-xl hover:bg-white/90 transition-colors"
               >
                 View booking <ChevronRight className="w-3.5 h-3.5" />
@@ -233,7 +234,7 @@ export default function MyHomePage() {
               <p className="text-sm font-semibold text-[#101828]">No upcoming classes</p>
               <p className="text-xs text-gray-400 mt-0.5">Find and book your next session</p>
             </div>
-            <Link href="/my/classes" className="text-xs font-semibold text-[#0870E2] shrink-0">
+            <Link href="/my/classes" prefetch={false} className="text-xs font-semibold text-[#0870E2] shrink-0">
               Book a class →
             </Link>
           </div>
@@ -244,7 +245,7 @@ export default function MyHomePage() {
           <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50">
               <p className="text-sm font-bold text-[#101828]">Upcoming classes</p>
-              <Link href="/my/classes" className="text-xs font-semibold text-[#0870E2]">View all →</Link>
+              <Link href="/my/classes" prefetch={false} className="text-xs font-semibold text-[#0870E2]">View all →</Link>
             </div>
             <div className="p-3 space-y-2.5">
               {occurrences.slice(0, 4).map(occ => {

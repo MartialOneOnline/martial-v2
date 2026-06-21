@@ -75,6 +75,7 @@ function BottomNav() {
           <Link
             key={item.href}
             href={item.href}
+            prefetch={false}
             className={`relative flex-1 flex flex-col items-center justify-center py-2.5 gap-1 transition-colors ${
               active ? 'text-[#0870E2]' : 'text-gray-400'
             }`}
@@ -103,7 +104,7 @@ function SidebarContent({ school, onClose }: { school: School; onClose?: () => v
 
       {/* School header — shows the student's school, not generic branding */}
       <div className="px-5 py-4 flex items-center justify-between border-b border-gray-50">
-        <Link href="/my" onClick={onClose} className="flex items-center gap-3 min-w-0">
+        <Link href="/my" onClick={onClose} prefetch={false} className="flex items-center gap-3 min-w-0">
           {school?.logoUrl ? (
             <img
               src={school.logoUrl}
@@ -149,6 +150,7 @@ function SidebarContent({ school, onClose }: { school: School; onClose?: () => v
                     key={item.href}
                     href={item.href}
                     onClick={onClose}
+                    prefetch={false}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
                       active
                         ? 'bg-[#0870E2]/8 text-[#0870E2] font-semibold'
@@ -170,13 +172,13 @@ function SidebarContent({ school, onClose }: { school: School; onClose?: () => v
 
       {/* Sign out */}
       <div className="px-4 py-4 border-t border-gray-50">
-        <Link
-          href="/api/auth/signout"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+        <button
+          onClick={() => { window.location.href = '/api/auth/signout' }}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
         >
           <LogOut className="w-4 h-4 shrink-0" />
           Sign out
-        </Link>
+        </button>
       </div>
     </div>
   )
