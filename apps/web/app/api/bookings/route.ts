@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     },
   })
   if (!cls) return NextResponse.json({ error: 'Class not found' }, { status: 404 })
-  if (!cls.isActive || !cls.isPublished) {
+  if (!cls.isActive) {
     return NextResponse.json({ error: 'Class is not available for booking' }, { status: 400 })
   }
 

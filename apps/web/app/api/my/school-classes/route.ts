@@ -36,7 +36,7 @@ export async function GET() {
   if (schoolIds.length === 0) return NextResponse.json({ occurrences: [] })
 
   const classes = await prisma.class.findMany({
-    where: { schoolId: { in: schoolIds }, isActive: true, isPublished: true },
+    where: { schoolId: { in: schoolIds }, isActive: true },
     select: {
       id: true,
       name: true,
