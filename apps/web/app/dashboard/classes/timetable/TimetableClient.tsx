@@ -280,7 +280,7 @@ function ClassPopup({ slot, date, onClose }: { slot: ClassSlot; date: Date; onCl
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0, truncate: true }}>{s.name || '—'}</p>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name || '—'}</p>
                   </div>
                   <span style={{
                     fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 999,
