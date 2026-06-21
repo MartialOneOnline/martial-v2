@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ChevronRight, Play, Calendar, Clock, MapPin, Users, Plus, CheckCircle2 } from 'lucide-react'
 import { fmtPrice } from '../../lib/format'
+import { getBeltImage } from '../../lib/belts'
 
 type Occurrence = {
   classId: string
@@ -308,28 +309,26 @@ export default function MyHomePage() {
         {/* ── Stats row ── */}
         <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
           <div className="grid grid-cols-3 divide-x divide-gray-100">
-            {[
-              {
-                label: 'Classes attended',
-                value: activeMembership?.classesUsed ?? 0,
-                href: '/my/classes',
-              },
-              {
-                label: 'Schools',
-                value: user?.schoolMembers?.length ?? 0,
-                href: '/explore',
-              },
-              {
-                label: 'Current belt',
-                value: primaryMember?.belt?.split(' ')[0] ?? '—',
-                href: '/my/progress',
-              },
-            ].map(({ label, value, href }) => (
-              <Link key={label} href={href} className="flex flex-col items-center py-4 hover:bg-gray-50 transition-colors">
-                <p className="text-xl font-bold text-[#101828]">{value}</p>
-                <p className="text-[11px] text-gray-400 mt-0.5 text-center px-2 leading-tight">{label}</p>
-              </Link>
-            ))}
+            <Link href="/my/classes" prefetch={false} className="flex flex-col items-center py-4 hover:bg-gray-50 transition-colors">
+              <p className="text-xl font-bold text-[#101828]">{activeMembership?.classesUsed ?? 0}</p>
+              <p className="text-[11px] text-gray-400 mt-0.5 text-center px-2 leading-tight">Classes attended</p>
+            </Link>
+            <Link href="/explore" prefetch={false} className="flex flex-col items-center py-4 hover:bg-gray-50 transition-colors">
+              <p className="text-xl font-bold text-[#101828]">{user?.schoolMembers?.length ?? 0}</p>
+              <p className="text-[11px] text-gray-400 mt-0.5 text-center px-2 leading-tight">Schools</p>
+            </Link>
+            <Link href="/my/progress" prefetch={false} className="flex flex-col items-center py-4 hover:bg-gray-50 transition-colors">
+              {primaryMember?.belt ? (
+                <img
+                  src={getBeltImage(primaryMember.belt, primaryMember.beltDegree ?? 0)}
+                  alt={primaryMember.belt}
+                  className="h-4 w-auto max-w-[80px] object-contain mb-1"
+                />
+              ) : (
+                <p className="text-xl font-bold text-[#101828]">—</p>
+              )}
+              <p className="text-[11px] text-gray-400 mt-0.5 text-center px-2 leading-tight">Current belt</p>
+            </Link>
           </div>
         </div>
 
@@ -407,7 +406,14 @@ export default function MyHomePage() {
             <div className="mt-4 flex items-center gap-3">
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-1.5">
-                  <p className="text-xs font-semibold text-[#101828]">{primaryMember.belt}</p>
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={getBeltImage(primaryMember.belt, primaryMember.beltDegree ?? 0)}
+                      alt={primaryMember.belt}
+                      className="h-3.5 w-auto max-w-[60px] object-contain"
+                    />
+                    <p className="text-xs font-semibold text-[#101828]">{primaryMember.belt}</p>
+                  </div>
                   <p className="text-[10px] text-gray-400">
                     {primaryMember.beltDate
                       ? new Date(primaryMember.beltDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
