@@ -56,7 +56,7 @@ type DbClass = {
   name: string
   level: string | null
   duration: number | null
-  schedule: ScheduleEntry[]
+  schedule: ScheduleEntry[] | null
   school: {
     id: string
     slug: string
@@ -158,8 +158,8 @@ const FALLBACK_COVER = null
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function getNextSlot(schedule: ScheduleEntry[]): string | null {
-  if (!schedule.length) return null
+function getNextSlot(schedule: ScheduleEntry[] | null): string | null {
+  if (!schedule?.length) return null
   const now = new Date()
   const todayIdx = now.getDay()
   const nowMin = now.getHours() * 60 + now.getMinutes()
@@ -653,7 +653,7 @@ export default function ExplorePage() {
 
   // Open booking modal for a class
   function openClassBooking(cls: DbClass) {
-    const next = cls.schedule[0]
+    const next = cls.schedule?.[0]
     if (!next) return
     const dayLabel = DAY_NAMES[next.dayOfWeek] ?? 'Next'
     setBookingModal({
@@ -665,7 +665,7 @@ export default function ExplorePage() {
         endTime: next.endTime,
         dayLabel,
         dayOfWeek: next.dayOfWeek,
-        schedule: cls.schedule,
+        schedule: cls.schedule ?? [],
       },
       schoolSlug: cls.school.slug,
       plans: cls.school.membershipPlans,
@@ -674,7 +674,7 @@ export default function ExplorePage() {
 
   // Open booking modal for a school (picks first class with schedule)
   function openSchoolBooking(school: DbSchool) {
-    const cls = classes.find(c => c.school.slug === school.slug && c.schedule.length > 0)
+    const cls = classes.find(c => c.school.slug === school.slug && (c.schedule?.length ?? 0) > 0)
     if (!cls) {
       // No classes yet, go to school page
       window.location.href = `/school/${school.slug}`
