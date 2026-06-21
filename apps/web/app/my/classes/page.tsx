@@ -107,10 +107,11 @@ function DateCarousel({ selected, onChange }: { selected: Date | null; onChange:
 }
 
 /* ── Class card (bookable) ── */
-function OccurrenceCard({ occ, onBook, onDetail }: {
+function OccurrenceCard({ occ, onBook, onDetail, onCancelBooking }: {
   occ: Occurrence
   onBook: (occ: Occurrence) => void
   onDetail: (occ: Occurrence) => void
+  onCancelBooking?: () => void
 }) {
   const isFull = occ.capacity !== null && occ.booked >= occ.capacity
   const spotsLeft = occ.capacity !== null ? occ.capacity - occ.booked : null
@@ -191,18 +192,20 @@ function OccurrenceCard({ occ, onBook, onDetail }: {
             <Info className="w-4 h-4" />
             Details
           </button>
-          {!occ.alreadyBooked && !isFull ? (
+          {occ.alreadyBooked ? (
+            <button
+              onClick={onCancelBooking}
+              className="flex-1 flex items-center justify-center bg-[#E8F4FF] text-[#0870E2] text-sm font-semibold py-2.5 rounded-xl hover:bg-red-50 hover:text-red-500 transition-all"
+            >
+              Cancel Booking
+            </button>
+          ) : !isFull ? (
             <button
               onClick={() => onBook(occ)}
               className="flex-1 flex items-center justify-center bg-[#E8F4FF] text-[#0870E2] text-sm font-semibold py-2.5 rounded-xl hover:bg-[#0870E2] hover:text-white transition-all"
             >
-              Book Now
+              Book
             </button>
-          ) : occ.alreadyBooked ? (
-            <div className="flex-1 flex items-center justify-center bg-emerald-50 text-emerald-600 text-sm font-semibold py-2.5 rounded-xl">
-              <CheckCircle2 className="w-4 h-4 mr-1.5" />
-              Booked
-            </div>
           ) : (
             <div className="flex-1 flex items-center justify-center bg-gray-50 text-gray-400 text-sm font-semibold py-2.5 rounded-xl">
               Full
@@ -627,14 +630,20 @@ export default function MyClassesPage() {
                   <div key={g.label}>
                     <p className="text-xs font-bold text-[#101828] mb-2.5 uppercase tracking-widest px-1">{g.label}</p>
                     <div className="space-y-4">
-                      {g.items.map(o => (
+                      {g.items.map(o => {
+                        const matchedBooking = bookings.find(
+                          b => b.class.id === o.classId && b.scheduledAt === o.scheduledAt && ['PENDING','CONFIRMED'].includes(b.status)
+                        )
+                        return (
                         <OccurrenceCard
                           key={`${o.classId}:${o.scheduledAt}`}
                           occ={o}
                           onBook={setConfirmOcc}
                           onDetail={setDetailOcc}
+                          onCancelBooking={matchedBooking ? () => setCancelTarget(matchedBooking) : undefined}
                         />
-                      ))}
+                        )
+                      })}
                     </div>
                   </div>
                 ))}
