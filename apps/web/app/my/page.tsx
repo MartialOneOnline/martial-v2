@@ -95,7 +95,7 @@ function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
 }
 function fmtTime(iso: string) {
-  return new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+  return new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
 }
 function daysUntil(iso: string) {
   return Math.ceil((new Date(iso).getTime() - Date.now()) / 86400000)
@@ -264,7 +264,7 @@ export default function MyHomePage() {
                         <span className="text-xs text-gray-400">{fmtDateShort(occ.scheduledAt)}</span>
                         <span className="text-gray-200">·</span>
                         <span className="text-xs text-gray-400">
-                          {new Date(occ.scheduledAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(occ.scheduledAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })}
                         </span>
                         {occ.capacity !== null && (
                           <>
