@@ -300,8 +300,11 @@ function SchoolCard({ school, onClick }: { school: DbSchool; onClick: () => void
 
 // ── Class Card (full-bleed photo) ─────────────────────────────────────────────
 
-function ClassCard({ cls, onClick }: { cls: DbClass; onClick: () => void }) {
-  const nextSlot = getNextSlot(cls.schedule)
+function ClassCard({ cls, onClick, dayOfWeek }: { cls: DbClass; onClick: () => void; dayOfWeek?: number }) {
+  const daySlot = dayOfWeek !== undefined
+    ? (cls.schedule ?? []).find(s => s.dayOfWeek === dayOfWeek)
+    : null
+  const nextSlot = daySlot ? daySlot.startTime : getNextSlot(cls.schedule)
   const hasCover = !!cls.school.coverUrl
 
   return (
@@ -524,6 +527,7 @@ export default function ExplorePage() {
   const [userCoords, setUserCoords]   = useState<{ lat: number; lng: number } | null>(null)
   const [userCountry, setUserCountry] = useState<string | null>(null)
   const [geoLoading, setGeoLoading]   = useState(false)
+  const [selectedDay, setSelectedDay] = useState<number>(() => new Date().getDay())
 
   // Auto-detect location on load: IP geolocation first (silent), then browser GPS if available
   useEffect(() => {
@@ -647,13 +651,18 @@ export default function ExplorePage() {
       const matchDiscipline = discipline === 'All' || c.name.toLowerCase().includes(discipline.toLowerCase()) || c.school.name.toLowerCase().includes(discipline.toLowerCase())
       const matchSearch = !q || c.name.toLowerCase().includes(q) || c.school.name.toLowerCase().includes(q)
       const matchLocation = !l || c.school.city.toLowerCase().includes(l)
-      return matchDiscipline && matchSearch && matchLocation
+      const matchDay = (c.schedule ?? []).some(s => s.dayOfWeek === selectedDay)
+      return matchDiscipline && matchSearch && matchLocation && matchDay
+    }).sort((a, b) => {
+      const slotA = (a.schedule ?? []).find(s => s.dayOfWeek === selectedDay)?.startTime ?? '99:99'
+      const slotB = (b.schedule ?? []).find(s => s.dayOfWeek === selectedDay)?.startTime ?? '99:99'
+      return slotA.localeCompare(slotB)
     })
-  }, [classes, search, location, discipline])
+  }, [classes, search, location, discipline, selectedDay])
 
   // Open booking modal for a class
   function openClassBooking(cls: DbClass) {
-    const next = cls.schedule?.[0]
+    const next = (cls.schedule ?? []).find(s => s.dayOfWeek === selectedDay) ?? cls.schedule?.[0]
     if (!next) return
     const dayLabel = DAY_NAMES[next.dayOfWeek] ?? 'Next'
     setBookingModal({
@@ -687,6 +696,16 @@ export default function ExplorePage() {
   const isLoading = mode === 'schools' ? loadingSchools : loadingClasses
   const resultCount = mode === 'schools' ? filteredSchools.length : filteredClasses.length
   const hasSearch = search || location || discipline !== 'All'
+
+  // Build 7-day strip starting from today
+  const DAY_STRIP = useMemo(() => {
+    const today = new Date()
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(today)
+      d.setDate(today.getDate() + i)
+      return { dayOfWeek: d.getDay(), date: d.getDate(), label: DAY_NAMES[d.getDay()] ?? '' }
+    })
+  }, [])
 
   return (
     <div className="min-h-screen" style={{ background: '#F9FAFB', fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif", color: '#111827' }}>
@@ -867,6 +886,32 @@ export default function ExplorePage() {
           )}
         </div>
 
+        {/* Day strip — classes mode only */}
+        {mode === 'classes' && (
+          <div className="flex gap-2 overflow-x-auto no-scrollbar mb-5 -mx-1 px-1">
+            {DAY_STRIP.map(({ dayOfWeek, date, label }) => {
+              const active = selectedDay === dayOfWeek
+              const isToday = dayOfWeek === new Date().getDay()
+              return (
+                <button
+                  key={dayOfWeek}
+                  onClick={() => setSelectedDay(dayOfWeek)}
+                  className={`shrink-0 flex flex-col items-center px-4 py-2 rounded-2xl border transition-all ${
+                    active
+                      ? 'text-white border-transparent'
+                      : 'bg-white text-[#111827] border-[#E5E7EB] hover:border-[#9CA3AF]'
+                  }`}
+                  style={active ? { background: BLUE } : undefined}
+                >
+                  <span className="text-[10px] font-bold uppercase tracking-wide opacity-70">{label}</span>
+                  <span className="text-lg font-bold leading-tight">{date}</span>
+                  {isToday && <span className={`text-[9px] font-bold uppercase tracking-wide mt-0.5 ${active ? 'text-white/70' : 'text-[#0870E2]'}`}>Today</span>}
+                </button>
+              )
+            })}
+          </div>
+        )}
+
         {/* Map view */}
         {view === 'map' && mode === 'schools' && (
           <div className="mb-6">
@@ -907,6 +952,7 @@ export default function ExplorePage() {
                 <ClassCard
                   key={cls.id}
                   cls={cls}
+                  dayOfWeek={selectedDay}
                   onClick={() => openClassBooking(cls)}
                 />
               ))
