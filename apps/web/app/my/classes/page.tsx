@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { Calendar, Clock, MapPin, ChevronLeft, ChevronRight, Users, CheckCircle2, X, Info, CalendarDays } from 'lucide-react'
+import { Calendar, Clock, MapPin, ChevronLeft, ChevronRight, Users, CheckCircle2, X, Info, CalendarDays, Ticket, Zap } from 'lucide-react'
 
 /* ── Types ── */
 type Booking = {
@@ -483,6 +483,74 @@ function CancelModal({ booking, onConfirm, onClose, cancelling }: {
   )
 }
 
+/* ── Pass / trial plan type ── */
+type PassPlan = {
+  id: string
+  name: string
+  description: string | null
+  price: number
+  currency: string
+  planType: 'SUBSCRIPTION' | 'SINGLE_PASS' | 'TRIAL'
+  billingCycle: string
+  validityDays: number | null
+  isPopular: boolean
+  alreadyActive: boolean
+  school: { name: string }
+}
+
+const PASS_TYPE_CONFIG: Record<string, { label: string; bg: string; color: string; icon: React.ReactNode }> = {
+  SINGLE_PASS: { label: 'Single session', bg: '#F5F3FF', color: '#7C3AED', icon: <Ticket size={12} /> },
+  TRIAL:       { label: 'Trial class',    bg: '#FFF7ED', color: '#C2410C', icon: <Zap size={12} /> },
+}
+
+function fmtPassPrice(price: number, currency: string) {
+  if (currency === 'EUR') return `${price.toFixed(2).replace('.', ',')} €`
+  if (currency === 'GBP') return `£${price.toFixed(2)}`
+  return `$${price.toFixed(2)}`
+}
+
+function PassCard({ plan, onRequest, requesting }: {
+  plan: PassPlan
+  onRequest: (plan: PassPlan) => void
+  requesting: boolean
+}) {
+  const cfg = PASS_TYPE_CONFIG[plan.planType] ?? { label: plan.planType, bg: '#F3F4F6', color: '#6B7280', icon: <Ticket size={12} /> }
+  return (
+    <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex items-center gap-4">
+      <div style={{ width: 44, height: 44, borderRadius: 12, background: cfg.bg,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: cfg.color }}>
+        {cfg.icon}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5 mb-0.5">
+          <span style={{ fontSize: 10, fontWeight: 700, color: cfg.color, background: cfg.bg,
+            padding: '1px 7px', borderRadius: 999 }}>{cfg.label}</span>
+          {plan.isPopular && (
+            <span style={{ fontSize: 10, fontWeight: 700, color: '#0870E2', background: '#EFF6FF',
+              padding: '1px 7px', borderRadius: 999 }}>Popular</span>
+          )}
+        </div>
+        <p className="text-sm font-bold text-[#101828] truncate">{plan.name}</p>
+        {plan.validityDays && (
+          <p className="text-xs text-gray-400">Valid {plan.validityDays} days</p>
+        )}
+      </div>
+      <div className="text-right flex-shrink-0">
+        <p className="text-base font-bold text-[#101828]">{fmtPassPrice(plan.price, plan.currency)}</p>
+        {plan.alreadyActive ? (
+          <span className="text-xs text-green-600 font-semibold">Active</span>
+        ) : (
+          <button onClick={() => onRequest(plan)} disabled={requesting}
+            className="mt-1 text-xs font-bold text-white bg-[#0870E2] px-3 py-1.5 rounded-xl disabled:opacity-60"
+            style={{ cursor: requesting ? 'not-allowed' : 'pointer' }}>
+            {requesting ? '…' : plan.planType === 'TRIAL' ? 'Book trial' : 'Get pass'}
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 /* ── Main page ── */
 export default function MyClassesPage() {
   const [mainTab, setMainTab] = useState<'book' | 'schedule'>('book')
@@ -490,6 +558,9 @@ export default function MyClassesPage() {
   // Book tab state
   const [occurrences, setOccurrences] = useState<Occurrence[]>([])
   const [loadingOcc, setLoadingOcc] = useState(true)
+  const [passPlans, setPassPlans] = useState<PassPlan[]>([])
+  const [requestingPassId, setRequestingPassId] = useState<string | null>(null)
+  const [passSuccess, setPassSuccess] = useState<string | null>(null)
   const [occDate, setOccDate] = useState<Date | null>(null)
   const [detailOcc, setDetailOcc] = useState<Occurrence | null>(null)
   const [confirmOcc, setConfirmOcc] = useState<Occurrence | null>(null)
@@ -526,7 +597,27 @@ export default function MyClassesPage() {
 
   useEffect(() => { setPage(1) }, [scheduleSubTab])
   useEffect(() => { loadBookings() }, [loadBookings])
-  useEffect(() => { loadOccurrences() }, [loadOccurrences])
+  useEffect(() => {
+    loadOccurrences()
+    fetch('/api/my/school-plans')
+      .then(r => r.json())
+      .then(d => setPassPlans((d.plans ?? []).filter((p: PassPlan) => ['SINGLE_PASS', 'TRIAL'].includes(p.planType))))
+      .catch(() => {})
+  }, [loadOccurrences])
+
+  async function handlePassRequest(plan: PassPlan) {
+    setRequestingPassId(plan.id)
+    try {
+      const res = await fetch(`/api/my/memberships/${plan.id}`, { method: 'POST' })
+      if (res.ok) {
+        setPassPlans(prev => prev.map(p => p.id === plan.id ? { ...p, alreadyActive: true } : p))
+        setPassSuccess(plan.name)
+        setTimeout(() => setPassSuccess(null), 3500)
+      }
+    } finally {
+      setRequestingPassId(null)
+    }
+  }
 
   const filteredOcc = occDate ? occurrences.filter(o => isSameDay(new Date(o.scheduledAt), occDate)) : occurrences
   const filteredBookings = selectedDate ? bookings.filter(b => isSameDay(new Date(b.scheduledAt), selectedDate)) : bookings
@@ -651,6 +742,22 @@ export default function MyClassesPage() {
                 ))}
               </div>
             )}
+
+            {/* ── Passes & trials ── */}
+            {passPlans.length > 0 && (
+              <div className="mt-6">
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 px-1">
+                  Passes &amp; trials
+                </p>
+                <div className="space-y-3">
+                  {passPlans.map(p => (
+                    <PassCard key={p.id} plan={p}
+                      onRequest={handlePassRequest}
+                      requesting={requestingPassId === p.id} />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </>
       )}
@@ -766,6 +873,14 @@ export default function MyClassesPage() {
       {bookError && (
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-red-500 text-white text-xs font-semibold px-4 py-2.5 rounded-2xl shadow-lg">
           {bookError}
+        </div>
+      )}
+
+      {/* Pass request success toast */}
+      {passSuccess && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-[#111827] text-white text-xs font-semibold px-4 py-2.5 rounded-2xl shadow-lg whitespace-nowrap flex items-center gap-2">
+          <CheckCircle2 className="w-3.5 h-3.5 text-green-400" />
+          Request sent for {passSuccess}
         </div>
       )}
     </div>

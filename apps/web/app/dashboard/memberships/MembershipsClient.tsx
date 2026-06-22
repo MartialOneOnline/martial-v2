@@ -711,6 +711,7 @@ function DeleteModal({ plan, onClose, onDeleted }: {
 
 // ── Members modal ──────────────────────────────────────────────────────────────
 const MEMBERSHIP_STATUS_COLORS: Record<string, { bg: string; color: string }> = {
+  PENDING:  { bg: '#FFFBEB', color: '#D97706' },
   ACTIVE:   { bg: '#F0FDF4', color: '#16A34A' },
   INACTIVE: { bg: '#F3F4F6', color: '#6B7280' },
   PAUSED:   { bg: '#FEF3C7', color: '#B45309' },

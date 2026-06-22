@@ -123,6 +123,7 @@ export type BookingStatus = (typeof BookingStatus)[keyof typeof BookingStatus]
 
 
 export const MembershipStatus = {
+  PENDING: 'PENDING',
   ACTIVE: 'ACTIVE',
   PAUSED: 'PAUSED',
   CANCELLED: 'CANCELLED',

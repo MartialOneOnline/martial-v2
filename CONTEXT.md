@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 39 completada ✅ — Full module audit + P1 fixes + no-show write path + attendance index + repo clean
+**Estado:** Sesión 45 completada ✅ — /my membership: buy plans, pause/cancel subscription + /my classes: passes & trials section
 
 ---
 
@@ -210,8 +210,8 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 | `/my` | ✅ Live | Dashboard personal: escuelas, info personal, links a secciones |
 | `/my/profile` | ✅ Live | Editar nombre, teléfono, fecha de nacimiento — PATCH /api/my |
 | `/my/progress` | ⏳ Pendiente | Ranking / cinturón |
-| `/my/membership` | ⏳ Pendiente | Suscripciones activas |
-| `/my/classes` | ⏳ Pendiente | Horario + bookings |
+| `/my/membership` | ✅ Live | Ver activas + pause/cancel + request new plan + historial |
+| `/my/classes` | ✅ Live | Horario + bookings + sección Passes & Trials |
 
 ---
 
@@ -230,20 +230,89 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 
 ## Próximos pasos
 
-1. **Memberships module** — CRUD completo: crear, editar, asignar a miembros
-2. **Class images para otras 19 escuelas** — imágenes de V1 en el ZIP, solo Roger Gracie Málaga tiene imágenes en Supabase Storage
-3. **Disciplines faltantes** — nogi, mma, boxing, karate, muay-thai, judo, kickboxing tienen `disciplineId=null` en clases importadas
-4. **Color System — migración pendiente**: Payments page, Members table, transaction table, super admin pipeline
-5. **`/my/progress`** — página de ranking y cinturón del alumno
-6. **`/my/membership`** — suscripciones activas del alumno
-7. **`/my/classes`** — horario + bookings del alumno
-8. **SSO OAuth** — configurar Google en Supabase
-9. **API deploy** — Railway o Render
-10. **Dominio propio** — conectar app.martialapp.online a Vercel
+1. **`/my/progress`** — página de progreso y cinturón del alumno (belts ya implementados en dashboard)
+2. **Stripe Checkout** — flujo de pago real para compra de membresías (actualmente flow de "request" manual)
+3. **Admin: aprobar membresías PENDING** — notificación al admin + acción de activar desde dashboard
+4. **Class images para otras 19 escuelas** — imágenes de V1 en el ZIP, solo Roger Gracie Málaga tiene imágenes en Supabase Storage
+5. **Disciplines faltantes** — nogi, mma, boxing, karate, muay-thai, judo, kickboxing tienen `disciplineId=null` en clases importadas
+6. **Color System — migración pendiente**: Payments page, Members table, transaction table, super admin pipeline
+7. **SSO OAuth** — configurar Google en Supabase
+8. **API deploy** — Railway o Render
+9. **Dominio propio** — conectar app.martialapp.online a Vercel
+10. **Email sending real** — conectar templates de Resend (welcome, trial confirmed, membership receipt ya implementados pero sin envío real)
 
 ---
 
 ## Historial de sesiones
+
+### Sesión 45 — 2026-06-22 ✅
+**Student portal: buy memberships, pause/cancel, passes & trials**
+
+- `feat(my)`: MembershipStatus.PENDING añadido al schema + `prisma db push` + `prisma generate`
+- `feat(my)`: `GET /api/my/school-plans` — planes públicos de la escuela del alumno
+- `feat(my)`: `PATCH /api/my/memberships/[id]` — acciones pause / resume / cancel sobre membership propia
+- `feat(my)`: `POST /api/my/memberships/[id]` — solicitar un plan (crea Membership PENDING)
+- `feat(my/membership)`: Sección "Available Plans" con CTA Request/Book trial; Pause/Resume/Cancel en subscripciones activas con confirm modal; badge PENDING en membresías pendientes de aprobación
+- `feat(my/classes)`: Sección "Passes & Trials" en tab Book — muestra planes SINGLE_PASS y TRIAL disponibles con "Get pass" / "Book trial"
+- `fix(dashboard)`: Badge color PENDING añadido a MembershipsClient
+
+---
+
+### Sesión 44 — 2026-06-22 ✅
+**Explore: day strip + ClassCard null guard**
+
+- `feat(explore)`: Day strip en `/explore` — filtra clases por día de la semana, ordenadas por hora (`7b2612a`)
+- `fix(explore)`: Guard contra `schedule=null` que crasheaba ClassCard (`8a31312`)
+
+---
+
+### Sesión 43 — 2026-06-22 ✅
+**`/my/classes` redesign to match Figma + Cancel Booking button**
+
+- `fix(my)`: Disable router cache en `/my/classes` + rediseño completo de class cards para igualar Figma (`1ea3be7`)
+- `feat(classes)`: Botón "Cancel Booking" en class card cuando el alumno ya tiene reserva activa (`46e349b`)
+
+---
+
+### Sesión 42 — 2026-06-22 ✅
+**BJJ belts + /my student portal completo (bookings, cancelación, school view)**
+
+- `feat(belts)`: 36 SVGs de cinturones BJJ desde Figma (`/public/belts/`) + visualización en student dashboard (`4e050d3`)
+- `fix(my)`: Disable prefetch en links protegidos para evitar session race (`dbc1ea8`)
+- `fix(timetable)`: Eliminar prop CSS `truncate` inválida (`bc0cd34`)
+- `feat(my)`: Confirmación de booking, cancelación, y vista de compañeros de clase — `DELETE /api/my/bookings/[id]` + UI updated (`8d452f0`)
+- `fix(booking)`: Eliminar check `isPublished` — clases no publicadas en DB (`d2a5555`)
+- `fix(my)`: Horarios de clases + disponibilidad de booking (`02cdf02`)
+- Multiple `fix(auth)`: Middleware proxy.ts estabilizado para Next.js 16 (exports 'proxy', SSR cookie refresh) (`bb2cf47`, `77503fd`, `95a23bc`, `9701a19`)
+- `feat(my)`: Sidebar school-céntrico — elimina Explore, muestra branding de la escuela (`d520581`)
+- `fix(nav)`: Clean sidebar, middleware export fijo, páginas placeholder `/my/qr` y `/my/settings` (`2d46023`)
+- `feat(my)`: Clases reservables en dashboard de usuario y página de horario — `GET /api/my/school-classes` (`1f1da7a`)
+
+---
+
+### Sesión 41 — 2026-06-22 ✅
+**Homepage search-first redesign**
+
+- `feat(homepage)`: Rediseño homepage — `HomeSearch`, `HomeCamps`, `HomeThreeValues`, `HeroSection` actualizados (`fafa7de`)
+
+---
+
+### Sesión 40 — 2026-06-22 ✅
+**Auth flow completo + email templates + sign out**
+
+- `feat(email)`: Templates de email — welcome student, trial confirmed, membership receipt (`e00bc8c`)
+- `feat(header)`: Botón "Sign out" en header cuando el usuario está logueado (`b70981a`)
+- `feat(auth)`: `GET /api/auth/signout` route (`26e6981`)
+- `fix(auth)`: Cookies en signout route + redirect a homepage usando request URL (`6b8858e`, `d53df6a`)
+- `fix(auth)`: Preserve redirect param through login flow (`ce28216`)
+- `fix(auth)`: Fall back a email lookup cuando `supabaseAuthId` no está enlazado (`5955405`)
+- `feat(auth)`: Role-based access en `/dashboard`, `/my`, `/admin` via proxy.ts + dashboard layout (`2338940`)
+- `fix(auth)`: Redirect students a `/my` en lugar de `/explore` tras login (`ae7f82e`)
+- `fix(auth)`: Logout route — handle GET, fix anon key env var, cookies en response (`2122e9b`, `8c95080`)
+- `fix(auth)`: Client-side signOut en sidebar en lugar de form POST (`9e32d57`)
+- `fix(auth)`: Create middleware.ts para activar Supabase SSR cookie refresh (`e7412df`)
+
+---
 
 ### Sesión 39 — 2026-06-16 ✅
 **Full module audit + P1 fixes + no-show write path + attendance index + repo clean**
