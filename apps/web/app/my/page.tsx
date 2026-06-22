@@ -321,8 +321,10 @@ export default function MyHomePage() {
           <div
             ref={carRef}
             className="flex gap-3 overflow-x-auto pb-1"
-            style={{ paddingLeft: 16, scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}
+            style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}
           >
+            {/* Left spacer — aligns first card with page content (px-4) */}
+            <div className="shrink-0" style={{ width: 16 }} />
             {occurrences.slice(0, 4).map(occ => {
               const isFull     = occ.capacity !== null && occ.booked >= occ.capacity
               const isBooking  = bookingId === `${occ.classId}:${occ.scheduledAt}`
