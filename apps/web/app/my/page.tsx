@@ -211,19 +211,20 @@ export default function MyHomePage() {
 
   return (
     <div className="min-h-screen pb-4" style={{ background: '#F2F2F7', overflowX: 'hidden' }}>
-      <div className="max-w-lg mx-auto">
+      <div className="max-w-2xl mx-auto">
 
       {/* ── Greeting ──────────────────────────────────────────────────────── */}
-      <div className="px-4 pt-3 pb-4">
-        <p className="text-xs" style={{ color: '#6B6B70' }}>{greeting}</p>
-        <h1 className="text-2xl font-medium tracking-tight" style={{ color: '#1C1C1E', letterSpacing: '-0.2px' }}>{firstName}</h1>
+      <div className="px-4 md:px-6 pt-4 md:pt-7 pb-4 md:pb-5">
+        <p className="text-xs md:text-sm" style={{ color: '#6B6B70' }}>{greeting}</p>
+        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight" style={{ color: '#1C1C1E', letterSpacing: '-0.5px' }}>{firstName}</h1>
       </div>
 
       {/* ── Hero card — next booking ───────────────────────────────────────── */}
       {nextBooking ? (
-        <div className="mx-4 mb-5 rounded-3xl overflow-hidden relative" style={{ background: '#08213D', padding: '20px' }}>
-          {/* Decorative circle */}
-          <div className="absolute" style={{ right: -32, top: -32, width: 140, height: 140, borderRadius: '50%', border: '24px solid rgba(255,255,255,.03)' }} />
+        <div className="mx-4 md:mx-6 mb-5 md:mb-6 rounded-3xl overflow-hidden relative" style={{ background: 'linear-gradient(145deg, #0d2d52 0%, #08213D 55%, #061729 100%)', padding: '22px 22px 20px' }}>
+          {/* Decorative circles */}
+          <div className="absolute" style={{ right: -20, top: -40, width: 160, height: 160, borderRadius: '50%', border: '28px solid rgba(255,255,255,.04)' }} />
+          <div className="absolute" style={{ right: 60, top: -70, width: 100, height: 100, borderRadius: '50%', border: '16px solid rgba(255,255,255,.025)' }} />
 
           {/* Pill badge */}
           {days !== null && (
@@ -277,8 +278,9 @@ export default function MyHomePage() {
         </div>
       ) : (
         /* No upcoming booking */
-        <div className="mx-4 mb-5 rounded-3xl overflow-hidden relative" style={{ background: '#08213D', padding: '20px' }}>
-          <div className="absolute" style={{ right: -32, top: -32, width: 140, height: 140, borderRadius: '50%', border: '24px solid rgba(255,255,255,.03)' }} />
+        <div className="mx-4 md:mx-6 mb-5 md:mb-6 rounded-3xl overflow-hidden relative" style={{ background: 'linear-gradient(145deg, #0d2d52 0%, #08213D 55%, #061729 100%)', padding: '22px 22px 20px' }}>
+          <div className="absolute" style={{ right: -20, top: -40, width: 160, height: 160, borderRadius: '50%', border: '28px solid rgba(255,255,255,.04)' }} />
+          <div className="absolute" style={{ right: 60, top: -70, width: 100, height: 100, borderRadius: '50%', border: '16px solid rgba(255,255,255,.025)' }} />
           <p className="text-[10px] font-medium uppercase tracking-widest mb-2" style={{ color: 'rgba(255,255,255,.35)', letterSpacing: '1.5px' }}>Next class</p>
           <p className="text-lg font-medium mb-3" style={{ color: '#fff' }}>No upcoming classes</p>
           <Link
@@ -294,14 +296,14 @@ export default function MyHomePage() {
       )}
 
       {/* ── Quick actions ──────────────────────────────────────────────────── */}
-      <div className="px-4 mb-5">
-        <div className="grid grid-cols-4">
+      <div className="px-4 md:px-6 mb-5 md:mb-7">
+        <div className="grid grid-cols-4 md:gap-2">
           {QUICK_ACTIONS.map(qa => (
-            <Link key={qa.href} href={qa.href} prefetch={false} className="flex flex-col items-center gap-1.5 py-1">
-              <div className="w-[46px] h-[46px] rounded-full flex items-center justify-center" style={{ background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,.07), 0 0 0 0.5px rgba(0,0,0,.04)' }}>
-                <qa.icon className="w-5 h-5" style={{ color: '#007AFF' }} />
+            <Link key={qa.href} href={qa.href} prefetch={false} className="flex flex-col items-center gap-2 py-1">
+              <div className="w-[50px] h-[50px] md:w-[56px] md:h-[56px] rounded-full flex items-center justify-center" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.08), 0 0 0 0.5px rgba(0,0,0,.05)' }}>
+                <qa.icon className="w-5 h-5 md:w-6 md:h-6" style={{ color: '#007AFF' }} />
               </div>
-              <span className="text-[10px] font-normal text-center leading-tight" style={{ color: '#6B6B70' }}>{qa.label}</span>
+              <span className="text-[10px] md:text-[11px] font-normal text-center leading-tight" style={{ color: '#6B6B70' }}>{qa.label}</span>
             </Link>
           ))}
         </div>
@@ -310,8 +312,8 @@ export default function MyHomePage() {
       {/* ── Upcoming classes carousel ──────────────────────────────────────── */}
       {occurrences.length > 0 && (
         <div className="mb-2">
-          <div className="flex items-center justify-between px-4 mb-3">
-            <span className="text-base font-medium" style={{ color: '#1C1C1E', letterSpacing: '-0.1px' }}>Upcoming classes</span>
+          <div className="flex items-center justify-between px-4 md:px-6 mb-3">
+            <span className="text-base md:text-lg font-semibold" style={{ color: '#1C1C1E', letterSpacing: '-0.2px' }}>Upcoming classes</span>
             <Link href="/my/classes" prefetch={false} className="flex items-center text-sm font-normal" style={{ color: '#007AFF' }}>
               View all<ChevronRight className="w-3.5 h-3.5" />
             </Link>
@@ -335,7 +337,7 @@ export default function MyHomePage() {
                 <div
                   key={`${occ.classId}:${occ.scheduledAt}`}
                   className="car-card flex flex-col shrink-0 rounded-xl overflow-hidden"
-                  style={{ width: 'calc(88vw)', maxWidth: 360, background: '#fff', border: '1px solid #eaeaea', boxShadow: '0 1px 3px rgba(0,0,0,.05)', scrollSnapAlign: 'start' }}
+                  style={{ width: 'calc(88vw)', maxWidth: 320, background: '#fff', border: '1px solid rgba(0,0,0,.07)', boxShadow: '0 1px 4px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04)', scrollSnapAlign: 'start' }}
                 >
                   {/* Photo */}
                   <div className="relative shrink-0 overflow-hidden" style={{ height: 132, borderRadius: '8px 8px 0 0', background: classGradient(occ.className) }}>
@@ -439,9 +441,12 @@ export default function MyHomePage() {
         </div>
       )}
 
+      {/* ── Progress + Membership — side by side on desktop ──────────────── */}
+      <div className="md:grid md:grid-cols-2 md:gap-4 md:px-6 md:mb-0">
+
       {/* ── Progress ring ──────────────────────────────────────────────────── */}
       {primaryMember?.belt && (
-        <div className="mx-4 mb-4 rounded-2xl overflow-hidden" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)', padding: 18 }}>
+        <div className="mx-4 md:mx-0 mb-4 rounded-2xl overflow-hidden" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)', padding: 18 }}>
           <div className="flex items-center gap-4">
             {/* Ring */}
             <div className="relative shrink-0" style={{ width: 72, height: 72 }}>
@@ -481,7 +486,7 @@ export default function MyHomePage() {
 
       {/* ── Membership card ────────────────────────────────────────────────── */}
       {activeMembership && (
-        <div className="mx-4 mb-4 rounded-2xl overflow-hidden" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)', padding: 18 }}>
+        <div className="mx-4 md:mx-0 mb-4 rounded-2xl overflow-hidden" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)', padding: 18 }}>
           <div className="flex items-start justify-between mb-3">
             <div>
               <p className="text-[10px] font-normal uppercase tracking-widest mb-0.5" style={{ color: '#6B6B70', letterSpacing: '.8px' }}>Active plan</p>
@@ -506,17 +511,19 @@ export default function MyHomePage() {
         </div>
       )}
 
+      </div>{/* end md:grid */}
+
       {/* ── Recommended video ──────────────────────────────────────────────── */}
-      <div className="mx-4 mb-4">
+      <div className="mx-4 md:mx-6 mb-4">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-base font-medium" style={{ color: '#1C1C1E', letterSpacing: '-0.1px' }}>Recommended</span>
+          <span className="text-base md:text-lg font-semibold" style={{ color: '#1C1C1E', letterSpacing: '-0.2px' }}>Recommended</span>
           <button className="flex items-center text-sm font-normal" style={{ color: '#007AFF', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
             View all<ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
         <div className="rounded-2xl overflow-hidden" style={{ background: '#08213D', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)' }}>
           {/* Thumbnail */}
-          <div className="relative" style={{ height: 140, background: '#071624' }}>
+          <div className="relative" style={{ height: 160, background: '#071624' }}>
             <img
               src="https://img.youtube.com/vi/pYvnU1DU1Vg/hqdefault.jpg"
               alt="Closed Guard Basics"
@@ -547,7 +554,7 @@ export default function MyHomePage() {
 
       {/* ── Empty state (no school / membership) ──────────────────────────── */}
       {!activeMembership && !nextBooking && (user?.schoolMembers?.length ?? 0) === 0 && (
-        <div className="mx-4 mb-4 rounded-2xl p-8 text-center" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06)' }}>
+        <div className="mx-4 md:mx-6 mb-4 rounded-2xl p-8 text-center" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06)' }}>
           <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(0,122,255,.08)' }}>
             <CalendarPlus className="w-6 h-6" style={{ color: '#007AFF' }} />
           </div>
