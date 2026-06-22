@@ -301,7 +301,7 @@ function DetailDrawer({ occ, onClose, onBook }: {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="w-full max-w-lg bg-white rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto"
+        className="w-full max-w-lg bg-white rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto pb-24"
         onClick={e => e.stopPropagation()}
       >
         {/* Handle */}

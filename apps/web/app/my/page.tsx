@@ -138,6 +138,7 @@ export default function MyHomePage() {
   const [occurrences, setOccurrences] = useState<Occurrence[]>([])
   const [bookingId, setBookingId]   = useState<string | null>(null)
   const [activeDot, setActiveDot]   = useState(0)
+  const [detailOcc, setDetailOcc]   = useState<Occurrence | null>(null)
   const carRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -333,7 +334,7 @@ export default function MyHomePage() {
                 <div
                   key={`${occ.classId}:${occ.scheduledAt}`}
                   className="car-card flex flex-col shrink-0 rounded-xl overflow-hidden"
-                  style={{ width: 262, background: '#fff', border: '1px solid #eaeaea', boxShadow: '0 1px 3px rgba(0,0,0,.05)', scrollSnapAlign: 'start' }}
+                  style={{ width: 'calc(80vw)', maxWidth: 320, background: '#fff', border: '1px solid #eaeaea', boxShadow: '0 1px 3px rgba(0,0,0,.05)', scrollSnapAlign: 'start' }}
                 >
                   {/* Photo */}
                   <div className="relative shrink-0 overflow-hidden" style={{ height: 132, borderRadius: '8px 8px 0 0', background: classGradient(occ.className) }}>
@@ -373,14 +374,13 @@ export default function MyHomePage() {
                       {occ.instructor ? `Instructor: ${occ.instructor.name}` : occ.school.name}
                     </p>
                     <div className="flex gap-1.5 mt-auto">
-                      <Link
-                        href={`/my/classes`}
-                        prefetch={false}
+                      <button
+                        onClick={() => setDetailOcc(occ)}
                         className="flex-1 text-center text-xs font-medium rounded-lg"
-                        style={{ background: '#ECEAEA', color: '#000', padding: '6px 0', fontSize: 11.5 }}
+                        style={{ background: '#ECEAEA', color: '#000', padding: '6px 0', fontSize: 11.5, border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
                       >
                         Details
-                      </Link>
+                      </button>
                       {occ.alreadyBooked ? (
                         <Link
                           href="/my/classes"
@@ -563,6 +563,99 @@ export default function MyHomePage() {
       )}
 
       </div>{/* end max-w-lg */}
+
+      {/* ── Class detail bottom sheet ──────────────────────────────────────── */}
+      {detailOcc && (
+        <div
+          className="fixed inset-0 z-50 flex items-end"
+          style={{ background: 'rgba(0,0,0,.5)', backdropFilter: 'blur(4px)' }}
+          onClick={() => setDetailOcc(null)}
+        >
+          <div
+            className="w-full bg-white rounded-t-3xl shadow-2xl overflow-y-auto"
+            style={{ maxHeight: '85vh' }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Handle */}
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 rounded-full" style={{ background: '#E5E5EA' }} />
+            </div>
+
+            {/* Photo */}
+            {detailOcc.coverUrl && (
+              <div className="mx-4 mt-2 rounded-2xl overflow-hidden" style={{ height: 192 }}>
+                <img src={detailOcc.coverUrl} alt="" className="w-full h-full object-cover" />
+              </div>
+            )}
+
+            <div className="p-5 pb-10">
+              <div className="flex items-start justify-between gap-3 mb-1">
+                <h2 className="text-lg font-semibold leading-snug" style={{ color: '#1C1C1E' }}>{detailOcc.className}</h2>
+                {detailOcc.capacity !== null && (
+                  <span className="text-sm shrink-0" style={{ color: '#6B6B70' }}>{detailOcc.booked}/{detailOcc.capacity}</span>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs mb-4" style={{ color: '#6B6B70' }}>
+                <span>{fmtDate(detailOcc.scheduledAt)}</span>
+                <span style={{ color: '#D1D1D6' }}>·</span>
+                <span>{fmtTime(detailOcc.scheduledAt)}{detailOcc.duration ? ` · ${detailOcc.duration}min` : ''}</span>
+                <span style={{ color: '#D1D1D6' }}>·</span>
+                <span>{detailOcc.school.name}</span>
+              </div>
+
+              {detailOcc.level && (
+                <span className="inline-block text-xs font-medium px-3 py-1 rounded-full mb-4" style={{ background: '#E8F7FF', color: '#006197' }}>
+                  {detailOcc.level}
+                </span>
+              )}
+
+              {detailOcc.instructor && (
+                <div className="flex items-center gap-3 p-3 rounded-2xl mb-4" style={{ background: '#F5F5F5' }}>
+                  {detailOcc.instructor.photoUrl ? (
+                    <img src={detailOcc.instructor.photoUrl} alt="" className="w-10 h-10 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{ background: '#E8F7FF' }}>
+                      <span className="text-sm font-semibold" style={{ color: '#006197' }}>{detailOcc.instructor.name[0]}</span>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-sm font-medium" style={{ color: '#1C1C1E' }}>{detailOcc.instructor.name}</p>
+                    <p className="text-xs" style={{ color: '#6B6B70' }}>Instructor</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setDetailOcc(null)}
+                  className="flex-1 py-3 rounded-2xl text-sm font-medium"
+                  style={{ border: '1px solid #E5E5EA', color: '#6B6B70', background: 'none', fontFamily: 'inherit', cursor: 'pointer' }}
+                >
+                  Close
+                </button>
+                {detailOcc.alreadyBooked ? (
+                  <div className="flex-1 py-3 rounded-2xl text-sm font-medium flex items-center justify-center gap-1" style={{ background: '#E4F7EB', color: '#1E8734' }}>
+                    ✓ Booked
+                  </div>
+                ) : detailOcc.capacity !== null && detailOcc.booked >= detailOcc.capacity ? (
+                  <div className="flex-1 py-3 rounded-2xl text-sm font-medium flex items-center justify-center" style={{ background: '#F5F5F5', color: '#9E9E9E' }}>
+                    Full
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => { setDetailOcc(null); bookClass(detailOcc) }}
+                    className="flex-1 py-3 rounded-2xl text-sm font-medium"
+                    style={{ background: '#E8F7FF', color: '#006197', border: 'none', fontFamily: 'inherit', cursor: 'pointer' }}
+                  >
+                    Book Now
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
