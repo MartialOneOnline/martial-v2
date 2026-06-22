@@ -210,6 +210,7 @@ export default function MyHomePage() {
 
   return (
     <div className="min-h-screen pb-4" style={{ background: '#F2F2F7', overflowX: 'hidden' }}>
+      <div className="max-w-lg mx-auto">
 
       {/* ── Greeting ──────────────────────────────────────────────────────── */}
       <div className="px-4 pt-3 pb-4">
@@ -559,6 +560,7 @@ export default function MyHomePage() {
         </div>
       )}
 
+      </div>{/* end max-w-lg */}
     </div>
   )
 }
