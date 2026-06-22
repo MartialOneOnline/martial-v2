@@ -296,7 +296,7 @@ export default function MyLayout({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Main content */}
-      <main className="flex-1 md:ml-60 min-h-screen pt-12 md:pt-0 pb-20 md:pb-0">
+      <main className="flex-1 md:ml-60 min-h-screen pt-12 md:pt-0 pb-28 md:pb-0">
         {children}
       </main>
 

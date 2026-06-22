@@ -209,7 +209,7 @@ export default function MyHomePage() {
   const dotCount          = Math.min(occurrences.length, 4)
 
   return (
-    <div className="min-h-screen pb-4" style={{ background: '#F2F2F7' }}>
+    <div className="min-h-screen pb-4" style={{ background: '#F2F2F7', overflowX: 'hidden' }}>
 
       {/* ── Greeting ──────────────────────────────────────────────────────── */}
       <div className="px-4 pt-3 pb-4">
@@ -451,7 +451,7 @@ export default function MyHomePage() {
               </div>
             </div>
             {/* Info */}
-            <div className="flex-1">
+            <div className="flex-1" style={{ minWidth: 0 }}>
               <div className="flex items-center gap-1.5 mb-0.5">
                 <img
                   src={getBeltImage(primaryMember.belt, primaryMember.beltDegree ?? 0)}
