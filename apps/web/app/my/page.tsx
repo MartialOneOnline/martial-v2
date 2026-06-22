@@ -139,6 +139,7 @@ export default function MyHomePage() {
   const [bookingId, setBookingId]   = useState<string | null>(null)
   const [activeDot, setActiveDot]   = useState(0)
   const [detailOcc, setDetailOcc]   = useState<Occurrence | null>(null)
+  const [videoPlaying, setVideoPlaying] = useState(false)
   const carRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -522,27 +523,43 @@ export default function MyHomePage() {
           </button>
         </div>
         <div className="rounded-2xl overflow-hidden" style={{ background: '#08213D', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)' }}>
-          {/* Thumbnail */}
-          <div className="relative" style={{ height: 160, background: '#071624' }}>
-            <img
-              src="https://img.youtube.com/vi/pYvnU1DU1Vg/hqdefault.jpg"
-              alt="Closed Guard Basics"
-              className="absolute inset-0 w-full h-full object-cover"
-              onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
-            />
-            <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,.32)', zIndex: 1 }} />
-            <span className="absolute text-[9px] font-medium rounded-md px-1.5 py-0.5 tracking-wide" style={{ top: 9, left: 11, background: '#007AFF', color: '#fff', zIndex: 2, letterSpacing: '.5px' }}>
-              RECOMMENDED
-            </span>
-            <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 2 }}>
-              <div className="flex items-center justify-center rounded-full" style={{ width: 44, height: 44, background: 'rgba(255,255,255,.9)' }}>
-                <Play className="w-5 h-5 fill-current ml-0.5" style={{ color: '#08213D' }} />
-              </div>
+          {videoPlaying ? (
+            <div style={{ position: 'relative', paddingTop: '56.25%' }}>
+              <iframe
+                src="https://www.youtube.com/embed/pYvnU1DU1Vg?autoplay=1&rel=0&modestbranding=1"
+                title="Closed Guard Basics"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="absolute inset-0 w-full h-full"
+                style={{ border: 'none' }}
+              />
             </div>
-            <span className="absolute text-xs rounded-md px-1.5 py-0.5" style={{ bottom: 9, right: 11, background: 'rgba(0,0,0,.65)', color: '#fff', zIndex: 2 }}>
-              15m 10s
-            </span>
-          </div>
+          ) : (
+            <div
+              className="relative cursor-pointer"
+              style={{ height: 200, background: '#071624' }}
+              onClick={() => setVideoPlaying(true)}
+            >
+              <img
+                src="https://img.youtube.com/vi/pYvnU1DU1Vg/hqdefault.jpg"
+                alt="Closed Guard Basics"
+                className="absolute inset-0 w-full h-full object-cover"
+                onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+              />
+              <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,.28)', zIndex: 1 }} />
+              <span className="absolute text-[9px] font-medium rounded-md px-1.5 py-0.5 tracking-wide" style={{ top: 10, left: 12, background: '#007AFF', color: '#fff', zIndex: 2, letterSpacing: '.5px' }}>
+                RECOMMENDED
+              </span>
+              <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 2 }}>
+                <div className="flex items-center justify-center rounded-full transition-transform hover:scale-110" style={{ width: 52, height: 52, background: 'rgba(255,255,255,.92)', boxShadow: '0 4px 20px rgba(0,0,0,.35)' }}>
+                  <Play className="w-5 h-5 fill-current ml-1" style={{ color: '#08213D' }} />
+                </div>
+              </div>
+              <span className="absolute text-xs rounded-md px-1.5 py-0.5" style={{ bottom: 10, right: 12, background: 'rgba(0,0,0,.65)', color: '#fff', zIndex: 2 }}>
+                15m 10s
+              </span>
+            </div>
+          )}
           {/* Info */}
           <div style={{ padding: '11px 14px 13px' }}>
             <p className="text-[10px] font-medium mb-0.5" style={{ color: 'rgba(100,220,220,.88)', letterSpacing: '.9px' }}>Guard · Roger Gracie</p>
