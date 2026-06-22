@@ -50,7 +50,6 @@ const SIDEBAR_NAV: NavSection[] = [
 const BOTTOM_NAV: NavItem[] = [
   { label: 'Home',     href: '/my',          icon: LayoutDashboard, exact: true },
   { label: 'Classes',  href: '/my/classes',  icon: CalendarDays },
-  { label: 'Ranking',  href: '/my/progress', icon: Medal },
   { label: 'Profile',  href: '/my/profile',  icon: User },
 ]
 
@@ -66,9 +65,17 @@ function isActive(pathname: string, href: string, exact?: boolean) {
 function BottomNav() {
   const pathname = usePathname()
 
+  const leftItems  = BOTTOM_NAV.slice(0, 2)
+  const rightItems = BOTTOM_NAV.slice(2)
+  const qrActive   = isActive(pathname, '/my/qr')
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 flex md:hidden">
-      {BOTTOM_NAV.map(item => {
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-50 flex md:hidden"
+      style={{ background: 'rgba(248,248,250,.96)', borderTop: '.5px solid rgba(60,60,67,.18)' }}
+    >
+      {/* Left items */}
+      {leftItems.map(item => {
         const active = isActive(pathname, item.href, item.exact)
         const Icon = item.icon
         return (
@@ -76,17 +83,58 @@ function BottomNav() {
             key={item.href}
             href={item.href}
             prefetch={false}
-            className={`relative flex-1 flex flex-col items-center justify-center py-2.5 gap-1 transition-colors ${
-              active ? 'text-[#0870E2]' : 'text-gray-400'
-            }`}
+            className="relative flex-1 flex flex-col items-center justify-center gap-1 transition-colors"
+            style={{ padding: '8px 0 14px', color: active ? '#007AFF' : '#8E8E93' }}
           >
             {active && (
-              <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-[#0870E2] rounded-full" />
+              <span className="absolute top-0 left-1/2 -translate-x-1/2 rounded-full" style={{ width: 32, height: 2, background: '#007AFF' }} />
             )}
-            <Icon className={`w-5 h-5 ${active ? 'stroke-[2.5]' : 'stroke-[1.5]'}`} />
-            <span className={`text-[10px] ${active ? 'font-semibold' : 'font-medium'}`}>
-              {item.label}
-            </span>
+            <Icon className="w-6 h-6" strokeWidth={active ? 2.5 : 1.5} />
+            <span style={{ fontSize: 10, fontWeight: active ? 600 : 400 }}>{item.label}</span>
+          </Link>
+        )
+      })}
+
+      {/* Center QR FAB */}
+      <Link
+        href="/my/qr"
+        prefetch={false}
+        className="flex flex-col items-center gap-1"
+        style={{ flex: 1, paddingBottom: 14, color: qrActive ? '#007AFF' : '#8E8E93' }}
+      >
+        <div
+          className="flex items-center justify-center rounded-full"
+          style={{
+            width: 46,
+            height: 46,
+            background: '#007AFF',
+            marginTop: -20,
+            border: '3px solid rgba(248,248,250,.96)',
+            boxShadow: '0 4px 18px rgba(0,122,255,.38)',
+          }}
+        >
+          <QrCode className="w-5 h-5 text-white" />
+        </div>
+        <span style={{ fontSize: 10, fontWeight: qrActive ? 600 : 400 }}>QR</span>
+      </Link>
+
+      {/* Right items */}
+      {rightItems.map(item => {
+        const active = isActive(pathname, item.href, item.exact)
+        const Icon = item.icon
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            prefetch={false}
+            className="relative flex-1 flex flex-col items-center justify-center gap-1 transition-colors"
+            style={{ padding: '8px 0 14px', color: active ? '#007AFF' : '#8E8E93' }}
+          >
+            {active && (
+              <span className="absolute top-0 left-1/2 -translate-x-1/2 rounded-full" style={{ width: 32, height: 2, background: '#007AFF' }} />
+            )}
+            <Icon className="w-6 h-6" strokeWidth={active ? 2.5 : 1.5} />
+            <span style={{ fontSize: 10, fontWeight: active ? 600 : 400 }}>{item.label}</span>
           </Link>
         )
       })}
@@ -205,7 +253,7 @@ export default function MyLayout({ children }: { children: React.ReactNode }) {
   }, [])
 
   return (
-    <div className="min-h-screen flex bg-[#F8F9FB]">
+    <div className="min-h-screen flex" style={{ background: '#F2F2F7' }}>
 
       {/* Desktop sidebar */}
       <aside className="hidden md:flex flex-col w-60 shrink-0 fixed top-0 left-0 h-screen z-40">

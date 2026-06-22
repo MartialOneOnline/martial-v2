@@ -187,27 +187,29 @@ function OccurrenceCard({ occ, onBook, onDetail, onCancelBooking }: {
         <div className="flex gap-2">
           <button
             onClick={() => onDetail(occ)}
-            className="flex-1 flex items-center justify-center gap-1.5 bg-gray-100 text-gray-700 text-sm font-semibold py-2.5 rounded-xl hover:bg-gray-200 transition-colors"
+            className="flex-1 flex items-center justify-center text-sm font-medium rounded-xl transition-colors"
+            style={{ background: '#ECEAEA', color: '#000', padding: '8px 0' }}
           >
-            <Info className="w-4 h-4" />
             Details
           </button>
           {occ.alreadyBooked ? (
             <button
               onClick={onCancelBooking}
-              className="flex-1 flex items-center justify-center bg-[#E8F4FF] text-[#0870E2] text-sm font-semibold py-2.5 rounded-xl hover:bg-red-50 hover:text-red-500 transition-all"
+              className="flex-1 flex items-center justify-center text-sm font-medium rounded-xl"
+              style={{ background: '#FFEBEE', color: '#C62828', padding: '8px 0' }}
             >
-              Cancel Booking
+              Cancel
             </button>
           ) : !isFull ? (
             <button
               onClick={() => onBook(occ)}
-              className="flex-1 flex items-center justify-center bg-[#E8F4FF] text-[#0870E2] text-sm font-semibold py-2.5 rounded-xl hover:bg-[#0870E2] hover:text-white transition-all"
+              className="flex-1 flex items-center justify-center text-sm font-medium rounded-xl transition-all hover:opacity-90"
+              style={{ background: '#E8F7FF', color: '#006197', padding: '8px 0' }}
             >
-              Book
+              Book Now
             </button>
           ) : (
-            <div className="flex-1 flex items-center justify-center bg-gray-50 text-gray-400 text-sm font-semibold py-2.5 rounded-xl">
+            <div className="flex-1 flex items-center justify-center text-sm font-medium rounded-xl" style={{ background: '#F5F5F5', color: '#9E9E9E', padding: '8px 0' }}>
               Full
             </div>
           )}
