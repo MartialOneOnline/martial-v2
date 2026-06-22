@@ -589,7 +589,7 @@ export default function MyHomePage() {
               </div>
             )}
 
-            <div className="p-5 pb-10">
+            <div className="p-5 pb-32">
               <div className="flex items-start justify-between gap-3 mb-1">
                 <h2 className="text-lg font-semibold leading-snug" style={{ color: '#1C1C1E' }}>{detailOcc.className}</h2>
                 {detailOcc.capacity !== null && (
