@@ -892,6 +892,8 @@ model BeltRank {
   classesPerPeriod     Int? // min classes per period
   periodType           String? // "WEEK" | "MONTH"
   classTypeIds         String[] // which class types count (empty = all)
+  requireCompetition   Boolean @default(false) // must have competed
+  requireExam          Boolean @default(false) // must pass an exam
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

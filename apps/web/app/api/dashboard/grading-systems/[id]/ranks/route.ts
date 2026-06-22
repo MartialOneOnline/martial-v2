@@ -51,6 +51,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       classesPerPeriod:     body.classesPerPeriod ?? null,
       periodType:           body.periodType ?? null,
       classTypeIds:         body.classTypeIds ?? [],
+      requireCompetition:   body.requireCompetition ?? false,
+      requireExam:          body.requireExam ?? false,
     },
   })
 

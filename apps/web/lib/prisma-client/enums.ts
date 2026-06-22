@@ -195,7 +195,8 @@ export const TransactionStatus = {
   PAID: 'PAID',
   PENDING: 'PENDING',
   FAILED: 'FAILED',
-  REFUNDED: 'REFUNDED'
+  REFUNDED: 'REFUNDED',
+  CANCELLED: 'CANCELLED'
 } as const
 
 export type TransactionStatus = (typeof TransactionStatus)[keyof typeof TransactionStatus]

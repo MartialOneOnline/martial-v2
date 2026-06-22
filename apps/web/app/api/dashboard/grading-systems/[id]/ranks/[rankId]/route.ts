@@ -40,6 +40,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       ...(body.classesPerPeriod !== undefined    && { classesPerPeriod: body.classesPerPeriod }),
       ...(body.periodType !== undefined          && { periodType: body.periodType }),
       ...(body.classTypeIds !== undefined        && { classTypeIds: body.classTypeIds }),
+      ...(body.requireCompetition !== undefined  && { requireCompetition: body.requireCompetition }),
+      ...(body.requireExam !== undefined         && { requireExam: body.requireExam }),
     },
   })
 

@@ -44,10 +44,24 @@ const BELT_MAP: Record<BeltKey, { bg: string; color: string; dot: string; label:
   Black:  { bg: '#F3F4F6', color: '#111827', dot: '#111827', label: 'Black'  },
 }
 
+const SPANISH_TO_BELT: Record<string, BeltKey> = {
+  blanco: 'White', blanca: 'White',
+  azul:   'Blue',
+  morado: 'Purple', morada: 'Purple',
+  marron: 'Brown', marrón: 'Brown',
+  negro:  'Black', negra: 'Black',
+}
+
 function beltCfg(belt: string | null) {
-  if (!belt) return { bg: '#F3F4F6', color: '#6B7280', dot: '#D1D5DB', label: belt ?? '—' }
-  const key = BELTS.find(b => belt.toLowerCase().includes(b.toLowerCase()))
-  return key ? BELT_MAP[key] : { bg: '#F3F4F6', color: '#6B7280', dot: '#D1D5DB', label: belt }
+  if (!belt) return { bg: '#F3F4F6', color: '#6B7280', dot: '#D1D5DB', label: '—' }
+  const lower = belt.toLowerCase()
+  // match English
+  const engKey = BELTS.find(b => lower.includes(b.toLowerCase()))
+  if (engKey) return { ...BELT_MAP[engKey], label: belt }
+  // match Spanish
+  const spKey = Object.entries(SPANISH_TO_BELT).find(([es]) => lower.startsWith(es))
+  if (spKey) return { ...BELT_MAP[spKey[1]], label: belt }
+  return { bg: '#F3F4F6', color: '#6B7280', dot: '#D1D5DB', label: belt }
 }
 
 function StripeDots({ degree, color }: { degree: number; color: string }) {
@@ -321,8 +335,141 @@ function AddGradingDrawer({ open, onClose, onSuccess }: {
   )
 }
 
+// ── Edit Grading Drawer ───────────────────────────────────────────────────────
+function EditGradingDrawer({ grading, onClose, onSuccess }: {
+  grading: GradingRecord | null
+  onClose: () => void
+  onSuccess: (g: GradingRecord) => void
+}) {
+  const open = !!grading
+  const [fromBelt, setFromBelt] = useState('')
+  const [toBelt,   setToBelt]   = useState('')
+  const [toDegree, setToDegree] = useState(0)
+  const [gradedAt, setGradedAt] = useState('')
+  const [notes,    setNotes]    = useState('')
+  const [saving,   setSaving]   = useState(false)
+
+  useEffect(() => {
+    if (!grading) return
+    setFromBelt(grading.fromBelt ?? '')
+    setToBelt(grading.toBelt)
+    setToDegree(grading.toDegree)
+    setGradedAt(grading.gradedAt.slice(0, 10))
+    setNotes(grading.notes ?? '')
+  }, [grading])
+
+  async function handleSave() {
+    if (!grading || !toBelt || !gradedAt) return
+    setSaving(true)
+    const res = await fetch(`/api/dashboard/gradings/${grading.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fromBelt: fromBelt || null, toBelt, toDegree, gradedAt, notes: notes || null }),
+    })
+    setSaving(false)
+    if (!res.ok) return
+    const updated = await res.json()
+    onSuccess(updated)
+  }
+
+  const INP: React.CSSProperties = {
+    width: '100%', border: '1px solid #E5E7EB', borderRadius: 10,
+    padding: '9px 12px', fontSize: 13, color: '#111827', background: '#fff', outline: 'none',
+  }
+  const LBL: React.CSSProperties = { display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 5 }
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 transition-opacity"
+        style={{ background: 'rgba(0,0,0,0.35)', opacity: open ? 1 : 0, pointerEvents: open ? 'auto' : 'none' }}
+        onClick={onClose} />
+      <div className="fixed top-0 right-0 h-full z-50 flex flex-col overflow-hidden"
+        style={{ width: 'min(520px,96vw)', background: '#F9FAFB',
+          boxShadow: '-4px 0 32px rgba(0,0,0,0.12)',
+          transform: open ? 'translateX(0)' : 'translateX(100%)',
+          transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)' }}>
+
+        <div className="flex items-center justify-between px-6 py-5 shrink-0"
+          style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
+          <div>
+            <h2 style={{ fontSize: 17, fontWeight: 700, color: '#111827', margin: 0, letterSpacing: '-0.02em' }}>Edit Promotion</h2>
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{grading?.userName}</p>
+          </div>
+          <button onClick={onClose} className="w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
+            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
+            <X size={15} style={{ color: '#6B7280' }} />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-5">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label style={LBL}>From Belt</label>
+              <select value={fromBelt} onChange={e => setFromBelt(e.target.value)} style={INP}>
+                <option value="">— none —</option>
+                {BELTS.map(b => <option key={b} value={b}>{b}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={LBL}>To Belt <span style={{ color: '#EF4444' }}>*</span></label>
+              <select value={toBelt} onChange={e => setToBelt(e.target.value)} style={INP}>
+                <option value="">Select…</option>
+                {BELTS.map(b => <option key={b} value={b}>{b}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label style={LBL}>Stripes / Degree</label>
+            <div className="flex gap-2">
+              {[0, 1, 2, 3, 4].map(n => (
+                <button key={n} onClick={() => setToDegree(n)}
+                  className="flex-1 py-2.5 rounded-xl cursor-pointer"
+                  style={{ fontSize: 13, fontWeight: toDegree === n ? 700 : 400,
+                    border: `1.5px solid ${toDegree === n ? '#0870E2' : '#E5E7EB'}`,
+                    background: toDegree === n ? '#EFF6FF' : '#fff',
+                    color: toDegree === n ? '#0870E2' : '#6B7280' }}>
+                  {n === 0 ? '0' : n}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label style={LBL}>Date <span style={{ color: '#EF4444' }}>*</span></label>
+            <input type="date" value={gradedAt} onChange={e => setGradedAt(e.target.value)} style={INP} />
+          </div>
+
+          <div>
+            <label style={LBL}>Notes <span style={{ fontWeight: 400, color: '#9CA3AF' }}>(optional)</span></label>
+            <textarea rows={3} placeholder="Any remarks…" value={notes}
+              onChange={e => setNotes(e.target.value)}
+              style={{ ...INP, resize: 'vertical', lineHeight: 1.6 }} />
+          </div>
+        </div>
+
+        <div className="px-6 py-4 flex items-center gap-3 justify-end shrink-0"
+          style={{ background: '#fff', borderTop: '1px solid #E5E7EB' }}>
+          <button onClick={onClose}
+            style={{ padding: '9px 20px', borderRadius: 10, fontSize: 13, fontWeight: 500,
+              border: '1px solid #E5E7EB', background: '#fff', color: '#374151', cursor: 'pointer' }}>
+            Cancel
+          </button>
+          <button onClick={handleSave} disabled={!toBelt || !gradedAt || saving}
+            style={{ padding: '9px 20px', borderRadius: 10, fontSize: 13, fontWeight: 600,
+              border: 'none', background: '#0870E2', color: '#fff',
+              cursor: toBelt && gradedAt ? 'pointer' : 'not-allowed',
+              opacity: toBelt && gradedAt ? 1 : 0.5 }}>
+            {saving ? 'Saving…' : 'Save changes'}
+          </button>
+        </div>
+      </div>
+    </>
+  )
+}
+
 // ── Row menu ──────────────────────────────────────────────────────────────────
-function RowMenu({ onDelete }: { onDelete: () => void }) {
+function RowMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -343,6 +490,13 @@ function RowMenu({ onDelete }: { onDelete: () => void }) {
         <div className="absolute right-0 rounded-xl z-20 py-1 overflow-hidden"
           style={{ background: '#fff', border: '1px solid #E5E7EB',
             boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 140, top: '100%' }}>
+          <button onClick={() => { setOpen(false); onEdit() }}
+            className="w-full text-left px-4 py-2.5 cursor-pointer"
+            style={{ fontSize: 13, color: '#374151', background: 'transparent', border: 'none' }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+            Edit record
+          </button>
           <button onClick={() => { setOpen(false); onDelete() }}
             className="w-full text-left px-4 py-2.5 cursor-pointer"
             style={{ fontSize: 13, color: '#DC2626', background: 'transparent', border: 'none' }}
@@ -370,8 +524,9 @@ export default function GradingsClient() {
   const [beltFilter,setBeltFilter]= useState<BeltKey | 'All'>('All')
   const [page,      setPage]      = useState(1)
 
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const [toast,      setToast]      = useState('')
+  const [drawerOpen,   setDrawerOpen]   = useState(false)
+  const [editGrading,  setEditGrading]  = useState<GradingRecord | null>(null)
+  const [toast,        setToast]        = useState('')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -412,8 +567,14 @@ export default function GradingsClient() {
     setTotal(t => t + 1)
     setToast('Promotion recorded successfully')
     setTimeout(() => setToast(''), 3500)
-    // reload stats
     load()
+  }
+
+  function handleEditSuccess(updated: GradingRecord) {
+    setEditGrading(null)
+    setGradings(prev => prev.map(g => g.id === updated.id ? updated : g))
+    setToast('Promotion updated successfully')
+    setTimeout(() => setToast(''), 3500)
   }
 
   async function handleDelete(id: string) {
@@ -613,7 +774,7 @@ export default function GradingsClient() {
 
                     {/* Actions */}
                     <td className="px-5 py-3">
-                      <RowMenu onDelete={() => handleDelete(g.id)} />
+                      <RowMenu onEdit={() => setEditGrading(g)} onDelete={() => handleDelete(g.id)} />
                     </td>
                   </tr>
                 )
@@ -655,6 +816,7 @@ export default function GradingsClient() {
       </div>
 
       <AddGradingDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onSuccess={handleSuccess} />
+      <EditGradingDrawer grading={editGrading} onClose={() => setEditGrading(null)} onSuccess={handleEditSuccess} />
 
       {toast && (
         <div className="fixed bottom-6 right-6 z-[70] flex items-center gap-3 px-5 py-3.5 rounded-2xl"

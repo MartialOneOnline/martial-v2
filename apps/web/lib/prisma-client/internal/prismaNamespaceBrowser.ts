@@ -546,6 +546,8 @@ export const BeltRankScalarFieldEnum = {
   classesPerPeriod: 'classesPerPeriod',
   periodType: 'periodType',
   classTypeIds: 'classTypeIds',
+  requireCompetition: 'requireCompetition',
+  requireExam: 'requireExam',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

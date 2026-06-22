@@ -19,6 +19,46 @@ async function authorise() {
   return { schoolId }
 }
 
+// PATCH /api/dashboard/gradings/[id]
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await authorise()
+  if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
+
+  const { id } = await params
+  const grading = await prisma.grading.findFirst({
+    where: { id, schoolId: auth.schoolId },
+  })
+  if (!grading) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  const body = await req.json()
+  const updated = await prisma.grading.update({
+    where: { id },
+    data: {
+      ...(body.fromBelt  !== undefined && { fromBelt:  body.fromBelt ?? null }),
+      ...(body.toBelt    !== undefined && { toBelt:    body.toBelt }),
+      ...(body.toDegree  !== undefined && { toDegree:  body.toDegree }),
+      ...(body.gradedAt  !== undefined && { gradedAt:  new Date(body.gradedAt) }),
+      ...(body.notes     !== undefined && { notes:     body.notes ?? null }),
+    },
+    include: {
+      user:      { select: { name: true, avatarUrl: true } },
+      promotedBy:{ select: { name: true } },
+    },
+  })
+
+  return NextResponse.json({
+    id:          updated.id,
+    userName:    updated.user.name,
+    userAvatar:  updated.user.avatarUrl,
+    fromBelt:    updated.fromBelt,
+    toBelt:      updated.toBelt,
+    toDegree:    updated.toDegree ?? 0,
+    gradedAt:    updated.gradedAt.toISOString(),
+    instructor:  updated.promotedBy?.name ?? null,
+    notes:       updated.notes,
+  })
+}
+
 // DELETE /api/dashboard/gradings/[id]
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await authorise()
