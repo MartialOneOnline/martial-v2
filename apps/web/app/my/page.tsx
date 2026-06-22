@@ -321,10 +321,9 @@ export default function MyHomePage() {
           <div
             ref={carRef}
             className="flex gap-3 overflow-x-auto pb-1"
-            style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}
+            style={{ scrollSnapType: 'x mandatory', scrollPaddingLeft: 16, paddingLeft: 16, WebkitOverflowScrolling: 'touch' }}
           >
-            {/* Left spacer — aligns first card with page content (px-4) */}
-            <div className="shrink-0" style={{ width: 16 }} />
+
             {occurrences.slice(0, 4).map(occ => {
               const isFull     = occ.capacity !== null && occ.booked >= occ.capacity
               const isBooking  = bookingId === `${occ.classId}:${occ.scheduledAt}`
@@ -336,7 +335,7 @@ export default function MyHomePage() {
                 <div
                   key={`${occ.classId}:${occ.scheduledAt}`}
                   className="car-card flex flex-col shrink-0 rounded-xl overflow-hidden"
-                  style={{ width: 'calc(80vw)', maxWidth: 320, background: '#fff', border: '1px solid #eaeaea', boxShadow: '0 1px 3px rgba(0,0,0,.05)', scrollSnapAlign: 'start' }}
+                  style={{ width: 'calc(88vw)', maxWidth: 360, background: '#fff', border: '1px solid #eaeaea', boxShadow: '0 1px 3px rgba(0,0,0,.05)', scrollSnapAlign: 'start' }}
                 >
                   {/* Photo */}
                   <div className="relative shrink-0 overflow-hidden" style={{ height: 132, borderRadius: '8px 8px 0 0', background: classGradient(occ.className) }}>
