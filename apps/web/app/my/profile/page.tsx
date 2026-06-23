@@ -20,46 +20,25 @@ type Profile = {
   gradings: unknown[]
 }
 
-const MENU: { label?: string; items: { label: string; href: string; icon: React.ElementType; desc: string }[] }[] = [
+const MENU: { label?: string; items: { label: string; href: string; icon: React.ElementType; desc: string; color: string; bg: string }[] }[] = [
   {
     items: [
-      { label: 'My Classes',   href: '/my/classes',    icon: CalendarDays, desc: 'Upcoming & past bookings' },
-      { label: 'Membership',   href: '/my/membership', icon: CreditCard,   desc: 'Plans & subscriptions' },
-      { label: 'Ranking',      href: '/my/progress',   icon: Medal,        desc: 'Belt & grading history' },
-      { label: 'Transactions', href: '/my/payments',   icon: DollarSign,   desc: 'Payment history' },
+      { label: 'My Classes',    href: '/my/classes',    icon: CalendarDays, desc: 'Upcoming & past bookings',       color: '#007AFF', bg: 'rgba(0,122,255,.10)' },
+      { label: 'Membership',    href: '/my/membership', icon: CreditCard,   desc: 'Plans & subscriptions',          color: '#34C759', bg: 'rgba(52,199,89,.10)' },
+      { label: 'Ranking',       href: '/my/progress',   icon: Medal,        desc: 'Belt & grading history',         color: '#FF9500', bg: 'rgba(255,149,0,.10)' },
+      { label: 'Transactions',  href: '/my/payments',   icon: DollarSign,   desc: 'Payment history',                color: '#32ADE6', bg: 'rgba(50,173,230,.10)' },
     ],
   },
   {
     label: 'Account',
     items: [
-      { label: 'Settings',      href: '/my/settings',  icon: Settings,     desc: 'Notifications & preferences' },
-      { label: 'QR Check-in',  href: '/my/qr',        icon: QrCode,       desc: 'Show QR code to check in' },
-      { label: 'Help & Support',href: '/my/help',      icon: HelpCircle,   desc: 'Get help with your account' },
-      { label: 'Privacy',       href: '/my/privacy',   icon: Shield,       desc: 'Your data & permissions' },
+      { label: 'Settings',       href: '/my/settings', icon: Settings,    desc: 'Notifications & preferences',    color: '#6B6B70', bg: 'rgba(107,107,112,.10)' },
+      { label: 'QR Check-in',    href: '/my/qr',       icon: QrCode,      desc: 'Show QR code to check in',       color: '#007AFF', bg: 'rgba(0,122,255,.10)' },
+      { label: 'Help & Support', href: '/my/help',     icon: HelpCircle,  desc: 'Get help with your account',     color: '#FF9500', bg: 'rgba(255,149,0,.10)' },
+      { label: 'Privacy',        href: '/my/privacy',  icon: Shield,      desc: 'Your data & permissions',        color: '#5856D6', bg: 'rgba(88,86,214,.10)' },
     ],
   },
 ]
-
-const ICON_COLORS: Record<string, string> = {
-  CalendarDays: '#007AFF',
-  CreditCard:   '#34C759',
-  Medal:        '#FF9500',
-  DollarSign:   '#32ADE6',
-  Settings:     '#6B6B70',
-  QrCode:       '#007AFF',
-  HelpCircle:   '#FF9500',
-  Shield:       '#5856D6',
-}
-const ICON_BG: Record<string, string> = {
-  CalendarDays: 'rgba(0,122,255,.10)',
-  CreditCard:   'rgba(52,199,89,.10)',
-  Medal:        'rgba(255,149,0,.10)',
-  DollarSign:   'rgba(50,173,230,.10)',
-  Settings:     'rgba(107,107,112,.10)',
-  QrCode:       'rgba(0,122,255,.10)',
-  HelpCircle:   'rgba(255,149,0,.10)',
-  Shield:       'rgba(88,86,214,.10)',
-}
 
 export default function MyProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -207,9 +186,8 @@ export default function MyProfilePage() {
             <div className="mx-4 md:mx-6 rounded-2xl overflow-hidden" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)' }}>
               {section.items.map((item, ii) => {
                 const Icon = item.icon
-                const iconName = Icon.displayName ?? Icon.name ?? ''
-                const color = ICON_COLORS[iconName] ?? '#007AFF'
-                const bg    = ICON_BG[iconName]    ?? 'rgba(0,122,255,.10)'
+                const color = item.color
+                const bg    = item.bg
                 return (
                   <Link
                     key={item.href + item.label}
