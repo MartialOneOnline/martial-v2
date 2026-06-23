@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 45 completada ✅ — /my membership: buy plans, pause/cancel subscription + /my classes: passes & trials section
+**Estado:** Sesión 46 completada ✅ — Audit técnico completo del portal /my + V2 Replacement Readiness Risk Map
 
 ---
 
@@ -209,7 +209,7 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 |---|---|---|
 | `/my` | ✅ Live | Dashboard personal: escuelas, info personal, links a secciones |
 | `/my/profile` | ✅ Live | Editar nombre, teléfono, fecha de nacimiento — PATCH /api/my |
-| `/my/progress` | ⏳ Pendiente | Ranking / cinturón |
+| `/my/progress` | ⚠️ Partial | Grading history real; progress donut hardcoded al 75% — pendiente fix |
 | `/my/membership` | ✅ Live | Ver activas + pause/cancel + request new plan + historial |
 | `/my/classes` | ✅ Live | Horario + bookings + sección Passes & Trials |
 
@@ -230,20 +230,63 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 
 ## Próximos pasos
 
-1. **`/my/progress`** — página de progreso y cinturón del alumno (belts ya implementados en dashboard)
-2. **Stripe Checkout** — flujo de pago real para compra de membresías (actualmente flow de "request" manual)
-3. **Admin: aprobar membresías PENDING** — notificación al admin + acción de activar desde dashboard
-4. **Class images para otras 19 escuelas** — imágenes de V1 en el ZIP, solo Roger Gracie Málaga tiene imágenes en Supabase Storage
-5. **Disciplines faltantes** — nogi, mma, boxing, karate, muay-thai, judo, kickboxing tienen `disciplineId=null` en clases importadas
-6. **Color System — migración pendiente**: Payments page, Members table, transaction table, super admin pipeline
-7. **SSO OAuth** — configurar Google en Supabase
-8. **API deploy** — Railway o Render
-9. **Dominio propio** — conectar app.martialapp.online a Vercel
-10. **Email sending real** — conectar templates de Resend (welcome, trial confirmed, membership receipt ya implementados pero sin envío real)
+### Sprint 1 — Platform Safety (P0, antes de usuarios reales)
+1. **Auth middleware `/my/**`** — añadir protección server-side; actualmente sin middleware guard, solo 401s por API
+2. **Ownership audit completo** — recorrer toda la superficie PATCH/DELETE/POST con relaciones; verificar que `authenticatedUser.id === resource.ownerId` desde DB, nunca desde body
+3. **Booking atomicity** — `prisma.$transaction()` con capacity count *dentro* de la transacción (no antes)
+4. **Membership → SchoolMember sync** — cancelar/pausar una Membership debe actualizar `SchoolMember.status`
+
+### Sprint 2 — Business Rules (P1)
+5. **Class access filtering en `/api/my/school-classes`** — filtrar occurrences por membership activa + classAccess rules + créditos disponibles (no solo en POST booking)
+6. **Booking endpoint re-validación** — backend debe volver a validar elegibilidad aunque frontend ya filtre
+
+### Sprint 3 — Data & UX (P2-P3)
+7. **Eliminar `Membership.classesUsed` como source of truth** — única fuente: `count(Bookings where membershipId and status != CANCELLED)`
+8. **Progress donut** — eliminar porcentaje hardcodeado (0.75); mostrar belt + degree + última grading + próximo milestone
+9. **Currency fix en payments summary** — usar `School.currency`, no hardcodear EUR
+10. **Avatar upload** — conectar botón de cámara en `/my/profile` a Supabase Storage
+
+### Backlog
+11. **Stripe Checkout** — flujo de pago real para membresías (Fase 5)
+12. **Admin: aprobar membresías PENDING** — notificación al admin + acción de activar desde dashboard
+13. **Class images para otras 19 escuelas** — solo Roger Gracie Málaga tiene imágenes en Supabase Storage
+14. **Disciplines faltantes** — nogi, mma, boxing, karate, muay-thai, judo, kickboxing tienen `disciplineId=null`
+15. **Color System — migración pendiente**: Payments page, Members table, transaction table
+16. **SSO OAuth** — configurar Google en Supabase
+17. **API deploy** — Railway o Render
+18. **Dominio propio** — conectar app.martialapp.online a Vercel
+19. **Email sending real** — conectar templates de Resend (welcome, trial confirmed, membership receipt ya implementados pero sin envío real)
 
 ---
 
 ## Historial de sesiones
+
+### Sesión 46 — 2026-06-23 ✅
+**Audit técnico completo del portal /my + V2 Replacement Readiness Risk Map**
+
+Sesión de auditoría (sin modificación de código). Resultado: mapa de riesgo P0-P4 y sprint plan acordado para la migración V1 → V2.
+
+**Hallazgos principales del portal /my:**
+- Dashboard, Classes, Membership, Payments — funcionales con datos reales
+- Settings, QR, Help, Privacy — stubs ("Coming soon")
+- Progress donut — hardcodeado al 75% (`const progress = 0.75`), no calculado
+- Payments summary — moneda hardcodeada a EUR (`fmtPrice(totalSpent, 'EUR')`)
+- Avatar upload — botón UI presente, sin backend
+- `/api/my/school-classes` — no filtra por classAccess rules del plan
+- `Membership.classesUsed` — campo sin incremento en el código; conteo real viene de `count(Bookings)`
+
+**Blockers identificados para V1 replacement (P0):**
+1. Sin middleware auth en `/my/**` — páginas accesibles sin sesión server-side
+2. Ownership audit pendiente — superficie PATCH/DELETE/POST sin verificación sistemática
+3. Booking race condition — capacity check y create en 2 queries sin transaction
+4. Membership cancel no sincroniza `SchoolMember.status` — roster de escuela queda stale
+
+**V2 Replacement Readiness — criterio acordado:**
+> "No migramos cuando las pantallas están terminadas. Migramos cuando el sistema protege las relaciones del negocio."
+
+Sprint plan guardado en `CONTEXT.md > Próximos pasos` y en memory `project_v2_replacement_readiness.md`.
+
+---
 
 ### Sesión 45 — 2026-06-22 ✅
 **Student portal: buy memberships, pause/cancel, passes & trials**

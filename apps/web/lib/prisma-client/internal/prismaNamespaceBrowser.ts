@@ -257,6 +257,7 @@ export const SchoolScalarFieldEnum = {
   googlePlaceId: 'googlePlaceId',
   v1UserId: 'v1UserId',
   defaultBookingSettings: 'defaultBookingSettings',
+  cancelPolicy: 'cancelPolicy',
   stripeAccountId: 'stripeAccountId',
   parentId: 'parentId',
   parentRelationshipType: 'parentRelationshipType',
