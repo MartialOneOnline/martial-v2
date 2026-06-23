@@ -464,10 +464,13 @@ function CancelModal({ booking, onConfirm, onClose, cancelling }: {
 }) {
   const dateStr = new Date(booking.scheduledAt).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl">
-        <h2 className="text-base font-bold text-[#101828] mb-1">Cancel booking?</h2>
-        <p className="text-sm text-gray-500 mb-5">{booking.class.name} · {dateStr} at {fmtTime(booking.scheduledAt)}</p>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="w-full max-w-sm bg-white rounded-t-3xl sm:rounded-3xl px-6 pt-4 pb-28 sm:pb-6 shadow-2xl">
+        <div className="flex justify-center mb-4">
+          <div className="w-10 h-1 rounded-full bg-gray-200" />
+        </div>
+        <h2 className="text-base font-semibold text-[#1C1C1E] mb-1">Cancel booking?</h2>
+        <p className="text-sm text-gray-500 mb-6">{booking.class.name} · {dateStr} at {fmtTime(booking.scheduledAt)}</p>
         <div className="flex gap-3">
           <button onClick={onClose} disabled={cancelling}
             className="flex-1 py-3 rounded-2xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50">

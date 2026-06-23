@@ -139,6 +139,8 @@ export default function MyHomePage() {
   const [bookingId, setBookingId]   = useState<string | null>(null)
   const [activeDot, setActiveDot]   = useState(0)
   const [detailOcc, setDetailOcc]   = useState<Occurrence | null>(null)
+  const [cancelOcc, setCancelOcc]   = useState<Occurrence | null>(null)
+  const [cancelling, setCancelling] = useState(false)
   const [videoPlaying, setVideoPlaying] = useState(false)
   const carRef = useRef<HTMLDivElement>(null)
 
@@ -189,6 +191,27 @@ export default function MyHomePage() {
       }
     } finally {
       setBookingId(null)
+    }
+  }
+
+  async function cancelClass(occ: Occurrence) {
+    const booking = data?.user?.bookings?.find(
+      b => b.class.id === occ.classId && b.scheduledAt === occ.scheduledAt
+    )
+    if (!booking) return
+    setCancelling(true)
+    try {
+      const res = await fetch(`/api/my/bookings/${booking.id}`, { method: 'DELETE' })
+      if (res.ok) {
+        setOccurrences(prev => prev.map(o =>
+          o.classId === occ.classId && o.scheduledAt === occ.scheduledAt
+            ? { ...o, alreadyBooked: false, booked: Math.max(0, o.booked - 1) }
+            : o
+        ))
+        setCancelOcc(null)
+      }
+    } finally {
+      setCancelling(false)
     }
   }
 
@@ -386,14 +409,13 @@ export default function MyHomePage() {
                         Details
                       </button>
                       {occ.alreadyBooked ? (
-                        <Link
-                          href="/my/classes"
-                          prefetch={false}
+                        <button
+                          onClick={() => setCancelOcc(occ)}
                           className="flex-1 text-center text-xs font-medium rounded-lg"
-                          style={{ background: '#FFEBEE', color: '#C62828', padding: '6px 0', fontSize: 11.5 }}
+                          style={{ background: '#FFEBEE', color: '#C62828', padding: '6px 0', fontSize: 11.5, border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
                         >
                           Cancel
-                        </Link>
+                        </button>
                       ) : isFull ? (
                         <span
                           className="flex-1 text-center text-xs font-medium rounded-lg"
@@ -588,6 +610,48 @@ export default function MyHomePage() {
       )}
 
       </div>{/* end max-w-lg */}
+
+      {/* ── Cancel confirm modal ──────────────────────────────────────────── */}
+      {cancelOcc && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center"
+          style={{ background: 'rgba(0,0,0,.5)', backdropFilter: 'blur(4px)' }}
+          onClick={() => !cancelling && setCancelOcc(null)}
+        >
+          <div
+            className="w-full max-w-lg bg-white rounded-t-3xl shadow-2xl p-6 pb-28"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex justify-center mb-4">
+              <div className="w-10 h-1 rounded-full" style={{ background: '#E5E5EA' }} />
+            </div>
+            <h2 className="text-base font-semibold mb-1" style={{ color: '#1C1C1E' }}>Cancel booking?</h2>
+            <p className="text-sm mb-6" style={{ color: '#6B6B70' }}>
+              {cancelOcc.className} · {new Date(cancelOcc.scheduledAt).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })} at {new Date(cancelOcc.scheduledAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })}
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setCancelOcc(null)}
+                disabled={cancelling}
+                className="flex-1 py-3 rounded-2xl text-sm font-semibold disabled:opacity-50"
+                style={{ border: '1px solid #E5E5EA', color: '#6B6B70', background: 'none', fontFamily: 'inherit', cursor: 'pointer' }}
+              >
+                Keep it
+              </button>
+              <button
+                onClick={() => cancelClass(cancelOcc)}
+                disabled={cancelling}
+                className="flex-1 py-3 rounded-2xl text-sm font-semibold text-white disabled:opacity-50 flex items-center justify-center gap-2"
+                style={{ background: '#EF4444', border: 'none', fontFamily: 'inherit', cursor: 'pointer' }}
+              >
+                {cancelling
+                  ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
+                  : 'Cancel booking'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Class detail bottom sheet ──────────────────────────────────────── */}
       {detailOcc && (
