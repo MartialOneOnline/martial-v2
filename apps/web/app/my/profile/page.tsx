@@ -3,10 +3,10 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
-  CalendarDays, CreditCard, Award, DollarSign,
-  Settings, HelpCircle, Shield, QrCode, ChevronRight,
-  Camera, LogOut, School, Medal, BookOpen,
+  CalendarDays, CreditCard, DollarSign, ChevronRight,
+  Camera, LogOut, Medal, Settings, HelpCircle, Shield, QrCode,
 } from 'lucide-react'
+import { getBeltImage } from '../../../lib/belts'
 
 type Profile = {
   name: string | null
@@ -14,41 +14,60 @@ type Profile = {
   phone: string | null
   dateOfBirth: string | null
   avatarUrl: string | null
-  role: string
-  memberships: { status: string }[]
+  memberships: { status: string; planName: string }[]
   bookings: unknown[]
   schoolMembers: { belt: string | null; beltDegree: number | null }[]
   gradings: unknown[]
 }
 
-const MENU_SECTIONS = [
+const MENU: { label?: string; items: { label: string; href: string; icon: React.ElementType; desc: string }[] }[] = [
   {
     items: [
-      { label: 'My Classes',    href: '/my/classes',    icon: CalendarDays,  desc: 'Upcoming & past bookings' },
-      { label: 'Membership',    href: '/my/membership', icon: CreditCard,    desc: 'Plans & subscriptions' },
-      { label: 'Ranking',       href: '/my/progress',   icon: Medal,         desc: 'Belts & grading history' },
-      { label: 'Transactions',  href: '/my/payments',   icon: DollarSign,    desc: 'Payment history' },
+      { label: 'My Classes',   href: '/my/classes',    icon: CalendarDays, desc: 'Upcoming & past bookings' },
+      { label: 'Membership',   href: '/my/membership', icon: CreditCard,   desc: 'Plans & subscriptions' },
+      { label: 'Ranking',      href: '/my/progress',   icon: Medal,        desc: 'Belt & grading history' },
+      { label: 'Transactions', href: '/my/payments',   icon: DollarSign,   desc: 'Payment history' },
     ],
   },
   {
     label: 'Account',
     items: [
-      { label: 'Settings',         href: '/my/settings',  icon: Settings,     desc: 'Notifications & preferences' },
-      { label: 'QR Code Scanner',  href: '/my/qr',        icon: QrCode,       desc: 'Scan to check in' },
-      { label: 'Payment Method',   href: '/my/payments',  icon: CreditCard,   desc: 'Manage payment methods' },
-      { label: 'Help & Support',   href: '/my/help',      icon: HelpCircle,   desc: 'Get help' },
-      { label: 'Privacy',          href: '/my/privacy',   icon: Shield,       desc: 'Privacy & permissions' },
+      { label: 'Settings',      href: '/my/settings',  icon: Settings,     desc: 'Notifications & preferences' },
+      { label: 'QR Check-in',  href: '/my/qr',        icon: QrCode,       desc: 'Show QR code to check in' },
+      { label: 'Help & Support',href: '/my/help',      icon: HelpCircle,   desc: 'Get help with your account' },
+      { label: 'Privacy',       href: '/my/privacy',   icon: Shield,       desc: 'Your data & permissions' },
     ],
   },
 ]
 
+const ICON_COLORS: Record<string, string> = {
+  CalendarDays: '#007AFF',
+  CreditCard:   '#34C759',
+  Medal:        '#FF9500',
+  DollarSign:   '#32ADE6',
+  Settings:     '#6B6B70',
+  QrCode:       '#007AFF',
+  HelpCircle:   '#FF9500',
+  Shield:       '#5856D6',
+}
+const ICON_BG: Record<string, string> = {
+  CalendarDays: 'rgba(0,122,255,.10)',
+  CreditCard:   'rgba(52,199,89,.10)',
+  Medal:        'rgba(255,149,0,.10)',
+  DollarSign:   'rgba(50,173,230,.10)',
+  Settings:     'rgba(107,107,112,.10)',
+  QrCode:       'rgba(0,122,255,.10)',
+  HelpCircle:   'rgba(255,149,0,.10)',
+  Shield:       'rgba(88,86,214,.10)',
+}
+
 export default function MyProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [editing, setEditing] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
+  const [loading, setLoading]  = useState(true)
+  const [editing, setEditing]  = useState(false)
+  const [saving, setSaving]    = useState(false)
+  const [name, setName]        = useState('')
+  const [phone, setPhone]      = useState('')
 
   useEffect(() => {
     fetch('/api/my')
@@ -63,197 +82,176 @@ export default function MyProfilePage() {
       .catch(() => setLoading(false))
   }, [])
 
-  const initials = (profile?.name || profile?.email || 'U').slice(0, 2).toUpperCase()
-  const activeMemberships = profile?.memberships?.filter(m => m.status === 'ACTIVE').length ?? 0
-  const totalClasses = profile?.bookings?.length ?? 0
-  const currentBelt = profile?.schoolMembers?.[0]?.belt
+  async function handleSave() {
+    setSaving(true)
+    await fetch('/api/my', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, phone }),
+    }).catch(() => {})
+    setProfile(p => p ? { ...p, name, phone } : p)
+    setSaving(false)
+    setEditing(false)
+  }
+
+  const initials        = (profile?.name || profile?.email || 'U').slice(0, 2).toUpperCase()
+  const activePlan      = profile?.memberships?.find(m => m.status === 'ACTIVE')
+  const totalClasses    = profile?.bookings?.length ?? 0
+  const member          = profile?.schoolMembers?.[0]
+  const beltImg         = member?.belt ? getBeltImage(member.belt, member.beltDegree ?? 0) : null
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen" style={{ background: '#F2F2F7' }}>
+        <div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#007AFF', borderTopColor: 'transparent' }} />
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-4" style={{ background: '#F2F2F7' }}>
+      <div className="max-w-lg mx-auto">
 
-      {/* ── Header ── */}
-      <div className="bg-white border-b border-gray-100 px-5 py-4 sticky top-0 z-10 flex items-center justify-between">
-        <h1 className="text-base font-bold text-[#101828]">Profile</h1>
-        <button
-          onClick={async () => {
-            if (editing) {
-              setSaving(true)
-              await fetch('/api/my', {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, phone }),
-              })
-              setProfile(p => p ? { ...p, name, phone } : p)
-              setSaving(false)
-            }
-            setEditing(e => !e)
-          }}
-          className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${
-            editing
-              ? 'bg-[#0870E2] text-white'
-              : 'text-[#0870E2] hover:bg-[#0870E2]/8'
-          }`}
-        >
-          {saving ? 'Saving…' : editing ? 'Save' : 'Edit'}
-        </button>
-      </div>
-
-      {loading ? (
-        <div className="flex items-center justify-center h-60">
-          <div className="w-5 h-5 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />
+        {/* ── Page header ── */}
+        <div className="px-4 md:px-6 pt-4 md:pt-7 pb-2 flex items-center justify-between">
+          <div>
+            <p className="text-xs" style={{ color: '#6B6B70' }}>Student portal</p>
+            <h1 className="text-2xl font-semibold tracking-tight" style={{ color: '#1C1C1E', letterSpacing: '-0.5px' }}>Profile</h1>
+          </div>
+          <button
+            onClick={editing ? handleSave : () => setEditing(true)}
+            className="text-sm font-medium px-4 py-1.5 rounded-full transition-colors"
+            style={editing
+              ? { background: '#007AFF', color: '#fff' }
+              : { background: 'rgba(0,122,255,.10)', color: '#007AFF' }}
+          >
+            {saving ? 'Saving…' : editing ? 'Save' : 'Edit'}
+          </button>
         </div>
-      ) : (
-        <>
-          {/* ── Profile card ── */}
-          <div className="bg-white border-b border-gray-100 px-5 py-6">
-            <div className="flex items-center gap-4">
-              {/* Avatar */}
-              <div className="relative shrink-0">
-                {profile?.avatarUrl ? (
-                  <img src={profile.avatarUrl} alt="" className="w-16 h-16 rounded-full object-cover" />
-                ) : (
-                  <div className="w-16 h-16 rounded-full bg-[#0870E2]/10 flex items-center justify-center text-[#0870E2] font-bold text-xl">
-                    {initials}
-                  </div>
-                )}
-                {editing && (
-                  <button className="absolute bottom-0 right-0 w-6 h-6 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-sm">
-                    <Camera className="w-3 h-3 text-gray-500" />
-                  </button>
-                )}
-              </div>
 
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                {editing ? (
-                  <input
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                    className="w-full text-base font-bold text-[#101828] bg-gray-50 rounded-lg px-3 py-1.5 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#0870E2]/20 focus:border-[#0870E2]"
-                  />
-                ) : (
-                  <p className="text-base font-bold text-[#101828] truncate">{profile?.name || 'Add your name'}</p>
-                )}
-                <p className="text-xs text-gray-400 mt-0.5 truncate">{profile?.email}</p>
-                {profile?.phone && (
-                  <p className="text-xs text-gray-400 mt-0.5">{profile.phone}</p>
-                )}
-              </div>
+        {/* ── Avatar + name card ── */}
+        <div className="mx-4 md:mx-6 mt-3 mb-4 rounded-2xl p-5" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)' }}>
+          <div className="flex items-center gap-4 mb-5">
+            <div className="relative shrink-0">
+              {profile?.avatarUrl ? (
+                <img src={profile.avatarUrl} alt="" className="w-16 h-16 rounded-full object-cover" />
+              ) : (
+                <div className="w-16 h-16 rounded-full flex items-center justify-center text-xl font-semibold" style={{ background: 'rgba(0,122,255,.12)', color: '#007AFF' }}>
+                  {initials}
+                </div>
+              )}
+              {editing && (
+                <button className="absolute bottom-0 right-0 w-6 h-6 bg-white rounded-full flex items-center justify-center" style={{ boxShadow: '0 1px 4px rgba(0,0,0,.18)' }}>
+                  <Camera className="w-3 h-3" style={{ color: '#6B6B70' }} />
+                </button>
+              )}
             </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-3 mt-5">
-              {[
-                { label: 'Memberships', value: activeMemberships, href: '/my/membership' },
-                { label: 'Classes',     value: totalClasses,       href: '/my/classes' },
-                { label: 'Current belt', value: currentBelt?.split(' ')[0] ?? '—', href: '/my/progress' },
-              ].map(({ label, value, href }) => (
-                <Link
-                  key={label}
-                  href={href}
-                  className="bg-[#F8F9FB] rounded-xl p-3 text-center hover:bg-[#0870E2]/5 transition-colors"
-                >
-                  <p className="text-lg font-bold text-[#101828]">{value}</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">{label}</p>
-                </Link>
-              ))}
-            </div>
-
-            {/* Action buttons */}
-            <div className="grid grid-cols-2 gap-2 mt-3">
-              <button className="py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
-                Share Profile
-              </button>
-              <Link
-                href="/explore"
-                className="py-2.5 rounded-xl bg-[#0870E2] text-white text-xs font-semibold text-center hover:bg-[#005580] transition-colors"
-              >
-                Find Academies
-              </Link>
+            <div className="flex-1 min-w-0">
+              {editing ? (
+                <input
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  placeholder="Your name"
+                  className="w-full text-base font-semibold rounded-xl px-3 py-2 mb-1 focus:outline-none"
+                  style={{ border: '1px solid #E5E5EA', color: '#1C1C1E', fontSize: 16 }}
+                />
+              ) : (
+                <p className="text-base font-semibold truncate mb-0.5" style={{ color: '#1C1C1E' }}>{profile?.name || 'Add your name'}</p>
+              )}
+              <p className="text-xs truncate" style={{ color: '#6B6B70' }}>{profile?.email}</p>
+              {!editing && profile?.phone && (
+                <p className="text-xs mt-0.5" style={{ color: '#6B6B70' }}>{profile.phone}</p>
+              )}
+              {editing && (
+                <input
+                  value={phone}
+                  onChange={e => setPhone(e.target.value)}
+                  placeholder="Phone number"
+                  type="tel"
+                  className="w-full rounded-xl px-3 py-2 mt-1 focus:outline-none text-sm"
+                  style={{ border: '1px solid #E5E5EA', color: '#1C1C1E' }}
+                />
+              )}
             </div>
           </div>
 
-          {/* ── Personal info (editable) ── */}
-          {editing && (
-            <div className="bg-white border-b border-gray-100 px-5 py-4 space-y-3">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Personal details</p>
-              {[
-                { label: 'Email', value: profile?.email ?? '', disabled: true, type: 'email', readOnly: true },
-                { label: 'Phone', value: phone, disabled: false, type: 'tel', readOnly: false },
-                { label: 'Date of birth', value: profile?.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString('en-GB') : '', disabled: true, type: 'text', readOnly: true },
-              ].map(({ label, value, disabled, type, readOnly }) => (
-                <div key={label}>
-                  <label className="text-[11px] font-semibold text-gray-400 mb-1 block">{label}</label>
-                  <input
-                    type={type}
-                    value={value}
-                    readOnly={readOnly}
-                    onChange={!readOnly && label === 'Phone' ? e => setPhone(e.target.value) : undefined}
-                    disabled={disabled}
-                    className={`w-full h-10 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-[#0870E2]/20 focus:border-[#0870E2] transition-colors ${
-                      disabled
-                        ? 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed'
-                        : 'border-gray-200 text-gray-700'
-                    }`}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* ── Menu sections ── */}
-          {MENU_SECTIONS.map((section, si) => (
-            <div key={si} className="mt-2">
-              {section.label && (
-                <p className="px-5 pt-4 pb-2 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">
-                  {section.label}
-                </p>
+          {/* Belt + stats row */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="rounded-xl p-3 text-center" style={{ background: '#F2F2F7' }}>
+              {beltImg ? (
+                <img src={beltImg} alt={member?.belt ?? ''} className="h-4 w-auto mx-auto mb-1 object-contain" />
+              ) : (
+                <p className="text-lg font-semibold mb-1" style={{ color: '#1C1C1E' }}>—</p>
               )}
-              <div className="bg-white border-y border-gray-100">
-                {section.items.map((item, ii) => {
-                  const Icon = item.icon
-                  return (
-                    <Link
-                      key={item.href + item.label}
-                      href={item.href}
-                      className={`flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors ${
-                        ii < section.items.length - 1 ? 'border-b border-gray-50' : ''
-                      }`}
-                    >
-                      <div className="w-8 h-8 rounded-xl bg-[#0870E2]/8 flex items-center justify-center shrink-0">
-                        <Icon className="w-4 h-4 text-[#0870E2]" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-[#101828]">{item.label}</p>
-                        <p className="text-[11px] text-gray-400 mt-0.5">{item.desc}</p>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />
-                    </Link>
-                  )
-                })}
-              </div>
+              <p className="text-[10px]" style={{ color: '#6B6B70' }}>Belt</p>
             </div>
-          ))}
-
-          {/* ── Sign out ── */}
-          <div className="px-5 py-4 mt-2">
-            <Link
-              href="/api/auth/signout"
-              className="flex items-center gap-3 px-4 py-3 rounded-xl border border-red-100 text-red-500 hover:bg-red-50 transition-colors"
-            >
-              <LogOut className="w-4 h-4 shrink-0" />
-              <span className="text-sm font-semibold">Sign out</span>
+            <Link href="/my/classes" className="rounded-xl p-3 text-center" style={{ background: '#F2F2F7' }}>
+              <p className="text-lg font-semibold mb-1" style={{ color: '#1C1C1E' }}>{totalClasses}</p>
+              <p className="text-[10px]" style={{ color: '#6B6B70' }}>Classes</p>
+            </Link>
+            <Link href="/my/membership" className="rounded-xl p-3 text-center" style={{ background: '#F2F2F7' }}>
+              <p className="text-lg font-semibold mb-1" style={{ color: activePlan ? '#34C759' : '#1C1C1E' }}>{activePlan ? '●' : '—'}</p>
+              <p className="text-[10px]" style={{ color: '#6B6B70' }}>Member</p>
             </Link>
           </div>
+        </div>
 
-          {/* ── Danger zone ── */}
-          <div className="px-5 pb-8">
-            <button className="text-xs text-gray-400 hover:text-red-400 transition-colors underline underline-offset-2">
-              Delete account
-            </button>
+        {/* ── Menu sections ── */}
+        {MENU.map((section, si) => (
+          <div key={si} className="mb-4">
+            {section.label && (
+              <p className="px-4 md:px-6 pb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: '#6B6B70' }}>
+                {section.label}
+              </p>
+            )}
+            <div className="mx-4 md:mx-6 rounded-2xl overflow-hidden" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)' }}>
+              {section.items.map((item, ii) => {
+                const Icon = item.icon
+                const iconName = Icon.displayName ?? Icon.name ?? ''
+                const color = ICON_COLORS[iconName] ?? '#007AFF'
+                const bg    = ICON_BG[iconName]    ?? 'rgba(0,122,255,.10)'
+                return (
+                  <Link
+                    key={item.href + item.label}
+                    href={item.href}
+                    className="flex items-center gap-4 px-4 py-3.5 transition-colors active:bg-gray-50"
+                    style={ii < section.items.length - 1 ? { borderBottom: '0.5px solid rgba(60,60,67,.12)' } : {}}
+                  >
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: bg }}>
+                      <Icon className="w-4.5 h-4.5" style={{ color, width: 18, height: 18 }} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium" style={{ color: '#1C1C1E' }}>{item.label}</p>
+                      <p className="text-[11px] mt-0.5" style={{ color: '#6B6B70' }}>{item.desc}</p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 shrink-0" style={{ color: '#C7C7CC' }} />
+                  </Link>
+                )
+              })}
+            </div>
           </div>
-        </>
-      )}
+        ))}
+
+        {/* ── Sign out ── */}
+        <div className="mx-4 md:mx-6 mb-2 rounded-2xl overflow-hidden" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)' }}>
+          <button
+            onClick={() => { window.location.href = '/api/auth/signout' }}
+            className="w-full flex items-center gap-4 px-4 py-3.5 transition-colors active:bg-red-50"
+          >
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(255,59,48,.10)' }}>
+              <LogOut className="w-4.5 h-4.5" style={{ color: '#FF3B30', width: 18, height: 18 }} />
+            </div>
+            <span className="text-sm font-medium" style={{ color: '#FF3B30' }}>Sign out</span>
+          </button>
+        </div>
+
+        <div className="text-center py-4">
+          <button className="text-xs" style={{ color: '#AEAEB2', background: 'none', border: 'none', cursor: 'pointer' }}>
+            Delete account
+          </button>
+        </div>
+
+      </div>
     </div>
   )
 }
