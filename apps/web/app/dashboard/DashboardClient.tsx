@@ -848,6 +848,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
       {detailClass && (
         <ClassDetailPopup
           cls={detailClass}
+          date={(() => { const d = new Date(); d.setDate(d.getDate() + activeDay); return d.toISOString().slice(0, 10) })()}
           onClose={() => setDetailClass(null)}
         />
       )}
