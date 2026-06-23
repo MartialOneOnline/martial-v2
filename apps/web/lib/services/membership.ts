@@ -190,26 +190,86 @@ export async function assignPlan(input: AssignPlanInput) {
 
 /**
  * Cancel an active membership (soft cancel — keeps the record).
+ *
+ * Respects the school's cancelPolicy:
+ * - IMMEDIATE: access ends now → Membership CANCELLED + SchoolMember INACTIVE
+ * - UNTIL_END_OF_PERIOD: marks cancelledAt but keeps Membership ACTIVE until endDate.
+ *   SchoolMember transitions to INACTIVE lazily when endDate passes (checkAndExpireMembership).
+ *
+ * TRIAL plans always cancel immediately regardless of school policy.
  */
 export async function cancelMembership(input: CancelMembershipInput) {
   const { membershipId, schoolId, reason } = input
 
   const membership = await prisma.membership.findFirst({
     where: { id: membershipId, schoolId },
+    include: {
+      plan: { select: { planType: true } },
+      school: { select: { cancelPolicy: true } },
+    },
   })
   if (!membership) throw new Error('Membership not found')
   if (membership.status === MembershipStatus.CANCELLED) throw new Error('Already cancelled')
 
-  return prisma.membership.update({
+  const isTrial = membership.plan?.planType === 'TRIAL'
+  const policy = membership.school?.cancelPolicy ?? 'IMMEDIATE'
+  const immediate = isTrial || policy === 'IMMEDIATE' || !membership.endDate
+
+  const updatedNotes = reason
+    ? [membership.notes, `Cancelled: ${reason}`].filter(Boolean).join(' | ')
+    : membership.notes
+
+  if (immediate) {
+    await prisma.$transaction(async (tx) => {
+      await tx.membership.update({
+        where: { id: membershipId },
+        data: { status: MembershipStatus.CANCELLED, cancelledAt: new Date(), notes: updatedNotes },
+      })
+      await tx.schoolMember.updateMany({
+        where: { userId: membership.userId, schoolId },
+        data: { status: 'INACTIVE' },
+      })
+    })
+  } else {
+    // Netflix model: mark intent, keep access until endDate
+    await prisma.membership.update({
+      where: { id: membershipId },
+      data: { cancelledAt: new Date(), notes: updatedNotes },
+    })
+  }
+
+  return prisma.membership.findUnique({ where: { id: membershipId } })
+}
+
+/**
+ * Lazy expiration check — call at any access-verification point.
+ *
+ * If the membership has cancelledAt set and its endDate has passed,
+ * transitions it to CANCELLED and marks SchoolMember INACTIVE.
+ * Returns true if the membership is expired (no longer has access).
+ */
+export async function checkAndExpireMembership(membershipId: string): Promise<boolean> {
+  const membership = await prisma.membership.findUnique({
     where: { id: membershipId },
-    data: {
-      status: MembershipStatus.CANCELLED,
-      cancelledAt: new Date(),
-      notes: reason
-        ? [membership.notes, `Cancelled: ${reason}`].filter(Boolean).join(' | ')
-        : membership.notes,
-    },
+    select: { id: true, userId: true, schoolId: true, status: true, cancelledAt: true, endDate: true },
   })
+  if (!membership) return true
+  if (membership.status === MembershipStatus.CANCELLED) return true
+  if (!membership.cancelledAt || !membership.endDate) return false
+  if (membership.endDate > new Date()) return false
+
+  await prisma.$transaction(async (tx) => {
+    await tx.membership.update({
+      where: { id: membershipId },
+      data: { status: MembershipStatus.CANCELLED },
+    })
+    await tx.schoolMember.updateMany({
+      where: { userId: membership.userId, schoolId: membership.schoolId },
+      data: { status: 'INACTIVE' },
+    })
+  })
+
+  return true
 }
 
 /**

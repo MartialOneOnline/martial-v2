@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
 import { MembershipStatus, PaymentMethod } from '@/lib/prisma-client/client'
+import { cancelMembership } from '@/lib/services/membership'
 
 async function getDbUser(authId: string) {
   return prisma.user.findUnique({ where: { supabaseAuthId: authId }, select: { id: true } })
@@ -25,7 +26,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const membership = await prisma.membership.findUnique({
     where: { id },
-    select: { id: true, userId: true, status: true, planId: true },
+    select: { id: true, userId: true, schoolId: true, status: true, planId: true },
   })
   if (!membership || membership.userId !== dbUser.id)
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -40,16 +41,28 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (!allowed[action]?.includes(membership.status))
     return NextResponse.json({ error: `Cannot ${action} a ${membership.status} membership` }, { status: 400 })
 
-  const newStatus = action === 'pause' ? 'PAUSED' : action === 'cancel' ? 'CANCELLED' : 'ACTIVE'
-  const updated = await prisma.membership.update({
-    where: { id },
-    data: {
-      status: newStatus,
-      cancelledAt: action === 'cancel' ? new Date() : undefined,
-    },
+  if (action === 'cancel') {
+    // Delegates to service — respects school cancelPolicy + syncs SchoolMember
+    const updated = await cancelMembership({ membershipId: id, schoolId: membership.schoolId })
+    return NextResponse.json({ status: updated?.status })
+  }
+
+  // pause / resume — sync SchoolMember status atomically
+  const newMembershipStatus = action === 'pause' ? MembershipStatus.PAUSED : MembershipStatus.ACTIVE
+  const newMemberStatus = action === 'pause' ? 'FROZEN' : 'ACTIVE'
+
+  await prisma.$transaction(async (tx) => {
+    await tx.membership.update({
+      where: { id },
+      data: { status: newMembershipStatus },
+    })
+    await tx.schoolMember.updateMany({
+      where: { userId: membership.userId, schoolId: membership.schoolId },
+      data: { status: newMemberStatus },
+    })
   })
 
-  return NextResponse.json({ status: updated.status })
+  return NextResponse.json({ status: newMembershipStatus })
 }
 
 // POST /api/my/memberships/[id] — request a plan (create PENDING membership)

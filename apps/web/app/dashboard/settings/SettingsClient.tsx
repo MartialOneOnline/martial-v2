@@ -493,6 +493,7 @@ const PAYMENT_METHODS = [
 
 function PaymentsTab() {
   const [acceptedMethods, setAcceptedMethods] = useState<string[]>(['CASH', 'STRIPE', 'BANK_TRANSFER'])
+  const [cancelPolicy,  setCancelPolicy]  = useState<'IMMEDIATE' | 'UNTIL_END_OF_PERIOD'>('IMMEDIATE')
   const [autoCharge,    setAutoCharge]    = useState(true)
   const [invoiceEmails, setInvoiceEmails] = useState(true)
   const [receiptEmails, setReceiptEmails] = useState(true)
@@ -503,6 +504,7 @@ function PaymentsTab() {
     fetch('/api/dashboard/school').then(r => r.json()).then(d => {
       const s = d.school?.defaultBookingSettings
       if (s?.acceptedMethods?.length) setAcceptedMethods(s.acceptedMethods)
+      if (d.school?.cancelPolicy) setCancelPolicy(d.school.cancelPolicy)
     })
   }, [])
 
@@ -511,7 +513,11 @@ function PaymentsTab() {
   }
 
   async function save() {
-    await fetch('/api/dashboard/school', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ defaultBookingSettings: { acceptedMethods } }) })
+    await fetch('/api/dashboard/school', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ defaultBookingSettings: { acceptedMethods }, cancelPolicy }),
+    })
     setSaved(true); setTimeout(() => setSaved(false), 2000)
   }
 
@@ -560,6 +566,60 @@ function PaymentsTab() {
                   color: active ? '#0870E2' : '#6B7280' }}>
                 {active && <Check size={11} strokeWidth={3} style={{ color: '#0870E2' }} />}
                 {m.label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      <hr style={DIVIDER} />
+
+      {/* Cancellation policy */}
+      <div>
+        <p style={SECTION_TITLE}>Cancellation policy</p>
+        <p style={SECTION_SUB}>How member access is handled when a paid subscription is cancelled</p>
+        <div className="flex flex-col gap-3 mt-3">
+          {([
+            {
+              value: 'IMMEDIATE',
+              label: 'Immediate',
+              description: 'Access ends on the day of cancellation',
+            },
+            {
+              value: 'UNTIL_END_OF_PERIOD',
+              label: 'Until end of period',
+              description: 'Member retains access until their billing period expires (e.g. Netflix model)',
+            },
+          ] as const).map(opt => {
+            const active = cancelPolicy === opt.value
+            return (
+              <button
+                key={opt.value}
+                onClick={() => setCancelPolicy(opt.value)}
+                style={{
+                  display: 'flex', alignItems: 'flex-start', gap: 14,
+                  padding: '14px 16px', borderRadius: 14, cursor: 'pointer', textAlign: 'left',
+                  border: `1.5px solid ${active ? '#0870E2' : '#E5E7EB'}`,
+                  background: active ? '#EFF6FF' : '#F9FAFB',
+                  transition: 'all 0.15s',
+                }}
+              >
+                <span style={{
+                  width: 18, height: 18, borderRadius: '50%', flexShrink: 0, marginTop: 1,
+                  border: `2px solid ${active ? '#0870E2' : '#D1D5DB'}`,
+                  background: active ? '#0870E2' : 'transparent',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {active && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#fff' }} />}
+                </span>
+                <span>
+                  <span style={{ display: 'block', fontSize: 14, fontWeight: 600, color: active ? '#0870E2' : '#111827' }}>
+                    {opt.label}
+                  </span>
+                  <span style={{ display: 'block', fontSize: 12, color: '#6B7280', marginTop: 2 }}>
+                    {opt.description}
+                  </span>
+                </span>
               </button>
             )
           })}

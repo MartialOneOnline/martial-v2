@@ -416,6 +416,11 @@ model School {
   // Booking defaults — inherited by all classes unless overridden per-class
   defaultBookingSettings Json @default("{}")
 
+  // Cancellation policy — how access is handled after a student cancels a paid membership
+  // IMMEDIATE: access ends the day of cancellation
+  // UNTIL_END_OF_PERIOD: student retains access until the membership's endDate (Netflix model)
+  cancelPolicy String @default("IMMEDIATE")
+
   // Stripe
   stripeAccountId String?
 

@@ -47,6 +47,7 @@ export async function GET(req: NextRequest) {
       tiktok: true,
       language: true,
       defaultBookingSettings: true,
+      cancelPolicy: true,
       stripeAccountId: true,
     },
   })
@@ -78,9 +79,10 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json()
   const { language, name, phone, email, website, instagram, facebook, youtube, tiktok,
           description, tagline, address, postcode, city, country, logoUrl,
-          defaultBookingSettings } = body
+          defaultBookingSettings, cancelPolicy } = body
 
   const VALID_LANGS = ['en', 'es', 'pt', 'fr']
+  const VALID_CANCEL_POLICIES = ['IMMEDIATE', 'UNTIL_END_OF_PERIOD']
 
   const updated = await prisma.school.update({
     where: { id: schoolId },
@@ -102,8 +104,9 @@ export async function PATCH(req: NextRequest) {
       ...(country     !== undefined && { country:     country?.trim()     || null }),
       ...(logoUrl                !== undefined && { logoUrl: logoUrl?.trim() || null }),
       ...(defaultBookingSettings !== undefined && { defaultBookingSettings }),
+      ...(cancelPolicy !== undefined && VALID_CANCEL_POLICIES.includes(cancelPolicy) && { cancelPolicy }),
     },
-    select: { id: true, language: true, name: true },
+    select: { id: true, language: true, name: true, cancelPolicy: true },
   })
 
   return NextResponse.json({ school: updated })
