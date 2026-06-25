@@ -44,24 +44,33 @@ export async function GET() {
   const usageMap = Object.fromEntries(usageCounts.map(u => [u.membershipId, u._count.id]))
 
   return NextResponse.json({
-    memberships: memberships.map(m => ({
-      id: m.id,
-      planName: m.plan?.name ?? m.planName,
-      planType: m.plan?.planType ?? 'SUBSCRIPTION',
-      billingCycle: m.plan?.billingCycle ?? null,
-      validityDays: m.plan?.validityDays ?? null,
-      imageUrl: m.plan?.imageUrl ?? null,
-      classAccess: m.plan?.classAccess ?? {},
-      price: Number(m.price),
-      currency: m.currency,
-      paymentMethod: m.paymentMethod,
-      status: m.status,
-      startDate: m.startDate.toISOString(),
-      endDate: m.endDate?.toISOString() ?? null,
-      cancelledAt: m.cancelledAt?.toISOString() ?? null,
-      consumed: usageMap[m.id] ?? m.classesUsed,
-      notes: m.notes,
-      school: m.school,
-    })),
+    memberships: memberships.map(m => {
+      const classAccess = m.plan?.classAccess as { globalLimit?: string; globalLimitType?: string } | null
+      const totalAllowed =
+        classAccess?.globalLimitType === 'TOTAL' && classAccess?.globalLimit
+          ? parseInt(classAccess.globalLimit, 10) || null
+          : null
+
+      return {
+        id: m.id,
+        planName: m.plan?.name ?? m.planName,
+        planType: m.plan?.planType ?? 'SUBSCRIPTION',
+        billingCycle: m.plan?.billingCycle ?? null,
+        validityDays: m.plan?.validityDays ?? null,
+        imageUrl: m.plan?.imageUrl ?? null,
+        classAccess: m.plan?.classAccess ?? {},
+        price: Number(m.price),
+        currency: m.currency,
+        paymentMethod: m.paymentMethod,
+        status: m.status,
+        startDate: m.startDate.toISOString(),
+        endDate: m.endDate?.toISOString() ?? null,
+        cancelledAt: m.cancelledAt?.toISOString() ?? null,
+        consumed: usageMap[m.id] ?? 0,
+        totalAllowed,
+        notes: m.notes,
+        school: m.school,
+      }
+    }),
   })
 }

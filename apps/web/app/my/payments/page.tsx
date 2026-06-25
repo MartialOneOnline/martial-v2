@@ -42,6 +42,7 @@ export default function MyPaymentsPage() {
   useEffect(() => { load() }, [load])
 
   const totalSpent = transactions.reduce((acc, t) => acc + t.amount, 0)
+  const summaryCurrency = transactions[0]?.currency ?? 'EUR'
 
   return (
     <div className="min-h-screen">
@@ -55,7 +56,7 @@ export default function MyPaymentsPage() {
         {transactions.length > 0 && (
           <div className="bg-[#0870E2] rounded-2xl p-5 text-white">
             <p className="text-xs font-semibold opacity-70 uppercase tracking-wide mb-1">Total this page</p>
-            <p className="text-3xl font-bold">{fmtPrice(totalSpent, 'EUR')}</p>
+            <p className="text-3xl font-bold">{fmtPrice(totalSpent, summaryCurrency)}</p>
             <p className="text-sm opacity-70 mt-0.5">{transactions.length} transactions</p>
           </div>
         )}

@@ -26,7 +26,7 @@ interface ClassAccessRule {
 interface ClassAccessConfig {
   classRules: ClassAccessRule[]
   globalLimit: string
-  globalLimitType: 'PER_WEEK' | 'PER_MONTH'
+  globalLimitType: 'PER_WEEK' | 'PER_MONTH' | 'TOTAL'
 }
 
 interface PlanRow {
@@ -68,7 +68,7 @@ interface PlanForm {
   stripePriceId: string
   classRules: ClassAccessRule[]
   globalLimit: string
-  globalLimitType: 'PER_WEEK' | 'PER_MONTH'
+  globalLimitType: 'PER_WEEK' | 'PER_MONTH' | 'TOTAL'
 }
 
 interface PlanMember {
@@ -301,8 +301,8 @@ function ClassAccessBuilder({
   classes: ClassOption[]
   onChange: (rules: ClassAccessRule[]) => void
   globalLimit: string
-  globalLimitType: 'PER_WEEK' | 'PER_MONTH'
-  onGlobalChange: (limit: string, type: 'PER_WEEK' | 'PER_MONTH') => void
+  globalLimitType: 'PER_WEEK' | 'PER_MONTH' | 'TOTAL'
+  onGlobalChange: (limit: string, type: 'PER_WEEK' | 'PER_MONTH' | 'TOTAL') => void
 }) {
   function updateRule(classId: string, patch: Partial<ClassAccessRule>) {
     onChange(classRules.map(r => r.classId === classId ? { ...r, ...patch } : r))
@@ -372,10 +372,11 @@ function ClassAccessBuilder({
           onChange={e => onGlobalChange(e.target.value.replace(/\D/g, ''), globalLimitType)}
           style={{ width: 60, border: '1px solid #E5E7EB', borderRadius: 8, padding: '5px 8px', fontSize: 13, textAlign: 'center', outline: 'none' }} />
         <select value={globalLimitType}
-          onChange={e => onGlobalChange(globalLimit, e.target.value as 'PER_WEEK' | 'PER_MONTH')}
+          onChange={e => onGlobalChange(globalLimit, e.target.value as 'PER_WEEK' | 'PER_MONTH' | 'TOTAL')}
           style={{ border: '1px solid #E5E7EB', borderRadius: 8, padding: '5px 8px', fontSize: 12, outline: 'none', cursor: 'pointer' }}>
           <option value="PER_WEEK">/ week</option>
           <option value="PER_MONTH">/ month</option>
+          <option value="TOTAL">total (pass)</option>
         </select>
       </div>
     </div>

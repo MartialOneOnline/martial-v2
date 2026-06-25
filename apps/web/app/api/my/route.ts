@@ -78,16 +78,17 @@ export async function PATCH(req: Request) {
   if (!authUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { name, phone, dateOfBirth } = body
+  const { name, phone, dateOfBirth, avatarUrl } = body
 
   const updated = await prisma.user.update({
     where: { supabaseAuthId: authUser.id },
     data: {
-      ...(name !== undefined && { name: name || null }),
-      ...(phone !== undefined && { phone: phone || null }),
+      ...(name      !== undefined && { name: name || null }),
+      ...(phone     !== undefined && { phone: phone || null }),
       ...(dateOfBirth !== undefined && { dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null }),
+      ...(avatarUrl !== undefined && { avatarUrl: avatarUrl || null }),
     },
-    select: { id: true, name: true, phone: true, dateOfBirth: true },
+    select: { id: true, name: true, phone: true, dateOfBirth: true, avatarUrl: true },
   })
 
   return NextResponse.json({ user: updated })

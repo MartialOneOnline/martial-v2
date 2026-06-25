@@ -110,7 +110,7 @@ describe('duplicate booking detection', () => {
 
 // ── checkClassAccess() ────────────────────────────────────────────────────────
 
-const zeroCounts: BookingCounts = { perWeek: 0, perMonth: 0, total: 0, globalPerWeek: 0, globalPerMonth: 0 }
+const zeroCounts: BookingCounts = { perWeek: 0, perMonth: 0, total: 0, globalPerWeek: 0, globalPerMonth: 0, globalTotal: 0 }
 
 describe('checkClassAccess()', () => {
   it('allows when classAccess is null (no rules defined)', () => {

@@ -33,6 +33,7 @@ type Membership = {
   endDate: string | null
   cancelledAt: string | null
   consumed: number
+  totalAllowed: number | null
   notes: string | null
   school: { id: string; name: string; slug: string; logoUrl: string | null; city: string | null }
 }
@@ -300,6 +301,39 @@ function ActiveMembershipCard({
           </div>
         )}
 
+        {/* Classes remaining bar — SINGLE_PASS with a totalAllowed cap */}
+        {!isPending && m.planType === 'SINGLE_PASS' && m.totalAllowed !== null && (
+          (() => {
+            const remaining = Math.max(0, m.totalAllowed - m.consumed)
+            const pct = m.totalAllowed > 0 ? (m.consumed / m.totalAllowed) * 100 : 0
+            const isEmpty = remaining === 0
+            return (
+              <div style={{ background: isEmpty ? '#FEF2F2' : '#F0FDF4',
+                border: `1px solid ${isEmpty ? '#FECACA' : '#BBF7D0'}`,
+                borderRadius: 12, padding: '12px 14px', marginBottom: 14 }}>
+                <div className="flex items-center justify-between" style={{ marginBottom: 8 }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
+                    letterSpacing: '0.06em', color: isEmpty ? '#DC2626' : '#16A34A' }}>
+                    Classes on this pass
+                  </span>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: isEmpty ? '#DC2626' : '#111827' }}>
+                    {remaining} <span style={{ fontWeight: 400, color: '#9CA3AF' }}>/ {m.totalAllowed} left</span>
+                  </span>
+                </div>
+                <div style={{ height: 6, borderRadius: 99, background: isEmpty ? '#FECACA' : '#D1FAE5', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', borderRadius: 99, width: `${pct}%`,
+                    background: isEmpty ? '#EF4444' : '#22C55E', transition: 'width 0.4s ease' }} />
+                </div>
+                {isEmpty && (
+                  <p style={{ fontSize: 11, color: '#DC2626', margin: '6px 0 0' }}>
+                    All classes used. Contact your school to get a new pass.
+                  </p>
+                )}
+              </div>
+            )
+          })()
+        )}
+
         {/* Payment method */}
         {!isPending && (
           <div className="flex items-center gap-2" style={{ marginBottom: 14 }}>
@@ -398,7 +432,9 @@ function PastMembershipRow({ m }: { m: Membership }) {
         <p style={{ fontSize: 11, color: '#9CA3AF', margin: '2px 0 0' }}>
           {m.school.name} · {fmtDateShort(m.startDate)}
           {m.endDate && ` → ${fmtDateShort(m.endDate)}`}
-          {m.consumed > 0 && ` · ${m.consumed} classes`}
+          {m.consumed > 0 && m.totalAllowed
+            ? ` · ${m.consumed}/${m.totalAllowed} classes`
+            : m.consumed > 0 ? ` · ${m.consumed} classes` : ''}
         </p>
       </div>
       <StatusBadge status={m.status} />

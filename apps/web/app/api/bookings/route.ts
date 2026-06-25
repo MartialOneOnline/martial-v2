@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
     // 1st of the current month 00:00:00
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
 
-    const [perWeek, perMonth, total, globalPerWeek, globalPerMonth] = await Promise.all([
+    const [perWeek, perMonth, total, globalPerWeek, globalPerMonth, globalTotal] = await Promise.all([
       // Per-class counts for this user
       prisma.booking.count({
         where: { userId: dbUser.id, classId, scheduledAt: { gte: startOfWeek }, status: { not: 'CANCELLED' } },
@@ -116,9 +116,13 @@ export async function POST(req: NextRequest) {
       prisma.booking.count({
         where: { userId: dbUser.id, class: { schoolId: cls.schoolId }, scheduledAt: { gte: startOfMonth }, status: { not: 'CANCELLED' } },
       }),
+      // Global total on this membership (for SINGLE_PASS class packs)
+      prisma.booking.count({
+        where: { membershipId: activeMembership.id, status: { not: 'CANCELLED' } },
+      }),
     ])
 
-    const access = checkClassAccess(classAccess, classId, { perWeek, perMonth, total, globalPerWeek, globalPerMonth })
+    const access = checkClassAccess(classAccess, classId, { perWeek, perMonth, total, globalPerWeek, globalPerMonth, globalTotal })
     if (!access.allowed) {
       return NextResponse.json({ error: access.reason }, { status: 403 })
     }
@@ -155,7 +159,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. Create booking
+    // 3. Create booking — always link to the active membership so consumption is trackable
     return tx.booking.create({
       data: {
         userId: dbUser.id,
@@ -165,6 +169,7 @@ export async function POST(req: NextRequest) {
         paymentMethod: 'CASH',
         amountPaid: 0,
         currency: 'EUR',
+        membershipId: activeMembership.id,
       },
     })
   }).catch((err: Error & { status?: number }) => {

@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import {
   CalendarDays, CreditCard, DollarSign, ChevronRight,
   Camera, LogOut, Medal, Settings, HelpCircle, Shield, QrCode,
 } from 'lucide-react'
 import { getBeltImage } from '../../../lib/belts'
+import { createClient } from '../../../lib/supabase/client'
 
 type Profile = {
   name: string | null
@@ -43,10 +44,12 @@ const MENU: { label?: string; items: { label: string; href: string; icon: React.
 export default function MyProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading]  = useState(true)
-  const [editing, setEditing]  = useState(false)
-  const [saving, setSaving]    = useState(false)
-  const [name, setName]        = useState('')
-  const [phone, setPhone]      = useState('')
+  const [editing, setEditing]     = useState(false)
+  const [saving, setSaving]       = useState(false)
+  const [name, setName]           = useState('')
+  const [phone, setPhone]         = useState('')
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef              = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     fetch('/api/my')
@@ -71,6 +74,34 @@ export default function MyProfilePage() {
     setProfile(p => p ? { ...p, name, phone } : p)
     setSaving(false)
     setEditing(false)
+  }
+
+  async function handleAvatarUpload(file: File) {
+    setUploading(true)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const ext = file.name.split('.').pop()
+      const path = `avatars/${user.id}.${ext}`
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(path, file, { upsert: true, contentType: file.type })
+      if (uploadError) throw uploadError
+
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
+      await fetch('/api/my', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ avatarUrl: publicUrl }),
+      })
+      setProfile(p => p ? { ...p, avatarUrl: publicUrl } : p)
+    } catch (err) {
+      console.error('[avatar upload]', err)
+    } finally {
+      setUploading(false)
+    }
   }
 
   const initials        = (profile?.name || profile?.email || 'U').slice(0, 2).toUpperCase()
@@ -120,10 +151,25 @@ export default function MyProfilePage() {
                 </div>
               )}
               {editing && (
-                <button className="absolute bottom-0 right-0 w-6 h-6 bg-white rounded-full flex items-center justify-center" style={{ boxShadow: '0 1px 4px rgba(0,0,0,.18)' }}>
-                  <Camera className="w-3 h-3" style={{ color: '#6B6B70' }} />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="absolute bottom-0 right-0 w-6 h-6 bg-white rounded-full flex items-center justify-center"
+                  style={{ boxShadow: '0 1px 4px rgba(0,0,0,.18)' }}
+                >
+                  {uploading
+                    ? <div className="w-2.5 h-2.5 border border-t-transparent rounded-full animate-spin" style={{ borderColor: '#007AFF', borderTopColor: 'transparent' }} />
+                    : <Camera className="w-3 h-3" style={{ color: '#6B6B70' }} />
+                  }
                 </button>
               )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={e => { const f = e.target.files?.[0]; if (f) handleAvatarUpload(f) }}
+              />
             </div>
             <div className="flex-1 min-w-0">
               {editing ? (

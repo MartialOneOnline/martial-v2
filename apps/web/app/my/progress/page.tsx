@@ -36,10 +36,13 @@ function RankCard({ member, gradings }: { member: SchoolMember; gradings: Gradin
   const belt = member.belt ?? 'White Belt'
   const color = BELT_COLORS[belt] ?? '#9CA3AF'
   const degree = member.beltDegree ?? 0
-  const progress = 0.75
+  // 4 stripes = ready for next belt. Progress = stripes earned / 4
+  const MAX_STRIPES = 4
+  const progress = degree / MAX_STRIPES
   const r = 52
   const circ = 2 * Math.PI * r
   const dash = circ * progress
+  const stripesLeft = MAX_STRIPES - degree
 
   const schoolGradings = gradings.filter(g => g.school.name === member.school.name)
 
@@ -73,37 +76,43 @@ function RankCard({ member, gradings }: { member: SchoolMember; gradings: Gradin
               <circle
                 cx="60" cy="60" r={r}
                 fill="none"
-                stroke="#22C55E"
+                stroke={color}
                 strokeWidth="11"
                 strokeDasharray={`${dash} ${circ - dash}`}
                 strokeLinecap="round"
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-2xl font-bold text-[#101828]">{Math.round(progress * 100)}%</span>
-              <span className="text-[10px] text-gray-400 text-center leading-tight">2 Classes<br />to go</span>
+              <span className="text-2xl font-bold text-[#101828]">{degree}<span className="text-base font-medium text-gray-400">/{MAX_STRIPES}</span></span>
+              <span className="text-[10px] text-gray-400 text-center leading-tight">stripes</span>
             </div>
           </div>
 
-          {/* Legend */}
+          {/* Stats */}
           <div className="flex-1 space-y-2.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-gray-500">Total Classes</span>
-              <span className="text-sm font-bold text-[#101828]">100</span>
+              <span className="text-xs font-semibold text-gray-500">Current belt</span>
+              <span className="text-sm font-bold text-[#101828]">{belt}</span>
             </div>
-            {[
-              { label: 'Ready',        count: 12, color: '#22C55E' },
-              { label: 'Almost Ready', count: 10, color: '#F59E0B' },
-              { label: 'Not Ready',    count: 5,  color: '#EF4444' },
-            ].map(({ label, count, color: c }) => (
-              <div key={label} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: c }} />
-                  <span className="text-xs text-gray-500">{label}</span>
-                </div>
-                <span className="text-xs font-semibold text-[#0870E2]">{count} Classes</span>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-gray-500">Stripes</span>
+              <span className="text-sm font-bold" style={{ color }}>{degree} / {MAX_STRIPES}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-gray-500">Gradings</span>
+              <span className="text-sm font-bold text-[#101828]">{schoolGradings.length}</span>
+            </div>
+            {stripesLeft > 0 && (
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-gray-500">Next promotion</span>
+                <span className="text-xs font-semibold text-[#0870E2]">{stripesLeft} stripe{stripesLeft !== 1 ? 's' : ''} to go</span>
               </div>
-            ))}
+            )}
+            {stripesLeft === 0 && (
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-[#22C55E]">Ready for promotion</span>
+              </div>
+            )}
           </div>
         </div>
 

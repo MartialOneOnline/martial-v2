@@ -22,7 +22,7 @@ export interface ClassAccessRule {
 export interface ClassAccessConfig {
   classRules?:      ClassAccessRule[]
   globalLimit?:     string      // empty string = no global cap
-  globalLimitType?: 'PER_WEEK' | 'PER_MONTH'
+  globalLimitType?: 'PER_WEEK' | 'PER_MONTH' | 'TOTAL'
 }
 
 // ── Booking counts supplied by the caller ──────────────────────────────────────
@@ -38,6 +38,8 @@ export interface BookingCounts {
   globalPerWeek:  number
   /** All bookings at this school this calendar month (for global cap) */
   globalPerMonth: number
+  /** All bookings on this membership since startDate (for global TOTAL cap — e.g. 10-class pack) */
+  globalTotal:    number
 }
 
 // ── Guard ──────────────────────────────────────────────────────────────────────
@@ -104,12 +106,17 @@ export function checkClassAccess(
     const cap = parseInt(classAccess.globalLimit!, 10)
     if (!isNaN(cap) && cap > 0) {
       const used =
-        classAccess.globalLimitType === 'PER_WEEK' ? counts.globalPerWeek : counts.globalPerMonth
+        classAccess.globalLimitType === 'PER_WEEK'  ? counts.globalPerWeek  :
+        classAccess.globalLimitType === 'PER_MONTH' ? counts.globalPerMonth :
+        counts.globalTotal
+      const period =
+        classAccess.globalLimitType === 'PER_WEEK'  ? 'this week'      :
+        classAccess.globalLimitType === 'PER_MONTH' ? 'this month'     :
+        'on this pass'
       if (used >= cap) {
-        const period = classAccess.globalLimitType === 'PER_WEEK' ? 'this week' : 'this month'
         return {
           allowed: false,
-          reason: `Booking limit reached: ${cap} total sessions ${period}`,
+          reason: `All ${cap} classes on this pass have been used`,
         }
       }
     }
