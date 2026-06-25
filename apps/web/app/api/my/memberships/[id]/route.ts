@@ -94,9 +94,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   })
   if (!member) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  // Check no active/pending membership for this plan already
+  // Check no active/pending/paused membership for this plan already
+  // PENDING is included so students can't spam multiple requests for the same plan
   const existing = await prisma.membership.findFirst({
-    where: { userId: dbUser.id, planId: plan.id, status: { in: ['ACTIVE', 'PAUSED'] } },
+    where: { userId: dbUser.id, planId: plan.id, status: { in: ['ACTIVE', 'PAUSED', 'PENDING'] } },
   })
   if (existing) return NextResponse.json({ error: 'Already have this plan' }, { status: 409 })
 
@@ -110,6 +111,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       currency: plan.currency,
       paymentMethod: PaymentMethod.CASH,
       status: MembershipStatus.PENDING,
+      // startDate is intentionally set to now as a placeholder — it will be
+      // overwritten with the real activation date when the admin approves.
+      // Prisma requires a non-null startDate, so we use the request time.
       startDate: new Date(),
     },
   })

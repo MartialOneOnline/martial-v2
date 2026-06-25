@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
+import { checkAndExpireMembership } from '@/lib/services/membership'
 
 // GET /api/my/memberships — full membership list for the logged-in student
 export async function GET() {
@@ -34,8 +35,34 @@ export async function GET() {
     },
   })
 
+  // Lazily expire any memberships that were cancelled via UNTIL_END_OF_PERIOD policy
+  // and whose endDate has now passed. Runs in parallel — failures are silent so the
+  // page still loads even if one expiry check errors.
+  await Promise.allSettled(
+    memberships
+      .filter(m => m.cancelledAt && m.endDate && m.status === 'ACTIVE')
+      .map(m => checkAndExpireMembership(m.id))
+  )
+
+  // Re-fetch after expiry so status is accurate in the response
+  const freshMemberships = memberships.some(m => m.cancelledAt && m.endDate && m.status === 'ACTIVE')
+    ? await prisma.membership.findMany({
+        where: { userId: user.id },
+        orderBy: { startDate: 'desc' },
+        include: {
+          school: { select: { id: true, name: true, slug: true, logoUrl: true, city: true } },
+          plan: {
+            select: {
+              name: true, planType: true, billingCycle: true,
+              validityDays: true, imageUrl: true, classAccess: true,
+            },
+          },
+        },
+      })
+    : memberships
+
   // Count bookings consumed per membership
-  const membershipIds = memberships.map(m => m.id)
+  const membershipIds = freshMemberships.map(m => m.id)
   const usageCounts = await prisma.booking.groupBy({
     by: ['membershipId'],
     where: { membershipId: { in: membershipIds }, status: { not: 'CANCELLED' } },
@@ -44,7 +71,7 @@ export async function GET() {
   const usageMap = Object.fromEntries(usageCounts.map(u => [u.membershipId, u._count.id]))
 
   return NextResponse.json({
-    memberships: memberships.map(m => {
+    memberships: freshMemberships.map(m => {
       const classAccess = m.plan?.classAccess as { globalLimit?: string; globalLimitType?: string } | null
       const totalAllowed =
         classAccess?.globalLimitType === 'TOTAL' && classAccess?.globalLimit

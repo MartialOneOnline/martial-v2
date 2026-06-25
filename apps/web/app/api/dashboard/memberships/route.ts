@@ -107,10 +107,11 @@ export async function GET(req: NextRequest) {
     pageSize,
     totalRevenue: Math.round(totalRevenue),
     countByStatus: {
+      PENDING:   statMap['PENDING']?.count   ?? 0,
       ACTIVE:    statMap['ACTIVE']?.count    ?? 0,
+      PAUSED:    statMap['PAUSED']?.count    ?? 0,
       CANCELLED: statMap['CANCELLED']?.count ?? 0,
       EXPIRED:   statMap['EXPIRED']?.count   ?? 0,
-      PAUSED:    statMap['PAUSED']?.count    ?? 0,
     },
     countByMethod: Object.fromEntries(methodStats.map(m => [m.paymentMethod, m._count.id])),
   })
