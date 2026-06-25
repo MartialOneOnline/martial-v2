@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 46 completada ✅ — Audit técnico completo del portal /my + V2 Replacement Readiness Risk Map
+**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado
 
 ---
 
@@ -230,11 +230,11 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 
 ## Próximos pasos
 
-### Sprint 1 — Platform Safety (P0, antes de usuarios reales)
-1. **Auth middleware `/my/**`** — añadir protección server-side; actualmente sin middleware guard, solo 401s por API
-2. **Ownership audit completo** — recorrer toda la superficie PATCH/DELETE/POST con relaciones; verificar que `authenticatedUser.id === resource.ownerId` desde DB, nunca desde body
-3. **Booking atomicity** — `prisma.$transaction()` con capacity count *dentro* de la transacción (no antes)
-4. **Membership → SchoolMember sync** — cancelar/pausar una Membership debe actualizar `SchoolMember.status`
+### Sprint 1 — Platform Safety ✅ COMPLETADO
+1. **Auth middleware `/my/**`** — ✅ Ya existía y funciona en `proxy.ts` (Next.js reconoce proxy.ts como middleware)
+2. **Ownership audit completo** — ✅ Toda la superficie verificada. Patrón correcto en todos los endpoints: `/my` compara `resource.userId !== dbUser.id` desde DB; `/dashboard` usa `schoolId` de cookie + filtra `{ id, schoolId }` en todas las queries
+3. **Booking atomicity** — ✅ Ya estaba implementado: duplicate check + capacity check + create dentro de `prisma.$transaction()`
+4. **Membership → SchoolMember sync** — ✅ Implementado (commit `e1cb9d1`): pause→FROZEN, resume→ACTIVE, cancel→INACTIVE. School.cancelPolicy (IMMEDIATE | UNTIL_END_OF_PERIOD) con lazy expiration sin cron
 
 ### Sprint 2 — Business Rules (P1)
 5. **Class access filtering en `/api/my/school-classes`** — filtrar occurrences por membership activa + classAccess rules + créditos disponibles (no solo en POST booking)
@@ -260,6 +260,17 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 ---
 
 ## Historial de sesiones
+
+### Sesión 47 — 2026-06-23 ✅
+**Sprint 1 Platform Safety — completado**
+
+- Auth middleware `/my/**` — verificado que `proxy.ts` ya actúa como middleware en Next.js/Turbopack. Intento de crear `middleware.ts` generó conflicto → eliminado. Protección confirmada con `curl`: `GET /my → 307 /login?redirect=%2Fmy`
+- Ownership audit — pase completo sobre toda la superficie PATCH/DELETE/POST. Sin vulnerabilidades. Patrón correcto y consistente en todos los endpoints
+- Booking atomicity — ya estaba implementado correctamente en commit `c161577`
+- Membership → SchoolMember sync — implementado: `School.cancelPolicy` (IMMEDIATE | UNTIL_END_OF_PERIOD, default IMMEDIATE), `cancelMembership()` respeta policy + sincroniza SchoolMember, `checkAndExpireMembership()` lazy expiration sin cron, pause/resume sincronizan SchoolMember (FROZEN/ACTIVE), toggle en Settings > Payments
+- `prisma db push` + `prisma generate` ejecutados — `cancelPolicy` en Supabase ✅
+
+---
 
 ### Sesión 46 — 2026-06-23 ✅
 **Audit técnico completo del portal /my + V2 Replacement Readiness Risk Map**
