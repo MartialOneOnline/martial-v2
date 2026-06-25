@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
-import { assignPlan, cancelMembership } from '@/lib/services/membership'
-import { MembershipStatus } from '@/lib/prisma-client/enums'
+import { cancelMembership, computeEndDate } from '@/lib/services/membership'
+import { MembershipStatus, TransactionType, TransactionStatus, TransactionCategory } from '@/lib/prisma-client/enums'
 
 async function authorise() {
   const user = await getAuthUser()
@@ -43,7 +43,8 @@ export async function PATCH(
     where: { id, schoolId: auth.schoolId },
     select: {
       id: true, userId: true, schoolId: true, status: true,
-      planId: true, paymentMethod: true, notes: true,
+      planId: true, planName: true, paymentMethod: true, notes: true,
+      price: true, currency: true,
     },
   })
   if (!membership) return NextResponse.json({ error: 'Membership not found' }, { status: 404 })
@@ -51,33 +52,72 @@ export async function PATCH(
   const { action } = await req.json() as { action: 'activate' | 'pause' | 'resume' | 'cancel' }
 
   // ── activate: PENDING → ACTIVE ────────────────────────────────────────────────
+  //
+  // We update the PENDING membership IN-PLACE rather than calling assignPlan().
+  // assignPlan() would cancel ALL existing ACTIVE memberships for this user+school,
+  // which is wrong when the student already has an active subscription and is simply
+  // adding a separate bono/pass. Updating in-place:
+  //   • preserves the membership ID (history intact)
+  //   • does not touch other memberships
+  //   • is fully atomic inside a single $transaction
   if (action === 'activate') {
     if (membership.status !== 'PENDING')
       return NextResponse.json({ error: `Cannot activate a ${membership.status} membership` }, { status: 400 })
     if (!membership.planId)
       return NextResponse.json({ error: 'Membership has no plan' }, { status: 400 })
 
-    const schoolMember = await prisma.schoolMember.findFirst({
-      where: { userId: membership.userId, schoolId: auth.schoolId },
-      select: { id: true },
+    // Fetch plan to compute proper start/end dates
+    const plan = await prisma.membershipPlan.findFirst({
+      where: { id: membership.planId, schoolId: auth.schoolId },
+      select: { planType: true, billingCycle: true, validityDays: true },
     })
-    if (!schoolMember)
-      return NextResponse.json({ error: 'School member not found' }, { status: 404 })
+    if (!plan)
+      return NextResponse.json({ error: 'Plan not found or inactive' }, { status: 404 })
 
-    // Cancel the PENDING record and re-assign via service (sets dates, creates transaction, syncs SchoolMember)
-    await prisma.membership.update({
-      where: { id },
-      data: { status: MembershipStatus.CANCELLED, cancelledAt: new Date() },
+    const startDate = new Date()
+    const endDate   = computeEndDate(plan.planType, plan.billingCycle ?? '', plan.validityDays, startDate)
+    const price     = Number(membership.price)
+
+    await prisma.$transaction(async (tx) => {
+      // 1. Activate in-place — preserve ID, avoid cancelling sibling memberships
+      await tx.membership.update({
+        where: { id },
+        data: { status: MembershipStatus.ACTIVE, startDate, endDate, cancelledAt: null },
+      })
+
+      // 2. Record income transaction (skip for free/trial plans)
+      if (price > 0) {
+        await tx.transaction.create({
+          data: {
+            schoolId:      auth.schoolId,
+            userId:        membership.userId,
+            membershipId:  id,
+            type:          TransactionType.INCOME,
+            status:        TransactionStatus.PAID,
+            category:      TransactionCategory.MEMBERSHIP,
+            paymentMethod: membership.paymentMethod,
+            amount:        price,
+            currency:      membership.currency,
+            description:   `${membership.planName} — activated`,
+            date:          startDate,
+            notes:         membership.notes ?? null,
+          },
+        })
+      }
+
+      // 3. Promote SchoolMember only if still in PENDING or LEAD state
+      //    (never downgrade an ACTIVE/FROZEN member)
+      await tx.schoolMember.updateMany({
+        where: {
+          userId:   membership.userId,
+          schoolId: auth.schoolId,
+          status:   { in: ['PENDING', 'LEAD'] },
+        },
+        data: { status: 'ACTIVE' },
+      })
     })
 
-    const activated = await assignPlan({
-      schoolMemberId: schoolMember.id,
-      schoolId:       auth.schoolId,
-      planId:         membership.planId,
-      paymentMethod:  membership.paymentMethod,
-      notes:          membership.notes ?? undefined,
-    })
-    return NextResponse.json({ status: activated.status, id: activated.id })
+    return NextResponse.json({ status: 'ACTIVE', id })
   }
 
   // ── pause: ACTIVE → PAUSED ────────────────────────────────────────────────────

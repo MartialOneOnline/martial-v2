@@ -783,7 +783,7 @@ function MemberRowActions({
           background: open ? '#F3F4F6' : '#fff', display: 'flex', alignItems: 'center',
           justifyContent: 'center', cursor: 'pointer' }}>
         {loading
-          ? <Loader2 size={13} style={{ color: '#9CA3AF', animation: 'spin 1s linear infinite' }} />
+          ? <Loader2 size={13} className="animate-spin" style={{ color: '#9CA3AF' }} />
           : <MoreVertical size={13} style={{ color: '#6B7280' }} />}
       </button>
 
