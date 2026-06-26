@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -17,6 +17,7 @@ type NavItem = {
   label: string
   icon: React.ElementType
   href?: string
+  badge?: number
   children?: { label: string; href: string }[]
 }
 
@@ -44,7 +45,22 @@ function NavGroup({ item }: { item: NavItem }) {
         onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
       >
         <item.icon size={16} strokeWidth={1.5} style={{ color: isActive ? '#0071E3' : '#9CA3AF', flexShrink: 0 }} />
-        {item.label}
+        <span className="flex-1">{item.label}</span>
+        {!!item.badge && item.badge > 0 && (
+          <span style={{
+            background: '#EF4444',
+            color: '#fff',
+            fontSize: 10,
+            fontWeight: 700,
+            lineHeight: 1,
+            padding: '2px 5px',
+            borderRadius: 999,
+            minWidth: 16,
+            textAlign: 'center',
+          }}>
+            {item.badge > 99 ? '99+' : item.badge}
+          </span>
+        )}
       </Link>
     )
   }
@@ -108,7 +124,15 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen }: Props) {
   const router = useRouter()
   const { currentSchool, schools, switchSchool } = useSchoolContext()
   const [switcherOpen, setSwitcherOpen] = useState(false)
+  const [pendingMemberships, setPendingMemberships] = useState(0)
   const t = useT()
+
+  useEffect(() => {
+    fetch('/api/dashboard/memberships/stats')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data?.pending) setPendingMemberships(data.pending) })
+      .catch(() => {})
+  }, [currentSchool?.schoolId])
 
   const handleSignOut = async () => {
     const supabase = createBrowserClient(
@@ -128,7 +152,7 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen }: Props) {
       { label: t.sidebar.calendar,  href: '/dashboard/classes/calendar' },
       { label: t.sidebar.timetable, href: '/dashboard/classes/timetable' },
     ]},
-    { label: t.sidebar.memberships, icon: Award,      href: '/dashboard/memberships' },
+    { label: t.sidebar.memberships, icon: Award,      href: '/dashboard/memberships', badge: pendingMemberships },
     { label: t.sidebar.payments,    icon: CreditCard, children: [
       { label: t.sidebar.transactions,  href: '/dashboard/payments/transactions' },
       { label: t.sidebar.subscriptions, href: '/dashboard/payments/subscriptions' },
