@@ -4,9 +4,10 @@ import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
 import { MembershipStatus, PaymentMethod } from '@/lib/prisma-client/client'
 import { cancelMembership } from '@/lib/services/membership'
+import { sendMembershipRequestEmail } from '@/lib/email/sendEmails'
 
 async function getDbUser(authId: string) {
-  return prisma.user.findUnique({ where: { supabaseAuthId: authId }, select: { id: true } })
+  return prisma.user.findUnique({ where: { supabaseAuthId: authId }, select: { id: true, name: true } })
 }
 
 // PATCH /api/my/memberships/[id] — pause, resume, or cancel
@@ -117,6 +118,39 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       startDate: new Date(),
     },
   })
+
+  // Notify school OWNER + ADMIN — fire-and-forget, never blocks the response
+  prisma.schoolMember.findMany({
+    where: {
+      schoolId: plan.schoolId,
+      role: { in: ['OWNER', 'ADMIN'] },
+      status: { not: 'INACTIVE' },
+    },
+    include: {
+      user: { select: { name: true, email: true } },
+      school: { select: { name: true, city: true, language: true } },
+    },
+  }).then(admins => {
+    const school = admins[0]?.school
+    return Promise.allSettled(
+      admins
+        .filter(a => a.user?.email)
+        .map(a =>
+          sendMembershipRequestEmail({
+            to:          a.user.email!,
+            adminName:   a.user.name,
+            studentName: dbUser.name ?? plan.name,
+            schoolName:  school?.name ?? plan.name,
+            schoolCity:  school?.city ?? null,
+            planName:    plan.name,
+            price:       Number(plan.price),
+            currency:    plan.currency,
+            requestedAt: new Date(),
+            lang:        school?.language ?? 'en',
+          })
+        )
+    )
+  }).catch(err => console.error('[membership request] admin notification failed:', err))
 
   return NextResponse.json({ membershipId: membership.id, status: membership.status }, { status: 201 })
 }

@@ -3,6 +3,7 @@ import { detectLang } from './templates/inviteStudent'
 import { buildWelcomeStudentEmail, getWelcomeStudentSubject } from './templates/welcomeStudent'
 import { buildTrialConfirmedEmail, getTrialConfirmedSubject } from './templates/trialConfirmed'
 import { buildMembershipReceiptEmail, getMembershipReceiptSubject } from './templates/membershipReceipt'
+import { buildMembershipRequestEmail, getMembershipRequestSubject } from './templates/membershipRequest'
 
 type SendResult = { success: true; emailId?: string } | { success: false; error: string }
 
@@ -82,7 +83,48 @@ export async function sendTrialConfirmedEmail({
   return send(to, subject, html)
 }
 
-// ── 3. Membership receipt ──────────────────────────────────────────────────────
+// ── 3. Membership request (admin notification) ────────────────────────────────
+export async function sendMembershipRequestEmail({
+  to,
+  adminName,
+  studentName,
+  schoolName,
+  schoolCity,
+  planName,
+  price,
+  currency,
+  requestedAt,
+  lang,
+}: {
+  to: string
+  adminName?: string | null
+  studentName: string
+  schoolName: string
+  schoolCity?: string | null
+  planName: string
+  price: number
+  currency: string
+  requestedAt: Date
+  lang?: string | null
+}): Promise<SendResult> {
+  const l = detectLang(lang)
+  const subject = getMembershipRequestSubject(studentName, planName, l)
+  const html = buildMembershipRequestEmail({
+    adminName,
+    studentName,
+    schoolName,
+    schoolCity,
+    planName,
+    price,
+    currency,
+    requestedAt,
+    dashboardUrl: `${APP_URL}/dashboard/memberships?status=PENDING`,
+    lang,
+  })
+  return send(to, subject, html)
+}
+
+// ── 4. Membership receipt ──────────────────────────────────────────────────────
 export async function sendMembershipReceiptEmail({
   to,
   studentName,
