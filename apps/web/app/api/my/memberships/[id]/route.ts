@@ -119,8 +119,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     },
   })
 
-  // Notify school OWNER + ADMIN — fire-and-forget, never blocks the response
-  prisma.schoolMember.findMany({
+  // Notify school OWNER + ADMIN only for manual payment methods (cash, bank transfer, etc.)
+  // Stripe payments are handled automatically via webhook — no admin approval needed
+  const isManualPayment = ['CASH', 'BANK_TRANSFER', 'DIRECT_DEBIT', 'OTHER'].includes(membership.paymentMethod)
+
+  if (isManualPayment) prisma.schoolMember.findMany({
     where: {
       schoolId: plan.schoolId,
       role: { in: ['OWNER', 'ADMIN'] },
