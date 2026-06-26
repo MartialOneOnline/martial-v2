@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { ChevronRight, Mail, MessageCircle } from 'lucide-react'
+import { useT } from '../../../lib/i18n/LanguageContext'
 
 const FAQS = [
   {
@@ -31,6 +32,7 @@ const FAQS = [
 ]
 
 export default function MyHelpPage() {
+  const t = useT()
   const [open, setOpen] = useState<number | null>(null)
 
   return (
@@ -38,12 +40,12 @@ export default function MyHelpPage() {
       <div className="max-w-lg mx-auto">
 
         <div className="px-4 md:px-6 pt-4 md:pt-7 pb-4">
-          <p className="text-xs" style={{ color: '#6B6B70' }}>Student portal</p>
-          <h1 className="text-2xl font-semibold tracking-tight" style={{ color: '#1C1C1E', letterSpacing: '-0.5px' }}>Help & Support</h1>
+          <p className="text-xs" style={{ color: '#6B6B70' }}>{t.my.navDashboard}</p>
+          <h1 className="text-2xl font-semibold tracking-tight" style={{ color: '#1C1C1E', letterSpacing: '-0.5px' }}>{t.my.navHelpSupport}</h1>
         </div>
 
         {/* FAQ */}
-        <p className="px-4 md:px-6 pb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: '#6B6B70' }}>Frequently asked questions</p>
+        <p className="px-4 md:px-6 pb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: '#6B6B70' }}>{t.my.helpFaq}</p>
         <div className="mx-4 md:mx-6 mb-4 rounded-2xl overflow-hidden" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)' }}>
           {FAQS.map((faq, i) => (
             <div key={i} style={i < FAQS.length - 1 ? { borderBottom: '0.5px solid rgba(60,60,67,.12)' } : {}}>
@@ -67,7 +69,7 @@ export default function MyHelpPage() {
         </div>
 
         {/* Contact */}
-        <p className="px-4 md:px-6 pb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: '#6B6B70' }}>Contact</p>
+        <p className="px-4 md:px-6 pb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: '#6B6B70' }}>{t.my.helpContact}</p>
         <div className="mx-4 md:mx-6 mb-4 rounded-2xl overflow-hidden" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)' }}>
           <a
             href="mailto:support@martialapp.com"
@@ -78,7 +80,7 @@ export default function MyHelpPage() {
               <Mail className="w-4 h-4" style={{ color: '#007AFF' }} />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium" style={{ color: '#1C1C1E' }}>Email support</p>
+              <p className="text-sm font-medium" style={{ color: '#1C1C1E' }}>{t.my.helpEmailSupport}</p>
               <p className="text-[11px]" style={{ color: '#6B6B70' }}>support@martialapp.com</p>
             </div>
             <ChevronRight className="w-4 h-4 shrink-0" style={{ color: '#C7C7CC' }} />
@@ -88,8 +90,8 @@ export default function MyHelpPage() {
               <MessageCircle className="w-4 h-4" style={{ color: '#34C759' }} />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium" style={{ color: '#1C1C1E' }}>Chat with your academy</p>
-              <p className="text-[11px]" style={{ color: '#6B6B70' }}>Contact your school directly</p>
+              <p className="text-sm font-medium" style={{ color: '#1C1C1E' }}>{t.my.helpChatAcademy}</p>
+              <p className="text-[11px]" style={{ color: '#6B6B70' }}>{t.my.helpChatSub}</p>
             </div>
             <ChevronRight className="w-4 h-4 shrink-0" style={{ color: '#C7C7CC' }} />
           </div>

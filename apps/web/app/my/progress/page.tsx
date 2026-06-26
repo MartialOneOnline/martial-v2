@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ChevronRight, User } from 'lucide-react'
+import { useT } from '../../../lib/i18n/LanguageContext'
 
 type SchoolMember = {
   id: string
@@ -32,7 +33,7 @@ const BELT_COLORS: Record<string, string> = {
   'Black Belt':  '#1F2937',
 }
 
-function RankCard({ member, gradings }: { member: SchoolMember; gradings: Grading[] }) {
+function RankCard({ member, gradings, t }: { member: SchoolMember; gradings: Grading[]; t: ReturnType<typeof useT> }) {
   const belt = member.belt ?? 'White Belt'
   const color = BELT_COLORS[belt] ?? '#9CA3AF'
   const degree = member.beltDegree ?? 0
@@ -59,11 +60,11 @@ function RankCard({ member, gradings }: { member: SchoolMember; gradings: Gradin
           </div>
           <div>
             <p className="text-sm font-bold text-[#101828]">{member.school.name}</p>
-            <p className="text-xs text-[#0870E2] font-medium">Ranks</p>
+            <p className="text-xs text-[#0870E2] font-medium">{t.my.ranks}</p>
           </div>
         </div>
         <Link href={`/school/${member.school.slug}`} className="text-xs font-semibold text-[#0870E2] flex items-center gap-0.5 hover:underline">
-          View All <ChevronRight className="w-3.5 h-3.5" />
+          {t.my.viewAllChevron} <ChevronRight className="w-3.5 h-3.5" />
         </Link>
       </div>
 
@@ -84,33 +85,33 @@ function RankCard({ member, gradings }: { member: SchoolMember; gradings: Gradin
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className="text-2xl font-bold text-[#101828]">{degree}<span className="text-base font-medium text-gray-400">/{MAX_STRIPES}</span></span>
-              <span className="text-[10px] text-gray-400 text-center leading-tight">stripes</span>
+              <span className="text-[10px] text-gray-400 text-center leading-tight">{t.my.stripesLabel}</span>
             </div>
           </div>
 
           {/* Stats */}
           <div className="flex-1 space-y-2.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-gray-500">Current belt</span>
+              <span className="text-xs font-semibold text-gray-500">{t.my.currentBelt}</span>
               <span className="text-sm font-bold text-[#101828]">{belt}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-gray-500">Stripes</span>
+              <span className="text-xs font-semibold text-gray-500">{t.my.stripesCount}</span>
               <span className="text-sm font-bold" style={{ color }}>{degree} / {MAX_STRIPES}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-gray-500">Gradings</span>
+              <span className="text-xs font-semibold text-gray-500">{t.my.gradingsCount}</span>
               <span className="text-sm font-bold text-[#101828]">{schoolGradings.length}</span>
             </div>
             {stripesLeft > 0 && (
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-gray-500">Next promotion</span>
-                <span className="text-xs font-semibold text-[#0870E2]">{stripesLeft} stripe{stripesLeft !== 1 ? 's' : ''} to go</span>
+                <span className="text-xs font-semibold text-gray-500">{t.my.nextPromotion}</span>
+                <span className="text-xs font-semibold text-[#0870E2]">{stripesLeft === 1 ? t.my.oneStripeToGo : t.my.strapesToGo.replace('{n}', String(stripesLeft))}</span>
               </div>
             )}
             {stripesLeft === 0 && (
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-[#22C55E]">Ready for promotion</span>
+                <span className="text-xs font-semibold text-[#22C55E]">{t.my.readyForPromotion}</span>
               </div>
             )}
           </div>
@@ -125,7 +126,7 @@ function RankCard({ member, gradings }: { member: SchoolMember; gradings: Gradin
                 <div className="h-full rounded-full" style={{ width: '65%', background: color }} />
               </div>
               <p className="text-[10px] text-gray-400 mt-1.5">
-                Last Grading &nbsp;
+                {t.my.lastGrading} &nbsp;
                 {member.beltDate
                   ? new Date(member.beltDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
                   : '—'}
@@ -138,7 +139,7 @@ function RankCard({ member, gradings }: { member: SchoolMember; gradings: Gradin
                 <div className="h-3 rounded-full overflow-hidden bg-gray-100">
                   <div className="h-full rounded-full" style={{ width: '20%', background: color }} />
                 </div>
-                <p className="text-[10px] text-gray-400 mt-1.5">Next Grading &nbsp;—</p>
+                <p className="text-[10px] text-gray-400 mt-1.5">{t.my.nextGrading} &nbsp;—</p>
               </div>
             </div>
           </div>
@@ -179,6 +180,7 @@ function RankCard({ member, gradings }: { member: SchoolMember; gradings: Gradin
 }
 
 export default function MyProgressPage() {
+  const t = useT()
   const [members, setMembers] = useState<SchoolMember[]>([])
   const [gradings, setGradings] = useState<Grading[]>([])
   const [loading, setLoading] = useState(true)
@@ -197,8 +199,8 @@ export default function MyProgressPage() {
   return (
     <div className="min-h-screen">
       <div className="bg-white border-b border-gray-100 px-5 py-4 sticky top-0 z-10">
-        <h1 className="text-base font-bold text-[#101828]">Ranking</h1>
-        <p className="text-xs text-gray-400 mt-0.5">Belt progression & grading history</p>
+        <h1 className="text-base font-bold text-[#101828]">{t.my.ranking}</h1>
+        <p className="text-xs text-gray-400 mt-0.5">{t.my.beltProgressionHistory}</p>
       </div>
 
       <div className="px-4 py-5 space-y-4 max-w-2xl">
@@ -211,18 +213,18 @@ export default function MyProgressPage() {
             <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center mx-auto mb-3">
               <div className="w-5 h-5 rounded-full bg-amber-300" />
             </div>
-            <p className="text-sm font-semibold text-[#101828] mb-1">No rankings yet</p>
-            <p className="text-xs text-gray-400 mb-4">Join an academy to start tracking your belt progress</p>
+            <p className="text-sm font-semibold text-[#101828] mb-1">{t.my.noRankingsYet}</p>
+            <p className="text-xs text-gray-400 mb-4">{t.my.joinAcademyToTrack}</p>
             <Link
               href="/explore"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-xs font-semibold bg-[#0870E2] hover:bg-[#005580] transition-colors"
             >
-              Find an academy
+              {t.my.findAnAcademy}
             </Link>
           </div>
         ) : (
           members.map(m => (
-            <RankCard key={m.id} member={m} gradings={gradings} />
+            <RankCard key={m.id} member={m} gradings={gradings} t={t} />
           ))
         )}
 
@@ -230,7 +232,7 @@ export default function MyProgressPage() {
         {gradings.length > 0 && members.length > 1 && (
           <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-50">
-              <p className="text-sm font-bold text-[#101828]">Full grading history</p>
+              <p className="text-sm font-bold text-[#101828]">{t.my.fullGradingHistory}</p>
             </div>
             <div className="relative">
               <div className="absolute left-[37px] top-0 bottom-0 w-px bg-gray-100" />

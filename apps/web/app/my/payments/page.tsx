@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { CreditCard, ChevronLeft, ChevronRight, ArrowUpRight, ArrowDownLeft } from 'lucide-react'
 import { fmtPrice } from '../../../lib/format'
+import { useT } from '../../../lib/i18n/LanguageContext'
 
 type Transaction = {
   id: string
@@ -25,6 +26,7 @@ function fmtAmount(amount: number, currency: string, type: string) {
 }
 
 export default function MyPaymentsPage() {
+  const t = useT()
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [total, setTotal] = useState(0)
   const [pages, setPages] = useState(1)
@@ -47,15 +49,15 @@ export default function MyPaymentsPage() {
   return (
     <div className="min-h-screen">
       <div className="bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-10">
-        <h1 className="text-lg font-bold text-[#101828]">Payments</h1>
-        <p className="text-xs text-gray-400">{total} transactions</p>
+        <h1 className="text-lg font-bold text-[#101828]">{t.my.payments}</h1>
+        <p className="text-xs text-gray-400">{total} {t.common.results}</p>
       </div>
 
       <div className="p-6 space-y-4 max-w-2xl">
         {/* Summary card */}
         {transactions.length > 0 && (
           <div className="bg-[#0870E2] rounded-2xl p-5 text-white">
-            <p className="text-xs font-semibold opacity-70 uppercase tracking-wide mb-1">Total this page</p>
+            <p className="text-xs font-semibold opacity-70 uppercase tracking-wide mb-1">{t.my.totalThisPage}</p>
             <p className="text-3xl font-bold">{fmtPrice(totalSpent, summaryCurrency)}</p>
             <p className="text-sm opacity-70 mt-0.5">{transactions.length} transactions</p>
           </div>
@@ -68,7 +70,7 @@ export default function MyPaymentsPage() {
         ) : transactions.length === 0 ? (
           <div className="bg-white border border-gray-100 rounded-2xl p-10 shadow-sm text-center">
             <CreditCard className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-            <p className="text-sm text-gray-400">No payment history yet</p>
+            <p className="text-sm text-gray-400">{t.my.noPaymentHistory}</p>
           </div>
         ) : (
           <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
@@ -95,7 +97,7 @@ export default function MyPaymentsPage() {
 
         {pages > 1 && (
           <div className="flex items-center justify-between">
-            <p className="text-xs text-gray-400">{(page - 1) * 20 + 1}–{Math.min(page * 20, total)} of {total}</p>
+            <p className="text-xs text-gray-400">{(page - 1) * 20 + 1}–{Math.min(page * 20, total)} {t.common.of} {total}</p>
             <div className="flex items-center gap-1">
               <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
                 className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 disabled:opacity-40">

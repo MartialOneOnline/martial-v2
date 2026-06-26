@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { fmtPrice } from '../../lib/format'
 import { getBeltImage } from '../../lib/belts'
+import { useT } from '../../lib/i18n/LanguageContext'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -102,13 +103,13 @@ function fmtTime(iso: string) {
 function daysUntil(iso: string) {
   return Math.ceil((new Date(iso).getTime() - Date.now()) / 86400000)
 }
-function fmtDateShort(iso: string) {
+function fmtDateShortFn(iso: string, todayLabel: string, tomorrowLabel: string) {
   const d = new Date(iso)
   const today = new Date(); today.setHours(0, 0, 0, 0)
   const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1)
   const day = new Date(iso); day.setHours(0, 0, 0, 0)
-  if (day.getTime() === today.getTime()) return 'Today'
-  if (day.getTime() === tomorrow.getTime()) return 'Tomorrow'
+  if (day.getTime() === today.getTime()) return todayLabel
+  if (day.getTime() === tomorrow.getTime()) return tomorrowLabel
   return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
 }
 function classTypeBadge(name: string) {
@@ -123,16 +124,17 @@ function classTypeBadge(name: string) {
 
 // ── Quick actions ─────────────────────────────────────────────────────────────
 
-const QUICK_ACTIONS = [
-  { label: 'Book class',  href: '/my/classes',    icon: CalendarPlus },
-  { label: 'QR',         href: '/my/qr',          icon: QrCode },
-  { label: 'Membership', href: '/my/membership',  icon: CreditCard },
-  { label: 'Progress',   href: '/my/progress',    icon: TrendingUp },
+const QUICK_ACTION_KEYS = [
+  { labelKey: 'quickBookClass', href: '/my/classes',   icon: CalendarPlus },
+  { labelKey: 'quickQr',        href: '/my/qr',         icon: QrCode },
+  { labelKey: 'quickMembership',href: '/my/membership', icon: CreditCard },
+  { labelKey: 'quickProgress',  href: '/my/progress',   icon: TrendingUp },
 ]
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function MyHomePage() {
+  const t = useT()
   const [data, setData]             = useState<UserData | null>(null)
   const [loading, setLoading]       = useState(true)
   const [occurrences, setOccurrences] = useState<Occurrence[]>([])
@@ -229,7 +231,7 @@ export default function MyHomePage() {
   const nextBooking       = user?.bookings?.[0]
   const primaryMember     = user?.schoolMembers?.[0]
   const hour              = new Date().getHours()
-  const greeting          = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
+  const greeting          = hour < 12 ? t.my.goodMorning : hour < 18 ? t.my.goodAfternoon : t.my.goodEvening
   const days              = nextBooking ? daysUntil(nextBooking.scheduledAt) : null
   const dotCount          = Math.min(occurrences.length, 4)
 
@@ -255,12 +257,12 @@ export default function MyHomePage() {
             <div className="inline-flex items-center gap-1 mb-3 rounded-full" style={{ background: 'rgba(255,255,255,.1)', border: '1px solid rgba(255,255,255,.16)', padding: '3px 10px' }}>
               <Clock className="w-3 h-3" style={{ color: 'rgba(255,255,255,.7)' }} />
               <span className="text-xs font-medium" style={{ color: 'rgba(255,255,255,.88)' }}>
-                {days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : `In ${days} days`}
+                {days === 0 ? t.my.today : days === 1 ? t.my.tomorrow : t.my.inDays.replace('{n}', String(days))}
               </span>
             </div>
           )}
 
-          <p className="text-[10px] font-medium uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,.35)', letterSpacing: '1.5px' }}>Next class</p>
+          <p className="text-[10px] font-medium uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,.35)', letterSpacing: '1.5px' }}>{t.my.nextClass}</p>
           <p className="text-lg font-medium mb-0.5" style={{ color: '#fff', letterSpacing: '-0.2px' }}>{nextBooking.class.name}</p>
           <p className="text-xs mb-3" style={{ color: 'rgba(255,255,255,.4)' }}>{nextBooking.class.school.name}</p>
 
@@ -287,7 +289,7 @@ export default function MyHomePage() {
               style={{ background: 'rgba(255,255,255,.22)', color: '#fff', border: '1px solid rgba(255,255,255,.35)', padding: '9px 10px' }}
             >
               <CalendarCheck className="w-3.5 h-3.5" />
-              View booking
+              {t.my.viewBooking}
             </Link>
             <Link
               href="/my/qr"
@@ -296,7 +298,7 @@ export default function MyHomePage() {
               style={{ background: 'rgba(255,255,255,.08)', color: '#fff', border: '1px solid rgba(255,255,255,.2)', padding: '9px 10px' }}
             >
               <QrCode className="w-3.5 h-3.5" style={{ opacity: 0.8 }} />
-              QR check-in
+              {t.my.qrCheckIn}
             </Link>
           </div>
         </div>
@@ -305,8 +307,8 @@ export default function MyHomePage() {
         <div className="mx-4 md:mx-6 mb-5 md:mb-6 rounded-3xl overflow-hidden relative" style={{ background: 'linear-gradient(145deg, #0d2d52 0%, #08213D 55%, #061729 100%)', padding: '22px 22px 20px' }}>
           <div className="absolute" style={{ right: -20, top: -40, width: 160, height: 160, borderRadius: '50%', border: '28px solid rgba(255,255,255,.04)' }} />
           <div className="absolute" style={{ right: 60, top: -70, width: 100, height: 100, borderRadius: '50%', border: '16px solid rgba(255,255,255,.025)' }} />
-          <p className="text-[10px] font-medium uppercase tracking-widest mb-2" style={{ color: 'rgba(255,255,255,.35)', letterSpacing: '1.5px' }}>Next class</p>
-          <p className="text-lg font-medium mb-3" style={{ color: '#fff' }}>No upcoming classes</p>
+          <p className="text-[10px] font-medium uppercase tracking-widest mb-2" style={{ color: 'rgba(255,255,255,.35)', letterSpacing: '1.5px' }}>{t.my.nextClass}</p>
+          <p className="text-lg font-medium mb-3" style={{ color: '#fff' }}>{t.my.noUpcomingClasses}</p>
           <Link
             href="/my/classes"
             prefetch={false}
@@ -314,7 +316,7 @@ export default function MyHomePage() {
             style={{ background: 'rgba(255,255,255,.22)', color: '#fff', border: '1px solid rgba(255,255,255,.35)', padding: '9px 14px' }}
           >
             <CalendarPlus className="w-3.5 h-3.5" />
-            Book a class
+            {t.my.bookAClass}
           </Link>
         </div>
       )}
@@ -322,12 +324,12 @@ export default function MyHomePage() {
       {/* ── Quick actions ──────────────────────────────────────────────────── */}
       <div className="px-4 md:px-6 mb-5 md:mb-7">
         <div className="grid grid-cols-4 md:gap-2">
-          {QUICK_ACTIONS.map(qa => (
+          {QUICK_ACTION_KEYS.map(qa => (
             <Link key={qa.href} href={qa.href} prefetch={false} className="flex flex-col items-center gap-2 py-1">
               <div className="w-[50px] h-[50px] md:w-[56px] md:h-[56px] rounded-full flex items-center justify-center" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.08), 0 0 0 0.5px rgba(0,0,0,.05)' }}>
                 <qa.icon className="w-5 h-5 md:w-6 md:h-6" style={{ color: '#007AFF' }} />
               </div>
-              <span className="text-[10px] md:text-[11px] font-normal text-center leading-tight" style={{ color: '#6B6B70' }}>{qa.label}</span>
+              <span className="text-[10px] md:text-[11px] font-normal text-center leading-tight" style={{ color: '#6B6B70' }}>{t.my[qa.labelKey as keyof typeof t.my]}</span>
             </Link>
           ))}
         </div>
@@ -337,9 +339,9 @@ export default function MyHomePage() {
       {occurrences.length > 0 && (
         <div className="mb-2">
           <div className="flex items-center justify-between px-4 md:px-6 mb-3">
-            <span className="text-base md:text-lg font-semibold" style={{ color: '#1C1C1E', letterSpacing: '-0.2px' }}>Upcoming classes</span>
+            <span className="text-base md:text-lg font-semibold" style={{ color: '#1C1C1E', letterSpacing: '-0.2px' }}>{t.my.upcomingClasses}</span>
             <Link href="/my/classes" prefetch={false} className="flex items-center text-sm font-normal" style={{ color: '#007AFF' }}>
-              View all<ChevronRight className="w-3.5 h-3.5" />
+              {t.my.viewAll}<ChevronRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
@@ -391,14 +393,14 @@ export default function MyHomePage() {
                     </div>
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="text-[10.5px] font-medium" style={{ color: '#4f4f4f' }}>{classTypeBadge(occ.className)}</span>
-                      <span className="text-[10.5px] font-normal" style={{ color: '#4f4f4f' }}>{fmtDateShort(occ.scheduledAt)}</span>
+                      <span className="text-[10.5px] font-normal" style={{ color: '#4f4f4f' }}>{fmtDateShortFn(occ.scheduledAt, t.my.today, t.my.tomorrow)}</span>
                       <span className="text-[10.5px] font-normal text-right" style={{ color: '#4f4f4f' }}>
                         {fmtTime(occ.scheduledAt)}{endTime ? `–${endTime}` : ''}
                       </span>
                     </div>
                     <div className="mb-2" style={{ height: 0.5, background: '#eaeaea' }} />
                     <p className="text-[11px] font-normal leading-relaxed mb-2.5 overflow-hidden" style={{ color: '#111', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                      {occ.instructor ? `Instructor: ${occ.instructor.name}` : occ.school.name}
+                      {occ.instructor ? `${t.my.instructor}: ${occ.instructor.name}` : occ.school.name}
                     </p>
                     <div className="flex gap-1.5 mt-auto">
                       <button
@@ -406,7 +408,7 @@ export default function MyHomePage() {
                         className="flex-1 text-center text-xs font-medium rounded-lg"
                         style={{ background: '#ECEAEA', color: '#000', padding: '6px 0', fontSize: 11.5, border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
                       >
-                        Details
+                        {t.my.details}
                       </button>
                       {occ.alreadyBooked ? (
                         <button
@@ -414,14 +416,14 @@ export default function MyHomePage() {
                           className="flex-1 text-center text-xs font-medium rounded-lg"
                           style={{ background: '#FFEBEE', color: '#C62828', padding: '6px 0', fontSize: 11.5, border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
                         >
-                          Cancel
+                          {t.my.cancel}
                         </button>
                       ) : isFull ? (
                         <span
                           className="flex-1 text-center text-xs font-medium rounded-lg"
                           style={{ background: '#F5F5F5', color: '#9E9E9E', padding: '6px 0', fontSize: 11.5 }}
                         >
-                          Full
+                          {t.my.full}
                         </span>
                       ) : (
                         <button
@@ -432,7 +434,7 @@ export default function MyHomePage() {
                         >
                           {isBooking
                             ? <span className="inline-block w-3 h-3 border-2 border-t-transparent rounded-full animate-spin align-middle" style={{ borderColor: '#006197', borderTopColor: 'transparent' }} />
-                            : 'Book Now'}
+                            : t.my.bookNow}
                         </button>
                       )}
                     </div>
@@ -479,7 +481,7 @@ export default function MyHomePage() {
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span className="text-[17px] font-medium leading-none" style={{ color: '#1C1C1E' }}>75%</span>
-                <span className="text-[9px] font-normal mt-0.5" style={{ color: '#6B6B70' }}>to stripe</span>
+                <span className="text-[9px] font-normal mt-0.5" style={{ color: '#6B6B70' }}>{t.my.toStripe}</span>
               </div>
             </div>
             {/* Info */}
@@ -495,12 +497,12 @@ export default function MyHomePage() {
                   {primaryMember.belt} {(primaryMember.beltDegree ?? 0) + 1} Stripe
                 </span>
               </div>
-              <p className="text-sm font-medium mb-2" style={{ color: '#007AFF' }}>2 classes to go</p>
+              <p className="text-sm font-medium mb-2" style={{ color: '#007AFF' }}>2 {t.my.classesToGo}</p>
               <div className="h-1 rounded-full mb-3" style={{ background: '#E5E5EA' }}>
                 <div className="h-full rounded-full" style={{ width: '75%', background: '#007AFF' }} />
               </div>
               <Link href="/my/progress" prefetch={false} className="flex items-center gap-0.5 text-sm font-medium" style={{ color: '#007AFF' }}>
-                View progress<ChevronRight className="w-3.5 h-3.5" />
+                {t.my.viewProgress}<ChevronRight className="w-3.5 h-3.5" />
               </Link>
             </div>
           </div>
@@ -512,23 +514,23 @@ export default function MyHomePage() {
         <div className="mx-4 md:mx-0 mb-4 rounded-2xl overflow-hidden" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)', padding: 18 }}>
           <div className="flex items-start justify-between mb-3">
             <div>
-              <p className="text-[10px] font-normal uppercase tracking-widest mb-0.5" style={{ color: '#6B6B70', letterSpacing: '.8px' }}>Active plan</p>
+              <p className="text-[10px] font-normal uppercase tracking-widest mb-0.5" style={{ color: '#6B6B70', letterSpacing: '.8px' }}>{t.my.activePlan}</p>
               <p className="text-sm font-medium" style={{ color: '#1C1C1E' }}>{activeMembership.planName}</p>
             </div>
-            <span className="text-xs font-medium rounded-full px-2.5 py-1" style={{ background: '#E4F7EB', color: '#1E8734' }}>Active</span>
+            <span className="text-xs font-medium rounded-full px-2.5 py-1" style={{ background: '#E4F7EB', color: '#1E8734' }}>{t.my.active}</span>
           </div>
           <p className="text-[22px] font-medium mb-0.5" style={{ color: '#1C1C1E', letterSpacing: '-0.4px' }}>
             {fmtPrice(activeMembership.price, activeMembership.currency)}
-            <span className="text-sm font-normal" style={{ color: '#6B6B70' }}> / month</span>
+            <span className="text-sm font-normal" style={{ color: '#6B6B70' }}> {t.my.perMonth}</span>
           </p>
           {activeMembership.endDate && (
             <p className="text-xs mb-3" style={{ color: '#6B6B70' }}>
-              Renews {new Date(activeMembership.endDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+              {t.my.renews} {new Date(activeMembership.endDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
             </p>
           )}
           <div style={{ height: 0.5, background: 'rgba(60,60,67,.1)', margin: '14px 0' }} />
           <Link href="/my/membership" prefetch={false} className="flex items-center justify-between">
-            <span className="text-sm font-medium" style={{ color: '#007AFF' }}>Manage membership</span>
+            <span className="text-sm font-medium" style={{ color: '#007AFF' }}>{t.my.manageMembership}</span>
             <ChevronRight className="w-3.5 h-3.5" style={{ color: '#AEAEB2' }} />
           </Link>
         </div>
@@ -539,9 +541,9 @@ export default function MyHomePage() {
       {/* ── Recommended video ──────────────────────────────────────────────── */}
       <div className="mx-4 md:mx-6 mb-4">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-base md:text-lg font-semibold" style={{ color: '#1C1C1E', letterSpacing: '-0.2px' }}>Recommended</span>
+          <span className="text-base md:text-lg font-semibold" style={{ color: '#1C1C1E', letterSpacing: '-0.2px' }}>{t.my.recommended}</span>
           <button className="flex items-center text-sm font-normal" style={{ color: '#007AFF', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
-            View all<ChevronRight className="w-3.5 h-3.5" />
+            {t.my.viewAll}<ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
         <div className="rounded-2xl overflow-hidden" style={{ background: '#08213D', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)' }}>
@@ -597,14 +599,14 @@ export default function MyHomePage() {
           <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(0,122,255,.08)' }}>
             <CalendarPlus className="w-6 h-6" style={{ color: '#007AFF' }} />
           </div>
-          <h3 className="text-sm font-semibold mb-1" style={{ color: '#1C1C1E' }}>Find your academy</h3>
-          <p className="text-xs mb-4" style={{ color: '#6B6B70' }}>Search for martial arts schools near you and join today.</p>
+          <h3 className="text-sm font-semibold mb-1" style={{ color: '#1C1C1E' }}>{t.my.findYourAcademy}</h3>
+          <p className="text-xs mb-4" style={{ color: '#6B6B70' }}>{t.my.searchNearYou}</p>
           <Link
             href="/explore"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-xs font-semibold"
             style={{ background: '#007AFF' }}
           >
-            Explore schools
+            {t.my.exploreSchools}
           </Link>
         </div>
       )}
@@ -625,7 +627,7 @@ export default function MyHomePage() {
             <div className="flex justify-center mb-4">
               <div className="w-10 h-1 rounded-full" style={{ background: '#E5E5EA' }} />
             </div>
-            <h2 className="text-base font-semibold mb-1" style={{ color: '#1C1C1E' }}>Cancel booking?</h2>
+            <h2 className="text-base font-semibold mb-1" style={{ color: '#1C1C1E' }}>{t.my.cancelBookingTitle}</h2>
             <p className="text-sm mb-6" style={{ color: '#6B6B70' }}>
               {cancelOcc.className} · {new Date(cancelOcc.scheduledAt).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })} at {new Date(cancelOcc.scheduledAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })}
             </p>
@@ -636,7 +638,7 @@ export default function MyHomePage() {
                 className="flex-1 py-3 rounded-2xl text-sm font-semibold disabled:opacity-50"
                 style={{ border: '1px solid #E5E5EA', color: '#6B6B70', background: 'none', fontFamily: 'inherit', cursor: 'pointer' }}
               >
-                Keep it
+                {t.my.keepIt}
               </button>
               <button
                 onClick={() => cancelClass(cancelOcc)}
@@ -646,7 +648,7 @@ export default function MyHomePage() {
               >
                 {cancelling
                   ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
-                  : 'Cancel booking'}
+                  : t.my.cancelBookingBtn}
               </button>
             </div>
           </div>
@@ -710,7 +712,7 @@ export default function MyHomePage() {
                   )}
                   <div>
                     <p className="text-sm font-medium" style={{ color: '#1C1C1E' }}>{detailOcc.instructor.name}</p>
-                    <p className="text-xs" style={{ color: '#6B6B70' }}>Instructor</p>
+                    <p className="text-xs" style={{ color: '#6B6B70' }}>{t.my.instructor}</p>
                   </div>
                 </div>
               )}
@@ -721,15 +723,15 @@ export default function MyHomePage() {
                   className="flex-1 py-3 rounded-2xl text-sm font-medium"
                   style={{ border: '1px solid #E5E5EA', color: '#6B6B70', background: 'none', fontFamily: 'inherit', cursor: 'pointer' }}
                 >
-                  Close
+                  {t.my.close}
                 </button>
                 {detailOcc.alreadyBooked ? (
                   <div className="flex-1 py-3 rounded-2xl text-sm font-medium flex items-center justify-center gap-1" style={{ background: '#E4F7EB', color: '#1E8734' }}>
-                    ✓ Booked
+                    {t.my.bookedCheck}
                   </div>
                 ) : detailOcc.capacity !== null && detailOcc.booked >= detailOcc.capacity ? (
                   <div className="flex-1 py-3 rounded-2xl text-sm font-medium flex items-center justify-center" style={{ background: '#F5F5F5', color: '#9E9E9E' }}>
-                    Full
+                    {t.my.full}
                   </div>
                 ) : (
                   <button
@@ -737,7 +739,7 @@ export default function MyHomePage() {
                     className="flex-1 py-3 rounded-2xl text-sm font-medium"
                     style={{ background: '#E8F7FF', color: '#006197', border: 'none', fontFamily: 'inherit', cursor: 'pointer' }}
                   >
-                    Book Now
+                    {t.my.bookNow}
                   </button>
                 )}
               </div>

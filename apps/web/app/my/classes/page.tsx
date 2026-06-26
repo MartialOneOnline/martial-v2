@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { Calendar, Clock, MapPin, ChevronLeft, ChevronRight, Users, CheckCircle2, X, Info, CalendarDays, Ticket, Zap } from 'lucide-react'
+import { useT } from '../../../lib/i18n/LanguageContext'
 
 /* ── Types ── */
 type Booking = {
@@ -37,12 +38,14 @@ type Occurrence = {
 }
 
 /* ── Helpers ── */
-const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  PENDING:   { label: 'Booked',    color: '#3B82F6' },
-  CONFIRMED: { label: 'Confirmed', color: '#3B82F6' },
-  ATTENDED:  { label: 'Attended',  color: '#22C55E' },
-  NO_SHOW:   { label: 'No show',   color: '#EF4444' },
-  CANCELLED: { label: 'Cancelled', color: '#9CA3AF' },
+function getStatusConfig(t: ReturnType<typeof useT>): Record<string, { label: string; color: string }> {
+  return {
+    PENDING:   { label: t.my.statusBooked,    color: '#3B82F6' },
+    CONFIRMED: { label: t.my.statusConfirmed, color: '#3B82F6' },
+    ATTENDED:  { label: t.my.statusAttended,  color: '#22C55E' },
+    NO_SHOW:   { label: t.my.statusNoShow,    color: '#EF4444' },
+    CANCELLED: { label: t.my.statusCancelled as string, color: '#9CA3AF' },
+  }
 }
 
 function fmtTime(iso: string) {
@@ -113,6 +116,7 @@ function OccurrenceCard({ occ, onBook, onDetail, onCancelBooking }: {
   onDetail: (occ: Occurrence) => void
   onCancelBooking?: () => void
 }) {
+  const t = useT()
   const isFull = occ.capacity !== null && occ.booked >= occ.capacity
   const spotsLeft = occ.capacity !== null ? occ.capacity - occ.booked : null
 
@@ -137,19 +141,19 @@ function OccurrenceCard({ occ, onBook, onDetail, onCancelBooking }: {
         {occ.alreadyBooked && (
           <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-emerald-500/90 backdrop-blur-sm rounded-full px-2.5 py-1">
             <CheckCircle2 className="w-3 h-3 text-white" />
-            <span className="text-[10px] font-semibold text-white">Booked</span>
+            <span className="text-[10px] font-semibold text-white">{t.my.statusBooked}</span>
           </div>
         )}
         {/* Full badge */}
         {isFull && !occ.alreadyBooked && (
           <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-red-500/90 backdrop-blur-sm rounded-full px-2.5 py-1">
-            <span className="text-[10px] font-semibold text-white">Full</span>
+            <span className="text-[10px] font-semibold text-white">{t.my.fullBtn}</span>
           </div>
         )}
         {/* Low spots warning */}
         {!isFull && !occ.alreadyBooked && spotsLeft !== null && spotsLeft <= 5 && (
           <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-amber-500/90 backdrop-blur-sm rounded-full px-2.5 py-1">
-            <span className="text-[10px] font-semibold text-white">{spotsLeft} spots left</span>
+            <span className="text-[10px] font-semibold text-white">{t.my.spotsLeft.replace('{n}', String(spotsLeft))}</span>
           </div>
         )}
       </div>
@@ -190,7 +194,7 @@ function OccurrenceCard({ occ, onBook, onDetail, onCancelBooking }: {
             className="flex-1 flex items-center justify-center text-sm font-medium rounded-xl transition-colors"
             style={{ background: '#ECEAEA', color: '#000', padding: '8px 0' }}
           >
-            Details
+            {t.my.detailsBtn}
           </button>
           {occ.alreadyBooked ? (
             <button
@@ -198,7 +202,7 @@ function OccurrenceCard({ occ, onBook, onDetail, onCancelBooking }: {
               className="flex-1 flex items-center justify-center text-sm font-medium rounded-xl"
               style={{ background: '#FFEBEE', color: '#C62828', padding: '8px 0' }}
             >
-              Cancel
+              {t.my.cancelBtn2}
             </button>
           ) : !isFull ? (
             <button
@@ -206,11 +210,11 @@ function OccurrenceCard({ occ, onBook, onDetail, onCancelBooking }: {
               className="flex-1 flex items-center justify-center text-sm font-medium rounded-xl transition-all hover:opacity-90"
               style={{ background: '#E8F7FF', color: '#006197', padding: '8px 0' }}
             >
-              Book Now
+              {t.my.bookNowBtn}
             </button>
           ) : (
             <div className="flex-1 flex items-center justify-center text-sm font-medium rounded-xl" style={{ background: '#F5F5F5', color: '#9E9E9E', padding: '8px 0' }}>
-              Full
+              {t.my.fullBtn}
             </div>
           )}
         </div>
@@ -221,7 +225,8 @@ function OccurrenceCard({ occ, onBook, onDetail, onCancelBooking }: {
 
 /* ── Booking card (my bookings) ── */
 function BookingCard({ booking, onCancel }: { booking: Booking; onCancel?: () => void }) {
-  const cfg = STATUS_CONFIG[booking.status] ?? { label: booking.status, color: '#9CA3AF' }
+  const t = useT()
+  const cfg = getStatusConfig(t)[booking.status] ?? { label: booking.status, color: '#9CA3AF' }
   const isCancellable = ['PENDING', 'CONFIRMED'].includes(booking.status) && new Date(booking.scheduledAt) > new Date()
 
   return (
@@ -263,7 +268,7 @@ function BookingCard({ booking, onCancel }: { booking: Booking; onCancel?: () =>
             className="w-full flex items-center justify-center gap-2 bg-red-50 text-red-500 text-sm font-semibold py-2.5 rounded-xl hover:bg-red-500 hover:text-white transition-all"
           >
             <X className="w-4 h-4" />
-            Cancel booking
+            {t.my.cancelBookingBtn2}
           </button>
         )}
       </div>
@@ -272,7 +277,7 @@ function BookingCard({ booking, onCancel }: { booking: Booking; onCancel?: () =>
 }
 
 /* ── Group by date ── */
-function groupByDate<T extends { scheduledAt: string }>(items: T[]) {
+function groupByDate<T extends { scheduledAt: string }>(items: T[], todayLabel: string, tomorrowLabel: string) {
   const groups: { label: string; date: Date; items: T[] }[] = []
   const today = new Date(); today.setHours(0, 0, 0, 0)
   const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1)
@@ -280,8 +285,8 @@ function groupByDate<T extends { scheduledAt: string }>(items: T[]) {
   for (const item of items) {
     const d = new Date(item.scheduledAt); d.setHours(0, 0, 0, 0)
     let label: string
-    if (isSameDay(d, today)) label = 'Today'
-    else if (isSameDay(d, tomorrow)) label = 'Tomorrow'
+    if (isSameDay(d, today)) label = todayLabel
+    else if (isSameDay(d, tomorrow)) label = tomorrowLabel
     else label = d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
 
     const existing = groups.find(g => g.label === label)
@@ -297,6 +302,7 @@ function DetailDrawer({ occ, onClose, onBook }: {
   onClose: () => void
   onBook: (occ: Occurrence) => void
 }) {
+  const t = useT()
   const isFull = occ.capacity !== null && occ.booked >= occ.capacity
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
@@ -360,7 +366,7 @@ function DetailDrawer({ occ, onClose, onBook }: {
               )}
               <div>
                 <p className="text-sm font-semibold text-[#061229]">{occ.instructor.name}</p>
-                <p className="text-xs text-gray-400">Instructor</p>
+                <p className="text-xs text-gray-400">{t.my.instructor}</p>
               </div>
             </div>
           )}
@@ -380,23 +386,23 @@ function DetailDrawer({ occ, onClose, onBook }: {
               onClick={onClose}
               className="flex-1 py-3 rounded-2xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
             >
-              Close
+              {t.my.closeBtn}
             </button>
             {!occ.alreadyBooked && !isFull ? (
               <button
                 onClick={() => { onClose(); onBook(occ) }}
                 className="flex-1 py-3 rounded-2xl bg-[#E8F4FF] text-[#0870E2] text-sm font-semibold hover:bg-[#0870E2] hover:text-white transition-all"
               >
-                Book Now
+                {t.my.bookNowBtn}
               </button>
             ) : occ.alreadyBooked ? (
               <div className="flex-1 py-3 rounded-2xl bg-emerald-50 text-emerald-600 text-sm font-semibold flex items-center justify-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4" />
-                Already booked
+                {t.my.bookedCheck}
               </div>
             ) : (
               <div className="flex-1 py-3 rounded-2xl bg-gray-50 text-gray-400 text-sm font-semibold flex items-center justify-center">
-                Class full
+                {t.my.fullBtn}
               </div>
             )}
           </div>
@@ -414,6 +420,7 @@ function ConfirmModal({ occ, onConfirm, onCancel, booking, success }: {
   booking: boolean
   success: boolean
 }) {
+  const t = useT()
   const dateStr = new Date(occ.scheduledAt).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })
 
   if (success) {
@@ -423,11 +430,11 @@ function ConfirmModal({ occ, onConfirm, onCancel, booking, success }: {
           <div className="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
             <CheckCircle2 className="w-7 h-7 text-emerald-500" />
           </div>
-          <h2 className="text-base font-bold text-[#101828] mb-1">Booking confirmed!</h2>
+          <h2 className="text-base font-bold text-[#101828] mb-1">{t.my.bookingConfirmedTitle}</h2>
           <p className="text-sm text-gray-500 mb-1">{occ.className}</p>
           <p className="text-xs text-gray-400 mb-5">{dateStr} · {fmtTime(occ.scheduledAt)}</p>
           <button onClick={onCancel} className="w-full py-3 rounded-2xl bg-[#0870E2] text-white text-sm font-semibold hover:bg-[#0558b0] transition-colors">
-            Done
+            {t.common.done}
           </button>
         </div>
       </div>
@@ -437,17 +444,17 @@ function ConfirmModal({ occ, onConfirm, onCancel, booking, success }: {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl">
-        <h2 className="text-base font-bold text-[#101828] mb-1">Confirm booking</h2>
+        <h2 className="text-base font-bold text-[#101828] mb-1">{t.my.confirmBookingTitle}</h2>
         <p className="text-sm text-gray-500 mb-4">{occ.className} · {dateStr} at {fmtTime(occ.scheduledAt)}</p>
-        {occ.instructor && <p className="text-xs text-gray-400 mb-4">Instructor: {occ.instructor.name}</p>}
+        {occ.instructor && <p className="text-xs text-gray-400 mb-4">{t.my.instructor}: {occ.instructor.name}</p>}
         <div className="flex gap-3">
           <button onClick={onCancel} disabled={booking}
             className="flex-1 py-3 rounded-2xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50">
-            Cancel
+            {t.common.cancel}
           </button>
           <button onClick={onConfirm} disabled={booking}
             className="flex-1 py-3 rounded-2xl bg-[#0870E2] text-white text-sm font-semibold hover:bg-[#0558b0] transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
-            {booking ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : 'Confirm'}
+            {booking ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : t.my.confirmBtn}
           </button>
         </div>
       </div>
@@ -462,6 +469,7 @@ function CancelModal({ booking, onConfirm, onClose, cancelling }: {
   onClose: () => void
   cancelling: boolean
 }) {
+  const t = useT()
   const dateStr = new Date(booking.scheduledAt).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -469,16 +477,16 @@ function CancelModal({ booking, onConfirm, onClose, cancelling }: {
         <div className="flex justify-center mb-4">
           <div className="w-10 h-1 rounded-full bg-gray-200" />
         </div>
-        <h2 className="text-base font-semibold text-[#1C1C1E] mb-1">Cancel booking?</h2>
+        <h2 className="text-base font-semibold text-[#1C1C1E] mb-1">{t.my.cancelBookingQuestion}</h2>
         <p className="text-sm text-gray-500 mb-6">{booking.class.name} · {dateStr} at {fmtTime(booking.scheduledAt)}</p>
         <div className="flex gap-3">
           <button onClick={onClose} disabled={cancelling}
             className="flex-1 py-3 rounded-2xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50">
-            Keep it
+            {t.my.keepIt}
           </button>
           <button onClick={onConfirm} disabled={cancelling}
             className="flex-1 py-3 rounded-2xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
-            {cancelling ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : 'Cancel booking'}
+            {cancelling ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : t.my.cancelBookingBtn2}
           </button>
         </div>
       </div>
@@ -501,9 +509,11 @@ type PassPlan = {
   school: { name: string }
 }
 
-const PASS_TYPE_CONFIG: Record<string, { label: string; bg: string; color: string; icon: React.ReactNode }> = {
-  SINGLE_PASS: { label: 'Single session', bg: '#F5F3FF', color: '#7C3AED', icon: <Ticket size={12} /> },
-  TRIAL:       { label: 'Trial class',    bg: '#FFF7ED', color: '#C2410C', icon: <Zap size={12} /> },
+function getPassTypeConfig(t: ReturnType<typeof useT>): Record<string, { label: string; bg: string; color: string; icon: React.ReactNode }> {
+  return {
+    SINGLE_PASS: { label: t.my.singleSession, bg: '#F5F3FF', color: '#7C3AED', icon: <Ticket size={12} /> },
+    TRIAL:       { label: t.my.trialClass,    bg: '#FFF7ED', color: '#C2410C', icon: <Zap size={12} /> },
+  }
 }
 
 function fmtPassPrice(price: number, currency: string) {
@@ -517,7 +527,8 @@ function PassCard({ plan, onRequest, requesting }: {
   onRequest: (plan: PassPlan) => void
   requesting: boolean
 }) {
-  const cfg = PASS_TYPE_CONFIG[plan.planType] ?? { label: plan.planType, bg: '#F3F4F6', color: '#6B7280', icon: <Ticket size={12} /> }
+  const t = useT()
+  const cfg = getPassTypeConfig(t)[plan.planType] ?? { label: plan.planType, bg: '#F3F4F6', color: '#6B7280', icon: <Ticket size={12} /> }
   return (
     <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex items-center gap-4">
       <div style={{ width: 44, height: 44, borderRadius: 12, background: cfg.bg,
@@ -535,18 +546,18 @@ function PassCard({ plan, onRequest, requesting }: {
         </div>
         <p className="text-sm font-bold text-[#101828] truncate">{plan.name}</p>
         {plan.validityDays && (
-          <p className="text-xs text-gray-400">Valid {plan.validityDays} days</p>
+          <p className="text-xs text-gray-400">{t.my.billingDayPass.replace('{n}', String(plan.validityDays))}</p>
         )}
       </div>
       <div className="text-right flex-shrink-0">
         <p className="text-base font-bold text-[#101828]">{fmtPassPrice(plan.price, plan.currency)}</p>
         {plan.alreadyActive ? (
-          <span className="text-xs text-green-600 font-semibold">Active</span>
+          <span className="text-xs text-green-600 font-semibold">{t.my.active}</span>
         ) : (
           <button onClick={() => onRequest(plan)} disabled={requesting}
             className="mt-1 text-xs font-bold text-white bg-[#0870E2] px-3 py-1.5 rounded-xl disabled:opacity-60"
             style={{ cursor: requesting ? 'not-allowed' : 'pointer' }}>
-            {requesting ? '…' : plan.planType === 'TRIAL' ? 'Book trial' : 'Get pass'}
+            {requesting ? '…' : plan.planType === 'TRIAL' ? t.my.bookTrialBtn : t.my.getPassBtn}
           </button>
         )}
       </div>
@@ -556,6 +567,7 @@ function PassCard({ plan, onRequest, requesting }: {
 
 /* ── Main page ── */
 export default function MyClassesPage() {
+  const t = useT()
   const [mainTab, setMainTab] = useState<'book' | 'schedule'>('book')
 
   // Book tab state
@@ -624,8 +636,8 @@ export default function MyClassesPage() {
 
   const filteredOcc = occDate ? occurrences.filter(o => isSameDay(new Date(o.scheduledAt), occDate)) : occurrences
   const filteredBookings = selectedDate ? bookings.filter(b => isSameDay(new Date(b.scheduledAt), selectedDate)) : bookings
-  const bookingGroups = groupByDate(filteredBookings)
-  const occGroups = groupByDate(filteredOcc)
+  const bookingGroups = groupByDate(filteredBookings, t.my.today, t.my.tomorrow)
+  const occGroups = groupByDate(filteredOcc, t.my.today, t.my.tomorrow)
 
   async function handleBook() {
     if (!confirmOcc) return
@@ -639,7 +651,7 @@ export default function MyClassesPage() {
       })
       if (!res.ok) {
         const data = await res.json()
-        setBookError(data.error ?? 'Booking failed')
+        setBookError(data.error ?? t.my.bookingFailedError)
         setBooking(false)
         return
       }
@@ -652,7 +664,7 @@ export default function MyClassesPage() {
       setBookSuccess(true)
       loadBookings()
     } catch {
-      setBookError('Network error. Try again.')
+      setBookError(t.my.networkError)
       setBooking(false)
     }
   }
@@ -677,9 +689,9 @@ export default function MyClassesPage() {
       <div className="bg-white border-b border-gray-100 px-5 py-4 sticky top-0 z-10 md:top-0">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-base font-bold text-[#101828]">Classes</h1>
+            <h1 className="text-base font-bold text-[#101828]">{t.my.classesHeader}</h1>
             <p className="text-xs text-gray-400 mt-0.5">
-              {mainTab === 'book' ? `${occurrences.length} upcoming sessions` : `${total} ${scheduleSubTab} bookings`}
+              {mainTab === 'book' ? t.my.upcomingSessions.replace('{n}', String(occurrences.length)) : `${total} ${scheduleSubTab}`}
             </p>
           </div>
           <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
@@ -687,13 +699,13 @@ export default function MyClassesPage() {
               onClick={() => setMainTab('book')}
               className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${mainTab === 'book' ? 'bg-white text-[#101828] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
-              Book
+              {t.my.bookTab}
             </button>
             <button
               onClick={() => setMainTab('schedule')}
               className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${mainTab === 'schedule' ? 'bg-white text-[#101828] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
-              My bookings
+              {t.my.myBookingsTab}
             </button>
           </div>
         </div>
@@ -714,10 +726,10 @@ export default function MyClassesPage() {
               <div className="bg-white border border-gray-100 rounded-2xl p-10 shadow-sm text-center mt-2">
                 <Calendar className="w-10 h-10 text-gray-200 mx-auto mb-3" />
                 <p className="text-sm font-semibold text-[#101828] mb-1">
-                  {occDate ? 'No classes on this day' : 'No classes available'}
+                  {occDate ? t.my.noClassesThisDay : t.my.noClassesAvailable}
                 </p>
                 <p className="text-xs text-gray-400">
-                  {occDate ? 'Try another day' : 'Your school has no scheduled classes yet'}
+                  {occDate ? t.my.tryAnotherDay : t.my.schoolNoClasses}
                 </p>
               </div>
             ) : (
@@ -750,7 +762,7 @@ export default function MyClassesPage() {
             {passPlans.length > 0 && (
               <div className="mt-6">
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 px-1">
-                  Passes &amp; trials
+                  {t.my.passesTrials}
                 </p>
                 <div className="space-y-3">
                   {passPlans.map(p => (
@@ -769,15 +781,15 @@ export default function MyClassesPage() {
       {mainTab === 'schedule' && (
         <>
           <div className="bg-white border-b border-gray-50 px-5 py-2.5 flex gap-3">
-            {(['upcoming', 'past'] as const).map(t => (
+            {(['upcoming', 'past'] as const).map(tab => (
               <button
-                key={t}
-                onClick={() => setScheduleSubTab(t)}
+                key={tab}
+                onClick={() => setScheduleSubTab(tab)}
                 className={`text-sm font-semibold pb-1.5 border-b-2 transition-all capitalize ${
-                  scheduleSubTab === t ? 'border-[#0870E2] text-[#0870E2]' : 'border-transparent text-gray-400 hover:text-gray-600'
+                  scheduleSubTab === tab ? 'border-[#0870E2] text-[#0870E2]' : 'border-transparent text-gray-400 hover:text-gray-600'
                 }`}
               >
-                {t}
+                {tab === 'upcoming' ? t.my.upcomingTab : t.my.pastTab}
               </button>
             ))}
           </div>
@@ -797,17 +809,17 @@ export default function MyClassesPage() {
               <div className="bg-white border border-gray-100 rounded-2xl p-10 shadow-sm text-center mt-2">
                 <Calendar className="w-10 h-10 text-gray-200 mx-auto mb-3" />
                 <p className="text-sm font-semibold text-[#101828] mb-1">
-                  {selectedDate ? 'No classes on this day' : scheduleSubTab === 'upcoming' ? 'No upcoming classes' : 'No past classes yet'}
+                  {selectedDate ? t.my.noClassesThisDay : scheduleSubTab === 'upcoming' ? t.my.noUpcomingBookings : t.my.noPastClasses}
                 </p>
                 <p className="text-xs text-gray-400">
-                  {scheduleSubTab === 'upcoming' ? 'Book a class to see it here' : 'Classes you attend will appear here'}
+                  {scheduleSubTab === 'upcoming' ? t.my.bookClassHere : t.my.attendWillAppear}
                 </p>
                 {scheduleSubTab === 'upcoming' && (
                   <button
                     onClick={() => setMainTab('book')}
                     className="inline-flex mt-4 px-5 py-2.5 rounded-xl text-white text-xs font-semibold bg-[#0870E2] hover:bg-[#005580] transition-colors"
                   >
-                    Browse classes
+                    {t.my.browseClasses}
                   </button>
                 )}
               </div>
@@ -828,7 +840,7 @@ export default function MyClassesPage() {
 
             {pages > 1 && (
               <div className="flex items-center justify-between pt-4 mt-2">
-                <p className="text-xs text-gray-400">{(page - 1) * 20 + 1}–{Math.min(page * 20, total)} of {total}</p>
+                <p className="text-xs text-gray-400">{(page - 1) * 20 + 1}–{Math.min(page * 20, total)} {t.common.of} {total}</p>
                 <div className="flex items-center gap-1">
                   <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
                     className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 disabled:opacity-40">
@@ -883,7 +895,7 @@ export default function MyClassesPage() {
       {passSuccess && (
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-[#111827] text-white text-xs font-semibold px-4 py-2.5 rounded-2xl shadow-lg whitespace-nowrap flex items-center gap-2">
           <CheckCircle2 className="w-3.5 h-3.5 text-green-400" />
-          Request sent for {passSuccess}
+          {t.my.requestSentFor.replace('{name}', passSuccess ?? '')}
         </div>
       )}
     </div>

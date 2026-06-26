@@ -8,6 +8,8 @@ import {
   Pause, X, Play, Star, AlertTriangle, Send,
 } from 'lucide-react'
 import { fmtPrice } from '../../../lib/format'
+import { useT } from '../../../lib/i18n/LanguageContext'
+import type { Translations } from '../../../lib/i18n/translations'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -56,34 +58,42 @@ type Plan = {
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
-const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string }> = {
-  PENDING:   { label: 'Pending approval', bg: '#FFFBEB', color: '#D97706' },
-  ACTIVE:    { label: 'Active',    bg: '#F0FDF4', color: '#16A34A' },
-  PAUSED:    { label: 'Paused',    bg: '#EFF6FF', color: '#3B82F6' },
-  CANCELLED: { label: 'Cancelled', bg: '#F3F4F6', color: '#6B7280' },
-  EXPIRED:   { label: 'Expired',   bg: '#FEF2F2', color: '#EF4444' },
+function getStatusConfig(t: Translations): Record<string, { label: string; bg: string; color: string }> {
+  return {
+    PENDING:   { label: t.my.statusPending,   bg: '#FFFBEB', color: '#D97706' },
+    ACTIVE:    { label: t.my.statusActive,    bg: '#F0FDF4', color: '#16A34A' },
+    PAUSED:    { label: t.my.statusPaused,    bg: '#EFF6FF', color: '#3B82F6' },
+    CANCELLED: { label: t.my.statusCancelled, bg: '#F3F4F6', color: '#6B7280' },
+    EXPIRED:   { label: t.my.statusExpired,   bg: '#FEF2F2', color: '#EF4444' },
+  }
 }
 
-const PLAN_TYPE_CONFIG: Record<string, { label: string; bg: string; color: string }> = {
-  SUBSCRIPTION: { label: 'Subscription', bg: '#EFF6FF', color: '#1D4ED8' },
-  SINGLE_PASS:  { label: 'Single Pass',  bg: '#F5F3FF', color: '#7C3AED' },
-  TRIAL:        { label: 'Trial',        bg: '#FFF7ED', color: '#C2410C' },
+function getPlanTypeConfig(t: Translations): Record<string, { label: string; bg: string; color: string }> {
+  return {
+    SUBSCRIPTION: { label: t.my.typeSub,        bg: '#EFF6FF', color: '#1D4ED8' },
+    SINGLE_PASS:  { label: t.my.typeSinglePass,  bg: '#F5F3FF', color: '#7C3AED' },
+    TRIAL:        { label: t.my.typeTrial,       bg: '#FFF7ED', color: '#C2410C' },
+  }
 }
 
-const BILLING_LABELS: Record<string, string> = {
-  monthly:      'month',
-  quarterly:    '3 months',
-  annual:       'year',
-  'two-weekly': '2 weeks',
-  'one-off':    'once',
+function getBillingLabels(t: Translations): Record<string, string> {
+  return {
+    monthly:      t.my.billingMonth,
+    quarterly:    t.my.billing3Months,
+    annual:       t.my.billingYear,
+    'two-weekly': t.my.billing2Weeks,
+    'one-off':    t.my.billingOnce,
+  }
 }
 
-const PAYMENT_LABELS: Record<string, string> = {
-  STRIPE: 'Card',
-  CASH: 'Cash',
-  BANK_TRANSFER: 'Bank transfer',
-  DIRECT_DEBIT: 'Direct debit',
-  OTHER: 'Other',
+function getPaymentLabels(t: Translations): Record<string, string> {
+  return {
+    STRIPE:        t.my.payCard,
+    CASH:          t.my.payCash,
+    BANK_TRANSFER: t.my.payBank,
+    DIRECT_DEBIT:  t.my.payDebit,
+    OTHER:         t.my.payOther,
+  }
 }
 
 function fmtDate(iso: string) {
@@ -99,19 +109,19 @@ function daysLeft(iso: string) {
   return Math.max(0, Math.ceil(diff / 86400000))
 }
 
-function billingLabel(planType: string, billingCycle: string | null, validityDays: number | null): string {
+function billingLabel(planType: string, billingCycle: string | null, validityDays: number | null, t: Translations): string {
   if (planType === 'SUBSCRIPTION' && billingCycle) {
-    const l = BILLING_LABELS[billingCycle]
+    const l = getBillingLabels(t)[billingCycle]
     return l ? `/${l}` : `/${billingCycle}`
   }
-  if (validityDays) return `${validityDays}-day pass`
+  if (validityDays) return t.my.billingDayPass.replace('{n}', String(validityDays))
   return ''
 }
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
-function StatusBadge({ status }: { status: string }) {
-  const cfg = STATUS_CONFIG[status] ?? { label: status, bg: '#F3F4F6', color: '#6B7280' }
+function StatusBadge({ status, t }: { status: string; t: Translations }) {
+  const cfg = getStatusConfig(t)[status] ?? { label: status, bg: '#F3F4F6', color: '#6B7280' }
   return (
     <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 999,
       background: cfg.bg, color: cfg.color }}>
@@ -120,8 +130,8 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
-function PlanTypeBadge({ planType }: { planType: string }) {
-  const cfg = PLAN_TYPE_CONFIG[planType] ?? { label: planType, bg: '#F3F4F6', color: '#6B7280' }
+function PlanTypeBadge({ planType, t }: { planType: string; t: Translations }) {
+  const cfg = getPlanTypeConfig(t)[planType] ?? { label: planType, bg: '#F3F4F6', color: '#6B7280' }
   return (
     <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 999,
       background: cfg.bg, color: cfg.color }}>
@@ -133,18 +143,19 @@ function PlanTypeBadge({ planType }: { planType: string }) {
 // ── Confirm action modal ───────────────────────────────────────────────────────
 
 function ConfirmModal({
-  action, membershipName, onConfirm, onClose, loading,
+  action, membershipName, onConfirm, onClose, loading, t,
 }: {
   action: 'pause' | 'resume' | 'cancel'
   membershipName: string
   onConfirm: () => void
   onClose: () => void
   loading: boolean
+  t: Translations
 }) {
   const config = {
-    pause:  { title: 'Pause membership', desc: `Your access will be temporarily suspended. You can resume at any time.`, btn: 'Pause', btnColor: '#3B82F6' },
-    resume: { title: 'Resume membership', desc: `Your access will be restored immediately.`, btn: 'Resume', btnColor: '#16A34A' },
-    cancel: { title: 'Cancel membership', desc: `Your membership will be cancelled. This cannot be undone. You'll retain access until the end of your current period.`, btn: 'Cancel membership', btnColor: '#EF4444' },
+    pause:  { title: t.my.pauseMembership,  desc: t.my.pauseDesc,  btn: t.my.pauseBtn,  btnColor: '#3B82F6' },
+    resume: { title: t.my.resumeMembership, desc: t.my.resumeDesc, btn: t.my.resumeBtn, btnColor: '#16A34A' },
+    cancel: { title: t.my.cancelMembership, desc: t.my.cancelDesc, btn: t.my.cancelBtn, btnColor: '#EF4444' },
   }[action]
 
   return (
@@ -175,12 +186,12 @@ function ConfirmModal({
           style={{ width: '100%', padding: '13px', borderRadius: 14, background: config.btnColor,
             color: '#fff', fontSize: 14, fontWeight: 700, border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
             opacity: loading ? 0.7 : 1, marginBottom: 10 }}>
-          {loading ? 'Please wait…' : config.btn}
+          {loading ? t.my.pleaseWait : config.btn}
         </button>
         <button onClick={onClose}
           style={{ width: '100%', padding: '13px', borderRadius: 14, background: 'none',
             color: '#6B7280', fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' }}>
-          Keep my membership
+          {t.my.keepMyMembership}
         </button>
       </div>
     </div>
@@ -190,14 +201,15 @@ function ConfirmModal({
 // ── Active membership card ─────────────────────────────────────────────────────
 
 function ActiveMembershipCard({
-  m, onAction,
+  m, onAction, t,
 }: {
   m: Membership
   onAction: (id: string, action: 'pause' | 'resume' | 'cancel') => void
+  t: Translations
 }) {
   const days = m.endDate ? daysLeft(m.endDate) : null
   const isExpiringSoon = days !== null && days <= 14
-  const billing = billingLabel(m.planType, m.billingCycle, m.validityDays)
+  const billing = billingLabel(m.planType, m.billingCycle, m.validityDays, t)
   const isSubscription = m.planType === 'SUBSCRIPTION'
   const isPending = m.status === 'PENDING'
   const isPaused = m.status === 'PAUSED'
@@ -221,7 +233,7 @@ function ActiveMembershipCard({
               <p style={{ fontSize: 17, fontWeight: 800, color: '#fff', margin: 0, letterSpacing: '-0.02em' }}>{m.planName}</p>
               <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', margin: '1px 0 0' }}>{m.school.name}</p>
             </div>
-            <StatusBadge status={m.status} />
+            <StatusBadge status={m.status} t={t} />
           </div>
         </div>
       ) : (
@@ -231,7 +243,7 @@ function ActiveMembershipCard({
           padding: '20px 20px 16px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
             <div className="flex items-center gap-2" style={{ marginBottom: 6 }}>
-              <PlanTypeBadge planType={m.planType} />
+              <PlanTypeBadge planType={m.planType} t={t} />
             </div>
             <p style={{ fontSize: 18, fontWeight: 800, color: '#fff', margin: 0, letterSpacing: '-0.02em' }}>{m.planName}</p>
             <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', margin: '3px 0 0' }}>{m.school.name}</p>
@@ -253,7 +265,7 @@ function ActiveMembershipCard({
               <span style={{ fontSize: 12, color: '#9CA3AF', marginLeft: 3 }}>{billing}</span>
             )}
           </div>
-          <StatusBadge status={m.status} />
+          <StatusBadge status={m.status} t={t} />
         </div>
 
         {/* Pending notice */}
@@ -262,9 +274,9 @@ function ActiveMembershipCard({
             padding: '12px 14px', marginBottom: 14, display: 'flex', alignItems: 'flex-start', gap: 10 }}>
             <Clock size={14} style={{ color: '#D97706', flexShrink: 0, marginTop: 1 }} />
             <div>
-              <p style={{ fontSize: 12, fontWeight: 700, color: '#92400E', margin: '0 0 2px' }}>Pending approval</p>
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#92400E', margin: '0 0 2px' }}>{t.my.pendingApproval}</p>
               <p style={{ fontSize: 12, color: '#B45309', margin: 0, lineHeight: 1.5 }}>
-                Your request has been sent. Your school admin will confirm and activate your plan shortly.
+                {t.my.pendingDesc}
               </p>
             </div>
           </div>
@@ -275,7 +287,7 @@ function ActiveMembershipCard({
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
             <div style={{ background: '#F9FAFB', borderRadius: 12, padding: '10px 12px' }}>
               <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase',
-                letterSpacing: '0.06em', margin: '0 0 3px' }}>Started</p>
+                letterSpacing: '0.06em', margin: '0 0 3px' }}>{t.my.started}</p>
               <p style={{ fontSize: 12, fontWeight: 600, color: '#374151', margin: 0 }}>{fmtDate(m.startDate)}</p>
             </div>
             {m.endDate && (
@@ -285,7 +297,7 @@ function ActiveMembershipCard({
                 <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase',
                   letterSpacing: '0.06em', margin: '0 0 3px',
                   color: isExpiringSoon ? '#D97706' : '#9CA3AF' }}>
-                  {isSubscription ? 'Renews' : 'Expires'}
+                  {isSubscription ? t.my.renews : t.my.expires}
                 </p>
                 <p style={{ fontSize: 12, fontWeight: 600, margin: '0 0 2px',
                   color: isExpiringSoon ? '#92400E' : '#374151' }}>
@@ -293,7 +305,7 @@ function ActiveMembershipCard({
                 </p>
                 {days !== null && (
                   <p style={{ fontSize: 10, margin: 0, color: isExpiringSoon ? '#D97706' : '#9CA3AF' }}>
-                    {days === 0 ? 'Today' : `${days} day${days === 1 ? '' : 's'} left`}
+                    {days === 0 ? t.my.todayLabel : days === 1 ? t.my.oneDayLeft : t.my.daysLeft.replace('{n}', String(days))}
                   </p>
                 )}
               </div>
@@ -314,10 +326,10 @@ function ActiveMembershipCard({
                 <div className="flex items-center justify-between" style={{ marginBottom: 8 }}>
                   <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
                     letterSpacing: '0.06em', color: isEmpty ? '#DC2626' : '#16A34A' }}>
-                    Classes on this pass
+                    {t.my.classesOnPass}
                   </span>
                   <span style={{ fontSize: 13, fontWeight: 800, color: isEmpty ? '#DC2626' : '#111827' }}>
-                    {remaining} <span style={{ fontWeight: 400, color: '#9CA3AF' }}>/ {m.totalAllowed} left</span>
+                    {remaining} <span style={{ fontWeight: 400, color: '#9CA3AF' }}>/ {m.totalAllowed} {t.my.leftOf}</span>
                   </span>
                 </div>
                 <div style={{ height: 6, borderRadius: 99, background: isEmpty ? '#FECACA' : '#D1FAE5', overflow: 'hidden' }}>
@@ -326,7 +338,7 @@ function ActiveMembershipCard({
                 </div>
                 {isEmpty && (
                   <p style={{ fontSize: 11, color: '#DC2626', margin: '6px 0 0' }}>
-                    All classes used. Contact your school to get a new pass.
+                    {t.my.allClassesUsed}
                   </p>
                 )}
               </div>
@@ -339,7 +351,7 @@ function ActiveMembershipCard({
           <div className="flex items-center gap-2" style={{ marginBottom: 14 }}>
             <CreditCard size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
             <span style={{ fontSize: 12, color: '#6B7280' }}>
-              Paid by {PAYMENT_LABELS[m.paymentMethod] ?? m.paymentMethod}
+              {t.my.paidBy} {getPaymentLabels(t)[m.paymentMethod] ?? m.paymentMethod}
             </span>
           </div>
         )}
@@ -351,8 +363,8 @@ function ActiveMembershipCard({
             <RefreshCw size={13} style={{ color: '#D97706', flexShrink: 0 }} />
             <p style={{ fontSize: 12, color: '#92400E', margin: 0 }}>
               {isSubscription
-                ? 'Your subscription renews soon. Contact your school if you need to make changes.'
-                : `This pass expires in ${days} day${days === 1 ? '' : 's'}. Book your remaining classes!`}
+                ? t.my.subscriptionRenewsSoon
+                : t.my.passExpiresSoon.replace('{n}', String(days))}
             </p>
           </div>
         )}
@@ -363,7 +375,7 @@ function ActiveMembershipCard({
             padding: '10px 12px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
             <Pause size={13} style={{ color: '#3B82F6', flexShrink: 0 }} />
             <p style={{ fontSize: 12, color: '#1D4ED8', margin: 0 }}>
-              Your membership is paused. Resume any time to restore access.
+              {t.my.membershipPaused}
             </p>
           </div>
         )}
@@ -377,7 +389,7 @@ function ActiveMembershipCard({
                   padding: '10px 0', borderRadius: 12, border: '1.5px solid #E5E7EB',
                   background: '#fff', color: '#374151', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
                 <Pause size={13} />
-                Pause
+                {t.my.pause}
               </button>
             )}
             {isPaused && (
@@ -386,7 +398,7 @@ function ActiveMembershipCard({
                   padding: '10px 0', borderRadius: 12, border: '1.5px solid #16A34A',
                   background: '#F0FDF4', color: '#16A34A', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
                 <Play size={13} />
-                Resume
+                {t.my.resume}
               </button>
             )}
             <button onClick={() => onAction(m.id, 'cancel')}
@@ -394,7 +406,7 @@ function ActiveMembershipCard({
                 padding: '10px 0', borderRadius: 12, border: '1.5px solid #FCA5A5',
                 background: '#FEF2F2', color: '#EF4444', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
               <X size={13} />
-              Cancel
+              {t.my.cancelMembership}
             </button>
           </div>
         )}
@@ -405,7 +417,7 @@ function ActiveMembershipCard({
             padding: '11px 0', borderRadius: 12, border: '1.5px solid #0870E2',
             color: '#0870E2', fontSize: 13, fontWeight: 700, textDecoration: 'none' }}>
           <Building2 size={14} style={{ marginRight: 7 }} />
-          View {m.school.name}
+          {t.my.viewSchool} {m.school.name}
         </Link>
       </div>
     </div>
@@ -414,8 +426,8 @@ function ActiveMembershipCard({
 
 // ── Past membership row ────────────────────────────────────────────────────────
 
-function PastMembershipRow({ m }: { m: Membership }) {
-  const billing = billingLabel(m.planType, m.billingCycle, m.validityDays)
+function PastMembershipRow({ m, t }: { m: Membership; t: Translations }) {
+  const billing = billingLabel(m.planType, m.billingCycle, m.validityDays, t)
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12,
       padding: '12px 0', borderBottom: '1px solid #F3F4F6' }}>
@@ -433,24 +445,25 @@ function PastMembershipRow({ m }: { m: Membership }) {
           {m.school.name} · {fmtDateShort(m.startDate)}
           {m.endDate && ` → ${fmtDateShort(m.endDate)}`}
           {m.consumed > 0 && m.totalAllowed
-            ? ` · ${m.consumed}/${m.totalAllowed} classes`
-            : m.consumed > 0 ? ` · ${m.consumed} classes` : ''}
+            ? ` · ${m.consumed}/${m.totalAllowed} ${t.my.myClasses}`
+            : m.consumed > 0 ? ` · ${m.consumed} ${t.my.myClasses}` : ''}
         </p>
       </div>
-      <StatusBadge status={m.status} />
+      <StatusBadge status={m.status} t={t} />
     </div>
   )
 }
 
 // ── Plan card (available to purchase) ─────────────────────────────────────────
 
-function PlanCard({ plan, onRequest, requesting }: {
+function PlanCard({ plan, onRequest, requesting, t }: {
   plan: Plan
   onRequest: (plan: Plan) => void
   requesting: boolean
+  t: Translations
 }) {
-  const billing = billingLabel(plan.planType, plan.billingCycle, plan.validityDays)
-  const ptCfg = PLAN_TYPE_CONFIG[plan.planType] ?? { label: plan.planType, bg: '#F3F4F6', color: '#6B7280' }
+  const billing = billingLabel(plan.planType, plan.billingCycle, plan.validityDays, t)
+  const ptCfg = getPlanTypeConfig(t)[plan.planType] ?? { label: plan.planType, bg: '#F3F4F6', color: '#6B7280' }
 
   return (
     <div style={{ background: '#fff', border: plan.isPopular ? '2px solid #0870E2' : '1px solid #E5E7EB',
@@ -461,7 +474,7 @@ function PlanCard({ plan, onRequest, requesting }: {
         <div style={{ background: '#0870E2', padding: '5px 12px', display: 'flex',
           alignItems: 'center', justifyContent: 'center', gap: 5 }}>
           <Star size={10} style={{ color: '#fff' }} />
-          <span style={{ fontSize: 10, fontWeight: 700, color: '#fff', letterSpacing: '0.05em' }}>MOST POPULAR</span>
+          <span style={{ fontSize: 10, fontWeight: 700, color: '#fff', letterSpacing: '0.05em' }}>{t.my.mostPopular.toUpperCase()}</span>
         </div>
       )}
 
@@ -501,7 +514,7 @@ function PlanCard({ plan, onRequest, requesting }: {
             padding: '10px 0', borderRadius: 12, background: '#F0FDF4', color: '#16A34A',
             fontSize: 12, fontWeight: 700 }}>
             <CheckCircle2 size={13} />
-            Current plan
+            {t.my.currentPlan}
           </div>
         ) : (
           <button onClick={() => onRequest(plan)} disabled={requesting}
@@ -511,7 +524,7 @@ function PlanCard({ plan, onRequest, requesting }: {
               color: '#fff', fontSize: 12, fontWeight: 700, border: 'none',
               cursor: requesting ? 'not-allowed' : 'pointer', opacity: requesting ? 0.7 : 1 }}>
             <Send size={12} />
-            {plan.planType === 'TRIAL' ? 'Book trial' : 'Request this plan'}
+            {plan.planType === 'TRIAL' ? t.my.bookTrial : t.my.requestPlan}
           </button>
         )}
       </div>
@@ -521,7 +534,7 @@ function PlanCard({ plan, onRequest, requesting }: {
 
 // ── Request success modal ──────────────────────────────────────────────────────
 
-function RequestSuccessModal({ plan, onClose }: { plan: Plan; onClose: () => void }) {
+function RequestSuccessModal({ plan, onClose, t }: { plan: Plan; onClose: () => void; t: Translations }) {
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'flex-end',
       justifyContent: 'center', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(2px)' }}
@@ -533,18 +546,17 @@ function RequestSuccessModal({ plan, onClose }: { plan: Plan; onClose: () => voi
           display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
           <CheckCircle2 size={26} style={{ color: '#16A34A' }} />
         </div>
-        <p style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: '0 0 8px' }}>Request sent!</p>
+        <p style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: '0 0 8px' }}>{t.my.requestSent}</p>
         <p style={{ fontSize: 13, color: '#6B7280', margin: '0 0 6px', lineHeight: 1.5 }}>
-          Your request for <strong style={{ color: '#374151' }}>{plan.name}</strong> has been sent to{' '}
-          <strong style={{ color: '#374151' }}>{plan.school.name}</strong>.
+          {t.my.requestSentDesc.replace('{plan}', plan.name).replace('{school}', plan.school.name)}
         </p>
         <p style={{ fontSize: 13, color: '#6B7280', margin: '0 0 28px', lineHeight: 1.5 }}>
-          Your admin will review and activate your membership shortly.
+          {t.my.adminWillReview}
         </p>
         <button onClick={onClose}
           style={{ width: '100%', padding: '13px', borderRadius: 14, background: '#0870E2',
             color: '#fff', fontSize: 14, fontWeight: 700, border: 'none', cursor: 'pointer' }}>
-          Got it
+          {t.my.gotIt}
         </button>
       </div>
     </div>
@@ -554,6 +566,7 @@ function RequestSuccessModal({ plan, onClose }: { plan: Plan; onClose: () => voi
 // ── Main page ──────────────────────────────────────────────────────────────────
 
 export default function MyMembershipPage() {
+  const t = useT()
   const [memberships, setMemberships] = useState<Membership[]>([])
   const [plans, setPlans] = useState<Plan[]>([])
   const [loading, setLoading] = useState(true)
@@ -624,10 +637,10 @@ export default function MyMembershipPage() {
       <div style={{ background: '#fff', borderBottom: '1px solid #F3F4F6',
         padding: '16px 20px', position: 'sticky', top: 0, zIndex: 10 }}>
         <h1 style={{ fontSize: 17, fontWeight: 800, color: '#111827', margin: 0, letterSpacing: '-0.02em' }}>
-          My Membership
+          {t.my.myMembership}
         </h1>
         <p style={{ fontSize: 12, color: '#9CA3AF', margin: '2px 0 0' }}>
-          Active plans and subscription history
+          {t.my.activePlansHistory}
         </p>
       </div>
 
@@ -646,11 +659,11 @@ export default function MyMembershipPage() {
               <div>
                 <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase',
                   letterSpacing: '0.07em', margin: '0 0 12px' }}>
-                  Active · {active.length}
+                  {t.my.activeCount} · {active.length}
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                   {active.map(m => (
-                    <ActiveMembershipCard key={m.id} m={m}
+                    <ActiveMembershipCard key={m.id} m={m} t={t}
                       onAction={(id, action) => setConfirmModal({ id, action, name: m.planName })} />
                   ))}
                 </div>
@@ -666,16 +679,16 @@ export default function MyMembershipPage() {
                   <CreditCard size={28} style={{ color: '#D1D5DB' }} />
                 </div>
                 <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: '0 0 6px' }}>
-                  No active membership
+                  {t.my.noActiveMembership}
                 </p>
                 <p style={{ fontSize: 13, color: '#9CA3AF', margin: '0 0 20px' }}>
-                  Join a school to get a membership plan assigned
+                  {t.my.joinSchoolForPlan}
                 </p>
                 <Link href="/explore"
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 6,
                     padding: '10px 20px', borderRadius: 12, background: '#0870E2',
                     color: '#fff', fontSize: 13, fontWeight: 700, textDecoration: 'none' }}>
-                  Find a school
+                  {t.my.findASchool}
                 </Link>
               </div>
             )}
@@ -687,10 +700,10 @@ export default function MyMembershipPage() {
                 <Clock size={20} style={{ color: '#F97316', flexShrink: 0 }} />
                 <div>
                   <p style={{ fontSize: 13, fontWeight: 700, color: '#C2410C', margin: '0 0 2px' }}>
-                    No active membership
+                    {t.my.noActiveMembership}
                   </p>
                   <p style={{ fontSize: 12, color: '#EA580C', margin: 0 }}>
-                    Your last plan expired or was cancelled. Pick a plan below or contact your school.
+                    {t.my.lastPlanExpired}
                   </p>
                 </div>
               </div>
@@ -701,11 +714,11 @@ export default function MyMembershipPage() {
               <div>
                 <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase',
                   letterSpacing: '0.07em', margin: '0 0 12px' }}>
-                  Available plans
+                  {t.my.availablePlans}
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {availablePlans.map(p => (
-                    <PlanCard key={p.id} plan={p}
+                    <PlanCard key={p.id} plan={p} t={t}
                       onRequest={handleRequest}
                       requesting={requestingPlanId === p.id} />
                   ))}
@@ -725,7 +738,7 @@ export default function MyMembershipPage() {
                   <div className="flex items-center gap-2">
                     <CalendarCheck size={15} style={{ color: '#9CA3AF' }} />
                     <span style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>
-                      Membership history
+                      {t.my.membershipHistory}
                     </span>
                     <span style={{ fontSize: 11, fontWeight: 600, background: '#F3F4F6',
                       color: '#6B7280', padding: '1px 8px', borderRadius: 999 }}>
@@ -738,7 +751,7 @@ export default function MyMembershipPage() {
                 </button>
                 {showHistory && (
                   <div style={{ padding: '0 16px 8px' }}>
-                    {past.map(m => <PastMembershipRow key={m.id} m={m} />)}
+                    {past.map(m => <PastMembershipRow key={m.id} m={m} t={t} />)}
                   </div>
                 )}
               </div>
@@ -750,8 +763,7 @@ export default function MyMembershipPage() {
                 background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 12, padding: '12px 14px' }}>
                 <CheckCircle2 size={15} style={{ color: '#16A34A', flexShrink: 0, marginTop: 1 }} />
                 <p style={{ fontSize: 12, color: '#15803D', margin: 0, lineHeight: 1.5 }}>
-                  Your membership gives you access to all included classes at your school.
-                  Contact your school admin for billing questions or to make changes.
+                  {t.my.membershipGivesAccess}
                 </p>
               </div>
             )}
@@ -767,12 +779,13 @@ export default function MyMembershipPage() {
           loading={actionLoading}
           onConfirm={() => handleAction(confirmModal.id, confirmModal.action)}
           onClose={() => setConfirmModal(null)}
+          t={t}
         />
       )}
 
       {/* Request success modal */}
       {successPlan && (
-        <RequestSuccessModal plan={successPlan} onClose={() => setSuccessPlan(null)} />
+        <RequestSuccessModal plan={successPlan} onClose={() => setSuccessPlan(null)} t={t} />
       )}
     </div>
   )

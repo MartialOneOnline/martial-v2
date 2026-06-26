@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { getBeltImage } from '../../../lib/belts'
 import { createClient } from '../../../lib/supabase/client'
+import { useT } from '../../../lib/i18n/LanguageContext'
 
 type Profile = {
   name: string | null
@@ -21,27 +22,33 @@ type Profile = {
   gradings: unknown[]
 }
 
-const MENU: { label?: string; items: { label: string; href: string; icon: React.ElementType; desc: string; color: string; bg: string }[] }[] = [
-  {
-    items: [
-      { label: 'My Classes',    href: '/my/classes',    icon: CalendarDays, desc: 'Upcoming & past bookings',       color: '#007AFF', bg: 'rgba(0,122,255,.10)' },
-      { label: 'Membership',    href: '/my/membership', icon: CreditCard,   desc: 'Plans & subscriptions',          color: '#34C759', bg: 'rgba(52,199,89,.10)' },
-      { label: 'Ranking',       href: '/my/progress',   icon: Medal,        desc: 'Belt & grading history',         color: '#FF9500', bg: 'rgba(255,149,0,.10)' },
-      { label: 'Transactions',  href: '/my/payments',   icon: DollarSign,   desc: 'Payment history',                color: '#32ADE6', bg: 'rgba(50,173,230,.10)' },
-    ],
-  },
-  {
-    label: 'Account',
-    items: [
-      { label: 'Settings',       href: '/my/settings', icon: Settings,    desc: 'Notifications & preferences',    color: '#6B6B70', bg: 'rgba(107,107,112,.10)' },
-      { label: 'QR Check-in',    href: '/my/qr',       icon: QrCode,      desc: 'Show QR code to check in',       color: '#007AFF', bg: 'rgba(0,122,255,.10)' },
-      { label: 'Help & Support', href: '/my/help',     icon: HelpCircle,  desc: 'Get help with your account',     color: '#FF9500', bg: 'rgba(255,149,0,.10)' },
-      { label: 'Privacy',        href: '/my/privacy',  icon: Shield,      desc: 'Your data & permissions',        color: '#5856D6', bg: 'rgba(88,86,214,.10)' },
-    ],
-  },
-]
+type MenuItem = { label: string; href: string; icon: React.ElementType; desc: string; color: string; bg: string }
+type MenuSection = { label?: string; items: MenuItem[] }
+
+function getMenu(t: ReturnType<typeof useT>): MenuSection[] {
+  return [
+    {
+      items: [
+        { label: t.my.myClasses,      href: '/my/classes',    icon: CalendarDays, desc: t.my.upcomingPastBookings,      color: '#007AFF', bg: 'rgba(0,122,255,.10)' },
+        { label: t.my.navMembership,  href: '/my/membership', icon: CreditCard,   desc: t.my.plansSubscriptions,        color: '#34C759', bg: 'rgba(52,199,89,.10)' },
+        { label: t.my.navRanking,     href: '/my/progress',   icon: Medal,        desc: t.my.beltGradingHistory,        color: '#FF9500', bg: 'rgba(255,149,0,.10)' },
+        { label: t.my.payments,       href: '/my/payments',   icon: DollarSign,   desc: t.my.paymentHistory,            color: '#32ADE6', bg: 'rgba(50,173,230,.10)' },
+      ],
+    },
+    {
+      label: t.my.navAccount,
+      items: [
+        { label: t.my.navSettings,    href: '/my/settings', icon: Settings,    desc: t.my.notificationsPreferences,  color: '#6B6B70', bg: 'rgba(107,107,112,.10)' },
+        { label: t.my.navQrScanner,   href: '/my/qr',       icon: QrCode,      desc: t.my.showQrCode,                color: '#007AFF', bg: 'rgba(0,122,255,.10)' },
+        { label: t.my.navHelpSupport, href: '/my/help',     icon: HelpCircle,  desc: t.my.getHelp,                   color: '#FF9500', bg: 'rgba(255,149,0,.10)' },
+        { label: t.my.navPrivacy,     href: '/my/privacy',  icon: Shield,      desc: t.my.yourData,                  color: '#5856D6', bg: 'rgba(88,86,214,.10)' },
+      ],
+    },
+  ]
+}
 
 export default function MyProfilePage() {
+  const t = useT()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading]  = useState(true)
   const [editing, setEditing]     = useState(false)
@@ -125,8 +132,8 @@ export default function MyProfilePage() {
         {/* ── Page header ── */}
         <div className="px-4 md:px-6 pt-4 md:pt-7 pb-2 flex items-center justify-between">
           <div>
-            <p className="text-xs" style={{ color: '#6B6B70' }}>Student portal</p>
-            <h1 className="text-2xl font-semibold tracking-tight" style={{ color: '#1C1C1E', letterSpacing: '-0.5px' }}>Profile</h1>
+            <p className="text-xs" style={{ color: '#6B6B70' }}>{t.my.navDashboard}</p>
+            <h1 className="text-2xl font-semibold tracking-tight" style={{ color: '#1C1C1E', letterSpacing: '-0.5px' }}>{t.my.navProfile}</h1>
           </div>
           <button
             onClick={editing ? handleSave : () => setEditing(true)}
@@ -135,7 +142,7 @@ export default function MyProfilePage() {
               ? { background: '#007AFF', color: '#fff' }
               : { background: 'rgba(0,122,255,.10)', color: '#007AFF' }}
           >
-            {saving ? 'Saving…' : editing ? 'Save' : 'Edit'}
+            {saving ? t.my.pleaseWait : editing ? t.common.save : t.common.edit}
           </button>
         </div>
 
@@ -208,21 +215,21 @@ export default function MyProfilePage() {
               ) : (
                 <p className="text-lg font-semibold mb-1" style={{ color: '#1C1C1E' }}>—</p>
               )}
-              <p className="text-[10px]" style={{ color: '#6B6B70' }}>Belt</p>
+              <p className="text-[10px]" style={{ color: '#6B6B70' }}>{t.my.currentBelt}</p>
             </div>
             <Link href="/my/classes" className="rounded-xl p-3 text-center" style={{ background: '#F2F2F7' }}>
               <p className="text-lg font-semibold mb-1" style={{ color: '#1C1C1E' }}>{totalClasses}</p>
-              <p className="text-[10px]" style={{ color: '#6B6B70' }}>Classes</p>
+              <p className="text-[10px]" style={{ color: '#6B6B70' }}>{t.my.myClasses}</p>
             </Link>
             <Link href="/my/membership" className="rounded-xl p-3 text-center" style={{ background: '#F2F2F7' }}>
               <p className="text-lg font-semibold mb-1" style={{ color: activePlan ? '#34C759' : '#1C1C1E' }}>{activePlan ? '●' : '—'}</p>
-              <p className="text-[10px]" style={{ color: '#6B6B70' }}>Member</p>
+              <p className="text-[10px]" style={{ color: '#6B6B70' }}>{t.my.active}</p>
             </Link>
           </div>
         </div>
 
         {/* ── Menu sections ── */}
-        {MENU.map((section, si) => (
+        {getMenu(t).map((section, si) => (
           <div key={si} className="mb-4">
             {section.label && (
               <p className="px-4 md:px-6 pb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: '#6B6B70' }}>
@@ -265,7 +272,7 @@ export default function MyProfilePage() {
             <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(255,59,48,.10)' }}>
               <LogOut className="w-4.5 h-4.5" style={{ color: '#FF3B30', width: 18, height: 18 }} />
             </div>
-            <span className="text-sm font-medium" style={{ color: '#FF3B30' }}>Sign out</span>
+            <span className="text-sm font-medium" style={{ color: '#FF3B30' }}>{t.my.navSignOut}</span>
           </button>
         </div>
 

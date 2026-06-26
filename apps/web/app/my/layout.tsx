@@ -9,11 +9,12 @@ import {
   LogOut, X, CreditCard, DollarSign, Settings,
   HelpCircle, Shield, QrCode, Medal, Menu,
 } from 'lucide-react'
+import { useT } from '../../lib/i18n/LanguageContext'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-type NavItem = { label: string; href: string; icon: React.ElementType; exact?: boolean }
-type NavSection = { label?: string; schoolLabel?: boolean; items: NavItem[] }
+type NavItem = { labelKey: string; href: string; icon: React.ElementType; exact?: boolean }
+type NavSection = { labelKey?: string; schoolLabel?: boolean; items: NavItem[] }
 type School = { name: string; logoUrl: string | null } | null
 
 // ── Navigation ───────────────────────────────────────────────────────────────
@@ -23,34 +24,34 @@ type School = { name: string; logoUrl: string | null } | null
 const SIDEBAR_NAV: NavSection[] = [
   {
     items: [
-      { label: 'Dashboard', href: '/my',          icon: LayoutDashboard, exact: true },
-      { label: 'Classes',   href: '/my/classes',  icon: CalendarDays },
-      { label: 'Ranking',   href: '/my/progress', icon: Medal },
+      { labelKey: 'navDashboard', href: '/my',          icon: LayoutDashboard, exact: true },
+      { labelKey: 'navClasses',   href: '/my/classes',  icon: CalendarDays },
+      { labelKey: 'navRanking',   href: '/my/progress', icon: Medal },
     ],
   },
   {
-    schoolLabel: true, // replaced at render time with the student's school name
+    schoolLabel: true,
     items: [
-      { label: 'Membership',   href: '/my/membership', icon: CreditCard },
-      { label: 'Transactions', href: '/my/payments',   icon: DollarSign },
+      { labelKey: 'navMembership',   href: '/my/membership', icon: CreditCard },
+      { labelKey: 'navTransactions', href: '/my/payments',   icon: DollarSign },
     ],
   },
   {
-    label: 'Account',
+    labelKey: 'navAccount',
     items: [
-      { label: 'Profile',        href: '/my/profile',  icon: User },
-      { label: 'Settings',       href: '/my/settings', icon: Settings },
-      { label: 'QR Scanner',     href: '/my/qr',       icon: QrCode },
-      { label: 'Help & Support', href: '/my/help',     icon: HelpCircle },
-      { label: 'Privacy',        href: '/my/privacy',  icon: Shield },
+      { labelKey: 'navProfile',     href: '/my/profile',  icon: User },
+      { labelKey: 'navSettings',    href: '/my/settings', icon: Settings },
+      { labelKey: 'navQrScanner',   href: '/my/qr',       icon: QrCode },
+      { labelKey: 'navHelpSupport', href: '/my/help',     icon: HelpCircle },
+      { labelKey: 'navPrivacy',     href: '/my/privacy',  icon: Shield },
     ],
   },
 ]
 
-const BOTTOM_NAV: NavItem[] = [
-  { label: 'Home',     href: '/my',          icon: LayoutDashboard, exact: true },
-  { label: 'Classes',  href: '/my/classes',  icon: CalendarDays },
-  { label: 'Profile',  href: '/my/profile',  icon: User },
+const BOTTOM_NAV_KEYS: { labelKey: string; href: string; icon: React.ElementType; exact?: boolean }[] = [
+  { labelKey: 'navHome',    href: '/my',          icon: LayoutDashboard, exact: true },
+  { labelKey: 'navClasses', href: '/my/classes',  icon: CalendarDays },
+  { labelKey: 'navProfile', href: '/my/profile',  icon: User },
 ]
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -64,9 +65,10 @@ function isActive(pathname: string, href: string, exact?: boolean) {
 
 function BottomNav() {
   const pathname = usePathname()
+  const t = useT()
 
-  const leftItems  = BOTTOM_NAV.slice(0, 2)
-  const rightItems = BOTTOM_NAV.slice(2)
+  const leftItems  = BOTTOM_NAV_KEYS.slice(0, 2)
+  const rightItems = BOTTOM_NAV_KEYS.slice(2)
   const qrActive   = isActive(pathname, '/my/qr')
 
   return (
@@ -90,7 +92,7 @@ function BottomNav() {
               <span className="absolute top-0 left-1/2 -translate-x-1/2 rounded-full" style={{ width: 32, height: 2, background: '#007AFF' }} />
             )}
             <Icon className="w-6 h-6" strokeWidth={active ? 2.5 : 1.5} />
-            <span style={{ fontSize: 10, fontWeight: active ? 600 : 400 }}>{item.label}</span>
+            <span style={{ fontSize: 10, fontWeight: active ? 600 : 400 }}>{t.my[item.labelKey as keyof typeof t.my]}</span>
           </Link>
         )
       })}
@@ -134,7 +136,7 @@ function BottomNav() {
               <span className="absolute top-0 left-1/2 -translate-x-1/2 rounded-full" style={{ width: 32, height: 2, background: '#007AFF' }} />
             )}
             <Icon className="w-6 h-6" strokeWidth={active ? 2.5 : 1.5} />
-            <span style={{ fontSize: 10, fontWeight: active ? 600 : 400 }}>{item.label}</span>
+            <span style={{ fontSize: 10, fontWeight: active ? 600 : 400 }}>{t.my[item.labelKey as keyof typeof t.my]}</span>
           </Link>
         )
       })}
@@ -146,6 +148,7 @@ function BottomNav() {
 
 function SidebarContent({ school, onClose }: { school: School; onClose?: () => void }) {
   const pathname = usePathname()
+  const t = useT()
 
   return (
     <div className="w-60 bg-white border-r border-gray-100 flex flex-col h-full">
@@ -170,7 +173,7 @@ function SidebarContent({ school, onClose }: { school: School; onClose?: () => v
             <p className="text-sm font-bold text-[#101828] leading-tight truncate">
               {school?.name ?? 'My Academy'}
             </p>
-            <p className="text-[10px] text-gray-400 leading-tight">Student portal</p>
+            <p className="text-[10px] text-gray-400 leading-tight">{t.my.navDashboard}</p>
           </div>
         </Link>
         {onClose && (
@@ -184,9 +187,9 @@ function SidebarContent({ school, onClose }: { school: School; onClose?: () => v
       <div className="flex-1 overflow-y-auto py-3">
         {SIDEBAR_NAV.map((section, si) => (
           <div key={si} className="mb-1">
-            {(section.label || section.schoolLabel) && (
+            {(section.labelKey || section.schoolLabel) && (
               <p className="px-5 pt-3 pb-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-widest truncate">
-                {section.schoolLabel ? (school?.name ?? 'Academy') : section.label}
+                {section.schoolLabel ? (school?.name ?? 'Academy') : section.labelKey ? t.my[section.labelKey as keyof typeof t.my] : ''}
               </p>
             )}
             <div className="px-2.5 space-y-0.5">
@@ -206,7 +209,7 @@ function SidebarContent({ school, onClose }: { school: School; onClose?: () => v
                     }`}
                   >
                     <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-[#0870E2]' : 'text-gray-400'}`} />
-                    <span className="flex-1 truncate">{item.label}</span>
+                    <span className="flex-1 truncate">{t.my[item.labelKey as keyof typeof t.my]}</span>
                     {active && (
                       <span className="w-1.5 h-1.5 rounded-full bg-[#0870E2] shrink-0" />
                     )}
@@ -225,7 +228,7 @@ function SidebarContent({ school, onClose }: { school: School; onClose?: () => v
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
         >
           <LogOut className="w-4 h-4 shrink-0" />
-          Sign out
+          {t.my.navSignOut}
         </button>
       </div>
     </div>
