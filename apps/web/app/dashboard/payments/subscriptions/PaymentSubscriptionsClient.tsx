@@ -511,8 +511,8 @@ export default function PaymentSubscriptionsClient() {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      // Always fetch ALL to keep counts accurate; filter client-side
-      const params = new URLSearchParams({ pageSize: '500' })
+      // Exclude PENDING — those are awaiting admin approval, not active subscriptions
+      const params = new URLSearchParams({ pageSize: '500', excludeStatus: 'PENDING' })
       if (search) params.set('search', search)
       const res = await fetch(`/api/dashboard/memberships?${params}`)
       if (!res.ok) return

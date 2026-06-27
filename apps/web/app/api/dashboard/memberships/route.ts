@@ -26,16 +26,18 @@ export async function GET(req: NextRequest) {
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const { searchParams } = new URL(req.url)
-  const status  = searchParams.get('status')  // ACTIVE|CANCELLED|EXPIRED|PAUSED|ALL
-  const method  = searchParams.get('method')  // STRIPE|CASH|BANK_TRANSFER|DIRECT_DEBIT|OTHER|ALL
-  const search  = searchParams.get('search')  || ''
-  const page     = Math.max(1, parseInt(searchParams.get('page') || '1'))
-  const pageSize = Math.min(100, parseInt(searchParams.get('pageSize') || '20'))
+  const status        = searchParams.get('status')        // ACTIVE|CANCELLED|EXPIRED|PAUSED|ALL
+  const excludeStatus = searchParams.get('excludeStatus') // e.g. PENDING
+  const method        = searchParams.get('method')        // STRIPE|CASH|BANK_TRANSFER|DIRECT_DEBIT|OTHER|ALL
+  const search        = searchParams.get('search')  || ''
+  const page          = Math.max(1, parseInt(searchParams.get('page') || '1'))
+  const pageSize      = Math.min(500, parseInt(searchParams.get('pageSize') || '20'))
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const where: any = {
     schoolId: auth.schoolId,
     ...(status && status !== 'ALL' ? { status } : {}),
+    ...(excludeStatus ? { status: { not: excludeStatus } } : {}),
     ...(method && method !== 'ALL' ? { paymentMethod: method } : {}),
     ...(search ? {
       OR: [
