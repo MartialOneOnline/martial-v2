@@ -124,23 +124,23 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen }: Props) {
   const router = useRouter()
   const { currentSchool, schools, switchSchool } = useSchoolContext()
   const [switcherOpen, setSwitcherOpen] = useState(false)
-  const [pendingMemberships, setPendingMemberships] = useState(0)
+  const [pendingTransactions, setPendingTransactions] = useState(0)
   const t = useT()
 
-  const fetchPending = () => {
-    fetch('/api/dashboard/memberships/stats')
+  const fetchPendingTransactions = () => {
+    fetch('/api/dashboard/transactions/stats')
       .then(r => r.ok ? r.json() : null)
-      .then(data => { if (data != null) setPendingMemberships(data.pending ?? 0) })
+      .then(data => { if (data != null) setPendingTransactions(data.pending ?? 0) })
       .catch(() => {})
   }
 
   useEffect(() => {
-    fetchPending()
+    fetchPendingTransactions()
   }, [currentSchool?.schoolId])
 
   useEffect(() => {
-    window.addEventListener('membership-pending-changed', fetchPending)
-    return () => window.removeEventListener('membership-pending-changed', fetchPending)
+    window.addEventListener('transaction-pending-changed', fetchPendingTransactions)
+    return () => window.removeEventListener('transaction-pending-changed', fetchPendingTransactions)
   }, [])
 
   const handleSignOut = async () => {
@@ -161,8 +161,8 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen }: Props) {
       { label: t.sidebar.calendar,  href: '/dashboard/classes/calendar' },
       { label: t.sidebar.timetable, href: '/dashboard/classes/timetable' },
     ]},
-    { label: t.sidebar.memberships, icon: Award,      href: '/dashboard/memberships', badge: pendingMemberships },
-    { label: t.sidebar.payments,    icon: CreditCard, children: [
+    { label: t.sidebar.memberships, icon: Award,      href: '/dashboard/memberships' },
+    { label: t.sidebar.payments,    icon: CreditCard, badge: pendingTransactions, children: [
       { label: t.sidebar.transactions,  href: '/dashboard/payments/transactions' },
       { label: t.sidebar.subscriptions, href: '/dashboard/payments/subscriptions' },
     ]},
