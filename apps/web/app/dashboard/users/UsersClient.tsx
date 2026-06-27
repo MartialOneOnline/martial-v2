@@ -8,7 +8,7 @@ import {
   ChevronDown, UserCheck, Archive, Shield,
   Mail, Upload, FileText, CheckCircle, AlertCircle,
   SlidersHorizontal, Eye, Send, Trash2,
-  QrCode, Pencil, MessageSquare, RefreshCw, CreditCard, Receipt,
+  QrCode, Pencil, MessageSquare, RefreshCw, CreditCard, Receipt, Globe,
 } from 'lucide-react'
 import { useDashboard } from '../../../components/DashboardShell'
 import DashboardLanguageSelector from '../../../components/DashboardLanguageSelector'
@@ -950,9 +950,17 @@ function AddStudentModal({
 }
 
 // ── Invite tab ─────────────────────────────────────────────────────────────────
+const INVITE_LANGS = [
+  { value: 'es', label: 'Español', flag: '🇪🇸' },
+  { value: 'en', label: 'English', flag: '🇬🇧' },
+  { value: 'pt', label: 'Português', flag: '🇵🇹' },
+  { value: 'fr', label: 'Français', flag: '🇫🇷' },
+]
+
 function InviteTab({ onClose, onCreated }: { onClose: () => void; onCreated: (s: Student[]) => void }) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [lang, setLang] = useState('es')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [sent, setSent] = useState(false)
@@ -966,7 +974,7 @@ function InviteTab({ onClose, onCreated }: { onClose: () => void; onCreated: (s:
       const res = await fetch('/api/dashboard/members/invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), name: name.trim() || undefined }),
+        body: JSON.stringify({ email: email.trim(), name: name.trim() || undefined, lang }),
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error ?? 'Error al enviar la invitación'); return }
@@ -1025,6 +1033,32 @@ function InviteTab({ onClose, onCreated }: { onClose: () => void; onCreated: (s:
           onFocus={e => (e.target.style.borderColor = '#0071E3')}
           onBlur={e => (e.target.style.borderColor = '#E5E7EB')}
         />
+      </div>
+
+      <div>
+        <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>
+          <Globe size={11} style={{ display: 'inline', marginRight: 5, verticalAlign: 'middle' }} />
+          Idioma del email
+        </label>
+        <div style={{ display: 'flex', gap: 6 }}>
+          {INVITE_LANGS.map(l => (
+            <button
+              key={l.value}
+              type="button"
+              onClick={() => setLang(l.value)}
+              style={{
+                flex: 1, padding: '8px 4px', borderRadius: 8, cursor: 'pointer',
+                border: `2px solid ${lang === l.value ? '#0071E3' : '#E5E7EB'}`,
+                background: lang === l.value ? '#EFF6FF' : '#fff',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+                transition: 'all 0.15s',
+              }}
+            >
+              <span style={{ fontSize: 16 }}>{l.flag}</span>
+              <span style={{ fontSize: 10, fontWeight: lang === l.value ? 700 : 500, color: lang === l.value ? '#0071E3' : '#6B7280' }}>{l.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {error && (

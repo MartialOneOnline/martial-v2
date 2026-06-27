@@ -33,12 +33,12 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const { email, name } = await req.json()
+  const { email, name, lang: bodyLang } = await req.json()
   if (!email?.trim()) return NextResponse.json({ error: 'Email is required' }, { status: 400 })
 
   const normalizedEmail = email.trim().toLowerCase()
 
-  // Load school for name, city, country (to determine email language)
+  // Load school for name, city, country (to determine fallback email language)
   const school = await prisma.school.findUnique({
     where: { id: schoolId },
     select: { name: true, city: true, country: true, language: true },
@@ -111,7 +111,11 @@ export async function POST(req: NextRequest) {
   })
 
   // Send email via Resend with our custom template
-  const lang = detectLang(school?.language ?? school?.country)
+  // bodyLang overrides school language (admin can choose per invitation)
+  const VALID_LANGS = ['en', 'es', 'pt', 'fr']
+  const lang = detectLang(
+    (bodyLang && VALID_LANGS.includes(bodyLang) ? bodyLang : null) ?? school?.language ?? school?.country
+  )
   const html = buildInviteStudentEmail({
     studentName: dbUser.name,
     schoolName: school?.name ?? 'Your school',
