@@ -118,7 +118,7 @@ export async function sendMembershipRequestEmail({
     price,
     currency,
     requestedAt,
-    dashboardUrl: `${APP_URL}/dashboard/memberships?status=PENDING`,
+    dashboardUrl: `${APP_URL}/dashboard/payments/subscriptions?status=PENDING`,
     lang,
   })
   return send(to, subject, html)

@@ -4,14 +4,14 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   Menu, X, Search, Check, Clock, Filter,
   TrendingUp, TrendingDown, RefreshCw, MoreHorizontal,
-  PauseCircle, XCircle, Plus,
+  PauseCircle, XCircle, Plus, AlertCircle,
 } from 'lucide-react'
 import { useDashboard } from '../../../../components/DashboardShell'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../../lib/format'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
-type MemStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED' | 'EXPIRED'
+type MemStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED' | 'EXPIRED' | 'PENDING'
 type Filter = 'ALL' | MemStatus
 
 interface SubRow {
@@ -47,6 +47,7 @@ function Avatar({ name, avatarUrl, size = 32 }: { name: string; avatarUrl: strin
 }
 
 const STATUS_MAP: Record<MemStatus, { bg: string; color: string; border: string; icon: React.ElementType; label: string }> = {
+  PENDING:   { bg: '#FFFBEB', color: '#D97706', border: '#FDE68A', icon: AlertCircle, label: 'Pendiente'  },
   ACTIVE:    { bg: '#F0FDF4', color: '#16A34A', border: '#BBF7D0', icon: Check,       label: 'Activa'     },
   PAUSED:    { bg: '#FFFBEB', color: '#D97706', border: '#FDE68A', icon: PauseCircle, label: 'Pausada'    },
   CANCELLED: { bg: '#FEF2F2', color: '#DC2626', border: '#FECACA', icon: XCircle,     label: 'Cancelada'  },
@@ -492,10 +493,17 @@ function AssignMembershipModal({ onClose, onSaved }: { onClose: () => void; onSa
 }
 
 // ── Main ───────────────────────────────────────────────────────────────────────
+const VALID_FILTERS: Filter[] = ['ALL', 'PENDING', 'ACTIVE', 'PAUSED', 'CANCELLED', 'EXPIRED']
+
 export default function PaymentSubscriptionsClient() {
   const { menuOpen, setMenuOpen } = useDashboard()
   const t = useT()
-  const [activeFilter, setActiveFilter] = useState<Filter>('ALL')
+  const initFilter = (typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('status') ?? 'ALL'
+    : 'ALL') as Filter
+  const [activeFilter, setActiveFilter] = useState<Filter>(
+    VALID_FILTERS.includes(initFilter) ? initFilter : 'ALL'
+  )
   const [search, setSearch]             = useState('')
   const [currentPage, setCurrentPage]   = useState(1)
   const [openMenuId, setOpenMenuId]     = useState<string | null>(null)
@@ -505,22 +513,21 @@ export default function PaymentSubscriptionsClient() {
 
   const [subs, setSubs]       = useState<SubRow[]>([])
   const [loading, setLoading] = useState(true)
-  const [serverCounts, setServerCounts] = useState({ ALL: 0, ACTIVE: 0, PAUSED: 0, CANCELLED: 0, EXPIRED: 0 })
+  const [serverCounts, setServerCounts] = useState({ ALL: 0, PENDING: 0, ACTIVE: 0, PAUSED: 0, CANCELLED: 0, EXPIRED: 0 })
   const [mrr, setMrr] = useState(0)
 
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      // Exclude PENDING — those are awaiting admin approval, not active subscriptions
-      const params = new URLSearchParams({ pageSize: '500', excludeStatus: 'PENDING' })
+      const params = new URLSearchParams({ pageSize: '500' })
       if (search) params.set('search', search)
       const res = await fetch(`/api/dashboard/memberships?${params}`)
       if (!res.ok) return
       const data = await res.json()
       const memberships = data.memberships ?? []
       const cs = data.countByStatus ?? {}
-      const total = (cs.ACTIVE ?? 0) + (cs.PAUSED ?? 0) + (cs.CANCELLED ?? 0) + (cs.EXPIRED ?? 0)
-      setServerCounts({ ALL: total, ACTIVE: cs.ACTIVE ?? 0, PAUSED: cs.PAUSED ?? 0, CANCELLED: cs.CANCELLED ?? 0, EXPIRED: cs.EXPIRED ?? 0 })
+      const total = (cs.PENDING ?? 0) + (cs.ACTIVE ?? 0) + (cs.PAUSED ?? 0) + (cs.CANCELLED ?? 0) + (cs.EXPIRED ?? 0)
+      setServerCounts({ ALL: total, PENDING: cs.PENDING ?? 0, ACTIVE: cs.ACTIVE ?? 0, PAUSED: cs.PAUSED ?? 0, CANCELLED: cs.CANCELLED ?? 0, EXPIRED: cs.EXPIRED ?? 0 })
 
       const rows: SubRow[] = memberships.map((m: {
         id: string; userId?: string; userName: string; userEmail?: string; userAvatar?: string;
@@ -580,6 +587,7 @@ export default function PaymentSubscriptionsClient() {
 
   const FILTERS: { id: Filter; label: string }[] = [
     { id: 'ALL',       label: t.common.all      },
+    { id: 'PENDING',   label: 'Pendientes'      },
     { id: 'ACTIVE',    label: t.common.active   },
     { id: 'PAUSED',    label: 'Pausadas'        },
     { id: 'CANCELLED', label: t.common.cancelled},
