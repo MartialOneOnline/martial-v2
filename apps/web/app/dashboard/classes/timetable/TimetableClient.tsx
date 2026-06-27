@@ -2,6 +2,7 @@
 
 import { useDashboard } from '../../../../components/DashboardShell'
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { Users, Calendar, CreditCard, BarChart2, Settings, Bell, ChevronRight, Menu, X, Plus, ChevronLeft, Clock, Search, LayoutList, CalendarDays, MoreHorizontal, TrendingUp, Pencil, Copy, Trash2, Eye, Check, Upload, Flame, Award, School, ShoppingBag, HelpCircle } from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import type { Translations } from '../../../../lib/i18n/translations'
@@ -203,7 +204,9 @@ function fmtTime(h: number, m: number): string {
 }
 
 // ── Class popup ────────────────────────────────────────────────────────────────
-function ClassPopup({ slot, date, onClose }: { slot: ClassSlot; date: Date; onClose: () => void }) {
+function ClassPopup({ slot, date, onClose, onDeleted }: {
+  slot: ClassSlot; date: Date; onClose: () => void; onDeleted: (classId: string) => void
+}) {
   const t = useT()
   const colors  = ACTIVITY_COLORS[slot.activity] ?? ACTIVITY_COLORS['Open Mat']!
   const endMin  = slot.startH * 60 + slot.startM + slot.durationM
@@ -211,9 +214,29 @@ function ClassPopup({ slot, date, onClose }: { slot: ClassSlot; date: Date; onCl
   const endMm   = endMin % 60
   const time    = fmtTime(slot.startH, slot.startM) + ' – ' + fmtTime(endH, endMm)
 
+  const router = useRouter()
   const [studentsView, setStudentsView] = useState(false)
   const [students, setStudents] = useState<{ id: string; name: string; avatarUrl: string | null; status: string }[]>([])
   const [loadingStudents, setLoadingStudents] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  async function handleDelete() {
+    if (!confirm(`Delete "${slot.name}"? This cannot be undone.`)) return
+    setDeleting(true)
+    await fetch(`/api/dashboard/classes/${slot.classId}`, { method: 'DELETE' })
+    onDeleted(slot.classId)
+    onClose()
+  }
+
+  async function handleDuplicate() {
+    await fetch('/api/dashboard/classes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: slot.name + ' (copy)', capacity: slot.capacity }),
+    })
+    onClose()
+    router.refresh()
+  }
 
   async function loadStudents() {
     setLoadingStudents(true)
@@ -323,12 +346,12 @@ function ClassPopup({ slot, date, onClose }: { slot: ClassSlot; date: Date; onCl
         </div>
         <div className="py-1">
           {[
-            { icon: Eye,    label: t.classes.viewStudentsAction, color: '#374151', action: () => { setStudentsView(true); loadStudents() } },
-            { icon: Pencil, label: t.classes.editClass ?? 'Edit class', color: '#374151', action: onClose },
-            { icon: Copy,   label: t.common.duplicate,     color: '#374151', action: onClose },
-            { icon: Trash2, label: t.common.delete,        color: '#DC2626', action: onClose },
+            { icon: Eye,    label: t.classes.viewStudentsAction,      color: '#374151', action: () => { setStudentsView(true); loadStudents() } },
+            { icon: Pencil, label: t.classes.editClass ?? 'Edit class', color: '#374151', action: () => { onClose(); router.push('/dashboard/classes') } },
+            { icon: Copy,   label: t.common.duplicate,                  color: '#374151', action: handleDuplicate },
+            { icon: Trash2, label: t.common.delete,                     color: '#DC2626', action: handleDelete },
           ].map(({ icon: Icon, label, color, action }) => (
-            <button key={label} onClick={action}
+            <button key={label} onClick={action} disabled={deleting}
               className="w-full flex items-center gap-2.5 px-4 py-2.5 cursor-pointer"
               style={{ background: 'transparent', border: 'none', fontSize: 13, color, textAlign: 'left' }}
               onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
@@ -445,6 +468,7 @@ function SuccessModal({ open, onClose }: { open: boolean; onClose: () => void })
 export default function TimetableClient() {
   const { setMenuOpen } = useDashboard()
   const t = useT()
+  const router = useRouter()
   const [weekOffset, setWeekOffset]     = useState(0)
   const [view, setView]                 = useState<'calendar' | 'list'>('calendar')
   const [currentPage, setCurrentPage]   = useState(1)
@@ -599,14 +623,20 @@ export default function TimetableClient() {
         {view === 'list' && (
           <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 flex flex-col gap-4">
 
-            {/* Stats */}
+            {/* Stats — computed from loaded classes */}
+            {(() => {
+              const total    = listRows.length
+              const active   = listRows.filter(r => r.status === 'Active').length
+              const inactive = total - active
+              const stats = [
+                { label: 'Total Classes', value: String(total),    trend: '', sub: 'configured'  },
+                { label: 'Active',        value: String(active),   trend: '', sub: 'running now'  },
+                { label: 'Inactive',      value: String(inactive), trend: '', sub: 'paused'       },
+                { label: 'Weekly slots',  value: String(schedule.length), trend: '', sub: 'sessions/week' },
+              ]
+              return (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              {[
-                { label: 'Total Timetables', value: '8', trend: '+2', sub: 'this month' },
-                { label: 'Active',            value: '7', trend: '+1', sub: 'right now'  },
-                { label: 'Repeat',            value: '7', trend: '',   sub: 'recurring'  },
-                { label: 'Single',            value: '1', trend: '',   sub: 'one-off'    },
-              ].map(s => (
+              {stats.map(s => (
                 <div key={s.label} className="rounded-2xl"
                   style={{ background: '#fff', border: '1px solid #E5E7EB', padding: '10px 14px' }}>
                   <div className="flex items-start justify-between mb-2">
@@ -623,6 +653,8 @@ export default function TimetableClient() {
                 </div>
               ))}
             </div>
+              )
+            })()}
 
             {/* Search + Activity chips */}
             <div className="flex items-center gap-3 flex-wrap">
@@ -726,14 +758,31 @@ export default function TimetableClient() {
                               <div className="absolute right-6 rounded-xl z-20 py-1 overflow-hidden"
                                 style={{ background: '#fff', border: '1px solid #E5E7EB',
                                   boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 130, top: '100%' }}>
-                                {['Edit', 'Duplicate', 'Delete'].map(action => (
-                                  <button key={action} onClick={() => setOpenMenuId(null)}
+                                {[
+                                  { label: 'Edit', action: () => { setOpenMenuId(null); router.push('/dashboard/classes') } },
+                                  { label: 'Duplicate', action: async () => {
+                                    setOpenMenuId(null)
+                                    await fetch('/api/dashboard/classes', {
+                                      method: 'POST', headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({ name: row.title + ' (copy)' }),
+                                    })
+                                    loadClasses()
+                                  }},
+                                  { label: 'Delete', action: async () => {
+                                    setOpenMenuId(null)
+                                    if (!confirm(`Delete "${row.title}"? This cannot be undone.`)) return
+                                    await fetch(`/api/dashboard/classes/${row.id}`, { method: 'DELETE' })
+                                    setListRows(prev => prev.filter(r => r.id !== row.id))
+                                    setSchedule(prev => prev.filter(s => s.classId !== row.id))
+                                  }},
+                                ].map(({ label, action }) => (
+                                  <button key={label} onClick={action}
                                     className="w-full text-left px-4 py-2 cursor-pointer"
-                                    style={{ fontSize: 13, color: action === 'Delete' ? '#DC2626' : '#374151',
+                                    style={{ fontSize: 13, color: label === 'Delete' ? '#DC2626' : '#374151',
                                       background: 'transparent', border: 'none' }}
                                     onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
                                     onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                                    {action}
+                                    {label}
                                   </button>
                                 ))}
                               </div>
@@ -871,6 +920,11 @@ export default function TimetableClient() {
           slot={selectedSlot}
           date={weekDates[selectedSlot.day] ?? new Date()}
           onClose={() => setSelectedSlot(null)}
+          onDeleted={classId => {
+            setSchedule(prev => prev.filter(s => s.classId !== classId))
+            setListRows(prev => prev.filter(r => r.id !== classId))
+            setSelectedSlot(null)
+          }}
         />
       )}
       <AddTimetableDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onSuccess={() => { setDrawerOpen(false); setSuccessOpen(true) }} />

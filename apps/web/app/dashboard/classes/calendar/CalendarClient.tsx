@@ -1,7 +1,8 @@
 'use client'
 
 import { useDashboard } from '../../../../components/DashboardShell'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import {Users, Calendar, CreditCard, BarChart2, Settings, Bell, ChevronRight, ChevronDown, Menu, X, Plus, ChevronLeft, Clock, CalendarDays, LayoutList, MoreHorizontal, Pencil, Copy, Trash2, Eye, Check, Upload} from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
@@ -40,6 +41,7 @@ interface ApiClass {
 
 interface ClassSlot {
   id: string
+  classId: string   // actual DB class id (id is `${classId}-${slotIndex}`)
   day: number       // Mon=0 … Sun=6
   startH: number
   startM: number
@@ -48,7 +50,7 @@ interface ClassSlot {
   activity: string  // discipline name, falls back to class name
   instructor: string
   capacity: number
-  enrolled: number  // TODO(attendance): populate from booking counts once attendance API lands
+  enrolled: number
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -68,6 +70,7 @@ function apiClassToSlots(cls: ApiClass): ClassSlot[] {
     const durationM = Math.max(30, (endH * 60 + endM) - (startH * 60 + startM))
     return {
       id:        `${cls.id}-${i}`,
+      classId:   cls.id,
       day:       (slot.dayOfWeek + 6) % 7,
       startH,
       startM,
@@ -139,14 +142,36 @@ type NavItem = {
   children?: { label: string; href: string }[]
 }
 // ── Class popup ────────────────────────────────────────────────────────────────
-function ClassPopup({ slot, onClose }: { slot: ClassSlot; onClose: () => void }) {
+function ClassPopup({ slot, onClose, onDeleted }: {
+  slot: ClassSlot; onClose: () => void; onDeleted: (classId: string) => void
+}) {
   const t = useT()
+  const router = useRouter()
   const colors = ACTIVITY_COLORS[slot.activity] ?? ACTIVITY_COLORS['Open Mat']!
   const endMin = slot.startH * 60 + slot.startM + slot.durationM
   const time   = fmtTime(slot.startH, slot.startM) + ' – ' + fmtTime(Math.floor(endMin / 60), endMin % 60)
-  const pct    = Math.round((slot.enrolled / slot.capacity) * 100)
-  const isFull = slot.enrolled >= slot.capacity
+  const pct    = slot.capacity > 0 ? Math.round((slot.enrolled / slot.capacity) * 100) : 0
+  const isFull = slot.capacity > 0 && slot.enrolled >= slot.capacity
   const barClr = isFull ? '#DC2626' : pct >= 80 ? '#D97706' : '#16A34A'
+  const [deleting, setDeleting] = useState(false)
+
+  async function handleDelete() {
+    if (!confirm(`Delete "${slot.name}"? This cannot be undone.`)) return
+    setDeleting(true)
+    await fetch(`/api/dashboard/classes/${slot.classId}`, { method: 'DELETE' })
+    onDeleted(slot.classId)
+    onClose()
+  }
+
+  async function handleDuplicate() {
+    await fetch('/api/dashboard/classes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: slot.name + ' (copy)', capacity: slot.capacity }),
+    })
+    onClose()
+    router.refresh()
+  }
 
   return (
     <>
@@ -175,12 +200,11 @@ function ClassPopup({ slot, onClose }: { slot: ClassSlot; onClose: () => void })
         </div>
         <div className="py-1">
           {[
-            { icon: Eye,    label: t.classes.viewStudentsAction, color: '#374151' },
-            { icon: Pencil, label: t.classes.editClass,    color: '#374151' },
-            { icon: Copy,   label: t.common.duplicate,     color: '#374151' },
-            { icon: Trash2, label: t.common.delete,        color: '#DC2626' },
-          ].map(({ icon: Icon, label, color }) => (
-            <button key={label} onClick={onClose}
+            { icon: Pencil, label: t.classes.editClass,          color: '#374151', action: () => { onClose(); router.push('/dashboard/classes') } },
+            { icon: Copy,   label: t.common.duplicate,           color: '#374151', action: handleDuplicate },
+            { icon: Trash2, label: t.common.delete,              color: '#DC2626', action: handleDelete },
+          ].map(({ icon: Icon, label, color, action }) => (
+            <button key={label} onClick={action} disabled={deleting}
               className="w-full flex items-center gap-2.5 px-4 py-2.5 cursor-pointer"
               style={{ background: 'transparent', border: 'none', fontSize: 13, color, textAlign: 'left' }}
               onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
@@ -908,7 +932,16 @@ export default function CalendarClient() {
           </div>
         )}
 
-      {selectedSlot && <ClassPopup slot={selectedSlot} onClose={() => setSelectedSlot(null)} />}
+      {selectedSlot && (
+        <ClassPopup
+          slot={selectedSlot}
+          onClose={() => setSelectedSlot(null)}
+          onDeleted={classId => {
+            setClasses(prev => prev.filter(s => s.classId !== classId))
+            setSelectedSlot(null)
+          }}
+        />
+      )}
 
       <AddClassDrawer
         open={drawerOpen}

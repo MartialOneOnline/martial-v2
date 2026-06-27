@@ -127,12 +127,21 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen }: Props) {
   const [pendingMemberships, setPendingMemberships] = useState(0)
   const t = useT()
 
-  useEffect(() => {
+  const fetchPending = () => {
     fetch('/api/dashboard/memberships/stats')
       .then(r => r.ok ? r.json() : null)
-      .then(data => { if (data?.pending) setPendingMemberships(data.pending) })
+      .then(data => { if (data != null) setPendingMemberships(data.pending ?? 0) })
       .catch(() => {})
+  }
+
+  useEffect(() => {
+    fetchPending()
   }, [currentSchool?.schoolId])
+
+  useEffect(() => {
+    window.addEventListener('membership-pending-changed', fetchPending)
+    return () => window.removeEventListener('membership-pending-changed', fetchPending)
+  }, [])
 
   const handleSignOut = async () => {
     const supabase = createBrowserClient(

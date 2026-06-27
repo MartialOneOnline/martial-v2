@@ -768,6 +768,10 @@ function MemberRowActions({
       if (!res.ok) throw new Error(await res.text())
       const { status: newStatus } = await res.json()
       onDone(membershipId, newStatus)
+      // Notify sidebar to re-fetch pending count when PENDING status changes
+      if (status === 'PENDING' || newStatus === 'PENDING') {
+        window.dispatchEvent(new CustomEvent('membership-pending-changed'))
+      }
     } catch (err) {
       console.error('[membership action]', err)
     } finally {
