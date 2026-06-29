@@ -240,7 +240,7 @@ function ClassPopup({ slot, date, onClose, onDeleted }: {
 
   async function loadStudents() {
     setLoadingStudents(true)
-    const dateStr = date.toISOString().slice(0, 10)
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
     try {
       const res = await fetch(`/api/dashboard/classes/${slot.classId}/bookings?date=${dateStr}`)
       if (res.ok) {
