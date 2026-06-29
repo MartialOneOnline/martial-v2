@@ -5,6 +5,7 @@ import { prisma } from '@/lib/db'
 import { MembershipStatus, PaymentMethod } from '@/lib/prisma-client/client'
 import { cancelMembership } from '@/lib/services/membership'
 import { sendMembershipRequestEmail } from '@/lib/email/sendEmails'
+import { notifyMembershipRequest } from '@/lib/notifications/create'
 
 async function getDbUser(authId: string) {
   return prisma.user.findUnique({ where: { supabaseAuthId: authId }, select: { id: true, name: true } })
@@ -122,6 +123,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   // Notify school OWNER + ADMIN only for manual payment methods (cash, bank transfer, etc.)
   // Stripe payments are handled automatically via webhook — no admin approval needed
   const isManualPayment = ['CASH', 'BANK_TRANSFER', 'DIRECT_DEBIT', 'OTHER'].includes(membership.paymentMethod)
+
+  if (isManualPayment) {
+    notifyMembershipRequest(plan.schoolId, dbUser.name ?? 'Alumno', plan.name)
+  }
 
   if (isManualPayment) prisma.schoolMember.findMany({
     where: {

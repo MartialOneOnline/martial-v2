@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { notifyNewMember } from '@/lib/notifications/create'
 import { getResend, FROM, APP_URL } from '@/lib/email/resend'
 import { buildInviteStudentEmail, detectLang, getInviteSubject } from '@/lib/email/templates/inviteStudent'
 
@@ -123,6 +124,8 @@ export async function POST(req: NextRequest) {
     inviteUrl,
     lang,
   })
+
+  notifyNewMember(schoolId, dbUser.name ?? normalizedEmail)
 
   try {
     await getResend().emails.send({

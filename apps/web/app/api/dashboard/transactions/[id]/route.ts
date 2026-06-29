@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { notifyPaymentReceived } from '@/lib/notifications/create'
+import { fmtPrice } from '@/lib/format'
 
 async function authorise() {
   const user = await getAuthUser()
@@ -47,6 +49,7 @@ export async function PATCH(
 
   const tx = await prisma.transaction.findFirst({
     where: { id, schoolId: auth.schoolId },
+    include: { user: { select: { name: true } } },
   })
   if (!tx) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
@@ -54,6 +57,15 @@ export async function PATCH(
     where: { id },
     data: { status },
   })
+
+  if (status === 'PAID' && tx.status !== 'PAID') {
+    notifyPaymentReceived(
+      auth.schoolId,
+      tx.user?.name ?? 'Alumno',
+      fmtPrice(Number(tx.amount), tx.currency ?? 'EUR'),
+      tx.description ?? 'pago',
+    )
+  }
 
   return NextResponse.json({ id: updated.id, status: updated.status })
 }

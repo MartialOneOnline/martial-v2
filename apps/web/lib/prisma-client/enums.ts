@@ -220,3 +220,19 @@ export const InvitationSource = {
 } as const
 
 export type InvitationSource = (typeof InvitationSource)[keyof typeof InvitationSource]
+
+
+export const NotificationType = {
+  NEW_LEAD: 'NEW_LEAD',
+  NEW_MEMBER: 'NEW_MEMBER',
+  PAYMENT_RECEIVED: 'PAYMENT_RECEIVED',
+  PAYMENT_PENDING: 'PAYMENT_PENDING',
+  MEMBERSHIP_REQUEST: 'MEMBERSHIP_REQUEST',
+  MEMBERSHIP_EXPIRING: 'MEMBERSHIP_EXPIRING',
+  CLASS_FULL: 'CLASS_FULL',
+  CLASS_CANCELLED: 'CLASS_CANCELLED',
+  GRADING_COMPLETED: 'GRADING_COMPLETED',
+  STUDENT_INACTIVE: 'STUDENT_INACTIVE'
+} as const
+
+export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]

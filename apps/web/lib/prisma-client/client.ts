@@ -221,3 +221,8 @@ export type OrderItem = Prisma.OrderItemModel
  * 
  */
 export type Partner = Prisma.PartnerModel
+/**
+ * Model Notification
+ * 
+ */
+export type Notification = Prisma.NotificationModel

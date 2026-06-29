@@ -239,7 +239,7 @@ function EditDrawer({
 
       {/* Drawer panel */}
       <div style={{
-        position: 'fixed', top: 0, right: 0, bottom: 0, width: 480,
+        position: 'fixed', top: 0, right: 0, bottom: 0, width: 'min(480px, 100vw)',
         background: '#fff', boxShadow: '-4px 0 32px rgba(0,0,0,0.1)',
         transform: open ? 'translateX(0)' : 'translateX(100%)',
         transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -845,7 +845,7 @@ export default function StudentProfileClient({ profile: initialProfile }: { prof
       </div>
 
       <div className="px-4 md:px-8 py-6" style={{ maxWidth: 1100, margin: '0 auto' }}>
-        <div className="grid gap-5" style={{ gridTemplateColumns: '300px 1fr' }}>
+        <div className="grid gap-5 grid-cols-1 md:grid-cols-[300px_1fr]">
 
           {/* ── Left column ── */}
           <div className="flex flex-col gap-4">
@@ -1011,7 +1011,7 @@ export default function StudentProfileClient({ profile: initialProfile }: { prof
             </div>
 
             {/* Stats row */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 sm:grid-cols-3 gap-3">
               {[
                 { icon: Dumbbell, label: 'Clases totales', value: '—', sub: 'histórico' },
                 { icon: TrendingUp, label: 'Asistencia', value: '—', sub: 'este mes' },

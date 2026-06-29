@@ -456,6 +456,7 @@ model School {
   waivers         Waiver[]
   transactions    Transaction[]
   invitations     SchoolInvitation[]
+  notifications   Notification[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1226,4 +1227,38 @@ model Partner {
   updatedAt DateTime @updatedAt
 
   @@map("partners")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NOTIFICATION  (in-app notifications for school admins)
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum NotificationType {
+  NEW_LEAD
+  NEW_MEMBER
+  PAYMENT_RECEIVED
+  PAYMENT_PENDING
+  MEMBERSHIP_REQUEST
+  MEMBERSHIP_EXPIRING
+  CLASS_FULL
+  CLASS_CANCELLED
+  GRADING_COMPLETED
+  STUDENT_INACTIVE
+}
+
+model Notification {
+  id       String           @id @default(cuid())
+  schoolId String
+  school   School           @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  type     NotificationType
+  title    String
+  body     String
+  href     String?          // deep-link to the relevant page
+  read     Boolean          @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([schoolId, read])
+  @@index([schoolId, createdAt])
+  @@map("notifications")
 }
