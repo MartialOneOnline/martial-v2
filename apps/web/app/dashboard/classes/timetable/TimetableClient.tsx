@@ -220,6 +220,8 @@ function ClassPopup({ slot, date, onClose, onDeleted }: {
   const [loadingStudents, setLoadingStudents] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
+  useEffect(() => { loadStudents() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   async function handleDelete() {
     if (!confirm(`Delete "${slot.name}"? This cannot be undone.`)) return
     setDeleting(true)
@@ -310,7 +312,7 @@ function ClassPopup({ slot, date, onClose, onDeleted }: {
                     background: s.status === 'ATTENDED' ? '#F0FDF4' : s.status === 'CANCELLED' ? '#FEF2F2' : '#EFF6FF',
                     color: s.status === 'ATTENDED' ? '#15803D' : s.status === 'CANCELLED' ? '#B91C1C' : '#1D4ED8',
                   }}>
-                    {s.status === 'ATTENDED' ? 'Attended' : s.status === 'CANCELLED' ? 'Cancelled' : 'Booked'}
+                    {s.status === 'ATTENDED' ? 'Attended' : s.status === 'CANCELLED' ? 'Cancelled' : 'Confirmed'}
                   </span>
                 </div>
               ))

@@ -183,7 +183,7 @@ export default function ClassCapacityPopup({ cls, date, onClose }: Props) {
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   placeholder="Search students…"
-                  style={{ flex: 1, border: 'none', background: 'none', outline: 'none', fontSize: 13, color: '#111827', padding: '8px 0' }}
+                  style={{ flex: 1, border: 'none', background: 'none', outline: 'none', fontSize: 16, color: '#111827', padding: '8px 0' }}
                 />
               </div>
               {addError && <p style={{ fontSize: 11, color: '#DC2626', marginTop: 6 }}>{addError}</p>}

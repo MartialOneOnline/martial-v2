@@ -155,6 +155,8 @@ function ClassPopup({ slot, date, onClose, onDeleted }: {
   const [students, setStudents] = useState<{ id: string; name: string; avatarUrl: string | null; status: string }[]>([])
   const [loadingStudents, setLoadingStudents] = useState(false)
 
+  useEffect(() => { loadStudents() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   async function loadStudents() {
     setLoadingStudents(true)
     const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
