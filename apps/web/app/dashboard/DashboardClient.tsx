@@ -257,6 +257,14 @@ export default function DashboardClient({ userName, userEmail }: Props) {
 
   // ── Popup state ────────────────────────────────────────────────────────────
   const [showNotifications, setShowNotifications] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  useEffect(() => {
+    fetch('/api/dashboard/notifications?limit=1')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setUnreadCount(d.unread ?? 0) })
+      .catch(() => {})
+  }, [])
   const [showInvite, setShowInvite]               = useState(false)
   const [showSend, setShowSend]                   = useState(false)
   const [showQR, setShowQR]                       = useState(false)
@@ -365,10 +373,15 @@ export default function DashboardClient({ userName, userEmail }: Props) {
               style={{ background: showNotifications ? '#EFF6FF' : '#F9FAFB', border: '1px solid #E5E7EB' }}
             >
               <Bell size={15} strokeWidth={1.5} style={{ color: '#374151' }} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: '#DC2626' }} />
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 min-w-[16px] h-4 flex items-center justify-center rounded-full px-1"
+                  style={{ background: '#DC2626', fontSize: 9, fontWeight: 700, color: '#fff', lineHeight: 1 }}>
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
             </button>
             {showNotifications && (
-              <NotificationsPopup onClose={() => setShowNotifications(false)} />
+              <NotificationsPopup onClose={() => setShowNotifications(false)} onUnreadChange={setUnreadCount} />
             )}
           </div>
 
@@ -842,13 +855,14 @@ export default function DashboardClient({ userName, userEmail }: Props) {
       {selectedClass  && (
         <ClassCapacityPopup
           cls={selectedClass}
+          date={(() => { const d = new Date(); d.setDate(d.getDate() + activeDay); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` })()}
           onClose={() => setSelectedClass(null)}
         />
       )}
       {detailClass && (
         <ClassDetailPopup
           cls={detailClass}
-          date={(() => { const d = new Date(); d.setDate(d.getDate() + activeDay); return d.toISOString().slice(0, 10) })()}
+          date={(() => { const d = new Date(); d.setDate(d.getDate() + activeDay); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` })()}
           onClose={() => setDetailClass(null)}
         />
       )}
