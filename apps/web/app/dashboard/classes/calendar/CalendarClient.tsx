@@ -142,18 +142,37 @@ type NavItem = {
   children?: { label: string; href: string }[]
 }
 // ── Class popup ────────────────────────────────────────────────────────────────
-function ClassPopup({ slot, onClose, onDeleted }: {
-  slot: ClassSlot; onClose: () => void; onDeleted: (classId: string) => void
+function ClassPopup({ slot, date, onClose, onDeleted }: {
+  slot: ClassSlot; date: Date; onClose: () => void; onDeleted: (classId: string) => void
 }) {
   const t = useT()
   const router = useRouter()
   const colors = ACTIVITY_COLORS[slot.activity] ?? ACTIVITY_COLORS['Open Mat']!
   const endMin = slot.startH * 60 + slot.startM + slot.durationM
   const time   = fmtTime(slot.startH, slot.startM) + ' – ' + fmtTime(Math.floor(endMin / 60), endMin % 60)
-  const pct    = slot.capacity > 0 ? Math.round((slot.enrolled / slot.capacity) * 100) : 0
-  const isFull = slot.capacity > 0 && slot.enrolled >= slot.capacity
-  const barClr = isFull ? '#DC2626' : pct >= 80 ? '#D97706' : '#16A34A'
   const [deleting, setDeleting] = useState(false)
+  const [studentsView, setStudentsView] = useState(false)
+  const [students, setStudents] = useState<{ id: string; name: string; avatarUrl: string | null; status: string }[]>([])
+  const [loadingStudents, setLoadingStudents] = useState(false)
+
+  async function loadStudents() {
+    setLoadingStudents(true)
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+    try {
+      const res = await fetch(`/api/dashboard/classes/${slot.classId}/bookings?date=${dateStr}`)
+      if (res.ok) {
+        const data = await res.json()
+        setStudents(data.bookings ?? [])
+      }
+    } finally {
+      setLoadingStudents(false)
+    }
+  }
+
+  const bookedCount = students.length
+  const pct    = slot.capacity > 0 ? Math.round((bookedCount || slot.enrolled) / slot.capacity * 100) : 0
+  const isFull = slot.capacity > 0 && (bookedCount || slot.enrolled) >= slot.capacity
+  const barClr = isFull ? '#DC2626' : pct >= 80 ? '#D97706' : '#16A34A'
 
   async function handleDelete() {
     if (!confirm(`Delete "${slot.name}"? This cannot be undone.`)) return
@@ -171,6 +190,58 @@ function ClassPopup({ slot, onClose, onDeleted }: {
     })
     onClose()
     router.refresh()
+  }
+
+  if (studentsView) {
+    return (
+      <>
+        <div className="fixed inset-0 z-40" onClick={onClose} />
+        <div className="fixed z-50 rounded-2xl overflow-hidden"
+          style={{ top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+            background: '#fff', width: 280, maxHeight: 420, display: 'flex', flexDirection: 'column',
+            boxShadow: '0 16px 48px rgba(0,0,0,0.2)', border: '1px solid #E5E7EB' }}>
+          <div className="px-4 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid #F3F4F6' }}>
+            <button onClick={() => setStudentsView(false)}
+              className="text-gray-400 hover:text-gray-600 cursor-pointer"
+              style={{ background: 'none', border: 'none', padding: 0, display: 'flex' }}>
+              <ChevronLeft size={16} />
+            </button>
+            <div className="flex-1 min-w-0">
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', margin: 0 }}>{slot.name}</p>
+              <p style={{ fontSize: 11, color: '#6B7280', margin: 0 }}>{time} · {students.length} {t.classes.students}</p>
+            </div>
+          </div>
+          <div style={{ overflowY: 'auto', flex: 1 }}>
+            {loadingStudents ? (
+              <div className="flex items-center justify-center py-10">
+                <div className="w-5 h-5 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : students.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-10 text-center px-4">
+                <Users size={28} style={{ color: '#D1D5DB', marginBottom: 8 }} />
+                <p style={{ fontSize: 13, color: '#6B7280', margin: 0 }}>No bookings for this session</p>
+              </div>
+            ) : (
+              students.map(s => (
+                <div key={s.id} className="flex items-center gap-3 px-4 py-2.5"
+                  style={{ borderBottom: '1px solid #F9FAFB' }}>
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+                    style={{ background: '#EFF6FF', fontSize: 11, fontWeight: 700, color: '#0870E2' }}>
+                    {s.name?.[0] ?? '?'}
+                  </div>
+                  <p style={{ fontSize: 13, color: '#111827', margin: 0, flex: 1, minWidth: 0 }} className="truncate">{s.name}</p>
+                  <span style={{ fontSize: 10, fontWeight: 600, color: s.status === 'ATTENDED' ? '#16A34A' : '#6B7280',
+                    background: s.status === 'ATTENDED' ? '#F0FDF4' : '#F3F4F6',
+                    padding: '2px 6px', borderRadius: 999 }}>
+                    {s.status}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </>
+    )
   }
 
   return (
@@ -200,6 +271,7 @@ function ClassPopup({ slot, onClose, onDeleted }: {
         </div>
         <div className="py-1">
           {[
+            { icon: Users,  label: t.classes.students,           color: '#374151', action: () => { setStudentsView(true); loadStudents() } },
             { icon: Pencil, label: t.classes.editClass,          color: '#374151', action: () => { onClose(); router.push('/dashboard/classes') } },
             { icon: Copy,   label: t.common.duplicate,           color: '#374151', action: handleDuplicate },
             { icon: Trash2, label: t.common.delete,              color: '#DC2626', action: handleDelete },
@@ -314,7 +386,7 @@ function DatePicker({
 }
 
 // ── Week-view class block ──────────────────────────────────────────────────────
-function WeekClassBlock({ slot, onSelect }: { slot: ClassSlot; onSelect: (s: ClassSlot) => void }) {
+function WeekClassBlock({ slot, date, onSelect }: { slot: ClassSlot; date: Date; onSelect: (s: ClassSlot, d: Date) => void }) {
   const colors  = ACTIVITY_COLORS[slot.activity] ?? ACTIVITY_COLORS['Open Mat']!
   const top     = classTop(slot.startH, slot.startM)
   const height  = classHeight(slot.durationM)
@@ -326,7 +398,7 @@ function WeekClassBlock({ slot, onSelect }: { slot: ClassSlot; onSelect: (s: Cla
     <div className="absolute left-1 right-1 rounded-lg px-2 py-1 cursor-pointer"
       style={{ top: top + 1, height: height - 2, background: colors.bg,
         border: '1.5px solid ' + colors.border, zIndex: 1, overflow: 'hidden', transition: 'box-shadow 0.15s' }}
-      onClick={e => { e.stopPropagation(); onSelect(slot) }}
+      onClick={e => { e.stopPropagation(); onSelect(slot, date) }}
       onMouseEnter={e => (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.12)'}
       onMouseLeave={e => (e.currentTarget as HTMLElement).style.boxShadow = 'none'}>
       <p style={{ fontSize: 11, fontWeight: 700, color: colors.text, lineHeight: 1.2 }}>{slot.name}</p>
@@ -553,6 +625,7 @@ export default function CalendarClient() {
   const [view, setView]                   = useState<'month' | 'week'>('month')
   const [selectedDate, setSelectedDate]   = useState<Date>(() => new Date())
   const [selectedSlot, setSelectedSlot]   = useState<ClassSlot | null>(null)
+  const [selectedSlotDate, setSelectedSlotDate] = useState<Date>(() => new Date())
   const [pickerOpen, setPickerOpen]       = useState(false)
   const [drawerOpen, setDrawerOpen]       = useState(false)
   const [successOpen, setSuccessOpen]     = useState(false)
@@ -807,7 +880,7 @@ export default function CalendarClient() {
                         const endMin = slot.startH * 60 + slot.startM + slot.durationM
                         return (
                           <button key={slot.id}
-                            onClick={() => setSelectedSlot(slot)}
+                            onClick={() => { setSelectedSlot(slot); setSelectedSlotDate(date) }}
                             className="w-full text-left rounded px-1.5 py-0.5 cursor-pointer flex items-center gap-1 min-w-0"
                             style={{ background: colors.bg, border: '1px solid ' + colors.border,
                               fontSize: 10, color: colors.text, fontWeight: 600, lineHeight: 1.4 }}
@@ -838,7 +911,7 @@ export default function CalendarClient() {
                         const colors = ACTIVITY_COLORS[slot.activity] ?? ACTIVITY_COLORS['Open Mat']!
                         return (
                           <button key={slot.id}
-                            onClick={() => setSelectedSlot(slot)}
+                            onClick={() => { setSelectedSlot(slot); setSelectedSlotDate(date) }}
                             className="w-full text-left rounded px-1.5 py-0.5 cursor-pointer flex items-center gap-1 min-w-0"
                             style={{ background: colors.bg, border: '1px solid ' + colors.border,
                               fontSize: 10, color: colors.text, fontWeight: 600, lineHeight: 1.4 }}
@@ -922,7 +995,7 @@ export default function CalendarClient() {
                         </div>
                       )}
                       {slots.map(slot => (
-                        <WeekClassBlock key={slot.id} slot={slot} onSelect={setSelectedSlot} />
+                        <WeekClassBlock key={slot.id} slot={slot} date={date} onSelect={(s, d) => { setSelectedSlot(s); setSelectedSlotDate(d) }} />
                       ))}
                     </div>
                   )
@@ -935,6 +1008,7 @@ export default function CalendarClient() {
       {selectedSlot && (
         <ClassPopup
           slot={selectedSlot}
+          date={selectedSlotDate}
           onClose={() => setSelectedSlot(null)}
           onDeleted={classId => {
             setClasses(prev => prev.filter(s => s.classId !== classId))
