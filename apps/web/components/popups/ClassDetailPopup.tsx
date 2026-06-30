@@ -383,19 +383,20 @@ export default function ClassDetailPopup({ cls, date, onClose }: Props) {
                 <ChevronRight size={14} style={{ color: '#3B82F6', marginLeft: 'auto', flexShrink: 0 }} />
               </button>
 
-              {/* QR Code */}
-              <button onClick={() => setSubPanel('qr')}
-                className="flex items-center gap-3 w-full px-4 py-3.5 rounded-2xl cursor-pointer text-left"
-                style={{ background: '#F5F3FF', border: '1px solid #EDE9FE' }}>
+              {/* QR Check-in scanner */}
+              <Link
+                href={`/checkin/${cls.id}${date ? `?date=${date}` : ''}`}
+                className="flex items-center gap-3 w-full px-4 py-3.5 rounded-2xl text-left"
+                style={{ background: '#F5F3FF', border: '1px solid #EDE9FE', textDecoration: 'none' }}>
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#7C3AED' }}>
                   <QrCode size={16} style={{ color: '#fff' }} />
                 </div>
                 <div>
                   <p style={{ fontSize: 13, fontWeight: 600, color: '#6D28D9' }}>QR Check-in</p>
-                  <p style={{ fontSize: 11, color: '#7C3AED' }}>Show QR code for student self check-in</p>
+                  <p style={{ fontSize: 11, color: '#7C3AED' }}>Scan student QR codes to check in</p>
                 </div>
                 <ChevronRight size={14} style={{ color: '#7C3AED', marginLeft: 'auto', flexShrink: 0 }} />
-              </button>
+              </Link>
 
               {/* Mark all attended */}
               {markedAttended ? (
