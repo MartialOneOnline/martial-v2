@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
+import { notifyNewLead } from '@/lib/notifications/create'
 
 export async function POST(req: NextRequest) {
   const cookieStore = await cookies()
@@ -95,6 +96,8 @@ export async function POST(req: NextRequest) {
     }
     throw err
   }
+
+  notifyNewLead(schoolId, dbUser.name ?? dbUser.email)
 
   return NextResponse.json({ success: true, trialEnds: endDate })
 }

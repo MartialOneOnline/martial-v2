@@ -52,6 +52,7 @@ interface DbClass {
   schedule: DbScheduleSlot[] | null
   instructor: { name: string } | null
   discipline: { name: string } | null
+  _count?: { bookings: number }
 }
 
 function parseTime(t: string): { h: number; m: number } {
@@ -80,7 +81,7 @@ function classesToSlots(classes: DbClass[]): ClassSlot[] {
         activity: cls.discipline?.name ?? 'Other',
         instructor: cls.instructor?.name ?? '—',
         capacity: cls.capacity ?? 20,
-        enrolled: 0,
+        enrolled: cls._count?.bookings ?? 0,
       })
     }
   }

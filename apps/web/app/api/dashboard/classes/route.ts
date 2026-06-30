@@ -30,6 +30,7 @@ export async function GET() {
       include: {
         instructor: { select: { id: true, name: true } },
         discipline: { select: { id: true, name: true } },
+        _count: { select: { bookings: { where: { status: { notIn: ['CANCELLED'] } } } } },
       },
       orderBy: { createdAt: 'desc' },
     }),

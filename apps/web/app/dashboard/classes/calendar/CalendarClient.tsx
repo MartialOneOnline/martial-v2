@@ -37,6 +37,7 @@ interface ApiClass {
   schedule: { dayOfWeek: number; startTime: string; endTime: string }[] | null
   instructor: { id: string; name: string } | null
   discipline: { id: string; name: string } | null
+  _count?: { bookings: number }
 }
 
 interface ClassSlot {
@@ -79,7 +80,7 @@ function apiClassToSlots(cls: ApiClass): ClassSlot[] {
       activity:  cls.discipline?.name ?? cls.name,
       instructor: cls.instructor?.name ?? '—',
       capacity:  cls.capacity ?? 0,
-      enrolled:  0,
+      enrolled:  cls._count?.bookings ?? 0,
     }
   })
 }

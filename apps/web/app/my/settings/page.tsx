@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Bell, Globe, Moon, ChevronRight } from 'lucide-react'
 import { useLanguage } from '../../../lib/i18n/LanguageContext'
 import type { Locale } from '../../../lib/i18n/translations'
@@ -36,6 +36,17 @@ const LANGUAGE_OPTIONS: { locale: Locale; label: string }[] = [
   { locale: 'fr', label: 'Français' },
 ]
 
+const PREFS_KEY = 'martial_notif_prefs'
+
+function loadPrefs() {
+  if (typeof window === 'undefined') return null
+  try { return JSON.parse(localStorage.getItem(PREFS_KEY) ?? 'null') } catch { return null }
+}
+
+function savePrefs(prefs: Record<string, boolean>) {
+  localStorage.setItem(PREFS_KEY, JSON.stringify(prefs))
+}
+
 export default function MySettingsPage() {
   const { locale, setLocale, t } = useLanguage()
   const [notifClass,      setNotifClass]      = useState(true)
@@ -44,6 +55,24 @@ export default function MySettingsPage() {
   const [notifPromo,      setNotifPromo]       = useState(false)
   const [darkMode,        setDarkMode]         = useState(false)
   const [showLangPicker,  setShowLangPicker]   = useState(false)
+
+  // Load persisted prefs on mount
+  useEffect(() => {
+    const saved = loadPrefs()
+    if (!saved) return
+    if (saved.notifClass      !== undefined) setNotifClass(saved.notifClass)
+    if (saved.notifBooking    !== undefined) setNotifBooking(saved.notifBooking)
+    if (saved.notifMembership !== undefined) setNotifMembership(saved.notifMembership)
+    if (saved.notifPromo      !== undefined) setNotifPromo(saved.notifPromo)
+  }, [])
+
+  function setAndSave<T>(setter: (v: T) => void, key: string) {
+    return (v: T) => {
+      setter(v)
+      const current = loadPrefs() ?? {}
+      savePrefs({ ...current, [key]: v })
+    }
+  }
 
   const currentLangLabel = LANGUAGE_OPTIONS.find(o => o.locale === locale)?.label ?? 'English'
 
@@ -60,10 +89,10 @@ export default function MySettingsPage() {
         <p className="px-4 md:px-6 pb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: '#6B6B70' }}>{t.my.settingsNotifications}</p>
         <div className="mx-4 md:mx-6 mb-4 rounded-2xl overflow-hidden" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)' }}>
           {[
-            { label: t.my.notifClassReminders,   sub: t.my.notifClassSub,       val: notifClass,       set: setNotifClass },
-            { label: t.my.notifBookingConfirmed,  sub: t.my.notifBookingSub,     val: notifBooking,     set: setNotifBooking },
-            { label: t.my.notifMembershipUpdates, sub: t.my.notifMembershipSub,  val: notifMembership,  set: setNotifMembership },
-            { label: t.my.notifPromotions,        sub: t.my.notifPromotionsSub,  val: notifPromo,       set: setNotifPromo },
+            { label: t.my.notifClassReminders,   sub: t.my.notifClassSub,       val: notifClass,       set: setAndSave(setNotifClass,      'notifClass') },
+            { label: t.my.notifBookingConfirmed,  sub: t.my.notifBookingSub,     val: notifBooking,     set: setAndSave(setNotifBooking,    'notifBooking') },
+            { label: t.my.notifMembershipUpdates, sub: t.my.notifMembershipSub,  val: notifMembership,  set: setAndSave(setNotifMembership, 'notifMembership') },
+            { label: t.my.notifPromotions,        sub: t.my.notifPromotionsSub,  val: notifPromo,       set: setAndSave(setNotifPromo,      'notifPromo') },
           ].map(({ label, sub, val, set }, i, arr) => (
             <div
               key={label}
