@@ -3,7 +3,7 @@
 import { useDashboard } from '../../../../components/DashboardShell'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Users, Calendar, CreditCard, BarChart2, Settings, Bell, ChevronRight, Menu, X, Plus, ChevronLeft, Clock, Search, LayoutList, CalendarDays, MoreHorizontal, TrendingUp, Pencil, Copy, Trash2, Eye, Check, Upload, Flame, Award, School, ShoppingBag, HelpCircle } from 'lucide-react'
+import { Users, Calendar, CreditCard, BarChart2, Settings, Bell, ChevronRight, Menu, X, Plus, ChevronLeft, Clock, Search, LayoutList, CalendarDays, MoreHorizontal, TrendingUp, Pencil, Copy, Trash2, Eye, Check, Upload, Flame, Award, School, ShoppingBag, HelpCircle, CheckCircle, XCircle, Loader2 } from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import type { Translations } from '../../../../lib/i18n/translations'
 
@@ -217,8 +217,12 @@ function ClassPopup({ slot, date, onClose, onDeleted }: {
 
   const router = useRouter()
   const [studentsView, setStudentsView] = useState(false)
-  const [students, setStudents] = useState<{ id: string; name: string; avatarUrl: string | null; status: string }[]>([])
+  const [students, setStudents] = useState<{
+    id: string; name: string; avatarUrl: string | null; status: string
+    belt: string | null; beltDegree: number; membershipStatus: string | null; membershipPlan: string | null
+  }[]>([])
   const [loadingStudents, setLoadingStudents] = useState(false)
+  const [attendingId, setAttendingId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
 
   useEffect(() => { loadStudents() }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -261,27 +265,39 @@ function ClassPopup({ slot, date, onClose, onDeleted }: {
   const barColor = isFull ? '#DC2626' : pct >= 80 ? '#D97706' : '#16A34A'
   const capLabel = isFull ? t.common.full : pct >= 80 ? t.classes.almostFull : t.common.open
 
+  async function handleAttend(bookingId: string) {
+    setAttendingId(bookingId)
+    await fetch(`/api/dashboard/bookings/${bookingId}/attend`, { method: 'PATCH' })
+    setStudents(prev => prev.map(s => s.id === bookingId ? { ...s, status: 'COMPLETED' } : s))
+    setAttendingId(null)
+  }
+  async function handleNoShow(bookingId: string) {
+    setAttendingId(bookingId)
+    await fetch(`/api/dashboard/bookings/${bookingId}/no-show`, { method: 'PATCH' })
+    setStudents(prev => prev.map(s => s.id === bookingId ? { ...s, status: 'NO_SHOW' } : s))
+    setAttendingId(null)
+  }
+
   if (studentsView) {
+    const dateLabel = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }).replace(',', '')
     return (
       <>
         <div className="fixed inset-0 z-40" onClick={onClose} />
         <div className="fixed z-50 rounded-2xl overflow-hidden"
           style={{ top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
-            background: '#fff', width: 280, maxHeight: 420, display: 'flex', flexDirection: 'column',
+            background: '#fff', width: 'min(480px,94vw)', maxHeight: '80vh', display: 'flex', flexDirection: 'column',
             boxShadow: '0 16px 48px rgba(0,0,0,0.2)', border: '1px solid #E5E7EB' }}>
-          {/* Header */}
-          <div className="px-4 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid #F3F4F6' }}>
+          <div className="px-5 py-4 shrink-0" style={{ borderBottom: '1px solid #F3F4F6' }}>
             <button onClick={() => setStudentsView(false)}
-              className="text-gray-400 hover:text-gray-600 cursor-pointer"
-              style={{ background: 'none', border: 'none', padding: 0, display: 'flex' }}>
-              <ChevronLeft size={16} />
+              style={{ background: 'none', border: 'none', padding: 0, display: 'flex', alignItems: 'center', gap: 4, color: '#6B7280', cursor: 'pointer', marginBottom: 8 }}>
+              <ChevronLeft size={14} /><span style={{ fontSize: 12 }}>Back</span>
             </button>
-            <div className="flex-1 min-w-0">
-              <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', margin: 0 }}>{slot.name}</p>
-              <p style={{ fontSize: 11, color: '#6B7280', margin: 0 }}>{time} · {students.length} students</p>
-            </div>
+            <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0 }}>{slot.name}</p>
+            <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>{dateLabel}</p>
+            <p style={{ fontSize: 12, color: '#6B7280', marginTop: 2 }}>
+              <span style={{ fontWeight: 700, color: '#0870E2' }}>{students.length}/{slot.capacity}</span> students
+            </p>
           </div>
-          {/* List */}
           <div style={{ overflowY: 'auto', flex: 1 }}>
             {loadingStudents ? (
               <div className="flex items-center justify-center py-10">
@@ -292,32 +308,67 @@ function ClassPopup({ slot, date, onClose, onDeleted }: {
                 <Users size={28} style={{ color: '#D1D5DB', marginBottom: 8 }} />
                 <p style={{ fontSize: 13, color: '#6B7280', margin: 0 }}>No bookings for this session</p>
               </div>
-            ) : (
-              students.map(s => (
-                <div key={s.id} className="flex items-center gap-3 px-4 py-2.5"
-                  style={{ borderBottom: '1px solid #F9FAFB' }}>
-                  {s.avatarUrl ? (
-                    <img src={s.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-[#0870E2]/10 flex items-center justify-center shrink-0">
-                      <span style={{ fontSize: 11, fontWeight: 700, color: '#0870E2' }}>
-                        {(s.name || '?').slice(0, 2).toUpperCase()}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name || '—'}</p>
+            ) : students.map((s, i) => {
+              const isLast   = i === students.length - 1
+              const attended = s.status === 'COMPLETED'
+              const noShow   = s.status === 'NO_SHOW'
+              const busy     = attendingId === s.id
+              const beltImg  = s.belt ? `/belts/${s.belt.toLowerCase()}-${s.beltDegree ?? 0}stripe.svg`.replace('-0stripe', '') : '/belts/white.svg'
+              const memColor = s.membershipStatus === 'ACTIVE' ? { bg: '#F0FDF4', color: '#16A34A' }
+                             : s.membershipStatus === 'PENDING' ? { bg: '#FEF9C3', color: '#A16207' }
+                             : { bg: '#F3F4F6', color: '#6B7280' }
+              return (
+                <div key={s.id} className="flex items-center gap-3 px-4 py-3"
+                  style={{ borderBottom: isLast ? 'none' : '1px solid #F3F4F6', opacity: noShow ? 0.5 : 1 }}>
+                  <div className="shrink-0 relative">
+                    {s.avatarUrl
+                      ? <img src={s.avatarUrl} alt={s.name} width={36} height={36} style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }} />
+                      : <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12, fontWeight: 700 }}>
+                          {(s.name?.[0] ?? '?').toUpperCase()}
+                        </div>
+                    }
+                    {attended && (
+                      <div style={{ position: 'absolute', bottom: -2, right: -2, width: 14, height: 14, borderRadius: '50%', background: '#16A34A', border: '2px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Check size={8} color="#fff" />
+                      </div>
+                    )}
                   </div>
-                  <span style={{
-                    fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 999,
-                    background: s.status === 'ATTENDED' ? '#F0FDF4' : s.status === 'CANCELLED' ? '#FEF2F2' : '#EFF6FF',
-                    color: s.status === 'ATTENDED' ? '#15803D' : s.status === 'CANCELLED' ? '#B91C1C' : '#1D4ED8',
-                  }}>
-                    {s.status === 'ATTENDED' ? 'Attended' : s.status === 'CANCELLED' ? 'Cancelled' : 'Confirmed'}
-                  </span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      {s.belt && (
+                        <img src={beltImg} alt={s.belt} style={{ height: 10, width: 48, objectFit: 'cover', borderRadius: 2 }} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                      )}
+                      {s.membershipStatus && (
+                        <span style={{ fontSize: 10, fontWeight: 600, padding: '1px 6px', borderRadius: 999, background: memColor.bg, color: memColor.color }}>
+                          {s.membershipStatus === 'ACTIVE' ? 'Active' : s.membershipStatus === 'PENDING' ? 'Pending' : s.membershipStatus}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {busy ? (
+                      <Loader2 size={16} style={{ color: '#9CA3AF', animation: 'spin 1s linear infinite' }} />
+                    ) : attended ? (
+                      <span style={{ fontSize: 11, fontWeight: 600, color: '#16A34A' }}>✓ Present</span>
+                    ) : noShow ? (
+                      <span style={{ fontSize: 11, fontWeight: 600, color: '#DC2626' }}>✗ No-show</span>
+                    ) : (
+                      <>
+                        <button onClick={() => handleAttend(s.id)}
+                          style={{ width: 30, height: 30, borderRadius: '50%', border: '1.5px solid #D1FAE5', background: '#F0FDF4', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <CheckCircle size={14} color="#16A34A" />
+                        </button>
+                        <button onClick={() => handleNoShow(s.id)}
+                          style={{ width: 30, height: 30, borderRadius: '50%', border: '1.5px solid #FEE2E2', background: '#FEF2F2', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <XCircle size={14} color="#DC2626" />
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
-              ))
-            )}
+              )
+            })}
           </div>
         </div>
       </>

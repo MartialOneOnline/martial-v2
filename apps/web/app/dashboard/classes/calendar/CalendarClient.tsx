@@ -4,7 +4,7 @@ import { useDashboard } from '../../../../components/DashboardShell'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import {Users, Calendar, CreditCard, BarChart2, Settings, Bell, ChevronRight, ChevronDown, Menu, X, Plus, ChevronLeft, Clock, CalendarDays, LayoutList, MoreHorizontal, Pencil, Copy, Trash2, Eye, Check, Upload} from 'lucide-react'
+import {Users, Calendar, CreditCard, BarChart2, Settings, Bell, ChevronRight, ChevronDown, Menu, X, Plus, ChevronLeft, Clock, CalendarDays, LayoutList, MoreHorizontal, Pencil, Copy, Trash2, Eye, Check, Upload, CheckCircle, XCircle, Loader2} from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import type { Translations } from '../../../../lib/i18n/translations'
 
@@ -153,8 +153,12 @@ function ClassPopup({ slot, date, onClose, onDeleted }: {
   const time   = fmtTime(slot.startH, slot.startM) + ' – ' + fmtTime(Math.floor(endMin / 60), endMin % 60)
   const [deleting, setDeleting] = useState(false)
   const [studentsView, setStudentsView] = useState(false)
-  const [students, setStudents] = useState<{ id: string; name: string; avatarUrl: string | null; status: string }[]>([])
+  const [students, setStudents] = useState<{
+    id: string; name: string; avatarUrl: string | null; status: string
+    belt: string | null; beltDegree: number; membershipStatus: string | null; membershipPlan: string | null
+  }[]>([])
   const [loadingStudents, setLoadingStudents] = useState(false)
+  const [attendingId, setAttendingId] = useState<string | null>(null)
 
   useEffect(() => { loadStudents() }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -195,25 +199,43 @@ function ClassPopup({ slot, date, onClose, onDeleted }: {
     router.refresh()
   }
 
+  async function handleAttend(bookingId: string) {
+    setAttendingId(bookingId)
+    await fetch(`/api/dashboard/bookings/${bookingId}/attend`, { method: 'PATCH' })
+    setStudents(prev => prev.map(s => s.id === bookingId ? { ...s, status: 'COMPLETED' } : s))
+    setAttendingId(null)
+  }
+  async function handleNoShow(bookingId: string) {
+    setAttendingId(bookingId)
+    await fetch(`/api/dashboard/bookings/${bookingId}/no-show`, { method: 'PATCH' })
+    setStudents(prev => prev.map(s => s.id === bookingId ? { ...s, status: 'NO_SHOW' } : s))
+    setAttendingId(null)
+  }
+
   if (studentsView) {
+    const dateLabel = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }).replace(',', '')
     return (
       <>
         <div className="fixed inset-0 z-40" onClick={onClose} />
         <div className="fixed z-50 rounded-2xl overflow-hidden"
           style={{ top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
-            background: '#fff', width: 280, maxHeight: 420, display: 'flex', flexDirection: 'column',
+            background: '#fff', width: 'min(480px,94vw)', maxHeight: '80vh', display: 'flex', flexDirection: 'column',
             boxShadow: '0 16px 48px rgba(0,0,0,0.2)', border: '1px solid #E5E7EB' }}>
-          <div className="px-4 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid #F3F4F6' }}>
+          {/* Header */}
+          <div className="px-5 py-4 shrink-0" style={{ borderBottom: '1px solid #F3F4F6' }}>
             <button onClick={() => setStudentsView(false)}
-              className="text-gray-400 hover:text-gray-600 cursor-pointer"
-              style={{ background: 'none', border: 'none', padding: 0, display: 'flex' }}>
-              <ChevronLeft size={16} />
+              style={{ background: 'none', border: 'none', padding: 0, display: 'flex', alignItems: 'center', gap: 4, color: '#6B7280', cursor: 'pointer', marginBottom: 8 }}>
+              <ChevronLeft size={14} /><span style={{ fontSize: 12 }}>Back</span>
             </button>
-            <div className="flex-1 min-w-0">
-              <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', margin: 0 }}>{slot.name}</p>
-              <p style={{ fontSize: 11, color: '#6B7280', margin: 0 }}>{time} · {students.length} {t.classes.students}</p>
+            <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0 }}>{slot.name}</p>
+            <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>{dateLabel}</p>
+            <div className="flex items-center justify-between mt-1">
+              <p style={{ fontSize: 12, color: '#6B7280' }}>
+                <span style={{ fontWeight: 700, color: '#0870E2' }}>{students.length}/{slot.capacity}</span> {t.classes.students}
+              </p>
             </div>
           </div>
+          {/* Student list */}
           <div style={{ overflowY: 'auto', flex: 1 }}>
             {loadingStudents ? (
               <div className="flex items-center justify-center py-10">
@@ -224,23 +246,72 @@ function ClassPopup({ slot, date, onClose, onDeleted }: {
                 <Users size={28} style={{ color: '#D1D5DB', marginBottom: 8 }} />
                 <p style={{ fontSize: 13, color: '#6B7280', margin: 0 }}>No bookings for this session</p>
               </div>
-            ) : (
-              students.map(s => (
-                <div key={s.id} className="flex items-center gap-3 px-4 py-2.5"
-                  style={{ borderBottom: '1px solid #F9FAFB' }}>
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
-                    style={{ background: '#EFF6FF', fontSize: 11, fontWeight: 700, color: '#0870E2' }}>
-                    {s.name?.[0] ?? '?'}
+            ) : students.map((s, i) => {
+              const isLast    = i === students.length - 1
+              const attended  = s.status === 'COMPLETED'
+              const noShow    = s.status === 'NO_SHOW'
+              const busy      = attendingId === s.id
+              const beltImg   = s.belt ? `/belts/${s.belt.toLowerCase()}-${s.beltDegree ?? 0}stripe.svg`.replace('-0stripe', '') : '/belts/white.svg'
+              const memColor  = s.membershipStatus === 'ACTIVE' ? { bg: '#F0FDF4', color: '#16A34A' }
+                              : s.membershipStatus === 'PENDING' ? { bg: '#FEF9C3', color: '#A16207' }
+                              : { bg: '#F3F4F6', color: '#6B7280' }
+              return (
+                <div key={s.id} className="flex items-center gap-3 px-4 py-3"
+                  style={{ borderBottom: isLast ? 'none' : '1px solid #F3F4F6', opacity: noShow ? 0.5 : 1 }}>
+                  {/* Avatar */}
+                  <div className="shrink-0 relative">
+                    {s.avatarUrl
+                      ? <img src={s.avatarUrl} alt={s.name} width={36} height={36} style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }} />
+                      : <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12, fontWeight: 700 }}>
+                          {(s.name?.[0] ?? '?').toUpperCase()}
+                        </div>
+                    }
+                    {attended && (
+                      <div style={{ position: 'absolute', bottom: -2, right: -2, width: 14, height: 14, borderRadius: '50%', background: '#16A34A', border: '2px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Check size={8} color="#fff" />
+                      </div>
+                    )}
                   </div>
-                  <p style={{ fontSize: 13, color: '#111827', margin: 0, flex: 1, minWidth: 0 }} className="truncate">{s.name}</p>
-                  <span style={{ fontSize: 10, fontWeight: 600, color: s.status === 'ATTENDED' ? '#16A34A' : '#6B7280',
-                    background: s.status === 'ATTENDED' ? '#F0FDF4' : '#F3F4F6',
-                    padding: '2px 6px', borderRadius: 999 }}>
-                    {s.status}
-                  </span>
+                  {/* Info */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      {/* Belt image */}
+                      {s.belt && (
+                        <img src={beltImg} alt={s.belt} style={{ height: 10, width: 48, objectFit: 'cover', borderRadius: 2 }} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                      )}
+                      {/* Membership status */}
+                      {s.membershipStatus && (
+                        <span style={{ fontSize: 10, fontWeight: 600, padding: '1px 6px', borderRadius: 999, background: memColor.bg, color: memColor.color }}>
+                          {s.membershipStatus === 'ACTIVE' ? 'Active' : s.membershipStatus === 'PENDING' ? 'Pending' : s.membershipStatus}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {/* Attendance buttons */}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {busy ? (
+                      <Loader2 size={16} style={{ color: '#9CA3AF', animation: 'spin 1s linear infinite' }} />
+                    ) : attended ? (
+                      <span style={{ fontSize: 11, fontWeight: 600, color: '#16A34A' }}>✓ Present</span>
+                    ) : noShow ? (
+                      <span style={{ fontSize: 11, fontWeight: 600, color: '#DC2626' }}>✗ No-show</span>
+                    ) : (
+                      <>
+                        <button onClick={() => handleAttend(s.id)}
+                          style={{ width: 30, height: 30, borderRadius: '50%', border: '1.5px solid #D1FAE5', background: '#F0FDF4', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <CheckCircle size={14} color="#16A34A" />
+                        </button>
+                        <button onClick={() => handleNoShow(s.id)}
+                          style={{ width: 30, height: 30, borderRadius: '50%', border: '1.5px solid #FEE2E2', background: '#FEF2F2', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <XCircle size={14} color="#DC2626" />
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
-              ))
-            )}
+              )
+            })}
           </div>
         </div>
       </>
@@ -266,7 +337,7 @@ function ClassPopup({ slot, date, onClose, onDeleted }: {
             <div style={{ height: '100%', borderRadius: 99, background: barClr, width: pct + '%' }} />
           </div>
           <div className="flex items-center justify-between mt-1">
-            <p style={{ fontSize: 10, color: '#9CA3AF' }}>{slot.enrolled} / {slot.capacity} {t.classes.students}</p>
+            <p style={{ fontSize: 10, color: '#9CA3AF' }}>{bookedCount || slot.enrolled} / {slot.capacity} {t.classes.students}</p>
             <span style={{ fontSize: 10, fontWeight: 600, color: barClr }}>
               {isFull ? t.common.full : pct >= 80 ? t.classes.almostFull : t.common.open}
             </span>
@@ -389,12 +460,12 @@ function DatePicker({
 }
 
 // ── Week-view class block ──────────────────────────────────────────────────────
-function WeekClassBlock({ slot, date, onSelect }: { slot: ClassSlot; date: Date; onSelect: (s: ClassSlot, d: Date) => void }) {
+function WeekClassBlock({ slot, date, enrolled, onSelect }: { slot: ClassSlot; date: Date; enrolled: number; onSelect: (s: ClassSlot, d: Date) => void }) {
   const colors  = ACTIVITY_COLORS[slot.activity] ?? ACTIVITY_COLORS['Open Mat']!
   const top     = classTop(slot.startH, slot.startM)
   const height  = classHeight(slot.durationM)
-  const pct     = Math.round((slot.enrolled / slot.capacity) * 100)
-  const isFull  = slot.enrolled >= slot.capacity
+  const pct     = Math.round((enrolled / slot.capacity) * 100)
+  const isFull  = enrolled >= slot.capacity
   const endMin  = slot.startH * 60 + slot.startM + slot.durationM
   const time    = fmtTime(slot.startH, slot.startM) + '–' + fmtTime(Math.floor(endMin / 60), endMin % 60)
   return (
@@ -412,7 +483,7 @@ function WeekClassBlock({ slot, date, onSelect }: { slot: ClassSlot; date: Date;
           <div style={{ height: 3, background: colors.border, borderRadius: 99 }}>
             <div style={{ height: 3, borderRadius: 99, background: isFull ? '#DC2626' : colors.text, width: pct + '%', opacity: 0.6 }} />
           </div>
-          <p style={{ fontSize: 9, color: colors.text, opacity: 0.6, marginTop: 2 }}>{slot.enrolled}/{slot.capacity}{isFull ? ' · Full' : ''}</p>
+          <p style={{ fontSize: 9, color: colors.text, opacity: 0.6, marginTop: 2 }}>{enrolled}/{slot.capacity}{isFull ? ' · Full' : ''}</p>
         </div>
       )}
     </div>
@@ -634,6 +705,7 @@ export default function CalendarClient() {
   const [successOpen, setSuccessOpen]     = useState(false)
   const [expandedDay, setExpandedDay]     = useState<string | null>(null)
   const [classes, setClasses]             = useState<ClassSlot[]>([])
+  const [enrollments, setEnrollments]     = useState<Record<string, number>>({})
   const [loading, setLoading]             = useState(true)
   const [loadError, setLoadError]         = useState<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -651,6 +723,26 @@ export default function CalendarClient() {
       .catch(() => setLoadError('Failed to load classes'))
       .finally(() => setLoading(false))
   }, [])
+
+  // Fetch per-date enrollment counts when month/week changes
+  useEffect(() => {
+    const monday = weekMondayFor(selectedDate)
+    let startDate: string, endDate: string
+    if (view === 'week') {
+      const sun = new Date(monday); sun.setDate(sun.getDate() + 6)
+      startDate = `${monday.getFullYear()}-${String(monday.getMonth()+1).padStart(2,'0')}-${String(monday.getDate()).padStart(2,'0')}`
+      endDate   = `${sun.getFullYear()}-${String(sun.getMonth()+1).padStart(2,'0')}-${String(sun.getDate()).padStart(2,'0')}`
+    } else {
+      const first = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1)
+      const last  = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0)
+      startDate = `${first.getFullYear()}-${String(first.getMonth()+1).padStart(2,'0')}-01`
+      endDate   = `${last.getFullYear()}-${String(last.getMonth()+1).padStart(2,'0')}-${String(last.getDate()).padStart(2,'0')}`
+    }
+    fetch(`/api/dashboard/classes/enrollments?startDate=${startDate}&endDate=${endDate}`)
+      .then(r => r.ok ? r.json() : {})
+      .then(data => setEnrollments(data))
+      .catch(() => {})
+  }, [view, selectedDate])
 
   // Auto-scroll week view to current time
   useEffect(() => {
@@ -997,9 +1089,11 @@ export default function CalendarClient() {
                           <div style={{ flex: 1, height: 1.5, background: '#EF4444', opacity: 0.9 }} />
                         </div>
                       )}
-                      {slots.map(slot => (
-                        <WeekClassBlock key={slot.id} slot={slot} date={date} onSelect={(s, d) => { setSelectedSlot(s); setSelectedSlotDate(d) }} />
-                      ))}
+                      {slots.map(slot => {
+                        const ds = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`
+                        const enr = enrollments[`${slot.classId}|${ds}`] ?? slot.enrolled
+                        return <WeekClassBlock key={slot.id} slot={slot} date={date} enrolled={enr} onSelect={(s, d) => { setSelectedSlot(s); setSelectedSlotDate(d) }} />
+                      })}
                     </div>
                   )
                 })}

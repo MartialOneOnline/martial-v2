@@ -89,20 +89,45 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       class: { schoolId },
     },
     include: {
-      user: { select: { name: true, avatarUrl: true } },
+      user: {
+        select: {
+          name: true,
+          avatarUrl: true,
+          schoolMembers: {
+            where: { schoolId },
+            select: { belt: true, beltDegree: true, status: true },
+            take: 1,
+          },
+          memberships: {
+            where: { schoolId, status: { in: ['ACTIVE', 'PENDING'] } },
+            orderBy: { createdAt: 'desc' },
+            select: { status: true, planName: true },
+            take: 1,
+          },
+        },
+      },
     },
     orderBy: { createdAt: 'asc' },
     take: 100,
   })
 
   return NextResponse.json({
-    bookings: bookings.map(b => ({
-      id:          b.id,
-      name:        b.user?.name ?? '—',
-      avatarUrl:   b.user?.avatarUrl ?? null,
-      status:      b.status,
-      attendedAt:  b.attendedAt?.toISOString() ?? null,
-      scheduledAt: b.scheduledAt.toISOString(),
-    })),
+    bookings: bookings.map(b => {
+      const member     = b.user?.schoolMembers?.[0]
+      const membership = b.user?.memberships?.[0]
+      return {
+        id:               b.id,
+        name:             b.user?.name ?? '—',
+        avatarUrl:        b.user?.avatarUrl ?? null,
+        status:           b.status,
+        attendedAt:       b.attendedAt?.toISOString() ?? null,
+        scheduledAt:      b.scheduledAt.toISOString(),
+        belt:             member?.belt ?? null,
+        beltDegree:       member?.beltDegree ?? 0,
+        memberStatus:     member?.status ?? null,
+        membershipStatus: membership?.status ?? null,
+        membershipPlan:   membership?.planName ?? null,
+      }
+    }),
   })
 }
