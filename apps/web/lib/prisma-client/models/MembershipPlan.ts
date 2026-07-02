@@ -97,6 +97,7 @@ export type MembershipPlanCountAggregateOutputType = {
   classAccess: number
   contentPlatformId: number
   imageUrl: number
+  paymentMethods: number
   stripePriceId: number
   createdAt: number
   updatedAt: number
@@ -175,6 +176,7 @@ export type MembershipPlanCountAggregateInputType = {
   classAccess?: true
   contentPlatformId?: true
   imageUrl?: true
+  paymentMethods?: true
   stripePriceId?: true
   createdAt?: true
   updatedAt?: true
@@ -284,6 +286,7 @@ export type MembershipPlanGroupByOutputType = {
   classAccess: runtime.JsonValue
   contentPlatformId: string | null
   imageUrl: string | null
+  paymentMethods: string[]
   stripePriceId: string | null
   createdAt: Date
   updatedAt: Date
@@ -329,6 +332,7 @@ export type MembershipPlanWhereInput = {
   classAccess?: Prisma.JsonFilter<"MembershipPlan">
   contentPlatformId?: Prisma.StringNullableFilter<"MembershipPlan"> | string | null
   imageUrl?: Prisma.StringNullableFilter<"MembershipPlan"> | string | null
+  paymentMethods?: Prisma.StringNullableListFilter<"MembershipPlan">
   stripePriceId?: Prisma.StringNullableFilter<"MembershipPlan"> | string | null
   createdAt?: Prisma.DateTimeFilter<"MembershipPlan"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"MembershipPlan"> | Date | string
@@ -354,6 +358,7 @@ export type MembershipPlanOrderByWithRelationInput = {
   classAccess?: Prisma.SortOrder
   contentPlatformId?: Prisma.SortOrderInput | Prisma.SortOrder
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  paymentMethods?: Prisma.SortOrder
   stripePriceId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -382,6 +387,7 @@ export type MembershipPlanWhereUniqueInput = Prisma.AtLeast<{
   classAccess?: Prisma.JsonFilter<"MembershipPlan">
   contentPlatformId?: Prisma.StringNullableFilter<"MembershipPlan"> | string | null
   imageUrl?: Prisma.StringNullableFilter<"MembershipPlan"> | string | null
+  paymentMethods?: Prisma.StringNullableListFilter<"MembershipPlan">
   stripePriceId?: Prisma.StringNullableFilter<"MembershipPlan"> | string | null
   createdAt?: Prisma.DateTimeFilter<"MembershipPlan"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"MembershipPlan"> | Date | string
@@ -407,6 +413,7 @@ export type MembershipPlanOrderByWithAggregationInput = {
   classAccess?: Prisma.SortOrder
   contentPlatformId?: Prisma.SortOrderInput | Prisma.SortOrder
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  paymentMethods?: Prisma.SortOrder
   stripePriceId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -437,6 +444,7 @@ export type MembershipPlanScalarWhereWithAggregatesInput = {
   classAccess?: Prisma.JsonWithAggregatesFilter<"MembershipPlan">
   contentPlatformId?: Prisma.StringNullableWithAggregatesFilter<"MembershipPlan"> | string | null
   imageUrl?: Prisma.StringNullableWithAggregatesFilter<"MembershipPlan"> | string | null
+  paymentMethods?: Prisma.StringNullableListFilter<"MembershipPlan">
   stripePriceId?: Prisma.StringNullableWithAggregatesFilter<"MembershipPlan"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"MembershipPlan"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"MembershipPlan"> | Date | string
@@ -457,6 +465,7 @@ export type MembershipPlanCreateInput = {
   sortOrder?: number
   classAccess?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   imageUrl?: string | null
+  paymentMethods?: Prisma.MembershipPlanCreatepaymentMethodsInput | string[]
   stripePriceId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -482,6 +491,7 @@ export type MembershipPlanUncheckedCreateInput = {
   classAccess?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   contentPlatformId?: string | null
   imageUrl?: string | null
+  paymentMethods?: Prisma.MembershipPlanCreatepaymentMethodsInput | string[]
   stripePriceId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -503,6 +513,7 @@ export type MembershipPlanUpdateInput = {
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   classAccess?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethods?: Prisma.MembershipPlanUpdatepaymentMethodsInput | string[]
   stripePriceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -528,6 +539,7 @@ export type MembershipPlanUncheckedUpdateInput = {
   classAccess?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   contentPlatformId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethods?: Prisma.MembershipPlanUpdatepaymentMethodsInput | string[]
   stripePriceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -551,6 +563,7 @@ export type MembershipPlanCreateManyInput = {
   classAccess?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   contentPlatformId?: string | null
   imageUrl?: string | null
+  paymentMethods?: Prisma.MembershipPlanCreatepaymentMethodsInput | string[]
   stripePriceId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -571,6 +584,7 @@ export type MembershipPlanUpdateManyMutationInput = {
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   classAccess?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethods?: Prisma.MembershipPlanUpdatepaymentMethodsInput | string[]
   stripePriceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -593,6 +607,7 @@ export type MembershipPlanUncheckedUpdateManyInput = {
   classAccess?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   contentPlatformId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethods?: Prisma.MembershipPlanUpdatepaymentMethodsInput | string[]
   stripePriceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -625,6 +640,7 @@ export type MembershipPlanCountOrderByAggregateInput = {
   classAccess?: Prisma.SortOrder
   contentPlatformId?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
+  paymentMethods?: Prisma.SortOrder
   stripePriceId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -773,12 +789,21 @@ export type MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput = {
   deleteMany?: Prisma.MembershipPlanScalarWhereInput | Prisma.MembershipPlanScalarWhereInput[]
 }
 
+export type MembershipPlanCreatepaymentMethodsInput = {
+  set: string[]
+}
+
 export type FloatFieldUpdateOperationsInput = {
   set?: number
   increment?: number
   decrement?: number
   multiply?: number
   divide?: number
+}
+
+export type MembershipPlanUpdatepaymentMethodsInput = {
+  set?: string[]
+  push?: string | string[]
 }
 
 export type MembershipPlanCreateNestedOneWithoutMembershipsInput = {
@@ -812,6 +837,7 @@ export type MembershipPlanCreateWithoutContentPlatformInput = {
   sortOrder?: number
   classAccess?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   imageUrl?: string | null
+  paymentMethods?: Prisma.MembershipPlanCreatepaymentMethodsInput | string[]
   stripePriceId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -835,6 +861,7 @@ export type MembershipPlanUncheckedCreateWithoutContentPlatformInput = {
   sortOrder?: number
   classAccess?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   imageUrl?: string | null
+  paymentMethods?: Prisma.MembershipPlanCreatepaymentMethodsInput | string[]
   stripePriceId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -887,6 +914,7 @@ export type MembershipPlanScalarWhereInput = {
   classAccess?: Prisma.JsonFilter<"MembershipPlan">
   contentPlatformId?: Prisma.StringNullableFilter<"MembershipPlan"> | string | null
   imageUrl?: Prisma.StringNullableFilter<"MembershipPlan"> | string | null
+  paymentMethods?: Prisma.StringNullableListFilter<"MembershipPlan">
   stripePriceId?: Prisma.StringNullableFilter<"MembershipPlan"> | string | null
   createdAt?: Prisma.DateTimeFilter<"MembershipPlan"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"MembershipPlan"> | Date | string
@@ -907,6 +935,7 @@ export type MembershipPlanCreateWithoutSchoolInput = {
   sortOrder?: number
   classAccess?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   imageUrl?: string | null
+  paymentMethods?: Prisma.MembershipPlanCreatepaymentMethodsInput | string[]
   stripePriceId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -930,6 +959,7 @@ export type MembershipPlanUncheckedCreateWithoutSchoolInput = {
   classAccess?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   contentPlatformId?: string | null
   imageUrl?: string | null
+  paymentMethods?: Prisma.MembershipPlanCreatepaymentMethodsInput | string[]
   stripePriceId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -977,6 +1007,7 @@ export type MembershipPlanCreateWithoutMembershipsInput = {
   sortOrder?: number
   classAccess?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   imageUrl?: string | null
+  paymentMethods?: Prisma.MembershipPlanCreatepaymentMethodsInput | string[]
   stripePriceId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1001,6 +1032,7 @@ export type MembershipPlanUncheckedCreateWithoutMembershipsInput = {
   classAccess?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   contentPlatformId?: string | null
   imageUrl?: string | null
+  paymentMethods?: Prisma.MembershipPlanCreatepaymentMethodsInput | string[]
   stripePriceId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1037,6 +1069,7 @@ export type MembershipPlanUpdateWithoutMembershipsInput = {
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   classAccess?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethods?: Prisma.MembershipPlanUpdatepaymentMethodsInput | string[]
   stripePriceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1061,6 +1094,7 @@ export type MembershipPlanUncheckedUpdateWithoutMembershipsInput = {
   classAccess?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   contentPlatformId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethods?: Prisma.MembershipPlanUpdatepaymentMethodsInput | string[]
   stripePriceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1082,6 +1116,7 @@ export type MembershipPlanCreateManyContentPlatformInput = {
   sortOrder?: number
   classAccess?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   imageUrl?: string | null
+  paymentMethods?: Prisma.MembershipPlanCreatepaymentMethodsInput | string[]
   stripePriceId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1102,6 +1137,7 @@ export type MembershipPlanUpdateWithoutContentPlatformInput = {
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   classAccess?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethods?: Prisma.MembershipPlanUpdatepaymentMethodsInput | string[]
   stripePriceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1125,6 +1161,7 @@ export type MembershipPlanUncheckedUpdateWithoutContentPlatformInput = {
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   classAccess?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethods?: Prisma.MembershipPlanUpdatepaymentMethodsInput | string[]
   stripePriceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1147,6 +1184,7 @@ export type MembershipPlanUncheckedUpdateManyWithoutContentPlatformInput = {
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   classAccess?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethods?: Prisma.MembershipPlanUpdatepaymentMethodsInput | string[]
   stripePriceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1168,6 +1206,7 @@ export type MembershipPlanCreateManySchoolInput = {
   classAccess?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   contentPlatformId?: string | null
   imageUrl?: string | null
+  paymentMethods?: Prisma.MembershipPlanCreatepaymentMethodsInput | string[]
   stripePriceId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1188,6 +1227,7 @@ export type MembershipPlanUpdateWithoutSchoolInput = {
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   classAccess?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethods?: Prisma.MembershipPlanUpdatepaymentMethodsInput | string[]
   stripePriceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1211,6 +1251,7 @@ export type MembershipPlanUncheckedUpdateWithoutSchoolInput = {
   classAccess?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   contentPlatformId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethods?: Prisma.MembershipPlanUpdatepaymentMethodsInput | string[]
   stripePriceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1233,6 +1274,7 @@ export type MembershipPlanUncheckedUpdateManyWithoutSchoolInput = {
   classAccess?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   contentPlatformId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethods?: Prisma.MembershipPlanUpdatepaymentMethodsInput | string[]
   stripePriceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1286,6 +1328,7 @@ export type MembershipPlanSelect<ExtArgs extends runtime.Types.Extensions.Intern
   classAccess?: boolean
   contentPlatformId?: boolean
   imageUrl?: boolean
+  paymentMethods?: boolean
   stripePriceId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1312,6 +1355,7 @@ export type MembershipPlanSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   classAccess?: boolean
   contentPlatformId?: boolean
   imageUrl?: boolean
+  paymentMethods?: boolean
   stripePriceId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1336,6 +1380,7 @@ export type MembershipPlanSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   classAccess?: boolean
   contentPlatformId?: boolean
   imageUrl?: boolean
+  paymentMethods?: boolean
   stripePriceId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1360,12 +1405,13 @@ export type MembershipPlanSelectScalar = {
   classAccess?: boolean
   contentPlatformId?: boolean
   imageUrl?: boolean
+  paymentMethods?: boolean
   stripePriceId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type MembershipPlanOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "name" | "description" | "price" | "currency" | "planType" | "billingCycle" | "validityDays" | "isPublic" | "isPopular" | "isActive" | "sortOrder" | "classAccess" | "contentPlatformId" | "imageUrl" | "stripePriceId" | "createdAt" | "updatedAt", ExtArgs["result"]["membershipPlan"]>
+export type MembershipPlanOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "name" | "description" | "price" | "currency" | "planType" | "billingCycle" | "validityDays" | "isPublic" | "isPopular" | "isActive" | "sortOrder" | "classAccess" | "contentPlatformId" | "imageUrl" | "paymentMethods" | "stripePriceId" | "createdAt" | "updatedAt", ExtArgs["result"]["membershipPlan"]>
 export type MembershipPlanInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   contentPlatform?: boolean | Prisma.MembershipPlan$contentPlatformArgs<ExtArgs>
@@ -1405,6 +1451,7 @@ export type $MembershipPlanPayload<ExtArgs extends runtime.Types.Extensions.Inte
     classAccess: runtime.JsonValue
     contentPlatformId: string | null
     imageUrl: string | null
+    paymentMethods: string[]
     stripePriceId: string | null
     createdAt: Date
     updatedAt: Date
@@ -1850,6 +1897,7 @@ export interface MembershipPlanFieldRefs {
   readonly classAccess: Prisma.FieldRef<"MembershipPlan", 'Json'>
   readonly contentPlatformId: Prisma.FieldRef<"MembershipPlan", 'String'>
   readonly imageUrl: Prisma.FieldRef<"MembershipPlan", 'String'>
+  readonly paymentMethods: Prisma.FieldRef<"MembershipPlan", 'String[]'>
   readonly stripePriceId: Prisma.FieldRef<"MembershipPlan", 'String'>
   readonly createdAt: Prisma.FieldRef<"MembershipPlan", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"MembershipPlan", 'DateTime'>

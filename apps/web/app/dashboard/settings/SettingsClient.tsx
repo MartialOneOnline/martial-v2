@@ -500,13 +500,52 @@ function PaymentsTab() {
   const [failedAlerts,  setFailedAlerts]  = useState(true)
   const [saved, setSaved] = useState(false)
 
+  // Stripe keys
+  const [stripePk,      setStripePk]      = useState('')
+  const [stripeSk,      setStripeSk]      = useState('')
+  const [stripeWh,      setStripeWh]      = useState('')
+  const [showPk,        setShowPk]        = useState(false)
+  const [showSk,        setShowSk]        = useState(false)
+  const [showWh,        setShowWh]        = useState(false)
+  const [stripeConnected, setStripeConnected] = useState(false)
+  const [stripeSaving,  setStripeSaving]  = useState(false)
+  const [stripeSaved,   setStripeSaved]   = useState(false)
+
   useEffect(() => {
     fetch('/api/dashboard/school').then(r => r.json()).then(d => {
       const s = d.school?.defaultBookingSettings
       if (s?.acceptedMethods?.length) setAcceptedMethods(s.acceptedMethods)
       if (d.school?.cancelPolicy) setCancelPolicy(d.school.cancelPolicy)
+      if (d.school?.stripePublishableKey) { setStripePk(d.school.stripePublishableKey); setStripeConnected(true) }
+      if (d.school?.stripeSecretKey)      setStripeSk(d.school.stripeSecretKey)
+      if (d.school?.stripeWebhookSecret)  setStripeWh(d.school.stripeWebhookSecret)
     })
   }, [])
+
+  async function saveStripeKeys() {
+    setStripeSaving(true)
+    await fetch('/api/dashboard/school', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        stripePublishableKey: stripePk || null,
+        stripeSecretKey:      stripeSk || null,
+        stripeWebhookSecret:  stripeWh || null,
+      }),
+    })
+    setStripeConnected(!!(stripePk && stripeSk))
+    setStripeSaving(false); setStripeSaved(true); setTimeout(() => setStripeSaved(false), 2500)
+  }
+
+  async function disconnectStripe() {
+    setStripePk(''); setStripeSk(''); setStripeWh('')
+    await fetch('/api/dashboard/school', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ stripePublishableKey: null, stripeSecretKey: null, stripeWebhookSecret: null }),
+    })
+    setStripeConnected(false)
+  }
 
   function toggleMethod(key: string) {
     setAcceptedMethods(prev => prev.includes(key) ? prev.filter(m => m !== key) : [...prev, key])
@@ -527,22 +566,70 @@ function PaymentsTab() {
       {/* Stripe */}
       <div>
         <p style={SECTION_TITLE}>Payment processor</p>
-        <p style={SECTION_SUB}>Connect Stripe to accept online card payments</p>
-        <div className="flex items-center justify-between p-5 rounded-2xl" style={{ border: '1.5px solid #E5E7EB', background: '#fff' }}>
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#F0F0FF' }}>
-              <CreditCard size={18} style={{ color: '#635BFF' }} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <p style={{ fontSize: 15, fontWeight: 600, color: '#111827', margin: 0 }}>Stripe</p>
-                <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 999, background: '#F0FDF4', color: '#16A34A', border: '1px solid #BBF7D0' }}>✓ Connected</span>
+        <p style={SECTION_SUB}>Connect Stripe to accept online card payments from members</p>
+
+        <div className="p-5 rounded-2xl flex flex-col gap-4" style={{ border: '1.5px solid #E5E7EB', background: '#fff' }}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: '#F0F0FF' }}>
+                <CreditCard size={17} style={{ color: '#635BFF' }} />
               </div>
-              <p style={{ fontSize: 12, color: '#6B7280', marginTop: 2 }}>Live mode · acct_1P2a···3f8x</p>
+              <p style={{ fontSize: 15, fontWeight: 600, color: '#111827', margin: 0 }}>Stripe</p>
+              {stripeConnected && (
+                <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 999, background: '#F0FDF4', color: '#16A34A', border: '1px solid #BBF7D0' }}>✓ Connected</span>
+              )}
+            </div>
+            {stripeConnected && (
+              <button onClick={disconnectStripe}
+                style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #FECACA', background: '#FEF2F2', color: '#DC2626', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}>
+                Disconnect
+              </button>
+            )}
+          </div>
+
+          {/* Publishable key */}
+          <div className="flex flex-col gap-1">
+            <label style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>Publishable key</label>
+            <div className="flex items-center gap-2" style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflow: 'hidden', background: '#F9FAFB' }}>
+              <input type={showPk ? 'text' : 'password'} value={stripePk} onChange={e => setStripePk(e.target.value)}
+                placeholder="pk_live_···"
+                style={{ flex: 1, padding: '8px 12px', border: 'none', background: 'transparent', fontSize: 13, color: '#111827', outline: 'none', fontFamily: 'monospace' }} />
+              <button onClick={() => setShowPk(v => !v)} style={{ padding: '0 12px', height: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: '#9CA3AF', display: 'flex', alignItems: 'center' }}>
+                {showPk ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
             </div>
           </div>
-          <button style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid #FECACA', background: '#FEF2F2', color: '#DC2626', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
-            Disconnect
+
+          {/* Secret key */}
+          <div className="flex flex-col gap-1">
+            <label style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>Secret key</label>
+            <div className="flex items-center gap-2" style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflow: 'hidden', background: '#F9FAFB' }}>
+              <input type={showSk ? 'text' : 'password'} value={stripeSk} onChange={e => setStripeSk(e.target.value)}
+                placeholder="sk_live_···"
+                style={{ flex: 1, padding: '8px 12px', border: 'none', background: 'transparent', fontSize: 13, color: '#111827', outline: 'none', fontFamily: 'monospace' }} />
+              <button onClick={() => setShowSk(v => !v)} style={{ padding: '0 12px', height: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: '#9CA3AF', display: 'flex', alignItems: 'center' }}>
+                {showSk ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+            </div>
+          </div>
+
+          {/* Webhook secret */}
+          <div className="flex flex-col gap-1">
+            <label style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>Webhook secret</label>
+            <div className="flex items-center gap-2" style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflow: 'hidden', background: '#F9FAFB' }}>
+              <input type={showWh ? 'text' : 'password'} value={stripeWh} onChange={e => setStripeWh(e.target.value)}
+                placeholder="whsec_···"
+                style={{ flex: 1, padding: '8px 12px', border: 'none', background: 'transparent', fontSize: 13, color: '#111827', outline: 'none', fontFamily: 'monospace' }} />
+              <button onClick={() => setShowWh(v => !v)} style={{ padding: '0 12px', height: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: '#9CA3AF', display: 'flex', alignItems: 'center' }}>
+                {showWh ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+            </div>
+            <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0 }}>In your Stripe dashboard → Webhooks → add endpoint: <span style={{ fontFamily: 'monospace' }}>/api/webhooks/stripe</span></p>
+          </div>
+
+          <button onClick={saveStripeKeys} disabled={stripeSaving}
+            style={{ alignSelf: 'flex-start', padding: '8px 20px', borderRadius: 8, background: '#0870E2', color: '#fff', fontSize: 13, fontWeight: 600, border: 'none', cursor: 'pointer', opacity: stripeSaving ? 0.6 : 1 }}>
+            {stripeSaved ? '✓ Saved' : stripeSaving ? 'Saving…' : 'Save keys'}
           </button>
         </div>
       </div>

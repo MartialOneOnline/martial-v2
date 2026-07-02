@@ -421,8 +421,10 @@ model School {
   // UNTIL_END_OF_PERIOD: student retains access until the membership's endDate (Netflix model)
   cancelPolicy String @default("IMMEDIATE")
 
-  // Stripe
-  stripeAccountId String?
+  // Stripe — each school stores their own keys
+  stripePublishableKey String?
+  stripeSecretKey      String?
+  stripeWebhookSecret  String?
 
   // Hierarchy (HQ / branch / franchise)
   parentId               String?
@@ -526,6 +528,9 @@ model MembershipPlan {
 
   // Media
   imageUrl String?
+
+  // Payment methods accepted for this plan (CASH, STRIPE, BANK_TRANSFER, etc.)
+  paymentMethods String[] @default([])
 
   // Stripe (Phase 5)
   stripePriceId String?

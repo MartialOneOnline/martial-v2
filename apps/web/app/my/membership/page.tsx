@@ -53,7 +53,9 @@ type Plan = {
   isPopular: boolean
   alreadyActive: boolean
   hasActiveInSchool: boolean
-  school: { id: string; name: string; slug: string; currency: string }
+  paymentMethods: string[]
+  classAccess: string
+  school: { id: string; name: string; slug: string; stripeEnabled?: boolean }
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -610,9 +612,24 @@ export default function MyMembershipPage() {
     }
   }
 
-  async function handleRequest(plan: Plan) {
+  async function handleRequest(plan: Plan, forceMethod?: string) {
     setRequestingPlanId(plan.id)
     try {
+      // If plan supports Stripe AND school has Stripe, redirect to Stripe Checkout
+      const useStripe = forceMethod === 'STRIPE'
+        || (plan.school?.stripeEnabled && plan.paymentMethods?.includes('STRIPE') && !forceMethod)
+      if (useStripe) {
+        const res = await fetch('/api/my/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ planId: plan.id }),
+        })
+        if (res.ok) {
+          const { url } = await res.json()
+          if (url) { window.location.href = url; return }
+        }
+      }
+
       const res = await fetch(`/api/my/memberships/${plan.id}`, {
         method: 'POST',
       })

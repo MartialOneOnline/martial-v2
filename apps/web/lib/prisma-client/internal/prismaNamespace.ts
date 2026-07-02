@@ -3370,7 +3370,9 @@ export const SchoolScalarFieldEnum = {
   v1UserId: 'v1UserId',
   defaultBookingSettings: 'defaultBookingSettings',
   cancelPolicy: 'cancelPolicy',
-  stripeAccountId: 'stripeAccountId',
+  stripePublishableKey: 'stripePublishableKey',
+  stripeSecretKey: 'stripeSecretKey',
+  stripeWebhookSecret: 'stripeWebhookSecret',
   parentId: 'parentId',
   parentRelationshipType: 'parentRelationshipType',
   leadStage: 'leadStage',
@@ -3420,6 +3422,7 @@ export const MembershipPlanScalarFieldEnum = {
   classAccess: 'classAccess',
   contentPlatformId: 'contentPlatformId',
   imageUrl: 'imageUrl',
+  paymentMethods: 'paymentMethods',
   stripePriceId: 'stripePriceId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

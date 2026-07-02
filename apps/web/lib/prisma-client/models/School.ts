@@ -82,7 +82,9 @@ export type SchoolMinAggregateOutputType = {
   googlePlaceId: string | null
   v1UserId: number | null
   cancelPolicy: string | null
-  stripeAccountId: string | null
+  stripePublishableKey: string | null
+  stripeSecretKey: string | null
+  stripeWebhookSecret: string | null
   parentId: string | null
   parentRelationshipType: $Enums.SchoolRelationshipType | null
   leadStage: $Enums.LeadStage | null
@@ -126,7 +128,9 @@ export type SchoolMaxAggregateOutputType = {
   googlePlaceId: string | null
   v1UserId: number | null
   cancelPolicy: string | null
-  stripeAccountId: string | null
+  stripePublishableKey: string | null
+  stripeSecretKey: string | null
+  stripeWebhookSecret: string | null
   parentId: string | null
   parentRelationshipType: $Enums.SchoolRelationshipType | null
   leadStage: $Enums.LeadStage | null
@@ -173,7 +177,9 @@ export type SchoolCountAggregateOutputType = {
   v1UserId: number
   defaultBookingSettings: number
   cancelPolicy: number
-  stripeAccountId: number
+  stripePublishableKey: number
+  stripeSecretKey: number
+  stripeWebhookSecret: number
   parentId: number
   parentRelationshipType: number
   leadStage: number
@@ -241,7 +247,9 @@ export type SchoolMinAggregateInputType = {
   googlePlaceId?: true
   v1UserId?: true
   cancelPolicy?: true
-  stripeAccountId?: true
+  stripePublishableKey?: true
+  stripeSecretKey?: true
+  stripeWebhookSecret?: true
   parentId?: true
   parentRelationshipType?: true
   leadStage?: true
@@ -285,7 +293,9 @@ export type SchoolMaxAggregateInputType = {
   googlePlaceId?: true
   v1UserId?: true
   cancelPolicy?: true
-  stripeAccountId?: true
+  stripePublishableKey?: true
+  stripeSecretKey?: true
+  stripeWebhookSecret?: true
   parentId?: true
   parentRelationshipType?: true
   leadStage?: true
@@ -332,7 +342,9 @@ export type SchoolCountAggregateInputType = {
   v1UserId?: true
   defaultBookingSettings?: true
   cancelPolicy?: true
-  stripeAccountId?: true
+  stripePublishableKey?: true
+  stripeSecretKey?: true
+  stripeWebhookSecret?: true
   parentId?: true
   parentRelationshipType?: true
   leadStage?: true
@@ -466,7 +478,9 @@ export type SchoolGroupByOutputType = {
   v1UserId: number | null
   defaultBookingSettings: runtime.JsonValue
   cancelPolicy: string
-  stripeAccountId: string | null
+  stripePublishableKey: string | null
+  stripeSecretKey: string | null
+  stripeWebhookSecret: string | null
   parentId: string | null
   parentRelationshipType: $Enums.SchoolRelationshipType | null
   leadStage: $Enums.LeadStage | null
@@ -536,7 +550,9 @@ export type SchoolWhereInput = {
   v1UserId?: Prisma.IntNullableFilter<"School"> | number | null
   defaultBookingSettings?: Prisma.JsonFilter<"School">
   cancelPolicy?: Prisma.StringFilter<"School"> | string
-  stripeAccountId?: Prisma.StringNullableFilter<"School"> | string | null
+  stripePublishableKey?: Prisma.StringNullableFilter<"School"> | string | null
+  stripeSecretKey?: Prisma.StringNullableFilter<"School"> | string | null
+  stripeWebhookSecret?: Prisma.StringNullableFilter<"School"> | string | null
   parentId?: Prisma.StringNullableFilter<"School"> | string | null
   parentRelationshipType?: Prisma.EnumSchoolRelationshipTypeNullableFilter<"School"> | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.EnumLeadStageNullableFilter<"School"> | $Enums.LeadStage | null
@@ -605,7 +621,9 @@ export type SchoolOrderByWithRelationInput = {
   v1UserId?: Prisma.SortOrderInput | Prisma.SortOrder
   defaultBookingSettings?: Prisma.SortOrder
   cancelPolicy?: Prisma.SortOrder
-  stripeAccountId?: Prisma.SortOrderInput | Prisma.SortOrder
+  stripePublishableKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  stripeSecretKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  stripeWebhookSecret?: Prisma.SortOrderInput | Prisma.SortOrder
   parentId?: Prisma.SortOrderInput | Prisma.SortOrder
   parentRelationshipType?: Prisma.SortOrderInput | Prisma.SortOrder
   leadStage?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -677,7 +695,9 @@ export type SchoolWhereUniqueInput = Prisma.AtLeast<{
   googlePlaceId?: Prisma.StringNullableFilter<"School"> | string | null
   defaultBookingSettings?: Prisma.JsonFilter<"School">
   cancelPolicy?: Prisma.StringFilter<"School"> | string
-  stripeAccountId?: Prisma.StringNullableFilter<"School"> | string | null
+  stripePublishableKey?: Prisma.StringNullableFilter<"School"> | string | null
+  stripeSecretKey?: Prisma.StringNullableFilter<"School"> | string | null
+  stripeWebhookSecret?: Prisma.StringNullableFilter<"School"> | string | null
   parentId?: Prisma.StringNullableFilter<"School"> | string | null
   parentRelationshipType?: Prisma.EnumSchoolRelationshipTypeNullableFilter<"School"> | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.EnumLeadStageNullableFilter<"School"> | $Enums.LeadStage | null
@@ -746,7 +766,9 @@ export type SchoolOrderByWithAggregationInput = {
   v1UserId?: Prisma.SortOrderInput | Prisma.SortOrder
   defaultBookingSettings?: Prisma.SortOrder
   cancelPolicy?: Prisma.SortOrder
-  stripeAccountId?: Prisma.SortOrderInput | Prisma.SortOrder
+  stripePublishableKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  stripeSecretKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  stripeWebhookSecret?: Prisma.SortOrderInput | Prisma.SortOrder
   parentId?: Prisma.SortOrderInput | Prisma.SortOrder
   parentRelationshipType?: Prisma.SortOrderInput | Prisma.SortOrder
   leadStage?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -801,7 +823,9 @@ export type SchoolScalarWhereWithAggregatesInput = {
   v1UserId?: Prisma.IntNullableWithAggregatesFilter<"School"> | number | null
   defaultBookingSettings?: Prisma.JsonWithAggregatesFilter<"School">
   cancelPolicy?: Prisma.StringWithAggregatesFilter<"School"> | string
-  stripeAccountId?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
+  stripePublishableKey?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
+  stripeSecretKey?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
+  stripeWebhookSecret?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
   parentId?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
   parentRelationshipType?: Prisma.EnumSchoolRelationshipTypeNullableWithAggregatesFilter<"School"> | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.EnumLeadStageNullableWithAggregatesFilter<"School"> | $Enums.LeadStage | null
@@ -847,7 +871,9 @@ export type SchoolCreateInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -914,7 +940,9 @@ export type SchoolUncheckedCreateInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -979,7 +1007,9 @@ export type SchoolUpdateInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1046,7 +1076,9 @@ export type SchoolUncheckedUpdateInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -1112,7 +1144,9 @@ export type SchoolCreateManyInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -1158,7 +1192,9 @@ export type SchoolUpdateManyMutationInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1203,7 +1239,9 @@ export type SchoolUncheckedUpdateManyInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -1278,7 +1316,9 @@ export type SchoolCountOrderByAggregateInput = {
   v1UserId?: Prisma.SortOrder
   defaultBookingSettings?: Prisma.SortOrder
   cancelPolicy?: Prisma.SortOrder
-  stripeAccountId?: Prisma.SortOrder
+  stripePublishableKey?: Prisma.SortOrder
+  stripeSecretKey?: Prisma.SortOrder
+  stripeWebhookSecret?: Prisma.SortOrder
   parentId?: Prisma.SortOrder
   parentRelationshipType?: Prisma.SortOrder
   leadStage?: Prisma.SortOrder
@@ -1333,7 +1373,9 @@ export type SchoolMaxOrderByAggregateInput = {
   googlePlaceId?: Prisma.SortOrder
   v1UserId?: Prisma.SortOrder
   cancelPolicy?: Prisma.SortOrder
-  stripeAccountId?: Prisma.SortOrder
+  stripePublishableKey?: Prisma.SortOrder
+  stripeSecretKey?: Prisma.SortOrder
+  stripeWebhookSecret?: Prisma.SortOrder
   parentId?: Prisma.SortOrder
   parentRelationshipType?: Prisma.SortOrder
   leadStage?: Prisma.SortOrder
@@ -1377,7 +1419,9 @@ export type SchoolMinOrderByAggregateInput = {
   googlePlaceId?: Prisma.SortOrder
   v1UserId?: Prisma.SortOrder
   cancelPolicy?: Prisma.SortOrder
-  stripeAccountId?: Prisma.SortOrder
+  stripePublishableKey?: Prisma.SortOrder
+  stripeSecretKey?: Prisma.SortOrder
+  stripeWebhookSecret?: Prisma.SortOrder
   parentId?: Prisma.SortOrder
   parentRelationshipType?: Prisma.SortOrder
   leadStage?: Prisma.SortOrder
@@ -1876,7 +1920,9 @@ export type SchoolCreateWithoutAffiliationInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -1941,7 +1987,9 @@ export type SchoolUncheckedCreateWithoutAffiliationInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -2036,7 +2084,9 @@ export type SchoolScalarWhereInput = {
   v1UserId?: Prisma.IntNullableFilter<"School"> | number | null
   defaultBookingSettings?: Prisma.JsonFilter<"School">
   cancelPolicy?: Prisma.StringFilter<"School"> | string
-  stripeAccountId?: Prisma.StringNullableFilter<"School"> | string | null
+  stripePublishableKey?: Prisma.StringNullableFilter<"School"> | string | null
+  stripeSecretKey?: Prisma.StringNullableFilter<"School"> | string | null
+  stripeWebhookSecret?: Prisma.StringNullableFilter<"School"> | string | null
   parentId?: Prisma.StringNullableFilter<"School"> | string | null
   parentRelationshipType?: Prisma.EnumSchoolRelationshipTypeNullableFilter<"School"> | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.EnumLeadStageNullableFilter<"School"> | $Enums.LeadStage | null
@@ -2082,7 +2132,9 @@ export type SchoolCreateWithoutStaffInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -2148,7 +2200,9 @@ export type SchoolUncheckedCreateWithoutStaffInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -2217,7 +2271,9 @@ export type SchoolCreateWithoutClaimedByInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -2283,7 +2339,9 @@ export type SchoolUncheckedCreateWithoutClaimedByInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -2368,7 +2426,9 @@ export type SchoolUpdateWithoutStaffInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2434,7 +2494,9 @@ export type SchoolUncheckedUpdateWithoutStaffInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -2514,7 +2576,9 @@ export type SchoolCreateWithoutDisciplinesInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -2580,7 +2644,9 @@ export type SchoolUncheckedCreateWithoutDisciplinesInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -2660,7 +2726,9 @@ export type SchoolUpdateWithoutDisciplinesInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2726,7 +2794,9 @@ export type SchoolUncheckedUpdateWithoutDisciplinesInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -2790,7 +2860,9 @@ export type SchoolCreateWithoutBranchesInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -2856,7 +2928,9 @@ export type SchoolUncheckedCreateWithoutBranchesInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -2925,7 +2999,9 @@ export type SchoolCreateWithoutParentInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -2991,7 +3067,9 @@ export type SchoolUncheckedCreateWithoutParentInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedById?: string | null
@@ -3076,7 +3154,9 @@ export type SchoolUpdateWithoutBranchesInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3142,7 +3222,9 @@ export type SchoolUncheckedUpdateWithoutBranchesInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -3222,7 +3304,9 @@ export type SchoolCreateWithoutInstructorsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -3288,7 +3372,9 @@ export type SchoolUncheckedCreateWithoutInstructorsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -3368,7 +3454,9 @@ export type SchoolUpdateWithoutInstructorsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3434,7 +3522,9 @@ export type SchoolUncheckedUpdateWithoutInstructorsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -3498,7 +3588,9 @@ export type SchoolCreateWithoutMembershipPlansInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -3564,7 +3656,9 @@ export type SchoolUncheckedCreateWithoutMembershipPlansInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -3644,7 +3738,9 @@ export type SchoolUpdateWithoutMembershipPlansInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3710,7 +3806,9 @@ export type SchoolUncheckedUpdateWithoutMembershipPlansInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -3774,7 +3872,9 @@ export type SchoolCreateWithoutReviewsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -3840,7 +3940,9 @@ export type SchoolUncheckedCreateWithoutReviewsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -3920,7 +4022,9 @@ export type SchoolUpdateWithoutReviewsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3986,7 +4090,9 @@ export type SchoolUncheckedUpdateWithoutReviewsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -4050,7 +4156,9 @@ export type SchoolCreateWithoutClassesInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -4116,7 +4224,9 @@ export type SchoolUncheckedCreateWithoutClassesInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -4196,7 +4306,9 @@ export type SchoolUpdateWithoutClassesInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4262,7 +4374,9 @@ export type SchoolUncheckedUpdateWithoutClassesInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -4326,7 +4440,9 @@ export type SchoolCreateWithoutEventsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -4392,7 +4508,9 @@ export type SchoolUncheckedCreateWithoutEventsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -4472,7 +4590,9 @@ export type SchoolUpdateWithoutEventsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4538,7 +4658,9 @@ export type SchoolUncheckedUpdateWithoutEventsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -4602,7 +4724,9 @@ export type SchoolCreateWithoutMembershipsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -4668,7 +4792,9 @@ export type SchoolUncheckedCreateWithoutMembershipsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -4748,7 +4874,9 @@ export type SchoolUpdateWithoutMembershipsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4814,7 +4942,9 @@ export type SchoolUncheckedUpdateWithoutMembershipsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -4878,7 +5008,9 @@ export type SchoolCreateWithoutCampsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -4944,7 +5076,9 @@ export type SchoolUncheckedCreateWithoutCampsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -5024,7 +5158,9 @@ export type SchoolUpdateWithoutCampsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -5090,7 +5226,9 @@ export type SchoolUncheckedUpdateWithoutCampsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -5154,7 +5292,9 @@ export type SchoolCreateWithoutMembersInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -5220,7 +5360,9 @@ export type SchoolUncheckedCreateWithoutMembersInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -5300,7 +5442,9 @@ export type SchoolUpdateWithoutMembersInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -5366,7 +5510,9 @@ export type SchoolUncheckedUpdateWithoutMembersInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -5430,7 +5576,9 @@ export type SchoolCreateWithoutClaimsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -5496,7 +5644,9 @@ export type SchoolUncheckedCreateWithoutClaimsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -5576,7 +5726,9 @@ export type SchoolUpdateWithoutClaimsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -5642,7 +5794,9 @@ export type SchoolUncheckedUpdateWithoutClaimsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -5706,7 +5860,9 @@ export type SchoolCreateWithoutGradingSystemsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -5772,7 +5928,9 @@ export type SchoolUncheckedCreateWithoutGradingSystemsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -5852,7 +6010,9 @@ export type SchoolUpdateWithoutGradingSystemsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -5918,7 +6078,9 @@ export type SchoolUncheckedUpdateWithoutGradingSystemsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -5982,7 +6144,9 @@ export type SchoolCreateWithoutGradingsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -6048,7 +6212,9 @@ export type SchoolUncheckedCreateWithoutGradingsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -6128,7 +6294,9 @@ export type SchoolUpdateWithoutGradingsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -6194,7 +6362,9 @@ export type SchoolUncheckedUpdateWithoutGradingsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -6258,7 +6428,9 @@ export type SchoolCreateWithoutLeadsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -6324,7 +6496,9 @@ export type SchoolUncheckedCreateWithoutLeadsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -6404,7 +6578,9 @@ export type SchoolUpdateWithoutLeadsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -6470,7 +6646,9 @@ export type SchoolUncheckedUpdateWithoutLeadsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -6534,7 +6712,9 @@ export type SchoolCreateWithoutInvitationsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -6600,7 +6780,9 @@ export type SchoolUncheckedCreateWithoutInvitationsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -6680,7 +6862,9 @@ export type SchoolUpdateWithoutInvitationsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -6746,7 +6930,9 @@ export type SchoolUncheckedUpdateWithoutInvitationsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -6810,7 +6996,9 @@ export type SchoolCreateWithoutWaiversInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -6876,7 +7064,9 @@ export type SchoolUncheckedCreateWithoutWaiversInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -6956,7 +7146,9 @@ export type SchoolUpdateWithoutWaiversInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -7022,7 +7214,9 @@ export type SchoolUncheckedUpdateWithoutWaiversInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -7086,7 +7280,9 @@ export type SchoolCreateWithoutTransactionsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -7152,7 +7348,9 @@ export type SchoolUncheckedCreateWithoutTransactionsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -7232,7 +7430,9 @@ export type SchoolUpdateWithoutTransactionsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -7298,7 +7498,9 @@ export type SchoolUncheckedUpdateWithoutTransactionsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -7362,7 +7564,9 @@ export type SchoolCreateWithoutNotificationsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -7428,7 +7632,9 @@ export type SchoolUncheckedCreateWithoutNotificationsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -7508,7 +7714,9 @@ export type SchoolUpdateWithoutNotificationsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -7574,7 +7782,9 @@ export type SchoolUncheckedUpdateWithoutNotificationsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -7638,7 +7848,9 @@ export type SchoolCreateManyAffiliationInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -7684,7 +7896,9 @@ export type SchoolUpdateWithoutAffiliationInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -7749,7 +7963,9 @@ export type SchoolUncheckedUpdateWithoutAffiliationInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -7814,7 +8030,9 @@ export type SchoolUncheckedUpdateManyWithoutAffiliationInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -7861,7 +8079,9 @@ export type SchoolCreateManyClaimedByInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -7906,7 +8126,9 @@ export type SchoolUpdateWithoutClaimedByInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -7972,7 +8194,9 @@ export type SchoolUncheckedUpdateWithoutClaimedByInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -8037,7 +8261,9 @@ export type SchoolUncheckedUpdateManyWithoutClaimedByInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -8083,7 +8309,9 @@ export type SchoolCreateManyParentInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
-  stripeAccountId?: string | null
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedById?: string | null
@@ -8128,7 +8356,9 @@ export type SchoolUpdateWithoutParentInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -8194,7 +8424,9 @@ export type SchoolUncheckedUpdateWithoutParentInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -8259,7 +8491,9 @@ export type SchoolUncheckedUpdateManyWithoutParentInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
-  stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -8498,7 +8732,9 @@ export type SchoolSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   v1UserId?: boolean
   defaultBookingSettings?: boolean
   cancelPolicy?: boolean
-  stripeAccountId?: boolean
+  stripePublishableKey?: boolean
+  stripeSecretKey?: boolean
+  stripeWebhookSecret?: boolean
   parentId?: boolean
   parentRelationshipType?: boolean
   leadStage?: boolean
@@ -8568,7 +8804,9 @@ export type SchoolSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   v1UserId?: boolean
   defaultBookingSettings?: boolean
   cancelPolicy?: boolean
-  stripeAccountId?: boolean
+  stripePublishableKey?: boolean
+  stripeSecretKey?: boolean
+  stripeWebhookSecret?: boolean
   parentId?: boolean
   parentRelationshipType?: boolean
   leadStage?: boolean
@@ -8618,7 +8856,9 @@ export type SchoolSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   v1UserId?: boolean
   defaultBookingSettings?: boolean
   cancelPolicy?: boolean
-  stripeAccountId?: boolean
+  stripePublishableKey?: boolean
+  stripeSecretKey?: boolean
+  stripeWebhookSecret?: boolean
   parentId?: boolean
   parentRelationshipType?: boolean
   leadStage?: boolean
@@ -8668,7 +8908,9 @@ export type SchoolSelectScalar = {
   v1UserId?: boolean
   defaultBookingSettings?: boolean
   cancelPolicy?: boolean
-  stripeAccountId?: boolean
+  stripePublishableKey?: boolean
+  stripeSecretKey?: boolean
+  stripeWebhookSecret?: boolean
   parentId?: boolean
   parentRelationshipType?: boolean
   leadStage?: boolean
@@ -8678,7 +8920,7 @@ export type SchoolSelectScalar = {
   updatedAt?: boolean
 }
 
-export type SchoolOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "status" | "source" | "affiliationId" | "country" | "city" | "address" | "postcode" | "lat" | "lng" | "phone" | "email" | "website" | "language" | "instagram" | "facebook" | "youtube" | "tiktok" | "description" | "tagline" | "logoUrl" | "coverUrl" | "photos" | "priceFrom" | "hasFreeTrialCls" | "facilities" | "foundedYear" | "totalStudents" | "googleRating" | "googleReviews" | "googlePlaceId" | "v1UserId" | "defaultBookingSettings" | "cancelPolicy" | "stripeAccountId" | "parentId" | "parentRelationshipType" | "leadStage" | "claimedById" | "claimedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["school"]>
+export type SchoolOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "status" | "source" | "affiliationId" | "country" | "city" | "address" | "postcode" | "lat" | "lng" | "phone" | "email" | "website" | "language" | "instagram" | "facebook" | "youtube" | "tiktok" | "description" | "tagline" | "logoUrl" | "coverUrl" | "photos" | "priceFrom" | "hasFreeTrialCls" | "facilities" | "foundedYear" | "totalStudents" | "googleRating" | "googleReviews" | "googlePlaceId" | "v1UserId" | "defaultBookingSettings" | "cancelPolicy" | "stripePublishableKey" | "stripeSecretKey" | "stripeWebhookSecret" | "parentId" | "parentRelationshipType" | "leadStage" | "claimedById" | "claimedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["school"]>
 export type SchoolInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   affiliation?: boolean | Prisma.School$affiliationArgs<ExtArgs>
   parent?: boolean | Prisma.School$parentArgs<ExtArgs>
@@ -8778,7 +9020,9 @@ export type $SchoolPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     v1UserId: number | null
     defaultBookingSettings: runtime.JsonValue
     cancelPolicy: string
-    stripeAccountId: string | null
+    stripePublishableKey: string | null
+    stripeSecretKey: string | null
+    stripeWebhookSecret: string | null
     parentId: string | null
     parentRelationshipType: $Enums.SchoolRelationshipType | null
     leadStage: $Enums.LeadStage | null
@@ -9267,7 +9511,9 @@ export interface SchoolFieldRefs {
   readonly v1UserId: Prisma.FieldRef<"School", 'Int'>
   readonly defaultBookingSettings: Prisma.FieldRef<"School", 'Json'>
   readonly cancelPolicy: Prisma.FieldRef<"School", 'String'>
-  readonly stripeAccountId: Prisma.FieldRef<"School", 'String'>
+  readonly stripePublishableKey: Prisma.FieldRef<"School", 'String'>
+  readonly stripeSecretKey: Prisma.FieldRef<"School", 'String'>
+  readonly stripeWebhookSecret: Prisma.FieldRef<"School", 'String'>
   readonly parentId: Prisma.FieldRef<"School", 'String'>
   readonly parentRelationshipType: Prisma.FieldRef<"School", 'SchoolRelationshipType'>
   readonly leadStage: Prisma.FieldRef<"School", 'LeadStage'>
