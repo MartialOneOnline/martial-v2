@@ -68,7 +68,7 @@ export default function GrowthClient() {
     <div className="min-h-screen">
       <div className="bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-3">
-          <Link href="/admin/reports" className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors">
+          <Link href="/admin/reports" prefetch={false} className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors">
             <ArrowLeft className="w-3.5 h-3.5" /> Overview
           </Link>
           <div className="h-4 w-px bg-gray-200" />

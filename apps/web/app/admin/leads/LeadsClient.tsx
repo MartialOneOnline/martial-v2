@@ -90,10 +90,12 @@ export default function LeadsClient() {
             <RefreshCw className="w-3.5 h-3.5" /> Refresh
           </button>
           <Link href="/admin/leads/pipeline"
+            prefetch={false}
             className="flex items-center gap-1.5 h-9 px-3 rounded-xl border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">
             Pipeline view →
           </Link>
           <Link href="/admin/schools"
+            prefetch={false}
             className="flex items-center gap-2 h-9 px-4 rounded-xl text-white text-xs font-semibold hover:opacity-90 transition-opacity"
             style={{ background: '#0870E2' }}>
             <Mail className="w-3.5 h-3.5" /> New invite
@@ -151,7 +153,7 @@ export default function LeadsClient() {
             <div className="flex flex-col items-center justify-center py-16">
               <Mail className="w-10 h-10 text-gray-200 mb-3" />
               <p className="text-sm text-gray-400">No invitations found</p>
-              <Link href="/admin/schools" className="text-xs text-[#0870E2] font-semibold hover:underline mt-1">
+              <Link href="/admin/schools" prefetch={false} className="text-xs text-[#0870E2] font-semibold hover:underline mt-1">
                 Create one →
               </Link>
             </div>

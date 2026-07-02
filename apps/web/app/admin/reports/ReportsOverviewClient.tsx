@@ -109,6 +109,7 @@ export default function ReportsOverviewClient() {
             <RefreshCw className="w-3.5 h-3.5" /> Refresh
           </button>
           <Link href="/admin/reports/growth"
+            prefetch={false}
             className="flex items-center gap-1.5 h-9 px-3 rounded-xl border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">
             <TrendingUp className="w-3.5 h-3.5" /> Growth →
           </Link>
