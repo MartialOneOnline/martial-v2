@@ -56,6 +56,7 @@ function NavItem({ item }: { item: typeof NAV[number] }) {
     return (
       <Link
         href={item.href!}
+        prefetch={false}
         className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
           active
             ? 'bg-[#0870E2]/10 text-[#0870E2] font-semibold'
@@ -95,6 +96,7 @@ function NavItem({ item }: { item: typeof NAV[number] }) {
               <Link
                 key={child.href}
                 href={child.href}
+                prefetch={false}
                 className={`block px-2 py-1.5 rounded-md text-xs transition-colors ${
                   active
                     ? 'text-[#0870E2] font-semibold'
@@ -119,7 +121,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Logo */}
         <div className="px-4 py-5 border-b border-gray-100">
-          <Link href="/admin" className="flex items-center gap-2.5">
+          <Link href="/admin" prefetch={false} className="flex items-center gap-2.5">
             <Image src="/logo.svg" alt="Martial" width={30} height={30} />
             <div>
               <p className="text-sm font-bold text-[#101828] leading-none">Martial</p>
@@ -144,6 +146,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="px-3 py-4 border-t border-gray-100 space-y-0.5">
           <Link
             href="/dashboard"
+            prefetch={false}
             className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors"
           >
             <GraduationCap className="w-3.5 h-3.5" />
@@ -151,6 +154,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </Link>
           <Link
             href="/api/auth/signout"
+            prefetch={false}
             className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
           >
             <LogOut className="w-3.5 h-3.5" />
