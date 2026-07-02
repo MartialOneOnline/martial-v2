@@ -10,6 +10,7 @@ import {
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
 } from 'recharts'
+import { adminFetch } from '@/lib/api/adminFetch'
 
 const AdminMap = dynamic(() => import('./AdminMap'), { ssr: false })
 
@@ -40,9 +41,9 @@ export default function AdminDashboardClient() {
 
   const load = () => {
     setLoading(true)
-    fetch('/api/admin/stats')
-      .then(r => r.json())
-      .then(data => { setStats(data); setLoading(false) })
+    adminFetch('/api/admin/stats')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data) setStats(data); setLoading(false) })
       .catch(() => setLoading(false))
   }
 

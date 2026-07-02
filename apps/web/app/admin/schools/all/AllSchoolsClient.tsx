@@ -6,6 +6,7 @@ import {
   Building2, Search, MapPin, ChevronLeft, ChevronRight,
   ExternalLink, RefreshCw, Filter, Users, Plus, X, Loader2,
 } from 'lucide-react'
+import { adminFetch } from '@/lib/api/adminFetch'
 
 type School = {
   id: string
@@ -228,13 +229,13 @@ export default function AllSchoolsClient() {
   const load = useCallback(() => {
     setLoading(true)
     const params = new URLSearchParams({ search, status, country, page: String(page) })
-    fetch(`/api/admin/schools/all?${params}`)
-      .then(r => r.json())
+    adminFetch(`/api/admin/schools/all?${params}`)
+      .then(r => r.ok ? r.json() : null)
       .then(d => {
-        setSchools(d.schools ?? [])
-        setTotal(d.total ?? 0)
-        setPages(d.pages ?? 1)
-        setCountries(d.countries ?? [])
+        setSchools(d?.schools ?? [])
+        setTotal(d?.total ?? 0)
+        setPages(d?.pages ?? 1)
+        setCountries(d?.countries ?? [])
         setLoading(false)
       })
       .catch(() => setLoading(false))

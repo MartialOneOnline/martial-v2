@@ -10,6 +10,7 @@ import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts'
+import { adminFetch } from '@/lib/api/adminFetch'
 
 interface ReportData {
   overview: {
@@ -47,9 +48,9 @@ export default function ReportsOverviewClient() {
 
   const load = () => {
     setLoading(true)
-    fetch('/api/admin/reports')
-      .then(r => r.json())
-      .then(d => { setData(d); setLoading(false) })
+    adminFetch('/api/admin/reports')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setData(d); setLoading(false) })
       .catch(() => setLoading(false))
   }
 

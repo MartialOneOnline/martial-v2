@@ -7,6 +7,7 @@ import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip,
   ResponsiveContainer, CartesianGrid, Legend,
 } from 'recharts'
+import { adminFetch } from '@/lib/api/adminFetch'
 
 interface ReportData {
   overview: {
@@ -37,9 +38,9 @@ export default function GrowthClient() {
 
   const load = () => {
     setLoading(true)
-    fetch('/api/admin/reports')
-      .then(r => r.json())
-      .then(d => { setData(d); setLoading(false) })
+    adminFetch('/api/admin/reports')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setData(d); setLoading(false) })
       .catch(() => setLoading(false))
   }
 

@@ -7,6 +7,7 @@ import {
   CheckCircle2, XCircle, Eye, ChevronLeft, ChevronRight,
   Globe, MapPin,
 } from 'lucide-react'
+import { adminFetch } from '@/lib/api/adminFetch'
 
 type Invitation = {
   id: string
@@ -51,12 +52,12 @@ export default function LeadsClient() {
   const load = useCallback(() => {
     setLoading(true)
     const params = new URLSearchParams({ search, status, page: String(page) })
-    fetch(`/api/admin/invitations?${params}`)
-      .then(r => r.json())
+    adminFetch(`/api/admin/invitations?${params}`)
+      .then(r => r.ok ? r.json() : null)
       .then(d => {
-        setInvitations(d.invitations ?? [])
-        setTotal(d.total ?? 0)
-        setPages(d.pages ?? 1)
+        setInvitations(d?.invitations ?? [])
+        setTotal(d?.total ?? 0)
+        setPages(d?.pages ?? 1)
         setLoading(false)
       })
       .catch(() => setLoading(false))

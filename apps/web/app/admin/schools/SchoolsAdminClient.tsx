@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { X, Plus, Upload, Search, CheckCircle2, Clock, Mail, XCircle, Building2, ChevronDown, MoreHorizontal, Send, Camera, Globe, Link } from 'lucide-react'
 import * as xlsx from 'xlsx'
+import { adminFetch } from '@/lib/api/adminFetch'
 
 const DISCIPLINES = [
   { slug: 'bjj', label: 'BJJ' },
@@ -570,9 +571,11 @@ export default function SchoolsAdminClient() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const res = await fetch('/api/admin/invitations')
-    const data = await res.json()
-    setInvitations(data)
+    const res = await adminFetch('/api/admin/invitations')
+    if (res.ok) {
+      const data = await res.json()
+      setInvitations(data)
+    }
     setLoading(false)
   }, [])
 

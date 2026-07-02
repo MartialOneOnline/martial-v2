@@ -5,6 +5,7 @@ import {
   Users, Search, ChevronLeft, ChevronRight,
   RefreshCw, Building2, GraduationCap,
 } from 'lucide-react'
+import { adminFetch } from '@/lib/api/adminFetch'
 
 type User = {
   id: string
@@ -53,12 +54,12 @@ export default function AllUsersClient() {
   const load = useCallback(() => {
     setLoading(true)
     const params = new URLSearchParams({ search, role, page: String(page) })
-    fetch(`/api/admin/users?${params}`)
-      .then(r => r.json())
+    adminFetch(`/api/admin/users?${params}`)
+      .then(r => r.ok ? r.json() : null)
       .then(d => {
-        setUsers(d.users ?? [])
-        setTotal(d.total ?? 0)
-        setPages(d.pages ?? 1)
+        setUsers(d?.users ?? [])
+        setTotal(d?.total ?? 0)
+        setPages(d?.pages ?? 1)
         setLoading(false)
       })
       .catch(() => setLoading(false))

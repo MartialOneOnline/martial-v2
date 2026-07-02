@@ -6,6 +6,7 @@ import {
   Building2, CheckCircle2, XCircle, Clock, MapPin, Mail, Phone,
   Globe, ExternalLink, RefreshCw, AlertTriangle, AtSign,
 } from 'lucide-react'
+import { adminFetch } from '@/lib/api/adminFetch'
 
 type School = {
   id: string
@@ -38,9 +39,9 @@ export default function VerifyQueueClient() {
 
   const load = () => {
     setLoading(true)
-    fetch('/api/admin/schools/verify')
-      .then(r => r.json())
-      .then(d => { setSchools(d.schools ?? []); setLoading(false) })
+    adminFetch('/api/admin/schools/verify')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { setSchools(d?.schools ?? []); setLoading(false) })
       .catch(() => setLoading(false))
   }
 

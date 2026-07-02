@@ -6,6 +6,7 @@ import {
   Clock, Send, Eye, CheckCircle2, XCircle, RefreshCw,
   MapPin, Mail, ArrowLeft,
 } from 'lucide-react'
+import { adminFetch } from '@/lib/api/adminFetch'
 
 type Invitation = {
   id: string
@@ -38,9 +39,9 @@ export default function PipelineClient() {
 
   const load = () => {
     setLoading(true)
-    fetch('/api/admin/invitations?limit=500&page=1')
-      .then(r => r.json())
-      .then(d => { setInvitations(d.invitations ?? []); setLoading(false) })
+    adminFetch('/api/admin/invitations?limit=500&page=1')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { setInvitations(d?.invitations ?? []); setLoading(false) })
       .catch(() => setLoading(false))
   }
 
