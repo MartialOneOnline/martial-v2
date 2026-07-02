@@ -6,10 +6,20 @@
  * - /dashboard/**      → requires session (role check in layout server component)
  * - /admin/**          → requires session (role check in layout server component)
  * - /my/**             → requires session (any role)
+ * - /api/admin/**, /api/dashboard/**, /api/my/** → requires session (role check in each route handler)
  * - All other routes   → pass through
  *
  * Middleware only checks session cookie. Role/school authorisation is enforced
  * again inside page components and API routes — never rely solely on middleware.
+ *
+ * Critically, this is also where the Supabase session gets refreshed and the
+ * refreshed cookies get persisted back to the browser. API routes run their own
+ * getUser()/guardSuperadmin() check too, but they build their own response object
+ * and don't carry over any cookies refreshed during that check — so if refresh
+ * only ever happened inside an API route, the rotated refresh token would never
+ * reach the browser, silently breaking the session. Routing /api/admin, /api/dashboard
+ * and /api/my through here first means the token is already fresh by the time
+ * those routes run their own check.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -26,6 +36,9 @@ export async function proxy(request: NextRequest) {
   const isProtected = pathname.startsWith('/dashboard')
     || pathname.startsWith('/admin')
     || pathname.startsWith('/my')
+    || pathname.startsWith('/api/admin')
+    || pathname.startsWith('/api/dashboard')
+    || pathname.startsWith('/api/my')
 
   if (!isProtected) {
     return NextResponse.next({ request })
@@ -53,6 +66,12 @@ export async function proxy(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
+    // API routes expect JSON — redirecting to the login page here would hand
+    // the client HTML, which fails res.json() parsing and silently surfaces
+    // as empty/blank data instead of a clear auth error.
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('redirect', pathname)
     return NextResponse.redirect(loginUrl)

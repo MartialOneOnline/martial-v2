@@ -5,10 +5,10 @@ import { requireSchoolAccess } from '@/lib/auth/contexts'
 import { createNotification } from '@/lib/notifications/create'
 import { getResend, FROM } from '@/lib/email/resend'
 
-// POST /api/dashboard/users/[id]/message
+// POST /api/dashboard/users/[userId]/message
 // Send an in-app notification + email to a school member from the admin.
-export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id: schoolMemberId } = await params
+export async function POST(req: NextRequest, { params }: { params: Promise<{ userId: string }> }) {
+  const { userId: schoolMemberId } = await params
 
   const admin = await getAuthUser()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
