@@ -1251,6 +1251,7 @@ enum NotificationType {
   CLASS_CANCELLED
   GRADING_COMPLETED
   STUDENT_INACTIVE
+  MESSAGE
 }
 
 model Notification {

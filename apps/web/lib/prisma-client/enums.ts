@@ -232,7 +232,8 @@ export const NotificationType = {
   CLASS_FULL: 'CLASS_FULL',
   CLASS_CANCELLED: 'CLASS_CANCELLED',
   GRADING_COMPLETED: 'GRADING_COMPLETED',
-  STUDENT_INACTIVE: 'STUDENT_INACTIVE'
+  STUDENT_INACTIVE: 'STUDENT_INACTIVE',
+  MESSAGE: 'MESSAGE'
 } as const
 
 export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]

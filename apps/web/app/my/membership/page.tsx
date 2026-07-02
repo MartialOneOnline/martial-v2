@@ -145,6 +145,34 @@ function PlanTypeBadge({ planType, t }: { planType: string; t: Translations }) {
 
 // ── Confirm action modal ───────────────────────────────────────────────────────
 
+function ManageBillingButton({ membershipId }: { membershipId: string }) {
+  const [loading, setLoading] = useState(false)
+  async function open() {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/my/stripe-portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ membershipId }),
+      })
+      if (res.ok) {
+        const { url } = await res.json()
+        if (url) window.location.href = url
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+  return (
+    <button onClick={open} disabled={loading}
+      style={{ fontSize: 11, fontWeight: 600, color: '#635BFF', background: 'transparent',
+        border: '1px solid #C4B5FD', borderRadius: 999, padding: '3px 10px',
+        cursor: 'pointer', opacity: loading ? 0.6 : 1 }}>
+      {loading ? 'Loading…' : 'Manage billing →'}
+    </button>
+  )
+}
+
 function ConfirmModal({
   action, membershipName, onConfirm, onClose, loading, t,
 }: {
@@ -316,9 +344,9 @@ function ActiveMembershipCard({
           </div>
         )}
 
-        {/* Stripe-managed badge */}
+        {/* Stripe-managed badge + portal button */}
         {m.stripeSubId && m.status === 'ACTIVE' && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 11, color: '#635BFF', fontWeight: 600,
               background: '#F0F0FF', borderRadius: 999, padding: '3px 10px', border: '1px solid #C4B5FD' }}>
               💳 Auto-renews via card
@@ -328,6 +356,7 @@ function ActiveMembershipCard({
                 · Cancels at period end
               </span>
             )}
+            <ManageBillingButton membershipId={m.id} />
           </div>
         )}
 

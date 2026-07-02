@@ -245,12 +245,11 @@ function ActionsMenu({
 
           <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
 
-          {/* TODO(send-message): wire real email/notification API, then restore
           {menuItem(
             <MessageSquare size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
             'Enviar mensaje',
             () => { closeAll(); onSendMsg(student) },
-          )} */}
+          )}
 
           {/* QR Code */}
           {menuItem(
@@ -372,12 +371,11 @@ function ActionsMenu({
             () => { closeAll(); onMarkPaid(student) },
           )}
 
-          {/* TODO(invoice): build invoice generation (PDF + Stripe), then restore
           {menuItem(
             <Receipt size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
             'Invoice',
             () => { closeAll(); showToast('Invoice — Coming soon', 'info') },
-          )} */}
+          )}
 
           {/* TODO(waiver): build waiver document model + send flow, then restore
           {menuItem(
@@ -546,10 +544,17 @@ function SendMessageModal({ student, onClose, onSent }: {
   const send = async () => {
     if (!message.trim()) return
     setSending(true)
-    await new Promise(r => setTimeout(r, 600)) // stub
-    setSending(false)
-    onSent()
-    onClose()
+    try {
+      await fetch(`/api/dashboard/users/${student.id}/message`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: message.trim() }),
+      })
+      onSent()
+      onClose()
+    } finally {
+      setSending(false)
+    }
   }
 
   return (

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getStripe } from '@/lib/stripe'
 import { MembershipStatus } from '@/lib/prisma-client/client'
+import { sendMembershipReceiptEmail } from '@/lib/email/sendEmails'
 
 // POST /api/webhooks/stripe
 // Each school registers this URL in their Stripe dashboard.
@@ -72,6 +73,7 @@ export async function POST(req: NextRequest) {
 
       if (session.payment_status !== 'paid') break
 
+      let activatedMembershipId: string | null = null
       await prisma.$transaction(async (tx) => {
         const membership = await tx.membership.findUnique({
           where: { id: membershipId },
@@ -97,7 +99,36 @@ export async function POST(req: NextRequest) {
           where: { userId: membership.userId, schoolId: membership.schoolId },
           data:  { status: 'ACTIVE' },
         })
+        activatedMembershipId = membershipId
       })
+
+      // Send receipt email (fire-and-forget)
+      if (activatedMembershipId) {
+        prisma.membership.findUnique({
+          where: { id: activatedMembershipId },
+          select: {
+            planName: true, price: true, currency: true, startDate: true, endDate: true,
+            user:   { select: { email: true, name: true } },
+            school: { select: { name: true, city: true, language: true } },
+          },
+        }).then(m => {
+          if (!m?.user?.email) return
+          sendMembershipReceiptEmail({
+            to:            m.user.email,
+            studentName:   m.user.name,
+            schoolName:    m.school.name,
+            schoolCity:    m.school.city,
+            planName:      m.planName,
+            amount:        Number(m.price),
+            currency:      m.currency,
+            paymentMethod: 'STRIPE',
+            startDate:     m.startDate,
+            endDate:       m.endDate,
+            membershipId:  activatedMembershipId!,
+            lang:          m.school.language,
+          })
+        }).catch(err => console.error('[stripe webhook] receipt email failed:', err))
+      }
       break
     }
 
