@@ -574,7 +574,7 @@ export default function SchoolsAdminClient() {
     const res = await adminFetch('/api/admin/invitations')
     if (res.ok) {
       const data = await res.json()
-      setInvitations(data)
+      setInvitations(data.invitations ?? [])
     }
     setLoading(false)
   }, [])
