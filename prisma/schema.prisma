@@ -724,8 +724,10 @@ model Membership {
   // Usage tracking — computed from bookings count, but cached here for perf
   classesUsed Int @default(0)
 
-  stripeSubId String?
-  notes       String?
+  stripeSubId        String?
+  stripeCustomerId   String? // Stripe Customer ID for subscription management
+  stripeInvoiceId    String? // latest invoice ID for payment tracking
+  notes              String?
 
   // Renewal chain — points to the membership this one renewed/replaced
   renewedFromId String?

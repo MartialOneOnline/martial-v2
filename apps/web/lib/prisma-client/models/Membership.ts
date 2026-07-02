@@ -50,6 +50,8 @@ export type MembershipMinAggregateOutputType = {
   endDate: Date | null
   classesUsed: number | null
   stripeSubId: string | null
+  stripeCustomerId: string | null
+  stripeInvoiceId: string | null
   notes: string | null
   renewedFromId: string | null
   cancelledAt: Date | null
@@ -71,6 +73,8 @@ export type MembershipMaxAggregateOutputType = {
   endDate: Date | null
   classesUsed: number | null
   stripeSubId: string | null
+  stripeCustomerId: string | null
+  stripeInvoiceId: string | null
   notes: string | null
   renewedFromId: string | null
   cancelledAt: Date | null
@@ -92,6 +96,8 @@ export type MembershipCountAggregateOutputType = {
   endDate: number
   classesUsed: number
   stripeSubId: number
+  stripeCustomerId: number
+  stripeInvoiceId: number
   notes: number
   renewedFromId: number
   cancelledAt: number
@@ -125,6 +131,8 @@ export type MembershipMinAggregateInputType = {
   endDate?: true
   classesUsed?: true
   stripeSubId?: true
+  stripeCustomerId?: true
+  stripeInvoiceId?: true
   notes?: true
   renewedFromId?: true
   cancelledAt?: true
@@ -146,6 +154,8 @@ export type MembershipMaxAggregateInputType = {
   endDate?: true
   classesUsed?: true
   stripeSubId?: true
+  stripeCustomerId?: true
+  stripeInvoiceId?: true
   notes?: true
   renewedFromId?: true
   cancelledAt?: true
@@ -167,6 +177,8 @@ export type MembershipCountAggregateInputType = {
   endDate?: true
   classesUsed?: true
   stripeSubId?: true
+  stripeCustomerId?: true
+  stripeInvoiceId?: true
   notes?: true
   renewedFromId?: true
   cancelledAt?: true
@@ -275,6 +287,8 @@ export type MembershipGroupByOutputType = {
   endDate: Date | null
   classesUsed: number
   stripeSubId: string | null
+  stripeCustomerId: string | null
+  stripeInvoiceId: string | null
   notes: string | null
   renewedFromId: string | null
   cancelledAt: Date | null
@@ -319,6 +333,8 @@ export type MembershipWhereInput = {
   endDate?: Prisma.DateTimeNullableFilter<"Membership"> | Date | string | null
   classesUsed?: Prisma.IntFilter<"Membership"> | number
   stripeSubId?: Prisma.StringNullableFilter<"Membership"> | string | null
+  stripeCustomerId?: Prisma.StringNullableFilter<"Membership"> | string | null
+  stripeInvoiceId?: Prisma.StringNullableFilter<"Membership"> | string | null
   notes?: Prisma.StringNullableFilter<"Membership"> | string | null
   renewedFromId?: Prisma.StringNullableFilter<"Membership"> | string | null
   cancelledAt?: Prisma.DateTimeNullableFilter<"Membership"> | Date | string | null
@@ -348,6 +364,8 @@ export type MembershipOrderByWithRelationInput = {
   endDate?: Prisma.SortOrderInput | Prisma.SortOrder
   classesUsed?: Prisma.SortOrder
   stripeSubId?: Prisma.SortOrderInput | Prisma.SortOrder
+  stripeCustomerId?: Prisma.SortOrderInput | Prisma.SortOrder
+  stripeInvoiceId?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   renewedFromId?: Prisma.SortOrderInput | Prisma.SortOrder
   cancelledAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -380,6 +398,8 @@ export type MembershipWhereUniqueInput = Prisma.AtLeast<{
   endDate?: Prisma.DateTimeNullableFilter<"Membership"> | Date | string | null
   classesUsed?: Prisma.IntFilter<"Membership"> | number
   stripeSubId?: Prisma.StringNullableFilter<"Membership"> | string | null
+  stripeCustomerId?: Prisma.StringNullableFilter<"Membership"> | string | null
+  stripeInvoiceId?: Prisma.StringNullableFilter<"Membership"> | string | null
   notes?: Prisma.StringNullableFilter<"Membership"> | string | null
   renewedFromId?: Prisma.StringNullableFilter<"Membership"> | string | null
   cancelledAt?: Prisma.DateTimeNullableFilter<"Membership"> | Date | string | null
@@ -409,6 +429,8 @@ export type MembershipOrderByWithAggregationInput = {
   endDate?: Prisma.SortOrderInput | Prisma.SortOrder
   classesUsed?: Prisma.SortOrder
   stripeSubId?: Prisma.SortOrderInput | Prisma.SortOrder
+  stripeCustomerId?: Prisma.SortOrderInput | Prisma.SortOrder
+  stripeInvoiceId?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   renewedFromId?: Prisma.SortOrderInput | Prisma.SortOrder
   cancelledAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -438,6 +460,8 @@ export type MembershipScalarWhereWithAggregatesInput = {
   endDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Membership"> | Date | string | null
   classesUsed?: Prisma.IntWithAggregatesFilter<"Membership"> | number
   stripeSubId?: Prisma.StringNullableWithAggregatesFilter<"Membership"> | string | null
+  stripeCustomerId?: Prisma.StringNullableWithAggregatesFilter<"Membership"> | string | null
+  stripeInvoiceId?: Prisma.StringNullableWithAggregatesFilter<"Membership"> | string | null
   notes?: Prisma.StringNullableWithAggregatesFilter<"Membership"> | string | null
   renewedFromId?: Prisma.StringNullableWithAggregatesFilter<"Membership"> | string | null
   cancelledAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Membership"> | Date | string | null
@@ -456,6 +480,8 @@ export type MembershipCreateInput = {
   endDate?: Date | string | null
   classesUsed?: number
   stripeSubId?: string | null
+  stripeCustomerId?: string | null
+  stripeInvoiceId?: string | null
   notes?: string | null
   cancelledAt?: Date | string | null
   createdAt?: Date | string
@@ -484,6 +510,8 @@ export type MembershipUncheckedCreateInput = {
   endDate?: Date | string | null
   classesUsed?: number
   stripeSubId?: string | null
+  stripeCustomerId?: string | null
+  stripeInvoiceId?: string | null
   notes?: string | null
   renewedFromId?: string | null
   cancelledAt?: Date | string | null
@@ -506,6 +534,8 @@ export type MembershipUpdateInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   classesUsed?: Prisma.IntFieldUpdateOperationsInput | number
   stripeSubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -534,6 +564,8 @@ export type MembershipUncheckedUpdateInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   classesUsed?: Prisma.IntFieldUpdateOperationsInput | number
   stripeSubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   renewedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -559,6 +591,8 @@ export type MembershipCreateManyInput = {
   endDate?: Date | string | null
   classesUsed?: number
   stripeSubId?: string | null
+  stripeCustomerId?: string | null
+  stripeInvoiceId?: string | null
   notes?: string | null
   renewedFromId?: string | null
   cancelledAt?: Date | string | null
@@ -577,6 +611,8 @@ export type MembershipUpdateManyMutationInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   classesUsed?: Prisma.IntFieldUpdateOperationsInput | number
   stripeSubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -597,6 +633,8 @@ export type MembershipUncheckedUpdateManyInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   classesUsed?: Prisma.IntFieldUpdateOperationsInput | number
   stripeSubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   renewedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -638,6 +676,8 @@ export type MembershipCountOrderByAggregateInput = {
   endDate?: Prisma.SortOrder
   classesUsed?: Prisma.SortOrder
   stripeSubId?: Prisma.SortOrder
+  stripeCustomerId?: Prisma.SortOrder
+  stripeInvoiceId?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   renewedFromId?: Prisma.SortOrder
   cancelledAt?: Prisma.SortOrder
@@ -664,6 +704,8 @@ export type MembershipMaxOrderByAggregateInput = {
   endDate?: Prisma.SortOrder
   classesUsed?: Prisma.SortOrder
   stripeSubId?: Prisma.SortOrder
+  stripeCustomerId?: Prisma.SortOrder
+  stripeInvoiceId?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   renewedFromId?: Prisma.SortOrder
   cancelledAt?: Prisma.SortOrder
@@ -685,6 +727,8 @@ export type MembershipMinOrderByAggregateInput = {
   endDate?: Prisma.SortOrder
   classesUsed?: Prisma.SortOrder
   stripeSubId?: Prisma.SortOrder
+  stripeCustomerId?: Prisma.SortOrder
+  stripeInvoiceId?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   renewedFromId?: Prisma.SortOrder
   cancelledAt?: Prisma.SortOrder
@@ -942,6 +986,8 @@ export type MembershipCreateWithoutContentAccessInput = {
   endDate?: Date | string | null
   classesUsed?: number
   stripeSubId?: string | null
+  stripeCustomerId?: string | null
+  stripeInvoiceId?: string | null
   notes?: string | null
   cancelledAt?: Date | string | null
   createdAt?: Date | string
@@ -969,6 +1015,8 @@ export type MembershipUncheckedCreateWithoutContentAccessInput = {
   endDate?: Date | string | null
   classesUsed?: number
   stripeSubId?: string | null
+  stripeCustomerId?: string | null
+  stripeInvoiceId?: string | null
   notes?: string | null
   renewedFromId?: string | null
   cancelledAt?: Date | string | null
@@ -1006,6 +1054,8 @@ export type MembershipUpdateWithoutContentAccessInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   classesUsed?: Prisma.IntFieldUpdateOperationsInput | number
   stripeSubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1033,6 +1083,8 @@ export type MembershipUncheckedUpdateWithoutContentAccessInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   classesUsed?: Prisma.IntFieldUpdateOperationsInput | number
   stripeSubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   renewedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1054,6 +1106,8 @@ export type MembershipCreateWithoutUserInput = {
   endDate?: Date | string | null
   classesUsed?: number
   stripeSubId?: string | null
+  stripeCustomerId?: string | null
+  stripeInvoiceId?: string | null
   notes?: string | null
   cancelledAt?: Date | string | null
   createdAt?: Date | string
@@ -1080,6 +1134,8 @@ export type MembershipUncheckedCreateWithoutUserInput = {
   endDate?: Date | string | null
   classesUsed?: number
   stripeSubId?: string | null
+  stripeCustomerId?: string | null
+  stripeInvoiceId?: string | null
   notes?: string | null
   renewedFromId?: string | null
   cancelledAt?: Date | string | null
@@ -1134,6 +1190,8 @@ export type MembershipScalarWhereInput = {
   endDate?: Prisma.DateTimeNullableFilter<"Membership"> | Date | string | null
   classesUsed?: Prisma.IntFilter<"Membership"> | number
   stripeSubId?: Prisma.StringNullableFilter<"Membership"> | string | null
+  stripeCustomerId?: Prisma.StringNullableFilter<"Membership"> | string | null
+  stripeInvoiceId?: Prisma.StringNullableFilter<"Membership"> | string | null
   notes?: Prisma.StringNullableFilter<"Membership"> | string | null
   renewedFromId?: Prisma.StringNullableFilter<"Membership"> | string | null
   cancelledAt?: Prisma.DateTimeNullableFilter<"Membership"> | Date | string | null
@@ -1152,6 +1210,8 @@ export type MembershipCreateWithoutSchoolInput = {
   endDate?: Date | string | null
   classesUsed?: number
   stripeSubId?: string | null
+  stripeCustomerId?: string | null
+  stripeInvoiceId?: string | null
   notes?: string | null
   cancelledAt?: Date | string | null
   createdAt?: Date | string
@@ -1178,6 +1238,8 @@ export type MembershipUncheckedCreateWithoutSchoolInput = {
   endDate?: Date | string | null
   classesUsed?: number
   stripeSubId?: string | null
+  stripeCustomerId?: string | null
+  stripeInvoiceId?: string | null
   notes?: string | null
   renewedFromId?: string | null
   cancelledAt?: Date | string | null
@@ -1226,6 +1288,8 @@ export type MembershipCreateWithoutPlanInput = {
   endDate?: Date | string | null
   classesUsed?: number
   stripeSubId?: string | null
+  stripeCustomerId?: string | null
+  stripeInvoiceId?: string | null
   notes?: string | null
   cancelledAt?: Date | string | null
   createdAt?: Date | string
@@ -1252,6 +1316,8 @@ export type MembershipUncheckedCreateWithoutPlanInput = {
   endDate?: Date | string | null
   classesUsed?: number
   stripeSubId?: string | null
+  stripeCustomerId?: string | null
+  stripeInvoiceId?: string | null
   notes?: string | null
   renewedFromId?: string | null
   cancelledAt?: Date | string | null
@@ -1300,6 +1366,8 @@ export type MembershipCreateWithoutBookingsInput = {
   endDate?: Date | string | null
   classesUsed?: number
   stripeSubId?: string | null
+  stripeCustomerId?: string | null
+  stripeInvoiceId?: string | null
   notes?: string | null
   cancelledAt?: Date | string | null
   createdAt?: Date | string
@@ -1327,6 +1395,8 @@ export type MembershipUncheckedCreateWithoutBookingsInput = {
   endDate?: Date | string | null
   classesUsed?: number
   stripeSubId?: string | null
+  stripeCustomerId?: string | null
+  stripeInvoiceId?: string | null
   notes?: string | null
   renewedFromId?: string | null
   cancelledAt?: Date | string | null
@@ -1364,6 +1434,8 @@ export type MembershipUpdateWithoutBookingsInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   classesUsed?: Prisma.IntFieldUpdateOperationsInput | number
   stripeSubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1391,6 +1463,8 @@ export type MembershipUncheckedUpdateWithoutBookingsInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   classesUsed?: Prisma.IntFieldUpdateOperationsInput | number
   stripeSubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   renewedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1412,6 +1486,8 @@ export type MembershipCreateWithoutRenewalsInput = {
   endDate?: Date | string | null
   classesUsed?: number
   stripeSubId?: string | null
+  stripeCustomerId?: string | null
+  stripeInvoiceId?: string | null
   notes?: string | null
   cancelledAt?: Date | string | null
   createdAt?: Date | string
@@ -1439,6 +1515,8 @@ export type MembershipUncheckedCreateWithoutRenewalsInput = {
   endDate?: Date | string | null
   classesUsed?: number
   stripeSubId?: string | null
+  stripeCustomerId?: string | null
+  stripeInvoiceId?: string | null
   notes?: string | null
   renewedFromId?: string | null
   cancelledAt?: Date | string | null
@@ -1465,6 +1543,8 @@ export type MembershipCreateWithoutRenewedFromInput = {
   endDate?: Date | string | null
   classesUsed?: number
   stripeSubId?: string | null
+  stripeCustomerId?: string | null
+  stripeInvoiceId?: string | null
   notes?: string | null
   cancelledAt?: Date | string | null
   createdAt?: Date | string
@@ -1492,6 +1572,8 @@ export type MembershipUncheckedCreateWithoutRenewedFromInput = {
   endDate?: Date | string | null
   classesUsed?: number
   stripeSubId?: string | null
+  stripeCustomerId?: string | null
+  stripeInvoiceId?: string | null
   notes?: string | null
   cancelledAt?: Date | string | null
   createdAt?: Date | string
@@ -1534,6 +1616,8 @@ export type MembershipUpdateWithoutRenewalsInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   classesUsed?: Prisma.IntFieldUpdateOperationsInput | number
   stripeSubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1561,6 +1645,8 @@ export type MembershipUncheckedUpdateWithoutRenewalsInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   classesUsed?: Prisma.IntFieldUpdateOperationsInput | number
   stripeSubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   renewedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1598,6 +1684,8 @@ export type MembershipCreateWithoutTransactionsInput = {
   endDate?: Date | string | null
   classesUsed?: number
   stripeSubId?: string | null
+  stripeCustomerId?: string | null
+  stripeInvoiceId?: string | null
   notes?: string | null
   cancelledAt?: Date | string | null
   createdAt?: Date | string
@@ -1625,6 +1713,8 @@ export type MembershipUncheckedCreateWithoutTransactionsInput = {
   endDate?: Date | string | null
   classesUsed?: number
   stripeSubId?: string | null
+  stripeCustomerId?: string | null
+  stripeInvoiceId?: string | null
   notes?: string | null
   renewedFromId?: string | null
   cancelledAt?: Date | string | null
@@ -1662,6 +1752,8 @@ export type MembershipUpdateWithoutTransactionsInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   classesUsed?: Prisma.IntFieldUpdateOperationsInput | number
   stripeSubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1689,6 +1781,8 @@ export type MembershipUncheckedUpdateWithoutTransactionsInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   classesUsed?: Prisma.IntFieldUpdateOperationsInput | number
   stripeSubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   renewedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1712,6 +1806,8 @@ export type MembershipCreateManyUserInput = {
   endDate?: Date | string | null
   classesUsed?: number
   stripeSubId?: string | null
+  stripeCustomerId?: string | null
+  stripeInvoiceId?: string | null
   notes?: string | null
   renewedFromId?: string | null
   cancelledAt?: Date | string | null
@@ -1730,6 +1826,8 @@ export type MembershipUpdateWithoutUserInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   classesUsed?: Prisma.IntFieldUpdateOperationsInput | number
   stripeSubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1756,6 +1854,8 @@ export type MembershipUncheckedUpdateWithoutUserInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   classesUsed?: Prisma.IntFieldUpdateOperationsInput | number
   stripeSubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   renewedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1780,6 +1880,8 @@ export type MembershipUncheckedUpdateManyWithoutUserInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   classesUsed?: Prisma.IntFieldUpdateOperationsInput | number
   stripeSubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   renewedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1800,6 +1902,8 @@ export type MembershipCreateManySchoolInput = {
   endDate?: Date | string | null
   classesUsed?: number
   stripeSubId?: string | null
+  stripeCustomerId?: string | null
+  stripeInvoiceId?: string | null
   notes?: string | null
   renewedFromId?: string | null
   cancelledAt?: Date | string | null
@@ -1818,6 +1922,8 @@ export type MembershipUpdateWithoutSchoolInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   classesUsed?: Prisma.IntFieldUpdateOperationsInput | number
   stripeSubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1844,6 +1950,8 @@ export type MembershipUncheckedUpdateWithoutSchoolInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   classesUsed?: Prisma.IntFieldUpdateOperationsInput | number
   stripeSubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   renewedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1868,6 +1976,8 @@ export type MembershipUncheckedUpdateManyWithoutSchoolInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   classesUsed?: Prisma.IntFieldUpdateOperationsInput | number
   stripeSubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   renewedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1888,6 +1998,8 @@ export type MembershipCreateManyPlanInput = {
   endDate?: Date | string | null
   classesUsed?: number
   stripeSubId?: string | null
+  stripeCustomerId?: string | null
+  stripeInvoiceId?: string | null
   notes?: string | null
   renewedFromId?: string | null
   cancelledAt?: Date | string | null
@@ -1906,6 +2018,8 @@ export type MembershipUpdateWithoutPlanInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   classesUsed?: Prisma.IntFieldUpdateOperationsInput | number
   stripeSubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1932,6 +2046,8 @@ export type MembershipUncheckedUpdateWithoutPlanInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   classesUsed?: Prisma.IntFieldUpdateOperationsInput | number
   stripeSubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   renewedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1956,6 +2072,8 @@ export type MembershipUncheckedUpdateManyWithoutPlanInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   classesUsed?: Prisma.IntFieldUpdateOperationsInput | number
   stripeSubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   renewedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1977,6 +2095,8 @@ export type MembershipCreateManyRenewedFromInput = {
   endDate?: Date | string | null
   classesUsed?: number
   stripeSubId?: string | null
+  stripeCustomerId?: string | null
+  stripeInvoiceId?: string | null
   notes?: string | null
   cancelledAt?: Date | string | null
   createdAt?: Date | string
@@ -1994,6 +2114,8 @@ export type MembershipUpdateWithoutRenewedFromInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   classesUsed?: Prisma.IntFieldUpdateOperationsInput | number
   stripeSubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2021,6 +2143,8 @@ export type MembershipUncheckedUpdateWithoutRenewedFromInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   classesUsed?: Prisma.IntFieldUpdateOperationsInput | number
   stripeSubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2045,6 +2169,8 @@ export type MembershipUncheckedUpdateManyWithoutRenewedFromInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   classesUsed?: Prisma.IntFieldUpdateOperationsInput | number
   stripeSubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2114,6 +2240,8 @@ export type MembershipSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   endDate?: boolean
   classesUsed?: boolean
   stripeSubId?: boolean
+  stripeCustomerId?: boolean
+  stripeInvoiceId?: boolean
   notes?: boolean
   renewedFromId?: boolean
   cancelledAt?: boolean
@@ -2144,6 +2272,8 @@ export type MembershipSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   endDate?: boolean
   classesUsed?: boolean
   stripeSubId?: boolean
+  stripeCustomerId?: boolean
+  stripeInvoiceId?: boolean
   notes?: boolean
   renewedFromId?: boolean
   cancelledAt?: boolean
@@ -2169,6 +2299,8 @@ export type MembershipSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   endDate?: boolean
   classesUsed?: boolean
   stripeSubId?: boolean
+  stripeCustomerId?: boolean
+  stripeInvoiceId?: boolean
   notes?: boolean
   renewedFromId?: boolean
   cancelledAt?: boolean
@@ -2194,6 +2326,8 @@ export type MembershipSelectScalar = {
   endDate?: boolean
   classesUsed?: boolean
   stripeSubId?: boolean
+  stripeCustomerId?: boolean
+  stripeInvoiceId?: boolean
   notes?: boolean
   renewedFromId?: boolean
   cancelledAt?: boolean
@@ -2201,7 +2335,7 @@ export type MembershipSelectScalar = {
   updatedAt?: boolean
 }
 
-export type MembershipOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "schoolId" | "planId" | "planName" | "price" | "currency" | "paymentMethod" | "status" | "startDate" | "endDate" | "classesUsed" | "stripeSubId" | "notes" | "renewedFromId" | "cancelledAt" | "createdAt" | "updatedAt", ExtArgs["result"]["membership"]>
+export type MembershipOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "schoolId" | "planId" | "planName" | "price" | "currency" | "paymentMethod" | "status" | "startDate" | "endDate" | "classesUsed" | "stripeSubId" | "stripeCustomerId" | "stripeInvoiceId" | "notes" | "renewedFromId" | "cancelledAt" | "createdAt" | "updatedAt", ExtArgs["result"]["membership"]>
 export type MembershipInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
@@ -2252,6 +2386,8 @@ export type $MembershipPayload<ExtArgs extends runtime.Types.Extensions.Internal
     endDate: Date | null
     classesUsed: number
     stripeSubId: string | null
+    stripeCustomerId: string | null
+    stripeInvoiceId: string | null
     notes: string | null
     renewedFromId: string | null
     cancelledAt: Date | null
@@ -2701,6 +2837,8 @@ export interface MembershipFieldRefs {
   readonly endDate: Prisma.FieldRef<"Membership", 'DateTime'>
   readonly classesUsed: Prisma.FieldRef<"Membership", 'Int'>
   readonly stripeSubId: Prisma.FieldRef<"Membership", 'String'>
+  readonly stripeCustomerId: Prisma.FieldRef<"Membership", 'String'>
+  readonly stripeInvoiceId: Prisma.FieldRef<"Membership", 'String'>
   readonly notes: Prisma.FieldRef<"Membership", 'String'>
   readonly renewedFromId: Prisma.FieldRef<"Membership", 'String'>
   readonly cancelledAt: Prisma.FieldRef<"Membership", 'DateTime'>

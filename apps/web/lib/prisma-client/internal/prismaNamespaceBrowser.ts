@@ -437,6 +437,8 @@ export const MembershipScalarFieldEnum = {
   endDate: 'endDate',
   classesUsed: 'classesUsed',
   stripeSubId: 'stripeSubId',
+  stripeCustomerId: 'stripeCustomerId',
+  stripeInvoiceId: 'stripeInvoiceId',
   notes: 'notes',
   renewedFromId: 'renewedFromId',
   cancelledAt: 'cancelledAt',
