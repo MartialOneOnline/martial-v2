@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
@@ -5,10 +6,43 @@ import { prisma } from '@/lib/db'
 import WeeklyTimetable from './WeeklyTimetable'
 import MembershipSection from './MembershipSection'
 import TrialBookingCTA from './TrialBookingCTA'
+import LeadForm from './LeadForm'
 import {
   MapPin, Star, Phone, Globe, Mail, ChevronLeft,
-  CheckCircle, MessageCircle, ExternalLink,
+  CheckCircle, MessageCircle, ExternalLink, UserPlus,
 } from 'lucide-react'
+
+const FALLBACK_OG = 'https://images.unsplash.com/photo-1555597673-b21d5c935865?w=1200&h=630&fit=crop&q=85'
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
+  const school = await prisma.school.findUnique({
+    where: { slug },
+    select: { name: true, tagline: true, description: true, city: true, country: true, coverUrl: true, logoUrl: true },
+  })
+  if (!school) return { title: 'School not found' }
+
+  const title = `${school.name}${school.city ? ` — ${school.city}` : ''}`
+  const description = school.tagline ?? school.description ?? `Join ${school.name} and start your martial arts journey.`
+  const image = school.coverUrl ?? FALLBACK_OG
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: [{ url: image, width: 1200, height: 630 }],
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [image],
+    },
+  }
+}
 
 function InstagramIcon({ className }: { className?: string }) {
   return (
@@ -281,6 +315,13 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
                   WhatsApp
                 </a>
               )}
+              <Link
+                href={`/join/${slug}`}
+                className="w-full h-12 rounded-xl border border-[#0870E2] text-[#0870E2] hover:bg-blue-50 font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
+              >
+                <UserPlus className="w-4 h-4" />
+                Join this school
+              </Link>
               <a
                 href={`mailto:${school.email}?subject=Enquiry — ${school.name}`}
                 className="w-full h-12 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
@@ -289,6 +330,9 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
                 Get in Touch
               </a>
             </div>
+
+            {/* Contact form */}
+            <LeadForm slug={slug} schoolName={school.name} disciplines={disciplines} />
 
             {/* Location */}
             <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">

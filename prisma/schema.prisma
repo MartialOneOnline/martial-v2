@@ -31,6 +31,12 @@ enum SchoolStatus {
   SUSPENDED
 }
 
+enum SchoolType {
+  SCHOOL   // Regular martial arts academy
+  CAMP     // Temporary event — elite instructor + iconic location
+  BUSINESS // Gym, studio, or marketplace business (future)
+}
+
 enum SchoolSource {
   VONSEL // Imported via Vonsel CSV
   MANUAL // Added by Superadmin
@@ -366,6 +372,7 @@ model School {
   slug   String       @unique
   status SchoolStatus @default(UNVERIFIED)
   source SchoolSource @default(SELF_REGISTERED)
+  type   SchoolType   @default(SCHOOL)
 
   // Affiliation (Roger Gracie, Checkmat, Alliance, etc.)
   affiliationId String?

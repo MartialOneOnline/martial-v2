@@ -884,9 +884,11 @@ function detectColumn(headers: string[], keys: string[]): number {
 function AddStudentModal({
   onClose,
   onCreated,
+  schoolSlug,
 }: {
   onClose: () => void
   onCreated: (students: Student[]) => void
+  schoolSlug?: string
 }) {
   const [tab, setTab] = useState<'invite' | 'create' | 'import'>('invite')
 
@@ -945,7 +947,7 @@ function AddStudentModal({
 
         {/* Tab content */}
         <div style={{ padding: 24 }}>
-          {tab === 'invite' && <InviteTab onClose={onClose} onCreated={onCreated} />}
+          {tab === 'invite' && <InviteTab onClose={onClose} onCreated={onCreated} schoolSlug={schoolSlug} />}
           {tab === 'create' && <CreateTab onClose={onClose} onCreated={onCreated} />}
           {tab === 'import' && <ImportTab onClose={onClose} onCreated={onCreated} />}
         </div>
@@ -962,7 +964,34 @@ const INVITE_LANGS = [
   { value: 'fr', label: 'Français', flag: '🇫🇷' },
 ]
 
-function InviteTab({ onClose, onCreated }: { onClose: () => void; onCreated: (s: Student[]) => void }) {
+function JoinLinkBanner({ slug }: { slug?: string }) {
+  const [copied, setCopied] = useState(false)
+  if (!slug) return null
+  const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/join/${slug}`
+  const copy = () => {
+    navigator.clipboard.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
+  }
+  return (
+    <div style={{ padding: '12px 14px', background: '#F0F9FF', borderRadius: 10, border: '1px solid #BFDBFE', marginBottom: 4 }}>
+      <p style={{ fontSize: 11, fontWeight: 700, color: '#1D4ED8', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        🔗 Enlace público de registro
+      </p>
+      <p style={{ fontSize: 11, color: '#374151', margin: '0 0 8px', lineHeight: 1.4 }}>
+        Comparte este enlace para que los interesados puedan solicitar unirse sin necesitar email previo.
+      </p>
+      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        <code style={{ flex: 1, fontSize: 11, color: '#1E40AF', background: '#EFF6FF', borderRadius: 6, padding: '5px 8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {url}
+        </code>
+        <button onClick={copy} style={{ flexShrink: 0, padding: '5px 12px', borderRadius: 6, border: '1px solid #93C5FD', background: copied ? '#22C55E' : '#fff', color: copied ? '#fff' : '#1D4ED8', fontSize: 11, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>
+          {copied ? '✓ Copiado' : 'Copiar'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function InviteTab({ onClose, onCreated, schoolSlug }: { onClose: () => void; onCreated: (s: Student[]) => void; schoolSlug?: string }) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [lang, setLang] = useState('es')
@@ -1011,10 +1040,11 @@ function InviteTab({ onClose, onCreated }: { onClose: () => void; onCreated: (s:
 
   return (
     <form onSubmit={handleInvite} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <JoinLinkBanner slug={schoolSlug} />
       <div style={{ padding: '14px 16px', background: '#F0F9FF', borderRadius: 10, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
         <Mail size={15} style={{ color: '#0071E3', flexShrink: 0, marginTop: 1 }} />
         <p style={{ fontSize: 13, color: '#374151', margin: 0, lineHeight: 1.5 }}>
-          El alumno recibirá un email con un enlace para crear su contraseña y acceder a la plataforma. Se añade como <strong>Pendiente</strong> hasta que complete el registro.
+          O invita directamente por email: el alumno recibirá un enlace para crear su contraseña y acceder a la plataforma.
         </p>
       </div>
 
@@ -1604,6 +1634,7 @@ export default function UsersClient({ students: initialStudents }: { students: S
   const { toasts, show: showToast, remove: removeToast } = useToast()
 
   const [students, setStudents]       = useState<Student[]>(initialStudents)
+  const [schoolSlug, setSchoolSlug]   = useState<string | undefined>()
   const [showAddModal, setShowAddModal] = useState(false)
   const [activeFilter, setActiveFilter] = useState<FilterType>('All')
   const [advFilters, setAdvFilters]     = useState<ActiveFilters>({ belts: [], statuses: [], roles: [] })
@@ -1613,6 +1644,12 @@ export default function UsersClient({ students: initialStudents }: { students: S
   const [msgStudent, setMsgStudent]       = useState<Student | null>(null)
   const [qrStudent, setQrStudent]         = useState<Student | null>(null)
   const [markPaidStudent, setMarkPaidStudent] = useState<Student | null>(null)
+
+  useEffect(() => {
+    fetch('/api/dashboard/school').then(r => r.json()).then(d => {
+      if (d.school?.slug) setSchoolSlug(d.school.slug)
+    }).catch(() => {})
+  }, [])
 
   const activeCount = students.filter(s => s.status === 'ACTIVE').length
   const STATS = [
@@ -1745,7 +1782,7 @@ export default function UsersClient({ students: initialStudents }: { students: S
       <ToastContainer toasts={toasts} onRemove={removeToast} />
 
       {showAddModal && (
-        <AddStudentModal onClose={() => setShowAddModal(false)} onCreated={handleCreated} />
+        <AddStudentModal onClose={() => setShowAddModal(false)} onCreated={handleCreated} schoolSlug={schoolSlug} />
       )}
       {editStudent && (
         <EditStudentModal
