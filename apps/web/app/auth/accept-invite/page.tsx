@@ -2,16 +2,13 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createBrowserClient } from '@supabase/ssr'
+import { createClient } from '@/lib/supabase/client'
 
 export default function AcceptInvitePage() {
   const router = useRouter()
 
   useEffect(() => {
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    )
+    const supabase = createClient()
 
     // onAuthStateChange fires after Supabase parses the hash token
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {

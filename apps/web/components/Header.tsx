@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, ChevronDown } from 'lucide-react'
 import { useLanguage, useT } from '../lib/i18n/LanguageContext'
 import type { Locale } from '../lib/i18n/translations'
-import { createBrowserClient } from '@supabase/ssr'
+import { createClient } from '../lib/supabase/client'
 
 // ── Flag icons ────────────────────────────────────────────────────────────────
 function FlagIcon({ lang }: { lang: string }) {
@@ -70,20 +70,14 @@ export default function Header({ onOpenLoginModal }: HeaderProps) {
   const t                           = useT()
 
   useEffect(() => {
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    )
+    const supabase = createClient()
     supabase.auth.getSession().then(({ data }) => {
       setIsLoggedIn(!!data.session)
     })
   }, [])
 
   const handleSignOut = async () => {
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    )
+    const supabase = createClient()
     await supabase.auth.signOut()
     window.location.href = '/'
   }

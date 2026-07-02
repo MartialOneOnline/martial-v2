@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { createBrowserClient } from '@supabase/ssr'
+import { createClient } from '../lib/supabase/client'
 import {
   LayoutDashboard, Users, Calendar, CreditCard, Award,
   BarChart2, Settings, Bell, HelpCircle, LogOut,
@@ -144,10 +144,7 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen }: Props) {
   }, [])
 
   const handleSignOut = async () => {
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    )
+    const supabase = createClient()
     await supabase.auth.signOut()
     window.location.href = '/'
   }

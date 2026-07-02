@@ -2,14 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createBrowserClient } from '@supabase/ssr'
-
-function getSupabase() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-  )
-}
+import { createClient as getSupabase } from '@/lib/supabase/client'
 
 const C = { primary: '#0071E3', navy: '#0E3A7A', bg: '#F4F6F9', border: '#E5E7EB', text: '#111827', muted: '#6B7280', green: '#16A34A', greenBg: '#DCFCE7' }
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { createBrowserClient } from '@supabase/ssr'
+import { createClient } from '@/lib/supabase/client'
 
 type InvitationData = {
   id: string
@@ -79,10 +79,7 @@ export default function ClaimPage() {
     }
 
     // Sign in with Supabase
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    )
+    const supabase = createClient()
 
     const { error: signInError } = await supabase.auth.signInWithPassword({
       email: data!.email,
