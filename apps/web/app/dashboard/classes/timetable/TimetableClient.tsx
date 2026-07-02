@@ -394,7 +394,7 @@ function ClassPopup({ slot, date, onClose, onDeleted }: {
             <div style={{ height: '100%', borderRadius: 99, background: barColor, width: pct + '%', transition: 'width 0.3s' }} />
           </div>
           <div className="flex items-center justify-between mt-1">
-            <p style={{ fontSize: 10, color: '#9CA3AF' }}>{slot.enrolled} / {slot.capacity} {t.classes.students}</p>
+            <p style={{ fontSize: 10, color: '#9CA3AF' }}>{bookedCount || slot.enrolled} / {slot.capacity} {t.classes.students}</p>
             <span style={{ fontSize: 10, fontWeight: 600, color: barColor }}>{capLabel}</span>
           </div>
         </div>
@@ -420,12 +420,12 @@ function ClassPopup({ slot, date, onClose, onDeleted }: {
 }
 
 // ── Class block ────────────────────────────────────────────────────────────────
-function ClassBlock({ slot, onSelect }: { slot: ClassSlot; onSelect: (s: ClassSlot) => void }) {
+function ClassBlock({ slot, enrolled, onSelect }: { slot: ClassSlot; enrolled: number; onSelect: (s: ClassSlot) => void }) {
   const colors  = ACTIVITY_COLORS[slot.activity] ?? ACTIVITY_COLORS['Open Mat']!
   const top     = classTop(slot.startH, slot.startM)
   const height  = classHeight(slot.durationM)
-  const pct     = Math.round((slot.enrolled / slot.capacity) * 100)
-  const isFull  = slot.enrolled >= slot.capacity
+  const pct     = Math.round((enrolled / slot.capacity) * 100)
+  const isFull  = enrolled >= slot.capacity
   const endMin  = slot.startH * 60 + slot.startM + slot.durationM
   const time    = fmtTime(slot.startH, slot.startM) + '–' + fmtTime(Math.floor(endMin / 60), endMin % 60)
 
@@ -446,7 +446,7 @@ function ClassBlock({ slot, onSelect }: { slot: ClassSlot; onSelect: (s: ClassSl
             <div style={{ height: 3, borderRadius: 99, background: isFull ? '#DC2626' : colors.text, width: pct + '%', opacity: 0.6 }} />
           </div>
           <p style={{ fontSize: 9, color: colors.text, opacity: 0.6, marginTop: 2 }}>
-            {slot.enrolled}/{slot.capacity}{isFull ? ' · Full' : ''}
+            {enrolled}/{slot.capacity}{isFull ? ' · Full' : ''}
           </p>
         </div>
       )}
@@ -534,6 +534,7 @@ export default function TimetableClient() {
   const [listActivity, setListActivity] = useState('All')
   const [schedule, setSchedule]         = useState<ClassSlot[]>([])
   const [listRows, setListRows]         = useState<TimetableRow[]>([])
+  const [enrollments, setEnrollments]   = useState<Record<string, number>>({})
   const [loading, setLoading]           = useState(true)
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -552,6 +553,17 @@ export default function TimetableClient() {
   }, [])
 
   useEffect(() => { loadClasses() }, [loadClasses])
+
+  // Fetch per-date enrollment counts for the visible week
+  useEffect(() => {
+    const monday = getWeekStart(weekOffset)
+    const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6)
+    const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+    fetch(`/api/dashboard/classes/enrollments?startDate=${fmt(monday)}&endDate=${fmt(sunday)}`)
+      .then(r => r.ok ? r.json() : {})
+      .then(data => setEnrollments(data))
+      .catch(() => {})
+  }, [weekOffset])
 
   // Auto-scroll to current time on mount
   useEffect(() => {
@@ -958,9 +970,12 @@ export default function TimetableClient() {
                           <div style={{ flex: 1, height: 1.5, background: '#EF4444', opacity: 0.9 }} />
                         </div>
                       )}
-                      {schedule.filter(s => s.day === dayIdx).map(slot => (
-                        <ClassBlock key={slot.id} slot={slot} onSelect={setSelectedSlot} />
-                      ))}
+                      {schedule.filter(s => s.day === dayIdx).map(slot => {
+                        const date = weekDates[dayIdx]!
+                        const dateStr = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`
+                        const enrolled = enrollments[`${slot.classId}|${dateStr}`] ?? slot.enrolled
+                        return <ClassBlock key={slot.id} slot={slot} enrolled={enrolled} onSelect={setSelectedSlot} />
+                      })}
                     </div>
                   )
                 })}

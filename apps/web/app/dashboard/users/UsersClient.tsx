@@ -1421,6 +1421,176 @@ function getPaginationPages(current: number, total: number): (number | '...')[] 
 
 type FilterType = 'All' | 'Active' | 'Inactive' | 'Pending' | 'Lead' | 'Archived'
 
+// ── Mark as Paid modal ─────────────────────────────────────────────────────────
+
+type PayMethod = 'CASH' | 'BANK_TRANSFER'
+
+const PAY_METHODS: { value: PayMethod; label: string; icon: string }[] = [
+  { value: 'CASH',          label: 'Cash',          icon: '💵' },
+  { value: 'BANK_TRANSFER', label: 'Bank Transfer',  icon: '🏦' },
+]
+
+function currencySymbol(currency: string) {
+  if (currency === 'EUR') return '€'
+  if (currency === 'GBP') return '£'
+  if (currency === 'USD') return '$'
+  return currency + ' '
+}
+
+function MarkAsPaidModal({
+  student, onClose, onSuccess,
+}: {
+  student: Student
+  onClose: () => void
+  onSuccess: (studentName: string) => void
+}) {
+  const mem = student.activeMembership
+  const sym = currencySymbol(mem?.currency ?? 'EUR')
+
+  const [amount, setAmount]   = useState(mem?.price?.toString() ?? '0')
+  const [method, setMethod]   = useState<PayMethod>('CASH')
+  const [note, setNote]       = useState(mem?.planName ?? '')
+  const [saving, setSaving]   = useState(false)
+  const [error, setError]     = useState('')
+
+  async function handleConfirm() {
+    const parsed = parseFloat(amount)
+    if (isNaN(parsed) || parsed < 0) { setError('Importe inválido'); return }
+    setSaving(true); setError('')
+    try {
+      const res = await fetch('/api/dashboard/transactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId:        student.id,
+          description:   note.trim() || (mem?.planName ?? 'Manual payment'),
+          amount:        parsed,
+          currency:      mem?.currency ?? 'EUR',
+          date:          new Date().toISOString(),
+          type:          'INCOME',
+          status:        'PAID',
+          paymentMethod: method,
+        }),
+      })
+      if (res.ok) { onSuccess(student.name) }
+      else { const d = await res.json(); setError(d.error ?? 'Error al registrar el pago') }
+    } catch { setError('Error al registrar el pago') }
+    finally { setSaving(false) }
+  }
+
+  const inp: React.CSSProperties = {
+    width: '100%', border: '1px solid #E5E7EB', borderRadius: 10,
+    padding: '9px 12px', fontSize: 13, color: '#111827', outline: 'none', background: '#fff',
+  }
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onClose}>
+      <div className="rounded-2xl overflow-hidden"
+        style={{ background: '#fff', width: 400, boxShadow: '0 20px 60px rgba(0,0,0,0.18)' }}
+        onClick={e => e.stopPropagation()}>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4"
+          style={{ borderBottom: '1px solid #F3F4F6' }}>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+              style={{ background: '#F0FDF4' }}>
+              <CreditCard size={18} style={{ color: '#16A34A' }} />
+            </div>
+            <div>
+              <p style={{ fontSize: 14, fontWeight: 700, color: '#111827', margin: 0 }}>Mark as Paid</p>
+              <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 1 }}>{student.name}</p>
+            </div>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF' }}>
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="px-6 py-5 flex flex-col gap-4">
+
+          {/* Plan info chip */}
+          {mem && (
+            <div className="flex items-center justify-between rounded-xl px-4 py-3"
+              style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
+              <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{mem.planName}</p>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>
+                {sym}{mem.price.toFixed(2)}
+              </span>
+            </div>
+          )}
+
+          {/* Amount */}
+          <div>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 5 }}>
+              Amount ({mem?.currency ?? 'EUR'})
+            </label>
+            <div className="flex items-center gap-2 rounded-xl px-3 py-2"
+              style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
+              <span style={{ fontSize: 15, color: '#9CA3AF', fontWeight: 600 }}>{sym}</span>
+              <input
+                type="number" min="0" step="0.01"
+                value={amount}
+                onChange={e => setAmount(e.target.value)}
+                style={{ ...inp, border: 'none', padding: 0, flex: 1, fontSize: 15, fontWeight: 600 }}
+              />
+            </div>
+          </div>
+
+          {/* Payment method */}
+          <div>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 5 }}>
+              Payment method
+            </label>
+            <div className="flex gap-2">
+              {PAY_METHODS.map(opt => {
+                const active = method === opt.value
+                return (
+                  <button key={opt.value} type="button"
+                    onClick={() => setMethod(opt.value)}
+                    className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl cursor-pointer"
+                    style={{
+                      fontSize: 13, fontWeight: 500, border: `1.5px solid ${active ? '#0071E3' : '#E5E7EB'}`,
+                      background: active ? '#EFF6FF' : '#fff', color: active ? '#0071E3' : '#6B7280',
+                    }}>
+                    <span>{opt.icon}</span>{opt.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Description */}
+          <div>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 5 }}>
+              Description
+            </label>
+            <input type="text" value={note} onChange={e => setNote(e.target.value)}
+              placeholder="e.g. Monthly membership — June" style={inp} />
+          </div>
+
+          {error && <p style={{ fontSize: 12, color: '#DC2626' }}>{error}</p>}
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 pb-5 flex gap-3">
+          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl cursor-pointer"
+            style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
+            Cancel
+          </button>
+          <button onClick={handleConfirm} disabled={saving} className="flex-1 py-2.5 rounded-xl cursor-pointer"
+            style={{ fontSize: 13, fontWeight: 600, border: 'none',
+              background: saving ? '#D1FAE5' : '#16A34A', color: '#fff', opacity: saving ? 0.7 : 1 }}>
+            {saving ? 'Registering…' : 'Confirm Payment'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Main component ─────────────────────────────────────────────────────────────
 export default function UsersClient({ students: initialStudents }: { students: Student[] }) {
   const { menuOpen, setMenuOpen } = useDashboard()
@@ -1434,9 +1604,10 @@ export default function UsersClient({ students: initialStudents }: { students: S
   const [advFilters, setAdvFilters]     = useState<ActiveFilters>({ belts: [], statuses: [], roles: [] })
   const [search, setSearch]             = useState('')
   const [currentPage, setCurrentPage]   = useState(1)
-  const [editStudent, setEditStudent]   = useState<Student | null>(null)
-  const [msgStudent, setMsgStudent]     = useState<Student | null>(null)
-  const [qrStudent, setQrStudent]       = useState<Student | null>(null)
+  const [editStudent, setEditStudent]     = useState<Student | null>(null)
+  const [msgStudent, setMsgStudent]       = useState<Student | null>(null)
+  const [qrStudent, setQrStudent]         = useState<Student | null>(null)
+  const [markPaidStudent, setMarkPaidStudent] = useState<Student | null>(null)
 
   const activeCount = students.filter(s => s.status === 'ACTIVE').length
   const STATS = [
@@ -1517,31 +1688,12 @@ export default function UsersClient({ students: initialStudents }: { students: S
     setStudents(prev => prev.map(s => s.id === id ? { ...s, ...updated } : s))
   }
 
-  const handleMarkAsPaid = async (student: Student) => {
+  const handleMarkAsPaid = (student: Student) => {
     if (!student.activeMembership) {
-      showToast('No hay membresía activa para este alumno', 'error')
+      showToast('No active membership for this student', 'error')
       return
     }
-    try {
-      const res = await fetch('/api/dashboard/transactions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: student.id,
-          description: student.activeMembership.planName,
-          amount: student.activeMembership.price,
-          currency: student.activeMembership.currency,
-          date: new Date().toISOString(),
-          type: 'INCOME',
-          status: 'PAID',
-          paymentMethod: 'CASH',
-        }),
-      })
-      if (res.ok) showToast(`Pago registrado para ${student.name}`, 'success')
-      else showToast('Error al registrar el pago', 'error')
-    } catch {
-      showToast('Error al registrar el pago', 'error')
-    }
+    setMarkPaidStudent(student)
   }
 
   const handleSyncMembership = async (student: Student) => {
@@ -1583,6 +1735,7 @@ export default function UsersClient({ students: initialStudents }: { students: S
   }
 
   return (
+    <>
     <main style={{ flex: 1, minWidth: 0 }}>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
 
@@ -1937,5 +2090,17 @@ export default function UsersClient({ students: initialStudents }: { students: S
 
       </div>
     </main>
+
+    {markPaidStudent && (
+      <MarkAsPaidModal
+        student={markPaidStudent}
+        onClose={() => setMarkPaidStudent(null)}
+        onSuccess={name => {
+          setMarkPaidStudent(null)
+          showToast(`Payment recorded for ${name}`, 'success')
+        }}
+      />
+    )}
+    </>
   )
 }
