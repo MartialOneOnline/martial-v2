@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
       skip: (page - 1) * limit,
       take: limit,
       select: {
-        id: true, name: true, slug: true, status: true, source: true,
+        id: true, name: true, slug: true, status: true, type: true, source: true,
         city: true, country: true, email: true, phone: true,
         createdAt: true, updatedAt: true,
         _count: { select: { members: true } },

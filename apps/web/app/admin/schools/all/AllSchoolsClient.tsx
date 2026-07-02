@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import {
   Building2, Search, MapPin, ChevronLeft, ChevronRight,
-  ExternalLink, RefreshCw, Filter, Users,
+  ExternalLink, RefreshCw, Filter, Users, Plus, X, Loader2,
 } from 'lucide-react'
 
 type School = {
@@ -12,6 +12,7 @@ type School = {
   name: string
   slug: string
   status: string
+  type: string
   source: string
   city: string | null
   country: string | null
@@ -28,12 +29,190 @@ const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
   SUSPENDED:  { label: 'Suspended',  cls: 'bg-red-50 text-red-600 border border-red-100' },
 }
 
+const TYPE_BADGE: Record<string, { label: string; cls: string }> = {
+  SCHOOL:   { label: 'School',   cls: 'bg-gray-100 text-gray-500' },
+  CAMP:     { label: 'Camp',     cls: 'bg-amber-50 text-amber-700' },
+  BUSINESS: { label: 'Business', cls: 'bg-purple-50 text-purple-700' },
+}
+
 const STATUSES = ['', 'VERIFIED', 'CLAIMED', 'UNVERIFIED', 'PARTNER', 'SUSPENDED']
+
+const COUNTRIES = [
+  ['ES','Spain'],['GB','United Kingdom'],['FR','France'],['DE','Germany'],['IT','Italy'],
+  ['PT','Portugal'],['NL','Netherlands'],['BE','Belgium'],['SE','Sweden'],['NO','Norway'],
+  ['DK','Denmark'],['IE','Ireland'],['CH','Switzerland'],['AT','Austria'],['PL','Poland'],
+  ['GR','Greece'],['TR','Turkey'],['AE','UAE'],['US','United States'],['AU','Australia'],['BR','Brazil'],
+]
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
+// ── Create School Modal ───────────────────────────────────────────────────────
+function CreateSchoolModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+  const [form, setForm] = useState({
+    name: '', email: '', city: '', country: 'ES',
+    type: 'SCHOOL', status: 'VERIFIED',
+    website: '', instagram: '', description: '',
+  })
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  function set(k: string, v: string) { setForm(f => ({ ...f, [k]: v })) }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!form.name.trim()) { setError('Name is required'); return }
+    setSaving(true)
+    setError('')
+    const res = await fetch('/api/admin/schools', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form),
+    })
+    const data = await res.json()
+    setSaving(false)
+    if (!res.ok) { setError(data.error || 'Failed to create'); return }
+    onCreated()
+    onClose()
+  }
+
+  const field = 'w-full h-10 px-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-[#0870E2] focus:ring-2 focus:ring-[#0870E2]/10'
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <div
+        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-base font-bold text-[#101828]">New School / Camp</h2>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100">
+            <X className="w-4 h-4 text-gray-400" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-3">
+          {/* Type selector */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Type</label>
+            <div className="grid grid-cols-3 gap-2">
+              {(['SCHOOL', 'CAMP', 'BUSINESS'] as const).map(t => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => set('type', t)}
+                  className={`h-9 rounded-xl border-2 text-xs font-semibold transition-all ${
+                    form.type === t
+                      ? 'border-[#0870E2] bg-[#EFF6FF] text-[#0870E2]'
+                      : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                  }`}
+                >
+                  {t === 'SCHOOL' ? '🏫 School' : t === 'CAMP' ? '🥋 Camp' : '🏢 Business'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Name */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Name *</label>
+            <input
+              required
+              value={form.name}
+              onChange={e => set('name', e.target.value)}
+              placeholder={form.type === 'CAMP' ? 'Martial Camps' : 'Roger Gracie Málaga'}
+              className={field}
+            />
+          </div>
+
+          {/* City + Country */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">City</label>
+              <input
+                value={form.city}
+                onChange={e => set('city', e.target.value)}
+                placeholder="Marbella"
+                className={field}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Country</label>
+              <select
+                value={form.country}
+                onChange={e => set('country', e.target.value)}
+                className={field}
+              >
+                {COUNTRIES.map(([code, name]) => (
+                  <option key={code} value={code}>{name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Email */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Email</label>
+            <input
+              type="email"
+              value={form.email}
+              onChange={e => set('email', e.target.value)}
+              placeholder="info@martialcamps.com"
+              className={field}
+            />
+          </div>
+
+          {/* Website + Instagram */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Website</label>
+              <input value={form.website} onChange={e => set('website', e.target.value)} placeholder="martialcamps.com" className={field} />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Instagram</label>
+              <input value={form.instagram} onChange={e => set('instagram', e.target.value)} placeholder="@martialcamps" className={field} />
+            </div>
+          </div>
+
+          {/* Status */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Status</label>
+            <select value={form.status} onChange={e => set('status', e.target.value)} className={field}>
+              <option value="VERIFIED">Verified</option>
+              <option value="CLAIMED">Claimed</option>
+              <option value="UNVERIFIED">Unverified</option>
+              <option value="PARTNER">Partner</option>
+            </select>
+          </div>
+
+          {error && <p className="text-xs text-red-500">{error}</p>}
+
+          <div className="flex gap-3 pt-1">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 h-10 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 h-10 rounded-xl bg-[#0870E2] text-white text-sm font-semibold hover:bg-[#0660c8] disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+              {saving ? 'Creating…' : 'Create'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// ── Main Component ────────────────────────────────────────────────────────────
 export default function AllSchoolsClient() {
   const [schools, setSchools] = useState<School[]>([])
   const [total, setTotal] = useState(0)
@@ -44,12 +223,11 @@ export default function AllSchoolsClient() {
   const [status, setStatus] = useState('')
   const [country, setCountry] = useState('')
   const [page, setPage] = useState(1)
+  const [showCreate, setShowCreate] = useState(false)
 
   const load = useCallback(() => {
     setLoading(true)
-    const params = new URLSearchParams({
-      search, status, country, page: String(page),
-    })
+    const params = new URLSearchParams({ search, status, country, page: String(page) })
     fetch(`/api/admin/schools/all?${params}`)
       .then(r => r.json())
       .then(d => {
@@ -67,19 +245,35 @@ export default function AllSchoolsClient() {
 
   return (
     <div className="min-h-screen">
+      {showCreate && (
+        <CreateSchoolModal
+          onClose={() => setShowCreate(false)}
+          onCreated={load}
+        />
+      )}
+
       {/* Top bar */}
       <div className="bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
         <div>
           <h1 className="text-lg font-bold text-[#101828]">All Schools</h1>
           <p className="text-xs text-gray-400">{total} schools on the platform</p>
         </div>
-        <button
-          onClick={load}
-          className="flex items-center gap-1.5 h-9 px-3 rounded-xl border border-gray-200 text-xs font-medium text-gray-500 hover:bg-gray-50 transition-colors"
-        >
-          <RefreshCw className="w-3.5 h-3.5" />
-          Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={load}
+            className="flex items-center gap-1.5 h-9 px-3 rounded-xl border border-gray-200 text-xs font-medium text-gray-500 hover:bg-gray-50 transition-colors"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            Refresh
+          </button>
+          <button
+            onClick={() => setShowCreate(true)}
+            className="flex items-center gap-1.5 h-9 px-4 rounded-xl bg-[#0870E2] text-white text-xs font-semibold hover:bg-[#0660c8] transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            New School
+          </button>
+        </div>
       </div>
 
       <div className="p-8 space-y-4">
@@ -140,6 +334,7 @@ export default function AllSchoolsClient() {
                 <tr className="border-b border-gray-100 bg-gray-50/60">
                   <th className="text-left px-6 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">School</th>
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Location</th>
+                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Type</th>
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Status</th>
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Members</th>
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Added</th>
@@ -165,6 +360,11 @@ export default function AllSchoolsClient() {
                         <MapPin className="w-3 h-3 text-gray-300 shrink-0" />
                         {[school.city, school.country].filter(Boolean).join(', ') || '—'}
                       </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${TYPE_BADGE[school.type]?.cls ?? 'bg-gray-100 text-gray-500'}`}>
+                        {TYPE_BADGE[school.type]?.label ?? school.type}
+                      </span>
                     </td>
                     <td className="px-4 py-3">
                       <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${STATUS_BADGE[school.status]?.cls ?? 'bg-gray-100 text-gray-500'}`}>
