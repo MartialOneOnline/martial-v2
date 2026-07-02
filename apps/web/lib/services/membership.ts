@@ -9,6 +9,7 @@
 import { prisma } from '@/lib/db'
 import { PaymentMethod, MembershipStatus, TransactionType, TransactionCategory, TransactionStatus } from '@/lib/prisma-client/enums'
 import { sendMembershipReceiptEmail } from '@/lib/email/sendEmails'
+import { getStripe } from '@/lib/stripe'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -205,7 +206,7 @@ export async function cancelMembership(input: CancelMembershipInput) {
     where: { id: membershipId, schoolId },
     include: {
       plan: { select: { planType: true } },
-      school: { select: { cancelPolicy: true } },
+      school: { select: { cancelPolicy: true, stripeSecretKey: true } },
     },
   })
   if (!membership) throw new Error('Membership not found')
@@ -236,6 +237,14 @@ export async function cancelMembership(input: CancelMembershipInput) {
       where: { id: membershipId },
       data: { cancelledAt: new Date(), notes: updatedNotes },
     })
+  }
+
+  // Cancel the Stripe subscription if one exists (fire-and-forget; Stripe webhook will sync status)
+  if (membership.stripeSubId && membership.school?.stripeSecretKey) {
+    const stripe = getStripe(membership.school.stripeSecretKey)
+    stripe.subscriptions.cancel(membership.stripeSubId).catch(err =>
+      console.error('[cancelMembership] Stripe cancel failed:', err)
+    )
   }
 
   return prisma.membership.findUnique({ where: { id: membershipId } })

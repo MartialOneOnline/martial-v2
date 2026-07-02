@@ -32,7 +32,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const {
     name, description, price, currency, planType, billingCycle,
     validityDays, isPublic, isPopular, isActive, sortOrder,
-    classAccess, stripePriceId, imageUrl,
+    classAccess, stripePriceId, imageUrl, paymentMethods,
   } = body
 
   const plan = await prisma.membershipPlan.update({
@@ -52,6 +52,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       classAccess: classAccess !== undefined ? classAccess : existing.classAccess,
       stripePriceId: stripePriceId !== undefined ? (stripePriceId?.trim() || null) : existing.stripePriceId,
       imageUrl: imageUrl !== undefined ? (imageUrl?.trim() || null) : existing.imageUrl,
+      paymentMethods: Array.isArray(paymentMethods) ? paymentMethods : existing.paymentMethods,
     },
   })
 

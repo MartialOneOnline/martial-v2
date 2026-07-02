@@ -67,6 +67,7 @@ interface PlanForm {
   isPopular: boolean
   isActive: boolean
   stripePriceId: string
+  paymentMethods: string[]
   classRules: ClassAccessRule[]
   globalLimit: string
   globalLimitType: 'PER_WEEK' | 'PER_MONTH' | 'TOTAL'
@@ -139,6 +140,7 @@ function planToForm(plan: PlanRow, classes: ClassOption[]): PlanForm {
     isPopular: plan.isPopular,
     isActive: plan.isActive,
     stripePriceId: plan.stripePriceId ?? '',
+    paymentMethods: (plan as PlanRow & { paymentMethods?: string[] }).paymentMethods ?? ['CASH'],
     classRules,
     globalLimit: cfg.globalLimit ?? '',
     globalLimitType: cfg.globalLimitType ?? 'PER_MONTH',
@@ -159,6 +161,7 @@ function formToPayload(form: PlanForm) {
     isPopular: form.isPopular,
     isActive: form.isActive,
     stripePriceId: form.stripePriceId,
+    paymentMethods: form.paymentMethods,
     classAccess: {
       classRules: form.classRules,
       globalLimit: form.globalLimit,
@@ -405,7 +408,7 @@ function PlanDrawer({ open, onClose, onSaved, editPlan, classes }: {
     billingCycle: 'monthly',
     validityDays: '30', validityPeriod: 'days',
     isPublic: true, isPopular: false, isActive: true,
-    stripePriceId: '',
+    stripePriceId: '', paymentMethods: ['CASH'],
     classRules: buildDefaultClassRules(classes),
     globalLimit: '', globalLimitType: 'PER_MONTH',
   })
@@ -589,9 +592,30 @@ function PlanDrawer({ open, onClose, onSaved, editPlan, classes }: {
                 )}
               </div>
 
-              {/* Stripe */}
+              {/* Payment methods */}
               <div>
-                <label style={labelSt}>Stripe Price ID</label>
+                <label style={labelSt}>Accepted payment methods</label>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {(['CASH', 'BANK_TRANSFER', 'STRIPE'] as const).map(m => {
+                    const labels: Record<string, string> = { CASH: 'Cash', BANK_TRANSFER: 'Bank transfer', STRIPE: 'Stripe (online)' }
+                    const active = form.paymentMethods.includes(m)
+                    return (
+                      <button key={m} type="button"
+                        onClick={() => set('paymentMethods', active ? form.paymentMethods.filter(x => x !== m) : [...form.paymentMethods, m])}
+                        style={{ padding: '6px 14px', borderRadius: 999, fontSize: 12, fontWeight: active ? 600 : 500, cursor: 'pointer',
+                          border: `1.5px solid ${active ? '#0870E2' : '#E5E7EB'}`,
+                          background: active ? '#EFF6FF' : '#F9FAFB',
+                          color: active ? '#0870E2' : '#6B7280' }}>
+                        {labels[m]}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Stripe Price ID */}
+              <div>
+                <label style={labelSt}>Stripe Price ID <span style={{ fontWeight: 400, color: '#9CA3AF' }}>(optional — use for pre-created Stripe prices)</span></label>
                 <input value={form.stripePriceId} onChange={e => set('stripePriceId', e.target.value)}
                   placeholder="price_..." style={inputSt} />
               </div>

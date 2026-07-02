@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
   const {
     name, description, price, currency, planType, billingCycle,
     validityDays, isPublic, isPopular, isActive, sortOrder,
-    classAccess, stripePriceId, imageUrl,
+    classAccess, stripePriceId, imageUrl, paymentMethods,
   } = body
 
   if (!name?.trim()) return NextResponse.json({ error: 'Name is required' }, { status: 400 })
@@ -85,6 +85,7 @@ export async function POST(req: NextRequest) {
       classAccess: classAccess ?? {},
       stripePriceId: stripePriceId?.trim() || null,
       imageUrl: imageUrl?.trim() || null,
+      paymentMethods: Array.isArray(paymentMethods) ? paymentMethods : ['CASH'],
     },
   })
 

@@ -48,7 +48,9 @@ export async function GET(req: NextRequest) {
       language: true,
       defaultBookingSettings: true,
       cancelPolicy: true,
-      stripeAccountId: true,
+      stripePublishableKey: true,
+      stripeSecretKey: true,
+      stripeWebhookSecret: true,
     },
   })
 
@@ -79,7 +81,8 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json()
   const { language, name, phone, email, website, instagram, facebook, youtube, tiktok,
           description, tagline, address, postcode, city, country, logoUrl,
-          defaultBookingSettings, cancelPolicy } = body
+          defaultBookingSettings, cancelPolicy,
+          stripePublishableKey, stripeSecretKey, stripeWebhookSecret } = body
 
   const VALID_LANGS = ['en', 'es', 'pt', 'fr']
   const VALID_CANCEL_POLICIES = ['IMMEDIATE', 'UNTIL_END_OF_PERIOD']
@@ -105,6 +108,9 @@ export async function PATCH(req: NextRequest) {
       ...(logoUrl                !== undefined && { logoUrl: logoUrl?.trim() || null }),
       ...(defaultBookingSettings !== undefined && { defaultBookingSettings }),
       ...(cancelPolicy !== undefined && VALID_CANCEL_POLICIES.includes(cancelPolicy) && { cancelPolicy }),
+      ...(stripePublishableKey !== undefined && { stripePublishableKey: stripePublishableKey?.trim() || null }),
+      ...(stripeSecretKey      !== undefined && { stripeSecretKey:      stripeSecretKey?.trim()      || null }),
+      ...(stripeWebhookSecret  !== undefined && { stripeWebhookSecret:  stripeWebhookSecret?.trim()  || null }),
     },
     select: { id: true, language: true, name: true, cancelPolicy: true },
   })

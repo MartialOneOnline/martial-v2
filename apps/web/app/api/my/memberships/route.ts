@@ -97,6 +97,7 @@ export async function GET() {
         totalAllowed,
         notes: m.notes,
         school: m.school,
+        stripeSubId: m.stripeSubId ?? null,
       }
     }),
   })

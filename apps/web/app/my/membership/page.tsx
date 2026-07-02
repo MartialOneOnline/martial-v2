@@ -38,6 +38,7 @@ type Membership = {
   totalAllowed: number | null
   notes: string | null
   school: { id: string; name: string; slug: string; logoUrl: string | null; city: string | null }
+  stripeSubId: string | null
 }
 
 type Plan = {
@@ -311,6 +312,21 @@ function ActiveMembershipCard({
                   </p>
                 )}
               </div>
+            )}
+          </div>
+        )}
+
+        {/* Stripe-managed badge */}
+        {m.stripeSubId && m.status === 'ACTIVE' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+            <span style={{ fontSize: 11, color: '#635BFF', fontWeight: 600,
+              background: '#F0F0FF', borderRadius: 999, padding: '3px 10px', border: '1px solid #C4B5FD' }}>
+              💳 Auto-renews via card
+            </span>
+            {m.cancelledAt && (
+              <span style={{ fontSize: 11, color: '#D97706', fontWeight: 500 }}>
+                · Cancels at period end
+              </span>
             )}
           </div>
         )}
