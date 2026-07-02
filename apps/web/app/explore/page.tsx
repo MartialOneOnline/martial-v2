@@ -28,6 +28,8 @@ const BLUE = '#0870E2'
 
 type Plan = { id: string; name: string; price: number; currency: string; billingCycle: string; isPopular: boolean }
 
+type SchoolType = 'SCHOOL' | 'CAMP' | 'BUSINESS'
+
 type DbSchool = {
   id: string
   slug: string
@@ -45,6 +47,7 @@ type DbSchool = {
   priceFrom: number | null
   hasFreeTrialCls: boolean
   facilities: string[]
+  type: SchoolType
   disciplines: { discipline: { name: string; slug: string } }[]
   instructors: { name: string; belt: string | null; isHead: boolean }[]
 }
@@ -233,8 +236,12 @@ function SchoolCard({ school, onClick }: { school: DbSchool; onClick: () => void
           </span>
         )}
 
-        {/* Free trial badge top-left */}
-        {school.hasFreeTrialCls && (
+        {/* Camp badge top-left */}
+        {school.type === 'CAMP' ? (
+          <span className="absolute top-3 left-3 text-[10px] font-bold bg-amber-500 text-white px-2.5 py-1 rounded-full uppercase tracking-wide shadow-sm">
+            Camp
+          </span>
+        ) : school.hasFreeTrialCls && (
           <span className="absolute top-3 left-3 text-[10px] font-bold bg-emerald-500 text-white px-2.5 py-1 rounded-full uppercase tracking-wide shadow-sm">
             Free Trial
           </span>
@@ -430,10 +437,13 @@ function SchoolQuickView({
 
           {/* Disciplines */}
           <div className="flex flex-wrap gap-1.5 mt-3">
+            {school.type === 'CAMP' && (
+              <span className="text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">Camp</span>
+            )}
             {disciplines.map(d => (
               <span key={d} className="text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full bg-[#F9FAFB] text-[#6B7280] border border-[#E5E7EB]">{d}</span>
             ))}
-            {school.hasFreeTrialCls && (
+            {school.type !== 'CAMP' && school.hasFreeTrialCls && (
               <span className="text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Free Trial</span>
             )}
           </div>
@@ -491,14 +501,16 @@ function SchoolQuickView({
 
 // ── Empty State ───────────────────────────────────────────────────────────────
 
-function EmptyState({ mode }: { mode: 'schools' | 'classes' }) {
+function EmptyState({ mode }: { mode: 'schools' | 'camps' | 'classes' }) {
   return (
     <div className="p-12 text-center bg-white border border-[#E5E7EB] rounded-2xl">
       <Sparkles className="w-10 h-10 text-[#E5E7EB] mx-auto mb-3" />
       <h3 className="font-bold text-[#111827]">
-        {mode === 'schools' ? 'No schools found' : 'No classes found'}
+        {mode === 'schools' ? 'No schools found' : mode === 'camps' ? 'No camps found' : 'No classes found'}
       </h3>
-      <p className="text-sm text-[#6B7280] mt-1">Try a different discipline or location.</p>
+      <p className="text-sm text-[#6B7280] mt-1">
+        {mode === 'camps' ? 'New camps are announced regularly. Check back soon.' : 'Try a different discipline or location.'}
+      </p>
     </div>
   )
 }
@@ -515,7 +527,7 @@ export default function ExplorePage() {
   const [loadingClasses, setLoadingClasses] = useState(true)
 
   // UI state
-  const [mode, setMode]               = useState<'schools' | 'classes'>('schools')
+  const [mode, setMode]               = useState<'schools' | 'camps' | 'classes'>('schools')
   const [view, setView]               = useState<'list' | 'map'>('list')
   const [search, setSearch]           = useState('')
   const [location, setLocation]       = useState('')
@@ -607,10 +619,11 @@ export default function ExplorePage() {
     return schools
       .filter(s => {
         const tags = s.disciplines.map(d => d.discipline.name.toLowerCase())
+        const matchType = mode === 'camps' ? s.type === 'CAMP' : s.type !== 'CAMP'
         const matchDiscipline = discipline === 'All' || tags.some(tag => tag.includes(discipline.toLowerCase()))
         const matchSearch = !q || s.name.toLowerCase().includes(q) || tags.some(t => t.includes(q)) || (s.description ?? '').toLowerCase().includes(q)
         const matchLocation = !l || (s.city ?? '').toLowerCase().includes(l) || (s.address ?? '').toLowerCase().includes(l)
-        return matchDiscipline && matchSearch && matchLocation
+        return matchType && matchDiscipline && matchSearch && matchLocation
       })
       .sort((a, b) => {
         if (sort === 'Nearest' && !userCoords) {
@@ -641,7 +654,7 @@ export default function ExplorePage() {
         // Name / fallback: alphabetical
         return a.name.localeCompare(b.name)
       })
-  }, [schools, search, location, discipline, sort, userCoords, userCountry])
+  }, [schools, search, location, discipline, sort, userCoords, userCountry, mode])
 
   // Filter classes
   const filteredClasses = useMemo(() => {
@@ -693,8 +706,8 @@ export default function ExplorePage() {
     setQuickView(null)
   }
 
-  const isLoading = mode === 'schools' ? loadingSchools : loadingClasses
-  const resultCount = mode === 'schools' ? filteredSchools.length : filteredClasses.length
+  const isLoading = mode === 'classes' ? loadingClasses : loadingSchools
+  const resultCount = mode === 'classes' ? filteredClasses.length : filteredSchools.length
   const hasSearch = search || location || discipline !== 'All'
 
   // Build 7-day strip starting from today
@@ -809,15 +822,24 @@ export default function ExplorePage() {
             <div className="flex items-center gap-2">
               {/* Mode toggle */}
               <div className="inline-flex p-1 rounded-full bg-[#F9FAFB] border border-[#E5E7EB]">
-                {(['schools', 'classes'] as const).map(m => (
+                {([
+                  { key: 'schools', label: t?.explore?.schools ?? 'Schools' },
+                  { key: 'camps',   label: 'Camps' },
+                  { key: 'classes', label: t?.explore?.classes ?? 'Classes' },
+                ] as const).map(({ key, label }) => (
                   <button
-                    key={m}
-                    onClick={() => setMode(m)}
-                    className={`h-9 px-4 md:px-5 rounded-full text-sm font-semibold transition-all capitalize ${
-                      mode === m ? 'bg-white text-[#111827] shadow-sm' : 'text-[#6B7280] hover:text-[#111827]'
+                    key={key}
+                    onClick={() => setMode(key)}
+                    className={`h-9 px-4 md:px-5 rounded-full text-sm font-semibold transition-all ${
+                      mode === key ? 'bg-white text-[#111827] shadow-sm' : 'text-[#6B7280] hover:text-[#111827]'
                     }`}
                   >
-                    {m === 'schools' ? (t?.explore?.schools ?? 'Schools') : (t?.explore?.classes ?? 'Classes')}
+                    {key === 'camps' ? (
+                      <span className="flex items-center gap-1.5">
+                        {label}
+                        <span className="text-[9px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full uppercase tracking-wide leading-none">New</span>
+                      </span>
+                    ) : label}
                   </button>
                 ))}
               </div>
@@ -873,7 +895,7 @@ export default function ExplorePage() {
         {/* Result count + clear */}
         <div className="flex items-center justify-between mb-4">
           <p className="text-sm font-semibold text-[#6B7280]">
-            {isLoading ? 'Loading…' : `${resultCount} ${mode === 'schools' ? 'schools' : 'classes'} found`}
+            {isLoading ? 'Loading…' : `${resultCount} ${mode === 'schools' ? 'schools' : mode === 'camps' ? 'camps' : 'classes'} found`}
           </p>
           {hasSearch && (
             <button
@@ -913,7 +935,7 @@ export default function ExplorePage() {
         )}
 
         {/* Map view */}
-        {view === 'map' && mode === 'schools' && (
+        {view === 'map' && (mode === 'schools' || mode === 'camps') && (
           <div className="mb-6">
             <ExploreMap
               schools={filteredSchools}
@@ -939,7 +961,7 @@ export default function ExplorePage() {
               <div className="col-span-full">
                 <EmptyState mode={mode} />
               </div>
-            ) : mode === 'schools' ? (
+            ) : mode === 'schools' || mode === 'camps' ? (
               filteredSchools.map(school => (
                 <SchoolCard
                   key={school.id}
@@ -961,7 +983,7 @@ export default function ExplorePage() {
         )}
 
         {/* Map + list side by side on wide screens when map active */}
-        {view === 'map' && mode === 'schools' && !isLoading && filteredSchools.length > 0 && (
+        {view === 'map' && (mode === 'schools' || mode === 'camps') && !isLoading && filteredSchools.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
             <p className="col-span-full text-xs font-semibold text-[#6B7280] uppercase tracking-wide">Schools on map</p>
             {filteredSchools.filter(s => s.lat && s.lng).slice(0, 10).map(school => (

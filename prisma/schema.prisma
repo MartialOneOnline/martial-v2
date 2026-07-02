@@ -700,6 +700,8 @@ model Booking {
   updatedAt DateTime @updatedAt
 
   @@index([userId, attendedAt])
+  @@index([userId, scheduledAt])
+  @@index([classId, scheduledAt])
   @@map("bookings")
 }
 

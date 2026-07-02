@@ -33,6 +33,8 @@ export async function GET(req: NextRequest) {
     revenueThisMonth,
     revenueLastMonth,
     classesToday,
+    newMembersThisMonth,
+    bookingsThisMonth,
   ] = await Promise.all([
     // Total active students
     prisma.schoolMember.count({
@@ -99,6 +101,21 @@ export async function GET(req: NextRequest) {
         schedule: { not: undefined },
       },
     }),
+    // New members this month (joined since start of month)
+    prisma.schoolMember.count({
+      where: {
+        schoolId, role: 'STUDENT',
+        joinedAt: { gte: startOfMonth },
+      },
+    }),
+    // Bookings this month (for avg attendance calculation)
+    prisma.booking.count({
+      where: {
+        class: { schoolId },
+        scheduledAt: { gte: startOfMonth },
+        status: { not: 'CANCELLED' },
+      },
+    }),
   ])
 
   const revenueNow = revenueThisMonth._sum.amount ?? 0
@@ -123,6 +140,8 @@ export async function GET(req: NextRequest) {
     activeMembers: { value: activeMembers },
     openLeads: { value: openLeads },
     gradings: { value: gradingsCount },
-    classesToday: { value: classesToday },
+    classesToday:       { value: classesToday },
+    newMembersThisMonth:{ value: newMembersThisMonth },
+    bookingsThisMonth:  { value: bookingsThisMonth },
   })
 }

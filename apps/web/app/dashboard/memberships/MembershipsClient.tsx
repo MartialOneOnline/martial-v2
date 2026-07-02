@@ -1250,6 +1250,7 @@ export default function MembershipsClient() {
   const [schoolSlug, setSchoolSlug] = useState<string | null>(null)
   const [loading, setLoading]       = useState(true)
   const [activeTab, setActiveTab]   = useState<TabId>('subscriptions')
+  const [pendingCount, setPendingCount] = useState(0)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [editPlan, setEditPlan]     = useState<PlanRow | null>(null)
   const [deletePlan, setDeletePlan] = useState<PlanRow | null>(null)
@@ -1272,6 +1273,13 @@ export default function MembershipsClient() {
   }, [])
 
   useEffect(() => { load() }, [load])
+
+  useEffect(() => {
+    fetch('/api/dashboard/memberships?status=PENDING&pageSize=1')
+      .then(r => r.json())
+      .then(d => setPendingCount(d.total ?? 0))
+      .catch(() => {})
+  }, [])
 
   function openCreate() { setEditPlan(null); setDrawerOpen(true) }
   function openEdit(plan: PlanRow) { setEditPlan(plan); setDrawerOpen(true) }
@@ -1358,6 +1366,26 @@ export default function MembershipsClient() {
             {TAB_LABELS[activeTab]} — manage plans, pricing and class access
           </p>
         </div>
+
+        {/* Pending approval banner */}
+        {pendingCount > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '12px 16px', borderRadius: 12, marginBottom: 20,
+            background: '#FFFBEB', border: '1.5px solid #FDE68A' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#F59E0B', flexShrink: 0 }} />
+              <p style={{ fontSize: 13, fontWeight: 600, color: '#92400E', margin: 0 }}>
+                {pendingCount} membership request{pendingCount > 1 ? 's' : ''} pending approval
+              </p>
+            </div>
+            <a href="/dashboard/users?filter=Pending"
+              style={{ fontSize: 12, fontWeight: 600, color: '#D97706', textDecoration: 'none',
+                background: '#FEF3C7', padding: '5px 12px', borderRadius: 8, border: '1px solid #FDE68A',
+                whiteSpace: 'nowrap' }}>
+              Review →
+            </a>
+          </div>
+        )}
 
         {loading ? (
           <div className="flex items-center justify-center" style={{ height: 200 }}>

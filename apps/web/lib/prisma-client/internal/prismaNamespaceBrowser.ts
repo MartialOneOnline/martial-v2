@@ -228,6 +228,7 @@ export const SchoolScalarFieldEnum = {
   slug: 'slug',
   status: 'status',
   source: 'source',
+  type: 'type',
   affiliationId: 'affiliationId',
   country: 'country',
   city: 'city',

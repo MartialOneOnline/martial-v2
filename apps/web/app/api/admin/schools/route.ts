@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     instagram, facebook, youtube, tiktok,
     description, tagline,
     logoUrl, coverUrl,
-    status, disciplines,
+    status, type, disciplines,
     foundedYear, priceFrom, hasFreeTrialCls,
   } = body
 
@@ -56,7 +56,8 @@ export async function POST(req: NextRequest) {
       logoUrl: logoUrl || null,
       coverUrl: coverUrl || null,
       status: status || 'UNVERIFIED',
-      source: 'SELF_REGISTERED',
+      type: type || 'SCHOOL',
+      source: 'MANUAL',
       foundedYear: foundedYear ? parseInt(foundedYear) : null,
       priceFrom: priceFrom ? parseFloat(priceFrom) : null,
       hasFreeTrialCls: hasFreeTrialCls || false,

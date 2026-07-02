@@ -3339,6 +3339,7 @@ export const SchoolScalarFieldEnum = {
   slug: 'slug',
   status: 'status',
   source: 'source',
+  type: 'type',
   affiliationId: 'affiliationId',
   country: 'country',
   city: 'city',
@@ -4037,6 +4038,20 @@ export type EnumSchoolSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$Pri
  * Reference to a field of type 'SchoolSource[]'
  */
 export type ListEnumSchoolSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SchoolSource[]'>
+    
+
+
+/**
+ * Reference to a field of type 'SchoolType'
+ */
+export type EnumSchoolTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SchoolType'>
+    
+
+
+/**
+ * Reference to a field of type 'SchoolType[]'
+ */
+export type ListEnumSchoolTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SchoolType[]'>
     
 
 

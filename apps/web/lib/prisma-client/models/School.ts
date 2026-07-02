@@ -54,6 +54,7 @@ export type SchoolMinAggregateOutputType = {
   slug: string | null
   status: $Enums.SchoolStatus | null
   source: $Enums.SchoolSource | null
+  type: $Enums.SchoolType | null
   affiliationId: string | null
   country: string | null
   city: string | null
@@ -100,6 +101,7 @@ export type SchoolMaxAggregateOutputType = {
   slug: string | null
   status: $Enums.SchoolStatus | null
   source: $Enums.SchoolSource | null
+  type: $Enums.SchoolType | null
   affiliationId: string | null
   country: string | null
   city: string | null
@@ -146,6 +148,7 @@ export type SchoolCountAggregateOutputType = {
   slug: number
   status: number
   source: number
+  type: number
   affiliationId: number
   country: number
   city: number
@@ -219,6 +222,7 @@ export type SchoolMinAggregateInputType = {
   slug?: true
   status?: true
   source?: true
+  type?: true
   affiliationId?: true
   country?: true
   city?: true
@@ -265,6 +269,7 @@ export type SchoolMaxAggregateInputType = {
   slug?: true
   status?: true
   source?: true
+  type?: true
   affiliationId?: true
   country?: true
   city?: true
@@ -311,6 +316,7 @@ export type SchoolCountAggregateInputType = {
   slug?: true
   status?: true
   source?: true
+  type?: true
   affiliationId?: true
   country?: true
   city?: true
@@ -447,6 +453,7 @@ export type SchoolGroupByOutputType = {
   slug: string
   status: $Enums.SchoolStatus
   source: $Enums.SchoolSource
+  type: $Enums.SchoolType
   affiliationId: string | null
   country: string | null
   city: string | null
@@ -519,6 +526,7 @@ export type SchoolWhereInput = {
   slug?: Prisma.StringFilter<"School"> | string
   status?: Prisma.EnumSchoolStatusFilter<"School"> | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFilter<"School"> | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFilter<"School"> | $Enums.SchoolType
   affiliationId?: Prisma.StringNullableFilter<"School"> | string | null
   country?: Prisma.StringNullableFilter<"School"> | string | null
   city?: Prisma.StringNullableFilter<"School"> | string | null
@@ -590,6 +598,7 @@ export type SchoolOrderByWithRelationInput = {
   slug?: Prisma.SortOrder
   status?: Prisma.SortOrder
   source?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   affiliationId?: Prisma.SortOrderInput | Prisma.SortOrder
   country?: Prisma.SortOrderInput | Prisma.SortOrder
   city?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -665,6 +674,7 @@ export type SchoolWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"School"> | string
   status?: Prisma.EnumSchoolStatusFilter<"School"> | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFilter<"School"> | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFilter<"School"> | $Enums.SchoolType
   affiliationId?: Prisma.StringNullableFilter<"School"> | string | null
   country?: Prisma.StringNullableFilter<"School"> | string | null
   city?: Prisma.StringNullableFilter<"School"> | string | null
@@ -735,6 +745,7 @@ export type SchoolOrderByWithAggregationInput = {
   slug?: Prisma.SortOrder
   status?: Prisma.SortOrder
   source?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   affiliationId?: Prisma.SortOrderInput | Prisma.SortOrder
   country?: Prisma.SortOrderInput | Prisma.SortOrder
   city?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -792,6 +803,7 @@ export type SchoolScalarWhereWithAggregatesInput = {
   slug?: Prisma.StringWithAggregatesFilter<"School"> | string
   status?: Prisma.EnumSchoolStatusWithAggregatesFilter<"School"> | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceWithAggregatesFilter<"School"> | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeWithAggregatesFilter<"School"> | $Enums.SchoolType
   affiliationId?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
   country?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
   city?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
@@ -841,6 +853,7 @@ export type SchoolCreateInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   country?: string | null
   city?: string | null
   address?: string | null
@@ -909,6 +922,7 @@ export type SchoolUncheckedCreateInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   affiliationId?: string | null
   country?: string | null
   city?: string | null
@@ -977,6 +991,7 @@ export type SchoolUpdateInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1045,6 +1060,7 @@ export type SchoolUncheckedUpdateInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1113,6 +1129,7 @@ export type SchoolCreateManyInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   affiliationId?: string | null
   country?: string | null
   city?: string | null
@@ -1162,6 +1179,7 @@ export type SchoolUpdateManyMutationInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1208,6 +1226,7 @@ export type SchoolUncheckedUpdateManyInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1285,6 +1304,7 @@ export type SchoolCountOrderByAggregateInput = {
   slug?: Prisma.SortOrder
   status?: Prisma.SortOrder
   source?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   affiliationId?: Prisma.SortOrder
   country?: Prisma.SortOrder
   city?: Prisma.SortOrder
@@ -1345,6 +1365,7 @@ export type SchoolMaxOrderByAggregateInput = {
   slug?: Prisma.SortOrder
   status?: Prisma.SortOrder
   source?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   affiliationId?: Prisma.SortOrder
   country?: Prisma.SortOrder
   city?: Prisma.SortOrder
@@ -1391,6 +1412,7 @@ export type SchoolMinOrderByAggregateInput = {
   slug?: Prisma.SortOrder
   status?: Prisma.SortOrder
   source?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   affiliationId?: Prisma.SortOrder
   country?: Prisma.SortOrder
   city?: Prisma.SortOrder
@@ -1590,6 +1612,10 @@ export type EnumSchoolStatusFieldUpdateOperationsInput = {
 
 export type EnumSchoolSourceFieldUpdateOperationsInput = {
   set?: $Enums.SchoolSource
+}
+
+export type EnumSchoolTypeFieldUpdateOperationsInput = {
+  set?: $Enums.SchoolType
 }
 
 export type NullableFloatFieldUpdateOperationsInput = {
@@ -1890,6 +1916,7 @@ export type SchoolCreateWithoutAffiliationInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   country?: string | null
   city?: string | null
   address?: string | null
@@ -1957,6 +1984,7 @@ export type SchoolUncheckedCreateWithoutAffiliationInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   country?: string | null
   city?: string | null
   address?: string | null
@@ -2053,6 +2081,7 @@ export type SchoolScalarWhereInput = {
   slug?: Prisma.StringFilter<"School"> | string
   status?: Prisma.EnumSchoolStatusFilter<"School"> | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFilter<"School"> | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFilter<"School"> | $Enums.SchoolType
   affiliationId?: Prisma.StringNullableFilter<"School"> | string | null
   country?: Prisma.StringNullableFilter<"School"> | string | null
   city?: Prisma.StringNullableFilter<"School"> | string | null
@@ -2102,6 +2131,7 @@ export type SchoolCreateWithoutStaffInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   country?: string | null
   city?: string | null
   address?: string | null
@@ -2169,6 +2199,7 @@ export type SchoolUncheckedCreateWithoutStaffInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   affiliationId?: string | null
   country?: string | null
   city?: string | null
@@ -2241,6 +2272,7 @@ export type SchoolCreateWithoutClaimedByInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   country?: string | null
   city?: string | null
   address?: string | null
@@ -2308,6 +2340,7 @@ export type SchoolUncheckedCreateWithoutClaimedByInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   affiliationId?: string | null
   country?: string | null
   city?: string | null
@@ -2396,6 +2429,7 @@ export type SchoolUpdateWithoutStaffInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2463,6 +2497,7 @@ export type SchoolUncheckedUpdateWithoutStaffInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2546,6 +2581,7 @@ export type SchoolCreateWithoutDisciplinesInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   country?: string | null
   city?: string | null
   address?: string | null
@@ -2613,6 +2649,7 @@ export type SchoolUncheckedCreateWithoutDisciplinesInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   affiliationId?: string | null
   country?: string | null
   city?: string | null
@@ -2696,6 +2733,7 @@ export type SchoolUpdateWithoutDisciplinesInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2763,6 +2801,7 @@ export type SchoolUncheckedUpdateWithoutDisciplinesInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2830,6 +2869,7 @@ export type SchoolCreateWithoutBranchesInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   country?: string | null
   city?: string | null
   address?: string | null
@@ -2897,6 +2937,7 @@ export type SchoolUncheckedCreateWithoutBranchesInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   affiliationId?: string | null
   country?: string | null
   city?: string | null
@@ -2969,6 +3010,7 @@ export type SchoolCreateWithoutParentInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   country?: string | null
   city?: string | null
   address?: string | null
@@ -3036,6 +3078,7 @@ export type SchoolUncheckedCreateWithoutParentInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   affiliationId?: string | null
   country?: string | null
   city?: string | null
@@ -3124,6 +3167,7 @@ export type SchoolUpdateWithoutBranchesInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3191,6 +3235,7 @@ export type SchoolUncheckedUpdateWithoutBranchesInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3274,6 +3319,7 @@ export type SchoolCreateWithoutInstructorsInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   country?: string | null
   city?: string | null
   address?: string | null
@@ -3341,6 +3387,7 @@ export type SchoolUncheckedCreateWithoutInstructorsInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   affiliationId?: string | null
   country?: string | null
   city?: string | null
@@ -3424,6 +3471,7 @@ export type SchoolUpdateWithoutInstructorsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3491,6 +3539,7 @@ export type SchoolUncheckedUpdateWithoutInstructorsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3558,6 +3607,7 @@ export type SchoolCreateWithoutMembershipPlansInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   country?: string | null
   city?: string | null
   address?: string | null
@@ -3625,6 +3675,7 @@ export type SchoolUncheckedCreateWithoutMembershipPlansInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   affiliationId?: string | null
   country?: string | null
   city?: string | null
@@ -3708,6 +3759,7 @@ export type SchoolUpdateWithoutMembershipPlansInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3775,6 +3827,7 @@ export type SchoolUncheckedUpdateWithoutMembershipPlansInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3842,6 +3895,7 @@ export type SchoolCreateWithoutReviewsInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   country?: string | null
   city?: string | null
   address?: string | null
@@ -3909,6 +3963,7 @@ export type SchoolUncheckedCreateWithoutReviewsInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   affiliationId?: string | null
   country?: string | null
   city?: string | null
@@ -3992,6 +4047,7 @@ export type SchoolUpdateWithoutReviewsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4059,6 +4115,7 @@ export type SchoolUncheckedUpdateWithoutReviewsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4126,6 +4183,7 @@ export type SchoolCreateWithoutClassesInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   country?: string | null
   city?: string | null
   address?: string | null
@@ -4193,6 +4251,7 @@ export type SchoolUncheckedCreateWithoutClassesInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   affiliationId?: string | null
   country?: string | null
   city?: string | null
@@ -4276,6 +4335,7 @@ export type SchoolUpdateWithoutClassesInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4343,6 +4403,7 @@ export type SchoolUncheckedUpdateWithoutClassesInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4410,6 +4471,7 @@ export type SchoolCreateWithoutEventsInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   country?: string | null
   city?: string | null
   address?: string | null
@@ -4477,6 +4539,7 @@ export type SchoolUncheckedCreateWithoutEventsInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   affiliationId?: string | null
   country?: string | null
   city?: string | null
@@ -4560,6 +4623,7 @@ export type SchoolUpdateWithoutEventsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4627,6 +4691,7 @@ export type SchoolUncheckedUpdateWithoutEventsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4694,6 +4759,7 @@ export type SchoolCreateWithoutMembershipsInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   country?: string | null
   city?: string | null
   address?: string | null
@@ -4761,6 +4827,7 @@ export type SchoolUncheckedCreateWithoutMembershipsInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   affiliationId?: string | null
   country?: string | null
   city?: string | null
@@ -4844,6 +4911,7 @@ export type SchoolUpdateWithoutMembershipsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4911,6 +4979,7 @@ export type SchoolUncheckedUpdateWithoutMembershipsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4978,6 +5047,7 @@ export type SchoolCreateWithoutCampsInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   country?: string | null
   city?: string | null
   address?: string | null
@@ -5045,6 +5115,7 @@ export type SchoolUncheckedCreateWithoutCampsInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   affiliationId?: string | null
   country?: string | null
   city?: string | null
@@ -5128,6 +5199,7 @@ export type SchoolUpdateWithoutCampsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5195,6 +5267,7 @@ export type SchoolUncheckedUpdateWithoutCampsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5262,6 +5335,7 @@ export type SchoolCreateWithoutMembersInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   country?: string | null
   city?: string | null
   address?: string | null
@@ -5329,6 +5403,7 @@ export type SchoolUncheckedCreateWithoutMembersInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   affiliationId?: string | null
   country?: string | null
   city?: string | null
@@ -5412,6 +5487,7 @@ export type SchoolUpdateWithoutMembersInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5479,6 +5555,7 @@ export type SchoolUncheckedUpdateWithoutMembersInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5546,6 +5623,7 @@ export type SchoolCreateWithoutClaimsInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   country?: string | null
   city?: string | null
   address?: string | null
@@ -5613,6 +5691,7 @@ export type SchoolUncheckedCreateWithoutClaimsInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   affiliationId?: string | null
   country?: string | null
   city?: string | null
@@ -5696,6 +5775,7 @@ export type SchoolUpdateWithoutClaimsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5763,6 +5843,7 @@ export type SchoolUncheckedUpdateWithoutClaimsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5830,6 +5911,7 @@ export type SchoolCreateWithoutGradingSystemsInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   country?: string | null
   city?: string | null
   address?: string | null
@@ -5897,6 +5979,7 @@ export type SchoolUncheckedCreateWithoutGradingSystemsInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   affiliationId?: string | null
   country?: string | null
   city?: string | null
@@ -5980,6 +6063,7 @@ export type SchoolUpdateWithoutGradingSystemsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6047,6 +6131,7 @@ export type SchoolUncheckedUpdateWithoutGradingSystemsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6114,6 +6199,7 @@ export type SchoolCreateWithoutGradingsInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   country?: string | null
   city?: string | null
   address?: string | null
@@ -6181,6 +6267,7 @@ export type SchoolUncheckedCreateWithoutGradingsInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   affiliationId?: string | null
   country?: string | null
   city?: string | null
@@ -6264,6 +6351,7 @@ export type SchoolUpdateWithoutGradingsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6331,6 +6419,7 @@ export type SchoolUncheckedUpdateWithoutGradingsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6398,6 +6487,7 @@ export type SchoolCreateWithoutLeadsInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   country?: string | null
   city?: string | null
   address?: string | null
@@ -6465,6 +6555,7 @@ export type SchoolUncheckedCreateWithoutLeadsInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   affiliationId?: string | null
   country?: string | null
   city?: string | null
@@ -6548,6 +6639,7 @@ export type SchoolUpdateWithoutLeadsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6615,6 +6707,7 @@ export type SchoolUncheckedUpdateWithoutLeadsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6682,6 +6775,7 @@ export type SchoolCreateWithoutInvitationsInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   country?: string | null
   city?: string | null
   address?: string | null
@@ -6749,6 +6843,7 @@ export type SchoolUncheckedCreateWithoutInvitationsInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   affiliationId?: string | null
   country?: string | null
   city?: string | null
@@ -6832,6 +6927,7 @@ export type SchoolUpdateWithoutInvitationsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6899,6 +6995,7 @@ export type SchoolUncheckedUpdateWithoutInvitationsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6966,6 +7063,7 @@ export type SchoolCreateWithoutWaiversInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   country?: string | null
   city?: string | null
   address?: string | null
@@ -7033,6 +7131,7 @@ export type SchoolUncheckedCreateWithoutWaiversInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   affiliationId?: string | null
   country?: string | null
   city?: string | null
@@ -7116,6 +7215,7 @@ export type SchoolUpdateWithoutWaiversInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -7183,6 +7283,7 @@ export type SchoolUncheckedUpdateWithoutWaiversInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -7250,6 +7351,7 @@ export type SchoolCreateWithoutTransactionsInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   country?: string | null
   city?: string | null
   address?: string | null
@@ -7317,6 +7419,7 @@ export type SchoolUncheckedCreateWithoutTransactionsInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   affiliationId?: string | null
   country?: string | null
   city?: string | null
@@ -7400,6 +7503,7 @@ export type SchoolUpdateWithoutTransactionsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -7467,6 +7571,7 @@ export type SchoolUncheckedUpdateWithoutTransactionsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -7534,6 +7639,7 @@ export type SchoolCreateWithoutNotificationsInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   country?: string | null
   city?: string | null
   address?: string | null
@@ -7601,6 +7707,7 @@ export type SchoolUncheckedCreateWithoutNotificationsInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   affiliationId?: string | null
   country?: string | null
   city?: string | null
@@ -7684,6 +7791,7 @@ export type SchoolUpdateWithoutNotificationsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -7751,6 +7859,7 @@ export type SchoolUncheckedUpdateWithoutNotificationsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -7818,6 +7927,7 @@ export type SchoolCreateManyAffiliationInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   country?: string | null
   city?: string | null
   address?: string | null
@@ -7866,6 +7976,7 @@ export type SchoolUpdateWithoutAffiliationInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -7933,6 +8044,7 @@ export type SchoolUncheckedUpdateWithoutAffiliationInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -8000,6 +8112,7 @@ export type SchoolUncheckedUpdateManyWithoutAffiliationInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -8048,6 +8161,7 @@ export type SchoolCreateManyClaimedByInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   affiliationId?: string | null
   country?: string | null
   city?: string | null
@@ -8096,6 +8210,7 @@ export type SchoolUpdateWithoutClaimedByInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -8163,6 +8278,7 @@ export type SchoolUncheckedUpdateWithoutClaimedByInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -8230,6 +8346,7 @@ export type SchoolUncheckedUpdateManyWithoutClaimedByInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -8278,6 +8395,7 @@ export type SchoolCreateManyParentInput = {
   slug: string
   status?: $Enums.SchoolStatus
   source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
   affiliationId?: string | null
   country?: string | null
   city?: string | null
@@ -8326,6 +8444,7 @@ export type SchoolUpdateWithoutParentInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -8393,6 +8512,7 @@ export type SchoolUncheckedUpdateWithoutParentInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -8460,6 +8580,7 @@ export type SchoolUncheckedUpdateManyWithoutParentInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
   source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
   affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -8701,6 +8822,7 @@ export type SchoolSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   slug?: boolean
   status?: boolean
   source?: boolean
+  type?: boolean
   affiliationId?: boolean
   country?: boolean
   city?: boolean
@@ -8773,6 +8895,7 @@ export type SchoolSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   slug?: boolean
   status?: boolean
   source?: boolean
+  type?: boolean
   affiliationId?: boolean
   country?: boolean
   city?: boolean
@@ -8825,6 +8948,7 @@ export type SchoolSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   slug?: boolean
   status?: boolean
   source?: boolean
+  type?: boolean
   affiliationId?: boolean
   country?: boolean
   city?: boolean
@@ -8877,6 +9001,7 @@ export type SchoolSelectScalar = {
   slug?: boolean
   status?: boolean
   source?: boolean
+  type?: boolean
   affiliationId?: boolean
   country?: boolean
   city?: boolean
@@ -8920,7 +9045,7 @@ export type SchoolSelectScalar = {
   updatedAt?: boolean
 }
 
-export type SchoolOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "status" | "source" | "affiliationId" | "country" | "city" | "address" | "postcode" | "lat" | "lng" | "phone" | "email" | "website" | "language" | "instagram" | "facebook" | "youtube" | "tiktok" | "description" | "tagline" | "logoUrl" | "coverUrl" | "photos" | "priceFrom" | "hasFreeTrialCls" | "facilities" | "foundedYear" | "totalStudents" | "googleRating" | "googleReviews" | "googlePlaceId" | "v1UserId" | "defaultBookingSettings" | "cancelPolicy" | "stripePublishableKey" | "stripeSecretKey" | "stripeWebhookSecret" | "parentId" | "parentRelationshipType" | "leadStage" | "claimedById" | "claimedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["school"]>
+export type SchoolOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "status" | "source" | "type" | "affiliationId" | "country" | "city" | "address" | "postcode" | "lat" | "lng" | "phone" | "email" | "website" | "language" | "instagram" | "facebook" | "youtube" | "tiktok" | "description" | "tagline" | "logoUrl" | "coverUrl" | "photos" | "priceFrom" | "hasFreeTrialCls" | "facilities" | "foundedYear" | "totalStudents" | "googleRating" | "googleReviews" | "googlePlaceId" | "v1UserId" | "defaultBookingSettings" | "cancelPolicy" | "stripePublishableKey" | "stripeSecretKey" | "stripeWebhookSecret" | "parentId" | "parentRelationshipType" | "leadStage" | "claimedById" | "claimedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["school"]>
 export type SchoolInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   affiliation?: boolean | Prisma.School$affiliationArgs<ExtArgs>
   parent?: boolean | Prisma.School$parentArgs<ExtArgs>
@@ -8989,6 +9114,7 @@ export type $SchoolPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     slug: string
     status: $Enums.SchoolStatus
     source: $Enums.SchoolSource
+    type: $Enums.SchoolType
     affiliationId: string | null
     country: string | null
     city: string | null
@@ -9480,6 +9606,7 @@ export interface SchoolFieldRefs {
   readonly slug: Prisma.FieldRef<"School", 'String'>
   readonly status: Prisma.FieldRef<"School", 'SchoolStatus'>
   readonly source: Prisma.FieldRef<"School", 'SchoolSource'>
+  readonly type: Prisma.FieldRef<"School", 'SchoolType'>
   readonly affiliationId: Prisma.FieldRef<"School", 'String'>
   readonly country: Prisma.FieldRef<"School", 'String'>
   readonly city: Prisma.FieldRef<"School", 'String'>

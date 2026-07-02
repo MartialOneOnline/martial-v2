@@ -30,6 +30,15 @@ export const SchoolStatus = {
 export type SchoolStatus = (typeof SchoolStatus)[keyof typeof SchoolStatus]
 
 
+export const SchoolType = {
+  SCHOOL: 'SCHOOL',
+  CAMP: 'CAMP',
+  BUSINESS: 'BUSINESS'
+} as const
+
+export type SchoolType = (typeof SchoolType)[keyof typeof SchoolType]
+
+
 export const SchoolSource = {
   VONSEL: 'VONSEL',
   MANUAL: 'MANUAL',

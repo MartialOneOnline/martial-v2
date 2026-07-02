@@ -1635,6 +1635,8 @@ export default function UsersClient({ students: initialStudents }: { students: S
 
   const [students, setStudents]       = useState<Student[]>(initialStudents)
   const [schoolSlug, setSchoolSlug]   = useState<string | undefined>()
+  const [newThisMonth, setNewThisMonth] = useState<number | null>(null)
+  const [bookingsThisMonth, setBookingsThisMonth] = useState<number | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
   const [activeFilter, setActiveFilter] = useState<FilterType>('All')
   const [advFilters, setAdvFilters]     = useState<ActiveFilters>({ belts: [], statuses: [], roles: [] })
@@ -1649,14 +1651,18 @@ export default function UsersClient({ students: initialStudents }: { students: S
     fetch('/api/dashboard/school').then(r => r.json()).then(d => {
       if (d.school?.slug) setSchoolSlug(d.school.slug)
     }).catch(() => {})
+    fetch('/api/dashboard/stats').then(r => r.json()).then(d => {
+      if (d.newMembersThisMonth?.value !== undefined) setNewThisMonth(d.newMembersThisMonth.value)
+      if (d.bookingsThisMonth?.value !== undefined) setBookingsThisMonth(d.bookingsThisMonth.value)
+    }).catch(() => {})
   }, [])
 
   const activeCount = students.filter(s => s.status === 'ACTIVE').length
   const STATS = [
     { label: t.users.totalStudents, value: String(students.length), trend: '', trendUp: true, sub: t.common.vsLastMonth },
     { label: t.users.activeMembers, value: String(activeCount),     trend: '', trendUp: true, sub: t.common.thisMonth   },
-    { label: t.users.newThisMonth,  value: '—',                     trend: '', trendUp: true, sub: t.common.vsLastMonth },
-    { label: t.users.avgAttendance, value: '—',                     trend: '', trendUp: true, sub: t.common.thisWeek    },
+    { label: t.users.newThisMonth,  value: newThisMonth !== null ? String(newThisMonth) : '—',  trend: '', trendUp: true, sub: t.common.vsLastMonth },
+    { label: t.users.avgAttendance, value: bookingsThisMonth !== null ? String(bookingsThisMonth) : '—', trend: '', trendUp: true, sub: t.common.thisMonth },
   ]
 
   const filtered = students.filter(s => {
