@@ -122,7 +122,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Logo */}
         <div className="px-4 py-5 border-b border-gray-100">
           <Link href="/admin" prefetch={false} className="flex items-center gap-2.5">
-            <Image src="/logo.svg" alt="Martial" width={30} height={30} />
+            <Image src="/martial-logo.png" alt="Martial" width={30} height={30} />
             <div>
               <p className="text-sm font-bold text-[#101828] leading-none">Martial</p>
               <p className="text-[10px] text-gray-400 leading-none mt-0.5">Academy</p>
