@@ -144,7 +144,6 @@ function getCityCoords(city: string | null): [number, number] | null {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const DISCIPLINES = ['All', 'BJJ', 'Grappling', 'MMA', 'Muay Thai', 'Wrestling', 'Judo', 'Karate', 'Boxing']
 const SORTS = ['Nearest', 'Rating', 'Price', 'Name'] as const
 type SortKey = typeof SORTS[number]
 
@@ -525,6 +524,7 @@ export default function ExplorePage() {
   const [classes, setClasses]   = useState<DbClass[]>([])
   const [loadingSchools, setLoadingSchools] = useState(true)
   const [loadingClasses, setLoadingClasses] = useState(true)
+  const [disciplineOptions, setDisciplineOptions] = useState<string[]>(['All'])
 
   // UI state
   const [mode, setMode]               = useState<'schools' | 'camps' | 'classes'>('schools')
@@ -601,6 +601,14 @@ export default function ExplorePage() {
       .then((data: DbClass[]) => setClasses(data))
       .catch(() => setClasses([]))
       .finally(() => setLoadingClasses(false))
+  }, [])
+
+  // Fetch discipline catalog for the filter bar
+  useEffect(() => {
+    fetch('/api/disciplines')
+      .then(r => r.json())
+      .then((data: { disciplines: { name: string }[] }) => setDisciplineOptions(['All', ...data.disciplines.map(d => d.name)]))
+      .catch(() => {})
   }, [])
 
   // Haversine distance helper
@@ -800,7 +808,7 @@ export default function ExplorePage() {
         <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col gap-3">
           {/* Disciplines */}
           <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-1 px-1">
-            {DISCIPLINES.map(d => {
+            {disciplineOptions.map(d => {
               const active = discipline === d
               return (
                 <button

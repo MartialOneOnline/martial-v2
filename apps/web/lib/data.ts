@@ -87,19 +87,6 @@ export const ALL_SCHOOLS: School[] = [
   },
 ]
 
-export const DISCIPLINES = [
-  'All',
-  'Brazilian Jiu-Jitsu',
-  'Karate',
-  'Muay Thai',
-  'Wrestling',
-  'Judo',
-  'MMA',
-  'Boxing',
-  'Self Defence',
-  'Kids Classes',
-]
-
 export const PARTNER_LOGOS = [
   { id: 1, name: 'Gracie Barra',    img: '/logo-gracie-barra.png' },
   { id: 2, name: 'Roger Gracie',    img: '/logo-roger-gracie.png' },

@@ -1,18 +1,25 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, MapPin, Dumbbell, ChevronDown } from 'lucide-react'
 
-const DISCIPLINES = ['BJJ', 'Muay Thai', 'Boxing', 'MMA', 'Karate', 'Judo', 'Wrestling', 'Grappling']
-const LEVELS      = ['All levels', 'Beginner', 'Kids', 'Intermediate', 'Advanced']
-const POPULAR     = ['Brazilian Jiu-Jitsu', 'Muay Thai', 'Boxing', 'MMA', 'Karate', 'Judo', 'Wrestling']
+const LEVELS  = ['All levels', 'Beginner', 'Kids', 'Intermediate', 'Advanced']
+const POPULAR = ['Brazilian Jiu-Jitsu', 'Muay Thai', 'Boxing', 'MMA', 'Karate', 'Judo', 'Wrestling']
 
 export default function HomeSearch() {
   const router = useRouter()
   const [location,   setLocation]   = useState('')
   const [discipline, setDiscipline] = useState('')
   const [level,      setLevel]      = useState('')
+  const [disciplines, setDisciplines] = useState<string[]>([])
+
+  useEffect(() => {
+    fetch('/api/disciplines')
+      .then(r => r.json())
+      .then((d: { disciplines: { name: string }[] }) => setDisciplines(d.disciplines.map(x => x.name)))
+      .catch(() => {})
+  }, [])
 
   const search = () => {
     const params = new URLSearchParams()
@@ -60,7 +67,7 @@ export default function HomeSearch() {
                 className="w-full h-12 pl-10 pr-8 rounded-xl border border-gray-200 text-sm font-medium text-[#101828] bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-[#0870E2]/20 focus:border-[#0870E2] transition-all cursor-pointer"
               >
                 <option value="">All disciplines</option>
-                {DISCIPLINES.map(d => <option key={d} value={d}>{d}</option>)}
+                {disciplines.map(d => <option key={d} value={d}>{d}</option>)}
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             </div>

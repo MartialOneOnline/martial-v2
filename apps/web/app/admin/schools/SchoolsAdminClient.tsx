@@ -5,21 +5,6 @@ import { X, Plus, Upload, Search, CheckCircle2, Clock, Mail, XCircle, Building2,
 import * as xlsx from 'xlsx'
 import { adminFetch } from '@/lib/api/adminFetch'
 
-const DISCIPLINES = [
-  { slug: 'bjj', label: 'BJJ' },
-  { slug: 'mma', label: 'MMA' },
-  { slug: 'boxing', label: 'Boxing' },
-  { slug: 'muay-thai', label: 'Muay Thai' },
-  { slug: 'wrestling', label: 'Wrestling' },
-  { slug: 'judo', label: 'Judo' },
-  { slug: 'kickboxing', label: 'Kickboxing' },
-  { slug: 'karate', label: 'Karate' },
-  { slug: 'taekwondo', label: 'Taekwondo' },
-  { slug: 'nogi', label: 'No-Gi' },
-  { slug: 'sambo', label: 'Sambo' },
-  { slug: 'capoeira', label: 'Capoeira' },
-]
-
 const COUNTRIES = [
   'United Kingdom', 'Spain', 'Portugal', 'France', 'Germany', 'Italy',
   'United States', 'Brazil', 'Australia', 'Japan', 'Netherlands', 'Belgium',
@@ -95,8 +80,18 @@ function SchoolInvitationsModal({ onClose, onSuccess }: { onClose: () => void; o
     foundedYear: '', priceFrom: '', hasFreeTrialCls: false,
   })
   const [addDisciplines, setAddDisciplines] = useState<string[]>([])
+  const [disciplineOptions, setDisciplineOptions] = useState<{ slug: string; label: string }[]>([])
   const [logoPreview, setLogoPreview]   = useState<string | null>(null)
   const [coverPreview, setCoverPreview] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch('/api/disciplines')
+      .then(r => r.json())
+      .then((d: { disciplines: { name: string; slug: string }[] }) =>
+        setDisciplineOptions(d.disciplines.map(x => ({ slug: x.slug, label: x.name })))
+      )
+      .catch(() => {})
+  }, [])
   const logoInputRef  = useRef<HTMLInputElement>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
   const [adding, setAdding]       = useState(false)
@@ -467,7 +462,7 @@ function SchoolInvitationsModal({ onClose, onSuccess }: { onClose: () => void; o
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Disciplines</label>
                 <div className="flex flex-wrap gap-2">
-                  {DISCIPLINES.map(d => (
+                  {disciplineOptions.map(d => (
                     <button
                       key={d.slug}
                       type="button"

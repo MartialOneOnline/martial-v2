@@ -7,21 +7,9 @@ import {
   CheckCircle2, ChevronRight, ChevronLeft, Building2,
   User, MapPin, Dumbbell, Image as ImageIcon, Loader2, AlertCircle,
 } from 'lucide-react'
+import { disciplineEmoji } from '@/lib/disciplineEmoji'
 
 const BLUE = '#0870E2'
-
-// ── Disciplines ───────────────────────────────────────────────────────────────
-const DISCIPLINES = [
-  { slug: 'bjj',        label: 'Brazilian Jiu-Jitsu', emoji: '🥋' },
-  { slug: 'grappling',  label: 'Grappling / No-Gi',   emoji: '🤼' },
-  { slug: 'mma',        label: 'MMA',                  emoji: '🥊' },
-  { slug: 'muay-thai',  label: 'Muay Thai',            emoji: '🦵' },
-  { slug: 'boxing',     label: 'Boxing',               emoji: '🥊' },
-  { slug: 'wrestling',  label: 'Wrestling',            emoji: '🤸' },
-  { slug: 'judo',       label: 'Judo',                 emoji: '🥋' },
-  { slug: 'karate',     label: 'Karate',               emoji: '🥋' },
-  { slug: 'kickboxing', label: 'Kickboxing',           emoji: '🦵' },
-]
 
 // ── Steps config ──────────────────────────────────────────────────────────────
 const STEPS = [
@@ -77,6 +65,16 @@ function OnboardingPageInner() {
     disciplines: [],
     description: '', tagline: '',
   })
+  const [disciplineOptions, setDisciplineOptions] = useState<{ slug: string; label: string; emoji: string }[]>([])
+
+  useEffect(() => {
+    fetch('/api/disciplines')
+      .then(r => r.json())
+      .then((d: { disciplines: { name: string; slug: string }[] }) =>
+        setDisciplineOptions(d.disciplines.map(x => ({ slug: x.slug, label: x.name, emoji: disciplineEmoji(x.slug) })))
+      )
+      .catch(() => {})
+  }, [])
 
   // Validate token on load
   useEffect(() => {
@@ -313,7 +311,7 @@ function OnboardingPageInner() {
                 <h2 className="text-xl font-bold text-[#101828] mb-1">What do you teach?</h2>
                 <p className="text-sm text-gray-500 mb-5">Select all disciplines offered at your academy.</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {DISCIPLINES.map(d => {
+                  {disciplineOptions.map(d => {
                     const selected = form.disciplines.includes(d.slug)
                     return (
                       <button

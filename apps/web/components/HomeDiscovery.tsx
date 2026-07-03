@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { MapPin, Star, ArrowRight, ChevronRight } from 'lucide-react'
+import { disciplineEmoji } from '@/lib/disciplineEmoji'
 
 type School = {
   id: string
@@ -18,17 +19,7 @@ type School = {
   disciplines: { discipline: { name: string } }[]
 }
 
-const DISCIPLINES = [
-  { label: 'All',        emoji: '🥋' },
-  { label: 'BJJ',        emoji: '🟦' },
-  { label: 'MMA',        emoji: '🥊' },
-  { label: 'Muay Thai',  emoji: '🦶' },
-  { label: 'Wrestling',  emoji: '🤼' },
-  { label: 'Grappling',  emoji: '🤲' },
-  { label: 'Boxing',     emoji: '🥊' },
-  { label: 'Judo',       emoji: '🟡' },
-  { label: 'Karate',     emoji: '⚡' },
-]
+type DisciplineChip = { label: string; emoji: string; slug: string }
 
 const FALLBACK = 'https://images.unsplash.com/photo-1555597673-b21d5c935865?w=800&h=500&fit=crop&q=80'
 
@@ -94,12 +85,23 @@ export default function HomeDiscovery() {
   const [schools, setSchools] = useState<School[]>([])
   const [loading, setLoading] = useState(true)
   const [discipline, setDiscipline] = useState('All')
+  const [disciplines, setDisciplines] = useState<DisciplineChip[]>([{ label: 'All', emoji: '🥋', slug: 'all' }])
 
   useEffect(() => {
     fetch('/api/schools')
       .then(r => r.json())
       .then(d => { setSchools(d); setLoading(false) })
       .catch(() => setLoading(false))
+  }, [])
+
+  useEffect(() => {
+    fetch('/api/disciplines')
+      .then(r => r.json())
+      .then((d: { disciplines: { name: string; slug: string }[] }) => setDisciplines([
+        { label: 'All', emoji: '🥋', slug: 'all' },
+        ...d.disciplines.map(x => ({ label: x.name, emoji: disciplineEmoji(x.slug), slug: x.slug })),
+      ]))
+      .catch(() => {})
   }, [])
 
   const filtered = discipline === 'All'
@@ -132,7 +134,7 @@ export default function HomeDiscovery() {
 
         {/* Discipline chips */}
         <div className="flex gap-2 overflow-x-auto scrollbar-none -mx-1 px-1 pb-4">
-          {DISCIPLINES.map(d => {
+          {disciplines.map(d => {
             const active = discipline === d.label
             return (
               <button

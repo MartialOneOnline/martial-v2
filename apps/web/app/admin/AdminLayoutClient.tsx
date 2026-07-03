@@ -52,6 +52,7 @@ const NAV = [
     children: [
       { label: 'General',  href: '/admin/settings' },
       { label: 'Payments', href: '/admin/settings/payments' },
+      { label: 'Catalog',  href: '/admin/settings/catalog' },
     ],
   },
 ]
