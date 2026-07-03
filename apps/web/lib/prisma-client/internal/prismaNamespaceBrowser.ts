@@ -80,6 +80,7 @@ export const ModelName = {
   SchoolInvitation: 'SchoolInvitation',
   Waiver: 'Waiver',
   UserWaiver: 'UserWaiver',
+  LoginHistory: 'LoginHistory',
   Transaction: 'Transaction',
   UserPreference: 'UserPreference',
   ProductCategory: 'ProductCategory',
@@ -87,7 +88,10 @@ export const ModelName = {
   Order: 'Order',
   OrderItem: 'OrderItem',
   Partner: 'Partner',
-  Notification: 'Notification'
+  Notification: 'Notification',
+  PlatformSettings: 'PlatformSettings',
+  SchoolSubscription: 'SchoolSubscription',
+  StripeWebhookEvent: 'StripeWebhookEvent'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -663,6 +667,25 @@ export const UserWaiverScalarFieldEnum = {
 export type UserWaiverScalarFieldEnum = (typeof UserWaiverScalarFieldEnum)[keyof typeof UserWaiverScalarFieldEnum]
 
 
+export const LoginHistoryScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  userEmail: 'userEmail',
+  userName: 'userName',
+  userRole: 'userRole',
+  ipAddress: 'ipAddress',
+  country: 'country',
+  city: 'city',
+  userAgent: 'userAgent',
+  browser: 'browser',
+  os: 'os',
+  device: 'device',
+  createdAt: 'createdAt'
+} as const
+
+export type LoginHistoryScalarFieldEnum = (typeof LoginHistoryScalarFieldEnum)[keyof typeof LoginHistoryScalarFieldEnum]
+
+
 export const TransactionScalarFieldEnum = {
   id: 'id',
   schoolId: 'schoolId',
@@ -783,6 +806,59 @@ export const NotificationScalarFieldEnum = {
 } as const
 
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
+export const PlatformSettingsScalarFieldEnum = {
+  id: 'id',
+  enabledPaymentMethods: 'enabledPaymentMethods',
+  defaultCurrency: 'defaultCurrency',
+  defaultTaxName: 'defaultTaxName',
+  defaultTaxRate: 'defaultTaxRate',
+  defaultTaxNumber: 'defaultTaxNumber',
+  taxActive: 'taxActive',
+  gracePeriodDays: 'gracePeriodDays',
+  planCurrency: 'planCurrency',
+  planPriceMonthly: 'planPriceMonthly',
+  planPriceQuarterly: 'planPriceQuarterly',
+  planPriceAnnual: 'planPriceAnnual',
+  stripePriceIdMonthly: 'stripePriceIdMonthly',
+  stripePriceIdQuarterly: 'stripePriceIdQuarterly',
+  stripePriceIdAnnual: 'stripePriceIdAnnual',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PlatformSettingsScalarFieldEnum = (typeof PlatformSettingsScalarFieldEnum)[keyof typeof PlatformSettingsScalarFieldEnum]
+
+
+export const SchoolSubscriptionScalarFieldEnum = {
+  id: 'id',
+  schoolId: 'schoolId',
+  billingCycle: 'billingCycle',
+  status: 'status',
+  stripeCustomerId: 'stripeCustomerId',
+  stripeSubscriptionId: 'stripeSubscriptionId',
+  currentPeriodEnd: 'currentPeriodEnd',
+  trialEndsAt: 'trialEndsAt',
+  cancelledAt: 'cancelledAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SchoolSubscriptionScalarFieldEnum = (typeof SchoolSubscriptionScalarFieldEnum)[keyof typeof SchoolSubscriptionScalarFieldEnum]
+
+
+export const StripeWebhookEventScalarFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  type: 'type',
+  status: 'status',
+  processedAt: 'processedAt',
+  error: 'error',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type StripeWebhookEventScalarFieldEnum = (typeof StripeWebhookEventScalarFieldEnum)[keyof typeof StripeWebhookEventScalarFieldEnum]
 
 
 export const SortOrder = {

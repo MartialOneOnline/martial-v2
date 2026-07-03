@@ -3,6 +3,16 @@ import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 
+async function getEnabledPaymentMethods() {
+  const settings = await prisma.platformSettings.upsert({
+    where: { id: 'singleton' },
+    create: { id: 'singleton' },
+    update: {},
+    select: { enabledPaymentMethods: true },
+  })
+  return settings.enabledPaymentMethods
+}
+
 // GET /api/dashboard/school — returns active school data for dashboard
 export async function GET(req: NextRequest) {
   const user = await getAuthUser()
@@ -56,7 +66,9 @@ export async function GET(req: NextRequest) {
 
   if (!school) return NextResponse.json({ error: 'School not found' }, { status: 404 })
 
-  return NextResponse.json({ school })
+  const enabledPaymentMethods = await getEnabledPaymentMethods()
+
+  return NextResponse.json({ school, enabledPaymentMethods })
 }
 
 // PATCH /api/dashboard/school — update school settings (language, etc.)
@@ -87,6 +99,17 @@ export async function PATCH(req: NextRequest) {
   const VALID_LANGS = ['en', 'es', 'pt', 'fr']
   const VALID_CANCEL_POLICIES = ['IMMEDIATE', 'UNTIL_END_OF_PERIOD']
 
+  // Server-side gating: a school can only accept payment methods the platform
+  // has enabled, regardless of what the UI sends (defense against direct API calls).
+  let gatedBookingSettings = defaultBookingSettings
+  if (defaultBookingSettings !== undefined && Array.isArray(defaultBookingSettings?.acceptedMethods)) {
+    const enabledPaymentMethods = await getEnabledPaymentMethods()
+    gatedBookingSettings = {
+      ...defaultBookingSettings,
+      acceptedMethods: defaultBookingSettings.acceptedMethods.filter((m: string) => enabledPaymentMethods.includes(m)),
+    }
+  }
+
   const updated = await prisma.school.update({
     where: { id: schoolId },
     data: {
@@ -106,7 +129,7 @@ export async function PATCH(req: NextRequest) {
       ...(city        !== undefined && { city:        city?.trim()        || null }),
       ...(country     !== undefined && { country:     country?.trim()     || null }),
       ...(logoUrl                !== undefined && { logoUrl: logoUrl?.trim() || null }),
-      ...(defaultBookingSettings !== undefined && { defaultBookingSettings }),
+      ...(defaultBookingSettings !== undefined && { defaultBookingSettings: gatedBookingSettings }),
       ...(cancelPolicy !== undefined && VALID_CANCEL_POLICIES.includes(cancelPolicy) && { cancelPolicy }),
       ...(stripePublishableKey !== undefined && { stripePublishableKey: stripePublishableKey?.trim() || null }),
       ...(stripeSecretKey      !== undefined && { stripeSecretKey:      stripeSecretKey?.trim()      || null }),

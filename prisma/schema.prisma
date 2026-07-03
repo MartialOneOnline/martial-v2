@@ -165,6 +165,27 @@ enum TransactionStatus {
   CANCELLED
 }
 
+// Martial's own SaaS subscription status for a school (schools paying
+// Martial), mirrors Stripe's real Subscription.status values so webhook
+// handlers can map 1:1 without inventing intermediate states.
+enum SchoolSubscriptionStatus {
+  TRIALING
+  ACTIVE
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+  PAST_DUE
+  UNPAID
+  PAUSED
+  CANCELED
+  INACTIVE
+}
+
+enum StripeWebhookEventStatus {
+  PROCESSING
+  PROCESSED
+  FAILED
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // AFFILIATION
 // Martial arts organizations / associations that affiliate academies
@@ -331,6 +352,7 @@ model User {
   userWaivers     UserWaiver[]
   sentInvitations SchoolInvitation[] @relation("InvitedByUser")
   preference      UserPreference?
+  loginHistory    LoginHistory[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -466,6 +488,10 @@ model School {
   transactions    Transaction[]
   invitations     SchoolInvitation[]
   notifications   Notification[]
+
+  // Martial SaaS billing — school paying the platform (separate from the
+  // school's own Stripe keys above, which they use to charge their members)
+  subscription SchoolSubscription?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1092,6 +1118,43 @@ model UserWaiver {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// LOGIN HISTORY
+// Audit log of login events (IP, geolocation, device). Not a live-session
+// table — Supabase's own auth.sessions is ephemeral and gets pruned, so this
+// is the durable record. Snapshot fields preserve the user's identity/role at
+// the time of login even if the User is later deleted or changed.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model LoginHistory {
+  id String @id @default(cuid())
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // Snapshot of the user at login time (survives deletion / role changes)
+  userEmail String?
+  userName  String?
+  userRole  Role?
+
+  ipAddress String?
+  country   String?
+  city      String?
+
+  userAgent String? // full raw string, kept as fallback
+  browser   String?
+  os        String?
+  device    String? // 'Desktop' | 'Mobile' | 'Tablet' | 'Unknown'
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([userEmail])
+  @@index([createdAt])
+  @@index([userId, ipAddress, createdAt])
+  @@map("login_history")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // TRANSACTION
 // School financial records: income + expenses in one table.
 // Maps V1 expenses (119) + incomes (6) + orders (43).
@@ -1278,4 +1341,83 @@ model Notification {
   @@index([schoolId, read])
   @@index([schoolId, createdAt])
   @@map("notifications")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PLATFORM SETTINGS  (super admin — single row, id is fixed to "singleton")
+// Two distinct concerns live here on purpose:
+//  1. enabledPaymentMethods — gates which methods schools may offer *their*
+//     members (schools then pick their own subset in School.defaultBookingSettings).
+//  2. plan* / stripePriceId* — Martial's own SaaS plan that schools subscribe
+//     to (see SchoolSubscription below), billed on Martial's platform Stripe
+//     account, unrelated to any school's own Stripe keys.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model PlatformSettings {
+  id                    String   @id @default("singleton")
+  enabledPaymentMethods String[] @default(["STRIPE", "CASH", "BANK_TRANSFER", "DIRECT_DEBIT", "PAYPAL", "OTHER"])
+
+  defaultCurrency  String  @default("EUR")
+  defaultTaxName   String?
+  defaultTaxRate   Float?
+  defaultTaxNumber String?
+  taxActive        Boolean @default(false)
+
+  // Days a school may remain PAST_DUE before manual admin intervention.
+  // No automated enforcement yet — see SchoolSubscription below.
+  gracePeriodDays Int @default(0)
+
+  // Derived from Stripe at save time (see /api/admin/settings/payments) —
+  // never typed directly by the admin, to avoid the displayed price
+  // drifting from what the Stripe Price actually charges.
+  planCurrency           String  @default("EUR")
+  planPriceMonthly       Int?
+  planPriceQuarterly     Int?
+  planPriceAnnual        Int?
+  stripePriceIdMonthly   String?
+  stripePriceIdQuarterly String?
+  stripePriceIdAnnual    String?
+
+  updatedAt DateTime @updatedAt
+
+  @@map("platform_settings")
+}
+
+model SchoolSubscription {
+  id       String @id @default(cuid())
+  schoolId String @unique
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  billingCycle String? // 'monthly' | 'quarterly' | 'annual' — matches MembershipPlan.billingCycle convention
+
+  status SchoolSubscriptionStatus @default(INACTIVE)
+
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  currentPeriodEnd     DateTime?
+  trialEndsAt          DateTime?
+  cancelledAt          DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("school_subscriptions")
+}
+
+// Webhook idempotency for the platform Stripe webhook (and reusable for the
+// per-school one). Starts PROCESSING and only flips to PROCESSED once the
+// handler fully completes — a crash mid-handler leaves it PROCESSING/FAILED
+// so a Stripe retry is treated as a recovery attempt, not a duplicate.
+model StripeWebhookEvent {
+  id          String                   @id @default(cuid())
+  eventId     String                   @unique
+  type        String
+  status      StripeWebhookEventStatus @default(PROCESSING)
+  processedAt DateTime?
+  error       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("stripe_webhook_events")
 }

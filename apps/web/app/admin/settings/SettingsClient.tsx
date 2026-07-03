@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Settings, Bell, Shield, Globe, Mail, Save, Check } from 'lucide-react'
 
-function Section({ title, icon: Icon, children }: { title: string; icon: React.ElementType; children: React.ReactNode }) {
+export function Section({ title, icon: Icon, children }: { title: string; icon: React.ElementType; children: React.ReactNode }) {
   return (
     <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
       <div className="flex items-center gap-2.5 px-6 py-4 border-b border-gray-50">
@@ -17,7 +17,7 @@ function Section({ title, icon: Icon, children }: { title: string; icon: React.E
   )
 }
 
-function Toggle({ label, description, checked, onChange }: {
+export function Toggle({ label, description, checked, onChange }: {
   label: string; description?: string; checked: boolean; onChange: (v: boolean) => void
 }) {
   return (

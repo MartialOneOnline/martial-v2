@@ -212,6 +212,30 @@ export const TransactionStatus = {
 export type TransactionStatus = (typeof TransactionStatus)[keyof typeof TransactionStatus]
 
 
+export const SchoolSubscriptionStatus = {
+  TRIALING: 'TRIALING',
+  ACTIVE: 'ACTIVE',
+  INCOMPLETE: 'INCOMPLETE',
+  INCOMPLETE_EXPIRED: 'INCOMPLETE_EXPIRED',
+  PAST_DUE: 'PAST_DUE',
+  UNPAID: 'UNPAID',
+  PAUSED: 'PAUSED',
+  CANCELED: 'CANCELED',
+  INACTIVE: 'INACTIVE'
+} as const
+
+export type SchoolSubscriptionStatus = (typeof SchoolSubscriptionStatus)[keyof typeof SchoolSubscriptionStatus]
+
+
+export const StripeWebhookEventStatus = {
+  PROCESSING: 'PROCESSING',
+  PROCESSED: 'PROCESSED',
+  FAILED: 'FAILED'
+} as const
+
+export type StripeWebhookEventStatus = (typeof StripeWebhookEventStatus)[keyof typeof StripeWebhookEventStatus]
+
+
 export const InvitationStatus = {
   PENDING: 'PENDING',
   SENT: 'SENT',

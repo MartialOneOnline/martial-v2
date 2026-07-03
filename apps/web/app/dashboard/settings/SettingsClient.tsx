@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
 import {
   Bell, Menu, X, Check, Upload, Eye, EyeOff, Plus, Minus,
   User, Building2, Users2, Wallet, GraduationCap,
@@ -11,6 +12,7 @@ import {
 } from 'lucide-react'
 import { useDashboard } from '../../../components/DashboardShell'
 import { useT } from '../../../lib/i18n/LanguageContext'
+import { fmtPrice } from '../../../lib/format'
 
 // ── Shared styles ─────────────────────────────────────────────────────────────
 const INP: React.CSSProperties = {
@@ -493,6 +495,9 @@ const PAYMENT_METHODS = [
 
 function PaymentsTab() {
   const [acceptedMethods, setAcceptedMethods] = useState<string[]>(['CASH', 'STRIPE', 'BANK_TRANSFER'])
+  // Which methods the platform allows at all — schools can only pick from this subset.
+  // Defaults to everything so the picker doesn't flash-hide options before the fetch resolves.
+  const [enabledPaymentMethods, setEnabledPaymentMethods] = useState<string[]>(PAYMENT_METHODS.map(m => m.key))
   const [cancelPolicy,  setCancelPolicy]  = useState<'IMMEDIATE' | 'UNTIL_END_OF_PERIOD'>('IMMEDIATE')
   const [autoCharge,    setAutoCharge]    = useState(true)
   const [invoiceEmails, setInvoiceEmails] = useState(true)
@@ -513,8 +518,12 @@ function PaymentsTab() {
 
   useEffect(() => {
     fetch('/api/dashboard/school').then(r => r.json()).then(d => {
+      const enabled: string[] = d.enabledPaymentMethods ?? PAYMENT_METHODS.map(m => m.key)
+      setEnabledPaymentMethods(enabled)
       const s = d.school?.defaultBookingSettings
-      if (s?.acceptedMethods?.length) setAcceptedMethods(s.acceptedMethods)
+      // Intersect with what the platform still allows — a method the platform disabled since
+      // this school last saved silently drops out here instead of staying stuck selected.
+      if (s?.acceptedMethods?.length) setAcceptedMethods(s.acceptedMethods.filter((m: string) => enabled.includes(m)))
       if (d.school?.cancelPolicy) setCancelPolicy(d.school.cancelPolicy)
       if (d.school?.stripePublishableKey) { setStripePk(d.school.stripePublishableKey); setStripeConnected(true) }
       if (d.school?.stripeSecretKey)      setStripeSk(d.school.stripeSecretKey)
@@ -641,7 +650,7 @@ function PaymentsTab() {
         <p style={SECTION_TITLE}>Accepted payment methods</p>
         <p style={SECTION_SUB}>Choose which methods your school accepts from members</p>
         <div className="flex flex-wrap gap-2">
-          {PAYMENT_METHODS.map(m => {
+          {PAYMENT_METHODS.filter(m => enabledPaymentMethods.includes(m.key)).map(m => {
             const active = acceptedMethods.includes(m.key)
             return (
               <button key={m.key} onClick={() => toggleMethod(m.key)}
@@ -733,6 +742,142 @@ function PaymentsTab() {
       </div>
 
       <SaveToast show={saved} text="Payment settings saved" />
+    </div>
+  )
+}
+
+// ── Billing Tab ───────────────────────────────────────────────────────────────
+// Martial's own SaaS subscription — your school paying Martial. Distinct from
+// the Payments tab above, which configures how your school gets paid by its own members.
+type BillingCycle = 'monthly' | 'quarterly' | 'annual'
+const BILLING_CYCLES: { cycle: BillingCycle; label: string }[] = [
+  { cycle: 'monthly',   label: 'Monthly' },
+  { cycle: 'quarterly', label: 'Quarterly' },
+  { cycle: 'annual',    label: 'Annual' },
+]
+const SUBSCRIPTION_STATUS_BADGE: Record<string, { label: string; bg: string; color: string }> = {
+  TRIALING:           { label: 'Trialing',   bg: '#EFF6FF', color: '#0870E2' },
+  ACTIVE:              { label: 'Active',     bg: '#F0FDF4', color: '#16A34A' },
+  INCOMPLETE:          { label: 'Incomplete', bg: '#FFFBEB', color: '#D97706' },
+  INCOMPLETE_EXPIRED:  { label: 'Expired',    bg: '#F3F4F6', color: '#6B7280' },
+  PAST_DUE:            { label: 'Past due',   bg: '#FEF2F2', color: '#DC2626' },
+  UNPAID:              { label: 'Unpaid',     bg: '#FEF2F2', color: '#DC2626' },
+  PAUSED:              { label: 'Paused',     bg: '#FFFBEB', color: '#D97706' },
+  CANCELED:            { label: 'Canceled',   bg: '#F3F4F6', color: '#6B7280' },
+  INACTIVE:            { label: 'No plan',    bg: '#F3F4F6', color: '#9CA3AF' },
+}
+const LIVE_SUBSCRIPTION_STATUSES = ['TRIALING', 'ACTIVE', 'INCOMPLETE', 'PAST_DUE', 'UNPAID', 'PAUSED']
+
+function BillingTab() {
+  const [subscription, setSubscription] = useState<{
+    status: string; billingCycle: string | null; currentPeriodEnd: string | null
+  } | null>(null)
+  const [plans, setPlans] = useState<{ currency: string; monthly: number | null; quarterly: number | null; annual: number | null } | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [redirecting, setRedirecting] = useState<BillingCycle | 'portal' | null>(null)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    fetch('/api/dashboard/billing').then(r => r.json()).then(d => {
+      setSubscription(d.subscription)
+      setPlans(d.plans)
+      setLoading(false)
+    })
+  }, [])
+
+  async function subscribe(cycle: BillingCycle) {
+    setRedirecting(cycle)
+    setError('')
+    const res = await fetch('/api/dashboard/billing/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ billingCycle: cycle }),
+    })
+    const data = await res.json()
+    if (!res.ok) { setError(data.error || 'Could not start checkout'); setRedirecting(null); return }
+    window.location.href = data.url
+  }
+
+  async function manageBilling() {
+    setRedirecting('portal')
+    setError('')
+    const res = await fetch('/api/dashboard/billing/portal', { method: 'POST' })
+    const data = await res.json()
+    if (!res.ok) { setError(data.error || 'Could not open billing portal'); setRedirecting(null); return }
+    window.location.href = data.url
+  }
+
+  if (loading) {
+    return <p style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</p>
+  }
+
+  const isLive = !!subscription && LIVE_SUBSCRIPTION_STATUSES.includes(subscription.status)
+
+  return (
+    <div className="flex flex-col gap-8" style={{ maxWidth: 600 }}>
+      <div>
+        <p style={SECTION_TITLE}>Martial subscription</p>
+        <p style={SECTION_SUB}>Your school&apos;s subscription to the Martial platform</p>
+
+        {error && (
+          <div className="p-3 rounded-xl mb-4" style={{ background: '#FEF2F2', border: '1px solid #FECACA' }}>
+            <p style={{ fontSize: 12, color: '#DC2626', margin: 0 }}>{error}</p>
+          </div>
+        )}
+
+        {isLive ? (
+          <div className="p-5 rounded-2xl flex flex-col gap-4" style={{ border: '1.5px solid #E5E7EB', background: '#fff' }}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: '#EFF6FF' }}>
+                  <CreditCard size={17} style={{ color: '#0870E2' }} />
+                </div>
+                <div>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: '#111827', margin: 0, textTransform: 'capitalize' }}>
+                    {subscription!.billingCycle ?? 'Subscription'} plan
+                  </p>
+                  {subscription!.currentPeriodEnd && (
+                    <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>
+                      Renews {new Date(subscription!.currentPeriodEnd).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <span style={{
+                fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 999,
+                background: SUBSCRIPTION_STATUS_BADGE[subscription!.status]?.bg ?? '#F3F4F6',
+                color: SUBSCRIPTION_STATUS_BADGE[subscription!.status]?.color ?? '#6B7280',
+              }}>
+                {SUBSCRIPTION_STATUS_BADGE[subscription!.status]?.label ?? subscription!.status}
+              </span>
+            </div>
+            <button onClick={manageBilling} disabled={redirecting !== null}
+              style={{ alignSelf: 'flex-start', padding: '8px 20px', borderRadius: 8, background: '#0870E2', color: '#fff', fontSize: 13, fontWeight: 600, border: 'none', cursor: 'pointer', opacity: redirecting ? 0.6 : 1 }}>
+              {redirecting === 'portal' ? 'Opening…' : 'Manage billing'}
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-3">
+            {BILLING_CYCLES.map(({ cycle, label }) => {
+              const amount = plans?.[cycle]
+              return (
+                <div key={cycle} className="p-4 rounded-2xl flex items-center justify-between" style={{ border: '1.5px solid #E5E7EB' }}>
+                  <div>
+                    <p style={{ fontSize: 14, fontWeight: 600, color: '#111827', margin: 0 }}>{label}</p>
+                    <p style={{ fontSize: 13, color: '#6B7280', margin: 0 }}>
+                      {amount != null ? fmtPrice(amount / 100, plans!.currency) : 'Not available yet'}
+                    </p>
+                  </div>
+                  <button onClick={() => subscribe(cycle)} disabled={amount == null || redirecting !== null}
+                    style={{ padding: '8px 18px', borderRadius: 8, background: '#0870E2', color: '#fff', fontSize: 13, fontWeight: 600, border: 'none', cursor: amount == null ? 'not-allowed' : 'pointer', opacity: amount == null || redirecting ? 0.5 : 1 }}>
+                    {redirecting === cycle ? 'Redirecting…' : 'Subscribe'}
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -1385,13 +1530,14 @@ function DeleteTab() {
 }
 
 // ── Tabs config ───────────────────────────────────────────────────────────────
-type TabId = 'profile' | 'school' | 'staff' | 'payments' | 'grading' | 'password' | 'delete'
+type TabId = 'profile' | 'school' | 'staff' | 'payments' | 'billing' | 'grading' | 'password' | 'delete'
 
 const TABS: { id: TabId; label: string; danger?: boolean }[] = [
   { id: 'profile',  label: 'Profile'         },
   { id: 'school',   label: 'School'          },
   { id: 'staff',    label: 'Staff'           },
   { id: 'payments', label: 'Payments'        },
+  { id: 'billing',  label: 'Billing'         },
   { id: 'grading',  label: 'Grading'         },
   { id: 'password', label: 'Password'        },
   { id: 'delete',   label: 'Delete Account', danger: true },
@@ -1401,13 +1547,18 @@ const TABS: { id: TabId; label: string; danger?: boolean }[] = [
 export default function SettingsClient() {
   const { menuOpen, setMenuOpen } = useDashboard()
   const t = useT()
-  const [activeTab, setActiveTab] = useState<TabId>('profile')
+  const searchParams = useSearchParams()
+  const tabParam = searchParams.get('tab')
+  const [activeTab, setActiveTab] = useState<TabId>(
+    TABS.some(tab => tab.id === tabParam) ? (tabParam as TabId) : 'profile'
+  )
 
   const content: Record<TabId, React.ReactNode> = {
     profile:  <ProfileTab />,
     school:   <SchoolTab />,
     staff:    <StaffTab />,
     payments: <PaymentsTab />,
+    billing:  <BillingTab />,
     grading:  <GradingTab />,
     password: <PasswordTab />,
     delete:   <DeleteTab />,

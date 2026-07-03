@@ -134,9 +134,18 @@ export default function LoginModal({ onClose, onOpenRegister, redirectTo }: Logi
     if (!valid) return
 
     setLoading(true)
-    const { error: err } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error: err } = await supabase.auth.signInWithPassword({ email, password })
     setLoading(false)
     if (err) { setError(err.message); return }
+
+    if (data.session?.access_token) {
+      fetch('/api/auth/login-event', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${data.session.access_token}` },
+        keepalive: true,
+      }).catch(() => {})
+    }
+
     onClose()
     await resolveRedirect()
   }

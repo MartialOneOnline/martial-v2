@@ -36,6 +36,7 @@ export async function GET(req: NextRequest) {
         city: true, country: true, email: true, phone: true,
         createdAt: true, updatedAt: true,
         _count: { select: { members: true } },
+        subscription: { select: { status: true } },
       },
     }),
     prisma.school.count({ where }),

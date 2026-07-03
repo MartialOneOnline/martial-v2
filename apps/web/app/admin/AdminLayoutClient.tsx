@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Building2, Users, Settings,
   ChevronDown, ChevronRight, Target, GraduationCap,
-  TrendingUp, LogOut,
+  TrendingUp, LogOut, ShieldAlert,
 } from 'lucide-react'
 
 const NAV = [
@@ -35,13 +35,25 @@ const NAV = [
     ],
   },
   {
+    label: 'Security', icon: ShieldAlert,
+    children: [
+      { label: 'Login History', href: '/admin/security/login-history' },
+    ],
+  },
+  {
     label: 'Reports', icon: TrendingUp,
     children: [
       { label: 'Overview', href: '/admin/reports' },
       { label: 'Growth',   href: '/admin/reports/growth' },
     ],
   },
-  { label: 'Settings', href: '/admin/settings', icon: Settings },
+  {
+    label: 'Settings', icon: Settings,
+    children: [
+      { label: 'General',  href: '/admin/settings' },
+      { label: 'Payments', href: '/admin/settings/payments' },
+    ],
+  },
 ]
 
 function NavItem({ item }: { item: typeof NAV[number] }) {

@@ -20,6 +20,7 @@ type School = {
   email: string | null
   createdAt: string
   _count: { members: number }
+  subscription: { status: string } | null
 }
 
 const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
@@ -28,6 +29,19 @@ const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
   UNVERIFIED: { label: 'Unverified', cls: 'bg-gray-100 text-gray-500 border border-gray-200' },
   PARTNER:    { label: 'Partner',    cls: 'bg-amber-50 text-amber-700 border border-amber-100' },
   SUSPENDED:  { label: 'Suspended',  cls: 'bg-red-50 text-red-600 border border-red-100' },
+}
+
+// Martial's SaaS billing status for this school (not the school's own listing status above)
+const SUBSCRIPTION_BADGE: Record<string, { label: string; cls: string }> = {
+  TRIALING:           { label: 'Trialing',   cls: 'bg-blue-50 text-blue-700 border border-blue-100' },
+  ACTIVE:              { label: 'Active',     cls: 'bg-emerald-50 text-emerald-700 border border-emerald-100' },
+  INCOMPLETE:          { label: 'Incomplete', cls: 'bg-amber-50 text-amber-700 border border-amber-100' },
+  INCOMPLETE_EXPIRED:  { label: 'Expired',    cls: 'bg-gray-100 text-gray-500 border border-gray-200' },
+  PAST_DUE:            { label: 'Past due',   cls: 'bg-red-50 text-red-600 border border-red-100' },
+  UNPAID:              { label: 'Unpaid',     cls: 'bg-red-50 text-red-600 border border-red-100' },
+  PAUSED:              { label: 'Paused',     cls: 'bg-amber-50 text-amber-700 border border-amber-100' },
+  CANCELED:            { label: 'Canceled',   cls: 'bg-gray-100 text-gray-500 border border-gray-200' },
+  INACTIVE:            { label: 'No plan',    cls: 'bg-gray-100 text-gray-400 border border-gray-200' },
 }
 
 const TYPE_BADGE: Record<string, { label: string; cls: string }> = {
@@ -337,6 +351,7 @@ export default function AllSchoolsClient() {
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Location</th>
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Type</th>
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Status</th>
+                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Billing</th>
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Members</th>
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Added</th>
                   <th className="px-4 py-3" />
@@ -370,6 +385,11 @@ export default function AllSchoolsClient() {
                     <td className="px-4 py-3">
                       <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${STATUS_BADGE[school.status]?.cls ?? 'bg-gray-100 text-gray-500'}`}>
                         {STATUS_BADGE[school.status]?.label ?? school.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${SUBSCRIPTION_BADGE[school.subscription?.status ?? 'INACTIVE']?.cls ?? 'bg-gray-100 text-gray-400 border border-gray-200'}`}>
+                        {SUBSCRIPTION_BADGE[school.subscription?.status ?? 'INACTIVE']?.label ?? 'No plan'}
                       </span>
                     </td>
                     <td className="px-4 py-3">

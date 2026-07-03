@@ -187,6 +187,11 @@ export type Waiver = Prisma.WaiverModel
  */
 export type UserWaiver = Prisma.UserWaiverModel
 /**
+ * Model LoginHistory
+ * 
+ */
+export type LoginHistory = Prisma.LoginHistoryModel
+/**
  * Model Transaction
  * 
  */
@@ -226,3 +231,18 @@ export type Partner = Prisma.PartnerModel
  * 
  */
 export type Notification = Prisma.NotificationModel
+/**
+ * Model PlatformSettings
+ * 
+ */
+export type PlatformSettings = Prisma.PlatformSettingsModel
+/**
+ * Model SchoolSubscription
+ * 
+ */
+export type SchoolSubscription = Prisma.SchoolSubscriptionModel
+/**
+ * Model StripeWebhookEvent
+ * 
+ */
+export type StripeWebhookEvent = Prisma.StripeWebhookEventModel

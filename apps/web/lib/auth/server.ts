@@ -4,6 +4,34 @@ import { createServerClient } from '@supabase/ssr'
 import { prisma } from '@/lib/db'
 import { requireSchoolAccess } from './contexts'
 
+// Resolves the Prisma User for a given Supabase auth user (by supabaseAuthId,
+// falling back to linking by email if the link hasn't been made yet).
+// Shared by getAuthUser() (cookie-based) and any route that verifies a
+// Supabase access token directly (e.g. /api/auth/login-event).
+export async function resolveDbUser(supabaseUser: { id: string; email?: string | null }) {
+  let dbUser = await prisma.user.findUnique({
+    where: { supabaseAuthId: supabaseUser.id },
+    select: { id: true, role: true, email: true, name: true },
+  })
+
+  // Fallback: link by email if supabaseAuthId not set yet
+  if (!dbUser && supabaseUser.email) {
+    const byEmail = await prisma.user.findUnique({
+      where: { email: supabaseUser.email },
+      select: { id: true, role: true, email: true, name: true },
+    })
+    if (byEmail) {
+      await prisma.user.update({
+        where: { id: byEmail.id },
+        data: { supabaseAuthId: supabaseUser.id },
+      })
+      dbUser = byEmail
+    }
+  }
+
+  return dbUser ?? null
+}
+
 // Resolves the authenticated user from Supabase session.
 // Returns the Prisma User id, not the Supabase auth id.
 export async function getAuthUser() {
@@ -16,27 +44,7 @@ export async function getAuthUser() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  let dbUser = await prisma.user.findUnique({
-    where: { supabaseAuthId: user.id },
-    select: { id: true, role: true, email: true, name: true },
-  })
-
-  // Fallback: link by email if supabaseAuthId not set yet
-  if (!dbUser && user.email) {
-    const byEmail = await prisma.user.findUnique({
-      where: { email: user.email },
-      select: { id: true, role: true, email: true, name: true },
-    })
-    if (byEmail) {
-      await prisma.user.update({
-        where: { id: byEmail.id },
-        data: { supabaseAuthId: user.id },
-      })
-      dbUser = byEmail
-    }
-  }
-
-  return dbUser ?? null
+  return resolveDbUser(user)
 }
 
 // Returns currentSchoolId from cookie, falling back to UserPreference if cookie is missing.
