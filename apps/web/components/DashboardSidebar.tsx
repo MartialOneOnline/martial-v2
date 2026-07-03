@@ -34,6 +34,7 @@ function NavGroup({ item }: { item: NavItem }) {
     return (
       <Link
         href={item.href ?? '#'}
+        prefetch={false}
         className="flex items-center gap-3 px-3 py-2.5 rounded-xl no-underline transition-colors"
         style={{
           color: '#374151',
@@ -95,6 +96,7 @@ function NavGroup({ item }: { item: NavItem }) {
               <Link
                 key={child.label}
                 href={child.href}
+                prefetch={false}
                 className="flex items-center px-3 py-2 rounded-lg no-underline transition-colors"
                 style={{
                   fontSize: 13,
