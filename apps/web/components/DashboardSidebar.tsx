@@ -124,7 +124,7 @@ interface Props {
 
 export default function DashboardSidebar({ menuOpen, setMenuOpen }: Props) {
   const router = useRouter()
-  const { currentSchool, schools, switchSchool } = useSchoolContext()
+  const { currentSchool, schools, switchSchool, loading: ctxLoading } = useSchoolContext()
   const [switcherOpen, setSwitcherOpen] = useState(false)
   const [pendingTransactions, setPendingTransactions] = useState(0)
   const t = useT()
@@ -224,12 +224,21 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen }: Props) {
                 <Image src="/martial-logo.png" alt="Martial" width={28} height={28} className="object-contain" />
               </div>
               <div className="min-w-0">
-                <p className="truncate" style={{ fontSize: 13, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>
-                  {currentSchool?.schoolName ?? 'Dashboard'}
-                </p>
-                <p style={{ fontSize: 10, fontWeight: 500, color: '#9CA3AF', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                  {currentSchool?.role ?? 'Academy'}
-                </p>
+                {ctxLoading ? (
+                  <>
+                    <div style={{ height: 13, width: 100, borderRadius: 4, background: '#F3F4F6', marginBottom: 4 }} />
+                    <div style={{ height: 10, width: 50, borderRadius: 4, background: '#F3F4F6' }} />
+                  </>
+                ) : (
+                  <>
+                    <p className="truncate" style={{ fontSize: 13, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>
+                      {currentSchool?.schoolName}
+                    </p>
+                    <p style={{ fontSize: 10, fontWeight: 500, color: '#9CA3AF', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                      {currentSchool?.role}
+                    </p>
+                  </>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-1">

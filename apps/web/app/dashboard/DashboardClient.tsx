@@ -71,21 +71,6 @@ const CHART_DATA = [
   { month: 'JUN', value: 65 },
 ]
 
-const TODAY_CLASSES = [
-  { id: 1,  name: 'BJJ All Levels',    time: '07:00–08:30', enrolled: 8,  cap: 20, status: 'Open', image: '/roger-gracie-malaga.jpg'     },
-  { id: 2,  name: 'NOGI',             time: '08:30–09:30', enrolled: 15, cap: 15, status: 'Full', image: '/mathouse.jpg'                },
-  { id: 3,  name: 'Kids BJJ',         time: '09:30–10:30', enrolled: 10, cap: 20, status: 'Open', image: '/five-elements-jiu-jitsu.jpg' },
-  { id: 4,  name: 'BJJ Beginners',    time: '10:00–11:30', enrolled: 5,  cap: 25, status: 'Open', image: '/roger-gracie-malaga.jpg'     },
-  { id: 5,  name: 'Open Mat',         time: '11:30–13:00', enrolled: 22, cap: 25, status: 'Open', image: '/mathouse.jpg'                },
-  { id: 6,  name: 'BJJ Advanced',     time: '12:00–13:30', enrolled: 18, cap: 20, status: 'Open', image: '/five-elements-jiu-jitsu.jpg' },
-  { id: 7,  name: 'Wrestling',        time: '17:00–18:00', enrolled: 12, cap: 15, status: 'Open', image: '/roger-gracie-malaga.jpg'     },
-  { id: 8,  name: 'NOGI Advanced',    time: '18:00–19:30', enrolled: 14, cap: 15, status: 'Open', image: '/mathouse.jpg'                },
-  { id: 9,  name: 'BJJ Competition',  time: '19:00–20:30', enrolled: 15, cap: 15, status: 'Full', image: '/five-elements-jiu-jitsu.jpg' },
-  { id: 10, name: 'BJJ Beginners',    time: '19:30–20:30', enrolled: 3,  cap: 25, status: 'Open', image: '/roger-gracie-malaga.jpg'     },
-  { id: 11, name: 'Open Mat',         time: '20:00–21:30', enrolled: 20, cap: 25, status: 'Open', image: '/mathouse.jpg'                },
-  { id: 12, name: 'BJJ All Levels',   time: '20:30–21:30', enrolled: 1,  cap: 30, status: 'Open', image: '/five-elements-jiu-jitsu.jpg' },
-]
-
 const DAY_LABELS = ['MON','TUE','WED','THU','FRI','SAT','SUN']
 // Generate 14 days starting from today — computed once at module load time (client-side)
 // This is mock data for the preview/demo dashboard only; the real dashboard uses API data.
@@ -226,11 +211,15 @@ export default function DashboardClient({ userName, userEmail }: Props) {
   // Real data
   const [stats, setStats]           = useState<DashStats | null>(null)
   const [todayClasses, setTodayClasses] = useState<TodayClass[]>([])
+  const [classesLoaded, setClassesLoaded] = useState(false)
   const [recentTx, setRecentTx]     = useState<{
     id: string; userName: string; userAvatar: string | null
     method: string; amount: number; currency: string
     date: string; status: string; description: string | null
   }[]>([])
+  const [schoolProfile, setSchoolProfile] = useState<{
+    logoUrl: string | null; coverUrl: string | null; tagline: string | null
+  } | null>(null)
 
   useEffect(() => {
     const sid = currentSchool?.schoolId
@@ -240,20 +229,27 @@ export default function DashboardClient({ userName, userEmail }: Props) {
       .then(d => d && setStats(d))
     fetch(`/api/dashboard/classes/today?schoolId=${sid}`)
       .then(r => r.ok ? r.json() : null)
-      .then(d => d?.classes && setTodayClasses(d.classes))
+      .then(d => { setTodayClasses(d?.classes ?? []); setClassesLoaded(true) })
     fetch('/api/dashboard/transactions?pageSize=6&page=1&type=INCOME')
       .then(r => r.ok ? r.json() : null)
       .then(d => d?.transactions && setRecentTx(d.transactions))
+    fetch(`/api/dashboard/school?schoolId=${sid}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => d?.school && setSchoolProfile({
+        logoUrl: d.school.logoUrl ?? null,
+        coverUrl: d.school.coverUrl ?? null,
+        tagline: d.school.tagline ?? null,
+      }))
   }, [currentSchool?.schoolId])
   const [aiInput, setAiInput]       = useState('')
   const [aiMessages, setAiMessages] = useState<{ role: 'ai' | 'user'; text: string }[]>([
     { role: 'ai', text: t.dashboard.aiGreeting },
   ])
 
-  // Use real classes if loaded, fall back to mock
-  const displayClasses = todayClasses.length > 0
-    ? todayClasses
-    : TODAY_CLASSES
+  // Use real classes once loaded (empty means genuinely no classes today, not "still loading")
+  const displayClasses = todayClasses
+
+  const schoolInitials = (currentSchool?.schoolName || 'A').trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()
 
   // ── Popup state ────────────────────────────────────────────────────────────
   const [showNotifications, setShowNotifications] = useState(false)
@@ -405,17 +401,26 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           {/* 1. Academy Info — mobile only */}
           <div className="lg:hidden rounded-2xl overflow-hidden" style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
             <div className="relative overflow-visible" style={{ height: 90 }}>
-              <div className="absolute inset-0 overflow-hidden rounded-t-2xl">
-                <Image src="/roger-gracie-malaga.jpg" alt="Roger Gracie Malaga" fill className="object-cover" />
+              <div className="absolute inset-0 overflow-hidden rounded-t-2xl" style={{ background: schoolProfile?.coverUrl ? undefined : '#F3F4F6' }}>
+                {schoolProfile?.coverUrl && (
+                  <Image src={schoolProfile.coverUrl} alt={currentSchool?.schoolName ?? 'Academy cover'} fill className="object-cover" />
+                )}
               </div>
-              <div className="absolute left-1/2 -translate-x-1/2 rounded-full overflow-hidden border-[3px] border-white"
-                style={{ width: 64, height: 64, bottom: -32, background: '#fff', boxShadow: '0 2px 10px rgba(0,0,0,0.18)', zIndex: 10 }}>
-                <Image src="/logo-roger-gracie.png" alt="Roger Gracie" width={64} height={64} className="object-contain" />
+              <div className="absolute left-1/2 -translate-x-1/2 rounded-full overflow-hidden border-[3px] border-white flex items-center justify-center"
+                style={{ width: 64, height: 64, bottom: -32, background: schoolProfile?.logoUrl ? '#fff' : 'linear-gradient(135deg,#0870E2,#7DE7EC)', boxShadow: '0 2px 10px rgba(0,0,0,0.18)', zIndex: 10 }}>
+                {schoolProfile?.logoUrl ? (
+                  <Image src={schoolProfile.logoUrl} alt={currentSchool?.schoolName ?? 'Academy logo'} width={64} height={64} className="object-contain" />
+                ) : (
+                  <span style={{ fontSize: 20, fontWeight: 700, color: '#fff' }}>{schoolInitials}</span>
+                )}
               </div>
             </div>
             <div className="pt-10 pb-4 px-4 text-center">
-              <p style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>{currentSchool?.schoolName ?? 'Academy'}</p>
-              <p style={{ fontSize: 12, color: '#9CA3AF' }}>{t.dashboard.jiuJitsuAcademy}</p>
+              {ctxLoading ? (
+                <div style={{ height: 15, width: 120, margin: '0 auto', borderRadius: 4, background: '#F3F4F6' }} />
+              ) : (
+                <p style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>{currentSchool?.schoolName}</p>
+              )}
             </div>
             <div className="px-4 pb-4 flex gap-2" style={{ borderTop: '1px solid #F3F4F6', paddingTop: 12 }}>
               <button onClick={() => setShowInvite(true)} title={t.dashboard.inviteUser} className="flex-1 h-9 flex items-center justify-center rounded-xl cursor-pointer" style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}><UserPlus size={15} strokeWidth={1.5} style={{ color: '#0071E3' }} /></button>
@@ -520,7 +525,20 @@ export default function DashboardClient({ userName, userEmail }: Props) {
               ))}
             </div>
             <div className="px-4 py-3 space-y-3">
-              {displayClasses.slice(0, 5).map((cls, i) => {
+              {!classesLoaded ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3 animate-pulse" style={{ paddingBottom: i < 2 ? 12 : 0, borderBottom: i < 2 ? '1px solid #F9FAFB' : 'none' }}>
+                    <div className="rounded-xl shrink-0" style={{ width: 52, height: 52, background: '#F3F4F6' }} />
+                    <div className="flex-1 space-y-2">
+                      <div style={{ height: 12, width: '60%', borderRadius: 4, background: '#F3F4F6' }} />
+                      <div style={{ height: 10, width: '40%', borderRadius: 4, background: '#F3F4F6' }} />
+                    </div>
+                  </div>
+                ))
+              ) : displayClasses.length === 0 ? (
+                <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: '12px 0' }}>{t.dashboard.noClassesToday}</p>
+              ) : null}
+              {classesLoaded && displayClasses.slice(0, 5).map((cls, i) => {
                 const pct = cls.enrolled / cls.cap
                 const capacityColor = pct >= 1 ? '#DC2626' : pct > 0.7 ? '#D97706' : '#16A34A'
                 return (
@@ -697,17 +715,26 @@ export default function DashboardClient({ userName, userEmail }: Props) {
         {/* 1. Academy card — full design, fixed height */}
         <div className="shrink-0 rounded-2xl overflow-hidden" style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
           <div className="relative overflow-visible" style={{ height: 80 }}>
-            <div className="absolute inset-0 overflow-hidden rounded-t-2xl">
-              <Image src="/roger-gracie-malaga.jpg" alt="Roger Gracie Malaga" fill className="object-cover" />
+            <div className="absolute inset-0 overflow-hidden rounded-t-2xl" style={{ background: schoolProfile?.coverUrl ? undefined : '#F3F4F6' }}>
+              {schoolProfile?.coverUrl && (
+                <Image src={schoolProfile.coverUrl} alt={currentSchool?.schoolName ?? 'Academy cover'} fill className="object-cover" />
+              )}
             </div>
-            <div className="absolute left-1/2 -translate-x-1/2 rounded-full overflow-hidden border-[3px] border-white"
-              style={{ width: 60, height: 60, bottom: -30, background: '#fff', boxShadow: '0 2px 12px rgba(0,0,0,0.2)', zIndex: 10 }}>
-              <Image src="/logo-roger-gracie.png" alt="Roger Gracie" width={60} height={60} className="object-contain" />
+            <div className="absolute left-1/2 -translate-x-1/2 rounded-full overflow-hidden border-[3px] border-white flex items-center justify-center"
+              style={{ width: 60, height: 60, bottom: -30, background: schoolProfile?.logoUrl ? '#fff' : 'linear-gradient(135deg,#0870E2,#7DE7EC)', boxShadow: '0 2px 12px rgba(0,0,0,0.2)', zIndex: 10 }}>
+              {schoolProfile?.logoUrl ? (
+                <Image src={schoolProfile.logoUrl} alt={currentSchool?.schoolName ?? 'Academy logo'} width={60} height={60} className="object-contain" />
+              ) : (
+                <span style={{ fontSize: 18, fontWeight: 700, color: '#fff' }}>{schoolInitials}</span>
+              )}
             </div>
           </div>
           <div className="pt-10 pb-3 px-4 text-center">
-            <p style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{currentSchool?.schoolName ?? 'Academy'}</p>
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{t.dashboard.jiuJitsuAcademy}</p>
+            {ctxLoading ? (
+              <div style={{ height: 14, width: 110, margin: '0 auto', borderRadius: 4, background: '#F3F4F6' }} />
+            ) : (
+              <p style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{currentSchool?.schoolName}</p>
+            )}
           </div>
           <div className="px-4 pb-4 flex gap-2" style={{ borderTop: '1px solid #F3F4F6', paddingTop: 12 }}>
             {[
@@ -790,7 +817,20 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           </div>
           {/* Class list — fills all remaining space in the card */}
           <div className="px-4 py-3 space-y-3 overflow-y-auto" style={{ flex: 1, scrollbarWidth: 'none' }}>
-            {displayClasses.map((cls, i) => {
+            {!classesLoaded ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3 animate-pulse" style={{ paddingBottom: i < 2 ? 12 : 0, borderBottom: i < 2 ? '1px solid #F9FAFB' : 'none' }}>
+                  <div className="rounded-xl shrink-0" style={{ width: 44, height: 44, background: '#F3F4F6' }} />
+                  <div className="flex-1 space-y-2">
+                    <div style={{ height: 11, width: '60%', borderRadius: 4, background: '#F3F4F6' }} />
+                    <div style={{ height: 9, width: '40%', borderRadius: 4, background: '#F3F4F6' }} />
+                  </div>
+                </div>
+              ))
+            ) : displayClasses.length === 0 ? (
+              <p style={{ fontSize: 12, color: '#9CA3AF', textAlign: 'center', padding: '12px 0' }}>{t.dashboard.noClassesToday}</p>
+            ) : null}
+            {classesLoaded && displayClasses.map((cls, i) => {
               const pct = cls.enrolled / cls.cap
               const capacityColor = pct >= 1 ? '#DC2626' : pct > 0.7 ? '#D97706' : '#16A34A'
               return (
