@@ -73,7 +73,7 @@ function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 flex md:hidden"
+      className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden"
       style={{ background: 'rgba(248,248,250,.96)', borderTop: '.5px solid rgba(60,60,67,.18)' }}
     >
       {/* Left items */}
@@ -177,7 +177,7 @@ function SidebarContent({ school, onClose }: { school: School; onClose?: () => v
           </div>
         </Link>
         {onClose && (
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 md:hidden p-1 shrink-0">
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 lg:hidden p-1 shrink-0">
             <X className="w-4 h-4" />
           </button>
         )}
@@ -221,8 +221,8 @@ function SidebarContent({ school, onClose }: { school: School; onClose?: () => v
         ))}
       </div>
 
-      {/* Sign out */}
-      <div className="px-4 py-4 border-t border-gray-50">
+      {/* Sign out — extra bottom padding below lg clears the fixed BottomNav bar */}
+      <div className="px-4 pt-4 pb-20 lg:pb-4 border-t border-gray-50">
         <button
           onClick={() => { window.location.href = '/api/auth/signout' }}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
@@ -259,12 +259,12 @@ export default function MyLayout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen flex" style={{ background: '#F2F2F7' }}>
 
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex flex-col w-60 shrink-0 fixed top-0 left-0 h-screen z-40">
+      <aside className="hidden lg:flex flex-col w-60 shrink-0 fixed top-0 left-0 h-screen z-40">
         <SidebarContent school={school} />
       </aside>
 
       {/* Mobile topbar */}
-      <div className="fixed top-0 left-0 right-0 h-12 bg-white border-b border-gray-100 flex items-center px-4 z-40 md:hidden">
+      <div className="fixed top-0 left-0 right-0 h-12 bg-white border-b border-gray-100 flex items-center px-4 z-40 lg:hidden">
         <button
           onClick={() => setDrawerOpen(true)}
           className="p-2 -ml-2 text-gray-500 hover:text-[#101828] transition-colors"
@@ -287,7 +287,7 @@ export default function MyLayout({ children }: { children: React.ReactNode }) {
 
       {/* Mobile drawer */}
       {drawerOpen && (
-        <div className="fixed inset-0 z-50 flex md:hidden">
+        <div className="fixed inset-0 z-50 flex lg:hidden">
           <div className="w-60 h-full shadow-2xl animate-in slide-in-from-left duration-200">
             <SidebarContent school={school} onClose={() => setDrawerOpen(false)} />
           </div>
@@ -299,7 +299,7 @@ export default function MyLayout({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Main content */}
-      <main className="flex-1 min-w-0 md:ml-60 min-h-screen pt-12 md:pt-0 pb-28 md:pb-0 overflow-x-hidden">
+      <main className="flex-1 min-w-0 lg:ml-60 min-h-screen pt-12 lg:pt-0 pb-28 lg:pb-0 overflow-x-hidden">
         {children}
       </main>
 
