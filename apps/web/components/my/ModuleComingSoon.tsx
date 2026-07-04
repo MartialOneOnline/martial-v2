@@ -1,13 +1,19 @@
 'use client'
 
-import type { LucideIcon } from 'lucide-react'
+import { PlayCircle, ShoppingBag, Newspaper } from 'lucide-react'
 import { useT } from '../../lib/i18n/LanguageContext'
 
-export function ModuleComingSoon({ icon: Icon, labelKey }: {
-  icon: LucideIcon
-  labelKey: 'navCurriculum' | 'navStore' | 'navNews'
-}) {
+type ModuleLabelKey = 'navCurriculum' | 'navStore' | 'navNews'
+
+const MODULE_ICONS: Record<ModuleLabelKey, React.ElementType> = {
+  navCurriculum: PlayCircle,
+  navStore: ShoppingBag,
+  navNews: Newspaper,
+}
+
+export function ModuleComingSoon({ labelKey }: { labelKey: ModuleLabelKey }) {
   const t = useT()
+  const Icon = MODULE_ICONS[labelKey]
 
   return (
     <div className="min-h-screen pb-4" style={{ background: '#F2F2F7' }}>
