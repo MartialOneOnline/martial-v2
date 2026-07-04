@@ -578,13 +578,15 @@ function PaymentsTab() {
   const [stripeSaving,  setStripeSaving]  = useState(false)
   const [stripeSaved,   setStripeSaved]   = useState(false)
 
-  const [revolutPk,        setRevolutPk]        = useState('')
-  const [revolutSk,        setRevolutSk]        = useState('')
-  const [showRevolutPk,    setShowRevolutPk]    = useState(false)
-  const [showRevolutSk,    setShowRevolutSk]    = useState(false)
-  const [revolutConnected, setRevolutConnected] = useState(false)
-  const [revolutSaving,    setRevolutSaving]    = useState(false)
-  const [revolutSaved,     setRevolutSaved]     = useState(false)
+  const [revolutPk,           setRevolutPk]           = useState('')
+  const [revolutSk,           setRevolutSk]           = useState('')
+  const [showRevolutPk,       setShowRevolutPk]       = useState(false)
+  const [showRevolutSk,       setShowRevolutSk]       = useState(false)
+  const [revolutConnected,    setRevolutConnected]    = useState(false)
+  const [revolutSaving,       setRevolutSaving]       = useState(false)
+  const [revolutSaved,        setRevolutSaved]        = useState(false)
+  const [webhookRegistering,  setWebhookRegistering]  = useState(false)
+  const [webhookResult,       setWebhookResult]       = useState<'ok' | 'error' | null>(null)
 
   useEffect(() => {
     fetch('/api/dashboard/school').then(r => r.json()).then(d => {
@@ -637,6 +639,14 @@ function PaymentsTab() {
     })
     setRevolutConnected(!!(revolutPk && revolutSk))
     setRevolutSaving(false); setRevolutSaved(true); setTimeout(() => setRevolutSaved(false), 2500)
+  }
+
+  async function registerRevolutWebhook() {
+    setWebhookRegistering(true); setWebhookResult(null)
+    const res = await fetch('/api/dashboard/revolut/register-webhook', { method: 'POST' })
+    setWebhookResult(res.ok ? 'ok' : 'error')
+    setWebhookRegistering(false)
+    setTimeout(() => setWebhookResult(null), 4000)
   }
 
   async function disconnectRevolut() {
@@ -783,10 +793,18 @@ function PaymentsTab() {
             <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0 }}>In your Revolut Business dashboard → APIs → Merchant API → API Keys</p>
           </div>
 
-          <button onClick={saveRevolutKeys} disabled={revolutSaving}
-            style={{ alignSelf: 'flex-start', padding: '8px 20px', borderRadius: 8, background: '#191C20', color: '#fff', fontSize: 13, fontWeight: 600, border: 'none', cursor: 'pointer', opacity: revolutSaving ? 0.6 : 1 }}>
-            {revolutSaved ? '✓ Saved' : revolutSaving ? 'Saving…' : 'Save keys'}
-          </button>
+          <div className="flex items-center gap-3 flex-wrap">
+            <button onClick={saveRevolutKeys} disabled={revolutSaving}
+              style={{ padding: '8px 20px', borderRadius: 8, background: '#191C20', color: '#fff', fontSize: 13, fontWeight: 600, border: 'none', cursor: 'pointer', opacity: revolutSaving ? 0.6 : 1 }}>
+              {revolutSaved ? '✓ Saved' : revolutSaving ? 'Saving…' : 'Save keys'}
+            </button>
+            {revolutConnected && (
+              <button onClick={registerRevolutWebhook} disabled={webhookRegistering}
+                style={{ padding: '8px 20px', borderRadius: 8, background: webhookResult === 'ok' ? '#16A34A' : webhookResult === 'error' ? '#DC2626' : '#F3F4F6', color: webhookResult ? '#fff' : '#374151', fontSize: 13, fontWeight: 600, border: '1px solid #E5E7EB', cursor: 'pointer', opacity: webhookRegistering ? 0.6 : 1 }}>
+                {webhookResult === 'ok' ? '✓ Webhook registered' : webhookResult === 'error' ? '✗ Failed — check key' : webhookRegistering ? 'Registering…' : 'Register webhook'}
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

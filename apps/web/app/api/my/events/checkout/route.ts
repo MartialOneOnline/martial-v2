@@ -3,10 +3,11 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
 import { getStripe } from '@/lib/stripe'
+import { createRevolutOrder } from '@/lib/revolut'
 import { checkEventCapacity } from '@/lib/services/eventCapacity'
 
-// POST /api/my/events/checkout — create a Stripe Checkout Session for an event ticket
-// (seminars, competitions, etc). One-time payment only, no subscriptions.
+// POST /api/my/events/checkout — create a checkout session for an event ticket
+// (seminars, competitions, etc). Supports Stripe and Revolut, one-time payment only.
 export async function POST(req: NextRequest) {
   const cookieStore = await cookies()
   const supabase = createServerClient(
@@ -23,7 +24,7 @@ export async function POST(req: NextRequest) {
   })
   if (!dbUser) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  const { eventId, ticketId, quantity: rawQuantity } = await req.json() as { eventId: string; ticketId: string; quantity?: number }
+  const { eventId, ticketId, quantity: rawQuantity, provider = 'STRIPE' } = await req.json() as { eventId: string; ticketId: string; quantity?: number; provider?: string }
   if (!eventId || !ticketId) return NextResponse.json({ error: 'eventId and ticketId required' }, { status: 400 })
   const quantity = Math.min(10, Math.max(1, Math.round(rawQuantity ?? 1)))
 
@@ -32,14 +33,18 @@ export async function POST(req: NextRequest) {
     select: {
       id: true, schoolId: true, title: true, isPublished: true, isCancelled: true,
       startAt: true, capacity: true, paymentMethods: true,
-      school: { select: { name: true, stripeSecretKey: true } },
+      school: { select: { name: true, stripeSecretKey: true, revolutSecretKey: true } },
     },
   })
   if (!event || !event.isPublished || event.isCancelled || event.startAt <= new Date())
     return NextResponse.json({ error: 'Event not found' }, { status: 404 })
 
-  if (!event.paymentMethods.includes('STRIPE'))
-    return NextResponse.json({ error: 'Stripe not accepted for this event' }, { status: 400 })
+  const useRevolut = provider === 'REVOLUT' || (!event.paymentMethods.includes('STRIPE') && event.paymentMethods.includes('REVOLUT'))
+
+  if (!useRevolut && !event.paymentMethods.includes('STRIPE'))
+    return NextResponse.json({ error: 'No online payment method available for this event' }, { status: 400 })
+  if (useRevolut && !event.paymentMethods.includes('REVOLUT'))
+    return NextResponse.json({ error: 'Revolut not accepted for this event' }, { status: 400 })
 
   const ticket = await prisma.eventTicket.findFirst({
     where: { id: ticketId, eventId },
@@ -47,7 +52,9 @@ export async function POST(req: NextRequest) {
   })
   if (!ticket) return NextResponse.json({ error: 'Ticket not found' }, { status: 404 })
 
-  if (!event.school.stripeSecretKey)
+  if (useRevolut && !event.school.revolutSecretKey)
+    return NextResponse.json({ error: 'School has not configured Revolut' }, { status: 400 })
+  if (!useRevolut && !event.school.stripeSecretKey)
     return NextResponse.json({ error: 'School has not configured Stripe' }, { status: 400 })
 
   const booking = await prisma.$transaction(async (tx) => {
@@ -66,7 +73,7 @@ export async function POST(req: NextRequest) {
         status: 'PENDING',
         amountPaid: ticket.price * quantity,
         currency: ticket.currency,
-        paymentMethod: 'STRIPE',
+        paymentMethod: useRevolut ? 'REVOLUT' : 'STRIPE',
       },
     })
   }).catch((err: Error & { status?: number }) => {
@@ -75,9 +82,7 @@ export async function POST(req: NextRequest) {
 
   if (booking instanceof NextResponse) return booking
 
-  const stripe   = getStripe(event.school.stripeSecretKey)
-  const origin   = req.headers.get('origin') ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
-  const currency = (ticket.currency ?? 'EUR').toLowerCase()
+  const origin = req.headers.get('origin') ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
   const metadata = {
     eventBookingId: booking.id,
@@ -86,6 +91,32 @@ export async function POST(req: NextRequest) {
     eventId:        event.id,
     ticketId:       ticket.id,
   }
+
+  // ── Revolut path ────────────────────────────────────────────────────────────
+  if (useRevolut) {
+    const order = await createRevolutOrder({
+      secretKey:        event.school.revolutSecretKey!,
+      amount:           Math.round(Number(ticket.price) * quantity * 100),
+      currency:         ticket.currency ?? 'EUR',
+      merchantOrderRef: booking.id,
+      description:      `${event.title} — ${ticket.name}`,
+      email:            dbUser.email ?? undefined,
+      successUrl:       `${origin}/my/events?checkout=success`,
+      cancelUrl:        `${origin}/my/events?checkout=cancelled`,
+      metadata,
+    })
+
+    await prisma.eventBooking.update({
+      where: { id: booking.id },
+      data:  { revolutOrderId: order.id },
+    })
+
+    return NextResponse.json({ url: order.checkout_url })
+  }
+
+  // ── Stripe path ─────────────────────────────────────────────────────────────
+  const stripe   = getStripe(event.school.stripeSecretKey!)
+  const currency = (ticket.currency ?? 'EUR').toLowerCase()
 
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',

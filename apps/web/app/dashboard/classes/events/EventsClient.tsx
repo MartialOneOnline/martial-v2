@@ -122,6 +122,7 @@ function getPaginationPages(current: number, total: number): (number | '...')[] 
 
 const PAYMENT_OPTIONS: { value: PaymentMethod; label: string; icon: string }[] = [
   { value: 'STRIPE',        label: 'Online (Stripe)',   icon: '💳' },
+  { value: 'REVOLUT',       label: 'Online (Revolut)',  icon: '💳' },
   { value: 'CASH',          label: 'Cash at door',      icon: '💵' },
   { value: 'BANK_TRANSFER', label: 'Bank transfer',     icon: '🏦' },
 ]
