@@ -1,14 +1,16 @@
 'use client'
 
-import { PlayCircle, ShoppingBag, Newspaper } from 'lucide-react'
+import { PlayCircle, ShoppingBag, Newspaper, Music, Timer } from 'lucide-react'
 import { useT } from '../../lib/i18n/LanguageContext'
 
-type ModuleLabelKey = 'navCurriculum' | 'navStore' | 'navNews'
+type ModuleLabelKey = 'navCurriculum' | 'navStore' | 'navNews' | 'navMusic' | 'navTimer'
 
 const MODULE_ICONS: Record<ModuleLabelKey, React.ElementType> = {
   navCurriculum: PlayCircle,
   navStore: ShoppingBag,
   navNews: Newspaper,
+  navMusic: Music,
+  navTimer: Timer,
 }
 
 export function ModuleComingSoon({ labelKey }: { labelKey: ModuleLabelKey }) {

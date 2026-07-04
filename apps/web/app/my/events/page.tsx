@@ -106,7 +106,7 @@ function EventCard({ ev, onOpen }: { ev: EventItem; onOpen: (ev: EventItem) => v
 }
 
 /* ── Ticket drawer ── */
-function TicketDrawer({ ev, onClose, onPurchased }: { ev: EventItem; onClose: () => void; onPurchased: () => void }) {
+function TicketDrawer({ ev, onClose }: { ev: EventItem; onClose: () => void }) {
   const t = useT()
   const purchasable = ev.tickets.filter(tk => tk.capacity === null || tk.booked < tk.capacity)
   const [ticketId, setTicketId] = useState(purchasable[0]?.id ?? '')
@@ -345,7 +345,6 @@ function MyEventsPageInner() {
         <TicketDrawer
           ev={openEvent}
           onClose={() => setOpenEvent(null)}
-          onPurchased={() => { setOpenEvent(null); load() }}
         />
       )}
     </div>

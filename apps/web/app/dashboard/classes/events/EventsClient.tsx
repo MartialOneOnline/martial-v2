@@ -9,6 +9,7 @@ import {
 import { useDashboard } from '../../../../components/DashboardShell'
 import DashboardLanguageSelector from '../../../../components/DashboardLanguageSelector'
 import { useT } from '../../../../lib/i18n/LanguageContext'
+import { adminFetch } from '../../../../lib/api/adminFetch'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -17,7 +18,7 @@ type EventStatus = 'Upcoming' | 'Past' | 'Cancelled'
 
 interface Instructor { id: string; name: string }
 
-type PaymentMethod = 'STRIPE' | 'CASH' | 'BANK_TRANSFER'
+type PaymentMethod = 'STRIPE' | 'REVOLUT' | 'CASH' | 'BANK_TRANSFER'
 
 interface EventTicket {
   name: string
@@ -240,7 +241,7 @@ function BannerUploadZone({ value, onChange, label, height = 180, hint, dropLabe
     try {
       const fd = new FormData()
       fd.append('file', file)
-      const res = await fetch('/api/dashboard/upload?bucket=class-images', { method: 'POST', body: fd })
+      const res = await adminFetch('/api/dashboard/upload?bucket=class-images', { method: 'POST', body: fd })
       if (res.ok) {
         const { url } = await res.json()
         onChange(url)
@@ -328,7 +329,7 @@ function EventDrawer({ open, onClose, onSaved, editing, instructors }: EventDraw
     try {
       const url    = editing ? `/api/dashboard/events/${editing.id}` : '/api/dashboard/events'
       const method = editing ? 'PUT' : 'POST'
-      const res = await fetch(url, {
+      const res = await adminFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formToPayload(form)),
@@ -687,7 +688,7 @@ export default function EventsClient() {
   const loadEvents = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/dashboard/events')
+      const res = await adminFetch('/api/dashboard/events')
       if (res.ok) {
         const data = await res.json()
         setEvents(data.events ?? [])
@@ -731,14 +732,14 @@ export default function EventsClient() {
 
   async function handleDelete() {
     if (!deleteEvent) return
-    await fetch(`/api/dashboard/events/${deleteEvent.id}`, { method: 'DELETE' })
+    await adminFetch(`/api/dashboard/events/${deleteEvent.id}`, { method: 'DELETE' })
     setDeleteEvent(null)
     setSuccessMsg('Event deleted')
     loadEvents()
   }
 
   async function togglePublished(ev: EventRow) {
-    await fetch(`/api/dashboard/events/${ev.id}`, {
+    await adminFetch(`/api/dashboard/events/${ev.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ isPublished: !ev.isPublished }),
@@ -747,7 +748,7 @@ export default function EventsClient() {
   }
 
   async function cancelEvent(ev: EventRow) {
-    await fetch(`/api/dashboard/events/${ev.id}`, {
+    await adminFetch(`/api/dashboard/events/${ev.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ isCancelled: true }),

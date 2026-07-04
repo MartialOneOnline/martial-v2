@@ -1,11 +1,13 @@
-export type SchoolModuleKey = 'store' | 'curriculum' | 'news'
+export type SchoolModuleKey = 'store' | 'curriculum' | 'news' | 'music' | 'timer'
 
-export const SCHOOL_MODULE_KEYS: SchoolModuleKey[] = ['store', 'curriculum', 'news']
+export const SCHOOL_MODULE_KEYS: SchoolModuleKey[] = ['store', 'curriculum', 'news', 'music', 'timer']
 
 const DEFAULTS: Record<SchoolModuleKey, boolean> = {
   store: false,
   curriculum: false,
   news: false,
+  music: false,
+  timer: false,
 }
 
 // Merges a raw (possibly incomplete or untrusted) value against the module
@@ -17,5 +19,7 @@ export function getSchoolModules(raw: unknown): Record<SchoolModuleKey, boolean>
     store: typeof value.store === 'boolean' ? value.store : DEFAULTS.store,
     curriculum: typeof value.curriculum === 'boolean' ? value.curriculum : DEFAULTS.curriculum,
     news: typeof value.news === 'boolean' ? value.news : DEFAULTS.news,
+    music: typeof value.music === 'boolean' ? value.music : DEFAULTS.music,
+    timer: typeof value.timer === 'boolean' ? value.timer : DEFAULTS.timer,
   }
 }

@@ -73,6 +73,23 @@ export async function getRevolutOrder(secretKey: string, orderId: string): Promi
   return res.json()
 }
 
+export async function refundRevolutOrder(secretKey: string, orderId: string, amount?: number): Promise<void> {
+  const res = await fetch(`${REVOLUT_API}/orders/${orderId}/refund`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${secretKey}`,
+      'Content-Type': 'application/json',
+      'Revolut-Api-Version': '2024-09-01',
+    },
+    body: JSON.stringify({ ...(amount !== undefined && { amount }) }),
+  })
+
+  if (!res.ok) {
+    const err = await res.text()
+    throw new Error(`Revolut refund error ${res.status}: ${err}`)
+  }
+}
+
 /**
  * Verify a Revolut webhook signature.
  * Revolut sends: Revolut-Signature: v1=<hmac_hex>

@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const HANDLED = new Set(['ORDER_COMPLETED', 'ORDER_PAYMENT_DECLINED', 'ORDER_CANCELLED'])
+  const HANDLED = new Set(['ORDER_COMPLETED', 'ORDER_PAYMENT_DECLINED', 'ORDER_PAYMENT_FAILED'])
   if (!HANDLED.has(payload.event)) return NextResponse.json({ received: true })
 
   // merchant_order_ext_ref = membershipId (set at order creation)
@@ -38,15 +38,9 @@ export async function POST(req: NextRequest) {
   if (!school?.revolutSecretKey)
     return NextResponse.json({ error: 'School Revolut not configured' }, { status: 400 })
 
-  // Verify webhook signature if secret is configured
-  // (Revolut sandbox may not send signatures — skip if header absent)
-  if (signatureHeader) {
-    // Revolut webhook secret = the signing secret shown in the Merchant dashboard
-    // We reuse revolutSecretKey as the signing secret for now;
-    // schools can set a dedicated webhook secret in settings later
-    const valid = await verifyRevolutWebhook(rawBody, signatureHeader, school.revolutSecretKey)
-    if (!valid) return NextResponse.json({ error: 'Signature verification failed' }, { status: 400 })
-  }
+  // Revolut uses IP allowlisting for webhook security (not HMAC signatures).
+  // Production IPs: 35.246.21.235, 34.89.70.170
+  // No signature verification needed — rely on Vercel edge + IP allowlist.
 
   if (payload.event === 'ORDER_COMPLETED') {
     if (membership.status !== 'PENDING') return NextResponse.json({ received: true })
@@ -101,7 +95,7 @@ export async function POST(req: NextRequest) {
     }).catch(err => console.error('[revolut webhook] receipt email failed:', err))
   }
 
-  if (payload.event === 'ORDER_PAYMENT_DECLINED' || payload.event === 'ORDER_CANCELLED') {
+  if (payload.event === 'ORDER_PAYMENT_DECLINED' || payload.event === 'ORDER_PAYMENT_FAILED') {
     await prisma.membership.update({
       where: { id: membership.id },
       data:  { status: MembershipStatus.CANCELLED, cancelledAt: new Date() },

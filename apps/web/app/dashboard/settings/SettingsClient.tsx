@@ -431,7 +431,7 @@ function SchoolTab() {
 
 // ── Modules Tab ───────────────────────────────────────────────────────────────
 function ModulesTab() {
-  const [modules, setModules] = useState({ store: false, curriculum: false, news: false })
+  const [modules, setModules] = useState({ store: false, curriculum: false, news: false, music: false, timer: false })
   const [loading, setLoading] = useState(true)
   const [saving,  setSaving]  = useState(false)
   const [saved,   setSaved]   = useState(false)
@@ -471,6 +471,10 @@ function ModulesTab() {
           value={modules.curriculum} onChange={v => set('curriculum', v)} />
         <ToggleRow label="News" description="Publish academy announcements and articles to your students' feed."
           value={modules.news} onChange={v => set('news', v)} />
+        <ToggleRow label="Music" description="Give students access to your academy's playlists and training music."
+          value={modules.music} onChange={v => set('music', v)} />
+        <ToggleRow label="Timer" description="Let students use round timers for solo drilling and conditioning."
+          value={modules.timer} onChange={v => set('timer', v)} />
       </div>
 
       {error && <p style={{ fontSize: 13, color: '#E11D48' }}>{error}</p>}
