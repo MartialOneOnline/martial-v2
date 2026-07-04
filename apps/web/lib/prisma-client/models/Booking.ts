@@ -647,14 +647,6 @@ export type BookingUncheckedUpdateManyWithoutClassNestedInput = {
   deleteMany?: Prisma.BookingScalarWhereInput | Prisma.BookingScalarWhereInput[]
 }
 
-export type EnumBookingStatusFieldUpdateOperationsInput = {
-  set?: $Enums.BookingStatus
-}
-
-export type EnumPaymentMethodFieldUpdateOperationsInput = {
-  set?: $Enums.PaymentMethod
-}
-
 export type BookingCreateNestedManyWithoutMembershipInput = {
   create?: Prisma.XOR<Prisma.BookingCreateWithoutMembershipInput, Prisma.BookingUncheckedCreateWithoutMembershipInput> | Prisma.BookingCreateWithoutMembershipInput[] | Prisma.BookingUncheckedCreateWithoutMembershipInput[]
   connectOrCreate?: Prisma.BookingCreateOrConnectWithoutMembershipInput | Prisma.BookingCreateOrConnectWithoutMembershipInput[]

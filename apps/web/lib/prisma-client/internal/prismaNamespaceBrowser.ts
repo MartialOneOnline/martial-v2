@@ -68,6 +68,7 @@ export const ModelName = {
   Class: 'Class',
   Event: 'Event',
   EventTicket: 'EventTicket',
+  EventBooking: 'EventBooking',
   Booking: 'Booking',
   Membership: 'Membership',
   Camp: 'Camp',
@@ -288,6 +289,8 @@ export const SchoolScalarFieldEnum = {
   stripePublishableKey: 'stripePublishableKey',
   stripeSecretKey: 'stripeSecretKey',
   stripeWebhookSecret: 'stripeWebhookSecret',
+  revolutPublicKey: 'revolutPublicKey',
+  revolutSecretKey: 'revolutSecretKey',
   parentId: 'parentId',
   parentRelationshipType: 'parentRelationshipType',
   leadStage: 'leadStage',
@@ -429,6 +432,29 @@ export const EventTicketScalarFieldEnum = {
 export type EventTicketScalarFieldEnum = (typeof EventTicketScalarFieldEnum)[keyof typeof EventTicketScalarFieldEnum]
 
 
+export const EventBookingScalarFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  ticketId: 'ticketId',
+  userId: 'userId',
+  ticketName: 'ticketName',
+  quantity: 'quantity',
+  status: 'status',
+  amountPaid: 'amountPaid',
+  currency: 'currency',
+  paymentMethod: 'paymentMethod',
+  stripePaymentId: 'stripePaymentId',
+  revolutOrderId: 'revolutOrderId',
+  qrToken: 'qrToken',
+  checkedIn: 'checkedIn',
+  checkedInAt: 'checkedInAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EventBookingScalarFieldEnum = (typeof EventBookingScalarFieldEnum)[keyof typeof EventBookingScalarFieldEnum]
+
+
 export const BookingScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -465,6 +491,7 @@ export const MembershipScalarFieldEnum = {
   stripeSubId: 'stripeSubId',
   stripeCustomerId: 'stripeCustomerId',
   stripeInvoiceId: 'stripeInvoiceId',
+  revolutOrderId: 'revolutOrderId',
   notes: 'notes',
   renewedFromId: 'renewedFromId',
   cancelledAt: 'cancelledAt',

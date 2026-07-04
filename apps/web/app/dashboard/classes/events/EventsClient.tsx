@@ -41,7 +41,7 @@ interface EventRow {
   isCancelled: boolean
   externalUrl: string | null
   instructor: Instructor | null
-  tickets: { id: string; name: string; price: number; currency: string; capacity: number | null }[]
+  tickets: { id: string; name: string; price: number; currency: string; capacity: number | null; _count?: { bookings: number } }[]
   coverUrl: string | null
 }
 
@@ -99,6 +99,15 @@ function fmtTicketPrice(tickets: EventRow['tickets']): string {
   if (min === 0 && max === 0) return 'Free'
   if (min === max) return `${sym}${min}`
   return `${sym}${min} – ${sym}${max}`
+}
+
+function registrationSummary(ev: EventRow): { booked: number; capacity: number | null } {
+  const booked = ev.tickets.reduce((sum, t) => sum + (t._count?.bookings ?? 0), 0)
+  const ticketCapacities = ev.tickets.map(t => t.capacity)
+  const capacity = ev.capacity ?? (ticketCapacities.every(c => c !== null) && ticketCapacities.length > 0
+    ? ticketCapacities.reduce((sum, c) => sum + (c ?? 0), 0)
+    : null)
+  return { booked, capacity }
 }
 
 function getPaginationPages(current: number, total: number): (number | '...')[] {
@@ -876,6 +885,7 @@ export default function EventsClient() {
                     { label: t.classes.colHost,     cls: 'hidden lg:table-cell' },
                     { label: t.common.location,     cls: 'hidden lg:table-cell' },
                     { label: t.common.price,        cls: 'hidden md:table-cell' },
+                    { label: 'Registrations',       cls: 'hidden md:table-cell' },
                     { label: 'Explore',             cls: 'hidden md:table-cell' },
                     { label: t.common.status,       cls: '' },
                     { label: t.common.actions,      cls: '' },
@@ -892,7 +902,7 @@ export default function EventsClient() {
                 {loading
                   ? Array.from({ length: 4 }).map((_, i) => (
                     <tr key={i} style={{ borderBottom: '1px solid #F9FAFB' }}>
-                      {[1,2,3,4,5,6,7,8].map(j => (
+                      {[1,2,3,4,5,6,7,8,9].map(j => (
                         <td key={j} className="px-5 py-4">
                           <div className="h-4 rounded animate-pulse"
                             style={{ background: '#F3F4F6', width: j === 1 ? 140 : 60 }} />
@@ -960,6 +970,19 @@ export default function EventsClient() {
                               {ev.tickets.length} ticket types
                             </p>
                           )}
+                        </td>
+
+                        {/* Registrations */}
+                        <td className="hidden md:table-cell px-5 py-3">
+                          {(() => {
+                            const { booked, capacity } = registrationSummary(ev)
+                            return (
+                              <span style={{ fontSize: 13, fontWeight: 600,
+                                color: capacity !== null && booked >= capacity ? '#B91C1C' : '#374151' }}>
+                                {booked}{capacity !== null ? ` / ${capacity}` : ''}
+                              </span>
+                            )
+                          })()}
                         </td>
 
                         {/* Explore toggle */}

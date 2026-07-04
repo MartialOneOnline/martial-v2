@@ -86,6 +86,8 @@ export type SchoolMinAggregateOutputType = {
   stripePublishableKey: string | null
   stripeSecretKey: string | null
   stripeWebhookSecret: string | null
+  revolutPublicKey: string | null
+  revolutSecretKey: string | null
   parentId: string | null
   parentRelationshipType: $Enums.SchoolRelationshipType | null
   leadStage: $Enums.LeadStage | null
@@ -133,6 +135,8 @@ export type SchoolMaxAggregateOutputType = {
   stripePublishableKey: string | null
   stripeSecretKey: string | null
   stripeWebhookSecret: string | null
+  revolutPublicKey: string | null
+  revolutSecretKey: string | null
   parentId: string | null
   parentRelationshipType: $Enums.SchoolRelationshipType | null
   leadStage: $Enums.LeadStage | null
@@ -184,6 +188,8 @@ export type SchoolCountAggregateOutputType = {
   stripePublishableKey: number
   stripeSecretKey: number
   stripeWebhookSecret: number
+  revolutPublicKey: number
+  revolutSecretKey: number
   parentId: number
   parentRelationshipType: number
   leadStage: number
@@ -255,6 +261,8 @@ export type SchoolMinAggregateInputType = {
   stripePublishableKey?: true
   stripeSecretKey?: true
   stripeWebhookSecret?: true
+  revolutPublicKey?: true
+  revolutSecretKey?: true
   parentId?: true
   parentRelationshipType?: true
   leadStage?: true
@@ -302,6 +310,8 @@ export type SchoolMaxAggregateInputType = {
   stripePublishableKey?: true
   stripeSecretKey?: true
   stripeWebhookSecret?: true
+  revolutPublicKey?: true
+  revolutSecretKey?: true
   parentId?: true
   parentRelationshipType?: true
   leadStage?: true
@@ -353,6 +363,8 @@ export type SchoolCountAggregateInputType = {
   stripePublishableKey?: true
   stripeSecretKey?: true
   stripeWebhookSecret?: true
+  revolutPublicKey?: true
+  revolutSecretKey?: true
   parentId?: true
   parentRelationshipType?: true
   leadStage?: true
@@ -491,6 +503,8 @@ export type SchoolGroupByOutputType = {
   stripePublishableKey: string | null
   stripeSecretKey: string | null
   stripeWebhookSecret: string | null
+  revolutPublicKey: string | null
+  revolutSecretKey: string | null
   parentId: string | null
   parentRelationshipType: $Enums.SchoolRelationshipType | null
   leadStage: $Enums.LeadStage | null
@@ -565,6 +579,8 @@ export type SchoolWhereInput = {
   stripePublishableKey?: Prisma.StringNullableFilter<"School"> | string | null
   stripeSecretKey?: Prisma.StringNullableFilter<"School"> | string | null
   stripeWebhookSecret?: Prisma.StringNullableFilter<"School"> | string | null
+  revolutPublicKey?: Prisma.StringNullableFilter<"School"> | string | null
+  revolutSecretKey?: Prisma.StringNullableFilter<"School"> | string | null
   parentId?: Prisma.StringNullableFilter<"School"> | string | null
   parentRelationshipType?: Prisma.EnumSchoolRelationshipTypeNullableFilter<"School"> | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.EnumLeadStageNullableFilter<"School"> | $Enums.LeadStage | null
@@ -640,6 +656,8 @@ export type SchoolOrderByWithRelationInput = {
   stripePublishableKey?: Prisma.SortOrderInput | Prisma.SortOrder
   stripeSecretKey?: Prisma.SortOrderInput | Prisma.SortOrder
   stripeWebhookSecret?: Prisma.SortOrderInput | Prisma.SortOrder
+  revolutPublicKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  revolutSecretKey?: Prisma.SortOrderInput | Prisma.SortOrder
   parentId?: Prisma.SortOrderInput | Prisma.SortOrder
   parentRelationshipType?: Prisma.SortOrderInput | Prisma.SortOrder
   leadStage?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -718,6 +736,8 @@ export type SchoolWhereUniqueInput = Prisma.AtLeast<{
   stripePublishableKey?: Prisma.StringNullableFilter<"School"> | string | null
   stripeSecretKey?: Prisma.StringNullableFilter<"School"> | string | null
   stripeWebhookSecret?: Prisma.StringNullableFilter<"School"> | string | null
+  revolutPublicKey?: Prisma.StringNullableFilter<"School"> | string | null
+  revolutSecretKey?: Prisma.StringNullableFilter<"School"> | string | null
   parentId?: Prisma.StringNullableFilter<"School"> | string | null
   parentRelationshipType?: Prisma.EnumSchoolRelationshipTypeNullableFilter<"School"> | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.EnumLeadStageNullableFilter<"School"> | $Enums.LeadStage | null
@@ -793,6 +813,8 @@ export type SchoolOrderByWithAggregationInput = {
   stripePublishableKey?: Prisma.SortOrderInput | Prisma.SortOrder
   stripeSecretKey?: Prisma.SortOrderInput | Prisma.SortOrder
   stripeWebhookSecret?: Prisma.SortOrderInput | Prisma.SortOrder
+  revolutPublicKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  revolutSecretKey?: Prisma.SortOrderInput | Prisma.SortOrder
   parentId?: Prisma.SortOrderInput | Prisma.SortOrder
   parentRelationshipType?: Prisma.SortOrderInput | Prisma.SortOrder
   leadStage?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -852,6 +874,8 @@ export type SchoolScalarWhereWithAggregatesInput = {
   stripePublishableKey?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
   stripeSecretKey?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
   stripeWebhookSecret?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
+  revolutPublicKey?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
+  revolutSecretKey?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
   parentId?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
   parentRelationshipType?: Prisma.EnumSchoolRelationshipTypeNullableWithAggregatesFilter<"School"> | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.EnumLeadStageNullableWithAggregatesFilter<"School"> | $Enums.LeadStage | null
@@ -902,6 +926,8 @@ export type SchoolCreateInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -975,6 +1001,8 @@ export type SchoolUncheckedCreateInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -1046,6 +1074,8 @@ export type SchoolUpdateInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1119,6 +1149,8 @@ export type SchoolUncheckedUpdateInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -1191,6 +1223,8 @@ export type SchoolCreateManyInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -1241,6 +1275,8 @@ export type SchoolUpdateManyMutationInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1290,6 +1326,8 @@ export type SchoolUncheckedUpdateManyInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -1369,6 +1407,8 @@ export type SchoolCountOrderByAggregateInput = {
   stripePublishableKey?: Prisma.SortOrder
   stripeSecretKey?: Prisma.SortOrder
   stripeWebhookSecret?: Prisma.SortOrder
+  revolutPublicKey?: Prisma.SortOrder
+  revolutSecretKey?: Prisma.SortOrder
   parentId?: Prisma.SortOrder
   parentRelationshipType?: Prisma.SortOrder
   leadStage?: Prisma.SortOrder
@@ -1427,6 +1467,8 @@ export type SchoolMaxOrderByAggregateInput = {
   stripePublishableKey?: Prisma.SortOrder
   stripeSecretKey?: Prisma.SortOrder
   stripeWebhookSecret?: Prisma.SortOrder
+  revolutPublicKey?: Prisma.SortOrder
+  revolutSecretKey?: Prisma.SortOrder
   parentId?: Prisma.SortOrder
   parentRelationshipType?: Prisma.SortOrder
   leadStage?: Prisma.SortOrder
@@ -1474,6 +1516,8 @@ export type SchoolMinOrderByAggregateInput = {
   stripePublishableKey?: Prisma.SortOrder
   stripeSecretKey?: Prisma.SortOrder
   stripeWebhookSecret?: Prisma.SortOrder
+  revolutPublicKey?: Prisma.SortOrder
+  revolutSecretKey?: Prisma.SortOrder
   parentId?: Prisma.SortOrder
   parentRelationshipType?: Prisma.SortOrder
   leadStage?: Prisma.SortOrder
@@ -2009,6 +2053,8 @@ export type SchoolCreateWithoutAffiliationInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -2080,6 +2126,8 @@ export type SchoolUncheckedCreateWithoutAffiliationInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -2181,6 +2229,8 @@ export type SchoolScalarWhereInput = {
   stripePublishableKey?: Prisma.StringNullableFilter<"School"> | string | null
   stripeSecretKey?: Prisma.StringNullableFilter<"School"> | string | null
   stripeWebhookSecret?: Prisma.StringNullableFilter<"School"> | string | null
+  revolutPublicKey?: Prisma.StringNullableFilter<"School"> | string | null
+  revolutSecretKey?: Prisma.StringNullableFilter<"School"> | string | null
   parentId?: Prisma.StringNullableFilter<"School"> | string | null
   parentRelationshipType?: Prisma.EnumSchoolRelationshipTypeNullableFilter<"School"> | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.EnumLeadStageNullableFilter<"School"> | $Enums.LeadStage | null
@@ -2231,6 +2281,8 @@ export type SchoolCreateWithoutStaffInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -2303,6 +2355,8 @@ export type SchoolUncheckedCreateWithoutStaffInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -2378,6 +2432,8 @@ export type SchoolCreateWithoutClaimedByInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -2450,6 +2506,8 @@ export type SchoolUncheckedCreateWithoutClaimedByInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -2541,6 +2599,8 @@ export type SchoolUpdateWithoutStaffInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2613,6 +2673,8 @@ export type SchoolUncheckedUpdateWithoutStaffInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -2699,6 +2761,8 @@ export type SchoolCreateWithoutDisciplinesInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -2771,6 +2835,8 @@ export type SchoolUncheckedCreateWithoutDisciplinesInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -2857,6 +2923,8 @@ export type SchoolUpdateWithoutDisciplinesInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2929,6 +2997,8 @@ export type SchoolUncheckedUpdateWithoutDisciplinesInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -2999,6 +3069,8 @@ export type SchoolCreateWithoutFacilityCatalogInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -3071,6 +3143,8 @@ export type SchoolUncheckedCreateWithoutFacilityCatalogInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -3157,6 +3231,8 @@ export type SchoolUpdateWithoutFacilityCatalogInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3229,6 +3305,8 @@ export type SchoolUncheckedUpdateWithoutFacilityCatalogInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -3299,6 +3377,8 @@ export type SchoolCreateWithoutBranchesInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -3371,6 +3451,8 @@ export type SchoolUncheckedCreateWithoutBranchesInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -3446,6 +3528,8 @@ export type SchoolCreateWithoutParentInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -3518,6 +3602,8 @@ export type SchoolUncheckedCreateWithoutParentInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedById?: string | null
@@ -3609,6 +3695,8 @@ export type SchoolUpdateWithoutBranchesInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3681,6 +3769,8 @@ export type SchoolUncheckedUpdateWithoutBranchesInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -3767,6 +3857,8 @@ export type SchoolCreateWithoutInstructorsInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -3839,6 +3931,8 @@ export type SchoolUncheckedCreateWithoutInstructorsInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -3925,6 +4019,8 @@ export type SchoolUpdateWithoutInstructorsInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3997,6 +4093,8 @@ export type SchoolUncheckedUpdateWithoutInstructorsInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -4067,6 +4165,8 @@ export type SchoolCreateWithoutMembershipPlansInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -4139,6 +4239,8 @@ export type SchoolUncheckedCreateWithoutMembershipPlansInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -4225,6 +4327,8 @@ export type SchoolUpdateWithoutMembershipPlansInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4297,6 +4401,8 @@ export type SchoolUncheckedUpdateWithoutMembershipPlansInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -4367,6 +4473,8 @@ export type SchoolCreateWithoutReviewsInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -4439,6 +4547,8 @@ export type SchoolUncheckedCreateWithoutReviewsInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -4525,6 +4635,8 @@ export type SchoolUpdateWithoutReviewsInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4597,6 +4709,8 @@ export type SchoolUncheckedUpdateWithoutReviewsInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -4667,6 +4781,8 @@ export type SchoolCreateWithoutClassesInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -4739,6 +4855,8 @@ export type SchoolUncheckedCreateWithoutClassesInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -4825,6 +4943,8 @@ export type SchoolUpdateWithoutClassesInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4897,6 +5017,8 @@ export type SchoolUncheckedUpdateWithoutClassesInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -4967,6 +5089,8 @@ export type SchoolCreateWithoutEventsInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -5039,6 +5163,8 @@ export type SchoolUncheckedCreateWithoutEventsInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -5125,6 +5251,8 @@ export type SchoolUpdateWithoutEventsInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -5197,6 +5325,8 @@ export type SchoolUncheckedUpdateWithoutEventsInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -5267,6 +5397,8 @@ export type SchoolCreateWithoutMembershipsInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -5339,6 +5471,8 @@ export type SchoolUncheckedCreateWithoutMembershipsInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -5425,6 +5559,8 @@ export type SchoolUpdateWithoutMembershipsInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -5497,6 +5633,8 @@ export type SchoolUncheckedUpdateWithoutMembershipsInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -5567,6 +5705,8 @@ export type SchoolCreateWithoutCampsInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -5639,6 +5779,8 @@ export type SchoolUncheckedCreateWithoutCampsInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -5725,6 +5867,8 @@ export type SchoolUpdateWithoutCampsInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -5797,6 +5941,8 @@ export type SchoolUncheckedUpdateWithoutCampsInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -5867,6 +6013,8 @@ export type SchoolCreateWithoutMembersInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -5939,6 +6087,8 @@ export type SchoolUncheckedCreateWithoutMembersInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -6025,6 +6175,8 @@ export type SchoolUpdateWithoutMembersInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -6097,6 +6249,8 @@ export type SchoolUncheckedUpdateWithoutMembersInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -6167,6 +6321,8 @@ export type SchoolCreateWithoutClaimsInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -6239,6 +6395,8 @@ export type SchoolUncheckedCreateWithoutClaimsInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -6325,6 +6483,8 @@ export type SchoolUpdateWithoutClaimsInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -6397,6 +6557,8 @@ export type SchoolUncheckedUpdateWithoutClaimsInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -6467,6 +6629,8 @@ export type SchoolCreateWithoutGradingSystemsInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -6539,6 +6703,8 @@ export type SchoolUncheckedCreateWithoutGradingSystemsInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -6625,6 +6791,8 @@ export type SchoolUpdateWithoutGradingSystemsInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -6697,6 +6865,8 @@ export type SchoolUncheckedUpdateWithoutGradingSystemsInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -6767,6 +6937,8 @@ export type SchoolCreateWithoutGradingsInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -6839,6 +7011,8 @@ export type SchoolUncheckedCreateWithoutGradingsInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -6925,6 +7099,8 @@ export type SchoolUpdateWithoutGradingsInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -6997,6 +7173,8 @@ export type SchoolUncheckedUpdateWithoutGradingsInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -7067,6 +7245,8 @@ export type SchoolCreateWithoutLeadsInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -7139,6 +7319,8 @@ export type SchoolUncheckedCreateWithoutLeadsInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -7225,6 +7407,8 @@ export type SchoolUpdateWithoutLeadsInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -7297,6 +7481,8 @@ export type SchoolUncheckedUpdateWithoutLeadsInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -7367,6 +7553,8 @@ export type SchoolCreateWithoutInvitationsInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -7439,6 +7627,8 @@ export type SchoolUncheckedCreateWithoutInvitationsInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -7525,6 +7715,8 @@ export type SchoolUpdateWithoutInvitationsInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -7597,6 +7789,8 @@ export type SchoolUncheckedUpdateWithoutInvitationsInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -7667,6 +7861,8 @@ export type SchoolCreateWithoutWaiversInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -7739,6 +7935,8 @@ export type SchoolUncheckedCreateWithoutWaiversInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -7825,6 +8023,8 @@ export type SchoolUpdateWithoutWaiversInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -7897,6 +8097,8 @@ export type SchoolUncheckedUpdateWithoutWaiversInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -7967,6 +8169,8 @@ export type SchoolCreateWithoutTransactionsInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -8039,6 +8243,8 @@ export type SchoolUncheckedCreateWithoutTransactionsInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -8125,6 +8331,8 @@ export type SchoolUpdateWithoutTransactionsInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -8197,6 +8405,8 @@ export type SchoolUncheckedUpdateWithoutTransactionsInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -8267,6 +8477,8 @@ export type SchoolCreateWithoutNotificationsInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -8339,6 +8551,8 @@ export type SchoolUncheckedCreateWithoutNotificationsInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -8425,6 +8639,8 @@ export type SchoolUpdateWithoutNotificationsInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -8497,6 +8713,8 @@ export type SchoolUncheckedUpdateWithoutNotificationsInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -8567,6 +8785,8 @@ export type SchoolCreateWithoutSubscriptionInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedAt?: Date | string | null
@@ -8639,6 +8859,8 @@ export type SchoolUncheckedCreateWithoutSubscriptionInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -8725,6 +8947,8 @@ export type SchoolUpdateWithoutSubscriptionInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -8797,6 +9021,8 @@ export type SchoolUncheckedUpdateWithoutSubscriptionInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -8867,6 +9093,8 @@ export type SchoolCreateManyAffiliationInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -8917,6 +9145,8 @@ export type SchoolUpdateWithoutAffiliationInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -8988,6 +9218,8 @@ export type SchoolUncheckedUpdateWithoutAffiliationInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -9059,6 +9291,8 @@ export type SchoolUncheckedUpdateManyWithoutAffiliationInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -9110,6 +9344,8 @@ export type SchoolCreateManyClaimedByInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentId?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
@@ -9159,6 +9395,8 @@ export type SchoolUpdateWithoutClaimedByInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -9231,6 +9469,8 @@ export type SchoolUncheckedUpdateWithoutClaimedByInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -9302,6 +9542,8 @@ export type SchoolUncheckedUpdateManyWithoutClaimedByInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
@@ -9352,6 +9594,8 @@ export type SchoolCreateManyParentInput = {
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
   parentRelationshipType?: $Enums.SchoolRelationshipType | null
   leadStage?: $Enums.LeadStage | null
   claimedById?: string | null
@@ -9401,6 +9645,8 @@ export type SchoolUpdateWithoutParentInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -9473,6 +9719,8 @@ export type SchoolUncheckedUpdateWithoutParentInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -9544,6 +9792,8 @@ export type SchoolUncheckedUpdateManyWithoutParentInput = {
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
   leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
   claimedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -9796,6 +10046,8 @@ export type SchoolSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   stripePublishableKey?: boolean
   stripeSecretKey?: boolean
   stripeWebhookSecret?: boolean
+  revolutPublicKey?: boolean
+  revolutSecretKey?: boolean
   parentId?: boolean
   parentRelationshipType?: boolean
   leadStage?: boolean
@@ -9872,6 +10124,8 @@ export type SchoolSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   stripePublishableKey?: boolean
   stripeSecretKey?: boolean
   stripeWebhookSecret?: boolean
+  revolutPublicKey?: boolean
+  revolutSecretKey?: boolean
   parentId?: boolean
   parentRelationshipType?: boolean
   leadStage?: boolean
@@ -9926,6 +10180,8 @@ export type SchoolSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   stripePublishableKey?: boolean
   stripeSecretKey?: boolean
   stripeWebhookSecret?: boolean
+  revolutPublicKey?: boolean
+  revolutSecretKey?: boolean
   parentId?: boolean
   parentRelationshipType?: boolean
   leadStage?: boolean
@@ -9980,6 +10236,8 @@ export type SchoolSelectScalar = {
   stripePublishableKey?: boolean
   stripeSecretKey?: boolean
   stripeWebhookSecret?: boolean
+  revolutPublicKey?: boolean
+  revolutSecretKey?: boolean
   parentId?: boolean
   parentRelationshipType?: boolean
   leadStage?: boolean
@@ -9989,7 +10247,7 @@ export type SchoolSelectScalar = {
   updatedAt?: boolean
 }
 
-export type SchoolOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "status" | "source" | "type" | "affiliationId" | "country" | "city" | "address" | "postcode" | "lat" | "lng" | "phone" | "email" | "website" | "language" | "instagram" | "facebook" | "youtube" | "tiktok" | "description" | "tagline" | "logoUrl" | "coverUrl" | "photos" | "priceFrom" | "hasFreeTrialCls" | "facilities" | "foundedYear" | "totalStudents" | "googleRating" | "googleReviews" | "googlePlaceId" | "v1UserId" | "defaultBookingSettings" | "cancelPolicy" | "modules" | "stripePublishableKey" | "stripeSecretKey" | "stripeWebhookSecret" | "parentId" | "parentRelationshipType" | "leadStage" | "claimedById" | "claimedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["school"]>
+export type SchoolOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "status" | "source" | "type" | "affiliationId" | "country" | "city" | "address" | "postcode" | "lat" | "lng" | "phone" | "email" | "website" | "language" | "instagram" | "facebook" | "youtube" | "tiktok" | "description" | "tagline" | "logoUrl" | "coverUrl" | "photos" | "priceFrom" | "hasFreeTrialCls" | "facilities" | "foundedYear" | "totalStudents" | "googleRating" | "googleReviews" | "googlePlaceId" | "v1UserId" | "defaultBookingSettings" | "cancelPolicy" | "modules" | "stripePublishableKey" | "stripeSecretKey" | "stripeWebhookSecret" | "revolutPublicKey" | "revolutSecretKey" | "parentId" | "parentRelationshipType" | "leadStage" | "claimedById" | "claimedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["school"]>
 export type SchoolInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   affiliation?: boolean | Prisma.School$affiliationArgs<ExtArgs>
   parent?: boolean | Prisma.School$parentArgs<ExtArgs>
@@ -10098,6 +10356,8 @@ export type $SchoolPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     stripePublishableKey: string | null
     stripeSecretKey: string | null
     stripeWebhookSecret: string | null
+    revolutPublicKey: string | null
+    revolutSecretKey: string | null
     parentId: string | null
     parentRelationshipType: $Enums.SchoolRelationshipType | null
     leadStage: $Enums.LeadStage | null
@@ -10593,6 +10853,8 @@ export interface SchoolFieldRefs {
   readonly stripePublishableKey: Prisma.FieldRef<"School", 'String'>
   readonly stripeSecretKey: Prisma.FieldRef<"School", 'String'>
   readonly stripeWebhookSecret: Prisma.FieldRef<"School", 'String'>
+  readonly revolutPublicKey: Prisma.FieldRef<"School", 'String'>
+  readonly revolutSecretKey: Prisma.FieldRef<"School", 'String'>
   readonly parentId: Prisma.FieldRef<"School", 'String'>
   readonly parentRelationshipType: Prisma.FieldRef<"School", 'SchoolRelationshipType'>
   readonly leadStage: Prisma.FieldRef<"School", 'LeadStage'>

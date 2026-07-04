@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getStripe } from '@/lib/stripe'
 import { MembershipStatus } from '@/lib/prisma-client/client'
-import { sendMembershipReceiptEmail } from '@/lib/email/sendEmails'
+import { sendMembershipReceiptEmail, sendEventTicketConfirmationEmail, sendEventTicketRefundedEmail } from '@/lib/email/sendEmails'
+import { checkEventCapacity } from '@/lib/services/eventCapacity'
 
 // POST /api/webhooks/stripe
 // Each school registers this URL in their Stripe dashboard.
@@ -67,11 +68,92 @@ export async function POST(req: NextRequest) {
         payment_status?: string
         subscription?: string
         customer?: string
+        payment_intent?: string
       }
-      const { membershipId, planType } = session.metadata ?? {}
-      if (!membershipId) break
+      const { membershipId, planType, eventBookingId } = session.metadata ?? {}
+      if (!membershipId && !eventBookingId) break
 
       if (session.payment_status !== 'paid') break
+
+      if (eventBookingId) {
+        const outcome = await prisma.$transaction(async (tx) => {
+          const booking = await tx.eventBooking.findUnique({
+            where: { id: eventBookingId },
+            select: {
+              status: true, quantity: true, ticketId: true, eventId: true, ticketName: true, amountPaid: true, currency: true,
+              userId: true,
+              event: { select: { title: true, startAt: true, location: true, capacity: true, schoolId: true, school: { select: { name: true, city: true, language: true } } } },
+              ticket: { select: { capacity: true } },
+              user: { select: { email: true, name: true } },
+            },
+          })
+          if (!booking || booking.status !== 'PENDING') return null
+
+          const capacity = await checkEventCapacity(tx, {
+            eventId: booking.eventId,
+            ticketId: booking.ticketId,
+            ticketCapacity: booking.ticket.capacity,
+            eventCapacity: booking.event.capacity,
+            quantity: booking.quantity,
+            excludeBookingId: eventBookingId,
+          })
+
+          if (capacity.ok) {
+            await tx.eventBooking.update({
+              where: { id: eventBookingId },
+              data: { status: 'CONFIRMED', stripePaymentId: session.payment_intent ?? null },
+            })
+            return { sold: true, booking }
+          } else {
+            await tx.eventBooking.update({
+              where: { id: eventBookingId },
+              data: { status: 'CANCELLED' },
+            })
+            return { sold: false, booking }
+          }
+        })
+
+        if (outcome?.sold && outcome.booking.user?.email) {
+          sendEventTicketConfirmationEmail({
+            to:          outcome.booking.user.email,
+            studentName: outcome.booking.user.name,
+            schoolName:  outcome.booking.event.school.name,
+            schoolCity:  outcome.booking.event.school.city,
+            eventTitle:  outcome.booking.event.title,
+            ticketName:  outcome.booking.ticketName,
+            quantity:    outcome.booking.quantity,
+            amount:      Number(outcome.booking.amountPaid ?? 0),
+            currency:    outcome.booking.currency,
+            startAt:     outcome.booking.event.startAt,
+            location:    outcome.booking.event.location,
+            bookingId:   eventBookingId,
+            lang:        outcome.booking.event.school.language,
+          }).catch(err => console.error('[stripe webhook] event confirmation email failed:', err))
+        } else if (outcome && !outcome.sold) {
+          const school = await prisma.school.findUnique({ where: { id: outcome.booking.event.schoolId }, select: { stripeSecretKey: true } })
+          if (school?.stripeSecretKey && session.payment_intent) {
+            getStripe(school.stripeSecretKey).refunds.create({ payment_intent: session.payment_intent }).catch(err =>
+              console.error('[stripe webhook] event oversell refund failed:', err))
+          }
+          if (outcome.booking.user?.email) {
+            sendEventTicketRefundedEmail({
+              to:          outcome.booking.user.email,
+              studentName: outcome.booking.user.name,
+              schoolName:  outcome.booking.event.school.name,
+              schoolCity:  outcome.booking.event.school.city,
+              eventTitle:  outcome.booking.event.title,
+              ticketName:  outcome.booking.ticketName,
+              amount:      Number(outcome.booking.amountPaid ?? 0),
+              currency:    outcome.booking.currency,
+              bookingId:   eventBookingId,
+              lang:        outcome.booking.event.school.language,
+            }).catch(err => console.error('[stripe webhook] event refund email failed:', err))
+          }
+        }
+        break
+      }
+
+      if (!membershipId) break
 
       let activatedMembershipId: string | null = null
       await prisma.$transaction(async (tx) => {

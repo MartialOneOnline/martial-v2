@@ -454,7 +454,7 @@ export const translations = {
     // ── Student Portal (/my) ──────────────────────────────────────────────────
     my: {
       // Layout nav
-      navDashboard: 'Dashboard', navClasses: 'Classes', navRanking: 'Ranking',
+      navDashboard: 'Dashboard', navClasses: 'Classes', navEvents: 'Events', navRanking: 'Ranking',
       navMembership: 'Membership', navTransactions: 'Transactions', navAccount: 'Account',
       navProfile: 'Profile', navSettings: 'Settings', navQrScanner: 'QR Scanner',
       navHelpSupport: 'Help & Support', navPrivacy: 'Privacy', navHome: 'Home', navSignOut: 'Sign out',
@@ -586,6 +586,14 @@ export const translations = {
       getPassBtn: 'Get pass', bookTrialBtn: 'Book trial',
       singleSession: 'Single session', trialClass: 'Trial class',
       closeBtn: 'Close', backBtn: 'Back',
+      // Events page
+      eventsHeader: 'Events', availableTab: 'Available', myTicketsTab: 'My tickets',
+      noEventsAvailable: 'No upcoming events', noEventsDesc: "Your school hasn't published any events yet.",
+      noTicketsYet: 'No tickets yet', noTicketsDesc: 'Tickets you buy will show up here.',
+      selectTicket: 'Select a ticket', quantityLabel: 'Quantity',
+      getTicketsBtn: 'Get tickets', soldOutBtn: 'Sold out', freeEntry: 'Free',
+      ticketStatusPending: 'Processing', ticketStatusConfirmed: 'Confirmed', ticketStatusCancelled: 'Cancelled',
+      checkoutFailedError: 'Could not start checkout. Try again.',
     },
 
     sidebar: {
@@ -1007,7 +1015,7 @@ export const translations = {
       contactEmail: 'Correo de Contacto', contactPhone: 'Teléfono de Contacto',
     },
     my: {
-      navDashboard: 'Panel', navClasses: 'Clases', navRanking: 'Ranking',
+      navDashboard: 'Panel', navClasses: 'Clases', navEvents: 'Eventos', navRanking: 'Ranking',
       navMembership: 'Membresía', navTransactions: 'Transacciones', navAccount: 'Cuenta',
       navProfile: 'Perfil', navSettings: 'Ajustes', navQrScanner: 'Escáner QR',
       navHelpSupport: 'Ayuda y Soporte', navPrivacy: 'Privacidad', navHome: 'Inicio', navSignOut: 'Cerrar sesión',
@@ -1125,6 +1133,14 @@ export const translations = {
       getPassBtn: 'Obtener pase', bookTrialBtn: 'Reservar prueba',
       singleSession: 'Sesión individual', trialClass: 'Clase de prueba',
       closeBtn: 'Cerrar', backBtn: 'Volver',
+      // Events page
+      eventsHeader: 'Eventos', availableTab: 'Disponibles', myTicketsTab: 'Mis entradas',
+      noEventsAvailable: 'No hay eventos próximos', noEventsDesc: 'Tu escuela aún no ha publicado ningún evento.',
+      noTicketsYet: 'Aún no tienes entradas', noTicketsDesc: 'Las entradas que compres aparecerán aquí.',
+      selectTicket: 'Elige una entrada', quantityLabel: 'Cantidad',
+      getTicketsBtn: 'Comprar entradas', soldOutBtn: 'Agotado', freeEntry: 'Gratis',
+      ticketStatusPending: 'Procesando', ticketStatusConfirmed: 'Confirmada', ticketStatusCancelled: 'Cancelada',
+      checkoutFailedError: 'No se pudo iniciar el pago. Inténtalo de nuevo.',
     },
 
     sidebar: {
@@ -1546,7 +1562,7 @@ export const translations = {
       contactEmail: 'E-mail de Contato', contactPhone: 'Telefone de Contato',
     },
     my: {
-      navDashboard: 'Painel', navClasses: 'Aulas', navRanking: 'Ranking',
+      navDashboard: 'Painel', navClasses: 'Aulas', navEvents: 'Eventos', navRanking: 'Ranking',
       navMembership: 'Assinatura', navTransactions: 'Transações', navAccount: 'Conta',
       navProfile: 'Perfil', navSettings: 'Configurações', navQrScanner: 'Scanner QR',
       navHelpSupport: 'Ajuda e Suporte', navPrivacy: 'Privacidade', navHome: 'Início', navSignOut: 'Sair',
@@ -1664,6 +1680,14 @@ export const translations = {
       getPassBtn: 'Obter passe', bookTrialBtn: 'Reservar teste',
       singleSession: 'Sessão individual', trialClass: 'Aula experimental',
       closeBtn: 'Fechar', backBtn: 'Voltar',
+      // Events page
+      eventsHeader: 'Eventos', availableTab: 'Disponíveis', myTicketsTab: 'Meus bilhetes',
+      noEventsAvailable: 'Sem eventos próximos', noEventsDesc: 'A sua escola ainda não publicou nenhum evento.',
+      noTicketsYet: 'Ainda não tem bilhetes', noTicketsDesc: 'Os bilhetes que comprar aparecerão aqui.',
+      selectTicket: 'Escolha um bilhete', quantityLabel: 'Quantidade',
+      getTicketsBtn: 'Comprar bilhetes', soldOutBtn: 'Esgotado', freeEntry: 'Grátis',
+      ticketStatusPending: 'A processar', ticketStatusConfirmed: 'Confirmado', ticketStatusCancelled: 'Cancelado',
+      checkoutFailedError: 'Não foi possível iniciar o pagamento. Tente novamente.',
     },
 
     sidebar: {
@@ -2085,7 +2109,7 @@ export const translations = {
       contactEmail: 'E-mail de Contact', contactPhone: 'Téléphone de Contact',
     },
     my: {
-      navDashboard: 'Tableau de bord', navClasses: 'Cours', navRanking: 'Classement',
+      navDashboard: 'Tableau de bord', navClasses: 'Cours', navEvents: 'Événements', navRanking: 'Classement',
       navMembership: 'Abonnement', navTransactions: 'Transactions', navAccount: 'Compte',
       navProfile: 'Profil', navSettings: 'Paramètres', navQrScanner: 'Scanner QR',
       navHelpSupport: 'Aide et Support', navPrivacy: 'Confidentialité', navHome: 'Accueil', navSignOut: 'Se déconnecter',
@@ -2203,6 +2227,14 @@ export const translations = {
       getPassBtn: 'Obtenir un pass', bookTrialBtn: 'Réserver un essai',
       singleSession: 'Séance individuelle', trialClass: 'Cours d\'essai',
       closeBtn: 'Fermer', backBtn: 'Retour',
+      // Events page
+      eventsHeader: 'Événements', availableTab: 'Disponibles', myTicketsTab: 'Mes billets',
+      noEventsAvailable: 'Aucun événement à venir', noEventsDesc: "Votre école n'a pas encore publié d'événement.",
+      noTicketsYet: 'Aucun billet pour le moment', noTicketsDesc: 'Les billets que vous achetez apparaîtront ici.',
+      selectTicket: 'Choisir un billet', quantityLabel: 'Quantité',
+      getTicketsBtn: 'Acheter des billets', soldOutBtn: 'Complet', freeEntry: 'Gratuit',
+      ticketStatusPending: 'En cours', ticketStatusConfirmed: 'Confirmé', ticketStatusCancelled: 'Annulé',
+      checkoutFailedError: 'Impossible de lancer le paiement. Réessayez.',
     },
 
     sidebar: {

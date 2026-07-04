@@ -3,10 +3,11 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
 import { getStripe } from '@/lib/stripe'
+import { createRevolutOrder } from '@/lib/revolut'
 import { MembershipStatus, PaymentMethod } from '@/lib/prisma-client/client'
 
-// POST /api/my/checkout — create a Stripe Checkout Session for a membership plan
-// Supports one-time payment (SINGLE_PASS/TRIAL) and recurring subscriptions (SUBSCRIPTION)
+// POST /api/my/checkout — create a checkout session for a membership plan
+// Supports Stripe (one-time + subscription) and Revolut (one-time)
 export async function POST(req: NextRequest) {
   const cookieStore = await cookies()
   const supabase = createServerClient(
@@ -37,8 +38,11 @@ export async function POST(req: NextRequest) {
   if (!plan || !plan.isPublic || !plan.isActive)
     return NextResponse.json({ error: 'Plan not found' }, { status: 404 })
 
-  if (!plan.paymentMethods.includes('STRIPE'))
-    return NextResponse.json({ error: 'Stripe not accepted for this plan' }, { status: 400 })
+  const { provider = 'STRIPE' } = await req.json().then(b => b).catch(() => ({})) as { provider?: string }
+  const useRevolut = provider === 'REVOLUT' || (!plan.paymentMethods.includes('STRIPE') && plan.paymentMethods.includes('REVOLUT'))
+
+  if (!useRevolut && !plan.paymentMethods.includes('STRIPE'))
+    return NextResponse.json({ error: 'No online payment method available for this plan' }, { status: 400 })
 
   const member = await prisma.schoolMember.findFirst({
     where: { userId: dbUser.id, schoolId: plan.schoolId },
@@ -52,8 +56,57 @@ export async function POST(req: NextRequest) {
 
   const school = await prisma.school.findUnique({
     where: { id: plan.schoolId },
-    select: { stripeSecretKey: true, name: true },
+    select: { stripeSecretKey: true, revolutSecretKey: true, name: true },
   })
+
+  const origin = req.headers.get('origin') ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+
+  // ── Revolut path ────────────────────────────────────────────────────────────
+  if (useRevolut) {
+    if (!school?.revolutSecretKey)
+      return NextResponse.json({ error: 'School has not configured Revolut' }, { status: 400 })
+
+    const membership = await prisma.membership.create({
+      data: {
+        userId:        dbUser.id,
+        schoolId:      plan.schoolId,
+        planId:        plan.id,
+        planName:      plan.name,
+        price:         plan.price,
+        currency:      plan.currency,
+        paymentMethod: PaymentMethod.REVOLUT,
+        status:        MembershipStatus.PENDING,
+        startDate:     new Date(),
+      },
+    })
+
+    const order = await createRevolutOrder({
+      secretKey:        school.revolutSecretKey,
+      amount:           Math.round(Number(plan.price) * 100),
+      currency:         plan.currency ?? 'EUR',
+      merchantOrderRef: membership.id,
+      description:      `${school.name} — ${plan.name}`,
+      email:            dbUser.email ?? undefined,
+      successUrl:       `${origin}/my/membership?checkout=success`,
+      cancelUrl:        `${origin}/my/membership?checkout=cancelled`,
+      metadata: {
+        membershipId: membership.id,
+        schoolId:     plan.schoolId,
+        userId:       dbUser.id,
+        planId:       plan.id,
+        planType:     plan.planType,
+      },
+    })
+
+    await prisma.membership.update({
+      where: { id: membership.id },
+      data:  { revolutOrderId: order.id },
+    })
+
+    return NextResponse.json({ url: order.checkout_url })
+  }
+
+  // ── Stripe path ─────────────────────────────────────────────────────────────
   if (!school?.stripeSecretKey)
     return NextResponse.json({ error: 'School has not configured Stripe' }, { status: 400 })
 
@@ -72,12 +125,9 @@ export async function POST(req: NextRequest) {
   })
 
   const stripe   = getStripe(school.stripeSecretKey)
-  const origin   = req.headers.get('origin') ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
   const currency = (plan.currency ?? 'EUR').toLowerCase()
-
   const isSubscription = plan.planType === 'SUBSCRIPTION'
 
-  // Build billing_cycle_anchor interval for Stripe
   const intervalMap: Record<string, { interval: 'day' | 'week' | 'month' | 'year'; interval_count: number }> = {
     monthly:      { interval: 'month', interval_count: 1 },
     quarterly:    { interval: 'month', interval_count: 3 },
@@ -104,14 +154,8 @@ export async function POST(req: NextRequest) {
         price_data: {
           currency,
           unit_amount: Math.round(Number(plan.price) * 100),
-          recurring: {
-            interval:       billingInterval.interval,
-            interval_count: billingInterval.interval_count,
-          },
-          product_data: {
-            name:        plan.name,
-            description: `${school.name} — membership`,
-          },
+          recurring: { interval: billingInterval.interval, interval_count: billingInterval.interval_count },
+          product_data: { name: plan.name, description: `${school.name} — membership` },
         },
         quantity: 1,
       }],
@@ -121,7 +165,6 @@ export async function POST(req: NextRequest) {
       cancel_url:  `${origin}/my/membership?checkout=cancelled`,
     })
   } else {
-    // One-time: SINGLE_PASS or TRIAL
     session = await stripe.checkout.sessions.create({
       mode: 'payment',
       payment_method_types: ['card'],
@@ -130,10 +173,7 @@ export async function POST(req: NextRequest) {
         price_data: {
           currency,
           unit_amount: Math.round(Number(plan.price) * 100),
-          product_data: {
-            name:        plan.name,
-            description: `${school.name} — membership`,
-          },
+          product_data: { name: plan.name, description: `${school.name} — membership` },
         },
         quantity: 1,
       }],

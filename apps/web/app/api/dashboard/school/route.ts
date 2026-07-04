@@ -62,6 +62,8 @@ export async function GET(req: NextRequest) {
       stripePublishableKey: true,
       stripeSecretKey: true,
       stripeWebhookSecret: true,
+      revolutPublicKey: true,
+      revolutSecretKey: true,
       modules: true,
     },
   })
@@ -99,7 +101,8 @@ export async function PATCH(req: NextRequest) {
   const { language, name, phone, email, website, instagram, facebook, youtube, tiktok,
           description, tagline, address, postcode, city, country, logoUrl,
           defaultBookingSettings, cancelPolicy, modules,
-          stripePublishableKey, stripeSecretKey, stripeWebhookSecret } = body
+          stripePublishableKey, stripeSecretKey, stripeWebhookSecret,
+          revolutPublicKey, revolutSecretKey } = body
 
   const VALID_LANGS = ['en', 'es', 'pt', 'fr']
   const VALID_CANCEL_POLICIES = ['IMMEDIATE', 'UNTIL_END_OF_PERIOD']
@@ -140,6 +143,8 @@ export async function PATCH(req: NextRequest) {
       ...(stripePublishableKey !== undefined && { stripePublishableKey: stripePublishableKey?.trim() || null }),
       ...(stripeSecretKey      !== undefined && { stripeSecretKey:      stripeSecretKey?.trim()      || null }),
       ...(stripeWebhookSecret  !== undefined && { stripeWebhookSecret:  stripeWebhookSecret?.trim()  || null }),
+      ...(revolutPublicKey     !== undefined && { revolutPublicKey:     revolutPublicKey?.trim()     || null }),
+      ...(revolutSecretKey     !== undefined && { revolutSecretKey:     revolutSecretKey?.trim()     || null }),
     },
     select: { id: true, language: true, name: true, cancelPolicy: true, modules: true },
   })

@@ -21,7 +21,10 @@ async function authorise(roles = ['OWNER', 'ADMIN']) {
 
 const EVENT_INCLUDE = {
   instructor: { select: { id: true, name: true } },
-  tickets: { orderBy: { sortOrder: 'asc' as const } },
+  tickets: {
+    orderBy: { sortOrder: 'asc' as const },
+    include: { _count: { select: { bookings: { where: { status: 'CONFIRMED' as const } } } } },
+  },
 }
 
 // PUT /api/dashboard/events/[id]
@@ -40,6 +43,14 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     tickets,
   } = body
 
+  // Tickets with existing registrations can't be deleted (FK restrict on EventBooking.ticketId).
+  const deletableTicketIds = Array.isArray(tickets)
+    ? (await prisma.eventTicket.findMany({
+        where: { eventId: id },
+        select: { id: true, _count: { select: { bookings: true } } },
+      })).filter(t => t._count.bookings === 0).map(t => t.id)
+    : []
+
   const event = await prisma.event.update({
     where: { id },
     data: {
@@ -56,10 +67,12 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       externalUrl:    externalUrl !== undefined   ? (externalUrl?.trim() || null) : existing.externalUrl,
       instructorId:   instructorId !== undefined  ? (instructorId || null) : existing.instructorId,
       coverUrl:       coverUrl !== undefined       ? (coverUrl || null) : existing.coverUrl,
-      // Replace all tickets if provided
+      // Replace all tickets if provided. Only tickets with no registrations are
+      // removed — a ticket with EventBookings can't be deleted (FK restrict),
+      // so it's left in place rather than crashing the save.
       ...(Array.isArray(tickets) && {
         tickets: {
-          deleteMany: {},
+          deleteMany: { id: { in: deletableTicketIds } },
           create: tickets.map((t: { name: string; description?: string; price?: number; currency?: string; capacity?: number }, i: number) => ({
             name: t.name.trim(),
             description: t.description?.trim() || null,

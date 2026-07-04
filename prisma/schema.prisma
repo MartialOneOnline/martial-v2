@@ -46,6 +46,7 @@ enum SchoolSource {
 
 enum PaymentMethod {
   STRIPE
+  REVOLUT
   CASH
   BANK_TRANSFER
   DIRECT_DEBIT
@@ -338,6 +339,7 @@ model User {
 
   // Relations
   bookings        Booking[]
+  eventBookings   EventBooking[]
   memberships     Membership[]
   contentAccesses ContentAccess[]
   campBookings    CampBooking[]
@@ -485,6 +487,10 @@ model School {
   stripePublishableKey String?
   stripeSecretKey      String?
   stripeWebhookSecret  String?
+
+  // Revolut Merchant — each school stores their own keys
+  revolutPublicKey  String?
+  revolutSecretKey  String?
 
   // Hierarchy (HQ / branch / franchise)
   parentId               String?
@@ -700,8 +706,9 @@ model Event {
   paymentMethods String[]  @default([]) // ["STRIPE","CASH","BANK_TRANSFER"]
 
   instructorId String?
-  instructor   Instructor?   @relation(fields: [instructorId], references: [id])
+  instructor   Instructor?    @relation(fields: [instructorId], references: [id])
   tickets      EventTicket[]
+  bookings     EventBooking[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -722,9 +729,45 @@ model EventTicket {
   sortOrder     Int     @default(0)
   stripePriceId String? // wired when Stripe is connected
 
+  bookings EventBooking[]
+
   createdAt DateTime @default(now())
 
   @@map("event_tickets")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EVENT BOOKING
+// A student's paid registration for a ticket type on a one-off Event
+// (seminars, competitions, etc). Mirrors CampBooking's shape.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model EventBooking {
+  id       String      @id @default(cuid())
+  eventId  String
+  event    Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  ticketId String
+  ticket   EventTicket @relation(fields: [ticketId], references: [id])
+  userId   String
+  user     User        @relation(fields: [userId], references: [id])
+
+  ticketName      String // snapshot — ticket row may be edited/deleted later
+  quantity        Int           @default(1)
+  status          BookingStatus @default(PENDING)
+  amountPaid      Float?
+  currency        String        @default("EUR")
+  paymentMethod   PaymentMethod @default(STRIPE)
+  stripePaymentId String?
+  revolutOrderId  String?
+  qrToken         String?   @unique
+  checkedIn       Boolean   @default(false)
+  checkedInAt     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([eventId, status])
+  @@map("event_bookings")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -792,8 +835,9 @@ model Membership {
   classesUsed Int @default(0)
 
   stripeSubId        String?
-  stripeCustomerId   String? // Stripe Customer ID for subscription management
-  stripeInvoiceId    String? // latest invoice ID for payment tracking
+  stripeCustomerId   String?
+  stripeInvoiceId    String?
+  revolutOrderId     String? // Revolut order ID for one-time and recurring payments
   notes              String?
 
   // Renewal chain — points to the membership this one renewed/replaced

@@ -21,7 +21,10 @@ async function authorise(roles = ['OWNER', 'ADMIN', 'INSTRUCTOR']) {
 
 const EVENT_INCLUDE = {
   instructor: { select: { id: true, name: true } },
-  tickets: { orderBy: { sortOrder: 'asc' as const } },
+  tickets: {
+    orderBy: { sortOrder: 'asc' as const },
+    include: { _count: { select: { bookings: { where: { status: 'CONFIRMED' as const } } } } },
+  },
 }
 
 // GET /api/dashboard/events

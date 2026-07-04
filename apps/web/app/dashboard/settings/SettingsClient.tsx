@@ -574,6 +574,14 @@ function PaymentsTab() {
   const [stripeSaving,  setStripeSaving]  = useState(false)
   const [stripeSaved,   setStripeSaved]   = useState(false)
 
+  const [revolutPk,        setRevolutPk]        = useState('')
+  const [revolutSk,        setRevolutSk]        = useState('')
+  const [showRevolutPk,    setShowRevolutPk]    = useState(false)
+  const [showRevolutSk,    setShowRevolutSk]    = useState(false)
+  const [revolutConnected, setRevolutConnected] = useState(false)
+  const [revolutSaving,    setRevolutSaving]    = useState(false)
+  const [revolutSaved,     setRevolutSaved]     = useState(false)
+
   useEffect(() => {
     fetch('/api/dashboard/school').then(r => r.json()).then(d => {
       const enabled: string[] = d.enabledPaymentMethods ?? PAYMENT_METHODS.map(m => m.key)
@@ -586,6 +594,8 @@ function PaymentsTab() {
       if (d.school?.stripePublishableKey) { setStripePk(d.school.stripePublishableKey); setStripeConnected(true) }
       if (d.school?.stripeSecretKey)      setStripeSk(d.school.stripeSecretKey)
       if (d.school?.stripeWebhookSecret)  setStripeWh(d.school.stripeWebhookSecret)
+      if (d.school?.revolutPublicKey) { setRevolutPk(d.school.revolutPublicKey); setRevolutConnected(true) }
+      if (d.school?.revolutSecretKey)     setRevolutSk(d.school.revolutSecretKey)
     })
   }, [])
 
@@ -612,6 +622,27 @@ function PaymentsTab() {
       body: JSON.stringify({ stripePublishableKey: null, stripeSecretKey: null, stripeWebhookSecret: null }),
     })
     setStripeConnected(false)
+  }
+
+  async function saveRevolutKeys() {
+    setRevolutSaving(true)
+    await fetch('/api/dashboard/school', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ revolutPublicKey: revolutPk || null, revolutSecretKey: revolutSk || null }),
+    })
+    setRevolutConnected(!!(revolutPk && revolutSk))
+    setRevolutSaving(false); setRevolutSaved(true); setTimeout(() => setRevolutSaved(false), 2500)
+  }
+
+  async function disconnectRevolut() {
+    setRevolutPk(''); setRevolutSk('')
+    await fetch('/api/dashboard/school', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ revolutPublicKey: null, revolutSecretKey: null }),
+    })
+    setRevolutConnected(false)
   }
 
   function toggleMethod(key: string) {
@@ -697,6 +728,60 @@ function PaymentsTab() {
           <button onClick={saveStripeKeys} disabled={stripeSaving}
             style={{ alignSelf: 'flex-start', padding: '8px 20px', borderRadius: 8, background: '#0870E2', color: '#fff', fontSize: 13, fontWeight: 600, border: 'none', cursor: 'pointer', opacity: stripeSaving ? 0.6 : 1 }}>
             {stripeSaved ? '✓ Saved' : stripeSaving ? 'Saving…' : 'Save keys'}
+          </button>
+        </div>
+      </div>
+
+      {/* Revolut */}
+      <div>
+        <p style={SECTION_SUB}>Connect Revolut to accept online card payments via Revolut Merchant</p>
+        <div className="p-5 rounded-2xl flex flex-col gap-4" style={{ border: '1.5px solid #E5E7EB', background: '#fff' }}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: '#F0FFF4' }}>
+                <CreditCard size={17} style={{ color: '#191C20' }} />
+              </div>
+              <p style={{ fontSize: 15, fontWeight: 600, color: '#111827', margin: 0 }}>Revolut</p>
+              {revolutConnected && (
+                <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 999, background: '#F0FDF4', color: '#16A34A', border: '1px solid #BBF7D0' }}>✓ Connected</span>
+              )}
+            </div>
+            {revolutConnected && (
+              <button onClick={disconnectRevolut}
+                style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #FECACA', background: '#FEF2F2', color: '#DC2626', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}>
+                Disconnect
+              </button>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>Production Public key</label>
+            <div className="flex items-center gap-2" style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflow: 'hidden', background: '#F9FAFB' }}>
+              <input type={showRevolutPk ? 'text' : 'password'} value={revolutPk} onChange={e => setRevolutPk(e.target.value)}
+                placeholder="pk_D···"
+                style={{ flex: 1, padding: '8px 12px', border: 'none', background: 'transparent', fontSize: 13, color: '#111827', outline: 'none', fontFamily: 'monospace' }} />
+              <button onClick={() => setShowRevolutPk(v => !v)} style={{ padding: '0 12px', height: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: '#9CA3AF', display: 'flex', alignItems: 'center' }}>
+                {showRevolutPk ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>Production Secret key</label>
+            <div className="flex items-center gap-2" style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflow: 'hidden', background: '#F9FAFB' }}>
+              <input type={showRevolutSk ? 'text' : 'password'} value={revolutSk} onChange={e => setRevolutSk(e.target.value)}
+                placeholder="sk_···"
+                style={{ flex: 1, padding: '8px 12px', border: 'none', background: 'transparent', fontSize: 13, color: '#111827', outline: 'none', fontFamily: 'monospace' }} />
+              <button onClick={() => setShowRevolutSk(v => !v)} style={{ padding: '0 12px', height: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: '#9CA3AF', display: 'flex', alignItems: 'center' }}>
+                {showRevolutSk ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+            </div>
+            <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0 }}>In your Revolut Business dashboard → APIs → Merchant API → API Keys</p>
+          </div>
+
+          <button onClick={saveRevolutKeys} disabled={revolutSaving}
+            style={{ alignSelf: 'flex-start', padding: '8px 20px', borderRadius: 8, background: '#191C20', color: '#fff', fontSize: 13, fontWeight: 600, border: 'none', cursor: 'pointer', opacity: revolutSaving ? 0.6 : 1 }}>
+            {revolutSaved ? '✓ Saved' : revolutSaving ? 'Saving…' : 'Save keys'}
           </button>
         </div>
       </div>

@@ -8,7 +8,7 @@ import {
   LayoutDashboard, CalendarDays, User,
   LogOut, X, CreditCard, DollarSign, Settings,
   HelpCircle, Shield, QrCode, Medal, Menu,
-  PlayCircle, ShoppingBag, Newspaper,
+  PlayCircle, ShoppingBag, Newspaper, Ticket,
 } from 'lucide-react'
 import { useT } from '../../lib/i18n/LanguageContext'
 import type { SchoolModuleKey } from '../../lib/school-modules'
@@ -28,6 +28,7 @@ const SIDEBAR_NAV: NavSection[] = [
     items: [
       { labelKey: 'navDashboard', href: '/my',          icon: LayoutDashboard, exact: true },
       { labelKey: 'navClasses',   href: '/my/classes',  icon: CalendarDays },
+      { labelKey: 'navEvents',    href: '/my/events',   icon: Ticket },
       { labelKey: 'navRanking',   href: '/my/progress', icon: Medal },
     ],
   },

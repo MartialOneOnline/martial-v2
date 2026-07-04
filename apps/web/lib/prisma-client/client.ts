@@ -127,6 +127,11 @@ export type Event = Prisma.EventModel
  */
 export type EventTicket = Prisma.EventTicketModel
 /**
+ * Model EventBooking
+ * 
+ */
+export type EventBooking = Prisma.EventBookingModel
+/**
  * Model Booking
  * 
  */

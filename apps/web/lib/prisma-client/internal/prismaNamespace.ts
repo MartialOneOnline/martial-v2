@@ -401,6 +401,7 @@ export const ModelName = {
   Class: 'Class',
   Event: 'Event',
   EventTicket: 'EventTicket',
+  EventBooking: 'EventBooking',
   Booking: 'Booking',
   Membership: 'Membership',
   Camp: 'Camp',
@@ -442,7 +443,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "event" | "eventTicket" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "schoolClaim" | "gradingSystem" | "beltRank" | "grading" | "lead" | "leadNote" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "partner" | "notification" | "platformSettings" | "schoolSubscription" | "stripeWebhookEvent"
+    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "schoolClaim" | "gradingSystem" | "beltRank" | "grading" | "lead" | "leadNote" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "partner" | "notification" | "platformSettings" | "schoolSubscription" | "stripeWebhookEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1701,6 +1702,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.EventTicketCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.EventTicketCountAggregateOutputType> | number
+        }
+      }
+    }
+    EventBooking: {
+      payload: Prisma.$EventBookingPayload<ExtArgs>
+      fields: Prisma.EventBookingFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EventBookingFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventBookingPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EventBookingFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventBookingPayload>
+        }
+        findFirst: {
+          args: Prisma.EventBookingFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventBookingPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EventBookingFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventBookingPayload>
+        }
+        findMany: {
+          args: Prisma.EventBookingFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventBookingPayload>[]
+        }
+        create: {
+          args: Prisma.EventBookingCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventBookingPayload>
+        }
+        createMany: {
+          args: Prisma.EventBookingCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.EventBookingCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventBookingPayload>[]
+        }
+        delete: {
+          args: Prisma.EventBookingDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventBookingPayload>
+        }
+        update: {
+          args: Prisma.EventBookingUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventBookingPayload>
+        }
+        deleteMany: {
+          args: Prisma.EventBookingDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EventBookingUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.EventBookingUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventBookingPayload>[]
+        }
+        upsert: {
+          args: Prisma.EventBookingUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventBookingPayload>
+        }
+        aggregate: {
+          args: Prisma.EventBookingAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEventBooking>
+        }
+        groupBy: {
+          args: Prisma.EventBookingGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EventBookingGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EventBookingCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EventBookingCountAggregateOutputType> | number
         }
       }
     }
@@ -3843,6 +3918,8 @@ export const SchoolScalarFieldEnum = {
   stripePublishableKey: 'stripePublishableKey',
   stripeSecretKey: 'stripeSecretKey',
   stripeWebhookSecret: 'stripeWebhookSecret',
+  revolutPublicKey: 'revolutPublicKey',
+  revolutSecretKey: 'revolutSecretKey',
   parentId: 'parentId',
   parentRelationshipType: 'parentRelationshipType',
   leadStage: 'leadStage',
@@ -3984,6 +4061,29 @@ export const EventTicketScalarFieldEnum = {
 export type EventTicketScalarFieldEnum = (typeof EventTicketScalarFieldEnum)[keyof typeof EventTicketScalarFieldEnum]
 
 
+export const EventBookingScalarFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  ticketId: 'ticketId',
+  userId: 'userId',
+  ticketName: 'ticketName',
+  quantity: 'quantity',
+  status: 'status',
+  amountPaid: 'amountPaid',
+  currency: 'currency',
+  paymentMethod: 'paymentMethod',
+  stripePaymentId: 'stripePaymentId',
+  revolutOrderId: 'revolutOrderId',
+  qrToken: 'qrToken',
+  checkedIn: 'checkedIn',
+  checkedInAt: 'checkedInAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EventBookingScalarFieldEnum = (typeof EventBookingScalarFieldEnum)[keyof typeof EventBookingScalarFieldEnum]
+
+
 export const BookingScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -4020,6 +4120,7 @@ export const MembershipScalarFieldEnum = {
   stripeSubId: 'stripeSubId',
   stripeCustomerId: 'stripeCustomerId',
   stripeInvoiceId: 'stripeInvoiceId',
+  revolutOrderId: 'revolutOrderId',
   notes: 'notes',
   renewedFromId: 'renewedFromId',
   cancelledAt: 'cancelledAt',
@@ -5028,6 +5129,7 @@ export type GlobalOmitConfig = {
   class?: Prisma.ClassOmit
   event?: Prisma.EventOmit
   eventTicket?: Prisma.EventTicketOmit
+  eventBooking?: Prisma.EventBookingOmit
   booking?: Prisma.BookingOmit
   membership?: Prisma.MembershipOmit
   camp?: Prisma.CampOmit

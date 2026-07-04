@@ -51,6 +51,7 @@ export type SchoolSource = (typeof SchoolSource)[keyof typeof SchoolSource]
 
 export const PaymentMethod = {
   STRIPE: 'STRIPE',
+  REVOLUT: 'REVOLUT',
   CASH: 'CASH',
   BANK_TRANSFER: 'BANK_TRANSFER',
   DIRECT_DEBIT: 'DIRECT_DEBIT',

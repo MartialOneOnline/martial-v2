@@ -4,6 +4,10 @@ import { buildWelcomeStudentEmail, getWelcomeStudentSubject } from './templates/
 import { buildTrialConfirmedEmail, getTrialConfirmedSubject } from './templates/trialConfirmed'
 import { buildMembershipReceiptEmail, getMembershipReceiptSubject } from './templates/membershipReceipt'
 import { buildMembershipRequestEmail, getMembershipRequestSubject } from './templates/membershipRequest'
+import {
+  buildEventTicketConfirmationEmail, getEventTicketConfirmationSubject,
+  buildEventTicketRefundEmail, getEventTicketRefundSubject,
+} from './templates/eventTicketReceipt'
 
 type SendResult = { success: true; emailId?: string } | { success: false; error: string }
 
@@ -166,6 +170,97 @@ export async function sendMembershipReceiptEmail({
     endDate,
     membershipId,
     dashboardUrl: `${APP_URL}/my/membership`,
+    lang,
+  })
+  return send(to, subject, html)
+}
+
+// ── 5. Event ticket confirmation ───────────────────────────────────────────────
+export async function sendEventTicketConfirmationEmail({
+  to,
+  studentName,
+  schoolName,
+  schoolCity,
+  eventTitle,
+  ticketName,
+  quantity,
+  amount,
+  currency,
+  startAt,
+  location,
+  bookingId,
+  lang,
+}: {
+  to: string
+  studentName?: string | null
+  schoolName: string
+  schoolCity?: string | null
+  eventTitle: string
+  ticketName: string
+  quantity: number
+  amount: number
+  currency: string
+  startAt: Date
+  location?: string | null
+  bookingId: string
+  lang?: string | null
+}): Promise<SendResult> {
+  const l = detectLang(lang)
+  const subject = getEventTicketConfirmationSubject(eventTitle, l)
+  const html = buildEventTicketConfirmationEmail({
+    studentName,
+    schoolName,
+    schoolCity,
+    eventTitle,
+    ticketName,
+    quantity,
+    amount,
+    currency,
+    startAt,
+    location,
+    bookingId,
+    dashboardUrl: `${APP_URL}/my/events`,
+    lang,
+  })
+  return send(to, subject, html)
+}
+
+// ── 6. Event ticket sold out / refunded ────────────────────────────────────────
+export async function sendEventTicketRefundedEmail({
+  to,
+  studentName,
+  schoolName,
+  schoolCity,
+  eventTitle,
+  ticketName,
+  amount,
+  currency,
+  bookingId,
+  lang,
+}: {
+  to: string
+  studentName?: string | null
+  schoolName: string
+  schoolCity?: string | null
+  eventTitle: string
+  ticketName: string
+  amount: number
+  currency: string
+  bookingId: string
+  lang?: string | null
+}): Promise<SendResult> {
+  const l = detectLang(lang)
+  const subject = getEventTicketRefundSubject(eventTitle, l)
+  const html = buildEventTicketRefundEmail({
+    studentName,
+    schoolName,
+    schoolCity,
+    eventTitle,
+    ticketName,
+    amount,
+    currency,
+    bookingId,
+    dashboardUrl: `${APP_URL}/my/events`,
     lang,
   })
   return send(to, subject, html)
