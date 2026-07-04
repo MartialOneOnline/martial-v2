@@ -594,6 +594,8 @@ export const translations = {
       getTicketsBtn: 'Get tickets', soldOutBtn: 'Sold out', freeEntry: 'Free',
       ticketStatusPending: 'Processing', ticketStatusConfirmed: 'Confirmed', ticketStatusCancelled: 'Cancelled',
       checkoutFailedError: 'Could not start checkout. Try again.',
+      payAtDoorBtn: 'Pay at the door', cashReservedTitle: 'Reservation received',
+      cashReservedDesc: 'Your spot is held — pay in cash when you arrive.',
     },
 
     sidebar: {
@@ -1141,6 +1143,8 @@ export const translations = {
       getTicketsBtn: 'Comprar entradas', soldOutBtn: 'Agotado', freeEntry: 'Gratis',
       ticketStatusPending: 'Procesando', ticketStatusConfirmed: 'Confirmada', ticketStatusCancelled: 'Cancelada',
       checkoutFailedError: 'No se pudo iniciar el pago. Inténtalo de nuevo.',
+      payAtDoorBtn: 'Pagar en la puerta', cashReservedTitle: 'Reserva recibida',
+      cashReservedDesc: 'Tu plaza queda reservada — paga en efectivo cuando llegues.',
     },
 
     sidebar: {
@@ -1688,6 +1692,8 @@ export const translations = {
       getTicketsBtn: 'Comprar bilhetes', soldOutBtn: 'Esgotado', freeEntry: 'Grátis',
       ticketStatusPending: 'A processar', ticketStatusConfirmed: 'Confirmado', ticketStatusCancelled: 'Cancelado',
       checkoutFailedError: 'Não foi possível iniciar o pagamento. Tente novamente.',
+      payAtDoorBtn: 'Pagar à porta', cashReservedTitle: 'Reserva recebida',
+      cashReservedDesc: 'O seu lugar está reservado — pague em dinheiro quando chegar.',
     },
 
     sidebar: {
@@ -2235,6 +2241,8 @@ export const translations = {
       getTicketsBtn: 'Acheter des billets', soldOutBtn: 'Complet', freeEntry: 'Gratuit',
       ticketStatusPending: 'En cours', ticketStatusConfirmed: 'Confirmé', ticketStatusCancelled: 'Annulé',
       checkoutFailedError: 'Impossible de lancer le paiement. Réessayez.',
+      payAtDoorBtn: 'Payer sur place', cashReservedTitle: 'Réservation reçue',
+      cashReservedDesc: 'Votre place est retenue — payez en espèces sur place.',
     },
 
     sidebar: {

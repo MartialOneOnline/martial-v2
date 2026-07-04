@@ -20,6 +20,7 @@ type EventItem = {
   capacity: number | null
   coverUrl: string | null
   booked: number
+  paymentMethods: string[]
   school: { name: string; slug: string; logoUrl: string | null; city: string | null }
   instructor: { name: string; photoUrl: string | null } | null
   tickets: TicketOption[]
@@ -32,6 +33,7 @@ type MyBooking = {
   amountPaid: number | null
   currency: string
   ticketName: string
+  paymentMethod: string
   createdAt: string
   event: { id: string; title: string; startAt: string; location: string | null; coverUrl: string | null; school: { name: string; slug: string } }
 }
@@ -111,17 +113,21 @@ function TicketDrawer({ ev, onClose }: { ev: EventItem; onClose: () => void }) {
   const purchasable = ev.tickets.filter(tk => tk.capacity === null || tk.booked < tk.capacity)
   const [ticketId, setTicketId] = useState(purchasable[0]?.id ?? '')
   const [quantity, setQuantity] = useState(1)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState<'online' | 'cash' | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [cashReserved, setCashReserved] = useState(false)
 
   const selected = ev.tickets.find(tk => tk.id === ticketId)
   const maxQty = selected?.capacity !== null && selected?.capacity !== undefined
     ? Math.max(1, Math.min(10, selected.capacity - selected.booked))
     : 10
 
+  const hasOnline = ev.paymentMethods.includes('STRIPE') || ev.paymentMethods.includes('REVOLUT')
+  const hasCash = ev.paymentMethods.includes('CASH')
+
   async function handleBuy() {
     if (!selected) return
-    setLoading(true); setError(null)
+    setLoading('online'); setError(null)
     try {
       const res = await fetch('/api/my/events/checkout', {
         method: 'POST',
@@ -129,12 +135,48 @@ function TicketDrawer({ ev, onClose }: { ev: EventItem; onClose: () => void }) {
         body: JSON.stringify({ eventId: ev.id, ticketId: selected.id, quantity }),
       })
       const data = await res.json()
-      if (!res.ok) { setError(data.error ?? t.my.checkoutFailedError); setLoading(false); return }
+      if (!res.ok) { setError(data.error ?? t.my.checkoutFailedError); setLoading(null); return }
       window.location.href = data.url
     } catch {
       setError(t.my.checkoutFailedError)
-      setLoading(false)
+      setLoading(null)
     }
+  }
+
+  async function handleReserveCash() {
+    if (!selected) return
+    setLoading('cash'); setError(null)
+    try {
+      const res = await fetch('/api/my/events/reserve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId: ev.id, ticketId: selected.id, quantity }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setError(data.error ?? t.my.checkoutFailedError); setLoading(null); return }
+      setCashReserved(true)
+    } catch {
+      setError(t.my.checkoutFailedError)
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  if (cashReserved) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
+        <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl text-center" onClick={e => e.stopPropagation()}>
+          <div className="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
+            <CheckCircle2 className="w-7 h-7 text-emerald-500" />
+          </div>
+          <h2 className="text-base font-bold text-[#101828] mb-1">{t.my.cashReservedTitle}</h2>
+          <p className="text-sm text-gray-500 mb-5">{t.my.cashReservedDesc}</p>
+          <button onClick={onClose} className="w-full py-3 rounded-2xl bg-[#0870E2] text-white text-sm font-semibold hover:bg-[#0558b0] transition-colors">
+            {t.common.done}
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -191,15 +233,28 @@ function TicketDrawer({ ev, onClose }: { ev: EventItem; onClose: () => void }) {
             </div>
           )}
 
-          <button
-            onClick={handleBuy}
-            disabled={!selected || loading}
-            className="w-full py-3 rounded-2xl bg-[#0870E2] text-white text-sm font-semibold hover:bg-[#0558b0] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-          >
-            {loading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : (
-              selected ? `${t.my.getTicketsBtn} · ${selected.price === 0 ? t.my.freeEntry : fmtPrice(selected.price * quantity, selected.currency)}` : t.my.getTicketsBtn
-            )}
-          </button>
+          {hasOnline && (
+            <button
+              onClick={handleBuy}
+              disabled={!selected || loading !== null}
+              className="w-full py-3 rounded-2xl bg-[#0870E2] text-white text-sm font-semibold hover:bg-[#0558b0] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {loading === 'online' ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : (
+                selected ? `${t.my.getTicketsBtn} · ${selected.price === 0 ? t.my.freeEntry : fmtPrice(selected.price * quantity, selected.currency)}` : t.my.getTicketsBtn
+              )}
+            </button>
+          )}
+
+          {hasCash && (
+            <button
+              onClick={handleReserveCash}
+              disabled={!selected || loading !== null}
+              className="w-full py-3 rounded-2xl border border-gray-200 text-[#0870E2] text-sm font-semibold hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              style={{ marginTop: hasOnline ? 8 : 0 }}
+            >
+              {loading === 'cash' ? <div className="w-4 h-4 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" /> : t.my.payAtDoorBtn}
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -209,7 +264,10 @@ function TicketDrawer({ ev, onClose }: { ev: EventItem; onClose: () => void }) {
 /* ── My ticket card ── */
 function MyTicketCard({ booking }: { booking: MyBooking }) {
   const t = useT()
-  const cfg = getTicketStatusConfig(t)[booking.status] ?? { label: booking.status, color: '#9CA3AF' }
+  const isCashPending = booking.status === 'PENDING' && booking.paymentMethod === 'CASH'
+  const cfg = isCashPending
+    ? { label: t.my.payAtDoorBtn, color: '#EAB308' }
+    : getTicketStatusConfig(t)[booking.status] ?? { label: booking.status, color: '#9CA3AF' }
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div className="p-4">
@@ -344,7 +402,7 @@ function MyEventsPageInner() {
       {openEvent && (
         <TicketDrawer
           ev={openEvent}
-          onClose={() => setOpenEvent(null)}
+          onClose={() => { setOpenEvent(null); load() }}
         />
       )}
     </div>

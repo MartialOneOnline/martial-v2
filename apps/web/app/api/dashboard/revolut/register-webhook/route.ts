@@ -50,11 +50,12 @@ export async function POST(req: NextRequest) {
 
   if (!res.ok) {
     const err = await res.text()
+    console.error('[revolut register-webhook] status:', res.status, 'body:', err, 'webhookUrl:', webhookUrl)
     // 422 may mean webhook already registered — treat as success
     if (res.status === 422 && err.includes('already')) {
       return NextResponse.json({ ok: true, message: 'Webhook already registered' })
     }
-    return NextResponse.json({ error: `Revolut error: ${err}` }, { status: 400 })
+    return NextResponse.json({ error: `Revolut error ${res.status}: ${err}`, webhookUrl }, { status: 400 })
   }
 
   const data = await res.json()

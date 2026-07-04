@@ -191,8 +191,8 @@ function ProfileTab() {
 
       <div className="flex items-center gap-3">
         <button onClick={save} disabled={saving}
-          style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: '#0870E2', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-          {saving ? 'Saving…' : 'Save changes'}
+          style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: saved ? '#16A34A' : '#0870E2', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+          {saved ? '✓ Saved' : saving ? 'Saving…' : 'Save changes'}
         </button>
       </div>
 
@@ -419,8 +419,8 @@ function SchoolTab() {
 
       <div>
         <button onClick={save} disabled={saving}
-          style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: '#0870E2', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-          {saving ? 'Saving…' : 'Save changes'}
+          style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: saved ? '#16A34A' : '#0870E2', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+          {saved ? '✓ Saved' : saving ? 'Saving…' : 'Save changes'}
         </button>
       </div>
 
@@ -481,8 +481,8 @@ function ModulesTab() {
 
       <div>
         <button onClick={save} disabled={saving}
-          style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: '#0870E2', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-          {saving ? 'Saving…' : 'Save changes'}
+          style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: saved ? '#16A34A' : '#0870E2', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+          {saved ? '✓ Saved' : saving ? 'Saving…' : 'Save changes'}
         </button>
       </div>
 
@@ -901,8 +901,8 @@ function PaymentsTab() {
 
       <div>
         <button onClick={save}
-          style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: '#0870E2', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-          Save changes
+          style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: saved ? '#16A34A' : '#0870E2', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+          {saved ? '✓ Saved' : 'Save changes'}
         </button>
       </div>
 
@@ -1601,8 +1601,8 @@ function PasswordTab() {
 
       <div>
         <button onClick={save}
-          style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: '#0870E2', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-          Update password
+          style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: saved ? '#16A34A' : '#0870E2', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+          {saved ? '✓ Saved' : 'Update password'}
         </button>
       </div>
 

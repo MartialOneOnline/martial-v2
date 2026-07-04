@@ -30,6 +30,7 @@ export async function GET() {
       amountPaid: true,
       currency: true,
       ticketName: true,
+      paymentMethod: true,
       createdAt: true,
       event: { select: { id: true, title: true, startAt: true, location: true, coverUrl: true, school: { select: { name: true, slug: true } } } },
     },
