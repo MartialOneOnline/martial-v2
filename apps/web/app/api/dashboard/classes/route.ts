@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
   const {
     name, description, disciplineId, level, duration,
     capacity, price, currency, isTrial, isActive, isPublished, paymentMethods,
-    bookingSettings, schedule, instructorId,
+    bookingSettings, schedule, instructorId, coverUrl,
   } = body
 
   if (!name?.trim()) return NextResponse.json({ error: 'Name is required' }, { status: 400 })
@@ -84,6 +84,7 @@ export async function POST(req: NextRequest) {
       bookingSettings: bookingSettings ?? null,
       schedule: schedule ?? null,
       instructorId: instructorId || null,
+      coverUrl: coverUrl || null,
     },
     include: {
       instructor: { select: { id: true, name: true } },

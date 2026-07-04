@@ -36,7 +36,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const body = await req.json()
   const {
     title, description, type, location, startAt, endAt,
-    capacity, paymentMethods, isPublished, isCancelled, externalUrl, instructorId,
+    capacity, paymentMethods, isPublished, isCancelled, externalUrl, instructorId, coverUrl,
     tickets,
   } = body
 
@@ -55,6 +55,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       isCancelled:    isCancelled                 ?? existing.isCancelled,
       externalUrl:    externalUrl !== undefined   ? (externalUrl?.trim() || null) : existing.externalUrl,
       instructorId:   instructorId !== undefined  ? (instructorId || null) : existing.instructorId,
+      coverUrl:       coverUrl !== undefined       ? (coverUrl || null) : existing.coverUrl,
       // Replace all tickets if provided
       ...(Array.isArray(tickets) && {
         tickets: {

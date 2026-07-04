@@ -58,6 +58,16 @@ export type Discipline = Prisma.DisciplineModel
  */
 export type SchoolDiscipline = Prisma.SchoolDisciplineModel
 /**
+ * Model Facility
+ * 
+ */
+export type Facility = Prisma.FacilityModel
+/**
+ * Model SchoolFacility
+ * 
+ */
+export type SchoolFacility = Prisma.SchoolFacilityModel
+/**
  * Model School
  * 
  */

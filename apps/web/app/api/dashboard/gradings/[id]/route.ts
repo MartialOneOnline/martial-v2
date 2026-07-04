@@ -31,14 +31,35 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (!grading) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const body = await req.json()
+
+  // Optional FK enrichment — validate ranks belong to this school before trusting them.
+  if (body.fromBeltRankId || body.toBeltRankId) {
+    const ranks = await prisma.beltRank.findMany({
+      where: {
+        id: { in: [body.toBeltRankId, body.fromBeltRankId].filter(Boolean) },
+        system: { schoolId: auth.schoolId },
+      },
+      select: { id: true },
+    })
+    const validIds = new Set(ranks.map(r => r.id))
+    if (body.toBeltRankId && !validIds.has(body.toBeltRankId)) {
+      return NextResponse.json({ error: 'Invalid toBeltRankId for this school' }, { status: 400 })
+    }
+    if (body.fromBeltRankId && !validIds.has(body.fromBeltRankId)) {
+      return NextResponse.json({ error: 'Invalid fromBeltRankId for this school' }, { status: 400 })
+    }
+  }
+
   const updated = await prisma.grading.update({
     where: { id },
     data: {
-      ...(body.fromBelt  !== undefined && { fromBelt:  body.fromBelt ?? null }),
-      ...(body.toBelt    !== undefined && { toBelt:    body.toBelt }),
-      ...(body.toDegree  !== undefined && { toDegree:  body.toDegree }),
-      ...(body.gradedAt  !== undefined && { gradedAt:  new Date(body.gradedAt) }),
-      ...(body.notes     !== undefined && { notes:     body.notes ?? null }),
+      ...(body.fromBelt       !== undefined && { fromBelt:       body.fromBelt ?? null }),
+      ...(body.fromBeltRankId !== undefined && { fromBeltRankId: body.fromBeltRankId ?? null }),
+      ...(body.toBelt         !== undefined && { toBelt:         body.toBelt }),
+      ...(body.toBeltRankId   !== undefined && { toBeltRankId:   body.toBeltRankId ?? null }),
+      ...(body.toDegree       !== undefined && { toDegree:       body.toDegree }),
+      ...(body.gradedAt       !== undefined && { gradedAt:       new Date(body.gradedAt) }),
+      ...(body.notes          !== undefined && { notes:          body.notes ?? null }),
     },
     include: {
       user:      { select: { name: true, avatarUrl: true } },
@@ -47,15 +68,17 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   })
 
   return NextResponse.json({
-    id:          updated.id,
-    userName:    updated.user.name,
-    userAvatar:  updated.user.avatarUrl,
-    fromBelt:    updated.fromBelt,
-    toBelt:      updated.toBelt,
-    toDegree:    updated.toDegree ?? 0,
-    gradedAt:    updated.gradedAt.toISOString(),
-    instructor:  updated.promotedBy?.name ?? null,
-    notes:       updated.notes,
+    id:             updated.id,
+    userName:       updated.user.name,
+    userAvatar:     updated.user.avatarUrl,
+    fromBelt:       updated.fromBelt,
+    fromBeltRankId: updated.fromBeltRankId,
+    toBelt:         updated.toBelt,
+    toBeltRankId:   updated.toBeltRankId,
+    toDegree:       updated.toDegree ?? 0,
+    gradedAt:       updated.gradedAt.toISOString(),
+    instructor:     updated.promotedBy?.name ?? null,
+    notes:          updated.notes,
   })
 }
 

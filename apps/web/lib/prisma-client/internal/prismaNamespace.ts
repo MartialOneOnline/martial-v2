@@ -392,6 +392,8 @@ export const ModelName = {
   User: 'User',
   Discipline: 'Discipline',
   SchoolDiscipline: 'SchoolDiscipline',
+  Facility: 'Facility',
+  SchoolFacility: 'SchoolFacility',
   School: 'School',
   Instructor: 'Instructor',
   MembershipPlan: 'MembershipPlan',
@@ -440,7 +442,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "user" | "discipline" | "schoolDiscipline" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "event" | "eventTicket" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "schoolClaim" | "gradingSystem" | "beltRank" | "grading" | "lead" | "leadNote" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "partner" | "notification" | "platformSettings" | "schoolSubscription" | "stripeWebhookEvent"
+    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "event" | "eventTicket" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "schoolClaim" | "gradingSystem" | "beltRank" | "grading" | "lead" | "leadNote" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "partner" | "notification" | "platformSettings" | "schoolSubscription" | "stripeWebhookEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1033,6 +1035,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.SchoolDisciplineCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.SchoolDisciplineCountAggregateOutputType> | number
+        }
+      }
+    }
+    Facility: {
+      payload: Prisma.$FacilityPayload<ExtArgs>
+      fields: Prisma.FacilityFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FacilityFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FacilityPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FacilityFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FacilityPayload>
+        }
+        findFirst: {
+          args: Prisma.FacilityFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FacilityPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FacilityFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FacilityPayload>
+        }
+        findMany: {
+          args: Prisma.FacilityFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FacilityPayload>[]
+        }
+        create: {
+          args: Prisma.FacilityCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FacilityPayload>
+        }
+        createMany: {
+          args: Prisma.FacilityCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FacilityCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FacilityPayload>[]
+        }
+        delete: {
+          args: Prisma.FacilityDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FacilityPayload>
+        }
+        update: {
+          args: Prisma.FacilityUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FacilityPayload>
+        }
+        deleteMany: {
+          args: Prisma.FacilityDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FacilityUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FacilityUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FacilityPayload>[]
+        }
+        upsert: {
+          args: Prisma.FacilityUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FacilityPayload>
+        }
+        aggregate: {
+          args: Prisma.FacilityAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFacility>
+        }
+        groupBy: {
+          args: Prisma.FacilityGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FacilityGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FacilityCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FacilityCountAggregateOutputType> | number
+        }
+      }
+    }
+    SchoolFacility: {
+      payload: Prisma.$SchoolFacilityPayload<ExtArgs>
+      fields: Prisma.SchoolFacilityFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SchoolFacilityFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SchoolFacilityPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SchoolFacilityFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SchoolFacilityPayload>
+        }
+        findFirst: {
+          args: Prisma.SchoolFacilityFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SchoolFacilityPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SchoolFacilityFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SchoolFacilityPayload>
+        }
+        findMany: {
+          args: Prisma.SchoolFacilityFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SchoolFacilityPayload>[]
+        }
+        create: {
+          args: Prisma.SchoolFacilityCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SchoolFacilityPayload>
+        }
+        createMany: {
+          args: Prisma.SchoolFacilityCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SchoolFacilityCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SchoolFacilityPayload>[]
+        }
+        delete: {
+          args: Prisma.SchoolFacilityDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SchoolFacilityPayload>
+        }
+        update: {
+          args: Prisma.SchoolFacilityUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SchoolFacilityPayload>
+        }
+        deleteMany: {
+          args: Prisma.SchoolFacilityDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SchoolFacilityUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SchoolFacilityUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SchoolFacilityPayload>[]
+        }
+        upsert: {
+          args: Prisma.SchoolFacilityUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SchoolFacilityPayload>
+        }
+        aggregate: {
+          args: Prisma.SchoolFacilityAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSchoolFacility>
+        }
+        groupBy: {
+          args: Prisma.SchoolFacilityGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SchoolFacilityGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SchoolFacilityCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SchoolFacilityCountAggregateOutputType> | number
         }
       }
     }
@@ -3633,6 +3783,24 @@ export const SchoolDisciplineScalarFieldEnum = {
 export type SchoolDisciplineScalarFieldEnum = (typeof SchoolDisciplineScalarFieldEnum)[keyof typeof SchoolDisciplineScalarFieldEnum]
 
 
+export const FacilityScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  icon: 'icon'
+} as const
+
+export type FacilityScalarFieldEnum = (typeof FacilityScalarFieldEnum)[keyof typeof FacilityScalarFieldEnum]
+
+
+export const SchoolFacilityScalarFieldEnum = {
+  schoolId: 'schoolId',
+  facilityId: 'facilityId'
+} as const
+
+export type SchoolFacilityScalarFieldEnum = (typeof SchoolFacilityScalarFieldEnum)[keyof typeof SchoolFacilityScalarFieldEnum]
+
+
 export const SchoolScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -3671,6 +3839,7 @@ export const SchoolScalarFieldEnum = {
   v1UserId: 'v1UserId',
   defaultBookingSettings: 'defaultBookingSettings',
   cancelPolicy: 'cancelPolicy',
+  modules: 'modules',
   stripePublishableKey: 'stripePublishableKey',
   stripeSecretKey: 'stripeSecretKey',
   stripeWebhookSecret: 'stripeWebhookSecret',
@@ -3906,6 +4075,7 @@ export const SchoolMemberScalarFieldEnum = {
   status: 'status',
   joinedAt: 'joinedAt',
   belt: 'belt',
+  beltRankId: 'beltRankId',
   beltDegree: 'beltDegree',
   beltDate: 'beltDate',
   emergencyContact: 'emergencyContact',
@@ -3980,7 +4150,9 @@ export const GradingScalarFieldEnum = {
   userId: 'userId',
   promotedById: 'promotedById',
   fromBelt: 'fromBelt',
+  fromBeltRankId: 'fromBeltRankId',
   toBelt: 'toBelt',
+  toBeltRankId: 'toBeltRankId',
   toDegree: 'toDegree',
   gradedAt: 'gradedAt',
   notes: 'notes',
@@ -4231,6 +4403,15 @@ export const PlatformSettingsScalarFieldEnum = {
   stripePriceIdMonthly: 'stripePriceIdMonthly',
   stripePriceIdQuarterly: 'stripePriceIdQuarterly',
   stripePriceIdAnnual: 'stripePriceIdAnnual',
+  notifyNewSchool: 'notifyNewSchool',
+  notifyVerificationReq: 'notifyVerificationReq',
+  notifyWeeklyReport: 'notifyWeeklyReport',
+  allowSelfRegistration: 'allowSelfRegistration',
+  requireEmailVerification: 'requireEmailVerification',
+  maintenanceMode: 'maintenanceMode',
+  superAdminEmail: 'superAdminEmail',
+  supportEmail: 'supportEmail',
+  emailSenderName: 'emailSenderName',
   updatedAt: 'updatedAt'
 } as const
 
@@ -4838,6 +5019,8 @@ export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   discipline?: Prisma.DisciplineOmit
   schoolDiscipline?: Prisma.SchoolDisciplineOmit
+  facility?: Prisma.FacilityOmit
+  schoolFacility?: Prisma.SchoolFacilityOmit
   school?: Prisma.SchoolOmit
   instructor?: Prisma.InstructorOmit
   membershipPlan?: Prisma.MembershipPlanOmit

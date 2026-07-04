@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   Bell, Calendar, Menu, X, Plus, MoreHorizontal, Search,
   ChevronLeft, ChevronRight, TrendingUp, Check, Upload, Clock, Trash2, Pencil,
@@ -276,13 +276,14 @@ interface ClassFormData {
   booking: ClassBookingForm
   schedule: ScheduleSlot[]
   instructorId: string
+  coverUrl: string
 }
 
 const EMPTY_FORM: ClassFormData = {
   name: '', description: '', disciplineId: '', level: '', duration: '',
   capacity: '', price: '', currency: 'EUR', isTrial: false, isActive: true,
   isPublished: false, paymentMethods: [], booking: EMPTY_BOOKING,
-  schedule: [], instructorId: '',
+  schedule: [], instructorId: '', coverUrl: '',
 }
 
 function classToForm(cls: ClassRow): ClassFormData {
@@ -299,6 +300,7 @@ function classToForm(cls: ClassRow): ClassFormData {
     isActive: cls.isActive,
     isPublished: cls.isPublished,
     paymentMethods: (cls.paymentMethods ?? []) as PaymentMethod[],
+    coverUrl: cls.coverUrl ?? '',
     booking: bookingSettingsToForm(cls.bookingSettings),
     schedule: cls.schedule ?? [],
     instructorId: cls.instructor?.id ?? '',
@@ -457,12 +459,91 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return <div><label style={drawerLabelStyle}>{label}</label>{children}</div>
 }
 
+function BannerUploadZone({ value, onChange, label, height = 160, hint = 'PNG, JPG up to 5 MB' }: {
+  value: string; onChange: (url: string) => void; label: string; height?: number; hint?: string
+}) {
+  const [dragOver, setDragOver] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  async function uploadFile(file: File) {
+    if (!file.type.startsWith('image/')) return
+    setUploading(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch('/api/dashboard/upload?bucket=class-images', { method: 'POST', body: fd })
+      if (res.ok) {
+        const { url } = await res.json()
+        onChange(url)
+      }
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  function onDrop(e: React.DragEvent) {
+    e.preventDefault(); setDragOver(false)
+    const file = e.dataTransfer.files[0]
+    if (file) uploadFile(file)
+  }
+
+  function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) uploadFile(file)
+    e.target.value = ''
+  }
+
+  return (
+    <div>
+      <label style={drawerLabelStyle}>{label}</label>
+      {value ? (
+        <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', border: '1px solid #E5E7EB', height }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={value} alt={label} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          <button type="button" onClick={() => onChange('')}
+            className="cursor-pointer"
+            style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: '50%',
+              background: 'rgba(0,0,0,0.55)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <X size={12} style={{ color: '#fff' }} />
+          </button>
+        </div>
+      ) : (
+        <div
+          onDragEnter={e => { e.preventDefault(); setDragOver(true) }}
+          onDragOver={e => e.preventDefault()}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={onDrop}
+          onClick={() => fileRef.current?.click()}
+          className="flex flex-col items-center justify-center gap-3 rounded-2xl cursor-pointer"
+          style={{ height, border: `2px dashed ${dragOver ? '#0071E3' : '#D1D5DB'}`,
+            background: dragOver ? '#EFF6FF' : '#fff' }}>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#F3F4F6' }}>
+            <Upload size={18} style={{ color: '#9CA3AF' }} />
+          </div>
+          <div className="text-center">
+            <p style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>
+              {uploading ? 'Uploading…' : 'Drop image here'}
+            </p>
+            <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>{hint}</p>
+          </div>
+          <button type="button" onClick={e => { e.stopPropagation(); fileRef.current?.click() }}
+            className="px-3 py-1.5 rounded-lg cursor-pointer"
+            style={{ fontSize: 12, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
+            Browse
+          </button>
+        </div>
+      )}
+      <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
+    </div>
+  )
+}
+
 function ClassDrawer({ open, onClose, onSaved, editing, instructors, disciplines }: ClassDrawerProps) {
   const t = useT()
   const [form, setForm] = useState<ClassFormData>(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-  const [bannerDrag, setBannerDrag] = useState(false)
 
   useEffect(() => {
     if (open) {
@@ -503,6 +584,7 @@ function ClassDrawer({ open, onClose, onSaved, editing, instructors, disciplines
           bookingSettings: bookingFormToSettings(form.booking),
           schedule: form.schedule.length > 0 ? form.schedule : null,
           instructorId: form.instructorId || null,
+          coverUrl: form.coverUrl || null,
         }),
       })
       if (!res.ok) {
@@ -690,28 +772,11 @@ function ClassDrawer({ open, onClose, onSaved, editing, instructors, disciplines
 
             {/* Right — banner */}
             <div style={{ width: 220, flexShrink: 0 }}>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 5 }}>
-                Class banner
-              </label>
-              <div
-                onDragEnter={() => setBannerDrag(true)}
-                onDragLeave={() => setBannerDrag(false)}
-                onDrop={() => setBannerDrag(false)}
-                className="flex flex-col items-center justify-center gap-3 rounded-2xl cursor-pointer"
-                style={{ height: 160, border: `2px dashed ${bannerDrag ? '#0071E3' : '#D1D5DB'}`,
-                  background: bannerDrag ? '#EFF6FF' : '#fff' }}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#F3F4F6' }}>
-                  <Upload size={18} style={{ color: '#9CA3AF' }} />
-                </div>
-                <div className="text-center">
-                  <p style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>Drop image here</p>
-                  <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>PNG, JPG up to 5 MB</p>
-                </div>
-                <label className="px-3 py-1.5 rounded-lg cursor-pointer"
-                  style={{ fontSize: 12, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
-                  Browse<input type="file" accept="image/*" className="hidden" />
-                </label>
-              </div>
+              <BannerUploadZone
+                label="Class banner"
+                value={form.coverUrl}
+                onChange={url => set('coverUrl', url)}
+              />
               <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 6 }}>Recommended: 800 × 500px</p>
             </div>
 

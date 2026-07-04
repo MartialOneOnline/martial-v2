@@ -429,6 +429,64 @@ function SchoolTab() {
   )
 }
 
+// ── Modules Tab ───────────────────────────────────────────────────────────────
+function ModulesTab() {
+  const [modules, setModules] = useState({ store: false, curriculum: false, news: false })
+  const [loading, setLoading] = useState(true)
+  const [saving,  setSaving]  = useState(false)
+  const [saved,   setSaved]   = useState(false)
+  const [error,   setError]   = useState('')
+
+  useEffect(() => {
+    fetch('/api/dashboard/school').then(r => r.json()).then(d => {
+      if (d.school?.modules) setModules(d.school.modules)
+    }).finally(() => setLoading(false))
+  }, [])
+
+  function set(key: keyof typeof modules, value: boolean) {
+    setModules(p => ({ ...p, [key]: value }))
+  }
+
+  async function save() {
+    setSaving(true); setError('')
+    const res = await fetch('/api/dashboard/school', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ modules }) })
+    setSaving(false)
+    if (!res.ok) { setError('Error saving'); return }
+    setSaved(true); setTimeout(() => setSaved(false), 2500)
+  }
+
+  if (loading) return <p style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</p>
+
+  return (
+    <div className="flex flex-col gap-4" style={{ maxWidth: 560 }}>
+      <div>
+        <p style={SECTION_TITLE}>Modules</p>
+        <p style={SECTION_SUB}>Turn optional features on or off for your academy. Students only see what you enable here.</p>
+      </div>
+
+      <div>
+        <ToggleRow label="Store" description="Let members buy gear, uniforms and merchandise from your academy."
+          value={modules.store} onChange={v => set('store', v)} />
+        <ToggleRow label="Curriculum" description="Share belt-by-belt technique videos and lesson plans with your students."
+          value={modules.curriculum} onChange={v => set('curriculum', v)} />
+        <ToggleRow label="News" description="Publish academy announcements and articles to your students' feed."
+          value={modules.news} onChange={v => set('news', v)} />
+      </div>
+
+      {error && <p style={{ fontSize: 13, color: '#E11D48' }}>{error}</p>}
+
+      <div>
+        <button onClick={save} disabled={saving}
+          style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: '#0870E2', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+          {saving ? 'Saving…' : 'Save changes'}
+        </button>
+      </div>
+
+      <SaveToast show={saved} text="Modules saved" />
+    </div>
+  )
+}
+
 // ── Staff Tab ─────────────────────────────────────────────────────────────────
 function StaffTab() {
   const MOCK_STAFF = [
@@ -1530,11 +1588,12 @@ function DeleteTab() {
 }
 
 // ── Tabs config ───────────────────────────────────────────────────────────────
-type TabId = 'profile' | 'school' | 'staff' | 'payments' | 'billing' | 'grading' | 'password' | 'delete'
+type TabId = 'profile' | 'school' | 'modules' | 'staff' | 'payments' | 'billing' | 'grading' | 'password' | 'delete'
 
 const TABS: { id: TabId; label: string; danger?: boolean }[] = [
   { id: 'profile',  label: 'Profile'         },
   { id: 'school',   label: 'School'          },
+  { id: 'modules',  label: 'Modules'         },
   { id: 'staff',    label: 'Staff'           },
   { id: 'payments', label: 'Payments'        },
   { id: 'billing',  label: 'Billing'         },
@@ -1556,6 +1615,7 @@ export default function SettingsClient() {
   const content: Record<TabId, React.ReactNode> = {
     profile:  <ProfileTab />,
     school:   <SchoolTab />,
+    modules:  <ModulesTab />,
     staff:    <StaffTab />,
     payments: <PaymentsTab />,
     billing:  <BillingTab />,

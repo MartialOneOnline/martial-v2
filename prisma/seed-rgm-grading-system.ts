@@ -51,11 +51,35 @@ function beltColorFixed(title: string): string {
   return '#6B7280' // blanco/white
 }
 
+// V1 exported each belt+degree as its own flat row ("Blanco", "Blanco 1 Grado",
+// "Blanco 2 Grado", ...). The V2 schema models degrees as BeltRank.maxDegrees
+// on a single canonical rank instead, so we group consecutive degree-suffixed
+// rows into the preceding base (non-degree) row and count them as maxDegrees.
+// Grading.fromBelt/toBelt (see seed-rgm-gradings.ts) already only ever use the
+// 5 canonical Spanish names, so this grouping is what backfill-belt-rank-fks.ts
+// expects to match against.
+const DEGREE_SUFFIX = /\s+\d+\s*Grados?$/i
+
+function groupRanksByBelt(rankRows: any[]) {
+  const groups: { base: any; degreeRows: any[] }[] = []
+  for (const row of rankRows) {
+    if (!DEGREE_SUFFIX.test(row.title)) {
+      groups.push({ base: row, degreeRows: [] })
+    } else if (groups.length) {
+      groups[groups.length - 1].degreeRows.push(row)
+    }
+  }
+  return groups
+}
+
 async function main() {
   const allRows = await readCsv(BELT_RANKS_CSV)
 
-  // Find the parent system row for RGM (user_id=798, no parent_id)
-  const systemRow = allRows.find(r => r.user_id === V1_USER_ID && !r.parent_id && r.grading_system === '1')
+  // Find the parent system row for RGM (user_id=798, no parent_id).
+  // csv-parse gives the literal string "NULL" for empty CSV cells here, not JS null.
+  const systemRow = allRows.find(r =>
+    r.user_id === V1_USER_ID && (!r.parent_id || r.parent_id === 'NULL') && r.grading_system === '1'
+  )
   if (!systemRow) throw new Error('RGM grading system row not found')
 
   // Get all belt rank rows for RGM (have parent_id pointing to systemRow)
@@ -63,7 +87,8 @@ async function main() {
     .filter(r => r.user_id === V1_USER_ID && r.parent_id === systemRow.id)
     .sort((a, b) => parseInt(a.id) - parseInt(b.id))
 
-  console.log(`Found ${rankRows.length} belt ranks for RGM`)
+  const groups = groupRanksByBelt(rankRows)
+  console.log(`Found ${rankRows.length} flat V1 rows → ${groups.length} canonical belt ranks for RGM`)
 
   // Delete existing grading system for RGM (cascade deletes ranks)
   await prisma.gradingSystem.deleteMany({ where: { schoolId: SCHOOL_ID } })
@@ -85,20 +110,20 @@ async function main() {
   })
   console.log(`Created grading system: ${system.id}`)
 
-  // Create belt ranks in order
+  // Create one canonical belt rank per group, in order
   let order = 0
-  for (const row of rankRows) {
-    const classes = row.classes && row.classes !== 'NULL' ? parseInt(row.classes) : null
-    const minAge  = row.age_limit && row.age_limit !== 'NULL' && parseInt(row.age_limit) > 0
-      ? parseInt(row.age_limit) : null
+  for (const { base, degreeRows } of groups) {
+    const classes = base.classes && base.classes !== 'NULL' ? parseInt(base.classes) : null
+    const minAge  = base.age_limit && base.age_limit !== 'NULL' && parseInt(base.age_limit) > 0
+      ? parseInt(base.age_limit) : null
 
     await prisma.beltRank.create({
       data: {
         systemId:             system.id,
         order:                order++,
-        name:                 row.title,
-        color:                beltColorFixed(row.title),
-        maxDegrees:           0,
+        name:                 base.title.trim(),
+        color:                beltColorFixed(base.title),
+        maxDegrees:           degreeRows.length,
         minAge,
         minMonthsAtPrevious:  null,
         totalClassesRequired: classes,
@@ -109,7 +134,7 @@ async function main() {
     })
   }
 
-  console.log(`\nDone — ${order} belt ranks created for "${system.name}"`)
+  console.log(`\nDone — ${order} canonical belt ranks created for "${system.name}"`)
 }
 
 main().catch(console.error).finally(() => prisma.$disconnect())

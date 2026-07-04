@@ -321,6 +321,9 @@ export type BeltRankWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"BeltRank"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"BeltRank"> | Date | string
   system?: Prisma.XOR<Prisma.GradingSystemScalarRelationFilter, Prisma.GradingSystemWhereInput>
+  members?: Prisma.SchoolMemberListRelationFilter
+  gradingsFrom?: Prisma.GradingListRelationFilter
+  gradingsTo?: Prisma.GradingListRelationFilter
 }
 
 export type BeltRankOrderByWithRelationInput = {
@@ -341,6 +344,9 @@ export type BeltRankOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   system?: Prisma.GradingSystemOrderByWithRelationInput
+  members?: Prisma.SchoolMemberOrderByRelationAggregateInput
+  gradingsFrom?: Prisma.GradingOrderByRelationAggregateInput
+  gradingsTo?: Prisma.GradingOrderByRelationAggregateInput
 }
 
 export type BeltRankWhereUniqueInput = Prisma.AtLeast<{
@@ -364,6 +370,9 @@ export type BeltRankWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"BeltRank"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"BeltRank"> | Date | string
   system?: Prisma.XOR<Prisma.GradingSystemScalarRelationFilter, Prisma.GradingSystemWhereInput>
+  members?: Prisma.SchoolMemberListRelationFilter
+  gradingsFrom?: Prisma.GradingListRelationFilter
+  gradingsTo?: Prisma.GradingListRelationFilter
 }, "id">
 
 export type BeltRankOrderByWithAggregationInput = {
@@ -429,6 +438,9 @@ export type BeltRankCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   system: Prisma.GradingSystemCreateNestedOneWithoutRanksInput
+  members?: Prisma.SchoolMemberCreateNestedManyWithoutBeltRankInput
+  gradingsFrom?: Prisma.GradingCreateNestedManyWithoutFromBeltRankInput
+  gradingsTo?: Prisma.GradingCreateNestedManyWithoutToBeltRankInput
 }
 
 export type BeltRankUncheckedCreateInput = {
@@ -448,6 +460,9 @@ export type BeltRankUncheckedCreateInput = {
   requireExam?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutBeltRankInput
+  gradingsFrom?: Prisma.GradingUncheckedCreateNestedManyWithoutFromBeltRankInput
+  gradingsTo?: Prisma.GradingUncheckedCreateNestedManyWithoutToBeltRankInput
 }
 
 export type BeltRankUpdateInput = {
@@ -467,6 +482,9 @@ export type BeltRankUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   system?: Prisma.GradingSystemUpdateOneRequiredWithoutRanksNestedInput
+  members?: Prisma.SchoolMemberUpdateManyWithoutBeltRankNestedInput
+  gradingsFrom?: Prisma.GradingUpdateManyWithoutFromBeltRankNestedInput
+  gradingsTo?: Prisma.GradingUpdateManyWithoutToBeltRankNestedInput
 }
 
 export type BeltRankUncheckedUpdateInput = {
@@ -486,6 +504,9 @@ export type BeltRankUncheckedUpdateInput = {
   requireExam?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutBeltRankNestedInput
+  gradingsFrom?: Prisma.GradingUncheckedUpdateManyWithoutFromBeltRankNestedInput
+  gradingsTo?: Prisma.GradingUncheckedUpdateManyWithoutToBeltRankNestedInput
 }
 
 export type BeltRankCreateManyInput = {
@@ -542,6 +563,11 @@ export type BeltRankUncheckedUpdateManyInput = {
   requireExam?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type BeltRankNullableScalarRelationFilter = {
+  is?: Prisma.BeltRankWhereInput | null
+  isNot?: Prisma.BeltRankWhereInput | null
 }
 
 export type BeltRankListRelationFilter = {
@@ -627,6 +653,22 @@ export type BeltRankSumOrderByAggregateInput = {
   classesPerPeriod?: Prisma.SortOrder
 }
 
+export type BeltRankCreateNestedOneWithoutMembersInput = {
+  create?: Prisma.XOR<Prisma.BeltRankCreateWithoutMembersInput, Prisma.BeltRankUncheckedCreateWithoutMembersInput>
+  connectOrCreate?: Prisma.BeltRankCreateOrConnectWithoutMembersInput
+  connect?: Prisma.BeltRankWhereUniqueInput
+}
+
+export type BeltRankUpdateOneWithoutMembersNestedInput = {
+  create?: Prisma.XOR<Prisma.BeltRankCreateWithoutMembersInput, Prisma.BeltRankUncheckedCreateWithoutMembersInput>
+  connectOrCreate?: Prisma.BeltRankCreateOrConnectWithoutMembersInput
+  upsert?: Prisma.BeltRankUpsertWithoutMembersInput
+  disconnect?: Prisma.BeltRankWhereInput | boolean
+  delete?: Prisma.BeltRankWhereInput | boolean
+  connect?: Prisma.BeltRankWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.BeltRankUpdateToOneWithWhereWithoutMembersInput, Prisma.BeltRankUpdateWithoutMembersInput>, Prisma.BeltRankUncheckedUpdateWithoutMembersInput>
+}
+
 export type BeltRankCreateNestedManyWithoutSystemInput = {
   create?: Prisma.XOR<Prisma.BeltRankCreateWithoutSystemInput, Prisma.BeltRankUncheckedCreateWithoutSystemInput> | Prisma.BeltRankCreateWithoutSystemInput[] | Prisma.BeltRankUncheckedCreateWithoutSystemInput[]
   connectOrCreate?: Prisma.BeltRankCreateOrConnectWithoutSystemInput | Prisma.BeltRankCreateOrConnectWithoutSystemInput[]
@@ -678,6 +720,138 @@ export type BeltRankUpdateclassTypeIdsInput = {
   push?: string | string[]
 }
 
+export type BeltRankCreateNestedOneWithoutGradingsFromInput = {
+  create?: Prisma.XOR<Prisma.BeltRankCreateWithoutGradingsFromInput, Prisma.BeltRankUncheckedCreateWithoutGradingsFromInput>
+  connectOrCreate?: Prisma.BeltRankCreateOrConnectWithoutGradingsFromInput
+  connect?: Prisma.BeltRankWhereUniqueInput
+}
+
+export type BeltRankCreateNestedOneWithoutGradingsToInput = {
+  create?: Prisma.XOR<Prisma.BeltRankCreateWithoutGradingsToInput, Prisma.BeltRankUncheckedCreateWithoutGradingsToInput>
+  connectOrCreate?: Prisma.BeltRankCreateOrConnectWithoutGradingsToInput
+  connect?: Prisma.BeltRankWhereUniqueInput
+}
+
+export type BeltRankUpdateOneWithoutGradingsFromNestedInput = {
+  create?: Prisma.XOR<Prisma.BeltRankCreateWithoutGradingsFromInput, Prisma.BeltRankUncheckedCreateWithoutGradingsFromInput>
+  connectOrCreate?: Prisma.BeltRankCreateOrConnectWithoutGradingsFromInput
+  upsert?: Prisma.BeltRankUpsertWithoutGradingsFromInput
+  disconnect?: Prisma.BeltRankWhereInput | boolean
+  delete?: Prisma.BeltRankWhereInput | boolean
+  connect?: Prisma.BeltRankWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.BeltRankUpdateToOneWithWhereWithoutGradingsFromInput, Prisma.BeltRankUpdateWithoutGradingsFromInput>, Prisma.BeltRankUncheckedUpdateWithoutGradingsFromInput>
+}
+
+export type BeltRankUpdateOneWithoutGradingsToNestedInput = {
+  create?: Prisma.XOR<Prisma.BeltRankCreateWithoutGradingsToInput, Prisma.BeltRankUncheckedCreateWithoutGradingsToInput>
+  connectOrCreate?: Prisma.BeltRankCreateOrConnectWithoutGradingsToInput
+  upsert?: Prisma.BeltRankUpsertWithoutGradingsToInput
+  disconnect?: Prisma.BeltRankWhereInput | boolean
+  delete?: Prisma.BeltRankWhereInput | boolean
+  connect?: Prisma.BeltRankWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.BeltRankUpdateToOneWithWhereWithoutGradingsToInput, Prisma.BeltRankUpdateWithoutGradingsToInput>, Prisma.BeltRankUncheckedUpdateWithoutGradingsToInput>
+}
+
+export type BeltRankCreateWithoutMembersInput = {
+  id?: string
+  order: number
+  name: string
+  color?: string
+  maxDegrees?: number
+  minAge?: number | null
+  minMonthsAtPrevious?: number | null
+  totalClassesRequired?: number | null
+  classesPerPeriod?: number | null
+  periodType?: string | null
+  classTypeIds?: Prisma.BeltRankCreateclassTypeIdsInput | string[]
+  requireCompetition?: boolean
+  requireExam?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  system: Prisma.GradingSystemCreateNestedOneWithoutRanksInput
+  gradingsFrom?: Prisma.GradingCreateNestedManyWithoutFromBeltRankInput
+  gradingsTo?: Prisma.GradingCreateNestedManyWithoutToBeltRankInput
+}
+
+export type BeltRankUncheckedCreateWithoutMembersInput = {
+  id?: string
+  systemId: string
+  order: number
+  name: string
+  color?: string
+  maxDegrees?: number
+  minAge?: number | null
+  minMonthsAtPrevious?: number | null
+  totalClassesRequired?: number | null
+  classesPerPeriod?: number | null
+  periodType?: string | null
+  classTypeIds?: Prisma.BeltRankCreateclassTypeIdsInput | string[]
+  requireCompetition?: boolean
+  requireExam?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  gradingsFrom?: Prisma.GradingUncheckedCreateNestedManyWithoutFromBeltRankInput
+  gradingsTo?: Prisma.GradingUncheckedCreateNestedManyWithoutToBeltRankInput
+}
+
+export type BeltRankCreateOrConnectWithoutMembersInput = {
+  where: Prisma.BeltRankWhereUniqueInput
+  create: Prisma.XOR<Prisma.BeltRankCreateWithoutMembersInput, Prisma.BeltRankUncheckedCreateWithoutMembersInput>
+}
+
+export type BeltRankUpsertWithoutMembersInput = {
+  update: Prisma.XOR<Prisma.BeltRankUpdateWithoutMembersInput, Prisma.BeltRankUncheckedUpdateWithoutMembersInput>
+  create: Prisma.XOR<Prisma.BeltRankCreateWithoutMembersInput, Prisma.BeltRankUncheckedCreateWithoutMembersInput>
+  where?: Prisma.BeltRankWhereInput
+}
+
+export type BeltRankUpdateToOneWithWhereWithoutMembersInput = {
+  where?: Prisma.BeltRankWhereInput
+  data: Prisma.XOR<Prisma.BeltRankUpdateWithoutMembersInput, Prisma.BeltRankUncheckedUpdateWithoutMembersInput>
+}
+
+export type BeltRankUpdateWithoutMembersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  order?: Prisma.IntFieldUpdateOperationsInput | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  color?: Prisma.StringFieldUpdateOperationsInput | string
+  maxDegrees?: Prisma.IntFieldUpdateOperationsInput | number
+  minAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  minMonthsAtPrevious?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalClassesRequired?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  classesPerPeriod?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  periodType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classTypeIds?: Prisma.BeltRankUpdateclassTypeIdsInput | string[]
+  requireCompetition?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireExam?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  system?: Prisma.GradingSystemUpdateOneRequiredWithoutRanksNestedInput
+  gradingsFrom?: Prisma.GradingUpdateManyWithoutFromBeltRankNestedInput
+  gradingsTo?: Prisma.GradingUpdateManyWithoutToBeltRankNestedInput
+}
+
+export type BeltRankUncheckedUpdateWithoutMembersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  systemId?: Prisma.StringFieldUpdateOperationsInput | string
+  order?: Prisma.IntFieldUpdateOperationsInput | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  color?: Prisma.StringFieldUpdateOperationsInput | string
+  maxDegrees?: Prisma.IntFieldUpdateOperationsInput | number
+  minAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  minMonthsAtPrevious?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalClassesRequired?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  classesPerPeriod?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  periodType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classTypeIds?: Prisma.BeltRankUpdateclassTypeIdsInput | string[]
+  requireCompetition?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireExam?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  gradingsFrom?: Prisma.GradingUncheckedUpdateManyWithoutFromBeltRankNestedInput
+  gradingsTo?: Prisma.GradingUncheckedUpdateManyWithoutToBeltRankNestedInput
+}
+
 export type BeltRankCreateWithoutSystemInput = {
   id?: string
   order: number
@@ -694,6 +868,9 @@ export type BeltRankCreateWithoutSystemInput = {
   requireExam?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  members?: Prisma.SchoolMemberCreateNestedManyWithoutBeltRankInput
+  gradingsFrom?: Prisma.GradingCreateNestedManyWithoutFromBeltRankInput
+  gradingsTo?: Prisma.GradingCreateNestedManyWithoutToBeltRankInput
 }
 
 export type BeltRankUncheckedCreateWithoutSystemInput = {
@@ -712,6 +889,9 @@ export type BeltRankUncheckedCreateWithoutSystemInput = {
   requireExam?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutBeltRankInput
+  gradingsFrom?: Prisma.GradingUncheckedCreateNestedManyWithoutFromBeltRankInput
+  gradingsTo?: Prisma.GradingUncheckedCreateNestedManyWithoutToBeltRankInput
 }
 
 export type BeltRankCreateOrConnectWithoutSystemInput = {
@@ -762,6 +942,206 @@ export type BeltRankScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"BeltRank"> | Date | string
 }
 
+export type BeltRankCreateWithoutGradingsFromInput = {
+  id?: string
+  order: number
+  name: string
+  color?: string
+  maxDegrees?: number
+  minAge?: number | null
+  minMonthsAtPrevious?: number | null
+  totalClassesRequired?: number | null
+  classesPerPeriod?: number | null
+  periodType?: string | null
+  classTypeIds?: Prisma.BeltRankCreateclassTypeIdsInput | string[]
+  requireCompetition?: boolean
+  requireExam?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  system: Prisma.GradingSystemCreateNestedOneWithoutRanksInput
+  members?: Prisma.SchoolMemberCreateNestedManyWithoutBeltRankInput
+  gradingsTo?: Prisma.GradingCreateNestedManyWithoutToBeltRankInput
+}
+
+export type BeltRankUncheckedCreateWithoutGradingsFromInput = {
+  id?: string
+  systemId: string
+  order: number
+  name: string
+  color?: string
+  maxDegrees?: number
+  minAge?: number | null
+  minMonthsAtPrevious?: number | null
+  totalClassesRequired?: number | null
+  classesPerPeriod?: number | null
+  periodType?: string | null
+  classTypeIds?: Prisma.BeltRankCreateclassTypeIdsInput | string[]
+  requireCompetition?: boolean
+  requireExam?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutBeltRankInput
+  gradingsTo?: Prisma.GradingUncheckedCreateNestedManyWithoutToBeltRankInput
+}
+
+export type BeltRankCreateOrConnectWithoutGradingsFromInput = {
+  where: Prisma.BeltRankWhereUniqueInput
+  create: Prisma.XOR<Prisma.BeltRankCreateWithoutGradingsFromInput, Prisma.BeltRankUncheckedCreateWithoutGradingsFromInput>
+}
+
+export type BeltRankCreateWithoutGradingsToInput = {
+  id?: string
+  order: number
+  name: string
+  color?: string
+  maxDegrees?: number
+  minAge?: number | null
+  minMonthsAtPrevious?: number | null
+  totalClassesRequired?: number | null
+  classesPerPeriod?: number | null
+  periodType?: string | null
+  classTypeIds?: Prisma.BeltRankCreateclassTypeIdsInput | string[]
+  requireCompetition?: boolean
+  requireExam?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  system: Prisma.GradingSystemCreateNestedOneWithoutRanksInput
+  members?: Prisma.SchoolMemberCreateNestedManyWithoutBeltRankInput
+  gradingsFrom?: Prisma.GradingCreateNestedManyWithoutFromBeltRankInput
+}
+
+export type BeltRankUncheckedCreateWithoutGradingsToInput = {
+  id?: string
+  systemId: string
+  order: number
+  name: string
+  color?: string
+  maxDegrees?: number
+  minAge?: number | null
+  minMonthsAtPrevious?: number | null
+  totalClassesRequired?: number | null
+  classesPerPeriod?: number | null
+  periodType?: string | null
+  classTypeIds?: Prisma.BeltRankCreateclassTypeIdsInput | string[]
+  requireCompetition?: boolean
+  requireExam?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutBeltRankInput
+  gradingsFrom?: Prisma.GradingUncheckedCreateNestedManyWithoutFromBeltRankInput
+}
+
+export type BeltRankCreateOrConnectWithoutGradingsToInput = {
+  where: Prisma.BeltRankWhereUniqueInput
+  create: Prisma.XOR<Prisma.BeltRankCreateWithoutGradingsToInput, Prisma.BeltRankUncheckedCreateWithoutGradingsToInput>
+}
+
+export type BeltRankUpsertWithoutGradingsFromInput = {
+  update: Prisma.XOR<Prisma.BeltRankUpdateWithoutGradingsFromInput, Prisma.BeltRankUncheckedUpdateWithoutGradingsFromInput>
+  create: Prisma.XOR<Prisma.BeltRankCreateWithoutGradingsFromInput, Prisma.BeltRankUncheckedCreateWithoutGradingsFromInput>
+  where?: Prisma.BeltRankWhereInput
+}
+
+export type BeltRankUpdateToOneWithWhereWithoutGradingsFromInput = {
+  where?: Prisma.BeltRankWhereInput
+  data: Prisma.XOR<Prisma.BeltRankUpdateWithoutGradingsFromInput, Prisma.BeltRankUncheckedUpdateWithoutGradingsFromInput>
+}
+
+export type BeltRankUpdateWithoutGradingsFromInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  order?: Prisma.IntFieldUpdateOperationsInput | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  color?: Prisma.StringFieldUpdateOperationsInput | string
+  maxDegrees?: Prisma.IntFieldUpdateOperationsInput | number
+  minAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  minMonthsAtPrevious?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalClassesRequired?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  classesPerPeriod?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  periodType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classTypeIds?: Prisma.BeltRankUpdateclassTypeIdsInput | string[]
+  requireCompetition?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireExam?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  system?: Prisma.GradingSystemUpdateOneRequiredWithoutRanksNestedInput
+  members?: Prisma.SchoolMemberUpdateManyWithoutBeltRankNestedInput
+  gradingsTo?: Prisma.GradingUpdateManyWithoutToBeltRankNestedInput
+}
+
+export type BeltRankUncheckedUpdateWithoutGradingsFromInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  systemId?: Prisma.StringFieldUpdateOperationsInput | string
+  order?: Prisma.IntFieldUpdateOperationsInput | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  color?: Prisma.StringFieldUpdateOperationsInput | string
+  maxDegrees?: Prisma.IntFieldUpdateOperationsInput | number
+  minAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  minMonthsAtPrevious?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalClassesRequired?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  classesPerPeriod?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  periodType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classTypeIds?: Prisma.BeltRankUpdateclassTypeIdsInput | string[]
+  requireCompetition?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireExam?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutBeltRankNestedInput
+  gradingsTo?: Prisma.GradingUncheckedUpdateManyWithoutToBeltRankNestedInput
+}
+
+export type BeltRankUpsertWithoutGradingsToInput = {
+  update: Prisma.XOR<Prisma.BeltRankUpdateWithoutGradingsToInput, Prisma.BeltRankUncheckedUpdateWithoutGradingsToInput>
+  create: Prisma.XOR<Prisma.BeltRankCreateWithoutGradingsToInput, Prisma.BeltRankUncheckedCreateWithoutGradingsToInput>
+  where?: Prisma.BeltRankWhereInput
+}
+
+export type BeltRankUpdateToOneWithWhereWithoutGradingsToInput = {
+  where?: Prisma.BeltRankWhereInput
+  data: Prisma.XOR<Prisma.BeltRankUpdateWithoutGradingsToInput, Prisma.BeltRankUncheckedUpdateWithoutGradingsToInput>
+}
+
+export type BeltRankUpdateWithoutGradingsToInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  order?: Prisma.IntFieldUpdateOperationsInput | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  color?: Prisma.StringFieldUpdateOperationsInput | string
+  maxDegrees?: Prisma.IntFieldUpdateOperationsInput | number
+  minAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  minMonthsAtPrevious?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalClassesRequired?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  classesPerPeriod?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  periodType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classTypeIds?: Prisma.BeltRankUpdateclassTypeIdsInput | string[]
+  requireCompetition?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireExam?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  system?: Prisma.GradingSystemUpdateOneRequiredWithoutRanksNestedInput
+  members?: Prisma.SchoolMemberUpdateManyWithoutBeltRankNestedInput
+  gradingsFrom?: Prisma.GradingUpdateManyWithoutFromBeltRankNestedInput
+}
+
+export type BeltRankUncheckedUpdateWithoutGradingsToInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  systemId?: Prisma.StringFieldUpdateOperationsInput | string
+  order?: Prisma.IntFieldUpdateOperationsInput | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  color?: Prisma.StringFieldUpdateOperationsInput | string
+  maxDegrees?: Prisma.IntFieldUpdateOperationsInput | number
+  minAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  minMonthsAtPrevious?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalClassesRequired?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  classesPerPeriod?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  periodType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classTypeIds?: Prisma.BeltRankUpdateclassTypeIdsInput | string[]
+  requireCompetition?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireExam?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutBeltRankNestedInput
+  gradingsFrom?: Prisma.GradingUncheckedUpdateManyWithoutFromBeltRankNestedInput
+}
+
 export type BeltRankCreateManySystemInput = {
   id?: string
   order: number
@@ -796,6 +1176,9 @@ export type BeltRankUpdateWithoutSystemInput = {
   requireExam?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  members?: Prisma.SchoolMemberUpdateManyWithoutBeltRankNestedInput
+  gradingsFrom?: Prisma.GradingUpdateManyWithoutFromBeltRankNestedInput
+  gradingsTo?: Prisma.GradingUpdateManyWithoutToBeltRankNestedInput
 }
 
 export type BeltRankUncheckedUpdateWithoutSystemInput = {
@@ -814,6 +1197,9 @@ export type BeltRankUncheckedUpdateWithoutSystemInput = {
   requireExam?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutBeltRankNestedInput
+  gradingsFrom?: Prisma.GradingUncheckedUpdateManyWithoutFromBeltRankNestedInput
+  gradingsTo?: Prisma.GradingUncheckedUpdateManyWithoutToBeltRankNestedInput
 }
 
 export type BeltRankUncheckedUpdateManyWithoutSystemInput = {
@@ -835,6 +1221,53 @@ export type BeltRankUncheckedUpdateManyWithoutSystemInput = {
 }
 
 
+/**
+ * Count Type BeltRankCountOutputType
+ */
+
+export type BeltRankCountOutputType = {
+  members: number
+  gradingsFrom: number
+  gradingsTo: number
+}
+
+export type BeltRankCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  members?: boolean | BeltRankCountOutputTypeCountMembersArgs
+  gradingsFrom?: boolean | BeltRankCountOutputTypeCountGradingsFromArgs
+  gradingsTo?: boolean | BeltRankCountOutputTypeCountGradingsToArgs
+}
+
+/**
+ * BeltRankCountOutputType without action
+ */
+export type BeltRankCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the BeltRankCountOutputType
+   */
+  select?: Prisma.BeltRankCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * BeltRankCountOutputType without action
+ */
+export type BeltRankCountOutputTypeCountMembersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SchoolMemberWhereInput
+}
+
+/**
+ * BeltRankCountOutputType without action
+ */
+export type BeltRankCountOutputTypeCountGradingsFromArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.GradingWhereInput
+}
+
+/**
+ * BeltRankCountOutputType without action
+ */
+export type BeltRankCountOutputTypeCountGradingsToArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.GradingWhereInput
+}
+
 
 export type BeltRankSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -854,6 +1287,10 @@ export type BeltRankSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   createdAt?: boolean
   updatedAt?: boolean
   system?: boolean | Prisma.GradingSystemDefaultArgs<ExtArgs>
+  members?: boolean | Prisma.BeltRank$membersArgs<ExtArgs>
+  gradingsFrom?: boolean | Prisma.BeltRank$gradingsFromArgs<ExtArgs>
+  gradingsTo?: boolean | Prisma.BeltRank$gradingsToArgs<ExtArgs>
+  _count?: boolean | Prisma.BeltRankCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["beltRank"]>
 
 export type BeltRankSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -918,6 +1355,10 @@ export type BeltRankSelectScalar = {
 export type BeltRankOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "systemId" | "order" | "name" | "color" | "maxDegrees" | "minAge" | "minMonthsAtPrevious" | "totalClassesRequired" | "classesPerPeriod" | "periodType" | "classTypeIds" | "requireCompetition" | "requireExam" | "createdAt" | "updatedAt", ExtArgs["result"]["beltRank"]>
 export type BeltRankInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   system?: boolean | Prisma.GradingSystemDefaultArgs<ExtArgs>
+  members?: boolean | Prisma.BeltRank$membersArgs<ExtArgs>
+  gradingsFrom?: boolean | Prisma.BeltRank$gradingsFromArgs<ExtArgs>
+  gradingsTo?: boolean | Prisma.BeltRank$gradingsToArgs<ExtArgs>
+  _count?: boolean | Prisma.BeltRankCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type BeltRankIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   system?: boolean | Prisma.GradingSystemDefaultArgs<ExtArgs>
@@ -930,6 +1371,9 @@ export type $BeltRankPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
   name: "BeltRank"
   objects: {
     system: Prisma.$GradingSystemPayload<ExtArgs>
+    members: Prisma.$SchoolMemberPayload<ExtArgs>[]
+    gradingsFrom: Prisma.$GradingPayload<ExtArgs>[]
+    gradingsTo: Prisma.$GradingPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1343,6 +1787,9 @@ readonly fields: BeltRankFieldRefs;
 export interface Prisma__BeltRankClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   system<T extends Prisma.GradingSystemDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.GradingSystemDefaultArgs<ExtArgs>>): Prisma.Prisma__GradingSystemClient<runtime.Types.Result.GetResult<Prisma.$GradingSystemPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  members<T extends Prisma.BeltRank$membersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BeltRank$membersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SchoolMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  gradingsFrom<T extends Prisma.BeltRank$gradingsFromArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BeltRank$gradingsFromArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GradingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  gradingsTo<T extends Prisma.BeltRank$gradingsToArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BeltRank$gradingsToArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GradingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1786,6 +2233,78 @@ export type BeltRankDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Limit how many BeltRanks to delete.
    */
   limit?: number
+}
+
+/**
+ * BeltRank.members
+ */
+export type BeltRank$membersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SchoolMember
+   */
+  select?: Prisma.SchoolMemberSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SchoolMember
+   */
+  omit?: Prisma.SchoolMemberOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SchoolMemberInclude<ExtArgs> | null
+  where?: Prisma.SchoolMemberWhereInput
+  orderBy?: Prisma.SchoolMemberOrderByWithRelationInput | Prisma.SchoolMemberOrderByWithRelationInput[]
+  cursor?: Prisma.SchoolMemberWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SchoolMemberScalarFieldEnum | Prisma.SchoolMemberScalarFieldEnum[]
+}
+
+/**
+ * BeltRank.gradingsFrom
+ */
+export type BeltRank$gradingsFromArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Grading
+   */
+  select?: Prisma.GradingSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Grading
+   */
+  omit?: Prisma.GradingOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.GradingInclude<ExtArgs> | null
+  where?: Prisma.GradingWhereInput
+  orderBy?: Prisma.GradingOrderByWithRelationInput | Prisma.GradingOrderByWithRelationInput[]
+  cursor?: Prisma.GradingWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.GradingScalarFieldEnum | Prisma.GradingScalarFieldEnum[]
+}
+
+/**
+ * BeltRank.gradingsTo
+ */
+export type BeltRank$gradingsToArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Grading
+   */
+  select?: Prisma.GradingSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Grading
+   */
+  omit?: Prisma.GradingOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.GradingInclude<ExtArgs> | null
+  where?: Prisma.GradingWhereInput
+  orderBy?: Prisma.GradingOrderByWithRelationInput | Prisma.GradingOrderByWithRelationInput[]
+  cursor?: Prisma.GradingWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.GradingScalarFieldEnum | Prisma.GradingScalarFieldEnum[]
 }
 
 /**

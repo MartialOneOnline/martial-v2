@@ -385,6 +385,33 @@ model SchoolDiscipline {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// FACILITY
+// Master catalog for the super admin's platform-wide facility options.
+// School.facilities (String[]) remains untouched — this catalog is additive,
+// not yet backing that field. See project_admin_panel_scope memory.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Facility {
+  id      String           @id @default(cuid())
+  name    String           @unique // "Mats area", "Showers", "Parking"
+  slug    String           @unique
+  icon    String? // optional lucide icon name
+  schools SchoolFacility[]
+
+  @@map("facilities")
+}
+
+model SchoolFacility {
+  schoolId   String
+  facilityId String
+  school     School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  facility   Facility @relation(fields: [facilityId], references: [id])
+
+  @@id([schoolId, facilityId])
+  @@map("school_facilities")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // SCHOOL
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -450,6 +477,10 @@ model School {
   // UNTIL_END_OF_PERIOD: student retains access until the membership's endDate (Netflix model)
   cancelPolicy String @default("IMMEDIATE")
 
+  // Optional feature modules the school can enable/disable, e.g. { "store": true, "curriculum": false, "news": true }
+  // Missing keys default to disabled — read via a helper that merges against defaults, not raw access.
+  modules Json @default("{}")
+
   // Stripe — each school stores their own keys
   stripePublishableKey String?
   stripeSecretKey      String?
@@ -472,6 +503,7 @@ model School {
   // Relations
   staff           User[]             @relation("SchoolStaff")
   disciplines     SchoolDiscipline[]
+  facilityCatalog SchoolFacility[]
   classes         Class[]
   events          Event[]
   memberships     Membership[]
@@ -851,7 +883,9 @@ model SchoolMember {
   joinedAt DateTime?
 
   // Belt / rank (current)
-  belt       String? // "White Belt", "Blue Belt", "Purple Belt"
+  belt       String? // "White Belt", "Blue Belt", "Purple Belt" — source of truth for display/history
+  beltRankId String? // enrichment FK into the school's structured BeltRank catalog, may be null
+  beltRank   BeltRank? @relation(fields: [beltRankId], references: [id], onDelete: SetNull)
   beltDegree Int? // stripes/degrees: 0–4
   beltDate   DateTime? // date current belt was awarded
 
@@ -947,6 +981,10 @@ model BeltRank {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  members      SchoolMember[]
+  gradingsFrom Grading[]      @relation("GradingFromRank")
+  gradingsTo   Grading[]      @relation("GradingToRank")
+
   @@map("belt_ranks")
 }
 
@@ -964,9 +1002,13 @@ model Grading {
   promotedById String?
   promotedBy   User?   @relation("GradingPromoter", fields: [promotedById], references: [id])
 
-  fromBelt String? // "White Belt"
-  toBelt   String // "Blue Belt"
-  toDegree Int? // 0 = plain belt, 1–4 = stripes/degrees
+  fromBelt       String? // "White Belt" — source of truth for display/history
+  fromBeltRankId String? // enrichment FK, may be null
+  fromBeltRank   BeltRank? @relation("GradingFromRank", fields: [fromBeltRankId], references: [id], onDelete: SetNull)
+  toBelt         String // "Blue Belt" — source of truth for display/history
+  toBeltRankId   String? // enrichment FK, may be null
+  toBeltRank     BeltRank? @relation("GradingToRank", fields: [toBeltRankId], references: [id], onDelete: SetNull)
+  toDegree       Int? // 0 = plain belt, 1–4 = stripes/degrees
   gradedAt DateTime
   notes    String?
   isPublic Boolean  @default(true) // show on student profile
@@ -1377,6 +1419,24 @@ model PlatformSettings {
   stripePriceIdMonthly   String?
   stripePriceIdQuarterly String?
   stripePriceIdAnnual    String?
+
+  // Notifications — emailed to superAdminEmail below
+  notifyNewSchool         Boolean @default(true)
+  notifyVerificationReq   Boolean @default(true)
+  notifyWeeklyReport      Boolean @default(false)
+
+  // Platform toggles
+  allowSelfRegistration    Boolean @default(true)
+  requireEmailVerification Boolean @default(true)
+  // Persisted flag only — no enforcement (middleware gating) exists yet.
+  maintenanceMode          Boolean @default(false)
+
+  // Security / contact
+  superAdminEmail String? @default("admin@martial.app")
+  supportEmail    String? @default("hello@martial.app")
+
+  // Email
+  emailSenderName String @default("Martial")
 
   updatedAt DateTime @updatedAt
 

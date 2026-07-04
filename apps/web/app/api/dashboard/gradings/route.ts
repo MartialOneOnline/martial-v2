@@ -79,15 +79,17 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     gradings: gradings.map(g => ({
-      id:          g.id,
-      userName:    g.user?.name    ?? '—',
-      userAvatar:  g.user?.avatarUrl ?? null,
-      fromBelt:    g.fromBelt ?? null,
-      toBelt:      g.toBelt,
-      toDegree:    g.toDegree ?? 0,
-      gradedAt:    g.gradedAt.toISOString(),
-      instructor:  g.promotedBy?.name ?? null,
-      notes:       g.notes ?? null,
+      id:             g.id,
+      userName:       g.user?.name    ?? '—',
+      userAvatar:     g.user?.avatarUrl ?? null,
+      fromBelt:       g.fromBelt ?? null,
+      fromBeltRankId: g.fromBeltRankId ?? null,
+      toBelt:         g.toBelt,
+      toBeltRankId:   g.toBeltRankId ?? null,
+      toDegree:       g.toDegree ?? 0,
+      gradedAt:       g.gradedAt.toISOString(),
+      instructor:     g.promotedBy?.name ?? null,
+      notes:          g.notes ?? null,
     })),
     total,
     page,
@@ -103,22 +105,62 @@ export async function POST(req: NextRequest) {
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const body = await req.json()
-  const { userId, fromBelt, toBelt, toDegree, gradedAt, notes } = body
+  const { userId, fromBelt, toBelt, toDegree, gradedAt, notes, fromBeltRankId, toBeltRankId } = body
 
-  if (!userId || !toBelt || !gradedAt) {
+  if (!userId || !gradedAt || (!toBelt && !toBeltRankId)) {
+    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+  }
+
+  // Optional FK enrichment — validate the rank belongs to this school before
+  // trusting it, and derive the freeform display text from it when the
+  // caller didn't send one explicitly (freeform remains the source of truth
+  // for display/history, see project_admin_panel_scope memory).
+  let resolvedToBelt = toBelt ?? null
+  let resolvedFromBelt = fromBelt ?? null
+  let validToBeltRankId: string | null = null
+  let validFromBeltRankId: string | null = null
+
+  if (toBeltRankId || fromBeltRankId) {
+    const ranks = await prisma.beltRank.findMany({
+      where: {
+        id: { in: [toBeltRankId, fromBeltRankId].filter(Boolean) },
+        system: { schoolId: auth.schoolId },
+      },
+    })
+    const toRank = ranks.find(r => r.id === toBeltRankId)
+    const fromRank = ranks.find(r => r.id === fromBeltRankId)
+    if (toBeltRankId && !toRank) {
+      return NextResponse.json({ error: 'Invalid toBeltRankId for this school' }, { status: 400 })
+    }
+    if (fromBeltRankId && !fromRank) {
+      return NextResponse.json({ error: 'Invalid fromBeltRankId for this school' }, { status: 400 })
+    }
+    if (toRank) {
+      validToBeltRankId = toRank.id
+      resolvedToBelt = toBelt ?? toRank.name
+    }
+    if (fromRank) {
+      validFromBeltRankId = fromRank.id
+      resolvedFromBelt = fromBelt ?? fromRank.name
+    }
+  }
+
+  if (!resolvedToBelt) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
 
   const grading = await prisma.grading.create({
     data: {
-      schoolId:    auth.schoolId,
+      schoolId:       auth.schoolId,
       userId,
-      fromBelt:    fromBelt ?? null,
-      toBelt,
-      toDegree:    toDegree ?? 0,
-      gradedAt:    new Date(gradedAt),
-      notes:       notes ?? null,
-      isPublic:    true,
+      fromBelt:       resolvedFromBelt,
+      fromBeltRankId: validFromBeltRankId,
+      toBelt:         resolvedToBelt,
+      toBeltRankId:   validToBeltRankId,
+      toDegree:       toDegree ?? 0,
+      gradedAt:       new Date(gradedAt),
+      notes:          notes ?? null,
+      isPublic:       true,
     },
     include: {
       user:       { select: { name: true, avatarUrl: true } },
@@ -129,18 +171,25 @@ export async function POST(req: NextRequest) {
   // Update the member's current belt
   await prisma.schoolMember.updateMany({
     where: { userId, schoolId: auth.schoolId },
-    data: { belt: toBelt, beltDegree: toDegree ?? 0, beltDate: new Date(gradedAt) },
+    data: {
+      belt:       resolvedToBelt,
+      beltRankId: validToBeltRankId,
+      beltDegree: toDegree ?? 0,
+      beltDate:   new Date(gradedAt),
+    },
   })
 
   return NextResponse.json({
-    id:         grading.id,
-    userName:   grading.user?.name ?? '—',
-    userAvatar: grading.user?.avatarUrl ?? null,
-    fromBelt:   grading.fromBelt ?? null,
-    toBelt:     grading.toBelt,
-    toDegree:   grading.toDegree ?? 0,
-    gradedAt:   grading.gradedAt.toISOString(),
-    instructor: grading.promotedBy?.name ?? null,
-    notes:      grading.notes ?? null,
+    id:             grading.id,
+    userName:       grading.user?.name ?? '—',
+    userAvatar:     grading.user?.avatarUrl ?? null,
+    fromBelt:       grading.fromBelt ?? null,
+    fromBeltRankId: grading.fromBeltRankId ?? null,
+    toBelt:         grading.toBelt,
+    toBeltRankId:   grading.toBeltRankId ?? null,
+    toDegree:       grading.toDegree ?? 0,
+    gradedAt:       grading.gradedAt.toISOString(),
+    instructor:     grading.promotedBy?.name ?? null,
+    notes:          grading.notes ?? null,
   }, { status: 201 })
 }

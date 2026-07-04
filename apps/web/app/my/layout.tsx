@@ -8,14 +8,16 @@ import {
   LayoutDashboard, CalendarDays, User,
   LogOut, X, CreditCard, DollarSign, Settings,
   HelpCircle, Shield, QrCode, Medal, Menu,
+  PlayCircle, ShoppingBag, Newspaper,
 } from 'lucide-react'
 import { useT } from '../../lib/i18n/LanguageContext'
+import type { SchoolModuleKey } from '../../lib/school-modules'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-type NavItem = { labelKey: string; href: string; icon: React.ElementType; exact?: boolean }
+type NavItem = { labelKey: string; href: string; icon: React.ElementType; exact?: boolean; moduleKey?: SchoolModuleKey }
 type NavSection = { labelKey?: string; schoolLabel?: boolean; items: NavItem[] }
-type School = { name: string; logoUrl: string | null } | null
+type School = { name: string; logoUrl: string | null; modules?: Record<SchoolModuleKey, boolean> } | null
 
 // ── Navigation ───────────────────────────────────────────────────────────────
 // Explore is intentionally absent — students stay within their school's space.
@@ -34,6 +36,9 @@ const SIDEBAR_NAV: NavSection[] = [
     items: [
       { labelKey: 'navMembership',   href: '/my/membership', icon: CreditCard },
       { labelKey: 'navTransactions', href: '/my/payments',   icon: DollarSign },
+      { labelKey: 'navCurriculum',   href: '/my/curriculum', icon: PlayCircle,   moduleKey: 'curriculum' },
+      { labelKey: 'navStore',        href: '/my/store',      icon: ShoppingBag,  moduleKey: 'store' },
+      { labelKey: 'navNews',         href: '/my/news',       icon: Newspaper,    moduleKey: 'news' },
     ],
   },
   {
@@ -193,7 +198,9 @@ function SidebarContent({ school, onClose }: { school: School; onClose?: () => v
               </p>
             )}
             <div className="px-2.5 space-y-0.5">
-              {section.items.map(item => {
+              {section.items
+                .filter(item => !item.moduleKey || school?.modules?.[item.moduleKey])
+                .map(item => {
                 const active = isActive(pathname, item.href, item.exact)
                 const Icon = item.icon
                 return (
@@ -249,7 +256,7 @@ export default function MyLayout({ children }: { children: React.ReactNode }) {
         const membership = d.user?.memberships?.find((m: { status: string }) => m.status === 'ACTIVE')
           ?? d.user?.memberships?.[0]
         if (membership?.school) {
-          setSchool({ name: membership.school.name, logoUrl: membership.school.logoUrl })
+          setSchool({ name: membership.school.name, logoUrl: membership.school.logoUrl, modules: membership.school.modules })
         }
       })
       .catch(() => {})

@@ -38,6 +38,7 @@ type Profile = {
   dateOfBirth: string | null
   userCreatedAt: string
   belt: string
+  beltRankId: string | null
   beltDegree: number
   beltDate: string | null
   status: string
@@ -69,6 +70,14 @@ const BELT_COLORS: Record<string, { bg: string; color: string; bar: string }> = 
 }
 
 const BELT_ORDER = ['Blanco', 'Azul', 'Morado', 'Marron', 'Negro']
+
+type BeltRankInfo = { id: string; name: string; color: string; maxDegrees: number; order: number }
+
+// Derives a belt swatch style from a school's real BeltRank.color when ranks
+// are configured, matching the visual shape of the hardcoded BELT_COLORS map.
+function rankStyle(hexColor: string) {
+  return { bg: `${hexColor}14`, color: hexColor, bar: hexColor }
+}
 
 const STATUS_MAP: Record<string, { bg: string; color: string; label: string }> = {
   ACTIVE:   { bg: '#F0FDF4', color: '#16A34A', label: 'Active' },
@@ -148,22 +157,28 @@ function Field({ label, children, hint }: { label: string; children: React.React
 
 // ── Edit Drawer ────────────────────────────────────────────────────────────────
 function EditDrawer({
-  profile, open, onClose, onSaved,
+  profile, open, onClose, onSaved, ranks,
 }: {
   profile: Profile
   open: boolean
   onClose: () => void
   onSaved: (updates: Partial<Profile>) => void
+  ranks: BeltRankInfo[]
 }) {
   const [name, setName] = useState(profile.name)
   const [phone, setPhone] = useState(profile.phone ?? '')
   const [dob, setDob] = useState(profile.dateOfBirth?.substring(0, 10) ?? '')
   const [status, setStatus] = useState(profile.status)
   const [belt, setBelt] = useState(profile.belt)
+  const [beltRankId, setBeltRankId] = useState(profile.beltRankId)
   const [beltDegree, setBeltDegree] = useState(profile.beltDegree)
   const [beltDate, setBeltDate] = useState(profile.beltDate?.substring(0, 10) ?? '')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const hasRanks = ranks.length > 0
+  const selectedRank = ranks.find(r => r.id === beltRankId)
+  const maxDegrees = selectedRank ? selectedRank.maxDegrees : 4
 
   useEffect(() => {
     if (open) {
@@ -172,11 +187,18 @@ function EditDrawer({
       setDob(profile.dateOfBirth?.substring(0, 10) ?? '')
       setStatus(profile.status)
       setBelt(profile.belt)
+      setBeltRankId(profile.beltRankId)
       setBeltDegree(profile.beltDegree)
       setBeltDate(profile.beltDate?.substring(0, 10) ?? '')
       setError(null)
     }
   }, [open])
+
+  function selectRank(rank: BeltRankInfo) {
+    setBeltRankId(rank.id)
+    setBelt(rank.name)
+    setBeltDegree(0)
+  }
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -193,7 +215,7 @@ function EditDrawer({
         fetch(`/api/dashboard/members/${profile.memberId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status, belt, beltDegree, beltDate: beltDate || null }),
+          body: JSON.stringify({ status, belt, beltRankId, beltDegree, beltDate: beltDate || null }),
         }),
         fetch(`/api/dashboard/users/${profile.userId}`, {
           method: 'PATCH',
@@ -212,6 +234,7 @@ function EditDrawer({
         dateOfBirth: dob ? new Date(dob).toISOString() : null,
         status,
         belt,
+        beltRankId,
         beltDegree,
         beltDate: beltDate ? new Date(beltDate).toISOString() : null,
       })
@@ -223,7 +246,7 @@ function EditDrawer({
     }
   }
 
-  const bc = BELT_COLORS[belt] ?? BELT_COLORS['Blanco']!
+  const bc = selectedRank ? rankStyle(selectedRank.color) : (BELT_COLORS[belt] ?? BELT_COLORS['Blanco']!)
 
   return (
     <>
@@ -323,7 +346,34 @@ function EditDrawer({
             {/* Visual belt selector */}
             <Field label="Cinturón">
               <div style={{ display: 'flex', gap: 6 }}>
-                {BELT_ORDER.map(b => {
+                {hasRanks ? ranks.map(rank => {
+                  const rColor = rankStyle(rank.color)
+                  const selected = beltRankId === rank.id
+                  return (
+                    <button
+                      key={rank.id}
+                      type="button"
+                      onClick={() => selectRank(rank)}
+                      style={{
+                        flex: 1, padding: '10px 4px', borderRadius: 10,
+                        border: `2px solid ${selected ? rColor.bar : '#E5E7EB'}`,
+                        background: selected ? rColor.bg : '#fff',
+                        cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+                        transition: 'all 0.15s ease',
+                        outline: 'none',
+                      }}
+                    >
+                      <div style={{ width: 32, height: 10, borderRadius: 999, background: rColor.bar }} />
+                      <span style={{
+                        fontSize: 10, fontWeight: selected ? 700 : 400,
+                        color: selected ? rColor.color : '#9CA3AF',
+                        whiteSpace: 'nowrap',
+                      }}>
+                        {rank.name}
+                      </span>
+                    </button>
+                  )
+                }) : BELT_ORDER.map(b => {
                   const bColor = BELT_COLORS[b]!
                   const selected = belt === b
                   return (
@@ -360,7 +410,7 @@ function EditDrawer({
             {/* Degree selector */}
             <Field label="Grados (rayas)">
               <div style={{ display: 'flex', gap: 6 }}>
-                {[0, 1, 2, 3, 4].map(d => {
+                {Array.from({ length: maxDegrees + 1 }, (_, d) => d).map(d => {
                   const selected = beltDegree === d
                   return (
                     <button
@@ -787,7 +837,7 @@ function MembershipSection({ memberId, activeMembership: initialActiveMembership
 }
 
 // ── Main component ─────────────────────────────────────────────────────────────
-export default function StudentProfileClient({ profile: initialProfile }: { profile: Profile }) {
+export default function StudentProfileClient({ profile: initialProfile, ranks }: { profile: Profile; ranks: BeltRankInfo[] }) {
   const router = useRouter()
   const [profile, setProfile] = useState(initialProfile)
   const [notesValue, setNotesValue] = useState(initialProfile.notes ?? '')
@@ -800,10 +850,19 @@ export default function StudentProfileClient({ profile: initialProfile }: { prof
   const [bookingsShown, setBookingsShown] = useState(10)
   const [txShown, setTxShown] = useState(10)
 
-  const belt = BELT_COLORS[profile.belt] ?? BELT_COLORS['Blanco']!
+  const hasRanks = ranks.length > 0
+  const currentRank = ranks.find(r => r.id === profile.beltRankId)
+  const belt = currentRank ? rankStyle(currentRank.color) : (BELT_COLORS[profile.belt] ?? BELT_COLORS['Blanco']!)
   const status = STATUS_MAP[profile.status] ?? { bg: '#F3F4F6', color: '#6B7280', label: profile.status }
-  const beltIdx = BELT_ORDER.indexOf(profile.belt)
-  const beltProgress = beltIdx >= 0 ? ((beltIdx + (profile.beltDegree / 4)) / BELT_ORDER.length) * 100 : 0
+  const beltIdx = hasRanks
+    ? (currentRank ? currentRank.order : -1)
+    : BELT_ORDER.indexOf(profile.belt)
+  const beltCount = hasRanks ? ranks.length : BELT_ORDER.length
+  const beltMaxDegrees = currentRank ? currentRank.maxDegrees : 4
+  const beltProgress = beltIdx >= 0 ? ((beltIdx + (profile.beltDegree / (beltMaxDegrees || 4))) / beltCount) * 100 : 0
+  const nextRankName = hasRanks
+    ? (ranks.find(r => r.order === beltIdx + 1)?.name ?? '— (último cinturón)')
+    : (BELT_ORDER[beltIdx + 1] ?? '— (Cinturón negro)')
   const memberMonths = profile.joinedAt ? monthsSince(profile.joinedAt) : null
 
   const handleSaved = (updates: Partial<Profile>) => {
@@ -829,6 +888,7 @@ export default function StudentProfileClient({ profile: initialProfile }: { prof
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         onSaved={handleSaved}
+        ranks={ranks}
       />
 
       {/* Topbar */}
@@ -933,7 +993,7 @@ export default function StudentProfileClient({ profile: initialProfile }: { prof
               <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
                 <span style={{ fontSize: 13, fontWeight: 600, color: belt.color }}>{profile.belt}</span>
                 <span style={{ fontSize: 12, color: '#9CA3AF' }}>
-                  {profile.beltDegree}/4 grados
+                  {profile.beltDegree}/{beltMaxDegrees || 4} grados
                 </span>
               </div>
               {/* Belt bar */}
@@ -942,7 +1002,7 @@ export default function StudentProfileClient({ profile: initialProfile }: { prof
               </div>
               {/* Stripes */}
               <div className="flex gap-1.5" style={{ marginBottom: 12 }}>
-                {[0,1,2,3].map(i => (
+                {Array.from({ length: beltMaxDegrees || 4 }, (_, i) => i).map(i => (
                   <div key={i} style={{ flex: 1, height: 6, borderRadius: 3, background: i < profile.beltDegree ? belt.bar : '#F3F4F6' }} />
                 ))}
               </div>
@@ -954,7 +1014,7 @@ export default function StudentProfileClient({ profile: initialProfile }: { prof
               <div style={{ marginTop: 14, padding: '10px 12px', background: '#F9FAFB', borderRadius: 10 }}>
                 <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>Próximo cinturón</p>
                 <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: '2px 0 0' }}>
-                  {BELT_ORDER[beltIdx + 1] ?? '— (Cinturón negro)'}
+                  {nextRankName}
                 </p>
               </div>
             </Card>

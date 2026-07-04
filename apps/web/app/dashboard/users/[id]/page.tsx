@@ -71,6 +71,16 @@ export default async function StudentProfilePage({
     }).catch(() => []),
   ])
 
+  const gradingSystems = await prisma.gradingSystem.findMany({
+    where: { schoolId: member.schoolId, isActive: true },
+    include: { ranks: { orderBy: { order: 'asc' } } },
+    orderBy: { createdAt: 'asc' },
+  }).catch(() => [])
+  const defaultSystem = gradingSystems.find(s => s.isDefault) ?? gradingSystems[0]
+  const beltRanks = (defaultSystem?.ranks ?? []).map(r => ({
+    id: r.id, name: r.name, color: r.color, maxDegrees: r.maxDegrees, order: r.order,
+  }))
+
   // Count bookings used per membership
   const membershipIds = memberships.map(m => m.id)
   const usageCounts = membershipIds.length
@@ -94,6 +104,7 @@ export default async function StudentProfilePage({
     dateOfBirth: member.user.dateOfBirth?.toISOString() ?? null,
     userCreatedAt: member.user.createdAt.toISOString(),
     belt: member.belt ?? 'Blanco',
+    beltRankId: member.beltRankId ?? null,
     beltDegree: member.beltDegree ?? 0,
     beltDate: member.beltDate?.toISOString() ?? null,
     status: member.status,
@@ -152,5 +163,5 @@ export default async function StudentProfilePage({
     })),
   }
 
-  return <StudentProfileClient profile={profile} />
+  return <StudentProfileClient profile={profile} ranks={beltRanks} />
 }

@@ -14,7 +14,9 @@ interface GradingRecord {
   userName: string
   userAvatar: string | null
   fromBelt: string | null
+  fromBeltRankId: string | null
   toBelt: string
+  toBeltRankId: string | null
   toDegree: number
   gradedAt: string
   instructor: string | null
@@ -30,6 +32,14 @@ interface Member {
   avatarUrl: string | null
   belt: string | null
   beltDegree: number | null
+}
+
+interface BeltRankInfo {
+  id: string
+  name: string
+  color: string
+  maxDegrees: number
+  order: number
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -89,8 +99,8 @@ function getPaginationPages(current: number, total: number): (number | '...')[] 
 const ITEMS_PER_PAGE = 20
 
 // ── Add Grading Drawer ────────────────────────────────────────────────────────
-function AddGradingDrawer({ open, onClose, onSuccess }: {
-  open: boolean; onClose: () => void; onSuccess: (g: GradingRecord) => void
+function AddGradingDrawer({ open, onClose, onSuccess, ranks }: {
+  open: boolean; onClose: () => void; onSuccess: (g: GradingRecord) => void; ranks: BeltRankInfo[]
 }) {
   const [memberQuery,     setMemberQuery]     = useState('')
   const [members,         setMembers]         = useState<Member[]>([])
@@ -98,11 +108,17 @@ function AddGradingDrawer({ open, onClose, onSuccess }: {
   const [selectedMember,  setSelectedMember]  = useState<Member | null>(null)
   const [fromBelt,        setFromBelt]        = useState('')
   const [toBelt,          setToBelt]          = useState('')
+  const [fromRankId,      setFromRankId]      = useState('')
+  const [toRankId,        setToRankId]        = useState('')
   const [toDegree,        setToDegree]        = useState(0)
   const [gradedAt,        setGradedAt]        = useState('')
   const [notes,           setNotes]           = useState('')
   const [saving,          setSaving]          = useState(false)
   const searchRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+
+  const hasRanks = ranks.length > 0
+  const selectedToRank = ranks.find(r => r.id === toRankId)
+  const maxDegrees = selectedToRank ? selectedToRank.maxDegrees : 4
 
   useEffect(() => {
     if (!open) return
@@ -124,6 +140,9 @@ function AddGradingDrawer({ open, onClose, onSuccess }: {
   function selectMember(m: Member) {
     setSelectedMember(m)
     setFromBelt(m.belt ?? '')
+    // best-effort: pre-select the member's current rank if it matches by name
+    const currentRank = ranks.find(r => r.name.toLowerCase() === (m.belt ?? '').toLowerCase())
+    setFromRankId(currentRank?.id ?? '')
     setToDegree(0)
     setMemberQuery('')
     setShowDropdown(false)
@@ -132,11 +151,32 @@ function AddGradingDrawer({ open, onClose, onSuccess }: {
 
   function reset() {
     setMemberQuery(''); setMembers([]); setShowDropdown(false); setSelectedMember(null)
-    setFromBelt(''); setToBelt(''); setToDegree(0)
+    setFromBelt(''); setToBelt(''); setFromRankId(''); setToRankId(''); setToDegree(0)
     setGradedAt(new Date().toISOString().slice(0, 10)); setNotes(''); setSaving(false)
   }
 
   function handleClose() { reset(); onClose() }
+
+  function handleToBeltChange(value: string) {
+    if (hasRanks) {
+      const rank = ranks.find(r => r.id === value)
+      setToRankId(value)
+      setToBelt(rank?.name ?? '')
+      setToDegree(0)
+    } else {
+      setToBelt(value)
+    }
+  }
+
+  function handleFromBeltChange(value: string) {
+    if (hasRanks) {
+      const rank = ranks.find(r => r.id === value)
+      setFromRankId(value)
+      setFromBelt(rank?.name ?? '')
+    } else {
+      setFromBelt(value)
+    }
+  }
 
   async function handleSubmit() {
     if (!selectedMember || !toBelt || !gradedAt) return
@@ -144,7 +184,14 @@ function AddGradingDrawer({ open, onClose, onSuccess }: {
     const res = await fetch('/api/dashboard/gradings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: selectedMember.id, fromBelt: fromBelt || null, toBelt, toDegree, gradedAt, notes }),
+      body: JSON.stringify({
+        userId: selectedMember.id,
+        fromBelt: fromBelt || null,
+        fromBeltRankId: fromRankId || null,
+        toBelt,
+        toBeltRankId: toRankId || null,
+        toDegree, gradedAt, notes,
+      }),
     })
     setSaving(false)
     if (!res.ok) return
@@ -267,16 +314,20 @@ function AddGradingDrawer({ open, onClose, onSuccess }: {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label style={LBL}>From Belt</label>
-              <select value={fromBelt} onChange={e => setFromBelt(e.target.value)} style={INP}>
+              <select value={hasRanks ? fromRankId : fromBelt} onChange={e => handleFromBeltChange(e.target.value)} style={INP}>
                 <option value="">— none —</option>
-                {BELTS.map(b => <option key={b} value={b}>{b}</option>)}
+                {hasRanks
+                  ? ranks.map(r => <option key={r.id} value={r.id}>{r.name}</option>)
+                  : BELTS.map(b => <option key={b} value={b}>{b}</option>)}
               </select>
             </div>
             <div>
               <label style={LBL}>To Belt <span style={{ color: '#EF4444' }}>*</span></label>
-              <select value={toBelt} onChange={e => setToBelt(e.target.value)} style={INP}>
+              <select value={hasRanks ? toRankId : toBelt} onChange={e => handleToBeltChange(e.target.value)} style={INP}>
                 <option value="">Select…</option>
-                {BELTS.map(b => <option key={b} value={b}>{b}</option>)}
+                {hasRanks
+                  ? ranks.map(r => <option key={r.id} value={r.id}>{r.name}</option>)
+                  : BELTS.map(b => <option key={b} value={b}>{b}</option>)}
               </select>
             </div>
           </div>
@@ -285,7 +336,7 @@ function AddGradingDrawer({ open, onClose, onSuccess }: {
           <div>
             <label style={LBL}>Stripes / Degree</label>
             <div className="flex gap-2">
-              {[0, 1, 2, 3, 4].map(n => (
+              {Array.from({ length: maxDegrees + 1 }, (_, n) => n).map(n => (
                 <button key={n} onClick={() => setToDegree(n)}
                   className="flex-1 py-2.5 rounded-xl cursor-pointer"
                   style={{ fontSize: 13, fontWeight: toDegree === n ? 700 : 400,
@@ -336,27 +387,56 @@ function AddGradingDrawer({ open, onClose, onSuccess }: {
 }
 
 // ── Edit Grading Drawer ───────────────────────────────────────────────────────
-function EditGradingDrawer({ grading, onClose, onSuccess }: {
+function EditGradingDrawer({ grading, onClose, onSuccess, ranks }: {
   grading: GradingRecord | null
   onClose: () => void
   onSuccess: (g: GradingRecord) => void
+  ranks: BeltRankInfo[]
 }) {
   const open = !!grading
-  const [fromBelt, setFromBelt] = useState('')
-  const [toBelt,   setToBelt]   = useState('')
-  const [toDegree, setToDegree] = useState(0)
-  const [gradedAt, setGradedAt] = useState('')
-  const [notes,    setNotes]    = useState('')
-  const [saving,   setSaving]   = useState(false)
+  const [fromBelt,   setFromBelt]   = useState('')
+  const [toBelt,     setToBelt]     = useState('')
+  const [fromRankId, setFromRankId] = useState('')
+  const [toRankId,   setToRankId]   = useState('')
+  const [toDegree,   setToDegree]   = useState(0)
+  const [gradedAt,   setGradedAt]   = useState('')
+  const [notes,      setNotes]      = useState('')
+  const [saving,     setSaving]     = useState(false)
+
+  const hasRanks = ranks.length > 0
+  const selectedToRank = ranks.find(r => r.id === toRankId)
+  const maxDegrees = selectedToRank ? selectedToRank.maxDegrees : 4
 
   useEffect(() => {
     if (!grading) return
     setFromBelt(grading.fromBelt ?? '')
     setToBelt(grading.toBelt)
+    setFromRankId(grading.fromBeltRankId ?? '')
+    setToRankId(grading.toBeltRankId ?? '')
     setToDegree(grading.toDegree)
     setGradedAt(grading.gradedAt.slice(0, 10))
     setNotes(grading.notes ?? '')
   }, [grading])
+
+  function handleToBeltChange(value: string) {
+    if (hasRanks) {
+      const rank = ranks.find(r => r.id === value)
+      setToRankId(value)
+      setToBelt(rank?.name ?? '')
+    } else {
+      setToBelt(value)
+    }
+  }
+
+  function handleFromBeltChange(value: string) {
+    if (hasRanks) {
+      const rank = ranks.find(r => r.id === value)
+      setFromRankId(value)
+      setFromBelt(rank?.name ?? '')
+    } else {
+      setFromBelt(value)
+    }
+  }
 
   async function handleSave() {
     if (!grading || !toBelt || !gradedAt) return
@@ -364,7 +444,13 @@ function EditGradingDrawer({ grading, onClose, onSuccess }: {
     const res = await fetch(`/api/dashboard/gradings/${grading.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fromBelt: fromBelt || null, toBelt, toDegree, gradedAt, notes: notes || null }),
+      body: JSON.stringify({
+        fromBelt: fromBelt || null,
+        fromBeltRankId: fromRankId || null,
+        toBelt,
+        toBeltRankId: toRankId || null,
+        toDegree, gradedAt, notes: notes || null,
+      }),
     })
     setSaving(false)
     if (!res.ok) return
@@ -405,16 +491,20 @@ function EditGradingDrawer({ grading, onClose, onSuccess }: {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label style={LBL}>From Belt</label>
-              <select value={fromBelt} onChange={e => setFromBelt(e.target.value)} style={INP}>
+              <select value={hasRanks ? fromRankId : fromBelt} onChange={e => handleFromBeltChange(e.target.value)} style={INP}>
                 <option value="">— none —</option>
-                {BELTS.map(b => <option key={b} value={b}>{b}</option>)}
+                {hasRanks
+                  ? ranks.map(r => <option key={r.id} value={r.id}>{r.name}</option>)
+                  : BELTS.map(b => <option key={b} value={b}>{b}</option>)}
               </select>
             </div>
             <div>
               <label style={LBL}>To Belt <span style={{ color: '#EF4444' }}>*</span></label>
-              <select value={toBelt} onChange={e => setToBelt(e.target.value)} style={INP}>
+              <select value={hasRanks ? toRankId : toBelt} onChange={e => handleToBeltChange(e.target.value)} style={INP}>
                 <option value="">Select…</option>
-                {BELTS.map(b => <option key={b} value={b}>{b}</option>)}
+                {hasRanks
+                  ? ranks.map(r => <option key={r.id} value={r.id}>{r.name}</option>)
+                  : BELTS.map(b => <option key={b} value={b}>{b}</option>)}
               </select>
             </div>
           </div>
@@ -422,7 +512,7 @@ function EditGradingDrawer({ grading, onClose, onSuccess }: {
           <div>
             <label style={LBL}>Stripes / Degree</label>
             <div className="flex gap-2">
-              {[0, 1, 2, 3, 4].map(n => (
+              {Array.from({ length: maxDegrees + 1 }, (_, n) => n).map(n => (
                 <button key={n} onClick={() => setToDegree(n)}
                   className="flex-1 py-2.5 rounded-xl cursor-pointer"
                   style={{ fontSize: 13, fontWeight: toDegree === n ? 700 : 400,
@@ -527,6 +617,18 @@ export default function GradingsClient() {
   const [drawerOpen,   setDrawerOpen]   = useState(false)
   const [editGrading,  setEditGrading]  = useState<GradingRecord | null>(null)
   const [toast,        setToast]        = useState('')
+  const [ranks,        setRanks]        = useState<BeltRankInfo[]>([])
+
+  useEffect(() => {
+    fetch('/api/dashboard/grading-systems')
+      .then(res => res.ok ? res.json() : { systems: [] })
+      .then(data => {
+        const systems = data.systems ?? []
+        const system = systems.find((s: { isDefault: boolean }) => s.isDefault) ?? systems[0]
+        setRanks(system?.ranks ?? [])
+      })
+      .catch(() => setRanks([]))
+  }, [])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -815,8 +917,8 @@ export default function GradingsClient() {
         </div>
       </div>
 
-      <AddGradingDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onSuccess={handleSuccess} />
-      <EditGradingDrawer grading={editGrading} onClose={() => setEditGrading(null)} onSuccess={handleEditSuccess} />
+      <AddGradingDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onSuccess={handleSuccess} ranks={ranks} />
+      <EditGradingDrawer grading={editGrading} onClose={() => setEditGrading(null)} onSuccess={handleEditSuccess} ranks={ranks} />
 
       {toast && (
         <div className="fixed bottom-6 right-6 z-[70] flex items-center gap-3 px-5 py-3.5 rounded-2xl"

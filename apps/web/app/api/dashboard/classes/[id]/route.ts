@@ -32,7 +32,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const {
     name, description, disciplineId, level, duration,
     capacity, price, currency, isTrial, isActive, isPublished, paymentMethods,
-    bookingSettings, schedule, instructorId,
+    bookingSettings, schedule, instructorId, coverUrl,
   } = body
 
   const cls = await prisma.class.update({
@@ -53,6 +53,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       bookingSettings: bookingSettings !== undefined ? bookingSettings : existing.bookingSettings,
       schedule: schedule !== undefined ? schedule : existing.schedule,
       instructorId: instructorId !== undefined ? (instructorId || null) : existing.instructorId,
+      coverUrl: coverUrl !== undefined ? (coverUrl || null) : existing.coverUrl,
     },
     include: {
       instructor: { select: { id: true, name: true } },

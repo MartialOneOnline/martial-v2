@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   Bell, Menu, X, Plus, MoreHorizontal, Search,
   TrendingUp, Check, Upload, Clock, MapPin, Star,
@@ -42,6 +42,7 @@ interface EventRow {
   externalUrl: string | null
   instructor: Instructor | null
   tickets: { id: string; name: string; price: number; currency: string; capacity: number | null }[]
+  coverUrl: string | null
 }
 
 // ── Constants ──────────────────────────────────────────────────────────────────
@@ -131,13 +132,14 @@ interface EventFormData {
   isPublished: boolean
   externalUrl: string
   description: string
+  coverUrl: string
 }
 
 const EMPTY_FORM: EventFormData = {
   title: '', type: 'SEMINAR', startDate: '', startTime: '', endTime: '',
   instructorId: '', location: '', capacity: '',
   tickets: [{ ...EMPTY_TICKET, name: 'General' }],
-  paymentMethods: [], isPublished: false, externalUrl: '', description: '',
+  paymentMethods: [], isPublished: false, externalUrl: '', description: '', coverUrl: '',
 }
 
 function eventToForm(ev: EventRow): EventFormData {
@@ -162,6 +164,7 @@ function eventToForm(ev: EventRow): EventFormData {
     isPublished: ev.isPublished,
     externalUrl: ev.externalUrl ?? '',
     description: ev.description ?? '',
+    coverUrl: ev.coverUrl ?? '',
   }
 }
 
@@ -191,6 +194,7 @@ function formToPayload(form: EventFormData) {
     isPublished: form.isPublished,
     externalUrl: form.externalUrl || null,
     description: form.description || null,
+    coverUrl: form.coverUrl || null,
   }
 }
 
@@ -213,12 +217,92 @@ function EventField({ label, children }: { label: string; children: React.ReactN
   return <div><label style={eventLbl}>{label}</label>{children}</div>
 }
 
+function BannerUploadZone({ value, onChange, label, height = 180, hint, dropLabel = 'Drop image here', browseLabel = 'Browse' }: {
+  value: string; onChange: (url: string) => void; label: string; height?: number; hint?: string
+  dropLabel?: string; browseLabel?: string
+}) {
+  const [dragOver, setDragOver] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  async function uploadFile(file: File) {
+    if (!file.type.startsWith('image/')) return
+    setUploading(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch('/api/dashboard/upload?bucket=class-images', { method: 'POST', body: fd })
+      if (res.ok) {
+        const { url } = await res.json()
+        onChange(url)
+      }
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  function onDrop(e: React.DragEvent) {
+    e.preventDefault(); setDragOver(false)
+    const file = e.dataTransfer.files[0]
+    if (file) uploadFile(file)
+  }
+
+  function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) uploadFile(file)
+    e.target.value = ''
+  }
+
+  return (
+    <div>
+      <label style={eventLbl}>{label}</label>
+      {value ? (
+        <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', border: '1px solid #E5E7EB', height }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={value} alt={label} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          <button type="button" onClick={() => onChange('')}
+            className="cursor-pointer"
+            style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: '50%',
+              background: 'rgba(0,0,0,0.55)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <X size={12} style={{ color: '#fff' }} />
+          </button>
+        </div>
+      ) : (
+        <div
+          onDragEnter={e => { e.preventDefault(); setDragOver(true) }}
+          onDragOver={e => e.preventDefault()}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={onDrop}
+          onClick={() => fileRef.current?.click()}
+          className="flex flex-col items-center justify-center gap-3 rounded-2xl cursor-pointer"
+          style={{ height, border: `2px dashed ${dragOver ? '#0071E3' : '#D1D5DB'}`,
+            background: dragOver ? '#EFF6FF' : '#fff' }}>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#F3F4F6' }}>
+            <Upload size={18} style={{ color: '#9CA3AF' }} />
+          </div>
+          <div className="text-center">
+            <p style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>
+              {uploading ? 'Uploading…' : dropLabel}
+            </p>
+            {hint && <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>{hint}</p>}
+          </div>
+          <button type="button" onClick={e => { e.stopPropagation(); fileRef.current?.click() }}
+            className="px-3 py-1.5 rounded-lg cursor-pointer"
+            style={{ fontSize: 12, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
+            {browseLabel}
+          </button>
+        </div>
+      )}
+      <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
+    </div>
+  )
+}
+
 function EventDrawer({ open, onClose, onSaved, editing, instructors }: EventDrawerProps) {
   const t = useT()
   const [form, setForm]     = useState<EventFormData>(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [error, setError]   = useState('')
-  const [bannerDrag, setBannerDrag] = useState(false)
 
   useEffect(() => {
     if (open) { setForm(editing ? eventToForm(editing) : EMPTY_FORM); setError('') }
@@ -456,26 +540,14 @@ function EventDrawer({ open, onClose, onSaved, editing, instructors }: EventDraw
 
             {/* Right — banner + preview */}
             <div style={{ width: 240, flexShrink: 0 }}>
-              <label style={eventLbl}>{t.classes.eventBanner}</label>
-              <div
-                onDragEnter={() => setBannerDrag(true)}
-                onDragLeave={() => setBannerDrag(false)}
-                onDrop={() => setBannerDrag(false)}
-                className="flex flex-col items-center justify-center gap-3 rounded-2xl cursor-pointer"
-                style={{ height: 180, border: `2px dashed ${bannerDrag ? '#0071E3' : '#D1D5DB'}`,
-                  background: bannerDrag ? '#EFF6FF' : '#fff' }}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#F3F4F6' }}>
-                  <Upload size={18} style={{ color: '#9CA3AF' }} />
-                </div>
-                <div className="text-center">
-                  <p style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>{t.common.dropImage}</p>
-                  <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>{t.common.pngJpg}</p>
-                </div>
-                <label className="px-3 py-1.5 rounded-lg cursor-pointer"
-                  style={{ fontSize: 12, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
-                  {t.common.browse}<input type="file" accept="image/*" className="hidden" />
-                </label>
-              </div>
+              <BannerUploadZone
+                label={t.classes.eventBanner}
+                value={form.coverUrl}
+                onChange={url => set('coverUrl', url)}
+                dropLabel={t.common.dropImage}
+                browseLabel={t.common.browse}
+                hint={t.common.pngJpg}
+              />
               <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 8 }}>{t.classes.recommendedSize}</p>
 
               {/* Quick preview */}

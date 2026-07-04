@@ -33,7 +33,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const { id } = await params
   const body = await req.json()
-  const { status, belt, beltDegree, notes, beltDate } = body
+  const { status, belt, beltRankId, beltDegree, notes, beltDate } = body
 
   // Verify the member belongs to this school
   const existing = await prisma.schoolMember.findFirst({
@@ -41,16 +41,27 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   })
   if (!existing) return NextResponse.json({ error: 'Member not found' }, { status: 404 })
 
+  // beltRankId is an enrichment FK — validate it belongs to this school's
+  // grading system before trusting it (belt freeform text stays the source
+  // of truth for display regardless).
+  if (beltRankId) {
+    const rank = await prisma.beltRank.findFirst({
+      where: { id: beltRankId, system: { schoolId } },
+    })
+    if (!rank) return NextResponse.json({ error: 'Invalid beltRankId for this school' }, { status: 400 })
+  }
+
   const updated = await prisma.schoolMember.update({
     where: { id },
     data: {
       ...(status !== undefined && { status }),
       ...(belt !== undefined && { belt }),
+      ...(beltRankId !== undefined && { beltRankId }),
       ...(beltDegree !== undefined && { beltDegree }),
       ...(notes !== undefined && { notes }),
       ...(beltDate !== undefined && { beltDate: beltDate ? new Date(beltDate) : null }),
     },
-    select: { id: true, status: true, belt: true, beltDegree: true },
+    select: { id: true, status: true, belt: true, beltRankId: true, beltDegree: true },
   })
 
   return NextResponse.json({ member: updated })

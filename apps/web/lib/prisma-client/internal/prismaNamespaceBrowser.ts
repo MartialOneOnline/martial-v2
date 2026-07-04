@@ -59,6 +59,8 @@ export const ModelName = {
   User: 'User',
   Discipline: 'Discipline',
   SchoolDiscipline: 'SchoolDiscipline',
+  Facility: 'Facility',
+  SchoolFacility: 'SchoolFacility',
   School: 'School',
   Instructor: 'Instructor',
   MembershipPlan: 'MembershipPlan',
@@ -226,6 +228,24 @@ export const SchoolDisciplineScalarFieldEnum = {
 export type SchoolDisciplineScalarFieldEnum = (typeof SchoolDisciplineScalarFieldEnum)[keyof typeof SchoolDisciplineScalarFieldEnum]
 
 
+export const FacilityScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  icon: 'icon'
+} as const
+
+export type FacilityScalarFieldEnum = (typeof FacilityScalarFieldEnum)[keyof typeof FacilityScalarFieldEnum]
+
+
+export const SchoolFacilityScalarFieldEnum = {
+  schoolId: 'schoolId',
+  facilityId: 'facilityId'
+} as const
+
+export type SchoolFacilityScalarFieldEnum = (typeof SchoolFacilityScalarFieldEnum)[keyof typeof SchoolFacilityScalarFieldEnum]
+
+
 export const SchoolScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -264,6 +284,7 @@ export const SchoolScalarFieldEnum = {
   v1UserId: 'v1UserId',
   defaultBookingSettings: 'defaultBookingSettings',
   cancelPolicy: 'cancelPolicy',
+  modules: 'modules',
   stripePublishableKey: 'stripePublishableKey',
   stripeSecretKey: 'stripeSecretKey',
   stripeWebhookSecret: 'stripeWebhookSecret',
@@ -499,6 +520,7 @@ export const SchoolMemberScalarFieldEnum = {
   status: 'status',
   joinedAt: 'joinedAt',
   belt: 'belt',
+  beltRankId: 'beltRankId',
   beltDegree: 'beltDegree',
   beltDate: 'beltDate',
   emergencyContact: 'emergencyContact',
@@ -573,7 +595,9 @@ export const GradingScalarFieldEnum = {
   userId: 'userId',
   promotedById: 'promotedById',
   fromBelt: 'fromBelt',
+  fromBeltRankId: 'fromBeltRankId',
   toBelt: 'toBelt',
+  toBeltRankId: 'toBeltRankId',
   toDegree: 'toDegree',
   gradedAt: 'gradedAt',
   notes: 'notes',
@@ -824,6 +848,15 @@ export const PlatformSettingsScalarFieldEnum = {
   stripePriceIdMonthly: 'stripePriceIdMonthly',
   stripePriceIdQuarterly: 'stripePriceIdQuarterly',
   stripePriceIdAnnual: 'stripePriceIdAnnual',
+  notifyNewSchool: 'notifyNewSchool',
+  notifyVerificationReq: 'notifyVerificationReq',
+  notifyWeeklyReport: 'notifyWeeklyReport',
+  allowSelfRegistration: 'allowSelfRegistration',
+  requireEmailVerification: 'requireEmailVerification',
+  maintenanceMode: 'maintenanceMode',
+  superAdminEmail: 'superAdminEmail',
+  supportEmail: 'supportEmail',
+  emailSenderName: 'emailSenderName',
   updatedAt: 'updatedAt'
 } as const
 

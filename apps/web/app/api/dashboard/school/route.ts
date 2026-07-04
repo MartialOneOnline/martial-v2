@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { getSchoolModules } from '@/lib/school-modules'
 
 async function getEnabledPaymentMethods() {
   const settings = await prisma.platformSettings.upsert({
@@ -61,6 +62,7 @@ export async function GET(req: NextRequest) {
       stripePublishableKey: true,
       stripeSecretKey: true,
       stripeWebhookSecret: true,
+      modules: true,
     },
   })
 
@@ -68,7 +70,10 @@ export async function GET(req: NextRequest) {
 
   const enabledPaymentMethods = await getEnabledPaymentMethods()
 
-  return NextResponse.json({ school, enabledPaymentMethods })
+  return NextResponse.json({
+    school: { ...school, modules: getSchoolModules(school.modules) },
+    enabledPaymentMethods,
+  })
 }
 
 // PATCH /api/dashboard/school — update school settings (language, etc.)
@@ -93,7 +98,7 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json()
   const { language, name, phone, email, website, instagram, facebook, youtube, tiktok,
           description, tagline, address, postcode, city, country, logoUrl,
-          defaultBookingSettings, cancelPolicy,
+          defaultBookingSettings, cancelPolicy, modules,
           stripePublishableKey, stripeSecretKey, stripeWebhookSecret } = body
 
   const VALID_LANGS = ['en', 'es', 'pt', 'fr']
@@ -131,12 +136,13 @@ export async function PATCH(req: NextRequest) {
       ...(logoUrl                !== undefined && { logoUrl: logoUrl?.trim() || null }),
       ...(defaultBookingSettings !== undefined && { defaultBookingSettings: gatedBookingSettings }),
       ...(cancelPolicy !== undefined && VALID_CANCEL_POLICIES.includes(cancelPolicy) && { cancelPolicy }),
+      ...(modules !== undefined && { modules: getSchoolModules(modules) }),
       ...(stripePublishableKey !== undefined && { stripePublishableKey: stripePublishableKey?.trim() || null }),
       ...(stripeSecretKey      !== undefined && { stripeSecretKey:      stripeSecretKey?.trim()      || null }),
       ...(stripeWebhookSecret  !== undefined && { stripeWebhookSecret:  stripeWebhookSecret?.trim()  || null }),
     },
-    select: { id: true, language: true, name: true, cancelPolicy: true },
+    select: { id: true, language: true, name: true, cancelPolicy: true, modules: true },
   })
 
-  return NextResponse.json({ school: updated })
+  return NextResponse.json({ school: { ...updated, modules: getSchoolModules(updated.modules) } })
 }

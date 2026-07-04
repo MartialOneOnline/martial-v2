@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
+import { getSchoolModules } from '@/lib/school-modules'
 
 export async function GET() {
   const cookieStore = await cookies()
@@ -26,7 +27,7 @@ export async function GET() {
           id: true, planName: true, price: true, currency: true,
           status: true, startDate: true, endDate: true,
           classesUsed: true, paymentMethod: true,
-          school: { select: { id: true, name: true, slug: true, logoUrl: true, city: true } },
+          school: { select: { id: true, name: true, slug: true, logoUrl: true, city: true, modules: true } },
         },
       },
       bookings: {
@@ -64,7 +65,13 @@ export async function GET() {
   })
 
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
-  return NextResponse.json({ user })
+
+  const memberships = user.memberships.map(m => ({
+    ...m,
+    school: m.school && { ...m.school, modules: getSchoolModules(m.school.modules) },
+  }))
+
+  return NextResponse.json({ user: { ...user, memberships } })
 }
 
 export async function PATCH(req: Request) {

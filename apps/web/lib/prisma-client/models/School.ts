@@ -180,6 +180,7 @@ export type SchoolCountAggregateOutputType = {
   v1UserId: number
   defaultBookingSettings: number
   cancelPolicy: number
+  modules: number
   stripePublishableKey: number
   stripeSecretKey: number
   stripeWebhookSecret: number
@@ -348,6 +349,7 @@ export type SchoolCountAggregateInputType = {
   v1UserId?: true
   defaultBookingSettings?: true
   cancelPolicy?: true
+  modules?: true
   stripePublishableKey?: true
   stripeSecretKey?: true
   stripeWebhookSecret?: true
@@ -485,6 +487,7 @@ export type SchoolGroupByOutputType = {
   v1UserId: number | null
   defaultBookingSettings: runtime.JsonValue
   cancelPolicy: string
+  modules: runtime.JsonValue
   stripePublishableKey: string | null
   stripeSecretKey: string | null
   stripeWebhookSecret: string | null
@@ -558,6 +561,7 @@ export type SchoolWhereInput = {
   v1UserId?: Prisma.IntNullableFilter<"School"> | number | null
   defaultBookingSettings?: Prisma.JsonFilter<"School">
   cancelPolicy?: Prisma.StringFilter<"School"> | string
+  modules?: Prisma.JsonFilter<"School">
   stripePublishableKey?: Prisma.StringNullableFilter<"School"> | string | null
   stripeSecretKey?: Prisma.StringNullableFilter<"School"> | string | null
   stripeWebhookSecret?: Prisma.StringNullableFilter<"School"> | string | null
@@ -574,6 +578,7 @@ export type SchoolWhereInput = {
   claimedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   staff?: Prisma.UserListRelationFilter
   disciplines?: Prisma.SchoolDisciplineListRelationFilter
+  facilityCatalog?: Prisma.SchoolFacilityListRelationFilter
   classes?: Prisma.ClassListRelationFilter
   events?: Prisma.EventListRelationFilter
   memberships?: Prisma.MembershipListRelationFilter
@@ -631,6 +636,7 @@ export type SchoolOrderByWithRelationInput = {
   v1UserId?: Prisma.SortOrderInput | Prisma.SortOrder
   defaultBookingSettings?: Prisma.SortOrder
   cancelPolicy?: Prisma.SortOrder
+  modules?: Prisma.SortOrder
   stripePublishableKey?: Prisma.SortOrderInput | Prisma.SortOrder
   stripeSecretKey?: Prisma.SortOrderInput | Prisma.SortOrder
   stripeWebhookSecret?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -647,6 +653,7 @@ export type SchoolOrderByWithRelationInput = {
   claimedBy?: Prisma.UserOrderByWithRelationInput
   staff?: Prisma.UserOrderByRelationAggregateInput
   disciplines?: Prisma.SchoolDisciplineOrderByRelationAggregateInput
+  facilityCatalog?: Prisma.SchoolFacilityOrderByRelationAggregateInput
   classes?: Prisma.ClassOrderByRelationAggregateInput
   events?: Prisma.EventOrderByRelationAggregateInput
   memberships?: Prisma.MembershipOrderByRelationAggregateInput
@@ -707,6 +714,7 @@ export type SchoolWhereUniqueInput = Prisma.AtLeast<{
   googlePlaceId?: Prisma.StringNullableFilter<"School"> | string | null
   defaultBookingSettings?: Prisma.JsonFilter<"School">
   cancelPolicy?: Prisma.StringFilter<"School"> | string
+  modules?: Prisma.JsonFilter<"School">
   stripePublishableKey?: Prisma.StringNullableFilter<"School"> | string | null
   stripeSecretKey?: Prisma.StringNullableFilter<"School"> | string | null
   stripeWebhookSecret?: Prisma.StringNullableFilter<"School"> | string | null
@@ -723,6 +731,7 @@ export type SchoolWhereUniqueInput = Prisma.AtLeast<{
   claimedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   staff?: Prisma.UserListRelationFilter
   disciplines?: Prisma.SchoolDisciplineListRelationFilter
+  facilityCatalog?: Prisma.SchoolFacilityListRelationFilter
   classes?: Prisma.ClassListRelationFilter
   events?: Prisma.EventListRelationFilter
   memberships?: Prisma.MembershipListRelationFilter
@@ -780,6 +789,7 @@ export type SchoolOrderByWithAggregationInput = {
   v1UserId?: Prisma.SortOrderInput | Prisma.SortOrder
   defaultBookingSettings?: Prisma.SortOrder
   cancelPolicy?: Prisma.SortOrder
+  modules?: Prisma.SortOrder
   stripePublishableKey?: Prisma.SortOrderInput | Prisma.SortOrder
   stripeSecretKey?: Prisma.SortOrderInput | Prisma.SortOrder
   stripeWebhookSecret?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -838,6 +848,7 @@ export type SchoolScalarWhereWithAggregatesInput = {
   v1UserId?: Prisma.IntNullableWithAggregatesFilter<"School"> | number | null
   defaultBookingSettings?: Prisma.JsonWithAggregatesFilter<"School">
   cancelPolicy?: Prisma.StringWithAggregatesFilter<"School"> | string
+  modules?: Prisma.JsonWithAggregatesFilter<"School">
   stripePublishableKey?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
   stripeSecretKey?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
   stripeWebhookSecret?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
@@ -887,6 +898,7 @@ export type SchoolCreateInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -901,6 +913,7 @@ export type SchoolCreateInput = {
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
@@ -958,6 +971,7 @@ export type SchoolUncheckedCreateInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -971,6 +985,7 @@ export type SchoolUncheckedCreateInput = {
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
@@ -1027,6 +1042,7 @@ export type SchoolUpdateInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1041,6 +1057,7 @@ export type SchoolUpdateInput = {
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
@@ -1098,6 +1115,7 @@ export type SchoolUncheckedUpdateInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1111,6 +1129,7 @@ export type SchoolUncheckedUpdateInput = {
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
@@ -1168,6 +1187,7 @@ export type SchoolCreateManyInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -1217,6 +1237,7 @@ export type SchoolUpdateManyMutationInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1265,6 +1286,7 @@ export type SchoolUncheckedUpdateManyInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1343,6 +1365,7 @@ export type SchoolCountOrderByAggregateInput = {
   v1UserId?: Prisma.SortOrder
   defaultBookingSettings?: Prisma.SortOrder
   cancelPolicy?: Prisma.SortOrder
+  modules?: Prisma.SortOrder
   stripePublishableKey?: Prisma.SortOrder
   stripeSecretKey?: Prisma.SortOrder
   stripeWebhookSecret?: Prisma.SortOrder
@@ -1583,6 +1606,20 @@ export type SchoolUpdateOneRequiredWithoutDisciplinesNestedInput = {
   upsert?: Prisma.SchoolUpsertWithoutDisciplinesInput
   connect?: Prisma.SchoolWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.SchoolUpdateToOneWithWhereWithoutDisciplinesInput, Prisma.SchoolUpdateWithoutDisciplinesInput>, Prisma.SchoolUncheckedUpdateWithoutDisciplinesInput>
+}
+
+export type SchoolCreateNestedOneWithoutFacilityCatalogInput = {
+  create?: Prisma.XOR<Prisma.SchoolCreateWithoutFacilityCatalogInput, Prisma.SchoolUncheckedCreateWithoutFacilityCatalogInput>
+  connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutFacilityCatalogInput
+  connect?: Prisma.SchoolWhereUniqueInput
+}
+
+export type SchoolUpdateOneRequiredWithoutFacilityCatalogNestedInput = {
+  create?: Prisma.XOR<Prisma.SchoolCreateWithoutFacilityCatalogInput, Prisma.SchoolUncheckedCreateWithoutFacilityCatalogInput>
+  connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutFacilityCatalogInput
+  upsert?: Prisma.SchoolUpsertWithoutFacilityCatalogInput
+  connect?: Prisma.SchoolWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SchoolUpdateToOneWithWhereWithoutFacilityCatalogInput, Prisma.SchoolUpdateWithoutFacilityCatalogInput>, Prisma.SchoolUncheckedUpdateWithoutFacilityCatalogInput>
 }
 
 export type SchoolCreatephotosInput = {
@@ -1968,6 +2005,7 @@ export type SchoolCreateWithoutAffiliationInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -1981,6 +2019,7 @@ export type SchoolCreateWithoutAffiliationInput = {
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
@@ -2037,6 +2076,7 @@ export type SchoolUncheckedCreateWithoutAffiliationInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -2050,6 +2090,7 @@ export type SchoolUncheckedCreateWithoutAffiliationInput = {
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
@@ -2136,6 +2177,7 @@ export type SchoolScalarWhereInput = {
   v1UserId?: Prisma.IntNullableFilter<"School"> | number | null
   defaultBookingSettings?: Prisma.JsonFilter<"School">
   cancelPolicy?: Prisma.StringFilter<"School"> | string
+  modules?: Prisma.JsonFilter<"School">
   stripePublishableKey?: Prisma.StringNullableFilter<"School"> | string | null
   stripeSecretKey?: Prisma.StringNullableFilter<"School"> | string | null
   stripeWebhookSecret?: Prisma.StringNullableFilter<"School"> | string | null
@@ -2185,6 +2227,7 @@ export type SchoolCreateWithoutStaffInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -2198,6 +2241,7 @@ export type SchoolCreateWithoutStaffInput = {
   branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
@@ -2255,6 +2299,7 @@ export type SchoolUncheckedCreateWithoutStaffInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -2267,6 +2312,7 @@ export type SchoolUncheckedCreateWithoutStaffInput = {
   updatedAt?: Date | string
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
@@ -2328,6 +2374,7 @@ export type SchoolCreateWithoutClaimedByInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -2341,6 +2388,7 @@ export type SchoolCreateWithoutClaimedByInput = {
   branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
@@ -2398,6 +2446,7 @@ export type SchoolUncheckedCreateWithoutClaimedByInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -2410,6 +2459,7 @@ export type SchoolUncheckedCreateWithoutClaimedByInput = {
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
@@ -2487,6 +2537,7 @@ export type SchoolUpdateWithoutStaffInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2500,6 +2551,7 @@ export type SchoolUpdateWithoutStaffInput = {
   branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
@@ -2557,6 +2609,7 @@ export type SchoolUncheckedUpdateWithoutStaffInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2569,6 +2622,7 @@ export type SchoolUncheckedUpdateWithoutStaffInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
@@ -2641,6 +2695,7 @@ export type SchoolCreateWithoutDisciplinesInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -2654,6 +2709,7 @@ export type SchoolCreateWithoutDisciplinesInput = {
   branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
@@ -2711,6 +2767,7 @@ export type SchoolUncheckedCreateWithoutDisciplinesInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -2723,6 +2780,7 @@ export type SchoolUncheckedCreateWithoutDisciplinesInput = {
   updatedAt?: Date | string
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
@@ -2795,6 +2853,7 @@ export type SchoolUpdateWithoutDisciplinesInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2808,6 +2867,7 @@ export type SchoolUpdateWithoutDisciplinesInput = {
   branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
@@ -2865,6 +2925,7 @@ export type SchoolUncheckedUpdateWithoutDisciplinesInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2877,6 +2938,307 @@ export type SchoolUncheckedUpdateWithoutDisciplinesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
+  classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
+  camps?: Prisma.CampUncheckedUpdateManyWithoutSchoolNestedInput
+  instructors?: Prisma.InstructorUncheckedUpdateManyWithoutSchoolNestedInput
+  membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
+  members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
+  gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
+  invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
+  subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
+}
+
+export type SchoolCreateWithoutFacilityCatalogInput = {
+  id?: string
+  name: string
+  slug: string
+  status?: $Enums.SchoolStatus
+  source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
+  country?: string | null
+  city?: string | null
+  address?: string | null
+  postcode?: string | null
+  lat?: number | null
+  lng?: number | null
+  phone?: string | null
+  email?: string | null
+  website?: string | null
+  language?: string
+  instagram?: string | null
+  facebook?: string | null
+  youtube?: string | null
+  tiktok?: string | null
+  description?: string | null
+  tagline?: string | null
+  logoUrl?: string | null
+  coverUrl?: string | null
+  photos?: Prisma.SchoolCreatephotosInput | string[]
+  priceFrom?: number | null
+  hasFreeTrialCls?: boolean
+  facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
+  foundedYear?: number | null
+  totalStudents?: number | null
+  googleRating?: number | null
+  googleReviews?: number | null
+  googlePlaceId?: string | null
+  v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
+  parentRelationshipType?: $Enums.SchoolRelationshipType | null
+  leadStage?: $Enums.LeadStage | null
+  claimedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  affiliation?: Prisma.AffiliationCreateNestedOneWithoutSchoolsInput
+  parent?: Prisma.SchoolCreateNestedOneWithoutBranchesInput
+  branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
+  claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
+  staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventCreateNestedManyWithoutSchoolInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
+  camps?: Prisma.CampCreateNestedManyWithoutSchoolInput
+  instructors?: Prisma.InstructorCreateNestedManyWithoutSchoolInput
+  membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
+  members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
+  gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
+  invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
+  subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
+}
+
+export type SchoolUncheckedCreateWithoutFacilityCatalogInput = {
+  id?: string
+  name: string
+  slug: string
+  status?: $Enums.SchoolStatus
+  source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
+  affiliationId?: string | null
+  country?: string | null
+  city?: string | null
+  address?: string | null
+  postcode?: string | null
+  lat?: number | null
+  lng?: number | null
+  phone?: string | null
+  email?: string | null
+  website?: string | null
+  language?: string
+  instagram?: string | null
+  facebook?: string | null
+  youtube?: string | null
+  tiktok?: string | null
+  description?: string | null
+  tagline?: string | null
+  logoUrl?: string | null
+  coverUrl?: string | null
+  photos?: Prisma.SchoolCreatephotosInput | string[]
+  priceFrom?: number | null
+  hasFreeTrialCls?: boolean
+  facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
+  foundedYear?: number | null
+  totalStudents?: number | null
+  googleRating?: number | null
+  googleReviews?: number | null
+  googlePlaceId?: string | null
+  v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
+  parentId?: string | null
+  parentRelationshipType?: $Enums.SchoolRelationshipType | null
+  leadStage?: $Enums.LeadStage | null
+  claimedById?: string | null
+  claimedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
+  staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
+  camps?: Prisma.CampUncheckedCreateNestedManyWithoutSchoolInput
+  instructors?: Prisma.InstructorUncheckedCreateNestedManyWithoutSchoolInput
+  membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
+  members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
+  gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
+  invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
+  subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
+}
+
+export type SchoolCreateOrConnectWithoutFacilityCatalogInput = {
+  where: Prisma.SchoolWhereUniqueInput
+  create: Prisma.XOR<Prisma.SchoolCreateWithoutFacilityCatalogInput, Prisma.SchoolUncheckedCreateWithoutFacilityCatalogInput>
+}
+
+export type SchoolUpsertWithoutFacilityCatalogInput = {
+  update: Prisma.XOR<Prisma.SchoolUpdateWithoutFacilityCatalogInput, Prisma.SchoolUncheckedUpdateWithoutFacilityCatalogInput>
+  create: Prisma.XOR<Prisma.SchoolCreateWithoutFacilityCatalogInput, Prisma.SchoolUncheckedCreateWithoutFacilityCatalogInput>
+  where?: Prisma.SchoolWhereInput
+}
+
+export type SchoolUpdateToOneWithWhereWithoutFacilityCatalogInput = {
+  where?: Prisma.SchoolWhereInput
+  data: Prisma.XOR<Prisma.SchoolUpdateWithoutFacilityCatalogInput, Prisma.SchoolUncheckedUpdateWithoutFacilityCatalogInput>
+}
+
+export type SchoolUpdateWithoutFacilityCatalogInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
+  source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tiktok?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photos?: Prisma.SchoolUpdatephotosInput | string[]
+  priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
+  foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
+  leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  affiliation?: Prisma.AffiliationUpdateOneWithoutSchoolsNestedInput
+  parent?: Prisma.SchoolUpdateOneWithoutBranchesNestedInput
+  branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
+  claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
+  staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
+  camps?: Prisma.CampUpdateManyWithoutSchoolNestedInput
+  instructors?: Prisma.InstructorUpdateManyWithoutSchoolNestedInput
+  membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
+  members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
+  gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
+  invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
+  subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
+}
+
+export type SchoolUncheckedUpdateWithoutFacilityCatalogInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
+  source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
+  affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tiktok?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photos?: Prisma.SchoolUpdatephotosInput | string[]
+  priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
+  foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
+  leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
+  claimedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
+  staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
@@ -2933,6 +3295,7 @@ export type SchoolCreateWithoutBranchesInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -2946,6 +3309,7 @@ export type SchoolCreateWithoutBranchesInput = {
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
@@ -3003,6 +3367,7 @@ export type SchoolUncheckedCreateWithoutBranchesInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -3015,6 +3380,7 @@ export type SchoolUncheckedCreateWithoutBranchesInput = {
   updatedAt?: Date | string
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
@@ -3076,6 +3442,7 @@ export type SchoolCreateWithoutParentInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -3089,6 +3456,7 @@ export type SchoolCreateWithoutParentInput = {
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
@@ -3146,6 +3514,7 @@ export type SchoolUncheckedCreateWithoutParentInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -3158,6 +3527,7 @@ export type SchoolUncheckedCreateWithoutParentInput = {
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
@@ -3235,6 +3605,7 @@ export type SchoolUpdateWithoutBranchesInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3248,6 +3619,7 @@ export type SchoolUpdateWithoutBranchesInput = {
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
@@ -3305,6 +3677,7 @@ export type SchoolUncheckedUpdateWithoutBranchesInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3317,6 +3690,7 @@ export type SchoolUncheckedUpdateWithoutBranchesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
@@ -3389,6 +3763,7 @@ export type SchoolCreateWithoutInstructorsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -3403,6 +3778,7 @@ export type SchoolCreateWithoutInstructorsInput = {
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
@@ -3459,6 +3835,7 @@ export type SchoolUncheckedCreateWithoutInstructorsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -3472,6 +3849,7 @@ export type SchoolUncheckedCreateWithoutInstructorsInput = {
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
@@ -3543,6 +3921,7 @@ export type SchoolUpdateWithoutInstructorsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3557,6 +3936,7 @@ export type SchoolUpdateWithoutInstructorsInput = {
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
@@ -3613,6 +3993,7 @@ export type SchoolUncheckedUpdateWithoutInstructorsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3626,6 +4007,7 @@ export type SchoolUncheckedUpdateWithoutInstructorsInput = {
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
@@ -3681,6 +4063,7 @@ export type SchoolCreateWithoutMembershipPlansInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -3695,6 +4078,7 @@ export type SchoolCreateWithoutMembershipPlansInput = {
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
@@ -3751,6 +4135,7 @@ export type SchoolUncheckedCreateWithoutMembershipPlansInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -3764,6 +4149,7 @@ export type SchoolUncheckedCreateWithoutMembershipPlansInput = {
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
@@ -3835,6 +4221,7 @@ export type SchoolUpdateWithoutMembershipPlansInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3849,6 +4236,7 @@ export type SchoolUpdateWithoutMembershipPlansInput = {
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
@@ -3905,6 +4293,7 @@ export type SchoolUncheckedUpdateWithoutMembershipPlansInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3918,6 +4307,7 @@ export type SchoolUncheckedUpdateWithoutMembershipPlansInput = {
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
@@ -3973,6 +4363,7 @@ export type SchoolCreateWithoutReviewsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -3987,6 +4378,7 @@ export type SchoolCreateWithoutReviewsInput = {
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
@@ -4043,6 +4435,7 @@ export type SchoolUncheckedCreateWithoutReviewsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -4056,6 +4449,7 @@ export type SchoolUncheckedCreateWithoutReviewsInput = {
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
@@ -4127,6 +4521,7 @@ export type SchoolUpdateWithoutReviewsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4141,6 +4536,7 @@ export type SchoolUpdateWithoutReviewsInput = {
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
@@ -4197,6 +4593,7 @@ export type SchoolUncheckedUpdateWithoutReviewsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4210,6 +4607,7 @@ export type SchoolUncheckedUpdateWithoutReviewsInput = {
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
@@ -4265,6 +4663,7 @@ export type SchoolCreateWithoutClassesInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -4279,6 +4678,7 @@ export type SchoolCreateWithoutClassesInput = {
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
   camps?: Prisma.CampCreateNestedManyWithoutSchoolInput
@@ -4335,6 +4735,7 @@ export type SchoolUncheckedCreateWithoutClassesInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -4348,6 +4749,7 @@ export type SchoolUncheckedCreateWithoutClassesInput = {
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
   camps?: Prisma.CampUncheckedCreateNestedManyWithoutSchoolInput
@@ -4419,6 +4821,7 @@ export type SchoolUpdateWithoutClassesInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4433,6 +4836,7 @@ export type SchoolUpdateWithoutClassesInput = {
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
   camps?: Prisma.CampUpdateManyWithoutSchoolNestedInput
@@ -4489,6 +4893,7 @@ export type SchoolUncheckedUpdateWithoutClassesInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4502,6 +4907,7 @@ export type SchoolUncheckedUpdateWithoutClassesInput = {
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
   camps?: Prisma.CampUncheckedUpdateManyWithoutSchoolNestedInput
@@ -4557,6 +4963,7 @@ export type SchoolCreateWithoutEventsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -4571,6 +4978,7 @@ export type SchoolCreateWithoutEventsInput = {
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
   camps?: Prisma.CampCreateNestedManyWithoutSchoolInput
@@ -4627,6 +5035,7 @@ export type SchoolUncheckedCreateWithoutEventsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -4640,6 +5049,7 @@ export type SchoolUncheckedCreateWithoutEventsInput = {
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
   camps?: Prisma.CampUncheckedCreateNestedManyWithoutSchoolInput
@@ -4711,6 +5121,7 @@ export type SchoolUpdateWithoutEventsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4725,6 +5136,7 @@ export type SchoolUpdateWithoutEventsInput = {
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
   camps?: Prisma.CampUpdateManyWithoutSchoolNestedInput
@@ -4781,6 +5193,7 @@ export type SchoolUncheckedUpdateWithoutEventsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4794,6 +5207,7 @@ export type SchoolUncheckedUpdateWithoutEventsInput = {
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
   camps?: Prisma.CampUncheckedUpdateManyWithoutSchoolNestedInput
@@ -4849,6 +5263,7 @@ export type SchoolCreateWithoutMembershipsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -4863,6 +5278,7 @@ export type SchoolCreateWithoutMembershipsInput = {
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   camps?: Prisma.CampCreateNestedManyWithoutSchoolInput
@@ -4919,6 +5335,7 @@ export type SchoolUncheckedCreateWithoutMembershipsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -4932,6 +5349,7 @@ export type SchoolUncheckedCreateWithoutMembershipsInput = {
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   camps?: Prisma.CampUncheckedCreateNestedManyWithoutSchoolInput
@@ -5003,6 +5421,7 @@ export type SchoolUpdateWithoutMembershipsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5017,6 +5436,7 @@ export type SchoolUpdateWithoutMembershipsInput = {
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   camps?: Prisma.CampUpdateManyWithoutSchoolNestedInput
@@ -5073,6 +5493,7 @@ export type SchoolUncheckedUpdateWithoutMembershipsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5086,6 +5507,7 @@ export type SchoolUncheckedUpdateWithoutMembershipsInput = {
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   camps?: Prisma.CampUncheckedUpdateManyWithoutSchoolNestedInput
@@ -5141,6 +5563,7 @@ export type SchoolCreateWithoutCampsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -5155,6 +5578,7 @@ export type SchoolCreateWithoutCampsInput = {
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
@@ -5211,6 +5635,7 @@ export type SchoolUncheckedCreateWithoutCampsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -5224,6 +5649,7 @@ export type SchoolUncheckedCreateWithoutCampsInput = {
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
@@ -5295,6 +5721,7 @@ export type SchoolUpdateWithoutCampsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5309,6 +5736,7 @@ export type SchoolUpdateWithoutCampsInput = {
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
@@ -5365,6 +5793,7 @@ export type SchoolUncheckedUpdateWithoutCampsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5378,6 +5807,7 @@ export type SchoolUncheckedUpdateWithoutCampsInput = {
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
@@ -5433,6 +5863,7 @@ export type SchoolCreateWithoutMembersInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -5447,6 +5878,7 @@ export type SchoolCreateWithoutMembersInput = {
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
@@ -5503,6 +5935,7 @@ export type SchoolUncheckedCreateWithoutMembersInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -5516,6 +5949,7 @@ export type SchoolUncheckedCreateWithoutMembersInput = {
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
@@ -5587,6 +6021,7 @@ export type SchoolUpdateWithoutMembersInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5601,6 +6036,7 @@ export type SchoolUpdateWithoutMembersInput = {
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
@@ -5657,6 +6093,7 @@ export type SchoolUncheckedUpdateWithoutMembersInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5670,6 +6107,7 @@ export type SchoolUncheckedUpdateWithoutMembersInput = {
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
@@ -5725,6 +6163,7 @@ export type SchoolCreateWithoutClaimsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -5739,6 +6178,7 @@ export type SchoolCreateWithoutClaimsInput = {
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
@@ -5795,6 +6235,7 @@ export type SchoolUncheckedCreateWithoutClaimsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -5808,6 +6249,7 @@ export type SchoolUncheckedCreateWithoutClaimsInput = {
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
@@ -5879,6 +6321,7 @@ export type SchoolUpdateWithoutClaimsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5893,6 +6336,7 @@ export type SchoolUpdateWithoutClaimsInput = {
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
@@ -5949,6 +6393,7 @@ export type SchoolUncheckedUpdateWithoutClaimsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5962,6 +6407,7 @@ export type SchoolUncheckedUpdateWithoutClaimsInput = {
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
@@ -6017,6 +6463,7 @@ export type SchoolCreateWithoutGradingSystemsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -6031,6 +6478,7 @@ export type SchoolCreateWithoutGradingSystemsInput = {
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
@@ -6087,6 +6535,7 @@ export type SchoolUncheckedCreateWithoutGradingSystemsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -6100,6 +6549,7 @@ export type SchoolUncheckedCreateWithoutGradingSystemsInput = {
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
@@ -6171,6 +6621,7 @@ export type SchoolUpdateWithoutGradingSystemsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6185,6 +6636,7 @@ export type SchoolUpdateWithoutGradingSystemsInput = {
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
@@ -6241,6 +6693,7 @@ export type SchoolUncheckedUpdateWithoutGradingSystemsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6254,6 +6707,7 @@ export type SchoolUncheckedUpdateWithoutGradingSystemsInput = {
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
@@ -6309,6 +6763,7 @@ export type SchoolCreateWithoutGradingsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -6323,6 +6778,7 @@ export type SchoolCreateWithoutGradingsInput = {
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
@@ -6379,6 +6835,7 @@ export type SchoolUncheckedCreateWithoutGradingsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -6392,6 +6849,7 @@ export type SchoolUncheckedCreateWithoutGradingsInput = {
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
@@ -6463,6 +6921,7 @@ export type SchoolUpdateWithoutGradingsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6477,6 +6936,7 @@ export type SchoolUpdateWithoutGradingsInput = {
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
@@ -6533,6 +6993,7 @@ export type SchoolUncheckedUpdateWithoutGradingsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6546,6 +7007,7 @@ export type SchoolUncheckedUpdateWithoutGradingsInput = {
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
@@ -6601,6 +7063,7 @@ export type SchoolCreateWithoutLeadsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -6615,6 +7078,7 @@ export type SchoolCreateWithoutLeadsInput = {
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
@@ -6671,6 +7135,7 @@ export type SchoolUncheckedCreateWithoutLeadsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -6684,6 +7149,7 @@ export type SchoolUncheckedCreateWithoutLeadsInput = {
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
@@ -6755,6 +7221,7 @@ export type SchoolUpdateWithoutLeadsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6769,6 +7236,7 @@ export type SchoolUpdateWithoutLeadsInput = {
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
@@ -6825,6 +7293,7 @@ export type SchoolUncheckedUpdateWithoutLeadsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6838,6 +7307,7 @@ export type SchoolUncheckedUpdateWithoutLeadsInput = {
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
@@ -6893,6 +7363,7 @@ export type SchoolCreateWithoutInvitationsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -6907,6 +7378,7 @@ export type SchoolCreateWithoutInvitationsInput = {
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
@@ -6963,6 +7435,7 @@ export type SchoolUncheckedCreateWithoutInvitationsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -6976,6 +7449,7 @@ export type SchoolUncheckedCreateWithoutInvitationsInput = {
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
@@ -7047,6 +7521,7 @@ export type SchoolUpdateWithoutInvitationsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -7061,6 +7536,7 @@ export type SchoolUpdateWithoutInvitationsInput = {
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
@@ -7117,6 +7593,7 @@ export type SchoolUncheckedUpdateWithoutInvitationsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -7130,6 +7607,7 @@ export type SchoolUncheckedUpdateWithoutInvitationsInput = {
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
@@ -7185,6 +7663,7 @@ export type SchoolCreateWithoutWaiversInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -7199,6 +7678,7 @@ export type SchoolCreateWithoutWaiversInput = {
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
@@ -7255,6 +7735,7 @@ export type SchoolUncheckedCreateWithoutWaiversInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -7268,6 +7749,7 @@ export type SchoolUncheckedCreateWithoutWaiversInput = {
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
@@ -7339,6 +7821,7 @@ export type SchoolUpdateWithoutWaiversInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -7353,6 +7836,7 @@ export type SchoolUpdateWithoutWaiversInput = {
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
@@ -7409,6 +7893,7 @@ export type SchoolUncheckedUpdateWithoutWaiversInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -7422,6 +7907,7 @@ export type SchoolUncheckedUpdateWithoutWaiversInput = {
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
@@ -7477,6 +7963,7 @@ export type SchoolCreateWithoutTransactionsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -7491,6 +7978,7 @@ export type SchoolCreateWithoutTransactionsInput = {
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
@@ -7547,6 +8035,7 @@ export type SchoolUncheckedCreateWithoutTransactionsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -7560,6 +8049,7 @@ export type SchoolUncheckedCreateWithoutTransactionsInput = {
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
@@ -7631,6 +8121,7 @@ export type SchoolUpdateWithoutTransactionsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -7645,6 +8136,7 @@ export type SchoolUpdateWithoutTransactionsInput = {
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
@@ -7701,6 +8193,7 @@ export type SchoolUncheckedUpdateWithoutTransactionsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -7714,6 +8207,7 @@ export type SchoolUncheckedUpdateWithoutTransactionsInput = {
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
@@ -7769,6 +8263,7 @@ export type SchoolCreateWithoutNotificationsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -7783,6 +8278,7 @@ export type SchoolCreateWithoutNotificationsInput = {
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
@@ -7839,6 +8335,7 @@ export type SchoolUncheckedCreateWithoutNotificationsInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -7852,6 +8349,7 @@ export type SchoolUncheckedCreateWithoutNotificationsInput = {
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
@@ -7923,6 +8421,7 @@ export type SchoolUpdateWithoutNotificationsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -7937,6 +8436,7 @@ export type SchoolUpdateWithoutNotificationsInput = {
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
@@ -7993,6 +8493,7 @@ export type SchoolUncheckedUpdateWithoutNotificationsInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -8006,6 +8507,7 @@ export type SchoolUncheckedUpdateWithoutNotificationsInput = {
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
@@ -8061,6 +8563,7 @@ export type SchoolCreateWithoutSubscriptionInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -8075,6 +8578,7 @@ export type SchoolCreateWithoutSubscriptionInput = {
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
@@ -8131,6 +8635,7 @@ export type SchoolUncheckedCreateWithoutSubscriptionInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -8144,6 +8649,7 @@ export type SchoolUncheckedCreateWithoutSubscriptionInput = {
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
@@ -8215,6 +8721,7 @@ export type SchoolUpdateWithoutSubscriptionInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -8229,6 +8736,7 @@ export type SchoolUpdateWithoutSubscriptionInput = {
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
@@ -8285,6 +8793,7 @@ export type SchoolUncheckedUpdateWithoutSubscriptionInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -8298,6 +8807,7 @@ export type SchoolUncheckedUpdateWithoutSubscriptionInput = {
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
@@ -8353,6 +8863,7 @@ export type SchoolCreateManyAffiliationInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -8402,6 +8913,7 @@ export type SchoolUpdateWithoutAffiliationInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -8415,6 +8927,7 @@ export type SchoolUpdateWithoutAffiliationInput = {
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
@@ -8471,6 +8984,7 @@ export type SchoolUncheckedUpdateWithoutAffiliationInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -8484,6 +8998,7 @@ export type SchoolUncheckedUpdateWithoutAffiliationInput = {
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
@@ -8540,6 +9055,7 @@ export type SchoolUncheckedUpdateManyWithoutAffiliationInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -8590,6 +9106,7 @@ export type SchoolCreateManyClaimedByInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -8638,6 +9155,7 @@ export type SchoolUpdateWithoutClaimedByInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -8651,6 +9169,7 @@ export type SchoolUpdateWithoutClaimedByInput = {
   branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
@@ -8708,6 +9227,7 @@ export type SchoolUncheckedUpdateWithoutClaimedByInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -8720,6 +9240,7 @@ export type SchoolUncheckedUpdateWithoutClaimedByInput = {
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
@@ -8777,6 +9298,7 @@ export type SchoolUncheckedUpdateManyWithoutClaimedByInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -8826,6 +9348,7 @@ export type SchoolCreateManyParentInput = {
   v1UserId?: number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: string | null
   stripeSecretKey?: string | null
   stripeWebhookSecret?: string | null
@@ -8874,6 +9397,7 @@ export type SchoolUpdateWithoutParentInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -8887,6 +9411,7 @@ export type SchoolUpdateWithoutParentInput = {
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
@@ -8944,6 +9469,7 @@ export type SchoolUncheckedUpdateWithoutParentInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -8956,6 +9482,7 @@ export type SchoolUncheckedUpdateWithoutParentInput = {
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
@@ -9013,6 +9540,7 @@ export type SchoolUncheckedUpdateManyWithoutParentInput = {
   v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -9033,6 +9561,7 @@ export type SchoolCountOutputType = {
   branches: number
   staff: number
   disciplines: number
+  facilityCatalog: number
   classes: number
   events: number
   memberships: number
@@ -9055,6 +9584,7 @@ export type SchoolCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions
   branches?: boolean | SchoolCountOutputTypeCountBranchesArgs
   staff?: boolean | SchoolCountOutputTypeCountStaffArgs
   disciplines?: boolean | SchoolCountOutputTypeCountDisciplinesArgs
+  facilityCatalog?: boolean | SchoolCountOutputTypeCountFacilityCatalogArgs
   classes?: boolean | SchoolCountOutputTypeCountClassesArgs
   events?: boolean | SchoolCountOutputTypeCountEventsArgs
   memberships?: boolean | SchoolCountOutputTypeCountMembershipsArgs
@@ -9102,6 +9632,13 @@ export type SchoolCountOutputTypeCountStaffArgs<ExtArgs extends runtime.Types.Ex
  */
 export type SchoolCountOutputTypeCountDisciplinesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.SchoolDisciplineWhereInput
+}
+
+/**
+ * SchoolCountOutputType without action
+ */
+export type SchoolCountOutputTypeCountFacilityCatalogArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SchoolFacilityWhereInput
 }
 
 /**
@@ -9255,6 +9792,7 @@ export type SchoolSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   v1UserId?: boolean
   defaultBookingSettings?: boolean
   cancelPolicy?: boolean
+  modules?: boolean
   stripePublishableKey?: boolean
   stripeSecretKey?: boolean
   stripeWebhookSecret?: boolean
@@ -9271,6 +9809,7 @@ export type SchoolSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   claimedBy?: boolean | Prisma.School$claimedByArgs<ExtArgs>
   staff?: boolean | Prisma.School$staffArgs<ExtArgs>
   disciplines?: boolean | Prisma.School$disciplinesArgs<ExtArgs>
+  facilityCatalog?: boolean | Prisma.School$facilityCatalogArgs<ExtArgs>
   classes?: boolean | Prisma.School$classesArgs<ExtArgs>
   events?: boolean | Prisma.School$eventsArgs<ExtArgs>
   memberships?: boolean | Prisma.School$membershipsArgs<ExtArgs>
@@ -9329,6 +9868,7 @@ export type SchoolSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   v1UserId?: boolean
   defaultBookingSettings?: boolean
   cancelPolicy?: boolean
+  modules?: boolean
   stripePublishableKey?: boolean
   stripeSecretKey?: boolean
   stripeWebhookSecret?: boolean
@@ -9382,6 +9922,7 @@ export type SchoolSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   v1UserId?: boolean
   defaultBookingSettings?: boolean
   cancelPolicy?: boolean
+  modules?: boolean
   stripePublishableKey?: boolean
   stripeSecretKey?: boolean
   stripeWebhookSecret?: boolean
@@ -9435,6 +9976,7 @@ export type SchoolSelectScalar = {
   v1UserId?: boolean
   defaultBookingSettings?: boolean
   cancelPolicy?: boolean
+  modules?: boolean
   stripePublishableKey?: boolean
   stripeSecretKey?: boolean
   stripeWebhookSecret?: boolean
@@ -9447,7 +9989,7 @@ export type SchoolSelectScalar = {
   updatedAt?: boolean
 }
 
-export type SchoolOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "status" | "source" | "type" | "affiliationId" | "country" | "city" | "address" | "postcode" | "lat" | "lng" | "phone" | "email" | "website" | "language" | "instagram" | "facebook" | "youtube" | "tiktok" | "description" | "tagline" | "logoUrl" | "coverUrl" | "photos" | "priceFrom" | "hasFreeTrialCls" | "facilities" | "foundedYear" | "totalStudents" | "googleRating" | "googleReviews" | "googlePlaceId" | "v1UserId" | "defaultBookingSettings" | "cancelPolicy" | "stripePublishableKey" | "stripeSecretKey" | "stripeWebhookSecret" | "parentId" | "parentRelationshipType" | "leadStage" | "claimedById" | "claimedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["school"]>
+export type SchoolOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "status" | "source" | "type" | "affiliationId" | "country" | "city" | "address" | "postcode" | "lat" | "lng" | "phone" | "email" | "website" | "language" | "instagram" | "facebook" | "youtube" | "tiktok" | "description" | "tagline" | "logoUrl" | "coverUrl" | "photos" | "priceFrom" | "hasFreeTrialCls" | "facilities" | "foundedYear" | "totalStudents" | "googleRating" | "googleReviews" | "googlePlaceId" | "v1UserId" | "defaultBookingSettings" | "cancelPolicy" | "modules" | "stripePublishableKey" | "stripeSecretKey" | "stripeWebhookSecret" | "parentId" | "parentRelationshipType" | "leadStage" | "claimedById" | "claimedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["school"]>
 export type SchoolInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   affiliation?: boolean | Prisma.School$affiliationArgs<ExtArgs>
   parent?: boolean | Prisma.School$parentArgs<ExtArgs>
@@ -9455,6 +9997,7 @@ export type SchoolInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   claimedBy?: boolean | Prisma.School$claimedByArgs<ExtArgs>
   staff?: boolean | Prisma.School$staffArgs<ExtArgs>
   disciplines?: boolean | Prisma.School$disciplinesArgs<ExtArgs>
+  facilityCatalog?: boolean | Prisma.School$facilityCatalogArgs<ExtArgs>
   classes?: boolean | Prisma.School$classesArgs<ExtArgs>
   events?: boolean | Prisma.School$eventsArgs<ExtArgs>
   memberships?: boolean | Prisma.School$membershipsArgs<ExtArgs>
@@ -9494,6 +10037,7 @@ export type $SchoolPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     claimedBy: Prisma.$UserPayload<ExtArgs> | null
     staff: Prisma.$UserPayload<ExtArgs>[]
     disciplines: Prisma.$SchoolDisciplinePayload<ExtArgs>[]
+    facilityCatalog: Prisma.$SchoolFacilityPayload<ExtArgs>[]
     classes: Prisma.$ClassPayload<ExtArgs>[]
     events: Prisma.$EventPayload<ExtArgs>[]
     memberships: Prisma.$MembershipPayload<ExtArgs>[]
@@ -9550,6 +10094,7 @@ export type $SchoolPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     v1UserId: number | null
     defaultBookingSettings: runtime.JsonValue
     cancelPolicy: string
+    modules: runtime.JsonValue
     stripePublishableKey: string | null
     stripeSecretKey: string | null
     stripeWebhookSecret: string | null
@@ -9960,6 +10505,7 @@ export interface Prisma__SchoolClient<T, Null = never, ExtArgs extends runtime.T
   claimedBy<T extends Prisma.School$claimedByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$claimedByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   staff<T extends Prisma.School$staffArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$staffArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   disciplines<T extends Prisma.School$disciplinesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$disciplinesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SchoolDisciplinePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  facilityCatalog<T extends Prisma.School$facilityCatalogArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$facilityCatalogArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SchoolFacilityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   classes<T extends Prisma.School$classesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$classesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   events<T extends Prisma.School$eventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   memberships<T extends Prisma.School$membershipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$membershipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MembershipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -10043,6 +10589,7 @@ export interface SchoolFieldRefs {
   readonly v1UserId: Prisma.FieldRef<"School", 'Int'>
   readonly defaultBookingSettings: Prisma.FieldRef<"School", 'Json'>
   readonly cancelPolicy: Prisma.FieldRef<"School", 'String'>
+  readonly modules: Prisma.FieldRef<"School", 'Json'>
   readonly stripePublishableKey: Prisma.FieldRef<"School", 'String'>
   readonly stripeSecretKey: Prisma.FieldRef<"School", 'String'>
   readonly stripeWebhookSecret: Prisma.FieldRef<"School", 'String'>
@@ -10580,6 +11127,30 @@ export type School$disciplinesArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.SchoolDisciplineScalarFieldEnum | Prisma.SchoolDisciplineScalarFieldEnum[]
+}
+
+/**
+ * School.facilityCatalog
+ */
+export type School$facilityCatalogArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SchoolFacility
+   */
+  select?: Prisma.SchoolFacilitySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SchoolFacility
+   */
+  omit?: Prisma.SchoolFacilityOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SchoolFacilityInclude<ExtArgs> | null
+  where?: Prisma.SchoolFacilityWhereInput
+  orderBy?: Prisma.SchoolFacilityOrderByWithRelationInput | Prisma.SchoolFacilityOrderByWithRelationInput[]
+  cursor?: Prisma.SchoolFacilityWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SchoolFacilityScalarFieldEnum | Prisma.SchoolFacilityScalarFieldEnum[]
 }
 
 /**

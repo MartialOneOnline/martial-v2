@@ -524,7 +524,6 @@ export default function ExplorePage() {
   const [classes, setClasses]   = useState<DbClass[]>([])
   const [loadingSchools, setLoadingSchools] = useState(true)
   const [loadingClasses, setLoadingClasses] = useState(true)
-  const [disciplineOptions, setDisciplineOptions] = useState<string[]>(['All'])
 
   // UI state
   const [mode, setMode]               = useState<'schools' | 'camps' | 'classes'>('schools')
@@ -532,6 +531,7 @@ export default function ExplorePage() {
   const [search, setSearch]           = useState('')
   const [location, setLocation]       = useState('')
   const [discipline, setDiscipline]   = useState('All')
+  const [disciplines, setDisciplines] = useState<string[]>(['All'])
   const [sort, setSort]               = useState<SortKey>('Nearest')
   const [quickView, setQuickView]     = useState<DbSchool | null>(null)
   const [showLogin, setShowLogin]     = useState(false)
@@ -542,6 +542,13 @@ export default function ExplorePage() {
   const [selectedDay, setSelectedDay] = useState<number>(() => new Date().getDay())
 
   // Auto-detect location on load: IP geolocation first (silent), then browser GPS if available
+  useEffect(() => {
+    fetch('/api/disciplines')
+      .then(r => r.json())
+      .then(d => setDisciplines(['All', ...(d.disciplines ?? []).map((x: { name: string }) => x.name)]))
+      .catch(() => {})
+  }, [])
+
   useEffect(() => {
     // 1. IP-based geolocation — no permission needed, fast
     fetch('https://ipapi.co/json/')
@@ -601,14 +608,6 @@ export default function ExplorePage() {
       .then((data: DbClass[]) => setClasses(data))
       .catch(() => setClasses([]))
       .finally(() => setLoadingClasses(false))
-  }, [])
-
-  // Fetch discipline catalog for the filter bar
-  useEffect(() => {
-    fetch('/api/disciplines')
-      .then(r => r.json())
-      .then((data: { disciplines: { name: string }[] }) => setDisciplineOptions(['All', ...data.disciplines.map(d => d.name)]))
-      .catch(() => {})
   }, [])
 
   // Haversine distance helper
@@ -808,7 +807,7 @@ export default function ExplorePage() {
         <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col gap-3">
           {/* Disciplines */}
           <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-1 px-1">
-            {disciplineOptions.map(d => {
+            {disciplines.map(d => {
               const active = discipline === d
               return (
                 <button

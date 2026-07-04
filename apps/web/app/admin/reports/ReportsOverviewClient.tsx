@@ -11,6 +11,7 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts'
 import { adminFetch } from '@/lib/api/adminFetch'
+import ReportsTabs from './ReportsTabs'
 
 interface ReportData {
   overview: {
@@ -103,16 +104,12 @@ export default function ReportsOverviewClient() {
           <h1 className="text-lg font-bold text-[#101828]">Reports Overview</h1>
           <p className="text-xs text-gray-400">Platform-wide metrics and growth</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <ReportsTabs active="/admin/reports" />
           <button onClick={load}
             className="flex items-center gap-1.5 h-9 px-3 rounded-xl border border-gray-200 text-xs font-medium text-gray-500 hover:bg-gray-50 transition-colors">
             <RefreshCw className="w-3.5 h-3.5" /> Refresh
           </button>
-          <Link href="/admin/reports/growth"
-            prefetch={false}
-            className="flex items-center gap-1.5 h-9 px-3 rounded-xl border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">
-            <TrendingUp className="w-3.5 h-3.5" /> Growth →
-          </Link>
         </div>
       </div>
 

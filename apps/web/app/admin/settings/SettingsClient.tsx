@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Settings, Bell, Shield, Globe, Mail, Save, Check } from 'lucide-react'
 
 export function Section({ title, icon: Icon, children }: { title: string; icon: React.ElementType; children: React.ReactNode }) {
@@ -41,6 +41,8 @@ export function Toggle({ label, description, checked, onChange }: {
 }
 
 export default function SettingsClient() {
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
   // Notification settings
@@ -53,9 +55,59 @@ export default function SettingsClient() {
   const [allowSelfRegistration, setAllowSelfRegistration] = useState(true)
   const [requireEmailVerification, setRequireEmailVerification] = useState(true)
 
-  const save = () => {
+  // Security
+  const [superAdminEmail, setSuperAdminEmail] = useState('')
+  const [supportEmail, setSupportEmail] = useState('')
+
+  // Email
+  const [emailSenderName, setEmailSenderName] = useState('Martial')
+
+  useEffect(() => {
+    fetch('/api/admin/settings/general')
+      .then(res => res.json())
+      .then(({ settings }) => {
+        setEmailNewSchool(settings.notifyNewSchool)
+        setEmailVerification(settings.notifyVerificationReq)
+        setEmailWeeklyReport(settings.notifyWeeklyReport)
+        setMaintenanceMode(settings.maintenanceMode)
+        setAllowSelfRegistration(settings.allowSelfRegistration)
+        setRequireEmailVerification(settings.requireEmailVerification)
+        setSuperAdminEmail(settings.superAdminEmail ?? '')
+        setSupportEmail(settings.supportEmail ?? '')
+        setEmailSenderName(settings.emailSenderName)
+      })
+      .finally(() => setLoading(false))
+  }, [])
+
+  const save = async () => {
+    setSaving(true)
+    const res = await fetch('/api/admin/settings/general', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        notifyNewSchool: emailNewSchool,
+        notifyVerificationReq: emailVerification,
+        notifyWeeklyReport: emailWeeklyReport,
+        maintenanceMode,
+        allowSelfRegistration,
+        requireEmailVerification,
+        superAdminEmail,
+        supportEmail,
+        emailSenderName,
+      }),
+    })
+    setSaving(false)
+    if (!res.ok) return
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</p>
+      </div>
+    )
   }
 
   return (
@@ -67,11 +119,12 @@ export default function SettingsClient() {
         </div>
         <button
           onClick={save}
-          className="flex items-center gap-2 h-9 px-4 rounded-xl text-white text-xs font-semibold hover:opacity-90 transition-opacity"
+          disabled={saving}
+          className="flex items-center gap-2 h-9 px-4 rounded-xl text-white text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-60"
           style={{ background: saved ? '#10B981' : '#0870E2' }}
         >
           {saved ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
-          {saved ? 'Saved!' : 'Save changes'}
+          {saved ? 'Saved!' : saving ? 'Saving…' : 'Save changes'}
         </button>
       </div>
 
@@ -124,7 +177,8 @@ export default function SettingsClient() {
               <p className="text-sm font-medium text-[#101828] mb-1">Super admin email</p>
               <input
                 type="email"
-                defaultValue="admin@martial.app"
+                value={superAdminEmail}
+                onChange={e => setSuperAdminEmail(e.target.value)}
                 className="w-full h-9 px-3 rounded-xl border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0870E2]/20 focus:border-[#0870E2]"
               />
             </div>
@@ -132,7 +186,8 @@ export default function SettingsClient() {
               <p className="text-sm font-medium text-[#101828] mb-1">Support email</p>
               <input
                 type="email"
-                defaultValue="hello@martial.app"
+                value={supportEmail}
+                onChange={e => setSupportEmail(e.target.value)}
                 className="w-full h-9 px-3 rounded-xl border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0870E2]/20 focus:border-[#0870E2]"
               />
             </div>
@@ -148,7 +203,8 @@ export default function SettingsClient() {
             <p className="text-sm font-medium text-[#101828] mb-1">Sender name</p>
             <input
               type="text"
-              defaultValue="Martial"
+              value={emailSenderName}
+              onChange={e => setEmailSenderName(e.target.value)}
               className="w-full h-9 px-3 rounded-xl border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0870E2]/20 focus:border-[#0870E2]"
             />
           </div>

@@ -1,13 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { ArrowLeft, RefreshCw, TrendingUp } from 'lucide-react'
+import { RefreshCw, TrendingUp } from 'lucide-react'
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip,
   ResponsiveContainer, CartesianGrid, Legend,
 } from 'recharts'
 import { adminFetch } from '@/lib/api/adminFetch'
+import ReportsTabs from '../ReportsTabs'
 
 interface ReportData {
   overview: {
@@ -67,20 +67,17 @@ export default function GrowthClient() {
   return (
     <div className="min-h-screen">
       <div className="bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
-        <div className="flex items-center gap-3">
-          <Link href="/admin/reports" prefetch={false} className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors">
-            <ArrowLeft className="w-3.5 h-3.5" /> Overview
-          </Link>
-          <div className="h-4 w-px bg-gray-200" />
-          <div>
-            <h1 className="text-lg font-bold text-[#101828]">Growth</h1>
-            <p className="text-xs text-gray-400">Platform expansion metrics</p>
-          </div>
+        <div>
+          <h1 className="text-lg font-bold text-[#101828]">Growth</h1>
+          <p className="text-xs text-gray-400">Platform expansion metrics</p>
         </div>
-        <button onClick={load}
-          className="flex items-center gap-1.5 h-9 px-3 rounded-xl border border-gray-200 text-xs font-medium text-gray-500 hover:bg-gray-50 transition-colors">
-          <RefreshCw className="w-3.5 h-3.5" /> Refresh
-        </button>
+        <div className="flex items-center gap-3">
+          <ReportsTabs active="/admin/reports/growth" />
+          <button onClick={load}
+            className="flex items-center gap-1.5 h-9 px-3 rounded-xl border border-gray-200 text-xs font-medium text-gray-500 hover:bg-gray-50 transition-colors">
+            <RefreshCw className="w-3.5 h-3.5" /> Refresh
+          </button>
+        </div>
       </div>
 
       {loading || !data ? (

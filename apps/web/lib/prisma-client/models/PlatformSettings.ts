@@ -57,6 +57,15 @@ export type PlatformSettingsMinAggregateOutputType = {
   stripePriceIdMonthly: string | null
   stripePriceIdQuarterly: string | null
   stripePriceIdAnnual: string | null
+  notifyNewSchool: boolean | null
+  notifyVerificationReq: boolean | null
+  notifyWeeklyReport: boolean | null
+  allowSelfRegistration: boolean | null
+  requireEmailVerification: boolean | null
+  maintenanceMode: boolean | null
+  superAdminEmail: string | null
+  supportEmail: string | null
+  emailSenderName: string | null
   updatedAt: Date | null
 }
 
@@ -75,6 +84,15 @@ export type PlatformSettingsMaxAggregateOutputType = {
   stripePriceIdMonthly: string | null
   stripePriceIdQuarterly: string | null
   stripePriceIdAnnual: string | null
+  notifyNewSchool: boolean | null
+  notifyVerificationReq: boolean | null
+  notifyWeeklyReport: boolean | null
+  allowSelfRegistration: boolean | null
+  requireEmailVerification: boolean | null
+  maintenanceMode: boolean | null
+  superAdminEmail: string | null
+  supportEmail: string | null
+  emailSenderName: string | null
   updatedAt: Date | null
 }
 
@@ -94,6 +112,15 @@ export type PlatformSettingsCountAggregateOutputType = {
   stripePriceIdMonthly: number
   stripePriceIdQuarterly: number
   stripePriceIdAnnual: number
+  notifyNewSchool: number
+  notifyVerificationReq: number
+  notifyWeeklyReport: number
+  allowSelfRegistration: number
+  requireEmailVerification: number
+  maintenanceMode: number
+  superAdminEmail: number
+  supportEmail: number
+  emailSenderName: number
   updatedAt: number
   _all: number
 }
@@ -130,6 +157,15 @@ export type PlatformSettingsMinAggregateInputType = {
   stripePriceIdMonthly?: true
   stripePriceIdQuarterly?: true
   stripePriceIdAnnual?: true
+  notifyNewSchool?: true
+  notifyVerificationReq?: true
+  notifyWeeklyReport?: true
+  allowSelfRegistration?: true
+  requireEmailVerification?: true
+  maintenanceMode?: true
+  superAdminEmail?: true
+  supportEmail?: true
+  emailSenderName?: true
   updatedAt?: true
 }
 
@@ -148,6 +184,15 @@ export type PlatformSettingsMaxAggregateInputType = {
   stripePriceIdMonthly?: true
   stripePriceIdQuarterly?: true
   stripePriceIdAnnual?: true
+  notifyNewSchool?: true
+  notifyVerificationReq?: true
+  notifyWeeklyReport?: true
+  allowSelfRegistration?: true
+  requireEmailVerification?: true
+  maintenanceMode?: true
+  superAdminEmail?: true
+  supportEmail?: true
+  emailSenderName?: true
   updatedAt?: true
 }
 
@@ -167,6 +212,15 @@ export type PlatformSettingsCountAggregateInputType = {
   stripePriceIdMonthly?: true
   stripePriceIdQuarterly?: true
   stripePriceIdAnnual?: true
+  notifyNewSchool?: true
+  notifyVerificationReq?: true
+  notifyWeeklyReport?: true
+  allowSelfRegistration?: true
+  requireEmailVerification?: true
+  maintenanceMode?: true
+  superAdminEmail?: true
+  supportEmail?: true
+  emailSenderName?: true
   updatedAt?: true
   _all?: true
 }
@@ -273,6 +327,15 @@ export type PlatformSettingsGroupByOutputType = {
   stripePriceIdMonthly: string | null
   stripePriceIdQuarterly: string | null
   stripePriceIdAnnual: string | null
+  notifyNewSchool: boolean
+  notifyVerificationReq: boolean
+  notifyWeeklyReport: boolean
+  allowSelfRegistration: boolean
+  requireEmailVerification: boolean
+  maintenanceMode: boolean
+  superAdminEmail: string | null
+  supportEmail: string | null
+  emailSenderName: string
   updatedAt: Date
   _count: PlatformSettingsCountAggregateOutputType | null
   _avg: PlatformSettingsAvgAggregateOutputType | null
@@ -315,6 +378,15 @@ export type PlatformSettingsWhereInput = {
   stripePriceIdMonthly?: Prisma.StringNullableFilter<"PlatformSettings"> | string | null
   stripePriceIdQuarterly?: Prisma.StringNullableFilter<"PlatformSettings"> | string | null
   stripePriceIdAnnual?: Prisma.StringNullableFilter<"PlatformSettings"> | string | null
+  notifyNewSchool?: Prisma.BoolFilter<"PlatformSettings"> | boolean
+  notifyVerificationReq?: Prisma.BoolFilter<"PlatformSettings"> | boolean
+  notifyWeeklyReport?: Prisma.BoolFilter<"PlatformSettings"> | boolean
+  allowSelfRegistration?: Prisma.BoolFilter<"PlatformSettings"> | boolean
+  requireEmailVerification?: Prisma.BoolFilter<"PlatformSettings"> | boolean
+  maintenanceMode?: Prisma.BoolFilter<"PlatformSettings"> | boolean
+  superAdminEmail?: Prisma.StringNullableFilter<"PlatformSettings"> | string | null
+  supportEmail?: Prisma.StringNullableFilter<"PlatformSettings"> | string | null
+  emailSenderName?: Prisma.StringFilter<"PlatformSettings"> | string
   updatedAt?: Prisma.DateTimeFilter<"PlatformSettings"> | Date | string
 }
 
@@ -334,6 +406,15 @@ export type PlatformSettingsOrderByWithRelationInput = {
   stripePriceIdMonthly?: Prisma.SortOrderInput | Prisma.SortOrder
   stripePriceIdQuarterly?: Prisma.SortOrderInput | Prisma.SortOrder
   stripePriceIdAnnual?: Prisma.SortOrderInput | Prisma.SortOrder
+  notifyNewSchool?: Prisma.SortOrder
+  notifyVerificationReq?: Prisma.SortOrder
+  notifyWeeklyReport?: Prisma.SortOrder
+  allowSelfRegistration?: Prisma.SortOrder
+  requireEmailVerification?: Prisma.SortOrder
+  maintenanceMode?: Prisma.SortOrder
+  superAdminEmail?: Prisma.SortOrderInput | Prisma.SortOrder
+  supportEmail?: Prisma.SortOrderInput | Prisma.SortOrder
+  emailSenderName?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
@@ -356,6 +437,15 @@ export type PlatformSettingsWhereUniqueInput = Prisma.AtLeast<{
   stripePriceIdMonthly?: Prisma.StringNullableFilter<"PlatformSettings"> | string | null
   stripePriceIdQuarterly?: Prisma.StringNullableFilter<"PlatformSettings"> | string | null
   stripePriceIdAnnual?: Prisma.StringNullableFilter<"PlatformSettings"> | string | null
+  notifyNewSchool?: Prisma.BoolFilter<"PlatformSettings"> | boolean
+  notifyVerificationReq?: Prisma.BoolFilter<"PlatformSettings"> | boolean
+  notifyWeeklyReport?: Prisma.BoolFilter<"PlatformSettings"> | boolean
+  allowSelfRegistration?: Prisma.BoolFilter<"PlatformSettings"> | boolean
+  requireEmailVerification?: Prisma.BoolFilter<"PlatformSettings"> | boolean
+  maintenanceMode?: Prisma.BoolFilter<"PlatformSettings"> | boolean
+  superAdminEmail?: Prisma.StringNullableFilter<"PlatformSettings"> | string | null
+  supportEmail?: Prisma.StringNullableFilter<"PlatformSettings"> | string | null
+  emailSenderName?: Prisma.StringFilter<"PlatformSettings"> | string
   updatedAt?: Prisma.DateTimeFilter<"PlatformSettings"> | Date | string
 }, "id">
 
@@ -375,6 +465,15 @@ export type PlatformSettingsOrderByWithAggregationInput = {
   stripePriceIdMonthly?: Prisma.SortOrderInput | Prisma.SortOrder
   stripePriceIdQuarterly?: Prisma.SortOrderInput | Prisma.SortOrder
   stripePriceIdAnnual?: Prisma.SortOrderInput | Prisma.SortOrder
+  notifyNewSchool?: Prisma.SortOrder
+  notifyVerificationReq?: Prisma.SortOrder
+  notifyWeeklyReport?: Prisma.SortOrder
+  allowSelfRegistration?: Prisma.SortOrder
+  requireEmailVerification?: Prisma.SortOrder
+  maintenanceMode?: Prisma.SortOrder
+  superAdminEmail?: Prisma.SortOrderInput | Prisma.SortOrder
+  supportEmail?: Prisma.SortOrderInput | Prisma.SortOrder
+  emailSenderName?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.PlatformSettingsCountOrderByAggregateInput
   _avg?: Prisma.PlatformSettingsAvgOrderByAggregateInput
@@ -402,6 +501,15 @@ export type PlatformSettingsScalarWhereWithAggregatesInput = {
   stripePriceIdMonthly?: Prisma.StringNullableWithAggregatesFilter<"PlatformSettings"> | string | null
   stripePriceIdQuarterly?: Prisma.StringNullableWithAggregatesFilter<"PlatformSettings"> | string | null
   stripePriceIdAnnual?: Prisma.StringNullableWithAggregatesFilter<"PlatformSettings"> | string | null
+  notifyNewSchool?: Prisma.BoolWithAggregatesFilter<"PlatformSettings"> | boolean
+  notifyVerificationReq?: Prisma.BoolWithAggregatesFilter<"PlatformSettings"> | boolean
+  notifyWeeklyReport?: Prisma.BoolWithAggregatesFilter<"PlatformSettings"> | boolean
+  allowSelfRegistration?: Prisma.BoolWithAggregatesFilter<"PlatformSettings"> | boolean
+  requireEmailVerification?: Prisma.BoolWithAggregatesFilter<"PlatformSettings"> | boolean
+  maintenanceMode?: Prisma.BoolWithAggregatesFilter<"PlatformSettings"> | boolean
+  superAdminEmail?: Prisma.StringNullableWithAggregatesFilter<"PlatformSettings"> | string | null
+  supportEmail?: Prisma.StringNullableWithAggregatesFilter<"PlatformSettings"> | string | null
+  emailSenderName?: Prisma.StringWithAggregatesFilter<"PlatformSettings"> | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"PlatformSettings"> | Date | string
 }
 
@@ -421,6 +529,15 @@ export type PlatformSettingsCreateInput = {
   stripePriceIdMonthly?: string | null
   stripePriceIdQuarterly?: string | null
   stripePriceIdAnnual?: string | null
+  notifyNewSchool?: boolean
+  notifyVerificationReq?: boolean
+  notifyWeeklyReport?: boolean
+  allowSelfRegistration?: boolean
+  requireEmailVerification?: boolean
+  maintenanceMode?: boolean
+  superAdminEmail?: string | null
+  supportEmail?: string | null
+  emailSenderName?: string
   updatedAt?: Date | string
 }
 
@@ -440,6 +557,15 @@ export type PlatformSettingsUncheckedCreateInput = {
   stripePriceIdMonthly?: string | null
   stripePriceIdQuarterly?: string | null
   stripePriceIdAnnual?: string | null
+  notifyNewSchool?: boolean
+  notifyVerificationReq?: boolean
+  notifyWeeklyReport?: boolean
+  allowSelfRegistration?: boolean
+  requireEmailVerification?: boolean
+  maintenanceMode?: boolean
+  superAdminEmail?: string | null
+  supportEmail?: string | null
+  emailSenderName?: string
   updatedAt?: Date | string
 }
 
@@ -459,6 +585,15 @@ export type PlatformSettingsUpdateInput = {
   stripePriceIdMonthly?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePriceIdQuarterly?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePriceIdAnnual?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notifyNewSchool?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifyVerificationReq?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifyWeeklyReport?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowSelfRegistration?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireEmailVerification?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  maintenanceMode?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  superAdminEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supportEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailSenderName?: Prisma.StringFieldUpdateOperationsInput | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -478,6 +613,15 @@ export type PlatformSettingsUncheckedUpdateInput = {
   stripePriceIdMonthly?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePriceIdQuarterly?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePriceIdAnnual?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notifyNewSchool?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifyVerificationReq?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifyWeeklyReport?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowSelfRegistration?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireEmailVerification?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  maintenanceMode?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  superAdminEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supportEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailSenderName?: Prisma.StringFieldUpdateOperationsInput | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -497,6 +641,15 @@ export type PlatformSettingsCreateManyInput = {
   stripePriceIdMonthly?: string | null
   stripePriceIdQuarterly?: string | null
   stripePriceIdAnnual?: string | null
+  notifyNewSchool?: boolean
+  notifyVerificationReq?: boolean
+  notifyWeeklyReport?: boolean
+  allowSelfRegistration?: boolean
+  requireEmailVerification?: boolean
+  maintenanceMode?: boolean
+  superAdminEmail?: string | null
+  supportEmail?: string | null
+  emailSenderName?: string
   updatedAt?: Date | string
 }
 
@@ -516,6 +669,15 @@ export type PlatformSettingsUpdateManyMutationInput = {
   stripePriceIdMonthly?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePriceIdQuarterly?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePriceIdAnnual?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notifyNewSchool?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifyVerificationReq?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifyWeeklyReport?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowSelfRegistration?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireEmailVerification?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  maintenanceMode?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  superAdminEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supportEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailSenderName?: Prisma.StringFieldUpdateOperationsInput | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -535,6 +697,15 @@ export type PlatformSettingsUncheckedUpdateManyInput = {
   stripePriceIdMonthly?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePriceIdQuarterly?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePriceIdAnnual?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notifyNewSchool?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifyVerificationReq?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifyWeeklyReport?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowSelfRegistration?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireEmailVerification?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  maintenanceMode?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  superAdminEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supportEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailSenderName?: Prisma.StringFieldUpdateOperationsInput | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -554,6 +725,15 @@ export type PlatformSettingsCountOrderByAggregateInput = {
   stripePriceIdMonthly?: Prisma.SortOrder
   stripePriceIdQuarterly?: Prisma.SortOrder
   stripePriceIdAnnual?: Prisma.SortOrder
+  notifyNewSchool?: Prisma.SortOrder
+  notifyVerificationReq?: Prisma.SortOrder
+  notifyWeeklyReport?: Prisma.SortOrder
+  allowSelfRegistration?: Prisma.SortOrder
+  requireEmailVerification?: Prisma.SortOrder
+  maintenanceMode?: Prisma.SortOrder
+  superAdminEmail?: Prisma.SortOrder
+  supportEmail?: Prisma.SortOrder
+  emailSenderName?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
@@ -580,6 +760,15 @@ export type PlatformSettingsMaxOrderByAggregateInput = {
   stripePriceIdMonthly?: Prisma.SortOrder
   stripePriceIdQuarterly?: Prisma.SortOrder
   stripePriceIdAnnual?: Prisma.SortOrder
+  notifyNewSchool?: Prisma.SortOrder
+  notifyVerificationReq?: Prisma.SortOrder
+  notifyWeeklyReport?: Prisma.SortOrder
+  allowSelfRegistration?: Prisma.SortOrder
+  requireEmailVerification?: Prisma.SortOrder
+  maintenanceMode?: Prisma.SortOrder
+  superAdminEmail?: Prisma.SortOrder
+  supportEmail?: Prisma.SortOrder
+  emailSenderName?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
@@ -598,6 +787,15 @@ export type PlatformSettingsMinOrderByAggregateInput = {
   stripePriceIdMonthly?: Prisma.SortOrder
   stripePriceIdQuarterly?: Prisma.SortOrder
   stripePriceIdAnnual?: Prisma.SortOrder
+  notifyNewSchool?: Prisma.SortOrder
+  notifyVerificationReq?: Prisma.SortOrder
+  notifyWeeklyReport?: Prisma.SortOrder
+  allowSelfRegistration?: Prisma.SortOrder
+  requireEmailVerification?: Prisma.SortOrder
+  maintenanceMode?: Prisma.SortOrder
+  superAdminEmail?: Prisma.SortOrder
+  supportEmail?: Prisma.SortOrder
+  emailSenderName?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
@@ -636,6 +834,15 @@ export type PlatformSettingsSelect<ExtArgs extends runtime.Types.Extensions.Inte
   stripePriceIdMonthly?: boolean
   stripePriceIdQuarterly?: boolean
   stripePriceIdAnnual?: boolean
+  notifyNewSchool?: boolean
+  notifyVerificationReq?: boolean
+  notifyWeeklyReport?: boolean
+  allowSelfRegistration?: boolean
+  requireEmailVerification?: boolean
+  maintenanceMode?: boolean
+  superAdminEmail?: boolean
+  supportEmail?: boolean
+  emailSenderName?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["platformSettings"]>
 
@@ -655,6 +862,15 @@ export type PlatformSettingsSelectCreateManyAndReturn<ExtArgs extends runtime.Ty
   stripePriceIdMonthly?: boolean
   stripePriceIdQuarterly?: boolean
   stripePriceIdAnnual?: boolean
+  notifyNewSchool?: boolean
+  notifyVerificationReq?: boolean
+  notifyWeeklyReport?: boolean
+  allowSelfRegistration?: boolean
+  requireEmailVerification?: boolean
+  maintenanceMode?: boolean
+  superAdminEmail?: boolean
+  supportEmail?: boolean
+  emailSenderName?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["platformSettings"]>
 
@@ -674,6 +890,15 @@ export type PlatformSettingsSelectUpdateManyAndReturn<ExtArgs extends runtime.Ty
   stripePriceIdMonthly?: boolean
   stripePriceIdQuarterly?: boolean
   stripePriceIdAnnual?: boolean
+  notifyNewSchool?: boolean
+  notifyVerificationReq?: boolean
+  notifyWeeklyReport?: boolean
+  allowSelfRegistration?: boolean
+  requireEmailVerification?: boolean
+  maintenanceMode?: boolean
+  superAdminEmail?: boolean
+  supportEmail?: boolean
+  emailSenderName?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["platformSettings"]>
 
@@ -693,10 +918,19 @@ export type PlatformSettingsSelectScalar = {
   stripePriceIdMonthly?: boolean
   stripePriceIdQuarterly?: boolean
   stripePriceIdAnnual?: boolean
+  notifyNewSchool?: boolean
+  notifyVerificationReq?: boolean
+  notifyWeeklyReport?: boolean
+  allowSelfRegistration?: boolean
+  requireEmailVerification?: boolean
+  maintenanceMode?: boolean
+  superAdminEmail?: boolean
+  supportEmail?: boolean
+  emailSenderName?: boolean
   updatedAt?: boolean
 }
 
-export type PlatformSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "enabledPaymentMethods" | "defaultCurrency" | "defaultTaxName" | "defaultTaxRate" | "defaultTaxNumber" | "taxActive" | "gracePeriodDays" | "planCurrency" | "planPriceMonthly" | "planPriceQuarterly" | "planPriceAnnual" | "stripePriceIdMonthly" | "stripePriceIdQuarterly" | "stripePriceIdAnnual" | "updatedAt", ExtArgs["result"]["platformSettings"]>
+export type PlatformSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "enabledPaymentMethods" | "defaultCurrency" | "defaultTaxName" | "defaultTaxRate" | "defaultTaxNumber" | "taxActive" | "gracePeriodDays" | "planCurrency" | "planPriceMonthly" | "planPriceQuarterly" | "planPriceAnnual" | "stripePriceIdMonthly" | "stripePriceIdQuarterly" | "stripePriceIdAnnual" | "notifyNewSchool" | "notifyVerificationReq" | "notifyWeeklyReport" | "allowSelfRegistration" | "requireEmailVerification" | "maintenanceMode" | "superAdminEmail" | "supportEmail" | "emailSenderName" | "updatedAt", ExtArgs["result"]["platformSettings"]>
 
 export type $PlatformSettingsPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "PlatformSettings"
@@ -717,6 +951,15 @@ export type $PlatformSettingsPayload<ExtArgs extends runtime.Types.Extensions.In
     stripePriceIdMonthly: string | null
     stripePriceIdQuarterly: string | null
     stripePriceIdAnnual: string | null
+    notifyNewSchool: boolean
+    notifyVerificationReq: boolean
+    notifyWeeklyReport: boolean
+    allowSelfRegistration: boolean
+    requireEmailVerification: boolean
+    maintenanceMode: boolean
+    superAdminEmail: string | null
+    supportEmail: string | null
+    emailSenderName: string
     updatedAt: Date
   }, ExtArgs["result"]["platformSettings"]>
   composites: {}
@@ -1156,6 +1399,15 @@ export interface PlatformSettingsFieldRefs {
   readonly stripePriceIdMonthly: Prisma.FieldRef<"PlatformSettings", 'String'>
   readonly stripePriceIdQuarterly: Prisma.FieldRef<"PlatformSettings", 'String'>
   readonly stripePriceIdAnnual: Prisma.FieldRef<"PlatformSettings", 'String'>
+  readonly notifyNewSchool: Prisma.FieldRef<"PlatformSettings", 'Boolean'>
+  readonly notifyVerificationReq: Prisma.FieldRef<"PlatformSettings", 'Boolean'>
+  readonly notifyWeeklyReport: Prisma.FieldRef<"PlatformSettings", 'Boolean'>
+  readonly allowSelfRegistration: Prisma.FieldRef<"PlatformSettings", 'Boolean'>
+  readonly requireEmailVerification: Prisma.FieldRef<"PlatformSettings", 'Boolean'>
+  readonly maintenanceMode: Prisma.FieldRef<"PlatformSettings", 'Boolean'>
+  readonly superAdminEmail: Prisma.FieldRef<"PlatformSettings", 'String'>
+  readonly supportEmail: Prisma.FieldRef<"PlatformSettings", 'String'>
+  readonly emailSenderName: Prisma.FieldRef<"PlatformSettings", 'String'>
   readonly updatedAt: Prisma.FieldRef<"PlatformSettings", 'DateTime'>
 }
     
