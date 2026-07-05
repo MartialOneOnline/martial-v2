@@ -154,7 +154,7 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
               <div className="flex items-center gap-3 mt-1.5">
                 <p className="flex items-center gap-1 text-white/75 text-sm">
                   <MapPin className="w-3.5 h-3.5 shrink-0" />
-                  {school.address ?? `${school.city}, ${school.country}`}
+                  {school.address || [school.city, school.country].filter(Boolean).join(', ') || 'Location coming soon'}
                 </p>
               </div>
             </div>
@@ -348,7 +348,7 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
               </div>
               <div className="px-4 py-3 text-xs text-gray-500 flex items-start gap-2">
                 <MapPin className="w-3.5 h-3.5 text-[#0870E2] shrink-0 mt-0.5" />
-                {school.address ?? `${school.city}, ${school.country}`}
+                {school.address || [school.city, school.country].filter(Boolean).join(', ') || 'Location coming soon'}
               </div>
             </div>
 

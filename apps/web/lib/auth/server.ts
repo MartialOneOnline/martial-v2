@@ -120,3 +120,44 @@ export async function guardSuperadmin(
 
   return null
 }
+
+// Same guard as guardSuperadmin, but also returns the caller's own email —
+// needed for routes that re-verify the admin's password before a destructive
+// action (e.g. permanently deleting a school).
+export async function guardSuperadminUser(
+  req: NextRequest,
+): Promise<{ email: string } | NextResponse> {
+  const res = NextResponse.next()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    {
+      cookies: {
+        getAll: () => req.cookies.getAll(),
+        setAll: (cs) =>
+          cs.forEach(({ name, value, options }) =>
+            res.cookies.set(name, value, options),
+          ),
+      },
+    },
+  )
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user?.email) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const dbUser = await prisma.user.findUnique({
+    where: { supabaseAuthId: user.id },
+    select: { role: true },
+  })
+
+  if (!dbUser || dbUser.role !== 'SUPERADMIN') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  return { email: user.email }
+}

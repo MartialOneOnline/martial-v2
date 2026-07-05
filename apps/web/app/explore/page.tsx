@@ -12,7 +12,6 @@ import {
 import Header from '../../components/Header'
 import Footer from '../../components/Footer'
 import LoginModal from '../../components/LoginModal'
-import RegisterModal from '../../components/RegisterModal'
 import { useT } from '../../lib/i18n/LanguageContext'
 import ClassBookingModal from '../school/[slug]/ClassBookingModal'
 
@@ -280,7 +279,7 @@ function SchoolCard({ school, onClick }: { school: DbSchool; onClick: () => void
 
         <p className="flex items-center gap-1 text-xs text-[#6B7280] mb-2">
           <MapPin className="w-3 h-3 shrink-0 text-[#9CA3AF]" />
-          {school.city}, {school.country}
+          {[school.city, school.country].filter(Boolean).join(', ') || 'Location coming soon'}
         </p>
 
         {school.description && (
@@ -535,7 +534,6 @@ export default function ExplorePage() {
   const [sort, setSort]               = useState<SortKey>('Nearest')
   const [quickView, setQuickView]     = useState<DbSchool | null>(null)
   const [showLogin, setShowLogin]     = useState(false)
-  const [showRegister, setShowRegister] = useState(false)
   const [userCoords, setUserCoords]   = useState<{ lat: number; lng: number } | null>(null)
   const [userCountry, setUserCountry] = useState<string | null>(null)
   const [geoLoading, setGeoLoading]   = useState(false)
@@ -731,10 +729,7 @@ export default function ExplorePage() {
     <div className="min-h-screen" style={{ background: '#F9FAFB', fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif", color: '#111827' }}>
 
       {showLogin && (
-        <LoginModal onClose={() => setShowLogin(false)} onOpenRegister={() => { setShowLogin(false); setShowRegister(true) }} />
-      )}
-      {showRegister && (
-        <RegisterModal onClose={() => setShowRegister(false)} onOpenLogin={() => { setShowRegister(false); setShowLogin(true) }} />
+        <LoginModal onClose={() => setShowLogin(false)} />
       )}
       {bookingModal && (
         <ClassBookingModal

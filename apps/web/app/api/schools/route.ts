@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
   const schools = await prisma.school.findMany({
     where: {
       AND: [
-        { status: { not: 'SUSPENDED' } },
+        { status: { notIn: ['SUSPENDED', 'ARCHIVED'] } },
         city ? { city: { contains: city, mode: 'insensitive' } } : {},
         q ? {
           OR: [

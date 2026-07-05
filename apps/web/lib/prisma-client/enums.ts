@@ -24,7 +24,8 @@ export const SchoolStatus = {
   CLAIMED: 'CLAIMED',
   VERIFIED: 'VERIFIED',
   PARTNER: 'PARTNER',
-  SUSPENDED: 'SUSPENDED'
+  SUSPENDED: 'SUSPENDED',
+  ARCHIVED: 'ARCHIVED'
 } as const
 
 export type SchoolStatus = (typeof SchoolStatus)[keyof typeof SchoolStatus]

@@ -291,6 +291,7 @@ export const SchoolScalarFieldEnum = {
   stripeWebhookSecret: 'stripeWebhookSecret',
   revolutPublicKey: 'revolutPublicKey',
   revolutSecretKey: 'revolutSecretKey',
+  revolutWebhookSecret: 'revolutWebhookSecret',
   parentId: 'parentId',
   parentRelationshipType: 'parentRelationshipType',
   leadStage: 'leadStage',

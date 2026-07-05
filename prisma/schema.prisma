@@ -29,6 +29,7 @@ enum SchoolStatus {
   VERIFIED // Stripe connected, fully operational
   PARTNER // Affiliated (Roger Gracie, Checkmat, etc.) — premium listing
   SUSPENDED
+  ARCHIVED // Soft-deleted by admin — hidden from public listings, data kept
 }
 
 enum SchoolType {
@@ -489,8 +490,9 @@ model School {
   stripeWebhookSecret  String?
 
   // Revolut Merchant — each school stores their own keys
-  revolutPublicKey  String?
-  revolutSecretKey  String?
+  revolutPublicKey     String?
+  revolutSecretKey     String?
+  revolutWebhookSecret String? // signing_secret returned when we register the webhook
 
   // Hierarchy (HQ / branch / franchise)
   parentId               String?
