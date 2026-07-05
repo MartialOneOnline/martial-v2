@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { X, Plus, Upload, Search, CheckCircle2, Clock, Mail, XCircle, Building2, ChevronDown, MoreHorizontal, Send, Camera, Globe, Link } from 'lucide-react'
+import NextLink from 'next/link'
+import { X, Plus, Upload, Search, CheckCircle2, Clock, Mail, XCircle, Building2, ChevronDown, MoreHorizontal, Send, Camera, Globe, Link, ExternalLink, Trash2, Loader2 } from 'lucide-react'
 import * as xlsx from 'xlsx'
 import { adminFetch } from '@/lib/api/adminFetch'
 
@@ -555,6 +556,42 @@ function SchoolInvitationsModal({ onClose, onSuccess }: { onClose: () => void; o
   )
 }
 
+// ── Delete confirm modal ───────────────────────────────────────────────────────
+
+function DeleteInvitationModal({ invitation, busy, error, onConfirm, onCancel }: {
+  invitation: Invitation; busy: boolean; error: string; onConfirm: () => void; onCancel: () => void
+}) {
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onCancel}>
+      <div className="rounded-2xl p-8 flex flex-col items-center text-center gap-4"
+        style={{ background: '#fff', width: 400, boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}
+        onClick={e => e.stopPropagation()}>
+        <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: '#FEF2F2' }}>
+          <Trash2 size={24} style={{ color: '#DC2626' }} />
+        </div>
+        <div>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>Delete invitation?</h3>
+          <p style={{ fontSize: 13, color: '#6B7280', marginTop: 6 }}>
+            The invitation for <strong>{invitation.name}</strong> ({invitation.email}) will be removed from the pipeline. This cannot be undone.
+          </p>
+        </div>
+        {error && <p className="text-xs text-red-500">{error}</p>}
+        <div className="flex gap-3 w-full">
+          <button onClick={onCancel} className="flex-1 py-2.5 rounded-xl cursor-pointer"
+            style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
+            Cancel
+          </button>
+          <button onClick={onConfirm} disabled={busy} className="flex-1 py-2.5 rounded-xl cursor-pointer flex items-center justify-center gap-2"
+            style={{ fontSize: 13, fontWeight: 600, border: 'none', background: '#DC2626', color: '#fff', opacity: busy ? 0.6 : 1 }}>
+            {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+            {busy ? 'Deleting…' : 'Delete invitation'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Main Client ───────────────────────────────────────────────────────────────
 
 export default function SchoolsAdminClient() {
@@ -563,6 +600,11 @@ export default function SchoolsAdminClient() {
   const [showModal, setShowModal]     = useState(false)
   const [search, setSearch]           = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('ALL')
+  const [openMenuId, setOpenMenuId]   = useState<string | null>(null)
+  const [resendingId, setResendingId] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Invitation | null>(null)
+  const [deleteBusy, setDeleteBusy]   = useState(false)
+  const [deleteError, setDeleteError] = useState('')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -575,6 +617,28 @@ export default function SchoolsAdminClient() {
   }, [])
 
   useEffect(() => { load() }, [load])
+
+  async function handleResend(inv: Invitation) {
+    setResendingId(inv.id)
+    await adminFetch('/api/admin/invitations', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: inv.id, action: 'send' }),
+    })
+    setResendingId(null)
+    load()
+  }
+
+  async function handleDeleteConfirm() {
+    if (!deleteTarget) return
+    setDeleteBusy(true)
+    setDeleteError('')
+    const res = await adminFetch(`/api/admin/invitations/${deleteTarget.id}`, { method: 'DELETE' })
+    setDeleteBusy(false)
+    if (!res.ok) { setDeleteError('Failed to delete invitation'); return }
+    setDeleteTarget(null)
+    load()
+  }
 
   const filtered = invitations.filter(inv => {
     const matchSearch = !search || inv.name.toLowerCase().includes(search.toLowerCase()) || inv.email.toLowerCase().includes(search.toLowerCase())
@@ -596,6 +660,16 @@ export default function SchoolsAdminClient() {
         <SchoolInvitationsModal
           onClose={() => setShowModal(false)}
           onSuccess={load}
+        />
+      )}
+
+      {deleteTarget && (
+        <DeleteInvitationModal
+          invitation={deleteTarget}
+          busy={deleteBusy}
+          error={deleteError}
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => { setDeleteTarget(null); setDeleteError('') }}
         />
       )}
 
@@ -718,9 +792,52 @@ export default function SchoolsAdminClient() {
                     {new Date(inv.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </td>
                   <td className="px-5 py-3.5">
-                    <button className="w-7 h-7 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
-                      <MoreHorizontal className="w-4 h-4" />
-                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() => setOpenMenuId(openMenuId === inv.id ? null : inv.id)}
+                        className="w-7 h-7 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
+                      >
+                        <MoreHorizontal className="w-4 h-4" />
+                      </button>
+                      {openMenuId === inv.id && (
+                        <>
+                          <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
+                          <div
+                            className="absolute right-0 top-9 rounded-xl z-20 py-1"
+                            style={{ background: '#fff', border: '1px solid #E5E7EB', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 180 }}
+                          >
+                            {inv.school && (
+                              <NextLink
+                                href={`/school/${inv.school.slug}`}
+                                target="_blank"
+                                onClick={() => setOpenMenuId(null)}
+                                className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                              >
+                                <ExternalLink size={13} /> View school
+                              </NextLink>
+                            )}
+                            {inv.status !== 'REGISTERED' && (
+                              <button
+                                onClick={() => handleResend(inv)}
+                                disabled={resendingId === inv.id}
+                                className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                              >
+                                {resendingId === inv.id ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
+                                {resendingId === inv.id ? 'Sending…' : 'Resend invite'}
+                              </button>
+                            )}
+                            <div className="my-1 border-t border-gray-100" />
+                            <button
+                              onClick={() => { setOpenMenuId(null); setDeleteTarget(inv) }}
+                              className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium hover:bg-red-50"
+                              style={{ color: '#DC2626' }}
+                            >
+                              <Trash2 size={13} /> Delete invitation
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </td>
                 </tr>
               )
