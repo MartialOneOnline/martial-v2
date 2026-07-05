@@ -3,6 +3,8 @@ import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 import { sendEventTicketConfirmationEmail } from '@/lib/email/sendEmails'
+import { recordOnlinePayment } from '@/lib/services/transactions'
+import { PaymentMethod, TransactionCategory } from '@/lib/prisma-client/enums'
 
 async function authorise(roles = ['OWNER', 'ADMIN', 'INSTRUCTOR']) {
   const user = await getAuthUser()
@@ -33,22 +35,39 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const event = await prisma.event.findFirst({
     where: { id, schoolId: auth.schoolId },
-    select: { title: true, startAt: true, location: true, school: { select: { name: true, city: true, language: true } } },
+    select: { title: true, startAt: true, location: true, schoolId: true, school: { select: { name: true, city: true, language: true } } },
   })
   if (!event) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const booking = await prisma.eventBooking.findFirst({
     where: { id: bookingId, eventId: id },
-    select: { status: true, ticketName: true, quantity: true, amountPaid: true, currency: true, user: { select: { email: true, name: true } } },
+    select: { status: true, ticketName: true, quantity: true, amountPaid: true, currency: true, paymentMethod: true, userId: true, user: { select: { email: true, name: true } } },
   })
   if (!booking) return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
 
-  const updated = await prisma.eventBooking.update({
-    where: { id: bookingId },
-    data: { status },
+  const wasAlreadyConfirmed = booking.status === 'CONFIRMED'
+
+  const updated = await prisma.$transaction(async (tx) => {
+    const result = await tx.eventBooking.update({
+      where: { id: bookingId },
+      data: { status },
+    })
+    if (status === 'CONFIRMED' && !wasAlreadyConfirmed) {
+      await recordOnlinePayment(tx, {
+        schoolId:      event.schoolId,
+        userId:        booking.userId,
+        amount:        Number(booking.amountPaid ?? 0),
+        currency:      booking.currency,
+        paymentMethod: (booking.paymentMethod as PaymentMethod) ?? PaymentMethod.CASH,
+        category:      TransactionCategory.OTHER, // no dedicated EVENT category yet
+        description:   `${event.title} — ${booking.ticketName} x${booking.quantity}`,
+        bookingId,
+      })
+    }
+    return result
   })
 
-  if (status === 'CONFIRMED' && booking.status !== 'CONFIRMED' && booking.user?.email) {
+  if (status === 'CONFIRMED' && !wasAlreadyConfirmed && booking.user?.email) {
     sendEventTicketConfirmationEmail({
       to:          booking.user.email,
       studentName: booking.user.name,

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { sendEventTicketConfirmationEmail } from '@/lib/email/sendEmails'
+import { recordOnlinePayment } from '@/lib/services/transactions'
+import { PaymentMethod, TransactionCategory } from '@/lib/prisma-client/enums'
 
 async function authorise(roles = ['OWNER', 'ADMIN', 'INSTRUCTOR']) {
   const user = await getAuthUser()
@@ -32,7 +35,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const { id } = await params
-  const event = await prisma.event.findFirst({ where: { id, schoolId: auth.schoolId }, select: { id: true } })
+  const event = await prisma.event.findFirst({
+    where: { id, schoolId: auth.schoolId },
+    select: { id: true, schoolId: true, title: true, startAt: true, location: true, school: { select: { name: true, city: true, language: true } } },
+  })
   if (!event) return NextResponse.json({ error: 'Event not found' }, { status: 404 })
 
   const body = await req.json().catch(() => ({}))
@@ -43,7 +49,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     where: { qrToken, eventId: id },
     select: {
       id: true, status: true, checkedIn: true, ticketName: true, quantity: true,
-      amountPaid: true, currency: true, paymentMethod: true,
+      amountPaid: true, currency: true, paymentMethod: true, userId: true,
       user: { select: { name: true, email: true } },
     },
   })
@@ -70,10 +76,48 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     })
   }
 
-  await prisma.eventBooking.update({
-    where: { id: booking.id },
-    data: { checkedIn: true, checkedInAt: new Date() },
+  const wasPending = booking.status === 'PENDING'
+
+  await prisma.$transaction(async (tx) => {
+    await tx.eventBooking.update({
+      where: { id: booking.id },
+      data: {
+        checkedIn: true,
+        checkedInAt: new Date(),
+        ...(wasPending && { status: 'CONFIRMED' }),
+      },
+    })
+    if (wasPending) {
+      await recordOnlinePayment(tx, {
+        schoolId:      event.schoolId,
+        userId:        booking.userId,
+        amount:        Number(booking.amountPaid ?? 0),
+        currency:      booking.currency,
+        paymentMethod: (booking.paymentMethod as PaymentMethod) ?? PaymentMethod.CASH,
+        category:      TransactionCategory.OTHER, // no dedicated EVENT category yet
+        description:   `${event.title} — ${booking.ticketName} x${booking.quantity}`,
+        bookingId:     booking.id,
+      })
+    }
   })
+
+  if (wasPending && booking.user.email) {
+    sendEventTicketConfirmationEmail({
+      to:          booking.user.email,
+      studentName: booking.user.name,
+      schoolName:  event.school.name,
+      schoolCity:  event.school.city,
+      eventTitle:  event.title,
+      ticketName:  booking.ticketName,
+      quantity:    booking.quantity,
+      amount:      Number(booking.amountPaid ?? 0),
+      currency:    booking.currency,
+      startAt:     event.startAt,
+      location:    event.location,
+      bookingId:   booking.id,
+      lang:        event.school.language,
+    }).catch(err => console.error('[checkin] accept confirmation email failed:', err))
+  }
 
   return NextResponse.json({ ok: true, studentName, ticketName: booking.ticketName })
 }
