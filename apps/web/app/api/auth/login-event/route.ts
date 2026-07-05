@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import UAParser from 'ua-parser-js'
 import { prisma } from '@/lib/db'
 import { resolveDbUser } from '@/lib/auth/server'
+import { getClientIp } from '@/lib/request-ip'
 
 const DEDUPE_WINDOW_MS = 60_000
 const GEO_TIMEOUT_MS = 2000
@@ -80,18 +81,6 @@ export async function POST(req: NextRequest) {
     console.error('login-event skipped:', err instanceof Error ? err.message : 'unknown error')
     return NextResponse.json({ ok: false, skipped: true })
   }
-}
-
-// IP extraction assumes a trusted reverse proxy in front of the app.
-// Without one, these headers are client-controlled and only orientative.
-function getClientIp(req: NextRequest): string | null {
-  const cf = req.headers.get('cf-connecting-ip')
-  if (cf) return cf.trim()
-  const real = req.headers.get('x-real-ip')
-  if (real) return real.trim()
-  const fwd = req.headers.get('x-forwarded-for')
-  if (fwd) return fwd.split(',')[0]!.trim()
-  return null
 }
 
 function isPrivateIp(ip: string): boolean {

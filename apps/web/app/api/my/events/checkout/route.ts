@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     select: {
       id: true, schoolId: true, title: true, isPublished: true, isCancelled: true,
       startAt: true, capacity: true, paymentMethods: true,
-      school: { select: { name: true, stripeSecretKey: true, revolutSecretKey: true } },
+      school: { select: { name: true, stripeSecretKey: true, revolutSecretKey: true, revolutWebhookSecret: true } },
     },
   })
   if (!event || !event.isPublished || event.isCancelled || event.startAt <= new Date())
@@ -54,6 +54,10 @@ export async function POST(req: NextRequest) {
 
   if (useRevolut && !event.school.revolutSecretKey)
     return NextResponse.json({ error: 'School has not configured Revolut' }, { status: 400 })
+  // Webhook must be registered (revolutWebhookSecret set) before we accept payments —
+  // otherwise the webhook handler would have to process unsigned notifications.
+  if (useRevolut && !event.school.revolutWebhookSecret)
+    return NextResponse.json({ error: 'School has not activated Revolut yet — the webhook must be registered first' }, { status: 400 })
   if (!useRevolut && !event.school.stripeSecretKey)
     return NextResponse.json({ error: 'School has not configured Stripe' }, { status: 400 })
 

@@ -601,6 +601,7 @@ export type SchoolWhereInput = {
   branches?: Prisma.SchoolListRelationFilter
   claimedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   staff?: Prisma.UserListRelationFilter
+  impersonationLogs?: Prisma.ImpersonationLogListRelationFilter
   disciplines?: Prisma.SchoolDisciplineListRelationFilter
   facilityCatalog?: Prisma.SchoolFacilityListRelationFilter
   classes?: Prisma.ClassListRelationFilter
@@ -679,6 +680,7 @@ export type SchoolOrderByWithRelationInput = {
   branches?: Prisma.SchoolOrderByRelationAggregateInput
   claimedBy?: Prisma.UserOrderByWithRelationInput
   staff?: Prisma.UserOrderByRelationAggregateInput
+  impersonationLogs?: Prisma.ImpersonationLogOrderByRelationAggregateInput
   disciplines?: Prisma.SchoolDisciplineOrderByRelationAggregateInput
   facilityCatalog?: Prisma.SchoolFacilityOrderByRelationAggregateInput
   classes?: Prisma.ClassOrderByRelationAggregateInput
@@ -760,6 +762,7 @@ export type SchoolWhereUniqueInput = Prisma.AtLeast<{
   branches?: Prisma.SchoolListRelationFilter
   claimedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   staff?: Prisma.UserListRelationFilter
+  impersonationLogs?: Prisma.ImpersonationLogListRelationFilter
   disciplines?: Prisma.SchoolDisciplineListRelationFilter
   facilityCatalog?: Prisma.SchoolFacilityListRelationFilter
   classes?: Prisma.ClassListRelationFilter
@@ -951,6 +954,7 @@ export type SchoolCreateInput = {
   branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
@@ -1026,6 +1030,7 @@ export type SchoolUncheckedCreateInput = {
   updatedAt?: Date | string
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
@@ -1101,6 +1106,7 @@ export type SchoolUpdateInput = {
   branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
@@ -1176,6 +1182,7 @@ export type SchoolUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
@@ -1992,6 +1999,22 @@ export type SchoolUpdateOneRequiredWithoutWaiversNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.SchoolUpdateToOneWithWhereWithoutWaiversInput, Prisma.SchoolUpdateWithoutWaiversInput>, Prisma.SchoolUncheckedUpdateWithoutWaiversInput>
 }
 
+export type SchoolCreateNestedOneWithoutImpersonationLogsInput = {
+  create?: Prisma.XOR<Prisma.SchoolCreateWithoutImpersonationLogsInput, Prisma.SchoolUncheckedCreateWithoutImpersonationLogsInput>
+  connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutImpersonationLogsInput
+  connect?: Prisma.SchoolWhereUniqueInput
+}
+
+export type SchoolUpdateOneWithoutImpersonationLogsNestedInput = {
+  create?: Prisma.XOR<Prisma.SchoolCreateWithoutImpersonationLogsInput, Prisma.SchoolUncheckedCreateWithoutImpersonationLogsInput>
+  connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutImpersonationLogsInput
+  upsert?: Prisma.SchoolUpsertWithoutImpersonationLogsInput
+  disconnect?: Prisma.SchoolWhereInput | boolean
+  delete?: Prisma.SchoolWhereInput | boolean
+  connect?: Prisma.SchoolWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SchoolUpdateToOneWithWhereWithoutImpersonationLogsInput, Prisma.SchoolUpdateWithoutImpersonationLogsInput>, Prisma.SchoolUncheckedUpdateWithoutImpersonationLogsInput>
+}
+
 export type SchoolCreateNestedOneWithoutTransactionsInput = {
   create?: Prisma.XOR<Prisma.SchoolCreateWithoutTransactionsInput, Prisma.SchoolUncheckedCreateWithoutTransactionsInput>
   connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutTransactionsInput
@@ -2087,6 +2110,7 @@ export type SchoolCreateWithoutAffiliationInput = {
   branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
@@ -2161,6 +2185,7 @@ export type SchoolUncheckedCreateWithoutAffiliationInput = {
   updatedAt?: Date | string
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
@@ -2318,6 +2343,7 @@ export type SchoolCreateWithoutStaffInput = {
   parent?: Prisma.SchoolCreateNestedOneWithoutBranchesInput
   branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
+  impersonationLogs?: Prisma.ImpersonationLogCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
@@ -2392,6 +2418,7 @@ export type SchoolUncheckedCreateWithoutStaffInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
@@ -2471,6 +2498,7 @@ export type SchoolCreateWithoutClaimedByInput = {
   parent?: Prisma.SchoolCreateNestedOneWithoutBranchesInput
   branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
@@ -2545,6 +2573,7 @@ export type SchoolUncheckedCreateWithoutClaimedByInput = {
   updatedAt?: Date | string
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
@@ -2640,6 +2669,7 @@ export type SchoolUpdateWithoutStaffInput = {
   parent?: Prisma.SchoolUpdateOneWithoutBranchesNestedInput
   branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
@@ -2714,6 +2744,7 @@ export type SchoolUncheckedUpdateWithoutStaffInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
@@ -2805,6 +2836,7 @@ export type SchoolCreateWithoutDisciplinesInput = {
   branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventCreateNestedManyWithoutSchoolInput
@@ -2879,6 +2911,7 @@ export type SchoolUncheckedCreateWithoutDisciplinesInput = {
   updatedAt?: Date | string
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
@@ -2969,6 +3002,7 @@ export type SchoolUpdateWithoutDisciplinesInput = {
   branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
@@ -3043,6 +3077,7 @@ export type SchoolUncheckedUpdateWithoutDisciplinesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
@@ -3117,6 +3152,7 @@ export type SchoolCreateWithoutFacilityCatalogInput = {
   branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventCreateNestedManyWithoutSchoolInput
@@ -3191,6 +3227,7 @@ export type SchoolUncheckedCreateWithoutFacilityCatalogInput = {
   updatedAt?: Date | string
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
@@ -3281,6 +3318,7 @@ export type SchoolUpdateWithoutFacilityCatalogInput = {
   branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
@@ -3355,6 +3393,7 @@ export type SchoolUncheckedUpdateWithoutFacilityCatalogInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
@@ -3428,6 +3467,7 @@ export type SchoolCreateWithoutBranchesInput = {
   parent?: Prisma.SchoolCreateNestedOneWithoutBranchesInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
@@ -3502,6 +3542,7 @@ export type SchoolUncheckedCreateWithoutBranchesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
@@ -3581,6 +3622,7 @@ export type SchoolCreateWithoutParentInput = {
   branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
@@ -3655,6 +3697,7 @@ export type SchoolUncheckedCreateWithoutParentInput = {
   updatedAt?: Date | string
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
@@ -3750,6 +3793,7 @@ export type SchoolUpdateWithoutBranchesInput = {
   parent?: Prisma.SchoolUpdateOneWithoutBranchesNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
@@ -3824,6 +3868,7 @@ export type SchoolUncheckedUpdateWithoutBranchesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
@@ -3915,6 +3960,7 @@ export type SchoolCreateWithoutInstructorsInput = {
   branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
@@ -3989,6 +4035,7 @@ export type SchoolUncheckedCreateWithoutInstructorsInput = {
   updatedAt?: Date | string
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
@@ -4079,6 +4126,7 @@ export type SchoolUpdateWithoutInstructorsInput = {
   branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
@@ -4153,6 +4201,7 @@ export type SchoolUncheckedUpdateWithoutInstructorsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
@@ -4227,6 +4276,7 @@ export type SchoolCreateWithoutMembershipPlansInput = {
   branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
@@ -4301,6 +4351,7 @@ export type SchoolUncheckedCreateWithoutMembershipPlansInput = {
   updatedAt?: Date | string
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
@@ -4391,6 +4442,7 @@ export type SchoolUpdateWithoutMembershipPlansInput = {
   branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
@@ -4465,6 +4517,7 @@ export type SchoolUncheckedUpdateWithoutMembershipPlansInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
@@ -4539,6 +4592,7 @@ export type SchoolCreateWithoutReviewsInput = {
   branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
@@ -4613,6 +4667,7 @@ export type SchoolUncheckedCreateWithoutReviewsInput = {
   updatedAt?: Date | string
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
@@ -4703,6 +4758,7 @@ export type SchoolUpdateWithoutReviewsInput = {
   branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
@@ -4777,6 +4833,7 @@ export type SchoolUncheckedUpdateWithoutReviewsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
@@ -4851,6 +4908,7 @@ export type SchoolCreateWithoutClassesInput = {
   branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventCreateNestedManyWithoutSchoolInput
@@ -4925,6 +4983,7 @@ export type SchoolUncheckedCreateWithoutClassesInput = {
   updatedAt?: Date | string
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
@@ -5015,6 +5074,7 @@ export type SchoolUpdateWithoutClassesInput = {
   branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
@@ -5089,6 +5149,7 @@ export type SchoolUncheckedUpdateWithoutClassesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
@@ -5163,6 +5224,7 @@ export type SchoolCreateWithoutEventsInput = {
   branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
@@ -5237,6 +5299,7 @@ export type SchoolUncheckedCreateWithoutEventsInput = {
   updatedAt?: Date | string
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
@@ -5327,6 +5390,7 @@ export type SchoolUpdateWithoutEventsInput = {
   branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
@@ -5401,6 +5465,7 @@ export type SchoolUncheckedUpdateWithoutEventsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
@@ -5475,6 +5540,7 @@ export type SchoolCreateWithoutMembershipsInput = {
   branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
@@ -5549,6 +5615,7 @@ export type SchoolUncheckedCreateWithoutMembershipsInput = {
   updatedAt?: Date | string
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
@@ -5639,6 +5706,7 @@ export type SchoolUpdateWithoutMembershipsInput = {
   branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
@@ -5713,6 +5781,7 @@ export type SchoolUncheckedUpdateWithoutMembershipsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
@@ -5787,6 +5856,7 @@ export type SchoolCreateWithoutCampsInput = {
   branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
@@ -5861,6 +5931,7 @@ export type SchoolUncheckedCreateWithoutCampsInput = {
   updatedAt?: Date | string
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
@@ -5951,6 +6022,7 @@ export type SchoolUpdateWithoutCampsInput = {
   branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
@@ -6025,6 +6097,7 @@ export type SchoolUncheckedUpdateWithoutCampsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
@@ -6099,6 +6172,7 @@ export type SchoolCreateWithoutMembersInput = {
   branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
@@ -6173,6 +6247,7 @@ export type SchoolUncheckedCreateWithoutMembersInput = {
   updatedAt?: Date | string
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
@@ -6263,6 +6338,7 @@ export type SchoolUpdateWithoutMembersInput = {
   branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
@@ -6337,6 +6413,7 @@ export type SchoolUncheckedUpdateWithoutMembersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
@@ -6411,6 +6488,7 @@ export type SchoolCreateWithoutClaimsInput = {
   branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
@@ -6485,6 +6563,7 @@ export type SchoolUncheckedCreateWithoutClaimsInput = {
   updatedAt?: Date | string
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
@@ -6575,6 +6654,7 @@ export type SchoolUpdateWithoutClaimsInput = {
   branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
@@ -6649,6 +6729,7 @@ export type SchoolUncheckedUpdateWithoutClaimsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
@@ -6723,6 +6804,7 @@ export type SchoolCreateWithoutGradingSystemsInput = {
   branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
@@ -6797,6 +6879,7 @@ export type SchoolUncheckedCreateWithoutGradingSystemsInput = {
   updatedAt?: Date | string
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
@@ -6887,6 +6970,7 @@ export type SchoolUpdateWithoutGradingSystemsInput = {
   branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
@@ -6961,6 +7045,7 @@ export type SchoolUncheckedUpdateWithoutGradingSystemsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
@@ -7035,6 +7120,7 @@ export type SchoolCreateWithoutGradingsInput = {
   branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
@@ -7109,6 +7195,7 @@ export type SchoolUncheckedCreateWithoutGradingsInput = {
   updatedAt?: Date | string
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
@@ -7199,6 +7286,7 @@ export type SchoolUpdateWithoutGradingsInput = {
   branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
@@ -7273,6 +7361,7 @@ export type SchoolUncheckedUpdateWithoutGradingsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
@@ -7347,6 +7436,7 @@ export type SchoolCreateWithoutLeadsInput = {
   branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
@@ -7421,6 +7511,7 @@ export type SchoolUncheckedCreateWithoutLeadsInput = {
   updatedAt?: Date | string
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
@@ -7511,6 +7602,7 @@ export type SchoolUpdateWithoutLeadsInput = {
   branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
@@ -7585,6 +7677,7 @@ export type SchoolUncheckedUpdateWithoutLeadsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
@@ -7659,6 +7752,7 @@ export type SchoolCreateWithoutInvitationsInput = {
   branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
@@ -7733,6 +7827,7 @@ export type SchoolUncheckedCreateWithoutInvitationsInput = {
   updatedAt?: Date | string
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
@@ -7823,6 +7918,7 @@ export type SchoolUpdateWithoutInvitationsInput = {
   branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
@@ -7897,6 +7993,7 @@ export type SchoolUncheckedUpdateWithoutInvitationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
@@ -7971,6 +8068,7 @@ export type SchoolCreateWithoutWaiversInput = {
   branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
@@ -8045,6 +8143,7 @@ export type SchoolUncheckedCreateWithoutWaiversInput = {
   updatedAt?: Date | string
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
@@ -8135,6 +8234,7 @@ export type SchoolUpdateWithoutWaiversInput = {
   branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
@@ -8209,6 +8309,7 @@ export type SchoolUncheckedUpdateWithoutWaiversInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
@@ -8223,6 +8324,322 @@ export type SchoolUncheckedUpdateWithoutWaiversInput = {
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
+  invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
+  subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
+}
+
+export type SchoolCreateWithoutImpersonationLogsInput = {
+  id?: string
+  name: string
+  slug: string
+  status?: $Enums.SchoolStatus
+  source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
+  country?: string | null
+  city?: string | null
+  address?: string | null
+  postcode?: string | null
+  lat?: number | null
+  lng?: number | null
+  phone?: string | null
+  email?: string | null
+  website?: string | null
+  language?: string
+  instagram?: string | null
+  facebook?: string | null
+  youtube?: string | null
+  tiktok?: string | null
+  description?: string | null
+  tagline?: string | null
+  logoUrl?: string | null
+  coverUrl?: string | null
+  photos?: Prisma.SchoolCreatephotosInput | string[]
+  priceFrom?: number | null
+  hasFreeTrialCls?: boolean
+  facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
+  foundedYear?: number | null
+  totalStudents?: number | null
+  googleRating?: number | null
+  googleReviews?: number | null
+  googlePlaceId?: string | null
+  v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
+  revolutWebhookSecret?: string | null
+  parentRelationshipType?: $Enums.SchoolRelationshipType | null
+  leadStage?: $Enums.LeadStage | null
+  claimedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  affiliation?: Prisma.AffiliationCreateNestedOneWithoutSchoolsInput
+  parent?: Prisma.SchoolCreateNestedOneWithoutBranchesInput
+  branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
+  claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
+  staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
+  classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventCreateNestedManyWithoutSchoolInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
+  camps?: Prisma.CampCreateNestedManyWithoutSchoolInput
+  instructors?: Prisma.InstructorCreateNestedManyWithoutSchoolInput
+  membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
+  members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
+  gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
+  invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
+  subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
+}
+
+export type SchoolUncheckedCreateWithoutImpersonationLogsInput = {
+  id?: string
+  name: string
+  slug: string
+  status?: $Enums.SchoolStatus
+  source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
+  affiliationId?: string | null
+  country?: string | null
+  city?: string | null
+  address?: string | null
+  postcode?: string | null
+  lat?: number | null
+  lng?: number | null
+  phone?: string | null
+  email?: string | null
+  website?: string | null
+  language?: string
+  instagram?: string | null
+  facebook?: string | null
+  youtube?: string | null
+  tiktok?: string | null
+  description?: string | null
+  tagline?: string | null
+  logoUrl?: string | null
+  coverUrl?: string | null
+  photos?: Prisma.SchoolCreatephotosInput | string[]
+  priceFrom?: number | null
+  hasFreeTrialCls?: boolean
+  facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
+  foundedYear?: number | null
+  totalStudents?: number | null
+  googleRating?: number | null
+  googleReviews?: number | null
+  googlePlaceId?: string | null
+  v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
+  revolutWebhookSecret?: string | null
+  parentId?: string | null
+  parentRelationshipType?: $Enums.SchoolRelationshipType | null
+  leadStage?: $Enums.LeadStage | null
+  claimedById?: string | null
+  claimedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
+  staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
+  classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
+  camps?: Prisma.CampUncheckedCreateNestedManyWithoutSchoolInput
+  instructors?: Prisma.InstructorUncheckedCreateNestedManyWithoutSchoolInput
+  membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
+  members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
+  gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
+  invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
+  subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
+}
+
+export type SchoolCreateOrConnectWithoutImpersonationLogsInput = {
+  where: Prisma.SchoolWhereUniqueInput
+  create: Prisma.XOR<Prisma.SchoolCreateWithoutImpersonationLogsInput, Prisma.SchoolUncheckedCreateWithoutImpersonationLogsInput>
+}
+
+export type SchoolUpsertWithoutImpersonationLogsInput = {
+  update: Prisma.XOR<Prisma.SchoolUpdateWithoutImpersonationLogsInput, Prisma.SchoolUncheckedUpdateWithoutImpersonationLogsInput>
+  create: Prisma.XOR<Prisma.SchoolCreateWithoutImpersonationLogsInput, Prisma.SchoolUncheckedCreateWithoutImpersonationLogsInput>
+  where?: Prisma.SchoolWhereInput
+}
+
+export type SchoolUpdateToOneWithWhereWithoutImpersonationLogsInput = {
+  where?: Prisma.SchoolWhereInput
+  data: Prisma.XOR<Prisma.SchoolUpdateWithoutImpersonationLogsInput, Prisma.SchoolUncheckedUpdateWithoutImpersonationLogsInput>
+}
+
+export type SchoolUpdateWithoutImpersonationLogsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
+  source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tiktok?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photos?: Prisma.SchoolUpdatephotosInput | string[]
+  priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
+  foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
+  leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  affiliation?: Prisma.AffiliationUpdateOneWithoutSchoolsNestedInput
+  parent?: Prisma.SchoolUpdateOneWithoutBranchesNestedInput
+  branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
+  claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
+  staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
+  classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
+  camps?: Prisma.CampUpdateManyWithoutSchoolNestedInput
+  instructors?: Prisma.InstructorUpdateManyWithoutSchoolNestedInput
+  membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
+  members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
+  gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
+  invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
+  subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
+}
+
+export type SchoolUncheckedUpdateWithoutImpersonationLogsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
+  source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
+  affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tiktok?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photos?: Prisma.SchoolUpdatephotosInput | string[]
+  priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
+  foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
+  leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
+  claimedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
+  staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
+  classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
+  camps?: Prisma.CampUncheckedUpdateManyWithoutSchoolNestedInput
+  instructors?: Prisma.InstructorUncheckedUpdateManyWithoutSchoolNestedInput
+  membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
+  members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
+  gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
@@ -8283,6 +8700,7 @@ export type SchoolCreateWithoutTransactionsInput = {
   branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
@@ -8357,6 +8775,7 @@ export type SchoolUncheckedCreateWithoutTransactionsInput = {
   updatedAt?: Date | string
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
@@ -8447,6 +8866,7 @@ export type SchoolUpdateWithoutTransactionsInput = {
   branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
@@ -8521,6 +8941,7 @@ export type SchoolUncheckedUpdateWithoutTransactionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
@@ -8595,6 +9016,7 @@ export type SchoolCreateWithoutNotificationsInput = {
   branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
@@ -8669,6 +9091,7 @@ export type SchoolUncheckedCreateWithoutNotificationsInput = {
   updatedAt?: Date | string
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
@@ -8759,6 +9182,7 @@ export type SchoolUpdateWithoutNotificationsInput = {
   branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
@@ -8833,6 +9257,7 @@ export type SchoolUncheckedUpdateWithoutNotificationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
@@ -8907,6 +9332,7 @@ export type SchoolCreateWithoutSubscriptionInput = {
   branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
   claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
   staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
@@ -8981,6 +9407,7 @@ export type SchoolUncheckedCreateWithoutSubscriptionInput = {
   updatedAt?: Date | string
   branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
   staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutSchoolInput
   disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
@@ -9071,6 +9498,7 @@ export type SchoolUpdateWithoutSubscriptionInput = {
   branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
@@ -9145,6 +9573,7 @@ export type SchoolUncheckedUpdateWithoutSubscriptionInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
@@ -9271,6 +9700,7 @@ export type SchoolUpdateWithoutAffiliationInput = {
   branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
@@ -9345,6 +9775,7 @@ export type SchoolUncheckedUpdateWithoutAffiliationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
@@ -9525,6 +9956,7 @@ export type SchoolUpdateWithoutClaimedByInput = {
   parent?: Prisma.SchoolUpdateOneWithoutBranchesNestedInput
   branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
@@ -9599,6 +10031,7 @@ export type SchoolUncheckedUpdateWithoutClaimedByInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
@@ -9779,6 +10212,7 @@ export type SchoolUpdateWithoutParentInput = {
   branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
   claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
   staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
@@ -9853,6 +10287,7 @@ export type SchoolUncheckedUpdateWithoutParentInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
   staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutSchoolNestedInput
   disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
   facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
   classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
@@ -9935,6 +10370,7 @@ export type SchoolUncheckedUpdateManyWithoutParentInput = {
 export type SchoolCountOutputType = {
   branches: number
   staff: number
+  impersonationLogs: number
   disciplines: number
   facilityCatalog: number
   classes: number
@@ -9958,6 +10394,7 @@ export type SchoolCountOutputType = {
 export type SchoolCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   branches?: boolean | SchoolCountOutputTypeCountBranchesArgs
   staff?: boolean | SchoolCountOutputTypeCountStaffArgs
+  impersonationLogs?: boolean | SchoolCountOutputTypeCountImpersonationLogsArgs
   disciplines?: boolean | SchoolCountOutputTypeCountDisciplinesArgs
   facilityCatalog?: boolean | SchoolCountOutputTypeCountFacilityCatalogArgs
   classes?: boolean | SchoolCountOutputTypeCountClassesArgs
@@ -10000,6 +10437,13 @@ export type SchoolCountOutputTypeCountBranchesArgs<ExtArgs extends runtime.Types
  */
 export type SchoolCountOutputTypeCountStaffArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.UserWhereInput
+}
+
+/**
+ * SchoolCountOutputType without action
+ */
+export type SchoolCountOutputTypeCountImpersonationLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ImpersonationLogWhereInput
 }
 
 /**
@@ -10186,6 +10630,7 @@ export type SchoolSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   branches?: boolean | Prisma.School$branchesArgs<ExtArgs>
   claimedBy?: boolean | Prisma.School$claimedByArgs<ExtArgs>
   staff?: boolean | Prisma.School$staffArgs<ExtArgs>
+  impersonationLogs?: boolean | Prisma.School$impersonationLogsArgs<ExtArgs>
   disciplines?: boolean | Prisma.School$disciplinesArgs<ExtArgs>
   facilityCatalog?: boolean | Prisma.School$facilityCatalogArgs<ExtArgs>
   classes?: boolean | Prisma.School$classesArgs<ExtArgs>
@@ -10383,6 +10828,7 @@ export type SchoolInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   branches?: boolean | Prisma.School$branchesArgs<ExtArgs>
   claimedBy?: boolean | Prisma.School$claimedByArgs<ExtArgs>
   staff?: boolean | Prisma.School$staffArgs<ExtArgs>
+  impersonationLogs?: boolean | Prisma.School$impersonationLogsArgs<ExtArgs>
   disciplines?: boolean | Prisma.School$disciplinesArgs<ExtArgs>
   facilityCatalog?: boolean | Prisma.School$facilityCatalogArgs<ExtArgs>
   classes?: boolean | Prisma.School$classesArgs<ExtArgs>
@@ -10423,6 +10869,7 @@ export type $SchoolPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     branches: Prisma.$SchoolPayload<ExtArgs>[]
     claimedBy: Prisma.$UserPayload<ExtArgs> | null
     staff: Prisma.$UserPayload<ExtArgs>[]
+    impersonationLogs: Prisma.$ImpersonationLogPayload<ExtArgs>[]
     disciplines: Prisma.$SchoolDisciplinePayload<ExtArgs>[]
     facilityCatalog: Prisma.$SchoolFacilityPayload<ExtArgs>[]
     classes: Prisma.$ClassPayload<ExtArgs>[]
@@ -10894,6 +11341,7 @@ export interface Prisma__SchoolClient<T, Null = never, ExtArgs extends runtime.T
   branches<T extends Prisma.School$branchesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$branchesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SchoolPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   claimedBy<T extends Prisma.School$claimedByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$claimedByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   staff<T extends Prisma.School$staffArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$staffArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  impersonationLogs<T extends Prisma.School$impersonationLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$impersonationLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ImpersonationLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   disciplines<T extends Prisma.School$disciplinesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$disciplinesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SchoolDisciplinePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   facilityCatalog<T extends Prisma.School$facilityCatalogArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$facilityCatalogArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SchoolFacilityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   classes<T extends Prisma.School$classesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$classesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -11496,6 +11944,30 @@ export type School$staffArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
   take?: number
   skip?: number
   distinct?: Prisma.UserScalarFieldEnum | Prisma.UserScalarFieldEnum[]
+}
+
+/**
+ * School.impersonationLogs
+ */
+export type School$impersonationLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ImpersonationLog
+   */
+  select?: Prisma.ImpersonationLogSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ImpersonationLog
+   */
+  omit?: Prisma.ImpersonationLogOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ImpersonationLogInclude<ExtArgs> | null
+  where?: Prisma.ImpersonationLogWhereInput
+  orderBy?: Prisma.ImpersonationLogOrderByWithRelationInput | Prisma.ImpersonationLogOrderByWithRelationInput[]
+  cursor?: Prisma.ImpersonationLogWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ImpersonationLogScalarFieldEnum | Prisma.ImpersonationLogScalarFieldEnum[]
 }
 
 /**

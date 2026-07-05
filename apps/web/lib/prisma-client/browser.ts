@@ -183,6 +183,11 @@ export type UserWaiver = Prisma.UserWaiverModel
  */
 export type LoginHistory = Prisma.LoginHistoryModel
 /**
+ * Model ImpersonationLog
+ * 
+ */
+export type ImpersonationLog = Prisma.ImpersonationLogModel
+/**
  * Model Transaction
  * 
  */

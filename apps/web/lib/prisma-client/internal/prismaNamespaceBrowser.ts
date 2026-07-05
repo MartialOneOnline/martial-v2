@@ -84,6 +84,7 @@ export const ModelName = {
   Waiver: 'Waiver',
   UserWaiver: 'UserWaiver',
   LoginHistory: 'LoginHistory',
+  ImpersonationLog: 'ImpersonationLog',
   Transaction: 'Transaction',
   UserPreference: 'UserPreference',
   ProductCategory: 'ProductCategory',
@@ -736,6 +737,24 @@ export const LoginHistoryScalarFieldEnum = {
 } as const
 
 export type LoginHistoryScalarFieldEnum = (typeof LoginHistoryScalarFieldEnum)[keyof typeof LoginHistoryScalarFieldEnum]
+
+
+export const ImpersonationLogScalarFieldEnum = {
+  id: 'id',
+  actorId: 'actorId',
+  actorEmail: 'actorEmail',
+  targetUserId: 'targetUserId',
+  targetEmail: 'targetEmail',
+  schoolId: 'schoolId',
+  ipAddress: 'ipAddress',
+  userAgent: 'userAgent',
+  reason: 'reason',
+  success: 'success',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt'
+} as const
+
+export type ImpersonationLogScalarFieldEnum = (typeof ImpersonationLogScalarFieldEnum)[keyof typeof ImpersonationLogScalarFieldEnum]
 
 
 export const TransactionScalarFieldEnum = {

@@ -27,14 +27,14 @@ export async function POST(req: NextRequest) {
   if (!HANDLED.has(payload.event)) return NextResponse.json({ received: true })
 
   // Verify the HMAC signature once we know which school's signing secret to check.
-  // Schools that haven't re-registered their webhook since revolutWebhookSecret was
-  // introduced won't have one stored yet — for those we log a warning and accept
-  // unverified, rather than breaking their live payment flow outright. Once they
-  // click "Register webhook" again in Settings, verification becomes mandatory.
+  // Checkout creation now requires revolutWebhookSecret to be set (see /api/my/checkout
+  // and /api/my/events/checkout), so a missing secret here means either a school that
+  // registered Revolut before that guard existed, or a forged request — either way we
+  // reject rather than process an unsigned payload.
   async function verifySignature(webhookSecret: string | null, schoolId: string): Promise<boolean> {
     if (!webhookSecret) {
-      console.warn(`[revolut webhook] schoolId=${schoolId} has no revolutWebhookSecret configured — accepting unverified payload. Ask them to re-click "Register webhook" in Settings.`)
-      return true
+      console.warn(`[revolut webhook] schoolId=${schoolId} has no revolutWebhookSecret configured — rejecting payload. Ask them to click "Register webhook" in Settings.`)
+      return false
     }
     return verifyRevolutWebhook(rawBody, signatureHeader, timestampHeader, webhookSecret)
   }

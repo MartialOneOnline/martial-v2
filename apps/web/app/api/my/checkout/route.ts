@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
 
   const school = await prisma.school.findUnique({
     where: { id: plan.schoolId },
-    select: { stripeSecretKey: true, revolutSecretKey: true, name: true },
+    select: { stripeSecretKey: true, revolutSecretKey: true, revolutWebhookSecret: true, name: true },
   })
 
   const origin = req.headers.get('origin') ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
@@ -77,6 +77,10 @@ export async function POST(req: NextRequest) {
   if (useRevolut) {
     if (!school?.revolutSecretKey)
       return NextResponse.json({ error: 'School has not configured Revolut' }, { status: 400 })
+    // Webhook must be registered (revolutWebhookSecret set) before we accept payments —
+    // otherwise the webhook handler would have to process unsigned notifications.
+    if (!school.revolutWebhookSecret)
+      return NextResponse.json({ error: 'School has not activated Revolut yet — the webhook must be registered first' }, { status: 400 })
 
     const membership = await prisma.membership.create({
       data: {

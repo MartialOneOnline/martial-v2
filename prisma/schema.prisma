@@ -33,8 +33,8 @@ enum SchoolStatus {
 }
 
 enum SchoolType {
-  SCHOOL   // Regular martial arts academy
-  CAMP     // Temporary event — elite instructor + iconic location
+  SCHOOL // Regular martial arts academy
+  CAMP // Temporary event — elite instructor + iconic location
   BUSINESS // Gym, studio, or marketplace business (future)
 }
 
@@ -339,23 +339,25 @@ model User {
   claimedSchools School[] @relation("SchoolClaimer")
 
   // Relations
-  bookings        Booking[]
-  eventBookings   EventBooking[]
-  memberships     Membership[]
-  contentAccesses ContentAccess[]
-  campBookings    CampBooking[]
-  reviews         Review[]
-  schoolMembers   SchoolMember[]
-  schoolClaims    SchoolClaim[]
-  gradings        Grading[]          @relation("GradingStudent")
-  gradingsGiven   Grading[]          @relation("GradingPromoter")
-  leads           Lead[]             @relation("LeadConvertedUser")
-  leadNotes       LeadNote[]
-  transactions    Transaction[]      @relation("TransactionUser")
-  userWaivers     UserWaiver[]
-  sentInvitations SchoolInvitation[] @relation("InvitedByUser")
-  preference      UserPreference?
-  loginHistory    LoginHistory[]
+  bookings               Booking[]
+  eventBookings          EventBooking[]
+  memberships            Membership[]
+  contentAccesses        ContentAccess[]
+  campBookings           CampBooking[]
+  reviews                Review[]
+  schoolMembers          SchoolMember[]
+  schoolClaims           SchoolClaim[]
+  gradings               Grading[]          @relation("GradingStudent")
+  gradingsGiven          Grading[]          @relation("GradingPromoter")
+  leads                  Lead[]             @relation("LeadConvertedUser")
+  leadNotes              LeadNote[]
+  transactions           Transaction[]      @relation("TransactionUser")
+  userWaivers            UserWaiver[]
+  sentInvitations        SchoolInvitation[] @relation("InvitedByUser")
+  preference             UserPreference?
+  loginHistory           LoginHistory[]
+  impersonationsAsActor  ImpersonationLog[] @relation("ImpersonationActor")
+  impersonationsAsTarget ImpersonationLog[] @relation("ImpersonationTarget")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -509,25 +511,26 @@ model School {
   claimedAt   DateTime?
 
   // Relations
-  staff           User[]             @relation("SchoolStaff")
-  disciplines     SchoolDiscipline[]
-  facilityCatalog SchoolFacility[]
-  classes         Class[]
-  events          Event[]
-  memberships     Membership[]
-  camps           Camp[]
-  instructors     Instructor[]
-  membershipPlans MembershipPlan[]
-  reviews         Review[]
-  members         SchoolMember[]
-  claims          SchoolClaim[]
-  gradings        Grading[]
-  gradingSystems  GradingSystem[]
-  leads           Lead[]
-  waivers         Waiver[]
-  transactions    Transaction[]
-  invitations     SchoolInvitation[]
-  notifications   Notification[]
+  staff             User[]             @relation("SchoolStaff")
+  impersonationLogs ImpersonationLog[]
+  disciplines       SchoolDiscipline[]
+  facilityCatalog   SchoolFacility[]
+  classes           Class[]
+  events            Event[]
+  memberships       Membership[]
+  camps             Camp[]
+  instructors       Instructor[]
+  membershipPlans   MembershipPlan[]
+  reviews           Review[]
+  members           SchoolMember[]
+  claims            SchoolClaim[]
+  gradings          Grading[]
+  gradingSystems    GradingSystem[]
+  leads             Lead[]
+  waivers           Waiver[]
+  transactions      Transaction[]
+  invitations       SchoolInvitation[]
+  notifications     Notification[]
 
   // Martial SaaS billing — school paying the platform (separate from the
   // school's own Stripe keys above, which they use to charge their members)
@@ -761,8 +764,8 @@ model EventBooking {
   paymentMethod   PaymentMethod @default(STRIPE)
   stripePaymentId String?
   revolutOrderId  String?
-  qrToken         String?   @unique
-  checkedIn       Boolean   @default(false)
+  qrToken         String?       @unique
+  checkedIn       Boolean       @default(false)
   checkedInAt     DateTime?
 
   createdAt DateTime @default(now())
@@ -836,11 +839,11 @@ model Membership {
   // Usage tracking — computed from bookings count, but cached here for perf
   classesUsed Int @default(0)
 
-  stripeSubId        String?
-  stripeCustomerId   String?
-  stripeInvoiceId    String?
-  revolutOrderId     String? // Revolut order ID for one-time and recurring payments
-  notes              String?
+  stripeSubId      String?
+  stripeCustomerId String?
+  stripeInvoiceId  String?
+  revolutOrderId   String? // Revolut order ID for one-time and recurring payments
+  notes            String?
 
   // Renewal chain — points to the membership this one renewed/replaced
   renewedFromId String?
@@ -1021,8 +1024,8 @@ model BeltRank {
   classesPerPeriod     Int? // min classes per period
   periodType           String? // "WEEK" | "MONTH"
   classTypeIds         String[] // which class types count (empty = all)
-  requireCompetition   Boolean @default(false) // must have competed
-  requireExam          Boolean @default(false) // must pass an exam
+  requireCompetition   Boolean  @default(false) // must have competed
+  requireExam          Boolean  @default(false) // must pass an exam
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1055,9 +1058,9 @@ model Grading {
   toBeltRankId   String? // enrichment FK, may be null
   toBeltRank     BeltRank? @relation("GradingToRank", fields: [toBeltRankId], references: [id], onDelete: SetNull)
   toDegree       Int? // 0 = plain belt, 1–4 = stripes/degrees
-  gradedAt DateTime
-  notes    String?
-  isPublic Boolean  @default(true) // show on student profile
+  gradedAt       DateTime
+  notes          String?
+  isPublic       Boolean   @default(true) // show on student profile
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1242,6 +1245,39 @@ model LoginHistory {
   @@map("login_history")
 }
 
+// Audit trail for superadmin "log in as owner" impersonation. Written for
+// every attempt (success or failure) — the impersonate route must not return
+// a login link unless this write succeeds first.
+model ImpersonationLog {
+  id String @id @default(cuid())
+
+  actorId    String?
+  actor      User?   @relation("ImpersonationActor", fields: [actorId], references: [id], onDelete: SetNull)
+  actorEmail String
+
+  targetUserId String?
+  target       User?   @relation("ImpersonationTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
+  targetEmail  String?
+
+  schoolId String?
+  school   School? @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+
+  ipAddress String?
+  userAgent String?
+  reason    String?
+
+  success      Boolean
+  errorMessage String?
+
+  createdAt DateTime @default(now())
+
+  @@index([actorId])
+  @@index([targetUserId])
+  @@index([schoolId])
+  @@index([createdAt])
+  @@map("impersonation_logs")
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // TRANSACTION
 // School financial records: income + expenses in one table.
@@ -1421,7 +1457,7 @@ model Notification {
   type     NotificationType
   title    String
   body     String
-  href     String?          // deep-link to the relevant page
+  href     String? // deep-link to the relevant page
   read     Boolean          @default(false)
 
   createdAt DateTime @default(now())
@@ -1467,9 +1503,9 @@ model PlatformSettings {
   stripePriceIdAnnual    String?
 
   // Notifications — emailed to superAdminEmail below
-  notifyNewSchool         Boolean @default(true)
-  notifyVerificationReq   Boolean @default(true)
-  notifyWeeklyReport      Boolean @default(false)
+  notifyNewSchool       Boolean @default(true)
+  notifyVerificationReq Boolean @default(true)
+  notifyWeeklyReport    Boolean @default(false)
 
   // Platform toggles
   allowSelfRegistration    Boolean @default(true)

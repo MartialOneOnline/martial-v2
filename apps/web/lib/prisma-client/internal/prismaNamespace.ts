@@ -417,6 +417,7 @@ export const ModelName = {
   Waiver: 'Waiver',
   UserWaiver: 'UserWaiver',
   LoginHistory: 'LoginHistory',
+  ImpersonationLog: 'ImpersonationLog',
   Transaction: 'Transaction',
   UserPreference: 'UserPreference',
   ProductCategory: 'ProductCategory',
@@ -443,7 +444,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "schoolClaim" | "gradingSystem" | "beltRank" | "grading" | "lead" | "leadNote" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "partner" | "notification" | "platformSettings" | "schoolSubscription" | "stripeWebhookEvent"
+    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "schoolClaim" | "gradingSystem" | "beltRank" | "grading" | "lead" | "leadNote" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "impersonationLog" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "partner" | "notification" | "platformSettings" | "schoolSubscription" | "stripeWebhookEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2889,6 +2890,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ImpersonationLog: {
+      payload: Prisma.$ImpersonationLogPayload<ExtArgs>
+      fields: Prisma.ImpersonationLogFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ImpersonationLogFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImpersonationLogPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ImpersonationLogFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImpersonationLogPayload>
+        }
+        findFirst: {
+          args: Prisma.ImpersonationLogFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImpersonationLogPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ImpersonationLogFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImpersonationLogPayload>
+        }
+        findMany: {
+          args: Prisma.ImpersonationLogFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImpersonationLogPayload>[]
+        }
+        create: {
+          args: Prisma.ImpersonationLogCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImpersonationLogPayload>
+        }
+        createMany: {
+          args: Prisma.ImpersonationLogCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ImpersonationLogCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImpersonationLogPayload>[]
+        }
+        delete: {
+          args: Prisma.ImpersonationLogDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImpersonationLogPayload>
+        }
+        update: {
+          args: Prisma.ImpersonationLogUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImpersonationLogPayload>
+        }
+        deleteMany: {
+          args: Prisma.ImpersonationLogDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ImpersonationLogUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ImpersonationLogUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImpersonationLogPayload>[]
+        }
+        upsert: {
+          args: Prisma.ImpersonationLogUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImpersonationLogPayload>
+        }
+        aggregate: {
+          args: Prisma.ImpersonationLogAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateImpersonationLog>
+        }
+        groupBy: {
+          args: Prisma.ImpersonationLogGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ImpersonationLogGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ImpersonationLogCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ImpersonationLogCountAggregateOutputType> | number
+        }
+      }
+    }
     Transaction: {
       payload: Prisma.$TransactionPayload<ExtArgs>
       fields: Prisma.TransactionFieldRefs
@@ -4367,6 +4442,24 @@ export const LoginHistoryScalarFieldEnum = {
 export type LoginHistoryScalarFieldEnum = (typeof LoginHistoryScalarFieldEnum)[keyof typeof LoginHistoryScalarFieldEnum]
 
 
+export const ImpersonationLogScalarFieldEnum = {
+  id: 'id',
+  actorId: 'actorId',
+  actorEmail: 'actorEmail',
+  targetUserId: 'targetUserId',
+  targetEmail: 'targetEmail',
+  schoolId: 'schoolId',
+  ipAddress: 'ipAddress',
+  userAgent: 'userAgent',
+  reason: 'reason',
+  success: 'success',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt'
+} as const
+
+export type ImpersonationLogScalarFieldEnum = (typeof ImpersonationLogScalarFieldEnum)[keyof typeof ImpersonationLogScalarFieldEnum]
+
+
 export const TransactionScalarFieldEnum = {
   id: 'id',
   schoolId: 'schoolId',
@@ -5146,6 +5239,7 @@ export type GlobalOmitConfig = {
   waiver?: Prisma.WaiverOmit
   userWaiver?: Prisma.UserWaiverOmit
   loginHistory?: Prisma.LoginHistoryOmit
+  impersonationLog?: Prisma.ImpersonationLogOmit
   transaction?: Prisma.TransactionOmit
   userPreference?: Prisma.UserPreferenceOmit
   productCategory?: Prisma.ProductCategoryOmit

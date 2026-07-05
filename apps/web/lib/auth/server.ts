@@ -121,12 +121,13 @@ export async function guardSuperadmin(
   return null
 }
 
-// Same guard as guardSuperadmin, but also returns the caller's own email —
+// Same guard as guardSuperadmin, but also returns the caller's own id/email —
 // needed for routes that re-verify the admin's password before a destructive
-// action (e.g. permanently deleting a school).
+// action (e.g. permanently deleting a school), or that must attribute an
+// action to the acting superadmin (e.g. impersonation audit log).
 export async function guardSuperadminUser(
   req: NextRequest,
-): Promise<{ email: string } | NextResponse> {
+): Promise<{ id: string; email: string } | NextResponse> {
   const res = NextResponse.next()
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -152,12 +153,12 @@ export async function guardSuperadminUser(
 
   const dbUser = await prisma.user.findUnique({
     where: { supabaseAuthId: user.id },
-    select: { role: true },
+    select: { id: true, role: true },
   })
 
   if (!dbUser || dbUser.role !== 'SUPERADMIN') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  return { email: user.email }
+  return { id: dbUser.id, email: user.email }
 }

@@ -249,6 +249,8 @@ export type UserWhereInput = {
   sentInvitations?: Prisma.SchoolInvitationListRelationFilter
   preference?: Prisma.XOR<Prisma.UserPreferenceNullableScalarRelationFilter, Prisma.UserPreferenceWhereInput> | null
   loginHistory?: Prisma.LoginHistoryListRelationFilter
+  impersonationsAsActor?: Prisma.ImpersonationLogListRelationFilter
+  impersonationsAsTarget?: Prisma.ImpersonationLogListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -282,6 +284,8 @@ export type UserOrderByWithRelationInput = {
   sentInvitations?: Prisma.SchoolInvitationOrderByRelationAggregateInput
   preference?: Prisma.UserPreferenceOrderByWithRelationInput
   loginHistory?: Prisma.LoginHistoryOrderByRelationAggregateInput
+  impersonationsAsActor?: Prisma.ImpersonationLogOrderByRelationAggregateInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -318,6 +322,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   sentInvitations?: Prisma.SchoolInvitationListRelationFilter
   preference?: Prisma.XOR<Prisma.UserPreferenceNullableScalarRelationFilter, Prisma.UserPreferenceWhereInput> | null
   loginHistory?: Prisma.LoginHistoryListRelationFilter
+  impersonationsAsActor?: Prisma.ImpersonationLogListRelationFilter
+  impersonationsAsTarget?: Prisma.ImpersonationLogListRelationFilter
 }, "id" | "email" | "supabaseAuthId">
 
 export type UserOrderByWithAggregationInput = {
@@ -384,6 +390,8 @@ export type UserCreateInput = {
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -416,6 +424,8 @@ export type UserUncheckedCreateInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
 }
 
 export type UserUpdateInput = {
@@ -448,6 +458,8 @@ export type UserUpdateInput = {
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -480,6 +492,8 @@ export type UserUncheckedUpdateInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -865,6 +879,38 @@ export type UserUpdateOneWithoutLoginHistoryNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutLoginHistoryInput, Prisma.UserUpdateWithoutLoginHistoryInput>, Prisma.UserUncheckedUpdateWithoutLoginHistoryInput>
 }
 
+export type UserCreateNestedOneWithoutImpersonationsAsActorInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutImpersonationsAsActorInput, Prisma.UserUncheckedCreateWithoutImpersonationsAsActorInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutImpersonationsAsActorInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserCreateNestedOneWithoutImpersonationsAsTargetInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutImpersonationsAsTargetInput, Prisma.UserUncheckedCreateWithoutImpersonationsAsTargetInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutImpersonationsAsTargetInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutImpersonationsAsActorNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutImpersonationsAsActorInput, Prisma.UserUncheckedCreateWithoutImpersonationsAsActorInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutImpersonationsAsActorInput
+  upsert?: Prisma.UserUpsertWithoutImpersonationsAsActorInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutImpersonationsAsActorInput, Prisma.UserUpdateWithoutImpersonationsAsActorInput>, Prisma.UserUncheckedUpdateWithoutImpersonationsAsActorInput>
+}
+
+export type UserUpdateOneWithoutImpersonationsAsTargetNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutImpersonationsAsTargetInput, Prisma.UserUncheckedCreateWithoutImpersonationsAsTargetInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutImpersonationsAsTargetInput
+  upsert?: Prisma.UserUpsertWithoutImpersonationsAsTargetInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutImpersonationsAsTargetInput, Prisma.UserUpdateWithoutImpersonationsAsTargetInput>, Prisma.UserUncheckedUpdateWithoutImpersonationsAsTargetInput>
+}
+
 export type UserCreateNestedOneWithoutTransactionsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutTransactionsInput, Prisma.UserUncheckedCreateWithoutTransactionsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutTransactionsInput
@@ -924,6 +970,8 @@ export type UserCreateWithoutContentAccessesInput = {
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
 }
 
 export type UserUncheckedCreateWithoutContentAccessesInput = {
@@ -955,6 +1003,8 @@ export type UserUncheckedCreateWithoutContentAccessesInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
 }
 
 export type UserCreateOrConnectWithoutContentAccessesInput = {
@@ -1002,6 +1052,8 @@ export type UserUpdateWithoutContentAccessesInput = {
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContentAccessesInput = {
@@ -1033,6 +1085,8 @@ export type UserUncheckedUpdateWithoutContentAccessesInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
 }
 
 export type UserCreateWithoutClaimedSchoolsInput = {
@@ -1064,6 +1118,8 @@ export type UserCreateWithoutClaimedSchoolsInput = {
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
 }
 
 export type UserUncheckedCreateWithoutClaimedSchoolsInput = {
@@ -1095,6 +1151,8 @@ export type UserUncheckedCreateWithoutClaimedSchoolsInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
 }
 
 export type UserCreateOrConnectWithoutClaimedSchoolsInput = {
@@ -1131,6 +1189,8 @@ export type UserCreateWithoutSchoolInput = {
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
 }
 
 export type UserUncheckedCreateWithoutSchoolInput = {
@@ -1162,6 +1222,8 @@ export type UserUncheckedCreateWithoutSchoolInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
 }
 
 export type UserCreateOrConnectWithoutSchoolInput = {
@@ -1214,6 +1276,8 @@ export type UserUpdateWithoutClaimedSchoolsInput = {
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
 }
 
 export type UserUncheckedUpdateWithoutClaimedSchoolsInput = {
@@ -1245,6 +1309,8 @@ export type UserUncheckedUpdateWithoutClaimedSchoolsInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
 }
 
 export type UserUpsertWithWhereUniqueWithoutSchoolInput = {
@@ -1309,6 +1375,8 @@ export type UserCreateWithoutReviewsInput = {
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
 }
 
 export type UserUncheckedCreateWithoutReviewsInput = {
@@ -1340,6 +1408,8 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
 }
 
 export type UserCreateOrConnectWithoutReviewsInput = {
@@ -1387,6 +1457,8 @@ export type UserUpdateWithoutReviewsInput = {
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReviewsInput = {
@@ -1418,6 +1490,8 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
 }
 
 export type UserCreateWithoutEventBookingsInput = {
@@ -1449,6 +1523,8 @@ export type UserCreateWithoutEventBookingsInput = {
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
 }
 
 export type UserUncheckedCreateWithoutEventBookingsInput = {
@@ -1480,6 +1556,8 @@ export type UserUncheckedCreateWithoutEventBookingsInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
 }
 
 export type UserCreateOrConnectWithoutEventBookingsInput = {
@@ -1527,6 +1605,8 @@ export type UserUpdateWithoutEventBookingsInput = {
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
 }
 
 export type UserUncheckedUpdateWithoutEventBookingsInput = {
@@ -1558,6 +1638,8 @@ export type UserUncheckedUpdateWithoutEventBookingsInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
 }
 
 export type UserCreateWithoutBookingsInput = {
@@ -1589,6 +1671,8 @@ export type UserCreateWithoutBookingsInput = {
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
 }
 
 export type UserUncheckedCreateWithoutBookingsInput = {
@@ -1620,6 +1704,8 @@ export type UserUncheckedCreateWithoutBookingsInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
 }
 
 export type UserCreateOrConnectWithoutBookingsInput = {
@@ -1667,6 +1753,8 @@ export type UserUpdateWithoutBookingsInput = {
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
 }
 
 export type UserUncheckedUpdateWithoutBookingsInput = {
@@ -1698,6 +1786,8 @@ export type UserUncheckedUpdateWithoutBookingsInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
 }
 
 export type UserCreateWithoutMembershipsInput = {
@@ -1729,6 +1819,8 @@ export type UserCreateWithoutMembershipsInput = {
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
 }
 
 export type UserUncheckedCreateWithoutMembershipsInput = {
@@ -1760,6 +1852,8 @@ export type UserUncheckedCreateWithoutMembershipsInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
 }
 
 export type UserCreateOrConnectWithoutMembershipsInput = {
@@ -1807,6 +1901,8 @@ export type UserUpdateWithoutMembershipsInput = {
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMembershipsInput = {
@@ -1838,6 +1934,8 @@ export type UserUncheckedUpdateWithoutMembershipsInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
 }
 
 export type UserCreateWithoutCampBookingsInput = {
@@ -1869,6 +1967,8 @@ export type UserCreateWithoutCampBookingsInput = {
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
 }
 
 export type UserUncheckedCreateWithoutCampBookingsInput = {
@@ -1900,6 +2000,8 @@ export type UserUncheckedCreateWithoutCampBookingsInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
 }
 
 export type UserCreateOrConnectWithoutCampBookingsInput = {
@@ -1947,6 +2049,8 @@ export type UserUpdateWithoutCampBookingsInput = {
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCampBookingsInput = {
@@ -1978,6 +2082,8 @@ export type UserUncheckedUpdateWithoutCampBookingsInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
 }
 
 export type UserCreateWithoutSchoolMembersInput = {
@@ -2009,6 +2115,8 @@ export type UserCreateWithoutSchoolMembersInput = {
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
 }
 
 export type UserUncheckedCreateWithoutSchoolMembersInput = {
@@ -2040,6 +2148,8 @@ export type UserUncheckedCreateWithoutSchoolMembersInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
 }
 
 export type UserCreateOrConnectWithoutSchoolMembersInput = {
@@ -2087,6 +2197,8 @@ export type UserUpdateWithoutSchoolMembersInput = {
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSchoolMembersInput = {
@@ -2118,6 +2230,8 @@ export type UserUncheckedUpdateWithoutSchoolMembersInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
 }
 
 export type UserCreateWithoutSchoolClaimsInput = {
@@ -2149,6 +2263,8 @@ export type UserCreateWithoutSchoolClaimsInput = {
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
 }
 
 export type UserUncheckedCreateWithoutSchoolClaimsInput = {
@@ -2180,6 +2296,8 @@ export type UserUncheckedCreateWithoutSchoolClaimsInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
 }
 
 export type UserCreateOrConnectWithoutSchoolClaimsInput = {
@@ -2227,6 +2345,8 @@ export type UserUpdateWithoutSchoolClaimsInput = {
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSchoolClaimsInput = {
@@ -2258,6 +2378,8 @@ export type UserUncheckedUpdateWithoutSchoolClaimsInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
 }
 
 export type UserCreateWithoutGradingsInput = {
@@ -2289,6 +2411,8 @@ export type UserCreateWithoutGradingsInput = {
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
 }
 
 export type UserUncheckedCreateWithoutGradingsInput = {
@@ -2320,6 +2444,8 @@ export type UserUncheckedCreateWithoutGradingsInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
 }
 
 export type UserCreateOrConnectWithoutGradingsInput = {
@@ -2356,6 +2482,8 @@ export type UserCreateWithoutGradingsGivenInput = {
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
 }
 
 export type UserUncheckedCreateWithoutGradingsGivenInput = {
@@ -2387,6 +2515,8 @@ export type UserUncheckedCreateWithoutGradingsGivenInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
 }
 
 export type UserCreateOrConnectWithoutGradingsGivenInput = {
@@ -2434,6 +2564,8 @@ export type UserUpdateWithoutGradingsInput = {
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
 }
 
 export type UserUncheckedUpdateWithoutGradingsInput = {
@@ -2465,6 +2597,8 @@ export type UserUncheckedUpdateWithoutGradingsInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
 }
 
 export type UserUpsertWithoutGradingsGivenInput = {
@@ -2507,6 +2641,8 @@ export type UserUpdateWithoutGradingsGivenInput = {
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
 }
 
 export type UserUncheckedUpdateWithoutGradingsGivenInput = {
@@ -2538,6 +2674,8 @@ export type UserUncheckedUpdateWithoutGradingsGivenInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
 }
 
 export type UserCreateWithoutLeadsInput = {
@@ -2569,6 +2707,8 @@ export type UserCreateWithoutLeadsInput = {
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
 }
 
 export type UserUncheckedCreateWithoutLeadsInput = {
@@ -2600,6 +2740,8 @@ export type UserUncheckedCreateWithoutLeadsInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
 }
 
 export type UserCreateOrConnectWithoutLeadsInput = {
@@ -2647,6 +2789,8 @@ export type UserUpdateWithoutLeadsInput = {
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLeadsInput = {
@@ -2678,6 +2822,8 @@ export type UserUncheckedUpdateWithoutLeadsInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
 }
 
 export type UserCreateWithoutLeadNotesInput = {
@@ -2709,6 +2855,8 @@ export type UserCreateWithoutLeadNotesInput = {
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
 }
 
 export type UserUncheckedCreateWithoutLeadNotesInput = {
@@ -2740,6 +2888,8 @@ export type UserUncheckedCreateWithoutLeadNotesInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
 }
 
 export type UserCreateOrConnectWithoutLeadNotesInput = {
@@ -2787,6 +2937,8 @@ export type UserUpdateWithoutLeadNotesInput = {
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLeadNotesInput = {
@@ -2818,6 +2970,8 @@ export type UserUncheckedUpdateWithoutLeadNotesInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
 }
 
 export type UserCreateWithoutSentInvitationsInput = {
@@ -2849,6 +3003,8 @@ export type UserCreateWithoutSentInvitationsInput = {
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
 }
 
 export type UserUncheckedCreateWithoutSentInvitationsInput = {
@@ -2880,6 +3036,8 @@ export type UserUncheckedCreateWithoutSentInvitationsInput = {
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
 }
 
 export type UserCreateOrConnectWithoutSentInvitationsInput = {
@@ -2927,6 +3085,8 @@ export type UserUpdateWithoutSentInvitationsInput = {
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSentInvitationsInput = {
@@ -2958,6 +3118,8 @@ export type UserUncheckedUpdateWithoutSentInvitationsInput = {
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
 }
 
 export type UserCreateWithoutUserWaiversInput = {
@@ -2989,6 +3151,8 @@ export type UserCreateWithoutUserWaiversInput = {
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
 }
 
 export type UserUncheckedCreateWithoutUserWaiversInput = {
@@ -3020,6 +3184,8 @@ export type UserUncheckedCreateWithoutUserWaiversInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
 }
 
 export type UserCreateOrConnectWithoutUserWaiversInput = {
@@ -3067,6 +3233,8 @@ export type UserUpdateWithoutUserWaiversInput = {
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
 }
 
 export type UserUncheckedUpdateWithoutUserWaiversInput = {
@@ -3098,6 +3266,8 @@ export type UserUncheckedUpdateWithoutUserWaiversInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
 }
 
 export type UserCreateWithoutLoginHistoryInput = {
@@ -3129,6 +3299,8 @@ export type UserCreateWithoutLoginHistoryInput = {
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
 }
 
 export type UserUncheckedCreateWithoutLoginHistoryInput = {
@@ -3160,6 +3332,8 @@ export type UserUncheckedCreateWithoutLoginHistoryInput = {
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
 }
 
 export type UserCreateOrConnectWithoutLoginHistoryInput = {
@@ -3207,6 +3381,8 @@ export type UserUpdateWithoutLoginHistoryInput = {
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLoginHistoryInput = {
@@ -3238,6 +3414,304 @@ export type UserUncheckedUpdateWithoutLoginHistoryInput = {
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
+}
+
+export type UserCreateWithoutImpersonationsAsActorInput = {
+  id?: string
+  email: string
+  name?: string | null
+  phone?: string | null
+  dateOfBirth?: Date | string | null
+  avatarUrl?: string | null
+  supabaseAuthId?: string | null
+  role?: $Enums.Role
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
+  claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
+  contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
+  campBookings?: Prisma.CampBookingCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
+  schoolMembers?: Prisma.SchoolMemberCreateNestedManyWithoutUserInput
+  schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
+  gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
+  leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
+  sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
+  loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
+}
+
+export type UserUncheckedCreateWithoutImpersonationsAsActorInput = {
+  id?: string
+  email: string
+  name?: string | null
+  phone?: string | null
+  dateOfBirth?: Date | string | null
+  avatarUrl?: string | null
+  supabaseAuthId?: string | null
+  role?: $Enums.Role
+  schoolId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
+  contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
+  campBookings?: Prisma.CampBookingUncheckedCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
+  schoolMembers?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutUserInput
+  schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
+  gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
+  leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
+  sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
+  loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
+}
+
+export type UserCreateOrConnectWithoutImpersonationsAsActorInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutImpersonationsAsActorInput, Prisma.UserUncheckedCreateWithoutImpersonationsAsActorInput>
+}
+
+export type UserCreateWithoutImpersonationsAsTargetInput = {
+  id?: string
+  email: string
+  name?: string | null
+  phone?: string | null
+  dateOfBirth?: Date | string | null
+  avatarUrl?: string | null
+  supabaseAuthId?: string | null
+  role?: $Enums.Role
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
+  claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
+  contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
+  campBookings?: Prisma.CampBookingCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
+  schoolMembers?: Prisma.SchoolMemberCreateNestedManyWithoutUserInput
+  schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
+  gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
+  leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
+  sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
+  loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+}
+
+export type UserUncheckedCreateWithoutImpersonationsAsTargetInput = {
+  id?: string
+  email: string
+  name?: string | null
+  phone?: string | null
+  dateOfBirth?: Date | string | null
+  avatarUrl?: string | null
+  supabaseAuthId?: string | null
+  role?: $Enums.Role
+  schoolId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
+  contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
+  campBookings?: Prisma.CampBookingUncheckedCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
+  schoolMembers?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutUserInput
+  schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
+  gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
+  leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
+  sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
+  loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+}
+
+export type UserCreateOrConnectWithoutImpersonationsAsTargetInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutImpersonationsAsTargetInput, Prisma.UserUncheckedCreateWithoutImpersonationsAsTargetInput>
+}
+
+export type UserUpsertWithoutImpersonationsAsActorInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutImpersonationsAsActorInput, Prisma.UserUncheckedUpdateWithoutImpersonationsAsActorInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutImpersonationsAsActorInput, Prisma.UserUncheckedCreateWithoutImpersonationsAsActorInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutImpersonationsAsActorInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutImpersonationsAsActorInput, Prisma.UserUncheckedUpdateWithoutImpersonationsAsActorInput>
+}
+
+export type UserUpdateWithoutImpersonationsAsActorInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
+  claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
+  contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
+  campBookings?: Prisma.CampBookingUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
+  schoolMembers?: Prisma.SchoolMemberUpdateManyWithoutUserNestedInput
+  schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
+  gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
+  leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
+  sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
+  loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
+}
+
+export type UserUncheckedUpdateWithoutImpersonationsAsActorInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
+  contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
+  campBookings?: Prisma.CampBookingUncheckedUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
+  schoolMembers?: Prisma.SchoolMemberUncheckedUpdateManyWithoutUserNestedInput
+  schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
+  gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
+  leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
+  sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
+  loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
+}
+
+export type UserUpsertWithoutImpersonationsAsTargetInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutImpersonationsAsTargetInput, Prisma.UserUncheckedUpdateWithoutImpersonationsAsTargetInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutImpersonationsAsTargetInput, Prisma.UserUncheckedCreateWithoutImpersonationsAsTargetInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutImpersonationsAsTargetInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutImpersonationsAsTargetInput, Prisma.UserUncheckedUpdateWithoutImpersonationsAsTargetInput>
+}
+
+export type UserUpdateWithoutImpersonationsAsTargetInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
+  claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
+  contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
+  campBookings?: Prisma.CampBookingUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
+  schoolMembers?: Prisma.SchoolMemberUpdateManyWithoutUserNestedInput
+  schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
+  gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
+  leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
+  sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
+  loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+}
+
+export type UserUncheckedUpdateWithoutImpersonationsAsTargetInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
+  contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
+  campBookings?: Prisma.CampBookingUncheckedUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
+  schoolMembers?: Prisma.SchoolMemberUncheckedUpdateManyWithoutUserNestedInput
+  schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
+  gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
+  leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
+  sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
+  loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutTransactionsInput = {
@@ -3269,6 +3743,8 @@ export type UserCreateWithoutTransactionsInput = {
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
 }
 
 export type UserUncheckedCreateWithoutTransactionsInput = {
@@ -3300,6 +3776,8 @@ export type UserUncheckedCreateWithoutTransactionsInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
 }
 
 export type UserCreateOrConnectWithoutTransactionsInput = {
@@ -3347,6 +3825,8 @@ export type UserUpdateWithoutTransactionsInput = {
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTransactionsInput = {
@@ -3378,6 +3858,8 @@ export type UserUncheckedUpdateWithoutTransactionsInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
 }
 
 export type UserCreateWithoutPreferenceInput = {
@@ -3409,6 +3891,8 @@ export type UserCreateWithoutPreferenceInput = {
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
 }
 
 export type UserUncheckedCreateWithoutPreferenceInput = {
@@ -3440,6 +3924,8 @@ export type UserUncheckedCreateWithoutPreferenceInput = {
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
 }
 
 export type UserCreateOrConnectWithoutPreferenceInput = {
@@ -3487,6 +3973,8 @@ export type UserUpdateWithoutPreferenceInput = {
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPreferenceInput = {
@@ -3518,6 +4006,8 @@ export type UserUncheckedUpdateWithoutPreferenceInput = {
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
 }
 
 export type UserCreateManySchoolInput = {
@@ -3562,6 +4052,8 @@ export type UserUpdateWithoutSchoolInput = {
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSchoolInput = {
@@ -3593,6 +4085,8 @@ export type UserUncheckedUpdateWithoutSchoolInput = {
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutSchoolInput = {
@@ -3631,6 +4125,8 @@ export type UserCountOutputType = {
   userWaivers: number
   sentInvitations: number
   loginHistory: number
+  impersonationsAsActor: number
+  impersonationsAsTarget: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -3651,6 +4147,8 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   userWaivers?: boolean | UserCountOutputTypeCountUserWaiversArgs
   sentInvitations?: boolean | UserCountOutputTypeCountSentInvitationsArgs
   loginHistory?: boolean | UserCountOutputTypeCountLoginHistoryArgs
+  impersonationsAsActor?: boolean | UserCountOutputTypeCountImpersonationsAsActorArgs
+  impersonationsAsTarget?: boolean | UserCountOutputTypeCountImpersonationsAsTargetArgs
 }
 
 /**
@@ -3782,6 +4280,20 @@ export type UserCountOutputTypeCountLoginHistoryArgs<ExtArgs extends runtime.Typ
   where?: Prisma.LoginHistoryWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountImpersonationsAsActorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ImpersonationLogWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountImpersonationsAsTargetArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ImpersonationLogWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -3814,6 +4326,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   sentInvitations?: boolean | Prisma.User$sentInvitationsArgs<ExtArgs>
   preference?: boolean | Prisma.User$preferenceArgs<ExtArgs>
   loginHistory?: boolean | Prisma.User$loginHistoryArgs<ExtArgs>
+  impersonationsAsActor?: boolean | Prisma.User$impersonationsAsActorArgs<ExtArgs>
+  impersonationsAsTarget?: boolean | Prisma.User$impersonationsAsTargetArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -3882,6 +4396,8 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   sentInvitations?: boolean | Prisma.User$sentInvitationsArgs<ExtArgs>
   preference?: boolean | Prisma.User$preferenceArgs<ExtArgs>
   loginHistory?: boolean | Prisma.User$loginHistoryArgs<ExtArgs>
+  impersonationsAsActor?: boolean | Prisma.User$impersonationsAsActorArgs<ExtArgs>
+  impersonationsAsTarget?: boolean | Prisma.User$impersonationsAsTargetArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -3913,6 +4429,8 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     sentInvitations: Prisma.$SchoolInvitationPayload<ExtArgs>[]
     preference: Prisma.$UserPreferencePayload<ExtArgs> | null
     loginHistory: Prisma.$LoginHistoryPayload<ExtArgs>[]
+    impersonationsAsActor: Prisma.$ImpersonationLogPayload<ExtArgs>[]
+    impersonationsAsTarget: Prisma.$ImpersonationLogPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -4339,6 +4857,8 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   sentInvitations<T extends Prisma.User$sentInvitationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$sentInvitationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SchoolInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   preference<T extends Prisma.User$preferenceArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$preferenceArgs<ExtArgs>>): Prisma.Prisma__UserPreferenceClient<runtime.Types.Result.GetResult<Prisma.$UserPreferencePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   loginHistory<T extends Prisma.User$loginHistoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$loginHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LoginHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  impersonationsAsActor<T extends Prisma.User$impersonationsAsActorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$impersonationsAsActorArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ImpersonationLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  impersonationsAsTarget<T extends Prisma.User$impersonationsAsTargetArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$impersonationsAsTargetArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ImpersonationLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5223,6 +5743,54 @@ export type User$loginHistoryArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.LoginHistoryScalarFieldEnum | Prisma.LoginHistoryScalarFieldEnum[]
+}
+
+/**
+ * User.impersonationsAsActor
+ */
+export type User$impersonationsAsActorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ImpersonationLog
+   */
+  select?: Prisma.ImpersonationLogSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ImpersonationLog
+   */
+  omit?: Prisma.ImpersonationLogOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ImpersonationLogInclude<ExtArgs> | null
+  where?: Prisma.ImpersonationLogWhereInput
+  orderBy?: Prisma.ImpersonationLogOrderByWithRelationInput | Prisma.ImpersonationLogOrderByWithRelationInput[]
+  cursor?: Prisma.ImpersonationLogWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ImpersonationLogScalarFieldEnum | Prisma.ImpersonationLogScalarFieldEnum[]
+}
+
+/**
+ * User.impersonationsAsTarget
+ */
+export type User$impersonationsAsTargetArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ImpersonationLog
+   */
+  select?: Prisma.ImpersonationLogSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ImpersonationLog
+   */
+  omit?: Prisma.ImpersonationLogOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ImpersonationLogInclude<ExtArgs> | null
+  where?: Prisma.ImpersonationLogWhereInput
+  orderBy?: Prisma.ImpersonationLogOrderByWithRelationInput | Prisma.ImpersonationLogOrderByWithRelationInput[]
+  cursor?: Prisma.ImpersonationLogWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ImpersonationLogScalarFieldEnum | Prisma.ImpersonationLogScalarFieldEnum[]
 }
 
 /**
