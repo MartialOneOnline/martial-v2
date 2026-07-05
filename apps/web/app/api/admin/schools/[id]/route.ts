@@ -90,7 +90,37 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   }
 
   const { id } = await params
-  await prisma.school.delete({ where: { id } })
+
+  // SchoolMember rows for this school cascade-delete with the school. Snapshot
+  // who's a member first so we can demote anyone left with no school anywhere —
+  // otherwise their global `role` (SCHOOL_OWNER/INSTRUCTOR) survives as a dangling
+  // claim to a school they no longer belong to, and the login flow silently
+  // treats them as a bare student with no way back in. Wrapped in a transaction
+  // so the delete and the demotion either both happen or neither does.
+  await prisma.$transaction(async (tx) => {
+    const memberUserIds = (await tx.schoolMember.findMany({
+      where: { schoolId: id },
+      select: { userId: true },
+    })).map(m => m.userId)
+
+    await tx.school.delete({ where: { id } })
+
+    if (memberUserIds.length > 0) {
+      const stillMemberIds = new Set((await tx.schoolMember.findMany({
+        where: { userId: { in: memberUserIds } },
+        select: { userId: true },
+        distinct: ['userId'],
+      })).map(m => m.userId))
+      const orphanedIds = memberUserIds.filter(uid => !stillMemberIds.has(uid))
+
+      if (orphanedIds.length > 0) {
+        await tx.user.updateMany({
+          where: { id: { in: orphanedIds }, role: { in: ['SCHOOL_OWNER', 'INSTRUCTOR'] } },
+          data: { role: 'STUDENT' },
+        })
+      }
+    }
+  })
 
   return NextResponse.json({ ok: true })
 }
