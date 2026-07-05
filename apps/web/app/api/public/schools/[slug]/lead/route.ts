@@ -10,9 +10,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
 
   const school = await prisma.school.findUnique({
     where: { slug },
-    select: { id: true, name: true, city: true, email: true },
+    select: { id: true, name: true, city: true, email: true, status: true },
   })
-  if (!school) return NextResponse.json({ error: 'School not found' }, { status: 404 })
+  // ARCHIVED/SUSPENDED schools must not accept new leads via direct slug.
+  if (!school || ['SUSPENDED', 'ARCHIVED'].includes(school.status))
+    return NextResponse.json({ error: 'School not found' }, { status: 404 })
 
   const body = await req.json() as {
     name: string; email?: string; phone?: string; message?: string; interestedIn?: string

@@ -90,6 +90,7 @@ export async function POST(req: NextRequest) {
           category:      TransactionCategory.MEMBERSHIP,
           description:   membership.planName,
           membershipId:  membership.id,
+          revolutOrderId: payload.order_id,
         })
       })
 
@@ -188,6 +189,7 @@ export async function POST(req: NextRequest) {
           category:      TransactionCategory.OTHER, // no dedicated EVENT category yet
           description:   `${eventBooking.event.title} — ${eventBooking.ticketName} x${eventBooking.quantity}`,
           bookingId:     eventBooking.id,
+          revolutOrderId: payload.order_id,
         })
         return { sold: true }
       } else {

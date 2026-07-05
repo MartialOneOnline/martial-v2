@@ -73,7 +73,9 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
     },
   })
 
-  if (!school) notFound()
+  // ARCHIVED/SUSPENDED schools keep their data (soft-deleted / paused) but must
+  // not be reachable by direct slug — same cutoff as the public /api/schools listing.
+  if (!school || ['SUSPENDED', 'ARCHIVED'].includes(school.status)) notFound()
 
   const cover = school.coverUrl ?? FALLBACK
   const disciplines = school.disciplines.map(d => d.discipline.name)

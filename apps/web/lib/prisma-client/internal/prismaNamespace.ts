@@ -4475,6 +4475,8 @@ export const TransactionScalarFieldEnum = {
   bookingId: 'bookingId',
   userId: 'userId',
   stripePaymentIntentId: 'stripePaymentIntentId',
+  stripeInvoiceId: 'stripeInvoiceId',
+  revolutOrderId: 'revolutOrderId',
   notes: 'notes',
   periodStart: 'periodStart',
   periodEnd: 'periodEnd',

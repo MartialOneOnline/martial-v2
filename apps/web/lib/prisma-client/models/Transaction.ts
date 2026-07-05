@@ -49,6 +49,8 @@ export type TransactionMinAggregateOutputType = {
   bookingId: string | null
   userId: string | null
   stripePaymentIntentId: string | null
+  stripeInvoiceId: string | null
+  revolutOrderId: string | null
   notes: string | null
   periodStart: Date | null
   periodEnd: Date | null
@@ -71,6 +73,8 @@ export type TransactionMaxAggregateOutputType = {
   bookingId: string | null
   userId: string | null
   stripePaymentIntentId: string | null
+  stripeInvoiceId: string | null
+  revolutOrderId: string | null
   notes: string | null
   periodStart: Date | null
   periodEnd: Date | null
@@ -93,6 +97,8 @@ export type TransactionCountAggregateOutputType = {
   bookingId: number
   userId: number
   stripePaymentIntentId: number
+  stripeInvoiceId: number
+  revolutOrderId: number
   notes: number
   periodStart: number
   periodEnd: number
@@ -125,6 +131,8 @@ export type TransactionMinAggregateInputType = {
   bookingId?: true
   userId?: true
   stripePaymentIntentId?: true
+  stripeInvoiceId?: true
+  revolutOrderId?: true
   notes?: true
   periodStart?: true
   periodEnd?: true
@@ -147,6 +155,8 @@ export type TransactionMaxAggregateInputType = {
   bookingId?: true
   userId?: true
   stripePaymentIntentId?: true
+  stripeInvoiceId?: true
+  revolutOrderId?: true
   notes?: true
   periodStart?: true
   periodEnd?: true
@@ -169,6 +179,8 @@ export type TransactionCountAggregateInputType = {
   bookingId?: true
   userId?: true
   stripePaymentIntentId?: true
+  stripeInvoiceId?: true
+  revolutOrderId?: true
   notes?: true
   periodStart?: true
   periodEnd?: true
@@ -278,6 +290,8 @@ export type TransactionGroupByOutputType = {
   bookingId: string | null
   userId: string | null
   stripePaymentIntentId: string | null
+  stripeInvoiceId: string | null
+  revolutOrderId: string | null
   notes: string | null
   periodStart: Date | null
   periodEnd: Date | null
@@ -323,6 +337,8 @@ export type TransactionWhereInput = {
   bookingId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   userId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   stripePaymentIntentId?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  stripeInvoiceId?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  revolutOrderId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   notes?: Prisma.StringNullableFilter<"Transaction"> | string | null
   periodStart?: Prisma.DateTimeNullableFilter<"Transaction"> | Date | string | null
   periodEnd?: Prisma.DateTimeNullableFilter<"Transaction"> | Date | string | null
@@ -348,6 +364,8 @@ export type TransactionOrderByWithRelationInput = {
   bookingId?: Prisma.SortOrderInput | Prisma.SortOrder
   userId?: Prisma.SortOrderInput | Prisma.SortOrder
   stripePaymentIntentId?: Prisma.SortOrderInput | Prisma.SortOrder
+  stripeInvoiceId?: Prisma.SortOrderInput | Prisma.SortOrder
+  revolutOrderId?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   periodStart?: Prisma.SortOrderInput | Prisma.SortOrder
   periodEnd?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -376,6 +394,8 @@ export type TransactionWhereUniqueInput = Prisma.AtLeast<{
   bookingId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   userId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   stripePaymentIntentId?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  stripeInvoiceId?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  revolutOrderId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   notes?: Prisma.StringNullableFilter<"Transaction"> | string | null
   periodStart?: Prisma.DateTimeNullableFilter<"Transaction"> | Date | string | null
   periodEnd?: Prisma.DateTimeNullableFilter<"Transaction"> | Date | string | null
@@ -401,6 +421,8 @@ export type TransactionOrderByWithAggregationInput = {
   bookingId?: Prisma.SortOrderInput | Prisma.SortOrder
   userId?: Prisma.SortOrderInput | Prisma.SortOrder
   stripePaymentIntentId?: Prisma.SortOrderInput | Prisma.SortOrder
+  stripeInvoiceId?: Prisma.SortOrderInput | Prisma.SortOrder
+  revolutOrderId?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   periodStart?: Prisma.SortOrderInput | Prisma.SortOrder
   periodEnd?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -431,6 +453,8 @@ export type TransactionScalarWhereWithAggregatesInput = {
   bookingId?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
   userId?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
   stripePaymentIntentId?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
+  stripeInvoiceId?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
+  revolutOrderId?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
   notes?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
   periodStart?: Prisma.DateTimeNullableWithAggregatesFilter<"Transaction"> | Date | string | null
   periodEnd?: Prisma.DateTimeNullableWithAggregatesFilter<"Transaction"> | Date | string | null
@@ -450,6 +474,8 @@ export type TransactionCreateInput = {
   date: Date | string
   bookingId?: string | null
   stripePaymentIntentId?: string | null
+  stripeInvoiceId?: string | null
+  revolutOrderId?: string | null
   notes?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
@@ -475,6 +501,8 @@ export type TransactionUncheckedCreateInput = {
   bookingId?: string | null
   userId?: string | null
   stripePaymentIntentId?: string | null
+  stripeInvoiceId?: string | null
+  revolutOrderId?: string | null
   notes?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
@@ -494,6 +522,8 @@ export type TransactionUpdateInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -519,6 +549,8 @@ export type TransactionUncheckedUpdateInput = {
   bookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -541,6 +573,8 @@ export type TransactionCreateManyInput = {
   bookingId?: string | null
   userId?: string | null
   stripePaymentIntentId?: string | null
+  stripeInvoiceId?: string | null
+  revolutOrderId?: string | null
   notes?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
@@ -560,6 +594,8 @@ export type TransactionUpdateManyMutationInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -582,6 +618,8 @@ export type TransactionUncheckedUpdateManyInput = {
   bookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -614,6 +652,8 @@ export type TransactionCountOrderByAggregateInput = {
   bookingId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   stripePaymentIntentId?: Prisma.SortOrder
+  stripeInvoiceId?: Prisma.SortOrder
+  revolutOrderId?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   periodStart?: Prisma.SortOrder
   periodEnd?: Prisma.SortOrder
@@ -640,6 +680,8 @@ export type TransactionMaxOrderByAggregateInput = {
   bookingId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   stripePaymentIntentId?: Prisma.SortOrder
+  stripeInvoiceId?: Prisma.SortOrder
+  revolutOrderId?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   periodStart?: Prisma.SortOrder
   periodEnd?: Prisma.SortOrder
@@ -662,6 +704,8 @@ export type TransactionMinOrderByAggregateInput = {
   bookingId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   stripePaymentIntentId?: Prisma.SortOrder
+  stripeInvoiceId?: Prisma.SortOrder
+  revolutOrderId?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   periodStart?: Prisma.SortOrder
   periodEnd?: Prisma.SortOrder
@@ -827,6 +871,8 @@ export type TransactionCreateWithoutUserInput = {
   date: Date | string
   bookingId?: string | null
   stripePaymentIntentId?: string | null
+  stripeInvoiceId?: string | null
+  revolutOrderId?: string | null
   notes?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
@@ -850,6 +896,8 @@ export type TransactionUncheckedCreateWithoutUserInput = {
   membershipId?: string | null
   bookingId?: string | null
   stripePaymentIntentId?: string | null
+  stripeInvoiceId?: string | null
+  revolutOrderId?: string | null
   notes?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
@@ -901,6 +949,8 @@ export type TransactionScalarWhereInput = {
   bookingId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   userId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   stripePaymentIntentId?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  stripeInvoiceId?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  revolutOrderId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   notes?: Prisma.StringNullableFilter<"Transaction"> | string | null
   periodStart?: Prisma.DateTimeNullableFilter<"Transaction"> | Date | string | null
   periodEnd?: Prisma.DateTimeNullableFilter<"Transaction"> | Date | string | null
@@ -920,6 +970,8 @@ export type TransactionCreateWithoutSchoolInput = {
   date: Date | string
   bookingId?: string | null
   stripePaymentIntentId?: string | null
+  stripeInvoiceId?: string | null
+  revolutOrderId?: string | null
   notes?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
@@ -943,6 +995,8 @@ export type TransactionUncheckedCreateWithoutSchoolInput = {
   bookingId?: string | null
   userId?: string | null
   stripePaymentIntentId?: string | null
+  stripeInvoiceId?: string | null
+  revolutOrderId?: string | null
   notes?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
@@ -988,6 +1042,8 @@ export type TransactionCreateWithoutMembershipInput = {
   date: Date | string
   bookingId?: string | null
   stripePaymentIntentId?: string | null
+  stripeInvoiceId?: string | null
+  revolutOrderId?: string | null
   notes?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
@@ -1011,6 +1067,8 @@ export type TransactionUncheckedCreateWithoutMembershipInput = {
   bookingId?: string | null
   userId?: string | null
   stripePaymentIntentId?: string | null
+  stripeInvoiceId?: string | null
+  revolutOrderId?: string | null
   notes?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
@@ -1058,6 +1116,8 @@ export type TransactionCreateManyUserInput = {
   membershipId?: string | null
   bookingId?: string | null
   stripePaymentIntentId?: string | null
+  stripeInvoiceId?: string | null
+  revolutOrderId?: string | null
   notes?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
@@ -1077,6 +1137,8 @@ export type TransactionUpdateWithoutUserInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1100,6 +1162,8 @@ export type TransactionUncheckedUpdateWithoutUserInput = {
   membershipId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1121,6 +1185,8 @@ export type TransactionUncheckedUpdateManyWithoutUserInput = {
   membershipId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1142,6 +1208,8 @@ export type TransactionCreateManySchoolInput = {
   bookingId?: string | null
   userId?: string | null
   stripePaymentIntentId?: string | null
+  stripeInvoiceId?: string | null
+  revolutOrderId?: string | null
   notes?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
@@ -1161,6 +1229,8 @@ export type TransactionUpdateWithoutSchoolInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1184,6 +1254,8 @@ export type TransactionUncheckedUpdateWithoutSchoolInput = {
   bookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1205,6 +1277,8 @@ export type TransactionUncheckedUpdateManyWithoutSchoolInput = {
   bookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1226,6 +1300,8 @@ export type TransactionCreateManyMembershipInput = {
   bookingId?: string | null
   userId?: string | null
   stripePaymentIntentId?: string | null
+  stripeInvoiceId?: string | null
+  revolutOrderId?: string | null
   notes?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
@@ -1245,6 +1321,8 @@ export type TransactionUpdateWithoutMembershipInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1268,6 +1346,8 @@ export type TransactionUncheckedUpdateWithoutMembershipInput = {
   bookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1289,6 +1369,8 @@ export type TransactionUncheckedUpdateManyWithoutMembershipInput = {
   bookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1313,6 +1395,8 @@ export type TransactionSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   bookingId?: boolean
   userId?: boolean
   stripePaymentIntentId?: boolean
+  stripeInvoiceId?: boolean
+  revolutOrderId?: boolean
   notes?: boolean
   periodStart?: boolean
   periodEnd?: boolean
@@ -1338,6 +1422,8 @@ export type TransactionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   bookingId?: boolean
   userId?: boolean
   stripePaymentIntentId?: boolean
+  stripeInvoiceId?: boolean
+  revolutOrderId?: boolean
   notes?: boolean
   periodStart?: boolean
   periodEnd?: boolean
@@ -1363,6 +1449,8 @@ export type TransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   bookingId?: boolean
   userId?: boolean
   stripePaymentIntentId?: boolean
+  stripeInvoiceId?: boolean
+  revolutOrderId?: boolean
   notes?: boolean
   periodStart?: boolean
   periodEnd?: boolean
@@ -1388,6 +1476,8 @@ export type TransactionSelectScalar = {
   bookingId?: boolean
   userId?: boolean
   stripePaymentIntentId?: boolean
+  stripeInvoiceId?: boolean
+  revolutOrderId?: boolean
   notes?: boolean
   periodStart?: boolean
   periodEnd?: boolean
@@ -1395,7 +1485,7 @@ export type TransactionSelectScalar = {
   updatedAt?: boolean
 }
 
-export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "type" | "status" | "category" | "paymentMethod" | "amount" | "currency" | "description" | "date" | "membershipId" | "bookingId" | "userId" | "stripePaymentIntentId" | "notes" | "periodStart" | "periodEnd" | "createdAt" | "updatedAt", ExtArgs["result"]["transaction"]>
+export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "type" | "status" | "category" | "paymentMethod" | "amount" | "currency" | "description" | "date" | "membershipId" | "bookingId" | "userId" | "stripePaymentIntentId" | "stripeInvoiceId" | "revolutOrderId" | "notes" | "periodStart" | "periodEnd" | "createdAt" | "updatedAt", ExtArgs["result"]["transaction"]>
 export type TransactionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   membership?: boolean | Prisma.Transaction$membershipArgs<ExtArgs>
@@ -1434,6 +1524,8 @@ export type $TransactionPayload<ExtArgs extends runtime.Types.Extensions.Interna
     bookingId: string | null
     userId: string | null
     stripePaymentIntentId: string | null
+    stripeInvoiceId: string | null
+    revolutOrderId: string | null
     notes: string | null
     periodStart: Date | null
     periodEnd: Date | null
@@ -1879,6 +1971,8 @@ export interface TransactionFieldRefs {
   readonly bookingId: Prisma.FieldRef<"Transaction", 'String'>
   readonly userId: Prisma.FieldRef<"Transaction", 'String'>
   readonly stripePaymentIntentId: Prisma.FieldRef<"Transaction", 'String'>
+  readonly stripeInvoiceId: Prisma.FieldRef<"Transaction", 'String'>
+  readonly revolutOrderId: Prisma.FieldRef<"Transaction", 'String'>
   readonly notes: Prisma.FieldRef<"Transaction", 'String'>
   readonly periodStart: Prisma.FieldRef<"Transaction", 'DateTime'>
   readonly periodEnd: Prisma.FieldRef<"Transaction", 'DateTime'>

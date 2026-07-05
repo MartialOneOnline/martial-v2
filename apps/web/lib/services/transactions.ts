@@ -12,6 +12,11 @@ interface RecordOnlinePaymentInput {
   membershipId?: string
   bookingId?: string
   date?: Date
+  // Provider references — pass whichever the caller has so the Transaction
+  // row can be traced back to the Stripe/Revolut dashboard.
+  stripePaymentIntentId?: string
+  stripeInvoiceId?: string
+  revolutOrderId?: string
 }
 
 // Records a successful Stripe/Revolut payment as an income Transaction.
@@ -36,6 +41,9 @@ export async function recordOnlinePayment(tx: Prisma.TransactionClient, input: R
       currency: input.currency,
       description: input.description,
       date: input.date ?? new Date(),
+      stripePaymentIntentId: input.stripePaymentIntentId ?? null,
+      stripeInvoiceId: input.stripeInvoiceId ?? null,
+      revolutOrderId: input.revolutOrderId ?? null,
     },
   })
 }

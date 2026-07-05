@@ -8,12 +8,14 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
   const school = await prisma.school.findUnique({
     where: { slug },
     select: {
-      name: true, city: true, logoUrl: true, tagline: true,
+      name: true, city: true, logoUrl: true, tagline: true, status: true,
       disciplines: { include: { discipline: { select: { name: true } } } },
     },
   })
 
-  if (!school) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  // ARCHIVED/SUSPENDED schools must not be reachable by direct slug.
+  if (!school || ['SUSPENDED', 'ARCHIVED'].includes(school.status))
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   return NextResponse.json({
     school: {

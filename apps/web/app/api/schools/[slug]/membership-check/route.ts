@@ -9,6 +9,17 @@ export async function GET(
 ) {
   const { slug } = await params
 
+  // Find the school first — a nonexistent/archived/suspended school 404s
+  // regardless of auth state, so this can't be used to probe school status
+  // by an unauthenticated caller (who previously always got a 200 here).
+  const school = await prisma.school.findUnique({
+    where: { slug },
+    select: { id: true, hasFreeTrialCls: true, status: true },
+  })
+
+  if (!school || ['SUSPENDED', 'ARCHIVED'].includes(school.status))
+    return NextResponse.json({ error: 'School not found' }, { status: 404 })
+
   // Get current user from Supabase session
   const cookieStore = await cookies()
   const supabase = createServerClient(
@@ -21,14 +32,6 @@ export async function GET(
   if (!user) {
     return NextResponse.json({ authenticated: false })
   }
-
-  // Find the school
-  const school = await prisma.school.findUnique({
-    where: { slug },
-    select: { id: true, hasFreeTrialCls: true },
-  })
-
-  if (!school) return NextResponse.json({ error: 'School not found' }, { status: 404 })
 
   // Find user in V2 DB
   const dbUser = await prisma.user.findUnique({

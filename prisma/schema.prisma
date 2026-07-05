@@ -1306,8 +1306,12 @@ model Transaction {
   userId       String?
   user         User?       @relation("TransactionUser", fields: [userId], references: [id])
 
-  // Stripe (Phase 5)
+  // Provider reconciliation references — set on the online-payment transactions
+  // created by the Stripe/Revolut webhook handlers so each row can be traced
+  // back to the corresponding record in the provider's dashboard.
   stripePaymentIntentId String?
+  stripeInvoiceId       String? // set for subscription-renewal transactions
+  revolutOrderId        String?
 
   notes       String?
   periodStart DateTime?
@@ -1316,6 +1320,8 @@ model Transaction {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([stripePaymentIntentId])
+  @@index([revolutOrderId])
   @@map("transactions")
 }
 

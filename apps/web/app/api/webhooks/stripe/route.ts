@@ -123,6 +123,7 @@ export async function POST(req: NextRequest) {
               category:      TransactionCategory.OTHER, // no dedicated EVENT category yet
               description:   `${booking.event.title} — ${booking.ticketName} x${booking.quantity}`,
               bookingId:     eventBookingId,
+              stripePaymentIntentId: session.payment_intent,
             })
             return { sold: true, booking }
           } else {
@@ -227,6 +228,7 @@ export async function POST(req: NextRequest) {
           category:      TransactionCategory.MEMBERSHIP,
           description:   planName,
           membershipId:  created.id,
+          stripePaymentIntentId: session.payment_intent,
         })
         activatedMembershipId = created.id
       })
@@ -271,6 +273,7 @@ export async function POST(req: NextRequest) {
         id?: string
         billing_reason?: string
         amount_paid?: number
+        payment_intent?: string
       }
       if (!invoice.subscription) break
       // Skip the initial invoice (already handled by checkout.session.completed)
@@ -279,7 +282,7 @@ export async function POST(req: NextRequest) {
       const membership = await prisma.membership.findFirst({
         where: { stripeSubId: invoice.subscription },
         select: {
-          id: true, schoolId: true, userId: true, planName: true, currency: true,
+          id: true, schoolId: true, userId: true, planName: true, currency: true, stripeInvoiceId: true,
           plan: { select: { billingCycle: true } },
           user: { select: { name: true } },
         },
@@ -288,15 +291,29 @@ export async function POST(req: NextRequest) {
 
       const renewalAmount = invoice.amount_paid != null ? invoice.amount_paid / 100 : 0
 
-      // Extend endDate by one billing period or keep null (indefinite)
-      await prisma.$transaction(async (tx) => {
-        await tx.membership.update({
-          where: { id: membership.id },
+      // Idempotency: Stripe redelivers this event on retry (e.g. if our response
+      // times out even though we already processed it). Guard with a conditional
+      // update keyed on stripeInvoiceId — only the delivery that actually flips
+      // stripeInvoiceId to this invoice's id gets to record the transaction and
+      // fire the notification, so a retry (or two concurrent deliveries of the
+      // same event) can't double-count revenue or double-notify.
+      const claimed = await prisma.$transaction(async (tx) => {
+        const result = await tx.membership.updateMany({
+          where: {
+            id: membership.id,
+            // SQL's `<>` never matches a NULL column, so a plain `{ not: invoice.id }`
+            // would exclude every membership on its first-ever renewal (stripeInvoiceId
+            // still null) — the OR keeps that case matchable while still excluding an
+            // exact repeat of this invoice id.
+            ...(invoice.id ? { OR: [{ stripeInvoiceId: null }, { stripeInvoiceId: { not: invoice.id } }] } : {}),
+          },
           data: {
             status:          MembershipStatus.ACTIVE,
             stripeInvoiceId: invoice.id ?? null,
           },
         })
+        if (result.count === 0) return false
+
         await recordOnlinePayment(tx, {
           schoolId:      membership.schoolId,
           userId:        membership.userId,
@@ -306,9 +323,15 @@ export async function POST(req: NextRequest) {
           category:      TransactionCategory.MEMBERSHIP,
           description:   `${membership.planName} — renewal`,
           membershipId:  membership.id,
+          stripePaymentIntentId: invoice.payment_intent,
+          stripeInvoiceId:       invoice.id,
         })
+        return true
       })
-      notifyPaymentReceived(membership.schoolId, membership.user?.name ?? 'Alumno', fmtPrice(renewalAmount, membership.currency), `${membership.planName} — renovación`)
+
+      if (claimed) {
+        notifyPaymentReceived(membership.schoolId, membership.user?.name ?? 'Alumno', fmtPrice(renewalAmount, membership.currency), `${membership.planName} — renovación`)
+      }
       break
     }
 
