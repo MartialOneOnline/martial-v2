@@ -4576,6 +4576,7 @@ export const NotificationScalarFieldEnum = {
   body: 'body',
   href: 'href',
   read: 'read',
+  recipientUserId: 'recipientUserId',
   createdAt: 'createdAt'
 } as const
 

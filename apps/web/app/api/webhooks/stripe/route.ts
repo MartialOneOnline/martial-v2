@@ -6,6 +6,8 @@ import { sendMembershipReceiptEmail, sendEventTicketConfirmationEmail, sendEvent
 import { checkEventCapacity } from '@/lib/services/eventCapacity'
 import { recordOnlinePayment } from '@/lib/services/transactions'
 import { PaymentMethod, TransactionCategory } from '@/lib/prisma-client/enums'
+import { notifyPaymentReceived } from '@/lib/notifications/create'
+import { fmtPrice } from '@/lib/format'
 
 // POST /api/webhooks/stripe
 // Each school registers this URL in their Stripe dashboard.
@@ -132,6 +134,15 @@ export async function POST(req: NextRequest) {
           }
         })
 
+        if (outcome?.sold) {
+          notifyPaymentReceived(
+            outcome.booking.event.schoolId,
+            outcome.booking.user?.name ?? 'Alumno',
+            fmtPrice(Number(outcome.booking.amountPaid ?? 0), outcome.booking.currency),
+            `${outcome.booking.event.title} — ${outcome.booking.ticketName}`,
+          )
+        }
+
         if (outcome?.sold && outcome.booking.user?.email) {
           sendEventTicketConfirmationEmail({
             to:          outcome.booking.user.email,
@@ -220,7 +231,7 @@ export async function POST(req: NextRequest) {
         activatedMembershipId = created.id
       })
 
-      // Send receipt email (fire-and-forget)
+      // Notify + send receipt email (fire-and-forget)
       if (activatedMembershipId) {
         prisma.membership.findUnique({
           where: { id: activatedMembershipId },
@@ -230,7 +241,9 @@ export async function POST(req: NextRequest) {
             school: { select: { name: true, city: true, language: true } },
           },
         }).then(m => {
-          if (!m?.user?.email) return
+          if (!m) return
+          notifyPaymentReceived(schoolId, m.user?.name ?? 'Alumno', fmtPrice(Number(m.price), m.currency), m.planName)
+          if (!m.user?.email) return
           sendMembershipReceiptEmail({
             to:            m.user.email,
             studentName:   m.user.name,
@@ -265,9 +278,15 @@ export async function POST(req: NextRequest) {
 
       const membership = await prisma.membership.findFirst({
         where: { stripeSubId: invoice.subscription },
-        select: { id: true, schoolId: true, userId: true, planName: true, currency: true, plan: { select: { billingCycle: true } } },
+        select: {
+          id: true, schoolId: true, userId: true, planName: true, currency: true,
+          plan: { select: { billingCycle: true } },
+          user: { select: { name: true } },
+        },
       })
       if (!membership) break
+
+      const renewalAmount = invoice.amount_paid != null ? invoice.amount_paid / 100 : 0
 
       // Extend endDate by one billing period or keep null (indefinite)
       await prisma.$transaction(async (tx) => {
@@ -281,7 +300,7 @@ export async function POST(req: NextRequest) {
         await recordOnlinePayment(tx, {
           schoolId:      membership.schoolId,
           userId:        membership.userId,
-          amount:        invoice.amount_paid != null ? invoice.amount_paid / 100 : 0,
+          amount:        renewalAmount,
           currency:      membership.currency,
           paymentMethod: PaymentMethod.STRIPE,
           category:      TransactionCategory.MEMBERSHIP,
@@ -289,6 +308,7 @@ export async function POST(req: NextRequest) {
           membershipId:  membership.id,
         })
       })
+      notifyPaymentReceived(membership.schoolId, membership.user?.name ?? 'Alumno', fmtPrice(renewalAmount, membership.currency), `${membership.planName} — renovación`)
       break
     }
 

@@ -6,6 +6,8 @@ import { sendMembershipReceiptEmail, sendEventTicketConfirmationEmail, sendEvent
 import { checkEventCapacity } from '@/lib/services/eventCapacity'
 import { recordOnlinePayment } from '@/lib/services/transactions'
 import { PaymentMethod, TransactionCategory } from '@/lib/prisma-client/enums'
+import { notifyPaymentReceived } from '@/lib/notifications/create'
+import { fmtPrice } from '@/lib/format'
 
 // POST /api/webhooks/revolut
 // Each school registers this URL in their Revolut Merchant dashboard.
@@ -91,7 +93,7 @@ export async function POST(req: NextRequest) {
         })
       })
 
-      // Send receipt email (fire-and-forget)
+      // Notify + send receipt email (fire-and-forget)
       prisma.membership.findUnique({
         where: { id: membership.id },
         select: {
@@ -100,7 +102,9 @@ export async function POST(req: NextRequest) {
           school: { select: { name: true, city: true, language: true } },
         },
       }).then(m => {
-        if (!m?.user?.email) return
+        if (!m) return
+        notifyPaymentReceived(membership.schoolId, m.user?.name ?? 'Alumno', fmtPrice(Number(m.price), m.currency), m.planName)
+        if (!m.user?.email) return
         sendMembershipReceiptEmail({
           to:            m.user.email,
           studentName:   m.user.name,
@@ -193,6 +197,12 @@ export async function POST(req: NextRequest) {
     })
 
     if (outcome.sold) {
+      notifyPaymentReceived(
+        eventBooking.event.schoolId,
+        eventBooking.user?.name ?? 'Alumno',
+        fmtPrice(Number(eventBooking.amountPaid ?? 0), eventBooking.currency),
+        `${eventBooking.event.title} — ${eventBooking.ticketName}`,
+      )
       if (eventBooking.user?.email) {
         sendEventTicketConfirmationEmail({
           to:          eventBooking.user.email,

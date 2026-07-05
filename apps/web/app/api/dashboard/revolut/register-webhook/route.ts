@@ -90,5 +90,7 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  return NextResponse.json({ ok: true, webhook: data, signatureVerificationEnabled: Boolean(data.signing_secret) })
+  // Never echo `data` as-is — Revolut's create-webhook response includes the
+  // plaintext signing_secret, which we've already persisted server-side above.
+  return NextResponse.json({ ok: true, signatureVerificationEnabled: Boolean(data.signing_secret) })
 }

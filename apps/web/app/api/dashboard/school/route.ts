@@ -71,16 +71,38 @@ export async function GET(req: NextRequest) {
     select: canViewPaymentSecrets
       ? { ...baseSelect, stripeSecretKey: true, stripeWebhookSecret: true, revolutSecretKey: true }
       : baseSelect,
-  })
+  }) as Record<string, unknown> | null
 
   if (!school) return NextResponse.json({ error: 'School not found' }, { status: 404 })
 
   const enabledPaymentMethods = await getEnabledPaymentMethods()
 
+  // Never send these three fields to the browser in full — a school owner's own
+  // settings page loads this on every visit, so anyone with devtools access to a
+  // dashboard session would otherwise see live payment-provider credentials.
+  const { stripeSecretKey, stripeWebhookSecret, revolutSecretKey, ...publicSchool } = school as
+    Record<string, unknown> & { stripeSecretKey?: string | null; stripeWebhookSecret?: string | null; revolutSecretKey?: string | null }
+
   return NextResponse.json({
-    school: { ...school, modules: getSchoolModules(school.modules) },
+    school: {
+      ...publicSchool,
+      modules: getSchoolModules(publicSchool.modules as string | null),
+      ...(canViewPaymentSecrets && {
+        stripeSecretKeyConfigured:     !!stripeSecretKey,
+        stripeSecretKeyMasked:         maskSecret(stripeSecretKey),
+        stripeWebhookSecretConfigured: !!stripeWebhookSecret,
+        stripeWebhookSecretMasked:     maskSecret(stripeWebhookSecret),
+        revolutSecretKeyConfigured:    !!revolutSecretKey,
+        revolutSecretKeyMasked:        maskSecret(revolutSecretKey),
+      }),
+    },
     enabledPaymentMethods,
   })
+}
+
+function maskSecret(value: string | null | undefined): string | null {
+  if (!value) return null
+  return value.length <= 4 ? '••••' : `••••${value.slice(-4)}`
 }
 
 // PATCH /api/dashboard/school — update school settings (language, etc.)

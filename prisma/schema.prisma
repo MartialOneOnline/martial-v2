@@ -358,6 +358,7 @@ model User {
   loginHistory           LoginHistory[]
   impersonationsAsActor  ImpersonationLog[] @relation("ImpersonationActor")
   impersonationsAsTarget ImpersonationLog[] @relation("ImpersonationTarget")
+  targetedNotifications  Notification[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1460,10 +1461,17 @@ model Notification {
   href     String? // deep-link to the relevant page
   read     Boolean          @default(false)
 
+  // Null = school-wide (visible to any staff member with dashboard access to this
+  // school). Set = only the targeted user should see it (e.g. a direct message
+  // aimed at one specific staff member), on top of anyone with school access.
+  recipientUserId String?
+  recipientUser   User?   @relation(fields: [recipientUserId], references: [id], onDelete: Cascade)
+
   createdAt DateTime @default(now())
 
   @@index([schoolId, read])
   @@index([schoolId, createdAt])
+  @@index([recipientUserId])
   @@map("notifications")
 }
 

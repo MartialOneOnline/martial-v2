@@ -34,6 +34,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       type: 'MESSAGE',
       title: 'Message from Martial Admin',
       body: message.trim(),
+      recipientUserId: id,
     })
   }
 

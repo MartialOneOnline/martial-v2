@@ -567,10 +567,14 @@ function PaymentsTab() {
   const [failedAlerts,  setFailedAlerts]  = useState(true)
   const [saved, setSaved] = useState(false)
 
-  // Stripe keys
+  // Stripe keys — secret fields are never prefilled with the real value (the API only
+  // ever returns a masked preview + a "configured" flag). Leaving a secret input blank
+  // on save keeps whatever is already stored; only a non-empty value replaces it.
   const [stripePk,      setStripePk]      = useState('')
   const [stripeSk,      setStripeSk]      = useState('')
   const [stripeWh,      setStripeWh]      = useState('')
+  const [stripeSkMasked, setStripeSkMasked] = useState<string | null>(null)
+  const [stripeWhMasked, setStripeWhMasked] = useState<string | null>(null)
   const [showPk,        setShowPk]        = useState(false)
   const [showSk,        setShowSk]        = useState(false)
   const [showWh,        setShowWh]        = useState(false)
@@ -580,6 +584,7 @@ function PaymentsTab() {
 
   const [revolutPk,           setRevolutPk]           = useState('')
   const [revolutSk,           setRevolutSk]           = useState('')
+  const [revolutSkMasked,     setRevolutSkMasked]     = useState<string | null>(null)
   const [showRevolutPk,       setShowRevolutPk]       = useState(false)
   const [showRevolutSk,       setShowRevolutSk]       = useState(false)
   const [revolutConnected,    setRevolutConnected]    = useState(false)
@@ -588,7 +593,7 @@ function PaymentsTab() {
   const [webhookRegistering,  setWebhookRegistering]  = useState(false)
   const [webhookResult,       setWebhookResult]       = useState<'ok' | 'error' | null>(null)
 
-  useEffect(() => {
+  const loadSchool = useCallback(() => {
     fetch('/api/dashboard/school').then(r => r.json()).then(d => {
       const enabled: string[] = d.enabledPaymentMethods ?? PAYMENT_METHODS.map(m => m.key)
       setEnabledPaymentMethods(enabled)
@@ -597,26 +602,31 @@ function PaymentsTab() {
       // this school last saved silently drops out here instead of staying stuck selected.
       if (s?.acceptedMethods?.length) setAcceptedMethods(s.acceptedMethods.filter((m: string) => enabled.includes(m)))
       if (d.school?.cancelPolicy) setCancelPolicy(d.school.cancelPolicy)
-      if (d.school?.stripePublishableKey) { setStripePk(d.school.stripePublishableKey); setStripeConnected(true) }
-      if (d.school?.stripeSecretKey)      setStripeSk(d.school.stripeSecretKey)
-      if (d.school?.stripeWebhookSecret)  setStripeWh(d.school.stripeWebhookSecret)
-      if (d.school?.revolutPublicKey) { setRevolutPk(d.school.revolutPublicKey); setRevolutConnected(true) }
-      if (d.school?.revolutSecretKey)     setRevolutSk(d.school.revolutSecretKey)
+      setStripePk(d.school?.stripePublishableKey ?? '')
+      setStripeConnected(!!d.school?.stripePublishableKey && !!d.school?.stripeSecretKeyConfigured)
+      setStripeSkMasked(d.school?.stripeSecretKeyMasked ?? null)
+      setStripeWhMasked(d.school?.stripeWebhookSecretMasked ?? null)
+      setStripeSk(''); setStripeWh('')
+      setRevolutPk(d.school?.revolutPublicKey ?? '')
+      setRevolutConnected(!!d.school?.revolutPublicKey && !!d.school?.revolutSecretKeyConfigured)
+      setRevolutSkMasked(d.school?.revolutSecretKeyMasked ?? null)
+      setRevolutSk('')
     })
   }, [])
 
+  useEffect(() => { loadSchool() }, [loadSchool])
+
   async function saveStripeKeys() {
     setStripeSaving(true)
+    const payload: Record<string, string | null> = { stripePublishableKey: stripePk || null }
+    if (stripeSk.trim()) payload.stripeSecretKey = stripeSk.trim()
+    if (stripeWh.trim()) payload.stripeWebhookSecret = stripeWh.trim()
     await fetch('/api/dashboard/school', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        stripePublishableKey: stripePk || null,
-        stripeSecretKey:      stripeSk || null,
-        stripeWebhookSecret:  stripeWh || null,
-      }),
+      body: JSON.stringify(payload),
     })
-    setStripeConnected(!!(stripePk && stripeSk))
+    loadSchool()
     setStripeSaving(false); setStripeSaved(true); setTimeout(() => setStripeSaved(false), 2500)
   }
 
@@ -627,17 +637,19 @@ function PaymentsTab() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ stripePublishableKey: null, stripeSecretKey: null, stripeWebhookSecret: null }),
     })
-    setStripeConnected(false)
+    setStripeConnected(false); setStripeSkMasked(null); setStripeWhMasked(null)
   }
 
   async function saveRevolutKeys() {
     setRevolutSaving(true)
+    const payload: Record<string, string | null> = { revolutPublicKey: revolutPk || null }
+    if (revolutSk.trim()) payload.revolutSecretKey = revolutSk.trim()
     await fetch('/api/dashboard/school', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ revolutPublicKey: revolutPk || null, revolutSecretKey: revolutSk || null }),
+      body: JSON.stringify(payload),
     })
-    setRevolutConnected(!!(revolutPk && revolutSk))
+    loadSchool()
     setRevolutSaving(false); setRevolutSaved(true); setTimeout(() => setRevolutSaved(false), 2500)
   }
 
@@ -656,7 +668,7 @@ function PaymentsTab() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ revolutPublicKey: null, revolutSecretKey: null }),
     })
-    setRevolutConnected(false)
+    setRevolutConnected(false); setRevolutSkMasked(null)
   }
 
   function toggleMethod(key: string) {
@@ -717,7 +729,7 @@ function PaymentsTab() {
             <label style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>Secret key</label>
             <div className="flex items-center gap-2" style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflow: 'hidden', background: '#F9FAFB' }}>
               <input type={showSk ? 'text' : 'password'} value={stripeSk} onChange={e => setStripeSk(e.target.value)}
-                placeholder="sk_live_···"
+                placeholder={stripeSkMasked ? `${stripeSkMasked} — leave blank to keep` : 'sk_live_···'}
                 style={{ flex: 1, padding: '8px 12px', border: 'none', background: 'transparent', fontSize: 13, color: '#111827', outline: 'none', fontFamily: 'monospace' }} />
               <button onClick={() => setShowSk(v => !v)} style={{ padding: '0 12px', height: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: '#9CA3AF', display: 'flex', alignItems: 'center' }}>
                 {showSk ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -730,7 +742,7 @@ function PaymentsTab() {
             <label style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>Webhook secret</label>
             <div className="flex items-center gap-2" style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflow: 'hidden', background: '#F9FAFB' }}>
               <input type={showWh ? 'text' : 'password'} value={stripeWh} onChange={e => setStripeWh(e.target.value)}
-                placeholder="whsec_···"
+                placeholder={stripeWhMasked ? `${stripeWhMasked} — leave blank to keep` : 'whsec_···'}
                 style={{ flex: 1, padding: '8px 12px', border: 'none', background: 'transparent', fontSize: 13, color: '#111827', outline: 'none', fontFamily: 'monospace' }} />
               <button onClick={() => setShowWh(v => !v)} style={{ padding: '0 12px', height: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: '#9CA3AF', display: 'flex', alignItems: 'center' }}>
                 {showWh ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -784,7 +796,7 @@ function PaymentsTab() {
             <label style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>Production Secret key</label>
             <div className="flex items-center gap-2" style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflow: 'hidden', background: '#F9FAFB' }}>
               <input type={showRevolutSk ? 'text' : 'password'} value={revolutSk} onChange={e => setRevolutSk(e.target.value)}
-                placeholder="sk_···"
+                placeholder={revolutSkMasked ? `${revolutSkMasked} — leave blank to keep` : 'sk_···'}
                 style={{ flex: 1, padding: '8px 12px', border: 'none', background: 'transparent', fontSize: 13, color: '#111827', outline: 'none', fontFamily: 'monospace' }} />
               <button onClick={() => setShowRevolutSk(v => !v)} style={{ padding: '0 12px', height: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: '#9CA3AF', display: 'flex', alignItems: 'center' }}>
                 {showRevolutSk ? <EyeOff size={15} /> : <Eye size={15} />}

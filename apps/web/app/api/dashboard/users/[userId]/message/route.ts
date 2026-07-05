@@ -45,12 +45,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ use
     select: { name: true },
   })
 
-  // In-app notification
+  // In-app notification — targeted at this member only, not the whole school's staff
   await createNotification({
     schoolId,
     type:    'MESSAGE',
     title: `Mensaje de ${adminUser?.name ?? 'tu academia'}`,
     body:  message.trim(),
+    recipientUserId: schoolMember.userId,
   })
 
   // Email (fire-and-forget)

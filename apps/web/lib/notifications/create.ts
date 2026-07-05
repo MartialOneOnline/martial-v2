@@ -7,6 +7,7 @@ interface NotificationInput {
   title: string
   body: string
   href?: string
+  recipientUserId?: string
 }
 
 // Fire-and-forget: never awaited in API routes so it never blocks the response
