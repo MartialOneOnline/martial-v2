@@ -57,6 +57,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       ...(status !== undefined && { status }),
       ...(type !== undefined && { type }),
     },
+    select: {
+      id: true, name: true, slug: true, status: true, type: true,
+      email: true, phone: true, website: true, instagram: true,
+      address: true, postcode: true, city: true, country: true,
+      description: true, tagline: true,
+    },
   })
 
   return NextResponse.json({ school })

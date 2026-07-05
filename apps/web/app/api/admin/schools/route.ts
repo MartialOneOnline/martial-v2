@@ -67,6 +67,12 @@ export async function POST(req: NextRequest) {
         })),
       } : undefined,
     },
+    select: {
+      id: true, name: true, slug: true, status: true, type: true,
+      email: true, phone: true, website: true, instagram: true,
+      address: true, postcode: true, city: true, country: true,
+      description: true, tagline: true,
+    },
   })
 
   return NextResponse.json({ success: true, school })
