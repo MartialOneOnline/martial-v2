@@ -4,20 +4,10 @@ import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import {
   Building2, Search, ChevronLeft, ChevronRight,
-  RefreshCw, ExternalLink,
+  RefreshCw, ExternalLink, AlertCircle, CheckCircle2,
 } from 'lucide-react'
 import { adminFetch } from '@/lib/api/adminFetch'
-
-type User = {
-  id: string
-  name: string | null
-  email: string
-  role: string
-  avatarUrl: string | null
-  createdAt: string
-  claimedSchools: { id: string; name: string; slug: string; status: string }[]
-  _count: { memberships: number }
-}
+import { AdminUser, UserActionsMenu, EditUserModal, ContactUserModal, DeleteUserModal } from '../UserActions'
 
 const SCH_STATUS: Record<string, { label: string; cls: string }> = {
   VERIFIED:   { label: 'Verified',   cls: 'bg-emerald-50 text-emerald-700 border border-emerald-100' },
@@ -25,6 +15,7 @@ const SCH_STATUS: Record<string, { label: string; cls: string }> = {
   UNVERIFIED: { label: 'Unverified', cls: 'bg-gray-100 text-gray-500 border border-gray-200' },
   PARTNER:    { label: 'Partner',    cls: 'bg-amber-50 text-amber-700 border border-amber-100' },
   SUSPENDED:  { label: 'Suspended',  cls: 'bg-red-50 text-red-600 border border-red-100' },
+  ARCHIVED:   { label: 'Archived',  cls: 'bg-gray-100 text-gray-400 border border-gray-200' },
 }
 
 function fmtDate(iso: string) {
@@ -32,12 +23,18 @@ function fmtDate(iso: string) {
 }
 
 export default function SchoolOwnersClient() {
-  const [users, setUsers] = useState<User[]>([])
+  const [users, setUsers] = useState<AdminUser[]>([])
   const [total, setTotal] = useState(0)
   const [pages, setPages] = useState(1)
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
+
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
+  const [editUserId, setEditUserId] = useState<string | null>(null)
+  const [contactUser, setContactUser] = useState<AdminUser | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null)
+  const [banner, setBanner] = useState<{ type: 'error' | 'success'; message: string } | null>(null)
 
   const load = useCallback(() => {
     setLoading(true)
@@ -56,8 +53,32 @@ export default function SchoolOwnersClient() {
   useEffect(() => { setPage(1) }, [search])
   useEffect(() => { load() }, [load])
 
+  useEffect(() => {
+    if (!banner) return
+    const t = setTimeout(() => setBanner(null), 4000)
+    return () => clearTimeout(t)
+  }, [banner])
+
   return (
     <div className="min-h-screen">
+      {editUserId && (
+        <EditUserModal
+          userId={editUserId}
+          onClose={() => setEditUserId(null)}
+          onSaved={() => { setBanner({ type: 'success', message: 'Owner updated' }); load() }}
+        />
+      )}
+      {contactUser && (
+        <ContactUserModal user={contactUser} onClose={() => setContactUser(null)} />
+      )}
+      {deleteTarget && (
+        <DeleteUserModal
+          user={deleteTarget}
+          onClose={() => setDeleteTarget(null)}
+          onDeleted={() => { setBanner({ type: 'success', message: `${deleteTarget.name || deleteTarget.email} was deleted` }); load() }}
+        />
+      )}
+
       <div className="bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
         <div>
           <h1 className="text-lg font-bold text-[#101828]">School Owners</h1>
@@ -68,6 +89,16 @@ export default function SchoolOwnersClient() {
           <RefreshCw className="w-3.5 h-3.5" /> Refresh
         </button>
       </div>
+
+      {banner && (
+        <div className="fixed top-4 right-4 z-[70] flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-sm font-medium"
+          style={banner.type === 'error'
+            ? { background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA' }
+            : { background: '#F0FDF4', color: '#15803D', border: '1px solid #BBF7D0' }}>
+          {banner.type === 'error' ? <AlertCircle className="w-4 h-4 shrink-0" /> : <CheckCircle2 className="w-4 h-4 shrink-0" />}
+          {banner.message}
+        </div>
+      )}
 
       <div className="p-8 space-y-4">
         <div className="relative w-64">
@@ -81,7 +112,7 @@ export default function SchoolOwnersClient() {
           />
         </div>
 
-        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-visible">
           {loading ? (
             <div className="flex items-center justify-center h-40">
               <div className="w-6 h-6 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />
@@ -100,10 +131,13 @@ export default function SchoolOwnersClient() {
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">School Status</th>
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Joined</th>
                   <th className="px-4 py-3" />
+                  <th className="px-4 py-3" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {users.map(user => (
+                {users.map(user => {
+                  const owned = user.schoolMembers[0]?.school
+                  return (
                   <tr key={user.id} className="hover:bg-gray-50/50 transition-colors group">
                     <td className="px-6 py-3">
                       <div className="flex items-center gap-3">
@@ -117,19 +151,19 @@ export default function SchoolOwnersClient() {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      {user.claimedSchools[0] ? (
+                      {owned ? (
                         <div className="flex items-center gap-1.5 text-xs font-medium text-[#101828]">
                           <Building2 className="w-3 h-3 text-gray-300 shrink-0" />
-                          {user.claimedSchools[0].name}
+                          {owned.name}
                         </div>
                       ) : (
                         <span className="text-xs text-gray-300">No school</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      {user.claimedSchools[0] ? (
-                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${SCH_STATUS[user.claimedSchools[0].status]?.cls ?? 'bg-gray-100 text-gray-500'}`}>
-                          {SCH_STATUS[user.claimedSchools[0].status]?.label ?? user.claimedSchools[0].status}
+                      {owned ? (
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${SCH_STATUS[owned.status]?.cls ?? 'bg-gray-100 text-gray-500'}`}>
+                          {SCH_STATUS[owned.status]?.label ?? owned.status}
                         </span>
                       ) : (
                         <span className="text-xs text-gray-300">—</span>
@@ -137,9 +171,9 @@ export default function SchoolOwnersClient() {
                     </td>
                     <td className="px-4 py-3 text-xs text-gray-400">{fmtDate(user.createdAt)}</td>
                     <td className="px-4 py-3">
-                      {user.claimedSchools[0] && (
+                      {owned && (
                         <Link
-                          href={`/school/${user.claimedSchools[0].slug}`}
+                          href={`/school/${owned.slug}`}
                           target="_blank"
                           className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-[11px] font-semibold text-[#0870E2] hover:underline"
                         >
@@ -147,8 +181,20 @@ export default function SchoolOwnersClient() {
                         </Link>
                       )}
                     </td>
+                    <td className="px-4 py-3">
+                      <UserActionsMenu
+                        user={user}
+                        isOpen={openMenuId === user.id}
+                        onToggle={() => setOpenMenuId(openMenuId === user.id ? null : user.id)}
+                        onClose={() => setOpenMenuId(null)}
+                        onEdit={() => setEditUserId(user.id)}
+                        onContact={() => setContactUser(user)}
+                        onDelete={() => setDeleteTarget(user)}
+                      />
+                    </td>
                   </tr>
-                ))}
+                  )
+                })}
               </tbody>
             </table>
           )}

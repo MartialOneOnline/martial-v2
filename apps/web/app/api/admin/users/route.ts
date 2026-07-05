@@ -28,9 +28,13 @@ export async function GET(req: NextRequest) {
       skip: (page - 1) * limit,
       take: limit,
       select: {
-        id: true, name: true, email: true, role: true,
+        id: true, name: true, email: true, phone: true, role: true,
         avatarUrl: true, createdAt: true,
-        claimedSchools: { select: { id: true, name: true, slug: true, status: true }, take: 1 },
+        schoolMembers: {
+          where: { role: { in: ['OWNER', 'ADMIN', 'MANAGER', 'INSTRUCTOR', 'ASSISTANT_INSTRUCTOR', 'RECEPTIONIST'] } },
+          select: { school: { select: { id: true, name: true, slug: true, status: true } } },
+          take: 1,
+        },
         _count: { select: { memberships: true } },
       },
     }),

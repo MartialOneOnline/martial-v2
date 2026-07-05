@@ -3,20 +3,10 @@
 import { useEffect, useState, useCallback } from 'react'
 import {
   Users, Search, ChevronLeft, ChevronRight,
-  RefreshCw, Building2, GraduationCap,
+  RefreshCw, Building2, GraduationCap, AlertCircle, CheckCircle2,
 } from 'lucide-react'
 import { adminFetch } from '@/lib/api/adminFetch'
-
-type User = {
-  id: string
-  name: string | null
-  email: string
-  role: string
-  avatarUrl: string | null
-  createdAt: string
-  claimedSchools: { id: string; name: string; slug: string; status: string }[]
-  _count: { memberships: number }
-}
+import { AdminUser, UserActionsMenu, EditUserModal, ContactUserModal, DeleteUserModal } from './UserActions'
 
 const ROLE_BADGE: Record<string, { label: string; cls: string }> = {
   SUPERADMIN:   { label: 'Super Admin',    cls: 'bg-violet-50 text-violet-700 border border-violet-100' },
@@ -31,7 +21,7 @@ function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-function Avatar({ user }: { user: User }) {
+function Avatar({ user }: { user: AdminUser }) {
   const initials = (user.name || user.email).slice(0, 2).toUpperCase()
   return user.avatarUrl
     ? <img src={user.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
@@ -43,13 +33,19 @@ function Avatar({ user }: { user: User }) {
 }
 
 export default function AllUsersClient() {
-  const [users, setUsers] = useState<User[]>([])
+  const [users, setUsers] = useState<AdminUser[]>([])
   const [total, setTotal] = useState(0)
   const [pages, setPages] = useState(1)
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [role, setRole] = useState('')
   const [page, setPage] = useState(1)
+
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
+  const [editUserId, setEditUserId] = useState<string | null>(null)
+  const [contactUser, setContactUser] = useState<AdminUser | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null)
+  const [banner, setBanner] = useState<{ type: 'error' | 'success'; message: string } | null>(null)
 
   const load = useCallback(() => {
     setLoading(true)
@@ -68,8 +64,32 @@ export default function AllUsersClient() {
   useEffect(() => { setPage(1) }, [search, role])
   useEffect(() => { load() }, [load])
 
+  useEffect(() => {
+    if (!banner) return
+    const t = setTimeout(() => setBanner(null), 4000)
+    return () => clearTimeout(t)
+  }, [banner])
+
   return (
     <div className="min-h-screen">
+      {editUserId && (
+        <EditUserModal
+          userId={editUserId}
+          onClose={() => setEditUserId(null)}
+          onSaved={() => { setBanner({ type: 'success', message: 'User updated' }); load() }}
+        />
+      )}
+      {contactUser && (
+        <ContactUserModal user={contactUser} onClose={() => setContactUser(null)} />
+      )}
+      {deleteTarget && (
+        <DeleteUserModal
+          user={deleteTarget}
+          onClose={() => setDeleteTarget(null)}
+          onDeleted={() => { setBanner({ type: 'success', message: `${deleteTarget.name || deleteTarget.email} was deleted` }); load() }}
+        />
+      )}
+
       <div className="bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
         <div>
           <h1 className="text-lg font-bold text-[#101828]">All Users</h1>
@@ -83,6 +103,16 @@ export default function AllUsersClient() {
           Refresh
         </button>
       </div>
+
+      {banner && (
+        <div className="fixed top-4 right-4 z-[70] flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-sm font-medium"
+          style={banner.type === 'error'
+            ? { background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA' }
+            : { background: '#F0FDF4', color: '#15803D', border: '1px solid #BBF7D0' }}>
+          {banner.type === 'error' ? <AlertCircle className="w-4 h-4 shrink-0" /> : <CheckCircle2 className="w-4 h-4 shrink-0" />}
+          {banner.message}
+        </div>
+      )}
 
       <div className="p-8 space-y-4">
         {/* Filters */}
@@ -109,7 +139,7 @@ export default function AllUsersClient() {
         </div>
 
         {/* Table */}
-        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-visible">
           {loading ? (
             <div className="flex items-center justify-center h-40">
               <div className="w-6 h-6 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />
@@ -128,6 +158,7 @@ export default function AllUsersClient() {
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">School</th>
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Memberships</th>
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Joined</th>
+                  <th className="px-4 py-3" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -148,10 +179,10 @@ export default function AllUsersClient() {
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      {user.claimedSchools[0] ? (
+                      {user.schoolMembers[0] ? (
                         <div className="flex items-center gap-1.5 text-xs text-gray-500">
                           <Building2 className="w-3 h-3 text-gray-300 shrink-0" />
-                          {user.claimedSchools[0].name}
+                          {user.schoolMembers[0].school.name}
                         </div>
                       ) : (
                         <span className="text-xs text-gray-300">—</span>
@@ -164,6 +195,17 @@ export default function AllUsersClient() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-xs text-gray-400">{fmtDate(user.createdAt)}</td>
+                    <td className="px-4 py-3">
+                      <UserActionsMenu
+                        user={user}
+                        isOpen={openMenuId === user.id}
+                        onToggle={() => setOpenMenuId(openMenuId === user.id ? null : user.id)}
+                        onClose={() => setOpenMenuId(null)}
+                        onEdit={() => setEditUserId(user.id)}
+                        onContact={() => setContactUser(user)}
+                        onDelete={() => setDeleteTarget(user)}
+                      />
+                    </td>
                   </tr>
                 ))}
               </tbody>
