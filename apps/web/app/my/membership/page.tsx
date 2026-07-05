@@ -511,6 +511,7 @@ function PlanCard({ plan, onRequest, requesting, t }: {
 }) {
   const billing = billingLabel(plan.planType, plan.billingCycle, plan.validityDays, t)
   const ptCfg = getPlanTypeConfig(t)[plan.planType] ?? { label: plan.planType, bg: '#F3F4F6', color: '#6B7280' }
+  const isOnlinePayment = !!plan.school?.stripeEnabled && plan.paymentMethods?.includes('STRIPE')
 
   return (
     <div style={{ background: '#fff', border: plan.isPopular ? '2px solid #0870E2' : '1px solid #E5E7EB',
@@ -571,7 +572,7 @@ function PlanCard({ plan, onRequest, requesting, t }: {
               color: '#fff', fontSize: 12, fontWeight: 700, border: 'none',
               cursor: requesting ? 'not-allowed' : 'pointer', opacity: requesting ? 0.7 : 1 }}>
             <Send size={12} />
-            {plan.planType === 'TRIAL' ? t.my.bookTrial : t.my.requestPlan}
+            {plan.planType === 'TRIAL' ? t.my.bookTrial : isOnlinePayment ? t.my.purchasePlan : t.my.requestPlan}
           </button>
         )}
       </div>

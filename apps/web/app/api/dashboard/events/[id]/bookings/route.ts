@@ -32,7 +32,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     where: { eventId: id },
     select: {
       id: true, ticketName: true, quantity: true, status: true, paymentMethod: true,
-      amountPaid: true, currency: true, createdAt: true,
+      amountPaid: true, currency: true, createdAt: true, checkedIn: true, checkedInAt: true,
       user: { select: { name: true, email: true } },
     },
     orderBy: { createdAt: 'asc' },

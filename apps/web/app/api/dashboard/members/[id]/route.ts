@@ -90,12 +90,22 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
   const existing = await prisma.schoolMember.findFirst({
     where: { id, schoolId },
-    select: { id: true, userId: true },
+    select: { id: true, userId: true, user: { select: { email: true } } },
   })
   if (!existing) return NextResponse.json({ error: 'Member not found' }, { status: 404 })
 
   // Delete the school membership
   await prisma.schoolMember.delete({ where: { id } })
+
+  // The lead that brought this person in (if any) is no longer an active
+  // prospect once their membership is gone — free up their email so the
+  // public join form doesn't reject them as "already registered" forever.
+  if (existing.user.email) {
+    await prisma.lead.updateMany({
+      where: { schoolId, email: existing.user.email, status: { not: 'LOST' } },
+      data: { status: 'LOST' },
+    })
+  }
 
   // Delete the user only if they have no other school memberships
   const otherMemberships = await prisma.schoolMember.count({ where: { userId: existing.userId } })

@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getRevolutOrder, refundRevolutOrder } from '@/lib/revolut'
+import { getRevolutOrder, refundRevolutOrder, verifyRevolutWebhook } from '@/lib/revolut'
 import { MembershipStatus } from '@/lib/prisma-client/client'
 import { sendMembershipReceiptEmail, sendEventTicketConfirmationEmail, sendEventTicketRefundedEmail } from '@/lib/email/sendEmails'
 import { checkEventCapacity } from '@/lib/services/eventCapacity'
+import { recordOnlinePayment } from '@/lib/services/transactions'
+import { PaymentMethod, TransactionCategory } from '@/lib/prisma-client/enums'
 
 // POST /api/webhooks/revolut
 // Each school registers this URL in their Revolut Merchant dashboard.
@@ -11,6 +13,8 @@ import { checkEventCapacity } from '@/lib/services/eventCapacity'
 // load the school's revolutSecretKey, then act.
 export async function POST(req: NextRequest) {
   const rawBody = await req.text()
+  const signatureHeader = req.headers.get('revolut-signature') ?? ''
+  const timestampHeader  = req.headers.get('revolut-request-timestamp') ?? ''
 
   let payload: { event: string; order_id: string }
   try {
@@ -22,16 +26,25 @@ export async function POST(req: NextRequest) {
   const HANDLED = new Set(['ORDER_COMPLETED', 'ORDER_PAYMENT_DECLINED', 'ORDER_PAYMENT_FAILED'])
   if (!HANDLED.has(payload.event)) return NextResponse.json({ received: true })
 
-  // Revolut uses IP allowlisting for webhook security (not HMAC signatures).
-  // Production IPs: 35.246.21.235, 34.89.70.170
-  // No signature verification needed — rely on Vercel edge + IP allowlist.
+  // Verify the HMAC signature once we know which school's signing secret to check.
+  // Schools that haven't re-registered their webhook since revolutWebhookSecret was
+  // introduced won't have one stored yet — for those we log a warning and accept
+  // unverified, rather than breaking their live payment flow outright. Once they
+  // click "Register webhook" again in Settings, verification becomes mandatory.
+  async function verifySignature(webhookSecret: string | null, schoolId: string): Promise<boolean> {
+    if (!webhookSecret) {
+      console.warn(`[revolut webhook] schoolId=${schoolId} has no revolutWebhookSecret configured — accepting unverified payload. Ask them to re-click "Register webhook" in Settings.`)
+      return true
+    }
+    return verifyRevolutWebhook(rawBody, signatureHeader, timestampHeader, webhookSecret)
+  }
 
   const membership = await prisma.membership.findFirst({
     where: { revolutOrderId: payload.order_id },
     select: {
-      id: true, userId: true, schoolId: true, status: true,
+      id: true, userId: true, schoolId: true, status: true, planName: true, price: true, currency: true,
       plan: { select: { validityDays: true } },
-      school: { select: { revolutSecretKey: true, name: true, city: true, language: true } },
+      school: { select: { revolutSecretKey: true, revolutWebhookSecret: true, name: true, city: true, language: true } },
     },
   })
 
@@ -39,6 +52,9 @@ export async function POST(req: NextRequest) {
     const { school } = membership
     if (!school?.revolutSecretKey)
       return NextResponse.json({ error: 'School Revolut not configured' }, { status: 400 })
+
+    if (!(await verifySignature(school.revolutWebhookSecret, membership.schoolId)))
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
 
     if (payload.event === 'ORDER_COMPLETED') {
       if (membership.status !== 'PENDING') return NextResponse.json({ received: true })
@@ -62,6 +78,16 @@ export async function POST(req: NextRequest) {
         await tx.schoolMember.updateMany({
           where: { userId: membership.userId, schoolId: membership.schoolId },
           data:  { status: 'ACTIVE' },
+        })
+        await recordOnlinePayment(tx, {
+          schoolId:      membership.schoolId,
+          userId:        membership.userId,
+          amount:        Number(membership.price),
+          currency:      membership.currency,
+          paymentMethod: PaymentMethod.REVOLUT,
+          category:      TransactionCategory.MEMBERSHIP,
+          description:   membership.planName,
+          membershipId:  membership.id,
         })
       })
 
@@ -93,6 +119,14 @@ export async function POST(req: NextRequest) {
     }
 
     if (payload.event === 'ORDER_PAYMENT_DECLINED' || payload.event === 'ORDER_PAYMENT_FAILED') {
+      if (membership.status !== 'PENDING') return NextResponse.json({ received: true })
+
+      // Re-fetch the order from Revolut rather than trusting the payload directly —
+      // mirrors the ORDER_COMPLETED check above. If Revolut's own record says the
+      // order actually completed, don't cancel a membership that was in fact paid.
+      const order = await getRevolutOrder(school.revolutSecretKey, payload.order_id)
+      if (order.state === 'COMPLETED') return NextResponse.json({ received: true })
+
       await prisma.membership.update({
         where: { id: membership.id },
         data:  { status: MembershipStatus.CANCELLED, cancelledAt: new Date() },
@@ -107,8 +141,8 @@ export async function POST(req: NextRequest) {
   const eventBooking = await prisma.eventBooking.findFirst({
     where: { revolutOrderId: eventBookingId },
     select: {
-      id: true, status: true, quantity: true, ticketId: true, eventId: true, ticketName: true, amountPaid: true, currency: true,
-      event: { select: { title: true, startAt: true, location: true, capacity: true, schoolId: true, school: { select: { revolutSecretKey: true, name: true, city: true, language: true } } } },
+      id: true, status: true, quantity: true, ticketId: true, eventId: true, ticketName: true, amountPaid: true, currency: true, userId: true,
+      event: { select: { title: true, startAt: true, location: true, capacity: true, schoolId: true, school: { select: { revolutSecretKey: true, revolutWebhookSecret: true, name: true, city: true, language: true } } } },
       ticket: { select: { capacity: true } },
       user: { select: { email: true, name: true } },
     },
@@ -119,6 +153,9 @@ export async function POST(req: NextRequest) {
   const revolutSecretKey = eventBooking.event.school.revolutSecretKey
   if (!revolutSecretKey)
     return NextResponse.json({ error: 'School Revolut not configured' }, { status: 400 })
+
+  if (!(await verifySignature(eventBooking.event.school.revolutWebhookSecret, eventBooking.event.schoolId)))
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
 
   if (payload.event === 'ORDER_COMPLETED') {
     if (eventBooking.status !== 'PENDING') return NextResponse.json({ received: true })
@@ -138,6 +175,16 @@ export async function POST(req: NextRequest) {
 
       if (capacity.ok) {
         await tx.eventBooking.update({ where: { id: eventBooking.id }, data: { status: 'CONFIRMED' } })
+        await recordOnlinePayment(tx, {
+          schoolId:      eventBooking.event.schoolId,
+          userId:        eventBooking.userId,
+          amount:        Number(eventBooking.amountPaid ?? 0),
+          currency:      eventBooking.currency,
+          paymentMethod: PaymentMethod.REVOLUT,
+          category:      TransactionCategory.OTHER, // no dedicated EVENT category yet
+          description:   `${eventBooking.event.title} — ${eventBooking.ticketName} x${eventBooking.quantity}`,
+          bookingId:     eventBooking.id,
+        })
         return { sold: true }
       } else {
         await tx.eventBooking.update({ where: { id: eventBooking.id }, data: { status: 'CANCELLED' } })
@@ -184,6 +231,12 @@ export async function POST(req: NextRequest) {
   }
 
   if (payload.event === 'ORDER_PAYMENT_DECLINED' || payload.event === 'ORDER_PAYMENT_FAILED') {
+    if (eventBooking.status !== 'PENDING') return NextResponse.json({ received: true })
+
+    // Re-fetch from Revolut before cancelling — same reasoning as the membership branch.
+    const order = await getRevolutOrder(revolutSecretKey, payload.order_id)
+    if (order.state === 'COMPLETED') return NextResponse.json({ received: true })
+
     await prisma.eventBooking.update({
       where: { id: eventBooking.id },
       data:  { status: 'CANCELLED' },

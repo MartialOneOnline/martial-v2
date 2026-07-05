@@ -44,7 +44,6 @@ interface PlanRow {
   isPopular: boolean
   isActive: boolean
   classAccess: ClassAccessConfig | Record<string, never>
-  stripePriceId: string | null
   memberCount: number
 }
 
@@ -66,7 +65,6 @@ interface PlanForm {
   isPublic: boolean
   isPopular: boolean
   isActive: boolean
-  stripePriceId: string
   paymentMethods: string[]
   classRules: ClassAccessRule[]
   globalLimit: string
@@ -139,7 +137,6 @@ function planToForm(plan: PlanRow, classes: ClassOption[]): PlanForm {
     isPublic: plan.isPublic,
     isPopular: plan.isPopular,
     isActive: plan.isActive,
-    stripePriceId: plan.stripePriceId ?? '',
     paymentMethods: (plan as PlanRow & { paymentMethods?: string[] }).paymentMethods ?? ['CASH'],
     classRules,
     globalLimit: cfg.globalLimit ?? '',
@@ -160,7 +157,6 @@ function formToPayload(form: PlanForm) {
     isPublic: form.isPublic,
     isPopular: form.isPopular,
     isActive: form.isActive,
-    stripePriceId: form.stripePriceId,
     paymentMethods: form.paymentMethods,
     classAccess: {
       classRules: form.classRules,
@@ -408,7 +404,7 @@ function PlanDrawer({ open, onClose, onSaved, editPlan, classes }: {
     billingCycle: 'monthly',
     validityDays: '30', validityPeriod: 'days',
     isPublic: true, isPopular: false, isActive: true,
-    stripePriceId: '', paymentMethods: ['CASH'],
+    paymentMethods: ['CASH'],
     classRules: buildDefaultClassRules(classes),
     globalLimit: '', globalLimitType: 'PER_MONTH',
   })
@@ -611,13 +607,6 @@ function PlanDrawer({ open, onClose, onSaved, editPlan, classes }: {
                     )
                   })}
                 </div>
-              </div>
-
-              {/* Stripe Price ID */}
-              <div>
-                <label style={labelSt}>Stripe Price ID <span style={{ fontWeight: 400, color: '#9CA3AF' }}>(optional — use for pre-created Stripe prices)</span></label>
-                <input value={form.stripePriceId} onChange={e => set('stripePriceId', e.target.value)}
-                  placeholder="price_..." style={inputSt} />
               </div>
 
               {/* Class access */}

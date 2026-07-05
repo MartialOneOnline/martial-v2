@@ -26,46 +26,51 @@ export async function GET(req: NextRequest) {
   if (!schoolId) return NextResponse.json({ error: 'No school context' }, { status: 400 })
 
   // Validate access (SUPERADMIN bypasses membership check)
-  if (user.role !== 'SUPERADMIN') {
+  // Only OWNER/ADMIN (or SUPERADMIN) may see the payment provider secret keys —
+  // everyone else with school access gets the public fields only.
+  let canViewPaymentSecrets = user.role === 'SUPERADMIN'
+  if (!canViewPaymentSecrets) {
     try {
-      await requireSchoolAccess(user.id, schoolId)
+      const member = await requireSchoolAccess(user.id, schoolId)
+      canViewPaymentSecrets = ['OWNER', 'ADMIN'].includes(member.role)
     } catch {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
   }
 
+  const baseSelect = {
+    id: true,
+    name: true,
+    slug: true,
+    status: true,
+    city: true,
+    country: true,
+    address: true,
+    postcode: true,
+    logoUrl: true,
+    coverUrl: true,
+    email: true,
+    phone: true,
+    website: true,
+    description: true,
+    tagline: true,
+    instagram: true,
+    facebook: true,
+    youtube: true,
+    tiktok: true,
+    language: true,
+    defaultBookingSettings: true,
+    cancelPolicy: true,
+    stripePublishableKey: true,
+    revolutPublicKey: true,
+    modules: true,
+  } as const
+
   const school = await prisma.school.findUnique({
     where: { id: schoolId },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      status: true,
-      city: true,
-      country: true,
-      address: true,
-      postcode: true,
-      logoUrl: true,
-      coverUrl: true,
-      email: true,
-      phone: true,
-      website: true,
-      description: true,
-      tagline: true,
-      instagram: true,
-      facebook: true,
-      youtube: true,
-      tiktok: true,
-      language: true,
-      defaultBookingSettings: true,
-      cancelPolicy: true,
-      stripePublishableKey: true,
-      stripeSecretKey: true,
-      stripeWebhookSecret: true,
-      revolutPublicKey: true,
-      revolutSecretKey: true,
-      modules: true,
-    },
+    select: canViewPaymentSecrets
+      ? { ...baseSelect, stripeSecretKey: true, stripeWebhookSecret: true, revolutSecretKey: true }
+      : baseSelect,
   })
 
   if (!school) return NextResponse.json({ error: 'School not found' }, { status: 404 })

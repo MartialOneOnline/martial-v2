@@ -232,6 +232,21 @@ export default function LeadsClient() {
 
   useEffect(() => { fetchLeads() }, [fetchLeads])
 
+  async function markAsLost(id: string) {
+    await fetch(`/api/dashboard/leads/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'LOST' }),
+    })
+    fetchLeads()
+  }
+
+  async function deleteLead(id: string) {
+    if (!confirm('Delete this lead permanently?')) return
+    await fetch(`/api/dashboard/leads/${id}`, { method: 'DELETE' })
+    fetchLeads()
+  }
+
   const totalPages = Math.max(1, Math.ceil(total / ITEMS_PER_PAGE))
   const pages = getPaginationPages(currentPage, totalPages)
 
@@ -408,16 +423,22 @@ export default function LeadsClient() {
                           <div className="absolute right-4 rounded-xl z-20 py-1 overflow-hidden"
                             style={{ background: '#fff', border: '1px solid #E5E7EB',
                               boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 160, top: '100%' }}>
-                            {['View details', 'Edit lead', 'Convert to member', 'Delete lead'].map((label, i) => (
-                              <button key={label} onClick={() => setOpenMenuId(null)}
+                            {lead.status !== 'LOST' && (
+                              <button onClick={() => { setOpenMenuId(null); markAsLost(lead.id) }}
                                 className="w-full text-left px-4 py-2.5 cursor-pointer"
-                                style={{ fontSize: 13, color: i === 3 ? '#DC2626' : '#374151',
-                                  background: 'transparent', border: 'none' }}
-                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = i === 3 ? '#FEF2F2' : '#F9FAFB'}
+                                style={{ fontSize: 13, color: '#374151', background: 'transparent', border: 'none' }}
+                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
                                 onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                                {label}
+                                Mark as lost
                               </button>
-                            ))}
+                            )}
+                            <button onClick={() => { setOpenMenuId(null); deleteLead(lead.id) }}
+                              className="w-full text-left px-4 py-2.5 cursor-pointer"
+                              style={{ fontSize: 13, color: '#DC2626', background: 'transparent', border: 'none' }}
+                              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#FEF2F2'}
+                              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+                              Delete lead
+                            </button>
                           </div>
                         </>
                       )}

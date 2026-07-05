@@ -4,6 +4,8 @@ import { getStripe } from '@/lib/stripe'
 import { MembershipStatus } from '@/lib/prisma-client/client'
 import { sendMembershipReceiptEmail, sendEventTicketConfirmationEmail, sendEventTicketRefundedEmail } from '@/lib/email/sendEmails'
 import { checkEventCapacity } from '@/lib/services/eventCapacity'
+import { recordOnlinePayment } from '@/lib/services/transactions'
+import { PaymentMethod, TransactionCategory } from '@/lib/prisma-client/enums'
 
 // POST /api/webhooks/stripe
 // Each school registers this URL in their Stripe dashboard.
@@ -70,8 +72,15 @@ export async function POST(req: NextRequest) {
         customer?: string
         payment_intent?: string
       }
-      const { membershipId, planType, eventBookingId } = session.metadata ?? {}
-      if (!membershipId && !eventBookingId) break
+      const meta = (session.metadata ?? {}) as Record<string, string>
+      const { planId, planType, validityDays, eventBookingId } = meta
+      // Non-null: these always accompany planId, set together by /api/my/checkout.
+      const schoolId = meta.schoolId!
+      const userId = meta.userId!
+      const planName = meta.planName!
+      const price = meta.price!
+      const currency = meta.currency!
+      if (!planId && !eventBookingId) break
 
       if (session.payment_status !== 'paid') break
 
@@ -102,6 +111,16 @@ export async function POST(req: NextRequest) {
             await tx.eventBooking.update({
               where: { id: eventBookingId },
               data: { status: 'CONFIRMED', stripePaymentId: session.payment_intent ?? null },
+            })
+            await recordOnlinePayment(tx, {
+              schoolId:      booking.event.schoolId,
+              userId:        booking.userId,
+              amount:        Number(booking.amountPaid ?? 0),
+              currency:      booking.currency,
+              paymentMethod: PaymentMethod.STRIPE,
+              category:      TransactionCategory.OTHER, // no dedicated EVENT category yet
+              description:   `${booking.event.title} — ${booking.ticketName} x${booking.quantity}`,
+              bookingId:     eventBookingId,
             })
             return { sold: true, booking }
           } else {
@@ -153,35 +172,52 @@ export async function POST(req: NextRequest) {
         break
       }
 
-      if (!membershipId) break
+      if (!planId) break
 
+      // The membership is created here, on confirmed payment — not before checkout.
+      // An abandoned/cancelled Stripe session simply never reaches this handler, so
+      // it never leaves a phantom PENDING membership behind.
       let activatedMembershipId: string | null = null
       await prisma.$transaction(async (tx) => {
-        const membership = await tx.membership.findUnique({
-          where: { id: membershipId },
-          select: { userId: true, schoolId: true, status: true, plan: { select: { validityDays: true } } },
+        // Idempotency: a retried webhook delivery for the same successful session
+        // would otherwise create a second membership.
+        const alreadyActive = await tx.membership.findFirst({
+          where: { userId, planId, status: 'ACTIVE' },
+          select: { id: true },
         })
-        if (!membership || membership.status !== 'PENDING') return
+        if (alreadyActive) return
 
-        const endDate = planType !== 'SUBSCRIPTION' && membership.plan?.validityDays
-          ? new Date(Date.now() + membership.plan.validityDays * 86_400_000)
+        const endDate = planType !== 'SUBSCRIPTION' && validityDays
+          ? new Date(Date.now() + Number(validityDays) * 86_400_000)
           : undefined
 
-        await tx.membership.update({
-          where: { id: membershipId },
+        const created = await tx.membership.create({
           data: {
-            status:          MembershipStatus.ACTIVE,
-            startDate:       new Date(),
+            userId, schoolId, planId,
+            planName, price: Number(price), currency,
+            paymentMethod: PaymentMethod.STRIPE,
+            status:        MembershipStatus.ACTIVE,
+            startDate:     new Date(),
             ...(endDate && { endDate }),
             ...(session.subscription && { stripeSubId: session.subscription }),
             ...(session.customer     && { stripeCustomerId: String(session.customer) }),
           },
         })
         await tx.schoolMember.updateMany({
-          where: { userId: membership.userId, schoolId: membership.schoolId },
+          where: { userId, schoolId },
           data:  { status: 'ACTIVE' },
         })
-        activatedMembershipId = membershipId
+        await recordOnlinePayment(tx, {
+          schoolId,
+          userId,
+          amount:        Number(price),
+          currency,
+          paymentMethod: PaymentMethod.STRIPE,
+          category:      TransactionCategory.MEMBERSHIP,
+          description:   planName,
+          membershipId:  created.id,
+        })
+        activatedMembershipId = created.id
       })
 
       // Send receipt email (fire-and-forget)
@@ -221,6 +257,7 @@ export async function POST(req: NextRequest) {
         customer?: string
         id?: string
         billing_reason?: string
+        amount_paid?: number
       }
       if (!invoice.subscription) break
       // Skip the initial invoice (already handled by checkout.session.completed)
@@ -228,17 +265,29 @@ export async function POST(req: NextRequest) {
 
       const membership = await prisma.membership.findFirst({
         where: { stripeSubId: invoice.subscription },
-        select: { id: true, plan: { select: { billingCycle: true } } },
+        select: { id: true, schoolId: true, userId: true, planName: true, currency: true, plan: { select: { billingCycle: true } } },
       })
       if (!membership) break
 
       // Extend endDate by one billing period or keep null (indefinite)
-      await prisma.membership.update({
-        where: { id: membership.id },
-        data: {
-          status:          MembershipStatus.ACTIVE,
-          stripeInvoiceId: invoice.id ?? null,
-        },
+      await prisma.$transaction(async (tx) => {
+        await tx.membership.update({
+          where: { id: membership.id },
+          data: {
+            status:          MembershipStatus.ACTIVE,
+            stripeInvoiceId: invoice.id ?? null,
+          },
+        })
+        await recordOnlinePayment(tx, {
+          schoolId:      membership.schoolId,
+          userId:        membership.userId,
+          amount:        invoice.amount_paid != null ? invoice.amount_paid / 100 : 0,
+          currency:      membership.currency,
+          paymentMethod: PaymentMethod.STRIPE,
+          category:      TransactionCategory.MEMBERSHIP,
+          description:   `${membership.planName} — renewal`,
+          membershipId:  membership.id,
+        })
       })
       break
     }

@@ -11,7 +11,6 @@ import {
 import Header from '../../components/Header'
 import Footer from '../../components/Footer'
 import LoginModal from '../../components/LoginModal'
-import RegisterModal from '../../components/RegisterModal'
 import { useT } from '../../lib/i18n/LanguageContext'
 
 // ── Types & Data ──────────────────────────────────────────────────────────────
@@ -139,7 +138,6 @@ export default function AcademyPage() {
   const [tierModal, setTierModal]       = useState<PatreonTier | null>(null)
   const [walletBalance]                 = useState(250.00)
   const [showLogin, setShowLogin]       = useState(false)
-  const [showRegister, setShowRegister] = useState(false)
 
   const filteredCourses = useMemo(() => COURSES.filter(c => {
     const matchCat = category === 'All' || c.category === category
@@ -163,8 +161,7 @@ export default function AcademyPage() {
   return (
     <div className="bg-[#f8fafc] text-slate-800 min-h-screen font-sans">
 
-      {showLogin    && <LoginModal    onClose={() => setShowLogin(false)}    onOpenRegister={() => { setShowLogin(false); setShowRegister(true) }} />}
-      {showRegister && <RegisterModal onClose={() => setShowRegister(false)} onOpenLogin={() => { setShowRegister(false); setShowLogin(true) }} />}
+      {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
 
       <Header onOpenLoginModal={() => setShowLogin(true)} />
 
@@ -215,13 +212,13 @@ export default function AcademyPage() {
           </p>
 
           <div className="mt-8 flex flex-col sm:flex-row justify-center items-center gap-4">
-            <button
-              onClick={() => setShowRegister(true)}
+            <Link
+              href="/register?type=school"
               className="w-full sm:w-auto bg-[#0870E2] hover:bg-[#007cd7] text-white font-extrabold text-sm py-4 px-8 rounded-xl shadow-lg shadow-sky-500/20 hover:scale-105 transition-all flex items-center justify-center gap-2 cursor-pointer group"
             >
               Launch Creator Hub (Instructor Mode)
               <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </button>
+            </Link>
             <button
               onClick={() => document.getElementById('patreon-section')?.scrollIntoView({ behavior: 'smooth' })}
               className="w-full sm:w-auto bg-slate-800/80 hover:bg-slate-800 border border-slate-700 hover:border-slate-500 text-white font-extrabold text-sm py-4 px-8 rounded-xl hover:scale-105 transition-all flex items-center justify-center gap-2 cursor-pointer"
@@ -474,12 +471,12 @@ export default function AcademyPage() {
               Create your own Patreon-style subscription tiers, publish HD video courses, schedule live classes, and generate passive income from your martial arts expertise.
             </p>
             <div className="mt-6 flex flex-wrap gap-4">
-              <button
-                onClick={() => setShowRegister(true)}
+              <Link
+                href="/register?type=school"
                 className="bg-[#0870E2] hover:bg-[#007cd7] text-white text-xs font-extrabold py-3 px-6 rounded-lg transition-all hover:scale-105 cursor-pointer shadow-md"
               >
                 Launch Creator Dashboard
-              </button>
+              </Link>
               <Link
                 href="/explore"
                 className="bg-transparent hover:bg-white/10 text-white border border-slate-700 text-xs font-extrabold py-3 px-6 rounded-lg transition-all cursor-pointer inline-flex items-center gap-1.5"

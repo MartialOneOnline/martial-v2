@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { TransactionStatus } from '@/lib/prisma-client/enums'
 
 async function authorise() {
   const user = await getAuthUser()
@@ -52,9 +53,11 @@ export async function GET(req: NextRequest) {
     prisma.transaction.count({ where }),
   ])
 
-  // Monthly chart data for last 12 months
+  // Monthly chart data for last 12 months — only count settled money (PAID),
+  // never PENDING/FAILED/REFUNDED/CANCELLED, so income/expenses/balance reflect
+  // actual cash rather than attempted or reversed charges.
   const allTx = await prisma.transaction.findMany({
-    where: { schoolId: auth.schoolId },
+    where: { schoolId: auth.schoolId, status: TransactionStatus.PAID },
     select: { type: true, amount: true, date: true },
   })
 

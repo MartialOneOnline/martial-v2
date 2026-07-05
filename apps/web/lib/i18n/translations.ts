@@ -488,7 +488,7 @@ export const translations = {
       passExpiresSoon: 'This pass expires in {n} day(s). Book your remaining classes!',
       membershipPaused: 'Your membership is paused. Resume any time to restore access.',
       pause: 'Pause', resume: 'Resume',
-      currentPlan: 'Current plan', bookTrial: 'Book trial', requestPlan: 'Request this plan',
+      currentPlan: 'Current plan', bookTrial: 'Book trial', requestPlan: 'Request this plan', purchasePlan: 'Purchase',
       mostPopular: 'MOST POPULAR',
       pauseMembership: 'Pause membership', pauseDesc: 'Your access will be temporarily suspended. You can resume at any time.', pauseBtn: 'Pause',
       resumeMembership: 'Resume membership', resumeDesc: 'Your access will be restored immediately.', resumeBtn: 'Resume',
@@ -596,6 +596,8 @@ export const translations = {
       checkoutFailedError: 'Could not start checkout. Try again.',
       payAtDoorBtn: 'Pay at the door', cashReservedTitle: 'Reservation received',
       cashReservedDesc: 'Your spot is held — pay in cash when you arrive.',
+      showTicketBtn: 'Show ticket', ticketQrHint: 'Show this code at the door to check in',
+      checkedInLabel: 'Checked in',
     },
 
     sidebar: {
@@ -1049,7 +1051,7 @@ export const translations = {
       passExpiresSoon: 'Este pase vence en {n} día(s). ¡Reserva tus clases restantes!',
       membershipPaused: 'Tu membresía está pausada. Reanúdala en cualquier momento para recuperar el acceso.',
       pause: 'Pausar', resume: 'Reanudar',
-      currentPlan: 'Plan actual', bookTrial: 'Reservar prueba', requestPlan: 'Solicitar plan',
+      currentPlan: 'Plan actual', bookTrial: 'Reservar prueba', requestPlan: 'Solicitar plan', purchasePlan: 'Comprar',
       mostPopular: 'MÁS POPULAR',
       pauseMembership: 'Pausar membresía', pauseDesc: 'Tu acceso se suspenderá temporalmente. Puedes reanudar en cualquier momento.', pauseBtn: 'Pausar',
       resumeMembership: 'Reanudar membresía', resumeDesc: 'Tu acceso se restaurará inmediatamente.', resumeBtn: 'Reanudar',
@@ -1145,6 +1147,8 @@ export const translations = {
       checkoutFailedError: 'No se pudo iniciar el pago. Inténtalo de nuevo.',
       payAtDoorBtn: 'Pagar en la puerta', cashReservedTitle: 'Reserva recibida',
       cashReservedDesc: 'Tu plaza queda reservada — paga en efectivo cuando llegues.',
+      showTicketBtn: 'Ver entrada', ticketQrHint: 'Muestra este código en la puerta para registrar tu entrada',
+      checkedInLabel: 'Registrado',
     },
 
     sidebar: {
@@ -1598,7 +1602,7 @@ export const translations = {
       passExpiresSoon: 'Este passe vence em {n} dia(s). Reserve suas aulas restantes!',
       membershipPaused: 'Sua assinatura está pausada. Retome a qualquer momento para restaurar o acesso.',
       pause: 'Pausar', resume: 'Retomar',
-      currentPlan: 'Plano atual', bookTrial: 'Reservar teste', requestPlan: 'Solicitar plano',
+      currentPlan: 'Plano atual', bookTrial: 'Reservar teste', requestPlan: 'Solicitar plano', purchasePlan: 'Comprar',
       mostPopular: 'MAIS POPULAR',
       pauseMembership: 'Pausar assinatura', pauseDesc: 'Seu acesso será suspenso temporariamente. Você pode retomar a qualquer momento.', pauseBtn: 'Pausar',
       resumeMembership: 'Retomar assinatura', resumeDesc: 'Seu acesso será restaurado imediatamente.', resumeBtn: 'Retomar',
@@ -1694,6 +1698,8 @@ export const translations = {
       checkoutFailedError: 'Não foi possível iniciar o pagamento. Tente novamente.',
       payAtDoorBtn: 'Pagar à porta', cashReservedTitle: 'Reserva recebida',
       cashReservedDesc: 'O seu lugar está reservado — pague em dinheiro quando chegar.',
+      showTicketBtn: 'Ver bilhete', ticketQrHint: 'Mostre este código na porta para o check-in',
+      checkedInLabel: 'Registado',
     },
 
     sidebar: {
@@ -2147,7 +2153,7 @@ export const translations = {
       passExpiresSoon: 'Ce pass expire dans {n} jour(s). Réservez vos cours restants !',
       membershipPaused: "Votre abonnement est suspendu. Reprenez à tout moment pour restaurer l'accès.",
       pause: 'Suspendre', resume: 'Reprendre',
-      currentPlan: 'Plan actuel', bookTrial: 'Réserver un essai', requestPlan: 'Demander ce plan',
+      currentPlan: 'Plan actuel', bookTrial: 'Réserver un essai', requestPlan: 'Demander ce plan', purchasePlan: 'Acheter',
       mostPopular: 'LE PLUS POPULAIRE',
       pauseMembership: "Suspendre l'abonnement", pauseDesc: "Votre accès sera temporairement suspendu. Vous pouvez reprendre à tout moment.", pauseBtn: 'Suspendre',
       resumeMembership: "Reprendre l'abonnement", resumeDesc: 'Votre accès sera restauré immédiatement.', resumeBtn: 'Reprendre',
@@ -2243,6 +2249,8 @@ export const translations = {
       checkoutFailedError: 'Impossible de lancer le paiement. Réessayez.',
       payAtDoorBtn: 'Payer sur place', cashReservedTitle: 'Réservation reçue',
       cashReservedDesc: 'Votre place est retenue — payez en espèces sur place.',
+      showTicketBtn: 'Voir le billet', ticketQrHint: "Montrez ce code à l'entrée pour l'enregistrement",
+      checkedInLabel: 'Enregistré',
     },
 
     sidebar: {

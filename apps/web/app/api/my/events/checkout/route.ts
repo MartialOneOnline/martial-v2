@@ -74,6 +74,7 @@ export async function POST(req: NextRequest) {
         amountPaid: ticket.price * quantity,
         currency: ticket.currency,
         paymentMethod: useRevolut ? 'REVOLUT' : 'STRIPE',
+        qrToken: crypto.randomUUID(),
       },
     })
   }).catch((err: Error & { status?: number }) => {

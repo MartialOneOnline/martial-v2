@@ -4,8 +4,9 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   Bell, Menu, X, Plus, MoreHorizontal, Search,
   TrendingUp, Check, Upload, Clock, MapPin, Star,
-  Ticket, Calendar, Pencil, Trash2, Globe, EyeOff,
+  Ticket, Calendar, Pencil, Trash2, Globe, EyeOff, QrCode, CheckCircle2,
 } from 'lucide-react'
+import { QRCodeSVG } from 'qrcode.react'
 import { useDashboard } from '../../../../components/DashboardShell'
 import DashboardLanguageSelector from '../../../../components/DashboardLanguageSelector'
 import { useT } from '../../../../lib/i18n/LanguageContext'
@@ -676,6 +677,8 @@ interface AttendeeRow {
   amountPaid: number | null
   currency: string
   createdAt: string
+  checkedIn: boolean
+  checkedInAt: string | null
   user: { name: string | null; email: string }
 }
 
@@ -705,7 +708,16 @@ function AttendeesModal({ ev, onClose }: { ev: EventRow | null; onClose: () => v
 
   useEffect(() => { load() }, [load])
 
+  // Poll while open so check-ins scanned from another phone show up live
+  useEffect(() => {
+    if (!ev) return
+    const interval = setInterval(load, 5000)
+    return () => clearInterval(interval)
+  }, [ev, load])
+
   if (!ev) return null
+
+  const checkedInCount = attendees.filter(a => a.checkedIn).length
 
   async function updateStatus(bookingId: string, status: 'CONFIRMED' | 'CANCELLED') {
     setUpdatingId(bookingId)
@@ -727,7 +739,9 @@ function AttendeesModal({ ev, onClose }: { ev: EventRow | null; onClose: () => v
         <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #F3F4F6' }}>
           <div>
             <h3 style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0 }}>Registrations</h3>
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{ev.title}</p>
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>
+              {ev.title} · {checkedInCount} / {attendees.length} checked in
+            </p>
           </div>
           <button onClick={onClose} className="cursor-pointer" style={{ background: 'none', border: 'none' }}>
             <X size={18} style={{ color: '#9CA3AF' }} />
@@ -757,6 +771,11 @@ function AttendeesModal({ ev, onClose }: { ev: EventRow | null; onClose: () => v
                       <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 999, background: sc.bg, color: sc.color }}>
                         {sc.label}
                       </span>
+                      {a.checkedIn && (
+                        <span className="flex items-center gap-1" style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 999, background: '#DCFCE7', color: '#15803D' }}>
+                          <CheckCircle2 size={11} /> Checked in
+                        </span>
+                      )}
                       {canConfirm && (
                         <button
                           onClick={() => updateStatus(a.id, 'CONFIRMED')}
@@ -787,6 +806,43 @@ function AttendeesModal({ ev, onClose }: { ev: EventRow | null; onClose: () => v
   )
 }
 
+// ── QR Check-in modal ────────────────────────────────────────────────────────
+
+function CheckinQRModal({ ev, onClose }: { ev: EventRow | null; onClose: () => void }) {
+  if (!ev) return null
+  const origin = typeof window !== 'undefined' ? window.location.origin : ''
+  const scannerUrl = `${origin}/checkin/event/${ev.id}`
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onClose}>
+      <div className="rounded-2xl p-8 flex flex-col items-center text-center gap-4" style={{ background: '#fff', width: 380, boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }} onClick={e => e.stopPropagation()}>
+        <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: '#F5F3FF' }}>
+          <QrCode size={24} style={{ color: '#6D28D9' }} />
+        </div>
+        <div>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>QR Check-in</h3>
+          <p style={{ fontSize: 13, color: '#6B7280', marginTop: 6 }}>{ev.title}</p>
+        </div>
+        <div className="p-4 rounded-2xl" style={{ background: '#F9FAFB' }}>
+          <QRCodeSVG value={scannerUrl} size={200} level="M" />
+        </div>
+        <p style={{ fontSize: 12, color: '#9CA3AF', lineHeight: 1.5 }}>
+          Scan this with the staff phone to open the scanner, then scan each attendee&apos;s ticket QR at the door.
+        </p>
+        <a href={scannerUrl} target="_blank" rel="noopener noreferrer"
+          className="w-full py-2.5 rounded-xl cursor-pointer"
+          style={{ fontSize: 13, fontWeight: 600, border: 'none', background: '#0071E3', color: '#fff', textDecoration: 'none', display: 'block' }}>
+          Open scanner
+        </a>
+        <button onClick={onClose} className="w-full py-2.5 rounded-xl cursor-pointer"
+          style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
+          Close
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ── Main ───────────────────────────────────────────────────────────────────────
 
 type Filter = 'All' | EventStatus
@@ -808,6 +864,7 @@ export default function EventsClient() {
   const [successMsg, setSuccessMsg]     = useState('')
   const [openMenuId, setOpenMenuId]     = useState<string | null>(null)
   const [attendeesEvent, setAttendeesEvent] = useState<EventRow | null>(null)
+  const [checkinEvent, setCheckinEvent]     = useState<EventRow | null>(null)
 
   const loadEvents = useCallback(async () => {
     setLoading(true)
@@ -1161,6 +1218,13 @@ export default function EventsClient() {
                                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
                                   <Pencil size={13} /> {t.common.edit}
                                 </button>
+                                <button onClick={() => { setOpenMenuId(null); setCheckinEvent(ev) }}
+                                  className="w-full text-left px-4 py-2 cursor-pointer flex items-center gap-2"
+                                  style={{ fontSize: 13, color: '#374151', background: 'transparent', border: 'none' }}
+                                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
+                                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+                                  <QrCode size={13} /> QR Check-in
+                                </button>
                                 {!ev.isCancelled && (
                                   <button onClick={() => cancelEvent(ev)}
                                     className="w-full text-left px-4 py-2 cursor-pointer flex items-center gap-2"
@@ -1262,6 +1326,11 @@ export default function EventsClient() {
       <AttendeesModal
         ev={attendeesEvent}
         onClose={() => { setAttendeesEvent(null); loadEvents() }}
+      />
+
+      <CheckinQRModal
+        ev={checkinEvent}
+        onClose={() => setCheckinEvent(null)}
       />
     </>
   )

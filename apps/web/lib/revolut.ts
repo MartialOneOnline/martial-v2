@@ -92,17 +92,26 @@ export async function refundRevolutOrder(secretKey: string, orderId: string, amo
 
 /**
  * Verify a Revolut webhook signature.
- * Revolut sends: Revolut-Signature: v1=<hmac_hex>
- * We compute HMAC-SHA256 over the raw body with the webhook secret.
+ * Per Revolut's docs, the signed payload is `v1.{timestamp}.{rawBody}`, HMAC-SHA256'd
+ * with the webhook's signing secret, sent as `Revolut-Signature: v1=<hex>` alongside
+ * `Revolut-Request-Timestamp: <epoch ms>`. Multiple signatures may be comma-separated
+ * when more than one signing secret is active. Timestamps older than 5 minutes are
+ * rejected as a replay-protection measure (Revolut's own recommended tolerance).
  */
 export async function verifyRevolutWebhook(
   rawBody: string,
   signatureHeader: string,
+  timestampHeader: string,
   webhookSecret: string,
 ): Promise<boolean> {
+  const timestamp = Number(timestampHeader)
+  if (!timestamp || Math.abs(Date.now() - timestamp) > 5 * 60 * 1000) return false
+
   const signatures = signatureHeader.split(',').map(s => s.trim())
   const v1 = signatures.find(s => s.startsWith('v1='))?.slice(3)
   if (!v1) return false
+
+  const payloadToSign = `v1.${timestampHeader}.${rawBody}`
 
   const encoder = new TextEncoder()
   const key = await crypto.subtle.importKey(
@@ -112,7 +121,7 @@ export async function verifyRevolutWebhook(
     false,
     ['sign'],
   )
-  const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(rawBody))
+  const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(payloadToSign))
   const hex = Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('')
 
   return hex === v1

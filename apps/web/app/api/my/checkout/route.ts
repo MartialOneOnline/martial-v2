@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
   })
   if (!dbUser) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  const { planId } = await req.json() as { planId: string }
+  const { planId, provider = 'STRIPE' } = await req.json() as { planId: string; provider?: string }
   if (!planId) return NextResponse.json({ error: 'planId required' }, { status: 400 })
 
   const plan = await prisma.membershipPlan.findUnique({
@@ -38,7 +38,6 @@ export async function POST(req: NextRequest) {
   if (!plan || !plan.isPublic || !plan.isActive)
     return NextResponse.json({ error: 'Plan not found' }, { status: 404 })
 
-  const { provider = 'STRIPE' } = await req.json().then(b => b).catch(() => ({})) as { provider?: string }
   const useRevolut = provider === 'REVOLUT' || (!plan.paymentMethods.includes('STRIPE') && plan.paymentMethods.includes('REVOLUT'))
 
   if (!useRevolut && !plan.paymentMethods.includes('STRIPE'))
@@ -52,7 +51,20 @@ export async function POST(req: NextRequest) {
   const existing = await prisma.membership.findFirst({
     where: { userId: dbUser.id, planId: plan.id, status: { in: ['ACTIVE', 'PAUSED', 'PENDING'] } },
   })
-  if (existing) return NextResponse.json({ error: 'Already have this plan' }, { status: 409 })
+  if (existing) {
+    // Revolut still pre-creates a PENDING row before redirecting to checkout, so a
+    // stale one left over from an abandoned order isn't a real commitment (nothing
+    // was ever paid) — clear it so the student can retry instead of getting stuck
+    // behind it. PENDING from a CASH/BANK_TRANSFER request is a real pending admin
+    // approval and must still block a duplicate. Stripe no longer pre-creates a
+    // membership at all (see below), so a stale Stripe row can't occur here.
+    const isStaleRevolutAttempt = existing.status === 'PENDING' && existing.paymentMethod === PaymentMethod.REVOLUT
+    if (isStaleRevolutAttempt) {
+      await prisma.membership.delete({ where: { id: existing.id } })
+    } else {
+      return NextResponse.json({ error: 'Already have this plan' }, { status: 409 })
+    }
+  }
 
   const school = await prisma.school.findUnique({
     where: { id: plan.schoolId },
@@ -107,22 +119,11 @@ export async function POST(req: NextRequest) {
   }
 
   // ── Stripe path ─────────────────────────────────────────────────────────────
+  // No membership row is pre-created here — an abandoned/cancelled checkout should
+  // leave no trace. The webhook creates the membership only once payment actually
+  // succeeds (see /api/webhooks/stripe).
   if (!school?.stripeSecretKey)
     return NextResponse.json({ error: 'School has not configured Stripe' }, { status: 400 })
-
-  const membership = await prisma.membership.create({
-    data: {
-      userId:        dbUser.id,
-      schoolId:      plan.schoolId,
-      planId:        plan.id,
-      planName:      plan.name,
-      price:         plan.price,
-      currency:      plan.currency,
-      paymentMethod: PaymentMethod.STRIPE,
-      status:        MembershipStatus.PENDING,
-      startDate:     new Date(),
-    },
-  })
 
   const stripe   = getStripe(school.stripeSecretKey)
   const currency = (plan.currency ?? 'EUR').toLowerCase()
@@ -136,11 +137,14 @@ export async function POST(req: NextRequest) {
   }
 
   const metadata = {
-    membershipId: membership.id,
     schoolId:     plan.schoolId,
     userId:       dbUser.id,
     planId:       plan.id,
     planType:     plan.planType,
+    planName:     plan.name,
+    price:        String(plan.price),
+    currency:     plan.currency,
+    validityDays: plan.validityDays != null ? String(plan.validityDays) : '',
   }
 
   let session

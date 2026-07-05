@@ -8,6 +8,7 @@ import { X, ArrowLeft } from 'lucide-react'
 import { createClient } from '../lib/supabase/client'
 import SchoolPicker from './SchoolPicker'
 import type { SchoolContext } from '@/lib/auth/contexts'
+import { safeRedirect } from '@/lib/safeRedirect'
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 function GoogleIcon() {
@@ -60,12 +61,11 @@ function SSOButton({ icon, label, onClick }: { icon: React.ReactNode; label: str
 // ── Props ─────────────────────────────────────────────────────────────────────
 interface LoginModalProps {
   onClose: () => void
-  onOpenRegister?: () => void
   redirectTo?: string
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
-export default function LoginModal({ onClose, onOpenRegister, redirectTo }: LoginModalProps) {
+export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
   const router   = useRouter()
   const supabase = createClient()
 
@@ -81,9 +81,11 @@ export default function LoginModal({ onClose, onOpenRegister, redirectTo }: Logi
 
   const resolveRedirect = async () => {
     try {
-      // If an explicit redirect was requested (e.g. from /admin), honour it
-      if (redirectTo) {
-        router.push(redirectTo)
+      // If an explicit redirect was requested (e.g. from /admin), honour it —
+      // sanitized so an external URL can't be smuggled in via ?redirect=.
+      const safeTo = safeRedirect(redirectTo)
+      if (safeTo) {
+        router.push(safeTo)
         return
       }
 
@@ -234,7 +236,7 @@ export default function LoginModal({ onClose, onOpenRegister, redirectTo }: Logi
 
                 <p className="text-[13px] text-[#6b7280] text-center mt-6">
                   Don&apos;t have an account?{' '}
-                  <span onClick={() => { onClose(); onOpenRegister?.() }}
+                  <span onClick={() => router.push('/register')}
                     className="text-[#0870E2] font-semibold underline cursor-pointer hover:text-[#004e7c] transition-colors">
                     Register
                   </span>
@@ -293,7 +295,7 @@ export default function LoginModal({ onClose, onOpenRegister, redirectTo }: Logi
 
                 <p className="text-[13px] text-[#6b7280] text-center mt-5">
                   Don&apos;t have an account?{' '}
-                  <span onClick={() => { onClose(); onOpenRegister?.() }}
+                  <span onClick={() => router.push('/register')}
                     className="text-[#0870E2] font-semibold underline cursor-pointer hover:text-[#004e7c] transition-colors">
                     Register
                   </span>

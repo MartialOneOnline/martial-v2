@@ -1,20 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
+import { getAuthUser } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 
 // POST /api/auth/context — switch active school context
 // Sets HttpOnly cookie + updates UserPreference
 export async function POST(req: NextRequest) {
-  const cookieStore = await cookies()
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    { cookies: { getAll: () => cookieStore.getAll() } }
-  )
-
-  const { data: { user } } = await supabase.auth.getUser()
+  // getAuthUser() resolves the Supabase session down to the Prisma User —
+  // SchoolMember.userId and UserPreference.userId are both Prisma ids, not
+  // the Supabase auth UUID, so using the raw Supabase user here would make
+  // requireSchoolAccess() reject every legitimately active member.
+  const user = await getAuthUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { schoolId } = await req.json()

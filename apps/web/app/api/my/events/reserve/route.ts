@@ -61,6 +61,7 @@ export async function POST(req: NextRequest) {
         amountPaid: ticket.price * quantity,
         currency: ticket.currency,
         paymentMethod: 'CASH',
+        qrToken: crypto.randomUUID(),
       },
     })
   }).catch((err: Error & { status?: number }) => {

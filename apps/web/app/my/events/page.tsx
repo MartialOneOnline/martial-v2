@@ -2,7 +2,8 @@
 
 import { Suspense, useEffect, useState, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { CalendarDays, Clock, MapPin, Ticket, CheckCircle2, X, Minus, Plus, AlertCircle } from 'lucide-react'
+import { CalendarDays, Clock, MapPin, Ticket, CheckCircle2, X, Minus, Plus, AlertCircle, QrCode } from 'lucide-react'
+import { QRCodeSVG } from 'qrcode.react'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../lib/format'
 
@@ -35,6 +36,9 @@ type MyBooking = {
   ticketName: string
   paymentMethod: string
   createdAt: string
+  qrToken: string | null
+  checkedIn: boolean
+  checkedInAt: string | null
   event: { id: string; title: string; startAt: string; location: string | null; coverUrl: string | null; school: { name: string; slug: string } }
 }
 
@@ -261,13 +265,44 @@ function TicketDrawer({ ev, onClose }: { ev: EventItem; onClose: () => void }) {
   )
 }
 
+/* ── Ticket QR modal ── */
+function TicketQrModal({ booking, onClose }: { booking: MyBooking; onClose: () => void }) {
+  const t = useT()
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl text-center" onClick={e => e.stopPropagation()}>
+        <div className="flex justify-end -mt-1 -mr-1 mb-1">
+          <button onClick={onClose}><X className="w-5 h-5 text-gray-400" /></button>
+        </div>
+        <h2 className="text-base font-bold text-[#101828] mb-1">{booking.event.title}</h2>
+        <p className="text-xs text-gray-400 mb-5">{booking.ticketName} × {booking.quantity}</p>
+        {booking.checkedIn ? (
+          <div className="py-6">
+            <CheckCircle2 className="w-14 h-14 text-emerald-500 mx-auto mb-3" />
+            <p className="text-sm font-semibold text-emerald-600">{t.my.checkedInLabel}</p>
+          </div>
+        ) : (
+          <div className="p-4 rounded-2xl bg-gray-50 inline-block mb-4">
+            <QRCodeSVG value={`martial:event:${booking.qrToken}`} size={200} level="M" />
+          </div>
+        )}
+        <p className="text-xs text-gray-500">{t.my.ticketQrHint}</p>
+      </div>
+    </div>
+  )
+}
+
 /* ── My ticket card ── */
 function MyTicketCard({ booking }: { booking: MyBooking }) {
   const t = useT()
+  const [showQr, setShowQr] = useState(false)
   const isCashPending = booking.status === 'PENDING' && booking.paymentMethod === 'CASH'
-  const cfg = isCashPending
+  const cfg = booking.checkedIn
+    ? { label: t.my.checkedInLabel, color: '#22C55E' }
+    : isCashPending
     ? { label: t.my.payAtDoorBtn, color: '#EAB308' }
     : getTicketStatusConfig(t)[booking.status] ?? { label: booking.status, color: '#9CA3AF' }
+  const canShowTicket = booking.qrToken && booking.status !== 'CANCELLED'
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div className="p-4">
@@ -283,10 +318,22 @@ function MyTicketCard({ booking }: { booking: MyBooking }) {
           <div className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{fmtTime(booking.event.startAt)}</div>
           {booking.event.location && <div className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{booking.event.location}</div>}
         </div>
-        <p className="text-xs text-gray-500">
-          {booking.ticketName} × {booking.quantity} · {booking.amountPaid ? fmtPrice(booking.amountPaid, booking.currency) : t.my.freeEntry}
-        </p>
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-gray-500">
+            {booking.ticketName} × {booking.quantity} · {booking.amountPaid ? fmtPrice(booking.amountPaid, booking.currency) : t.my.freeEntry}
+          </p>
+          {canShowTicket && (
+            <button
+              onClick={() => setShowQr(true)}
+              className="flex items-center gap-1.5 text-xs font-semibold rounded-xl px-3 py-1.5 shrink-0"
+              style={{ background: '#E8F4FF', color: '#0870E2' }}
+            >
+              <QrCode className="w-3.5 h-3.5" />{t.my.showTicketBtn}
+            </button>
+          )}
+        </div>
       </div>
+      {showQr && <TicketQrModal booking={booking} onClose={() => setShowQr(false)} />}
     </div>
   )
 }

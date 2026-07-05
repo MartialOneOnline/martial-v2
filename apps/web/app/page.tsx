@@ -1,9 +1,8 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import LoginModal        from '../components/LoginModal'
-import RegisterModal     from '../components/RegisterModal'
 import Header            from '../components/Header'
 import HeroSection       from '../components/HeroSection'
 import HomeSearch        from '../components/HomeSearch'
@@ -17,24 +16,24 @@ import Footer            from '../components/Footer'
 
 // Inner component — uses useSearchParams (must be inside Suspense)
 function HomeContent() {
+  const router = useRouter()
   const searchParams = useSearchParams()
-  const [showModal, setShowModal]                 = useState(false)
-  const [showRegisterModal, setShowRegisterModal] = useState(false)
-  const openModal    = () => setShowModal(true)
-  const openRegister = () => setShowRegisterModal(true)
+  const [showModal, setShowModal] = useState(false)
+  const openModal = () => setShowModal(true)
 
   const redirectAfterLogin = searchParams.get('redirect') ?? undefined
 
   useEffect(() => {
-    if (searchParams.get('login') === 'true')    setShowModal(true)
-    if (searchParams.get('register') === 'true') setShowRegisterModal(true)
-  }, [searchParams])
+    if (searchParams.get('login') === 'true') setShowModal(true)
+    // Register is a real standalone page now (mobile WebView entry point),
+    // not a modal — redirect instead of trying to render it inline.
+    if (searchParams.get('register') === 'true') router.replace('/register')
+  }, [searchParams, router])
 
   return (
     <div className="min-h-screen bg-white text-[#061229] font-sans">
 
-      {showModal && <LoginModal onClose={() => setShowModal(false)} onOpenRegister={() => { setShowModal(false); openRegister() }} redirectTo={redirectAfterLogin} />}
-      {showRegisterModal && <RegisterModal onClose={() => setShowRegisterModal(false)} onOpenLogin={() => { setShowRegisterModal(false); openModal() }} />}
+      {showModal && <LoginModal onClose={() => setShowModal(false)} redirectTo={redirectAfterLogin} />}
 
       {/* Navbar */}
       <Header onOpenLoginModal={openModal} />
