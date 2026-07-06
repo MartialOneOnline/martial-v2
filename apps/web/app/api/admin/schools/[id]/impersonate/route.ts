@@ -38,20 +38,34 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   }
 
   const supabase = createAdminClient()
-  const { data, error } = await supabase.auth.admin.generateLink({
-    type: 'magiclink',
-    email: owner.user.email,
-    options: { redirectTo: `${APP_URL}/dashboard` },
-  })
+  type GenerateLinkResult = Awaited<ReturnType<typeof supabase.auth.admin.generateLink>>
+
+  // Wrapped in try/catch (rather than trusting generateLink to always resolve
+  // with an { error } field) so a thrown exception — e.g. a network failure
+  // reaching Supabase — still lands in ImpersonationLog instead of skipping
+  // the audit trail entirely.
+  let data: GenerateLinkResult['data'] | null = null
+  let errorMessage: string | null = null
+  try {
+    const result = await supabase.auth.admin.generateLink({
+      type: 'magiclink',
+      email: owner.user.email,
+      options: { redirectTo: `${APP_URL}/dashboard` },
+    })
+    data = result.data
+    errorMessage = result.error?.message ?? null
+  } catch (e) {
+    errorMessage = e instanceof Error ? e.message : 'Failed to generate login link'
+  }
 
   const actionLink = data?.properties?.action_link
   const targetFields = { targetUserId: owner.user.id, targetEmail: owner.user.email }
 
-  if (error || !actionLink) {
+  if (errorMessage || !actionLink) {
     await prisma.impersonationLog.create({
-      data: { ...logBase, ...targetFields, success: false, errorMessage: error?.message ?? 'Failed to generate login link' },
+      data: { ...logBase, ...targetFields, success: false, errorMessage: errorMessage ?? 'Failed to generate login link' },
     })
-    return NextResponse.json({ error: error?.message ?? 'Failed to generate login link' }, { status: 500 })
+    return NextResponse.json({ error: errorMessage ?? 'Failed to generate login link' }, { status: 500 })
   }
 
   try {

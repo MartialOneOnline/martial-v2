@@ -167,7 +167,7 @@ export async function assignPlan(input: AssignPlanInput) {
     })
     const schoolRecord = await prisma.school.findUnique({
       where: { id: schoolId },
-      select: { name: true, city: true },
+      select: { name: true, city: true, language: true },
     })
     if (userRecord?.email && schoolRecord) {
       sendMembershipReceiptEmail({
@@ -182,6 +182,7 @@ export async function assignPlan(input: AssignPlanInput) {
         startDate: start,
         endDate,
         membershipId: membership.id,
+        lang: schoolRecord.language,
       }).catch(err => console.error('[assignPlan] receipt email failed:', err))
     }
   }

@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       capacity: true,
       schedule: true,
       bookingSettings: true,
-      school: { select: { name: true, city: true } },
+      school: { select: { name: true, city: true, language: true } },
     },
   })
   if (!cls) return NextResponse.json({ error: 'Class not found' }, { status: 404 })
@@ -189,6 +189,7 @@ export async function POST(req: NextRequest) {
       schoolCity: cls.school.city,
       className: cls.name,
       scheduledAt: scheduledDate,
+      lang: cls.school.language,
     }).catch(err => console.error('[bookings] trial email failed:', err))
   }
 

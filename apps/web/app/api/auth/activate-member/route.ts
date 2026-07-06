@@ -47,7 +47,7 @@ export async function POST() {
   const membership = await prisma.schoolMember.findFirst({
     where: { userId: dbUser.id },
     orderBy: { createdAt: 'asc' },
-    select: { role: true, school: { select: { name: true, city: true } } },
+    select: { role: true, school: { select: { name: true, city: true, language: true } } },
   })
   const isSchool = membership && ['OWNER', 'ADMIN', 'INSTRUCTOR'].includes(membership.role)
 
@@ -63,6 +63,7 @@ export async function POST() {
         studentName: fullUser.name,
         schoolName: membership.school.name,
         schoolCity: membership.school.city,
+        lang: membership.school.language,
       }).catch(err => console.error('[activate-member] welcome email failed:', err))
     }
   }
