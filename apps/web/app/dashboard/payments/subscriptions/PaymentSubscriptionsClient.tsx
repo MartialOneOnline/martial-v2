@@ -7,6 +7,7 @@ import {
   PauseCircle, XCircle, Plus, AlertCircle,
 } from 'lucide-react'
 import { useDashboard } from '../../../../components/DashboardShell'
+import RowMenu from '../../../../components/RowMenu'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../../lib/format'
 
@@ -506,7 +507,6 @@ export default function PaymentSubscriptionsClient() {
   )
   const [search, setSearch]             = useState('')
   const [currentPage, setCurrentPage]   = useState(1)
-  const [openMenuId, setOpenMenuId]     = useState<string | null>(null)
   const [toast, setToast]                    = useState(false)
   const [showAssignModal, setShowAssignModal] = useState(false)
   const [subFilters, setSubFilters]     = useState<SubFilters>(EMPTY_SUB_FILTERS)
@@ -788,32 +788,30 @@ export default function PaymentSubscriptionsClient() {
                       </span>
                     </td>
 
-                    <td className="px-5 py-3 relative">
-                      <button
-                        onClick={e => { e.stopPropagation(); setOpenMenuId(openMenuId === sub.memberId ? null : sub.memberId) }}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
-                        style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
-                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
-                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                        <MoreHorizontal size={15} />
-                      </button>
-                      {openMenuId === sub.memberId && (
-                        <>
-                          <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
-                          <div className="absolute right-4 rounded-xl z-20 py-1 overflow-hidden"
-                            style={{ background: '#fff', border: '1px solid #E5E7EB',
-                              boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 170, top: '100%' }}>
-                            <a href={`/dashboard/users/${sub.memberId}`}
-                              className="w-full text-left px-4 py-2.5 flex items-center gap-2"
-                              style={{ fontSize: 13, color: '#374151', background: 'transparent',
-                                border: 'none', textDecoration: 'none', display: 'block' }}
-                              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
-                              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                              Ver perfil
-                            </a>
-                          </div>
-                        </>
-                      )}
+                    <td className="px-5 py-3">
+                      <RowMenu trigger={({ onClick }) => (
+                        <button
+                          onClick={onClick}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
+                          style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
+                          onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
+                          onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+                          <MoreHorizontal size={15} />
+                        </button>
+                      )}>
+                        <div className="rounded-xl py-1 overflow-hidden"
+                          style={{ background: '#fff', border: '1px solid #E5E7EB',
+                            boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 170 }}>
+                          <a href={`/dashboard/users/${sub.memberId}`}
+                            className="w-full text-left px-4 py-2.5 flex items-center gap-2"
+                            style={{ fontSize: 13, color: '#374151', background: 'transparent',
+                              border: 'none', textDecoration: 'none', display: 'block' }}
+                            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
+                            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+                            Ver perfil
+                          </a>
+                        </div>
+                      </RowMenu>
                     </td>
                   </tr>
                 )

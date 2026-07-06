@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useDashboard } from '../../../components/DashboardShell'
+import RowMenu from '../../../components/RowMenu'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../lib/format'
 import { BOOKING_PAYMENT_OPTIONS } from '../../../lib/paymentMethods'
@@ -1051,52 +1052,37 @@ const PLAN_TYPE_COLORS: Record<PlanType, { bg: string; color: string; label: str
 }
 
 // ── Row menu ───────────────────────────────────────────────────────────────────
-function PlanRowMenu({ plan, onMembers, onShare }: {
+function PlanRowMenu({ onMembers, onShare }: {
   plan: PlanRow
   onMembers: () => void
   onShare: () => void
 }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    function handler(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [open])
-
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <button onClick={() => setOpen(o => !o)}
+    <RowMenu trigger={({ onClick }) => (
+      <button onClick={onClick}
         className="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer"
-        style={{ border: '1px solid #E5E7EB', background: open ? '#F3F4F6' : '#fff' }}>
+        style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
         <MoreVertical size={14} style={{ color: '#6B7280' }} />
       </button>
-
-      {open && (
-        <div style={{ position: 'absolute', right: 0, top: '100%', marginTop: 4, zIndex: 30,
-          background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12,
-          boxShadow: '0 8px 24px rgba(0,0,0,0.1)', minWidth: 160, overflow: 'hidden' }}>
-          <button onClick={() => { setOpen(false); onMembers() }}
-            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-              padding: '10px 14px', border: 'none', background: 'none',
-              fontSize: 13, color: '#374151', cursor: 'pointer', textAlign: 'left' }}>
-            <Users size={14} style={{ color: '#6B7280' }} />
-            View members
-          </button>
-          <button onClick={() => { setOpen(false); onShare() }}
-            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-              padding: '10px 14px', border: 'none', background: 'none', borderTop: '1px solid #F3F4F6',
-              fontSize: 13, color: '#374151', cursor: 'pointer', textAlign: 'left' }}>
-            <Share2 size={14} style={{ color: '#6B7280' }} />
-            Share / QR code
-          </button>
-        </div>
-      )}
-    </div>
+    )}>
+      <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12,
+        boxShadow: '0 8px 24px rgba(0,0,0,0.1)', minWidth: 160, overflow: 'hidden' }}>
+        <button onClick={onMembers}
+          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+            padding: '10px 14px', border: 'none', background: 'none',
+            fontSize: 13, color: '#374151', cursor: 'pointer', textAlign: 'left' }}>
+          <Users size={14} style={{ color: '#6B7280' }} />
+          View members
+        </button>
+        <button onClick={onShare}
+          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+            padding: '10px 14px', border: 'none', background: 'none', borderTop: '1px solid #F3F4F6',
+            fontSize: 13, color: '#374151', cursor: 'pointer', textAlign: 'left' }}>
+          <Share2 size={14} style={{ color: '#6B7280' }} />
+          Share / QR code
+        </button>
+      </div>
+    </RowMenu>
   )
 }
 

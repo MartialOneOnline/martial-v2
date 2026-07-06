@@ -34,7 +34,7 @@ export default async function UsersPage() {
 
 async function UsersPageWithSchool({ schoolId }: { schoolId: string }) {
   const members = await prisma.schoolMember.findMany({
-    where: { schoolId },
+    where: { schoolId, role: 'STUDENT' },
     include: { user: { select: { id: true, name: true, email: true, avatarUrl: true } } },
     orderBy: { joinedAt: 'desc' },
   })

@@ -12,6 +12,7 @@ import { useT } from '../../../lib/i18n/LanguageContext'
 import { type BookingSettings, minsToHoursAndMins, hoursAndMinsToTotal } from '../../../lib/types/booking-settings'
 import { fmtPrice as _fmtP } from '../../../lib/format'
 import { BOOKING_PAYMENT_OPTIONS, type BookingPaymentMethod } from '../../../lib/paymentMethods'
+import RowMenu from '../../../components/RowMenu'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -1154,7 +1155,6 @@ export default function ClassesClient() {
   const [deleteClass, setDeleteClass]     = useState<ClassRow | null>(null)
   const [bookingsClass, setBookingsClass] = useState<ClassRow | null>(null)
   const [successMsg, setSuccessMsg]       = useState('')
-  const [openMenuId, setOpenMenuId]       = useState<string | null>(null)
 
   const loadClasses = useCallback(async () => {
     setLoading(true)
@@ -1194,7 +1194,7 @@ export default function ClassesClient() {
   const handleSearch = (v: string)  => { setSearch(v); setCurrentPage(1) }
 
   function openCreate() { setEditingClass(null); setDrawerOpen(true) }
-  function openEdit(cls: ClassRow) { setEditingClass(cls); setDrawerOpen(true); setOpenMenuId(null) }
+  function openEdit(cls: ClassRow) { setEditingClass(cls); setDrawerOpen(true) }
 
   async function handleDelete() {
     if (!deleteClass) return
@@ -1205,7 +1205,6 @@ export default function ClassesClient() {
   }
 
   async function togglePublish(cls: ClassRow) {
-    setOpenMenuId(null)
     const next = !cls.isPublished
     await fetch(`/api/dashboard/classes/${cls.id}`, {
       method: 'PUT',
@@ -1428,52 +1427,50 @@ export default function ClassesClient() {
                       </td>
 
                       {/* Actions */}
-                      <td className="px-5 py-4 relative">
-                        <button
-                          onClick={e => { e.stopPropagation(); setOpenMenuId(openMenuId === cls.id ? null : cls.id) }}
-                          className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
-                          style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
-                          onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
-                          onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                          <MoreHorizontal size={15} />
-                        </button>
-                        {openMenuId === cls.id && (
-                          <>
-                            <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
-                            <div className="absolute right-6 mt-1 rounded-xl z-20 py-1 overflow-hidden"
-                              style={{ background: '#fff', border: '1px solid #E5E7EB',
-                                boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 140, top: '100%' }}>
-                              <button onClick={() => { setOpenMenuId(null); setBookingsClass(cls) }}
-                                className="w-full text-left px-4 py-2 transition-colors cursor-pointer flex items-center gap-2"
-                                style={{ fontSize: 13, color: '#374151', background: 'transparent', border: 'none' }}
-                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
-                                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                                <Users size={13} /> View bookings
-                              </button>
-                              <button onClick={() => openEdit(cls)}
-                                className="w-full text-left px-4 py-2 transition-colors cursor-pointer flex items-center gap-2"
-                                style={{ fontSize: 13, color: '#374151', background: 'transparent', border: 'none' }}
-                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
-                                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                                <Pencil size={13} /> {t.common.edit}
-                              </button>
-                              <button onClick={() => togglePublish(cls)}
-                                className="w-full text-left px-4 py-2 transition-colors cursor-pointer flex items-center gap-2"
-                                style={{ fontSize: 13, color: cls.isPublished ? '#D97706' : '#0870E2', background: 'transparent', border: 'none' }}
-                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
-                                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                                {cls.isPublished ? '⊘ Unpublish' : '↑ Publish'}
-                              </button>
-                              <button onClick={() => { setOpenMenuId(null); setDeleteClass(cls) }}
-                                className="w-full text-left px-4 py-2 transition-colors cursor-pointer flex items-center gap-2"
-                                style={{ fontSize: 13, color: '#DC2626', background: 'transparent', border: 'none' }}
-                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#FEF2F2'}
-                                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                                <Trash2 size={13} /> {t.common.delete}
-                              </button>
-                            </div>
-                          </>
-                        )}
+                      <td className="px-5 py-4">
+                        <RowMenu trigger={({ onClick }) => (
+                          <button
+                            onClick={onClick}
+                            className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
+                            style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
+                            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
+                            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+                            <MoreHorizontal size={15} />
+                          </button>
+                        )}>
+                          <div className="rounded-xl py-1 overflow-hidden"
+                            style={{ background: '#fff', border: '1px solid #E5E7EB',
+                              boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 140 }}>
+                            <button onClick={() => setBookingsClass(cls)}
+                              className="w-full text-left px-4 py-2 transition-colors cursor-pointer flex items-center gap-2"
+                              style={{ fontSize: 13, color: '#374151', background: 'transparent', border: 'none' }}
+                              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
+                              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+                              <Users size={13} /> View bookings
+                            </button>
+                            <button onClick={() => openEdit(cls)}
+                              className="w-full text-left px-4 py-2 transition-colors cursor-pointer flex items-center gap-2"
+                              style={{ fontSize: 13, color: '#374151', background: 'transparent', border: 'none' }}
+                              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
+                              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+                              <Pencil size={13} /> {t.common.edit}
+                            </button>
+                            <button onClick={() => togglePublish(cls)}
+                              className="w-full text-left px-4 py-2 transition-colors cursor-pointer flex items-center gap-2"
+                              style={{ fontSize: 13, color: cls.isPublished ? '#D97706' : '#0870E2', background: 'transparent', border: 'none' }}
+                              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
+                              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+                              {cls.isPublished ? '⊘ Unpublish' : '↑ Publish'}
+                            </button>
+                            <button onClick={() => setDeleteClass(cls)}
+                              className="w-full text-left px-4 py-2 transition-colors cursor-pointer flex items-center gap-2"
+                              style={{ fontSize: 13, color: '#DC2626', background: 'transparent', border: 'none' }}
+                              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#FEF2F2'}
+                              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+                              <Trash2 size={13} /> {t.common.delete}
+                            </button>
+                          </div>
+                        </RowMenu>
                       </td>
                     </tr>
                   ))

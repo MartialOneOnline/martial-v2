@@ -12,6 +12,7 @@ import DashboardLanguageSelector from '../../../../components/DashboardLanguageS
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import { adminFetch } from '../../../../lib/api/adminFetch'
 import { BOOKING_PAYMENT_OPTIONS, type BookingPaymentMethod } from '../../../../lib/paymentMethods'
+import RowMenu from '../../../../components/RowMenu'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -858,7 +859,6 @@ export default function EventsClient() {
   const [editingEvent, setEditingEvent] = useState<EventRow | null>(null)
   const [deleteEvent, setDeleteEvent]   = useState<EventRow | null>(null)
   const [successMsg, setSuccessMsg]     = useState('')
-  const [openMenuId, setOpenMenuId]     = useState<string | null>(null)
   const [attendeesEvent, setAttendeesEvent] = useState<EventRow | null>(null)
   const [checkinEvent, setCheckinEvent]     = useState<EventRow | null>(null)
 
@@ -905,7 +905,7 @@ export default function EventsClient() {
   const handleSearch = (v: string)  => { setSearch(v); setCurrentPage(1) }
 
   function openCreate() { setEditingEvent(null); setDrawerOpen(true) }
-  function openEdit(ev: EventRow) { setEditingEvent(ev); setDrawerOpen(true); setOpenMenuId(null) }
+  function openEdit(ev: EventRow) { setEditingEvent(ev); setDrawerOpen(true) }
 
   async function handleDelete() {
     if (!deleteEvent) return
@@ -930,7 +930,6 @@ export default function EventsClient() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ isCancelled: true }),
     })
-    setOpenMenuId(null)
     loadEvents()
   }
 
@@ -1192,54 +1191,52 @@ export default function EventsClient() {
                         </td>
 
                         {/* Actions */}
-                        <td className="px-5 py-3 relative">
-                          <button
-                            onClick={e => { e.stopPropagation(); setOpenMenuId(openMenuId === ev.id ? null : ev.id) }}
-                            className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
-                            style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
-                            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
-                            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                            <MoreHorizontal size={15} />
-                          </button>
-                          {openMenuId === ev.id && (
-                            <>
-                              <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
-                              <div className="absolute right-6 mt-1 rounded-xl z-20 py-1 overflow-hidden"
-                                style={{ background: '#fff', border: '1px solid #E5E7EB',
-                                  boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 150, top: '100%' }}>
-                                <button onClick={() => openEdit(ev)}
+                        <td className="px-5 py-3">
+                          <RowMenu trigger={({ onClick }) => (
+                            <button
+                              onClick={onClick}
+                              className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
+                              style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
+                              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
+                              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+                              <MoreHorizontal size={15} />
+                            </button>
+                          )}>
+                            <div className="rounded-xl py-1 overflow-hidden"
+                              style={{ background: '#fff', border: '1px solid #E5E7EB',
+                                boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 150 }}>
+                              <button onClick={() => openEdit(ev)}
+                                className="w-full text-left px-4 py-2 cursor-pointer flex items-center gap-2"
+                                style={{ fontSize: 13, color: '#374151', background: 'transparent', border: 'none' }}
+                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
+                                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+                                <Pencil size={13} /> {t.common.edit}
+                              </button>
+                              <button onClick={() => setCheckinEvent(ev)}
+                                className="w-full text-left px-4 py-2 cursor-pointer flex items-center gap-2"
+                                style={{ fontSize: 13, color: '#374151', background: 'transparent', border: 'none' }}
+                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
+                                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+                                <QrCode size={13} /> QR Check-in
+                              </button>
+                              {!ev.isCancelled && (
+                                <button onClick={() => cancelEvent(ev)}
                                   className="w-full text-left px-4 py-2 cursor-pointer flex items-center gap-2"
-                                  style={{ fontSize: 13, color: '#374151', background: 'transparent', border: 'none' }}
-                                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
+                                  style={{ fontSize: 13, color: '#D97706', background: 'transparent', border: 'none' }}
+                                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#FFFBEB'}
                                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                                  <Pencil size={13} /> {t.common.edit}
+                                  <EyeOff size={13} /> {t.classes.cancelEvent}
                                 </button>
-                                <button onClick={() => { setOpenMenuId(null); setCheckinEvent(ev) }}
-                                  className="w-full text-left px-4 py-2 cursor-pointer flex items-center gap-2"
-                                  style={{ fontSize: 13, color: '#374151', background: 'transparent', border: 'none' }}
-                                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
-                                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                                  <QrCode size={13} /> QR Check-in
-                                </button>
-                                {!ev.isCancelled && (
-                                  <button onClick={() => cancelEvent(ev)}
-                                    className="w-full text-left px-4 py-2 cursor-pointer flex items-center gap-2"
-                                    style={{ fontSize: 13, color: '#D97706', background: 'transparent', border: 'none' }}
-                                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#FFFBEB'}
-                                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                                    <EyeOff size={13} /> {t.classes.cancelEvent}
-                                  </button>
-                                )}
-                                <button onClick={() => { setOpenMenuId(null); setDeleteEvent(ev) }}
-                                  className="w-full text-left px-4 py-2 cursor-pointer flex items-center gap-2"
-                                  style={{ fontSize: 13, color: '#DC2626', background: 'transparent', border: 'none' }}
-                                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#FEF2F2'}
-                                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                                  <Trash2 size={13} /> {t.common.delete}
-                                </button>
-                              </div>
-                            </>
-                          )}
+                              )}
+                              <button onClick={() => setDeleteEvent(ev)}
+                                className="w-full text-left px-4 py-2 cursor-pointer flex items-center gap-2"
+                                style={{ fontSize: 13, color: '#DC2626', background: 'transparent', border: 'none' }}
+                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#FEF2F2'}
+                                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+                                <Trash2 size={13} /> {t.common.delete}
+                              </button>
+                            </div>
+                          </RowMenu>
                         </td>
                       </tr>
                     )

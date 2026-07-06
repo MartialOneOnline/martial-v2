@@ -23,7 +23,7 @@ export async function GET() {
   }
 
   const members = await prisma.schoolMember.findMany({
-    where: { schoolId },
+    where: { schoolId, role: 'STUDENT' },
     include: {
       user: { select: { id: true, name: true, email: true, avatarUrl: true } },
     },
