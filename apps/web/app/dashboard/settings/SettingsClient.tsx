@@ -661,10 +661,15 @@ function PaymentsTab() {
     setWebhookRegistering(true); setWebhookResult(null); setWebhookError(null)
     const res = await fetch('/api/dashboard/revolut/register-webhook', { method: 'POST' })
     const data = await res.json().catch(() => null)
-    setWebhookResult(res.ok ? 'ok' : 'error')
-    setWebhookError(res.ok ? null : (data?.error ?? `Request failed (${res.status})`))
-    if (res.ok) setWebhookRegistered(Boolean(data?.signatureVerificationEnabled))
     setWebhookRegistering(false)
+    if (res.ok) {
+      // Persistent success — this is a durable registration on Revolut's side, not a
+      // transient action, so the button should stay green rather than reset to neutral.
+      setWebhookRegistered(Boolean(data?.signatureVerificationEnabled))
+      return
+    }
+    setWebhookResult('error')
+    setWebhookError(data?.error ?? `Request failed (${res.status})`)
     setTimeout(() => { setWebhookResult(null); setWebhookError(null) }, 8000)
   }
 
@@ -822,8 +827,8 @@ function PaymentsTab() {
             </button>
             {revolutConnected && (
               <button onClick={registerRevolutWebhook} disabled={webhookRegistering}
-                style={{ padding: '8px 20px', borderRadius: 8, background: webhookResult === 'ok' ? '#16A34A' : webhookResult === 'error' ? '#DC2626' : '#F3F4F6', color: webhookResult ? '#fff' : '#374151', fontSize: 13, fontWeight: 600, border: '1px solid #E5E7EB', cursor: 'pointer', opacity: webhookRegistering ? 0.6 : 1 }}>
-                {webhookResult === 'ok' ? '✓ Webhook registered' : webhookResult === 'error' ? '✗ Failed' : webhookRegistering ? 'Registering…' : 'Register webhook'}
+                style={{ padding: '8px 20px', borderRadius: 8, background: webhookResult === 'error' ? '#DC2626' : webhookRegistered ? '#16A34A' : '#F3F4F6', color: webhookResult === 'error' || webhookRegistered ? '#fff' : '#374151', fontSize: 13, fontWeight: 600, border: '1px solid #E5E7EB', cursor: 'pointer', opacity: webhookRegistering ? 0.6 : 1 }}>
+                {webhookRegistering ? 'Registering…' : webhookResult === 'error' ? '✗ Failed' : webhookRegistered ? '✓ Webhook registered' : 'Register webhook'}
               </button>
             )}
           </div>

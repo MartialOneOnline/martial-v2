@@ -28,6 +28,15 @@ export async function POST(req: NextRequest) {
   const HANDLED = new Set(['ORDER_COMPLETED', 'ORDER_PAYMENT_DECLINED', 'ORDER_PAYMENT_FAILED'])
   if (!HANDLED.has(payload.event)) return NextResponse.json({ received: true })
 
+  // This endpoint is shared across every school — the only thing that tells us which
+  // school's webhookSecret to verify against is a real order_id matching a row we
+  // created ourselves. A missing/blank order_id must never reach the DB lookup below:
+  // Prisma treats `where: { revolutOrderId: undefined }` as "no filter on this field",
+  // which would silently match an arbitrary PENDING row (any school's abandoned
+  // Revolut checkout sits with revolutOrderId=null until completed) instead of failing.
+  if (typeof payload.order_id !== 'string' || !payload.order_id.trim())
+    return NextResponse.json({ error: 'Missing order_id' }, { status: 400 })
+
   // Verify the HMAC signature once we know which school's signing secret to check.
   // Checkout creation now requires revolutWebhookSecret to be set (see /api/my/checkout
   // and /api/my/events/checkout), so a missing secret here means either a school that
