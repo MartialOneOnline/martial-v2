@@ -592,6 +592,7 @@ function PaymentsTab() {
   const [revolutSaved,        setRevolutSaved]        = useState(false)
   const [webhookRegistering,  setWebhookRegistering]  = useState(false)
   const [webhookResult,       setWebhookResult]       = useState<'ok' | 'error' | null>(null)
+  const [webhookError,        setWebhookError]        = useState<string | null>(null)
 
   const loadSchool = useCallback(() => {
     fetch('/api/dashboard/school').then(r => r.json()).then(d => {
@@ -654,11 +655,13 @@ function PaymentsTab() {
   }
 
   async function registerRevolutWebhook() {
-    setWebhookRegistering(true); setWebhookResult(null)
+    setWebhookRegistering(true); setWebhookResult(null); setWebhookError(null)
     const res = await fetch('/api/dashboard/revolut/register-webhook', { method: 'POST' })
+    const data = await res.json().catch(() => null)
     setWebhookResult(res.ok ? 'ok' : 'error')
+    setWebhookError(res.ok ? null : (data?.error ?? `Request failed (${res.status})`))
     setWebhookRegistering(false)
-    setTimeout(() => setWebhookResult(null), 4000)
+    setTimeout(() => { setWebhookResult(null); setWebhookError(null) }, 8000)
   }
 
   async function disconnectRevolut() {
@@ -813,10 +816,13 @@ function PaymentsTab() {
             {revolutConnected && (
               <button onClick={registerRevolutWebhook} disabled={webhookRegistering}
                 style={{ padding: '8px 20px', borderRadius: 8, background: webhookResult === 'ok' ? '#16A34A' : webhookResult === 'error' ? '#DC2626' : '#F3F4F6', color: webhookResult ? '#fff' : '#374151', fontSize: 13, fontWeight: 600, border: '1px solid #E5E7EB', cursor: 'pointer', opacity: webhookRegistering ? 0.6 : 1 }}>
-                {webhookResult === 'ok' ? '✓ Webhook registered' : webhookResult === 'error' ? '✗ Failed — check key' : webhookRegistering ? 'Registering…' : 'Register webhook'}
+                {webhookResult === 'ok' ? '✓ Webhook registered' : webhookResult === 'error' ? '✗ Failed' : webhookRegistering ? 'Registering…' : 'Register webhook'}
               </button>
             )}
           </div>
+          {webhookError && (
+            <p style={{ fontSize: 12, color: '#DC2626', marginTop: 8, maxWidth: 640 }}>{webhookError}</p>
+          )}
         </div>
       </div>
 
