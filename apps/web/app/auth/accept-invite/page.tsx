@@ -10,10 +10,15 @@ export default function AcceptInvitePage() {
   useEffect(() => {
     const supabase = createClient()
 
+    // schoolId (if present) identifies which school's invite this is — read it
+    // via window.location directly (not useSearchParams) to avoid a Suspense
+    // boundary requirement for what's otherwise a plain client-only redirect.
+    const schoolId = new URLSearchParams(window.location.search).get('schoolId')
+
     // onAuthStateChange fires after Supabase parses the hash token
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session) {
-          router.replace('/auth/set-password')
+        router.replace(schoolId ? `/auth/set-password?schoolId=${encodeURIComponent(schoolId)}` : '/auth/set-password')
       } else if (event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
         // No session after initial check — redirect to login
         setTimeout(() => router.replace('/login'), 2000)

@@ -45,8 +45,12 @@ export default function SetPasswordPage() {
   const [error, setError] = useState('')
   const [done, setDone] = useState(false)
   const [redirect, setRedirect] = useState('/my')
+  const [schoolId, setSchoolId] = useState<string | null>(null)
 
   useEffect(() => {
+    // Read schoolId before the hash cleanup below wipes the query string too.
+    setSchoolId(new URLSearchParams(window.location.search).get('schoolId'))
+
     // Decode email from hash JWT immediately (no async needed)
     const hash = window.location.hash
     if (hash.includes('access_token')) {
@@ -82,8 +86,20 @@ export default function SetPasswordPage() {
 
   const activateMember = async (): Promise<string> => {
     try {
-      const res = await fetch('/api/auth/activate-member', { method: 'POST' })
+      const res = await fetch('/api/auth/activate-member', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ schoolId }),
+      })
       const data = await res.json()
+      if (!res.ok) {
+        // Password was already set successfully above — this only means the
+        // school-membership activation couldn't be resolved unambiguously
+        // (e.g. a stale multi-school legacy link). Account still works; land
+        // on a safe default rather than surfacing a raw API error here.
+        console.error('[set-password] activate-member failed:', data)
+        return '/my'
+      }
       return data.redirect ?? '/my'
     } catch { return '/my' }
   }

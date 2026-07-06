@@ -57,11 +57,15 @@ export async function POST(req: NextRequest) {
   }
 
   // Generate invite link via Supabase (does NOT send email — we handle that)
+  // schoolId travels as a query param (not hash) so activate-member can scope
+  // the PENDING->LEAD transition to this school instead of all of the user's
+  // pending invites — see /auth/set-password and /api/auth/activate-member.
+  const redirectTo = `${APP_URL}/auth/accept-invite?schoolId=${encodeURIComponent(schoolId)}`
   const supabase = getAdminSupabase()
   const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
     type: 'invite',
     email: normalizedEmail,
-    options: { redirectTo: `${APP_URL}/auth/accept-invite` },
+    options: { redirectTo },
   })
 
   if (linkError) {
@@ -69,7 +73,7 @@ export async function POST(req: NextRequest) {
     const { data: magicData, error: magicError } = await supabase.auth.admin.generateLink({
       type: 'magiclink',
       email: normalizedEmail,
-      options: { redirectTo: `${APP_URL}/auth/accept-invite` },
+      options: { redirectTo },
     })
     if (magicError || !magicData?.properties?.action_link) {
       return NextResponse.json({ error: linkError.message }, { status: 400 })

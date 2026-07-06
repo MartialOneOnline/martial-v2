@@ -49,10 +49,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const supabase = getAdminSupabase()
 
   // Always use magiclink for resend — invite type is only valid for brand-new Supabase users
+  // schoolId travels as a query param so activate-member can scope the
+  // PENDING->LEAD transition to this school — see members/invite/route.ts.
   const { data: magicData, error: magicError } = await supabase.auth.admin.generateLink({
     type: 'magiclink',
     email: member.user.email,
-    options: { redirectTo: `${APP_URL}/auth/accept-invite` },
+    options: { redirectTo: `${APP_URL}/auth/accept-invite?schoolId=${encodeURIComponent(schoolId)}` },
   })
   if (magicError) console.error('[resend-invite] generateLink error:', magicError)
   const inviteUrl = magicData?.properties?.action_link
