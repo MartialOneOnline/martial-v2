@@ -164,7 +164,11 @@ describe('POST /api/dashboard/revolut/register-webhook', () => {
 
     await POST(makeRequest())
 
-    const [, options] = fetchMock.mock.calls[0]
+    // Asserted explicitly (not just a `!`) so this fails with a clear message
+    // if the route ever stops calling fetch, instead of a cryptic destructure
+    // error — .mock.calls[0] is typed as possibly undefined regardless.
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    const [, options] = fetchMock.mock.calls[0]!
     expect(options.headers.Authorization).toBe('Bearer sk_the_real_secret')
   })
 })
