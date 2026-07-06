@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Outfit, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from '../lib/i18n/LanguageContext'
+import { resolveAuthHashRedirect } from '../lib/authHashRedirect'
 
 const inter = Inter({
   subsets: ["latin"],
@@ -31,13 +32,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Redirect magiclink tokens to set-password before any JS bundle runs */}
+        {/* Redirect invite/magiclink/error hashes before any JS bundle runs — see
+            resolveAuthHashRedirect() for the decision logic (unit tested in
+            __tests__/authHashRedirect.test.ts). Catches Supabase falling back to the
+            Site URL (this page) when redirect_to isn't allow-listed. */}
         <script dangerouslySetInnerHTML={{ __html: `
           (function(){
-            var h = window.location.hash;
-            if (h.indexOf('access_token') !== -1 && h.indexOf('type=magiclink') !== -1) {
-              window.location.replace('/auth/set-password' + h);
-            }
+            var resolve = ${resolveAuthHashRedirect.toString()};
+            var to = resolve(window.location.hash);
+            if (to) window.location.replace(to);
           })();
         `}} />
       </head>

@@ -63,6 +63,10 @@ export default function SetPasswordPage() {
           }
         }
       } catch { /* ignore decode errors */ }
+      finally {
+        // Strip the token out of the address bar/history now that it's been read
+        window.history.replaceState(null, '', window.location.pathname)
+      }
       return
     }
     // Fallback: existing session (e.g. Google OAuth return)
