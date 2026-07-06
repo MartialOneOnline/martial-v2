@@ -594,6 +594,7 @@ function PaymentsTab() {
   const [webhookRegistering,  setWebhookRegistering]  = useState(false)
   const [webhookResult,       setWebhookResult]       = useState<'ok' | 'error' | null>(null)
   const [webhookError,        setWebhookError]        = useState<string | null>(null)
+  const [webhookRegistered,   setWebhookRegistered]   = useState(false)
 
   const loadSchool = useCallback(() => {
     fetch('/api/dashboard/school').then(r => r.json()).then(d => {
@@ -612,6 +613,7 @@ function PaymentsTab() {
       setRevolutPk(d.school?.revolutPublicKey ?? '')
       setRevolutConnected(!!d.school?.revolutPublicKey && !!d.school?.revolutSecretKeyConfigured)
       setRevolutSkMasked(d.school?.revolutSecretKeyMasked ?? null)
+      setWebhookRegistered(!!d.school?.revolutWebhookRegistered)
       setRevolutSk('')
     })
   }, [])
@@ -661,6 +663,7 @@ function PaymentsTab() {
     const data = await res.json().catch(() => null)
     setWebhookResult(res.ok ? 'ok' : 'error')
     setWebhookError(res.ok ? null : (data?.error ?? `Request failed (${res.status})`))
+    if (res.ok) setWebhookRegistered(Boolean(data?.signatureVerificationEnabled))
     setWebhookRegistering(false)
     setTimeout(() => { setWebhookResult(null); setWebhookError(null) }, 8000)
   }
@@ -670,9 +673,9 @@ function PaymentsTab() {
     await fetch('/api/dashboard/school', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ revolutPublicKey: null, revolutSecretKey: null }),
+      body: JSON.stringify({ revolutPublicKey: null, revolutSecretKey: null, revolutWebhookSecret: null }),
     })
-    setRevolutConnected(false); setRevolutSkMasked(null)
+    setRevolutConnected(false); setRevolutSkMasked(null); setWebhookRegistered(false)
   }
 
   function toggleMethod(key: string) {
@@ -772,8 +775,11 @@ function PaymentsTab() {
                 <CreditCard size={17} style={{ color: '#191C20' }} />
               </div>
               <p style={{ fontSize: 15, fontWeight: 600, color: '#111827', margin: 0 }}>Revolut</p>
-              {revolutConnected && (
+              {revolutConnected && webhookRegistered && (
                 <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 999, background: '#F0FDF4', color: '#16A34A', border: '1px solid #BBF7D0' }}>✓ Connected</span>
+              )}
+              {revolutConnected && !webhookRegistered && (
+                <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 999, background: '#FFFBEB', color: '#B45309', border: '1px solid #FDE68A' }}>Keys saved — webhook not registered</span>
               )}
             </div>
             {revolutConnected && (

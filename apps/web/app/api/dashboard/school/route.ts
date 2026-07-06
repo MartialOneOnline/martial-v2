@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
   const school = await prisma.school.findUnique({
     where: { id: schoolId },
     select: canViewPaymentSecrets
-      ? { ...baseSelect, stripeSecretKey: true, stripeWebhookSecret: true, revolutSecretKey: true }
+      ? { ...baseSelect, stripeSecretKey: true, stripeWebhookSecret: true, revolutSecretKey: true, revolutWebhookSecret: true }
       : baseSelect,
   }) as Record<string, unknown> | null
 
@@ -77,11 +77,11 @@ export async function GET(req: NextRequest) {
 
   const enabledPaymentMethods = await getEnabledPaymentMethods()
 
-  // Never send these three fields to the browser in full — a school owner's own
+  // Never send these four fields to the browser in full — a school owner's own
   // settings page loads this on every visit, so anyone with devtools access to a
   // dashboard session would otherwise see live payment-provider credentials.
-  const { stripeSecretKey, stripeWebhookSecret, revolutSecretKey, ...publicSchool } = school as
-    Record<string, unknown> & { stripeSecretKey?: string | null; stripeWebhookSecret?: string | null; revolutSecretKey?: string | null }
+  const { stripeSecretKey, stripeWebhookSecret, revolutSecretKey, revolutWebhookSecret, ...publicSchool } = school as
+    Record<string, unknown> & { stripeSecretKey?: string | null; stripeWebhookSecret?: string | null; revolutSecretKey?: string | null; revolutWebhookSecret?: string | null }
 
   return NextResponse.json({
     school: {
@@ -94,6 +94,9 @@ export async function GET(req: NextRequest) {
         stripeWebhookSecretMasked:     maskSecret(stripeWebhookSecret),
         revolutSecretKeyConfigured:    !!revolutSecretKey,
         revolutSecretKeyMasked:        maskSecret(revolutSecretKey),
+        // Keys saved ≠ webhook registered — the dashboard must not claim "Connected"
+        // based on stored keys alone, since payment events won't process without this.
+        revolutWebhookRegistered:      !!revolutWebhookSecret,
       }),
     },
     enabledPaymentMethods,
@@ -129,7 +132,7 @@ export async function PATCH(req: NextRequest) {
           description, tagline, address, postcode, city, country, logoUrl,
           defaultBookingSettings, cancelPolicy, modules,
           stripePublishableKey, stripeSecretKey, stripeWebhookSecret,
-          revolutPublicKey, revolutSecretKey } = body
+          revolutPublicKey, revolutSecretKey, revolutWebhookSecret } = body
 
   const VALID_LANGS = ['en', 'es', 'pt', 'fr']
   const VALID_CANCEL_POLICIES = ['IMMEDIATE', 'UNTIL_END_OF_PERIOD']
@@ -172,6 +175,9 @@ export async function PATCH(req: NextRequest) {
       ...(stripeWebhookSecret  !== undefined && { stripeWebhookSecret:  stripeWebhookSecret?.trim()  || null }),
       ...(revolutPublicKey     !== undefined && { revolutPublicKey:     revolutPublicKey?.trim()     || null }),
       ...(revolutSecretKey     !== undefined && { revolutSecretKey:     revolutSecretKey?.trim()     || null }),
+      // Only ever accepted as an explicit clear (disconnect) — the real value is only
+      // ever written by /api/dashboard/revolut/register-webhook from Revolut's own response.
+      ...(revolutWebhookSecret === null && { revolutWebhookSecret: null }),
     },
     select: { id: true, language: true, name: true, cancelPolicy: true, modules: true },
   })

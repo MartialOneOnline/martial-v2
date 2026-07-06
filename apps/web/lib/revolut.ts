@@ -124,5 +124,9 @@ export async function verifyRevolutWebhook(
   const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(payloadToSign))
   const hex = Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('')
 
-  return hex === v1
+  // Constant-time comparison — a plain `===` on hex strings leaks timing
+  // information proportional to the number of matching leading characters.
+  if (hex.length !== v1.length) return false
+  const { timingSafeEqual } = await import('node:crypto')
+  return timingSafeEqual(Buffer.from(hex), Buffer.from(v1))
 }
