@@ -77,28 +77,33 @@ export default function PaymentSettingsClient() {
     if (!form) return
     setSaving(true)
     setError('')
-    const res = await fetch('/api/admin/settings/payments', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        enabledPaymentMethods: form.enabledPaymentMethods,
-        defaultCurrency: form.defaultCurrency,
-        defaultTaxName: form.defaultTaxName,
-        defaultTaxRate: form.defaultTaxRate,
-        defaultTaxNumber: form.defaultTaxNumber,
-        taxActive: form.taxActive,
-        gracePeriodDays: form.gracePeriodDays,
-        stripePriceIdMonthly: form.stripePriceIdMonthly,
-        stripePriceIdQuarterly: form.stripePriceIdQuarterly,
-        stripePriceIdAnnual: form.stripePriceIdAnnual,
-      }),
-    })
-    const data = await res.json()
-    setSaving(false)
-    if (!res.ok) { setError(data.error || 'Failed to save'); return }
-    setForm(data.settings)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+    try {
+      const res = await fetch('/api/admin/settings/payments', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          enabledPaymentMethods: form.enabledPaymentMethods,
+          defaultCurrency: form.defaultCurrency,
+          defaultTaxName: form.defaultTaxName,
+          defaultTaxRate: form.defaultTaxRate,
+          defaultTaxNumber: form.defaultTaxNumber,
+          taxActive: form.taxActive,
+          gracePeriodDays: form.gracePeriodDays,
+          stripePriceIdMonthly: form.stripePriceIdMonthly,
+          stripePriceIdQuarterly: form.stripePriceIdQuarterly,
+          stripePriceIdAnnual: form.stripePriceIdAnnual,
+        }),
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok) { setError(data?.error || `Failed to save (${res.status})`); return }
+      setForm(data.settings)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    } catch {
+      setError('Network error — please try again')
+    } finally {
+      setSaving(false)
+    }
   }
 
   if (loading || !form) {

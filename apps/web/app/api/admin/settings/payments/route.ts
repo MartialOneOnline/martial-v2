@@ -82,7 +82,7 @@ export async function PATCH(req: NextRequest) {
   const derivedCurrencyByCycle: Partial<Record<Cycle, string>> = {}
 
   if (touchedCycles.length) {
-    const stripe = getPlatformStripe()
+    let stripe: ReturnType<typeof getPlatformStripe> | undefined
 
     for (const cycle of touchedCycles) {
       const priceId = priceInputs[cycle]
@@ -91,6 +91,14 @@ export async function PATCH(req: NextRequest) {
         data[PRICE_ID_FIELD[cycle]] = null
         data[PRICE_AMOUNT_FIELD[cycle]] = null
         continue
+      }
+
+      if (!stripe) {
+        try {
+          stripe = getPlatformStripe()
+        } catch {
+          return NextResponse.json({ error: 'Martial\'s platform Stripe key (STRIPE_PLATFORM_SECRET_KEY) is not configured' }, { status: 500 })
+        }
       }
 
       let price
