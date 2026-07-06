@@ -8,6 +8,7 @@ import { fmtPrice } from '@/lib/format'
 
 const METHOD_LABELS: Record<string, string> = {
   STRIPE: 'Stripe',
+  REVOLUT: 'Revolut',
   CASH: 'Cash',
   BANK_TRANSFER: 'Bank Transfer',
   DIRECT_DEBIT: 'Direct Debit',

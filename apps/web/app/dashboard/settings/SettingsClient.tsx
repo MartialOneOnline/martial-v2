@@ -549,6 +549,7 @@ function StaffTab() {
 const PAYMENT_METHODS = [
   { key: 'CASH',          label: 'Cash',          description: 'Accept cash payments in person' },
   { key: 'STRIPE',        label: 'Stripe',         description: 'Online card payments via Stripe' },
+  { key: 'REVOLUT',       label: 'Revolut',        description: 'Online card payments via Revolut Merchant' },
   { key: 'BANK_TRANSFER', label: 'Bank Transfer',  description: 'Direct bank / SEPA transfers' },
   { key: 'DIRECT_DEBIT',  label: 'Direct Debit',   description: 'Recurring SEPA direct debits' },
   { key: 'PAYPAL',        label: 'PayPal',          description: 'Payments via PayPal' },

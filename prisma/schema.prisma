@@ -1493,7 +1493,7 @@ model Notification {
 
 model PlatformSettings {
   id                    String   @id @default("singleton")
-  enabledPaymentMethods String[] @default(["STRIPE", "CASH", "BANK_TRANSFER", "DIRECT_DEBIT", "PAYPAL", "OTHER"])
+  enabledPaymentMethods String[] @default(["STRIPE", "REVOLUT", "CASH", "BANK_TRANSFER", "DIRECT_DEBIT", "PAYPAL", "OTHER"])
 
   defaultCurrency  String  @default("EUR")
   defaultTaxName   String?
