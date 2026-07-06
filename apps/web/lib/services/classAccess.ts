@@ -116,7 +116,7 @@ export function checkClassAccess(
       if (used >= cap) {
         return {
           allowed: false,
-          reason: `All ${cap} classes on this pass have been used`,
+          reason: `All ${cap} classes ${period} have been used`,
         }
       }
     }
