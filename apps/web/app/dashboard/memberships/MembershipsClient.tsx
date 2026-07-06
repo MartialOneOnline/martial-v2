@@ -10,6 +10,7 @@ import { QRCodeSVG } from 'qrcode.react'
 import { useDashboard } from '../../../components/DashboardShell'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../lib/format'
+import { BOOKING_PAYMENT_OPTIONS } from '../../../lib/paymentMethods'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -592,17 +593,24 @@ function PlanDrawer({ open, onClose, onSaved, editPlan, classes }: {
               <div>
                 <label style={labelSt}>Accepted payment methods</label>
                 <div className="flex flex-wrap gap-2 mt-1">
-                  {(['CASH', 'BANK_TRANSFER', 'STRIPE'] as const).map(m => {
-                    const labels: Record<string, string> = { CASH: 'Cash', BANK_TRANSFER: 'Bank transfer', STRIPE: 'Stripe (online)' }
-                    const active = form.paymentMethods.includes(m)
+                  {BOOKING_PAYMENT_OPTIONS.map(opt => {
+                    const active = form.paymentMethods.includes(opt.value)
                     return (
-                      <button key={m} type="button"
-                        onClick={() => set('paymentMethods', active ? form.paymentMethods.filter(x => x !== m) : [...form.paymentMethods, m])}
-                        style={{ padding: '6px 14px', borderRadius: 999, fontSize: 12, fontWeight: active ? 600 : 500, cursor: 'pointer',
-                          border: `1.5px solid ${active ? '#0870E2' : '#E5E7EB'}`,
-                          background: active ? '#EFF6FF' : '#F9FAFB',
-                          color: active ? '#0870E2' : '#6B7280' }}>
-                        {labels[m]}
+                      <button key={opt.value} type="button"
+                        onClick={() => set('paymentMethods', active
+                          ? form.paymentMethods.filter(m => m !== opt.value)
+                          : [...form.paymentMethods, opt.value]
+                        )}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-all"
+                        style={{
+                          fontSize: 12, fontWeight: 500,
+                          border: `1.5px solid ${active ? '#0071E3' : '#E5E7EB'}`,
+                          background: active ? '#EFF6FF' : '#fff',
+                          color: active ? '#0071E3' : '#6B7280',
+                        }}>
+                        <span>{opt.icon}</span>
+                        {opt.label}
+                        {active && <Check size={11} strokeWidth={2.5} />}
                       </button>
                     )
                   })}

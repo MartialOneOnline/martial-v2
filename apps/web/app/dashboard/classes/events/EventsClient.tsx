@@ -11,6 +11,7 @@ import { useDashboard } from '../../../../components/DashboardShell'
 import DashboardLanguageSelector from '../../../../components/DashboardLanguageSelector'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import { adminFetch } from '../../../../lib/api/adminFetch'
+import { BOOKING_PAYMENT_OPTIONS, type BookingPaymentMethod } from '../../../../lib/paymentMethods'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -19,7 +20,7 @@ type EventStatus = 'Upcoming' | 'Past' | 'Cancelled'
 
 interface Instructor { id: string; name: string }
 
-type PaymentMethod = 'STRIPE' | 'REVOLUT' | 'CASH' | 'BANK_TRANSFER'
+type PaymentMethod = BookingPaymentMethod
 
 interface EventTicket {
   name: string
@@ -121,12 +122,7 @@ function getPaginationPages(current: number, total: number): (number | '...')[] 
 
 // ── Event form ─────────────────────────────────────────────────────────────────
 
-const PAYMENT_OPTIONS: { value: PaymentMethod; label: string; icon: string }[] = [
-  { value: 'STRIPE',        label: 'Online (Stripe)',   icon: '💳' },
-  { value: 'REVOLUT',       label: 'Online (Revolut)',  icon: '💳' },
-  { value: 'CASH',          label: 'Cash at door',      icon: '💵' },
-  { value: 'BANK_TRANSFER', label: 'Bank transfer',     icon: '🏦' },
-]
+const PAYMENT_OPTIONS = BOOKING_PAYMENT_OPTIONS
 
 const EMPTY_TICKET: EventTicket = { name: '', description: '', price: 0, currency: 'EUR', capacity: '' }
 

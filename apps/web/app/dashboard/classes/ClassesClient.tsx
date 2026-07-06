@@ -11,6 +11,7 @@ import DashboardLanguageSelector from '../../../components/DashboardLanguageSele
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { type BookingSettings, minsToHoursAndMins, hoursAndMinsToTotal } from '../../../lib/types/booking-settings'
 import { fmtPrice as _fmtP } from '../../../lib/format'
+import { BOOKING_PAYMENT_OPTIONS, type BookingPaymentMethod } from '../../../lib/paymentMethods'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -192,13 +193,9 @@ function ScheduleBuilder({
 
 // ── Class form (shared create / edit) ─────────────────────────────────────────
 
-type PaymentMethod = 'STRIPE' | 'CASH' | 'BANK_TRANSFER'
+type PaymentMethod = BookingPaymentMethod
 
-const PAYMENT_OPTIONS: { value: PaymentMethod; label: string; icon: string }[] = [
-  { value: 'STRIPE',        label: 'Online (Stripe)', icon: '💳' },
-  { value: 'CASH',          label: 'Cash at door',    icon: '💵' },
-  { value: 'BANK_TRANSFER', label: 'Bank transfer',   icon: '🏦' },
-]
+const PAYMENT_OPTIONS = BOOKING_PAYMENT_OPTIONS
 
 // Booking form uses h+m strings for each field for easy input binding
 interface BookingFormField { h: string; m: string }
