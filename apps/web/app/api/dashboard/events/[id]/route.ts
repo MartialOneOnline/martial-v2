@@ -70,7 +70,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       description: t.description?.trim() || null,
       price: t.price !== undefined ? Number(t.price) : 0,
       currency: t.currency || 'EUR',
-      capacity: t.capacity ? Number(t.capacity) : null,
+      // `!= null` (not truthy) — 0 is a valid capacity ("sold out"/"no seats"), distinct from unset (null = unlimited).
+      capacity: t.capacity != null ? Number(t.capacity) : null,
     })
 
     return {
@@ -93,7 +94,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       location:       location !== undefined      ? (location?.trim() || null) : existing.location,
       startAt:        startAt                     ? new Date(startAt) : existing.startAt,
       endAt:          endAt !== undefined         ? (endAt ? new Date(endAt) : null) : existing.endAt,
-      capacity:       capacity !== undefined      ? (capacity ? Number(capacity) : null) : existing.capacity,
+      capacity:       capacity !== undefined      ? (capacity != null ? Number(capacity) : null) : existing.capacity,
       paymentMethods: Array.isArray(paymentMethods) ? paymentMethods : existing.paymentMethods,
       isPublished:    isPublished                 ?? existing.isPublished,
       isCancelled:    isCancelled                 ?? existing.isCancelled,

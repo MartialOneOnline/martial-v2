@@ -72,7 +72,8 @@ export async function POST(req: NextRequest) {
       location: location?.trim() || null,
       startAt: new Date(startAt),
       endAt: endAt ? new Date(endAt) : null,
-      capacity: capacity ? Number(capacity) : null,
+      // `!= null` (not truthy) — 0 is a valid capacity ("sold out"/"no seats"), distinct from unset (null = unlimited).
+      capacity: capacity != null ? Number(capacity) : null,
       paymentMethods: Array.isArray(paymentMethods) ? paymentMethods : [],
       isPublished: isPublished ?? false,
       externalUrl: externalUrl?.trim() || null,
@@ -84,7 +85,7 @@ export async function POST(req: NextRequest) {
           description: t.description?.trim() || null,
           price: t.price !== undefined ? Number(t.price) : 0,
           currency: t.currency || 'EUR',
-          capacity: t.capacity ? Number(t.capacity) : null,
+          capacity: t.capacity != null ? Number(t.capacity) : null,
           sortOrder: i,
         })),
       },

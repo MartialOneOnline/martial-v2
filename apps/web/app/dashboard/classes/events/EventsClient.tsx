@@ -193,13 +193,14 @@ function formToPayload(form: EventFormData) {
     endAt,
     instructorId: form.instructorId || null,
     location: form.location || null,
-    capacity: form.capacity ? Number(form.capacity) : null,
+    // `!== ''` (not truthy) — 0 is a valid capacity ("sold out"/"no seats"), distinct from a blank field (= unlimited).
+    capacity: form.capacity !== '' ? Number(form.capacity) : null,
     tickets: form.tickets.filter(t => t.name.trim()).map(t => ({
       ...(t.id && { id: t.id }),
       name: t.name.trim(),
       price: Number(t.price) || 0,
       currency: t.currency,
-      capacity: t.capacity ? Number(t.capacity) : null,
+      capacity: t.capacity !== '' ? Number(t.capacity) : null,
     })),
     paymentMethods: form.paymentMethods,
     isPublished: form.isPublished,
