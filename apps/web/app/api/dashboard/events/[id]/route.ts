@@ -41,22 +41,55 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     title, description, type, location, startAt, endAt,
     capacity, paymentMethods, isPublished, isCancelled, externalUrl, instructorId, coverUrl,
     tickets,
-  } = body
+  } = body as {
+    title?: string; description?: string; type?: string; location?: string; startAt?: string; endAt?: string
+    capacity?: number; paymentMethods?: string[]; isPublished?: boolean; isCancelled?: boolean
+    externalUrl?: string; instructorId?: string; coverUrl?: string
+    tickets?: { id?: string; name: string; description?: string; price?: number; currency?: string; capacity?: number }[]
+  }
 
-  // Tickets with existing registrations can't be deleted (FK restrict on EventBooking.ticketId).
-  const deletableTicketIds = Array.isArray(tickets)
-    ? (await prisma.eventTicket.findMany({
-        where: { eventId: id },
-        select: { id: true, _count: { select: { bookings: true } } },
-      })).filter(t => t._count.bookings === 0).map(t => t.id)
-    : []
+  // Reconcile tickets by id instead of delete-everything-and-recreate: a ticket that
+  // already has bookings must keep its id (and those bookings' ticketId FK) across edits,
+  // otherwise it becomes permanently stuck while a fresh duplicate gets created next to it.
+  const ticketWrite = !Array.isArray(tickets) ? undefined : await (async () => {
+    const existingTickets = await prisma.eventTicket.findMany({
+      where: { eventId: id },
+      select: { id: true, _count: { select: { bookings: true } } },
+    })
+    const existingIds = new Set(existingTickets.map(t => t.id))
+    const incomingIds = new Set(tickets.filter(t => t.id).map(t => t.id!))
+
+    // Removed from the form — only safe to hard-delete if it never had any booking
+    // (FK restrict on EventBooking.ticketId blocks deleting one that does).
+    const toDelete = existingTickets
+      .filter(t => !incomingIds.has(t.id) && t._count.bookings === 0)
+      .map(t => t.id)
+
+    const toTicketData = (t: (typeof tickets)[number]) => ({
+      name: t.name.trim(),
+      description: t.description?.trim() || null,
+      price: t.price !== undefined ? Number(t.price) : 0,
+      currency: t.currency || 'EUR',
+      capacity: t.capacity ? Number(t.capacity) : null,
+    })
+
+    return {
+      deleteMany: { id: { in: toDelete } },
+      update: tickets
+        .filter(t => t.id && existingIds.has(t.id))
+        .map(t => ({ where: { id: t.id! }, data: { ...toTicketData(t), sortOrder: tickets.indexOf(t) } })),
+      create: tickets
+        .filter(t => !t.id || !existingIds.has(t.id))
+        .map(t => ({ ...toTicketData(t), sortOrder: tickets.indexOf(t) })),
+    }
+  })()
 
   const event = await prisma.event.update({
     where: { id },
     data: {
       title:          title?.trim()              ?? existing.title,
       description:    description !== undefined  ? (description?.trim() || null) : existing.description,
-      type:           type                        ?? existing.type,
+      type:           (type as typeof existing.type) ?? existing.type,
       location:       location !== undefined      ? (location?.trim() || null) : existing.location,
       startAt:        startAt                     ? new Date(startAt) : existing.startAt,
       endAt:          endAt !== undefined         ? (endAt ? new Date(endAt) : null) : existing.endAt,
@@ -67,22 +100,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       externalUrl:    externalUrl !== undefined   ? (externalUrl?.trim() || null) : existing.externalUrl,
       instructorId:   instructorId !== undefined  ? (instructorId || null) : existing.instructorId,
       coverUrl:       coverUrl !== undefined       ? (coverUrl || null) : existing.coverUrl,
-      // Replace all tickets if provided. Only tickets with no registrations are
-      // removed — a ticket with EventBookings can't be deleted (FK restrict),
-      // so it's left in place rather than crashing the save.
-      ...(Array.isArray(tickets) && {
-        tickets: {
-          deleteMany: { id: { in: deletableTicketIds } },
-          create: tickets.map((t: { name: string; description?: string; price?: number; currency?: string; capacity?: number }, i: number) => ({
-            name: t.name.trim(),
-            description: t.description?.trim() || null,
-            price: t.price !== undefined ? Number(t.price) : 0,
-            currency: t.currency || 'EUR',
-            capacity: t.capacity ? Number(t.capacity) : null,
-            sortOrder: i,
-          })),
-        },
-      }),
+      ...(ticketWrite && { tickets: ticketWrite }),
     },
     include: EVENT_INCLUDE,
   })

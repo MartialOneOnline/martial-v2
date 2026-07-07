@@ -24,6 +24,7 @@ interface Instructor { id: string; name: string }
 type PaymentMethod = BookingPaymentMethod
 
 interface EventTicket {
+  id?: string  // present when editing an existing ticket — lets the server update in place instead of recreating it
   name: string
   description: string
   price: number
@@ -167,7 +168,7 @@ function eventToForm(ev: EventRow): EventFormData {
     location: ev.location ?? '',
     capacity: ev.capacity?.toString() ?? '',
     tickets: ev.tickets.length > 0
-      ? ev.tickets.map(t => ({ name: t.name, description: '', price: t.price, currency: t.currency, capacity: t.capacity?.toString() ?? '' }))
+      ? ev.tickets.map(t => ({ id: t.id, name: t.name, description: '', price: t.price, currency: t.currency, capacity: t.capacity?.toString() ?? '' }))
       : [{ ...EMPTY_TICKET, name: 'General' }],
     paymentMethods: ev.paymentMethods ?? [],
     isPublished: ev.isPublished,
@@ -194,6 +195,7 @@ function formToPayload(form: EventFormData) {
     location: form.location || null,
     capacity: form.capacity ? Number(form.capacity) : null,
     tickets: form.tickets.filter(t => t.name.trim()).map(t => ({
+      ...(t.id && { id: t.id }),
       name: t.name.trim(),
       price: Number(t.price) || 0,
       currency: t.currency,
