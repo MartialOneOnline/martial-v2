@@ -11,7 +11,7 @@ type SchoolMember = {
   beltDegree: number | null
   beltDate: string | null
   role: string
-  school: { id: string; name: string; slug: string; logoUrl: string | null }
+  school: { id: string; name: string; slug: string; logoUrl: string | null; hasGrading?: boolean }
 }
 
 type Grading = {
@@ -196,6 +196,10 @@ export default function MyProgressPage() {
       .catch(() => setLoading(false))
   }, [])
 
+  // Only schools that actually run a belt/grading system get a rank card —
+  // e.g. a Muay Thai or grappling-only school may not use belts at all.
+  const gradedMembers = members.filter(m => m.school.hasGrading)
+
   return (
     <div className="min-h-screen">
       <div className="bg-white border-b border-gray-100 px-5 py-4 sticky top-0 z-10">
@@ -222,14 +226,21 @@ export default function MyProgressPage() {
               {t.my.findAnAcademy}
             </Link>
           </div>
+        ) : gradedMembers.length === 0 ? (
+          <div className="bg-white border border-gray-100 rounded-2xl p-10 shadow-sm text-center">
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center mx-auto mb-3">
+              <div className="w-5 h-5 rounded-full bg-amber-300" />
+            </div>
+            <p className="text-sm font-semibold text-[#101828]">{t.my.noGradingSystem}</p>
+          </div>
         ) : (
-          members.map(m => (
+          gradedMembers.map(m => (
             <RankCard key={m.id} member={m} gradings={gradings} t={t} />
           ))
         )}
 
         {/* All gradings timeline */}
-        {gradings.length > 0 && members.length > 1 && (
+        {gradings.length > 0 && gradedMembers.length > 1 && (
           <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-50">
               <p className="text-sm font-bold text-[#101828]">{t.my.fullGradingHistory}</p>

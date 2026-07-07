@@ -16,9 +16,9 @@ import type { SchoolModuleKey } from '../../lib/school-modules'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-type NavItem = { labelKey: string; href: string; icon: React.ElementType; exact?: boolean; moduleKey?: SchoolModuleKey }
+type NavItem = { labelKey: string; href: string; icon: React.ElementType; exact?: boolean; moduleKey?: SchoolModuleKey; requiresGrading?: boolean }
 type NavSection = { labelKey?: string; schoolLabel?: boolean; items: NavItem[] }
-type School = { name: string; logoUrl: string | null; modules?: Record<SchoolModuleKey, boolean> } | null
+type School = { name: string; logoUrl: string | null; modules?: Record<SchoolModuleKey, boolean>; hasGrading?: boolean } | null
 
 // ── Navigation ───────────────────────────────────────────────────────────────
 // Explore is intentionally absent — students stay within their school's space.
@@ -30,7 +30,7 @@ const SIDEBAR_NAV: NavSection[] = [
       { labelKey: 'navDashboard', href: '/my',          icon: LayoutDashboard, exact: true },
       { labelKey: 'navClasses',   href: '/my/classes',  icon: CalendarDays },
       { labelKey: 'navEvents',    href: '/my/events',   icon: Ticket },
-      { labelKey: 'navRanking',   href: '/my/progress', icon: Medal },
+      { labelKey: 'navRanking',   href: '/my/progress', icon: Medal, requiresGrading: true },
     ],
   },
   {
@@ -204,6 +204,7 @@ function SidebarContent({ school, onClose }: { school: School; onClose?: () => v
             <div className="px-2.5 space-y-0.5">
               {section.items
                 .filter(item => !item.moduleKey || school?.modules?.[item.moduleKey])
+                .filter(item => !item.requiresGrading || school?.hasGrading)
                 .map(item => {
                 const active = isActive(pathname, item.href, item.exact)
                 const Icon = item.icon
@@ -260,7 +261,12 @@ export default function MyLayout({ children }: { children: React.ReactNode }) {
         const membership = d.user?.memberships?.find((m: { status: string }) => m.status === 'ACTIVE')
           ?? d.user?.memberships?.[0]
         if (membership?.school) {
-          setSchool({ name: membership.school.name, logoUrl: membership.school.logoUrl, modules: membership.school.modules })
+          setSchool({
+            name: membership.school.name,
+            logoUrl: membership.school.logoUrl,
+            modules: membership.school.modules,
+            hasGrading: membership.school.hasGrading,
+          })
         }
       })
       .catch(() => {})

@@ -27,7 +27,12 @@ export async function GET() {
           id: true, planName: true, price: true, currency: true,
           status: true, startDate: true, endDate: true,
           classesUsed: true, paymentMethod: true,
-          school: { select: { id: true, name: true, slug: true, logoUrl: true, city: true, modules: true } },
+          school: {
+            select: {
+              id: true, name: true, slug: true, logoUrl: true, city: true, modules: true,
+              _count: { select: { gradingSystems: { where: { isActive: true } } } },
+            },
+          },
         },
       },
       bookings: {
@@ -48,7 +53,12 @@ export async function GET() {
         where: { status: { in: ['ACTIVE', 'LEAD', 'FROZEN'] } },
         select: {
           id: true, belt: true, beltDegree: true, beltDate: true, role: true, status: true,
-          school: { select: { id: true, name: true, slug: true, logoUrl: true } },
+          school: {
+            select: {
+              id: true, name: true, slug: true, logoUrl: true,
+              _count: { select: { gradingSystems: { where: { isActive: true } } } },
+            },
+          },
         },
       },
       gradings: {
@@ -66,12 +76,23 @@ export async function GET() {
 
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
-  const memberships = user.memberships.map(m => ({
-    ...m,
-    school: m.school && { ...m.school, modules: getSchoolModules(m.school.modules) },
-  }))
+  const memberships = user.memberships.map(m => {
+    const { _count, ...school } = m.school ?? {}
+    return {
+      ...m,
+      school: m.school && { ...school, modules: getSchoolModules(m.school.modules), hasGrading: (_count?.gradingSystems ?? 0) > 0 },
+    }
+  })
 
-  return NextResponse.json({ user: { ...user, memberships } })
+  const schoolMembers = user.schoolMembers.map(sm => {
+    const { _count, ...school } = sm.school ?? {}
+    return {
+      ...sm,
+      school: sm.school && { ...school, hasGrading: (_count?.gradingSystems ?? 0) > 0 },
+    }
+  })
+
+  return NextResponse.json({ user: { ...user, memberships, schoolMembers } })
 }
 
 export async function PATCH(req: Request) {
