@@ -66,6 +66,7 @@ export default function Header({ onOpenLoginModal }: HeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [langOpen, setLangOpen]     = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [accountLink, setAccountLink] = useState<{ label: string; href: string }>({ label: 'My Account', href: '/my' })
   const { locale, setLocale }       = useLanguage()
   const t                           = useT()
 
@@ -73,6 +74,17 @@ export default function Header({ onOpenLoginModal }: HeaderProps) {
     const supabase = createClient()
     supabase.auth.getSession().then(({ data }) => {
       setIsLoggedIn(!!data.session)
+      if (!data.session) return
+
+      fetch('/api/auth/me').then(res => res.json()).then(json => {
+        if (json.user?.globalRole === 'SUPERADMIN') {
+          setAccountLink({ label: 'Admin', href: '/admin' })
+          return
+        }
+        const schools = json.contexts?.schools ?? []
+        const isStaff = schools.some((s: { role: string }) => s.role !== 'STUDENT')
+        setAccountLink(isStaff ? { label: 'Dashboard', href: '/dashboard' } : { label: 'My Profile', href: '/my' })
+      }).catch(() => {})
     })
   }, [])
 
@@ -126,6 +138,14 @@ export default function Header({ onOpenLoginModal }: HeaderProps) {
                 {link.label}
               </Link>
             ))}
+            {isLoggedIn && (
+              <Link
+                href={accountLink.href}
+                className="text-[12.5px] lg:text-[13px] font-extrabold text-[#0870E2] hover:text-[#004e7c] transition-colors uppercase tracking-wide"
+              >
+                {accountLink.label}
+              </Link>
+            )}
           </nav>
 
           {/* Right: language + buttons */}
@@ -247,6 +267,15 @@ export default function Header({ onOpenLoginModal }: HeaderProps) {
                   {link.label}
                 </Link>
               ))}
+              {isLoggedIn && (
+                <Link
+                  href={accountLink.href}
+                  onClick={() => setMobileOpen(false)}
+                  className="block px-3 py-2.5 rounded-lg text-sm font-black text-[#0870E2] hover:bg-sky-50 transition-all uppercase tracking-wider"
+                >
+                  {accountLink.label}
+                </Link>
+              )}
 
               <div className="pt-4 border-t border-gray-100 flex flex-col gap-3">
                 <Link
