@@ -37,8 +37,8 @@ describe('resolveAuthHashRedirect', () => {
     expect(resolveAuthHashRedirect(hash)).toBe('/login')
   })
 
-  it('does not treat a recovery-type hash as invite/magiclink (no recovery flow implemented yet)', () => {
+  it('redirects a password-recovery hash (type=recovery) to reset-password, preserving the full hash', () => {
     const hash = '#access_token=abc.def.sig&refresh_token=r4&type=recovery'
-    expect(resolveAuthHashRedirect(hash)).toBeNull()
+    expect(resolveAuthHashRedirect(hash)).toBe('/auth/reset-password' + hash)
   })
 })

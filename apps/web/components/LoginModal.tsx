@@ -69,7 +69,7 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
   const router   = useRouter()
   const supabase = createClient()
 
-  const [view, setView]             = useState<'sso' | 'email'>('sso')
+  const [view, setView]             = useState<'sso' | 'email' | 'forgot'>('sso')
   const [email, setEmail]           = useState('')
   const [password, setPassword]     = useState('')
   const [showPass, setShowPass]     = useState(false)
@@ -78,6 +78,10 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
   const [emailErr, setEmailErr]     = useState('')
   const [passErr, setPassErr]       = useState('')
   const [pickerSchools, setPickerSchools] = useState<SchoolContext[] | null>(null)
+  const [resetEmail, setResetEmail]   = useState('')
+  const [resetErr, setResetErr]       = useState('')
+  const [resetLoading, setResetLoading] = useState(false)
+  const [resetSent, setResetSent]     = useState(false)
 
   const resolveRedirect = async () => {
     try {
@@ -152,6 +156,20 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
     await resolveRedirect()
   }
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setResetErr('')
+    if (!resetEmail) { setResetErr('Please provide a valid email address.'); return }
+
+    setResetLoading(true)
+    const { error: err } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
+    })
+    setResetLoading(false)
+    if (err) { setResetErr(err.message); return }
+    setResetSent(true)
+  }
+
   // School picker shown after login when user has multiple staff roles
   if (pickerSchools) {
     return (
@@ -187,9 +205,15 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
         <div className="relative w-full max-w-[460px] bg-white rounded-[24px] shadow-[0_20px_60px_rgba(0,0,0,0.18)] pointer-events-auto px-8 pt-10 pb-8"
           onClick={e => e.stopPropagation()}>
 
-          {/* Back button (email view only) */}
-          {view === 'email' && (
-            <button onClick={() => { setView('sso'); setError(''); setEmailErr(''); setPassErr('') }}
+          {/* Back button (email/forgot views) */}
+          {(view === 'email' || view === 'forgot') && (
+            <button onClick={() => {
+                if (view === 'forgot') {
+                  setView('email'); setResetErr(''); setResetSent(false)
+                } else {
+                  setView('sso'); setError(''); setEmailErr(''); setPassErr('')
+                }
+              }}
               className="absolute top-4 left-4 w-9 h-9 flex items-center justify-center rounded-full bg-[#f5f5f5] hover:bg-[#ebebeb] text-[#667085] cursor-pointer transition-colors"
               aria-label="Back">
               <ArrowLeft className="w-[18px] h-[18px]" />
@@ -280,7 +304,8 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
 
                   {/* Forgot password */}
                   <div className="flex justify-end -mt-1">
-                    <span className="text-[13px] font-medium text-[#0870E2] cursor-pointer hover:underline">
+                    <span onClick={() => { setResetEmail(email); setResetErr(''); setResetSent(false); setView('forgot') }}
+                      className="text-[13px] font-medium text-[#0870E2] cursor-pointer hover:underline">
                       Forgot Password?
                     </span>
                   </div>
@@ -300,6 +325,47 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
                     Register
                   </span>
                 </p>
+              </motion.div>
+            )}
+
+            {/* ── Forgot password view ───────────────────────────────────────── */}
+            {view === 'forgot' && (
+              <motion.div key="forgot"
+                initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.2 }}>
+
+                {resetSent ? (
+                  <>
+                    <h2 className="text-[22px] font-bold text-[#061229] text-center mb-1">Check your email</h2>
+                    <p className="text-[14px] text-[#6b7280] text-center mb-6">
+                      We&apos;ve sent a password reset link to <span className="font-semibold text-[#061229]">{resetEmail}</span>.
+                    </p>
+                    <button type="button" onClick={() => { setView('email'); setResetSent(false) }}
+                      className="w-full h-[52px] bg-[#c1eafa] hover:bg-[#a8dff7] rounded-[10px] text-[16px] font-semibold text-[#061229] transition-colors cursor-pointer">
+                      Back to login
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="text-[22px] font-bold text-[#061229] text-center mb-1">Forgot Password?</h2>
+                    <p className="text-[14px] text-[#6b7280] text-center mb-6">Enter your email and we&apos;ll send you a reset link</p>
+
+                    <form onSubmit={handleForgotPassword} noValidate className="space-y-4">
+                      <div>
+                        <label className="block text-[14px] font-semibold text-[#061229] mb-1.5">Email</label>
+                        <input type="email" value={resetEmail} onChange={e => setResetEmail(e.target.value)}
+                          placeholder="Enter Email"
+                          className={`w-full h-[52px] px-4 rounded-[10px] border text-[16px] text-[#4f4f4f] outline-none focus:border-[#3d86af] transition-colors ${resetErr ? 'border-[#e43535]' : 'border-[#e0e0e0]'}`} />
+                        {resetErr && <p className="text-[#e43535] text-[13px] mt-1">{resetErr}</p>}
+                      </div>
+
+                      <button type="submit" disabled={resetLoading}
+                        className="w-full h-[52px] bg-[#c1eafa] hover:bg-[#a8dff7] rounded-[10px] text-[16px] font-semibold text-[#061229] transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer mt-1">
+                        {resetLoading ? 'Sending...' : 'Send Reset Link'}
+                      </button>
+                    </form>
+                  </>
+                )}
               </motion.div>
             )}
           </AnimatePresence>

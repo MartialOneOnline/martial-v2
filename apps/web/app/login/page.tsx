@@ -69,7 +69,7 @@ function LoginPageInner() {
   const justRegistered = searchParams.get('registered') === '1'
   const registeredType = searchParams.get('type')
 
-  const [view, setView] = useState<'sso' | 'email'>('sso')
+  const [view, setView] = useState<'sso' | 'email' | 'forgot'>('sso')
   const [email, setEmail] = useState(searchParams.get('email') ?? '')
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
@@ -78,6 +78,10 @@ function LoginPageInner() {
   const [emailErr, setEmailErr] = useState('')
   const [passErr, setPassErr] = useState('')
   const [pickerSchools, setPickerSchools] = useState<SchoolContext[] | null>(null)
+  const [resetEmail, setResetEmail] = useState('')
+  const [resetErr, setResetErr] = useState('')
+  const [resetLoading, setResetLoading] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
 
   const resolveRedirect = async () => {
     try {
@@ -142,6 +146,20 @@ function LoginPageInner() {
     await resolveRedirect()
   }
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setResetErr('')
+    if (!resetEmail) { setResetErr('Please provide a valid email address.'); return }
+
+    setResetLoading(true)
+    const { error: err } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
+    })
+    setResetLoading(false)
+    if (err) { setResetErr(err.message); return }
+    setResetSent(true)
+  }
+
   if (pickerSchools) {
     return (
       <SchoolPicker
@@ -162,10 +180,10 @@ function LoginPageInner() {
             <Image src="/martial-logo.png" alt="Martial" width={56} height={56} style={{ objectFit: 'contain' }} />
           </div>
           <h1 style={{ margin: '0 0 6px', fontSize: 22, fontWeight: 700, color: TEXT }}>
-            {view === 'sso' ? 'Welcome to Martial' : 'Welcome back'}
+            {view === 'sso' ? 'Welcome to Martial' : view === 'forgot' ? 'Forgot Password?' : 'Welcome back'}
           </h1>
           <p style={{ margin: 0, fontSize: 14, color: MUTED }}>
-            {view === 'sso' ? 'Your martial journey starts here' : 'Log in to continue your martial journey'}
+            {view === 'sso' ? 'Your martial journey starts here' : view === 'forgot' ? (resetSent ? 'Check your inbox for the reset link' : "Enter your email and we'll send you a reset link") : 'Log in to continue your martial journey'}
           </p>
         </div>
 
@@ -191,6 +209,50 @@ function LoginPageInner() {
 
             <SSOButton icon={<EmailIcon />} label="Continue with Email" onClick={() => setView('email')} />
           </div>
+        ) : view === 'forgot' ? (
+          resetSent ? (
+            <div style={{ background: '#fff', borderRadius: 16, border: `1px solid ${BORDER}`, boxShadow: '0 4px 24px rgba(0,0,0,0.06)', padding: 28, textAlign: 'center' }}>
+              <p style={{ margin: '0 0 20px', fontSize: 14, color: TEXT }}>
+                We&apos;ve sent a password reset link to <strong>{resetEmail}</strong>.
+              </p>
+              <button
+                type="button"
+                onClick={() => { setView('email'); setResetSent(false) }}
+                style={{ width: '100%', padding: '13px', fontSize: 15, fontWeight: 700, background: BLUE, color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer' }}>
+                Back to login
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleForgotPassword} noValidate
+              style={{ background: '#fff', borderRadius: 16, border: `1px solid ${BORDER}`, boxShadow: '0 4px 24px rgba(0,0,0,0.06)', padding: 28, display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>Email</label>
+                <input
+                  type="email"
+                  value={resetEmail}
+                  onChange={e => setResetEmail(e.target.value)}
+                  placeholder="you@email.com"
+                  style={{ width: '100%', padding: '11px 14px', fontSize: 15, border: `1px solid ${resetErr ? '#DC2626' : BORDER}`, borderRadius: 10, outline: 'none', boxSizing: 'border-box', color: TEXT }}
+                />
+                {resetErr && <p style={{ margin: '6px 0 0', fontSize: 12, color: '#DC2626' }}>{resetErr}</p>}
+              </div>
+
+              <button
+                type="submit"
+                disabled={resetLoading}
+                style={{ width: '100%', padding: '13px', fontSize: 15, fontWeight: 700, background: resetLoading ? '#93C5FD' : BLUE, color: '#fff', border: 'none', borderRadius: 12, cursor: resetLoading ? 'not-allowed' : 'pointer' }}>
+                {resetLoading ? 'Sending…' : 'Send reset link'}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => { setView('email'); setResetErr('') }}
+                style={{ width: '100%', padding: '4px', fontSize: 13, fontWeight: 600, background: 'none', border: 'none', color: MUTED, cursor: 'pointer' }}>
+                ← Back
+              </button>
+            </form>
+          )
         ) : (
           <form onSubmit={handleLogin} noValidate
             style={{ background: '#fff', borderRadius: 16, border: `1px solid ${BORDER}`, boxShadow: '0 4px 24px rgba(0,0,0,0.06)', padding: 28, display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -224,6 +286,14 @@ function LoginPageInner() {
                 </button>
               </div>
               {passErr && <p style={{ margin: '6px 0 0', fontSize: 12, color: '#DC2626' }}>{passErr}</p>}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: -8 }}>
+              <span
+                onClick={() => { setResetEmail(email); setResetErr(''); setResetSent(false); setView('forgot') }}
+                style={{ fontSize: 13, fontWeight: 600, color: BLUE, cursor: 'pointer' }}>
+                Forgot Password?
+              </span>
             </div>
 
             {error && <p style={{ margin: 0, fontSize: 13, color: '#DC2626', background: '#FEF2F2', padding: '8px 12px', borderRadius: 8 }}>{error}</p>}

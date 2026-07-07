@@ -7,6 +7,9 @@ export function resolveAuthHashRedirect(hash: string): string | null {
   if (hash.indexOf('access_token') !== -1 && (hash.indexOf('type=magiclink') !== -1 || hash.indexOf('type=invite') !== -1)) {
     return '/auth/set-password' + hash
   }
+  if (hash.indexOf('access_token') !== -1 && hash.indexOf('type=recovery') !== -1) {
+    return '/auth/reset-password' + hash
+  }
   if (hash.indexOf('error=') !== -1 || hash.indexOf('error_code=') !== -1) {
     return '/login'
   }
