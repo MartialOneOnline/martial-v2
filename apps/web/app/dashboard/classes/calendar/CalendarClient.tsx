@@ -88,7 +88,9 @@ function apiClassToSlots(cls: ApiClass): ClassSlot[] {
 /** Classes scheduled on a given date (matched by recurring day-of-week) */
 function classesForDate(date: Date, classes: ClassSlot[]): ClassSlot[] {
   const dow = dowMon(date)
-  return classes.filter(s => s.day === dow)
+  return classes
+    .filter(s => s.day === dow)
+    .sort((a, b) => (a.startH * 60 + a.startM) - (b.startH * 60 + b.startM))
 }
 
 /** Build a 5-or-6-week grid for a month */
