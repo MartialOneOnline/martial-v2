@@ -1,14 +1,14 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
+import Image from 'next/image'
 import {
   Bell, Menu, X, Check, Upload, Eye, EyeOff, Plus, Minus,
-  User, Building2, Users2, Wallet, GraduationCap,
-  Lock, Trash2, AlertTriangle,
-  Globe, Phone, Mail, MapPin, Zap, RefreshCw, Clock,
-  ChevronDown, ChevronRight, CreditCard, Award, Calendar, LogOut, Users, ArrowRight,
-  GripVertical, ChevronUp, Edit2, Settings2,
+  Trash2, AlertTriangle,
+  RefreshCw,
+  ChevronDown, CreditCard, Award, ArrowRight,
+  ChevronUp, Edit2,
 } from 'lucide-react'
 import { useDashboard } from '../../../components/DashboardShell'
 import { useT } from '../../../lib/i18n/LanguageContext'
@@ -142,12 +142,12 @@ function ProfileTab() {
       {/* Avatar */}
       <div className="flex items-center gap-5">
         <div className="relative shrink-0">
-          <div className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center"
+          <div className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center relative"
             style={{ background: 'linear-gradient(135deg,#0870E2,#7DE7EC)' }}>
             {uploading
               ? <RefreshCw size={22} style={{ color: '#fff' }} className="animate-spin" />
               : form.avatarUrl
-                ? <img src={form.avatarUrl} alt={form.name} className="w-full h-full object-cover" />
+                ? <Image src={form.avatarUrl} alt={form.name} fill sizes="80px" className="object-cover" />
                 : <span style={{ fontSize: 28, fontWeight: 700, color: '#fff' }}>{initials}</span>
             }
           </div>
@@ -301,12 +301,12 @@ function SchoolTab() {
           <div className="shrink-0">
             <label style={LBL}>Logo</label>
             <label className="block relative cursor-pointer group" style={{ width: 72, height: 72 }}>
-              <div className="w-full h-full rounded-2xl overflow-hidden flex items-center justify-center"
+              <div className="w-full h-full rounded-2xl overflow-hidden flex items-center justify-center relative"
                 style={{ background: '#F3F4F6', border: '2px dashed #D1D5DB' }}>
                 {uploading
                   ? <RefreshCw size={20} style={{ color: '#9CA3AF' }} className="animate-spin" />
                   : form.logoUrl
-                    ? <img src={form.logoUrl} alt="logo" className="w-full h-full object-cover" />
+                    ? <Image src={form.logoUrl} alt="logo" fill sizes="72px" className="object-cover" />
                     : <Upload size={20} style={{ color: '#9CA3AF' }} />
                 }
               </div>
@@ -340,12 +340,12 @@ function SchoolTab() {
             The banner shown on your public Explore card and profile page. Not the same as an event's own banner.
           </p>
           <label className="block relative cursor-pointer group w-full" style={{ height: 140 }}>
-            <div className="w-full h-full rounded-2xl overflow-hidden flex items-center justify-center"
+            <div className="w-full h-full rounded-2xl overflow-hidden flex items-center justify-center relative"
               style={{ background: '#F3F4F6', border: '2px dashed #D1D5DB' }}>
               {uploadingCover
                 ? <RefreshCw size={20} style={{ color: '#9CA3AF' }} className="animate-spin" />
                 : form.coverUrl
-                  ? <img src={form.coverUrl} alt="cover" className="w-full h-full object-cover" />
+                  ? <Image src={form.coverUrl} alt="cover" fill sizes="(max-width: 768px) 100vw, 600px" className="object-cover" />
                   : <Upload size={20} style={{ color: '#9CA3AF' }} />
               }
             </div>
