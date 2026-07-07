@@ -6,10 +6,13 @@ import { prisma } from '@/lib/db'
 import WeeklyTimetable from './WeeklyTimetable'
 import MembershipSection from './MembershipSection'
 import TrialBookingCTA from './TrialBookingCTA'
+import EventTicketCTA from './EventTicketCTA'
 import LeadForm from './LeadForm'
+import { getBookedCounts } from '@/lib/services/eventCapacity'
+import { fmtPrice } from '@/lib/format'
 import {
   MapPin, Star, Phone, Globe, Mail, ChevronLeft,
-  CheckCircle, MessageCircle, ExternalLink, UserPlus,
+  CheckCircle, MessageCircle, ExternalLink, UserPlus, Calendar,
 } from 'lucide-react'
 
 const FALLBACK_OG = 'https://images.unsplash.com/photo-1555597673-b21d5c935865?w=1200&h=630&fit=crop&q=85'
@@ -56,6 +59,10 @@ function InstagramIcon({ className }: { className?: string }) {
 
 const FALLBACK = 'https://images.unsplash.com/photo-1555597673-b21d5c935865?w=1200&h=600&fit=crop&q=85'
 
+function formatEventType(type: string) {
+  return type.charAt(0) + type.slice(1).toLowerCase().replace(/_/g, ' ')
+}
+
 export default async function SchoolProfile({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
 
@@ -69,6 +76,14 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
       membershipPlans: {
         where: { isActive: true },
         orderBy: [{ isPopular: 'desc' }, { price: 'asc' }],
+      },
+      events: {
+        where: { isPublished: true, isCancelled: false, startAt: { gte: new Date() } },
+        orderBy: { startAt: 'asc' },
+        include: {
+          instructor: { select: { name: true, photoUrl: true } },
+          tickets: { orderBy: { sortOrder: 'asc' } },
+        },
       },
     },
   })
@@ -105,6 +120,24 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
       level: c.level,
       schedule: (c.schedule as unknown as import('@/lib/scheduling').ScheduleSlot[]) ?? [],
     }))
+
+  const { byTicket, byEvent } = await getBookedCounts(school.events.map(e => e.id))
+  const eventsMapped = school.events.map(e => ({
+    id: e.id,
+    title: e.title,
+    type: e.type,
+    location: e.location,
+    startAt: e.startAt.toISOString(),
+    coverUrl: e.coverUrl,
+    paymentMethods: e.paymentMethods,
+    capacity: e.capacity,
+    booked: byEvent.get(e.id) ?? 0,
+    tickets: e.tickets.map(t => ({
+      id: t.id, name: t.name, description: t.description,
+      price: t.price, currency: t.currency, capacity: t.capacity,
+      booked: byTicket.get(t.id) ?? 0,
+    })),
+  }))
 
   return (
     <div className="min-h-screen bg-[#F8F9FB]">
@@ -221,6 +254,49 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
               </div>
             )}
 
+            {/* Upcoming Events */}
+            {eventsMapped.length > 0 && (
+              <div id="events" className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden scroll-mt-6">
+                <div className="px-5 py-4 border-b border-gray-50">
+                  <p className="text-sm font-bold text-[#101828]">Upcoming Events</p>
+                </div>
+                <div className="divide-y divide-gray-50">
+                  {eventsMapped.map(ev => {
+                    const minPrice = ev.tickets.length > 0 ? Math.min(...ev.tickets.map(t => t.price)) : null
+                    const dateLabel = new Date(ev.startAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                    return (
+                      <div key={ev.id} className="flex items-center gap-3 px-5 py-4">
+                        <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-[#0E3A7A] flex items-center justify-center">
+                          {ev.coverUrl ? (
+                            <Image src={ev.coverUrl} alt={ev.title} width={56} height={56} className="object-cover w-full h-full" />
+                          ) : (
+                            <Calendar className="w-6 h-6 text-white/60" />
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-bold text-[#101828] truncate">{ev.title}</p>
+                            <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[#0870E2]/8 text-[#0870E2] shrink-0">
+                              {formatEventType(ev.type)}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
+                            <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{dateLabel}</span>
+                            {ev.location && <span className="flex items-center gap-1 truncate"><MapPin className="w-3 h-3 shrink-0" />{ev.location}</span>}
+                          </div>
+                        </div>
+                        {minPrice !== null && (
+                          <p className="text-sm font-bold text-[#0870E2] shrink-0">
+                            <span className="font-normal text-gray-400 text-xs">from </span>{fmtPrice(minPrice, ev.tickets[0]!.currency)}
+                          </p>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Instructors */}
             {school.instructors.length > 0 && (
               <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
@@ -307,6 +383,13 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
                 plans={plansMapped}
                 className="w-full h-12 rounded-xl bg-[#0870E2] hover:bg-[#005580] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
               />
+              {eventsMapped.length > 0 && (
+                <EventTicketCTA
+                  events={eventsMapped}
+                  schoolSlug={slug}
+                  className="w-full h-12 rounded-xl border border-[#0870E2] text-[#0870E2] hover:bg-blue-50 font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
+                />
+              )}
               {school.phone && (
                 <a
                   href={`https://wa.me/${school.phone.replace(/\D/g, '')}`}
@@ -415,6 +498,14 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
             >
               <MessageCircle className="w-4 h-4" />
             </a>
+          )}
+          {eventsMapped.length > 0 && (
+            <EventTicketCTA
+              events={eventsMapped}
+              schoolSlug={slug}
+              className="flex items-center justify-center gap-2 h-12 px-4 rounded-xl border border-[#0870E2] text-[#0870E2] font-semibold text-sm transition-colors"
+              iconOnly
+            />
           )}
           <TrialBookingCTA
             trialClasses={trialClasses}

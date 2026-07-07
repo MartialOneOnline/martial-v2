@@ -1,6 +1,31 @@
 import type { Prisma } from '@/lib/prisma-client/client'
+import { prisma } from '@/lib/db'
 
 const ACTIVE_STATUSES = ['PENDING', 'CONFIRMED'] as const
+
+// Read-only booked-quantity totals per ticket and per event, for display (e.g. "3 left" / "Sold out").
+// Shared by the public events feed and the school profile page so the groupBy pattern isn't duplicated.
+export async function getBookedCounts(eventIds: string[]) {
+  if (eventIds.length === 0) return { byTicket: new Map<string, number>(), byEvent: new Map<string, number>() }
+
+  const [byTicketRows, byEventRows] = await Promise.all([
+    prisma.eventBooking.groupBy({
+      by: ['ticketId'],
+      where: { eventId: { in: eventIds }, status: { in: [...ACTIVE_STATUSES] } },
+      _sum: { quantity: true },
+    }),
+    prisma.eventBooking.groupBy({
+      by: ['eventId'],
+      where: { eventId: { in: eventIds }, status: { in: [...ACTIVE_STATUSES] } },
+      _sum: { quantity: true },
+    }),
+  ])
+
+  return {
+    byTicket: new Map(byTicketRows.map(r => [r.ticketId, r._sum.quantity ?? 0])),
+    byEvent: new Map(byEventRows.map(r => [r.eventId, r._sum.quantity ?? 0])),
+  }
+}
 
 // Checks whether `quantity` more seats fit within the ticket's and event's capacity.
 // Must be called inside a $transaction alongside the EventBooking create/update

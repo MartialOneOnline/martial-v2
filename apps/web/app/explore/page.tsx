@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -14,6 +15,7 @@ import Footer from '../../components/Footer'
 import LoginModal from '../../components/LoginModal'
 import { useT } from '../../lib/i18n/LanguageContext'
 import ClassBookingModal from '../school/[slug]/ClassBookingModal'
+import { fmtPrice } from '../../lib/format'
 
 // Leaflet map — dynamic import (no SSR, needs browser APIs)
 const ExploreMap = dynamic(() => import('../../components/ExploreMap'), { ssr: false, loading: () => (
@@ -71,6 +73,25 @@ type DbClass = {
     membershipPlans: Plan[]
   }
   instructor: { name: string; belt: string | null; role: string } | null
+}
+
+type EventTicket = { id: string; name: string; description: string | null; price: number; currency: string; capacity: number | null; booked: number }
+
+type DbEvent = {
+  id: string
+  title: string
+  description: string | null
+  type: string
+  location: string | null
+  startAt: string
+  endAt: string | null
+  capacity: number | null
+  coverUrl: string | null
+  paymentMethods: string[]
+  booked: number
+  school: { name: string; slug: string; logoUrl: string | null; city: string; country: string }
+  instructor: { name: string; photoUrl: string | null } | null
+  tickets: EventTicket[]
 }
 
 // ── City coords fallback (used until geocoding populates lat/lng in DB) ───────
@@ -143,7 +164,7 @@ function getCityCoords(city: string | null): [number, number] | null {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const SORTS = ['Nearest', 'Rating', 'Price', 'Name'] as const
+const SORTS = ['Nearest', 'Rating', 'Price', 'Name', 'Soonest'] as const
 type SortKey = typeof SORTS[number]
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -234,12 +255,8 @@ function SchoolCard({ school, onClick }: { school: DbSchool; onClick: () => void
           </span>
         )}
 
-        {/* Camp badge top-left */}
-        {school.type === 'CAMP' ? (
-          <span className="absolute top-3 left-3 text-[10px] font-bold bg-amber-500 text-white px-2.5 py-1 rounded-full uppercase tracking-wide shadow-sm">
-            Camp
-          </span>
-        ) : school.hasFreeTrialCls && (
+        {/* Free trial badge top-left */}
+        {school.hasFreeTrialCls && (
           <span className="absolute top-3 left-3 text-[10px] font-bold bg-emerald-500 text-white px-2.5 py-1 rounded-full uppercase tracking-wide shadow-sm">
             Free Trial
           </span>
@@ -360,6 +377,54 @@ function ClassCard({ cls, onClick, dayOfWeek }: { cls: DbClass; onClick: () => v
   )
 }
 
+// ── Event Card (full-bleed, distinct gradient from classes) ──────────────────
+
+function formatEventType(type: string) {
+  return type.charAt(0) + type.slice(1).toLowerCase().replace(/_/g, ' ')
+}
+
+function EventCard({ event, onClick }: { event: DbEvent; onClick: () => void }) {
+  const hasCover = !!event.coverUrl
+  const minPrice = event.tickets.length > 0 ? Math.min(...event.tickets.map(t => t.price)) : null
+  const dateLabel = new Date(event.startAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+
+  return (
+    <button
+      onClick={onClick}
+      className={`group relative w-full text-left rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 h-56 ${!hasCover ? 'bg-gradient-to-br from-[#3B2F63] to-[#7E22CE]' : ''}`}
+    >
+      {hasCover && <Image src={event.coverUrl!} alt={event.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/10" />
+
+      {/* Top */}
+      <div className="absolute top-3 left-3 right-3 flex items-start justify-between">
+        <span className="text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full bg-black/30 backdrop-blur-sm text-white border border-white/15">
+          {formatEventType(event.type)}
+        </span>
+        <span className="text-[10px] font-semibold bg-black/30 backdrop-blur-sm rounded-full px-2.5 py-1 text-white/90">
+          {dateLabel}
+        </span>
+      </div>
+
+      {/* Bottom */}
+      <div className="absolute bottom-0 left-0 right-0 px-4 pb-4">
+        <h3 className="text-white font-bold text-base leading-tight mb-1 line-clamp-1">{event.title}</h3>
+        <div className="flex items-center justify-between">
+          <p className="flex items-center gap-1 text-white/75 text-xs truncate">
+            <MapPin className="w-3 h-3 shrink-0" />
+            {event.school.name} · {event.school.city}
+          </p>
+          {minPrice !== null && (
+            <span className="flex items-center gap-1 text-xs font-semibold text-white/90 bg-[#0870E2]/70 backdrop-blur-sm rounded-full px-2.5 py-1 shrink-0">
+              {fmtPrice(minPrice, event.tickets[0]!.currency)}
+            </span>
+          )}
+        </div>
+      </div>
+    </button>
+  )
+}
+
 // ── School Quick View ─────────────────────────────────────────────────────────
 
 function SchoolQuickView({
@@ -435,13 +500,10 @@ function SchoolQuickView({
 
           {/* Disciplines */}
           <div className="flex flex-wrap gap-1.5 mt-3">
-            {school.type === 'CAMP' && (
-              <span className="text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">Camp</span>
-            )}
             {disciplines.map(d => (
               <span key={d} className="text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full bg-[#F9FAFB] text-[#6B7280] border border-[#E5E7EB]">{d}</span>
             ))}
-            {school.type !== 'CAMP' && school.hasFreeTrialCls && (
+            {school.hasFreeTrialCls && (
               <span className="text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Free Trial</span>
             )}
           </div>
@@ -499,15 +561,15 @@ function SchoolQuickView({
 
 // ── Empty State ───────────────────────────────────────────────────────────────
 
-function EmptyState({ mode }: { mode: 'schools' | 'camps' | 'classes' }) {
+function EmptyState({ mode }: { mode: 'schools' | 'events' | 'classes' }) {
   return (
     <div className="p-12 text-center bg-white border border-[#E5E7EB] rounded-2xl">
       <Sparkles className="w-10 h-10 text-[#E5E7EB] mx-auto mb-3" />
       <h3 className="font-bold text-[#111827]">
-        {mode === 'schools' ? 'No schools found' : mode === 'camps' ? 'No camps found' : 'No classes found'}
+        {mode === 'schools' ? 'No schools found' : mode === 'events' ? 'No events found' : 'No classes found'}
       </h3>
       <p className="text-sm text-[#6B7280] mt-1">
-        {mode === 'camps' ? 'New camps are announced regularly. Check back soon.' : 'Try a different discipline or location.'}
+        {mode === 'events' ? 'New events are announced regularly. Check back soon.' : 'Try a different discipline or location.'}
       </p>
     </div>
   )
@@ -517,15 +579,18 @@ function EmptyState({ mode }: { mode: 'schools' | 'camps' | 'classes' }) {
 
 export default function ExplorePage() {
   const t = useT()
+  const router = useRouter()
 
   // Data
   const [schools, setSchools]   = useState<DbSchool[]>([])
   const [classes, setClasses]   = useState<DbClass[]>([])
+  const [events, setEvents]     = useState<DbEvent[]>([])
   const [loadingSchools, setLoadingSchools] = useState(true)
   const [loadingClasses, setLoadingClasses] = useState(true)
+  const [loadingEvents, setLoadingEvents]   = useState(true)
 
   // UI state
-  const [mode, setMode]               = useState<'schools' | 'camps' | 'classes'>('schools')
+  const [mode, setMode]               = useState<'schools' | 'events' | 'classes'>('schools')
   const [view, setView]               = useState<'list' | 'map'>('list')
   const [search, setSearch]           = useState('')
   const [location, setLocation]       = useState('')
@@ -608,6 +673,16 @@ export default function ExplorePage() {
       .finally(() => setLoadingClasses(false))
   }, [])
 
+  // Fetch public events
+  useEffect(() => {
+    setLoadingEvents(true)
+    fetch('/api/public/events')
+      .then(r => r.json())
+      .then((data: { events: DbEvent[] }) => setEvents(data.events ?? []))
+      .catch(() => setEvents([]))
+      .finally(() => setLoadingEvents(false))
+  }, [])
+
   // Haversine distance helper
   function distKm(lat1: number, lng1: number, lat2: number, lng2: number) {
     const R = 6371
@@ -624,7 +699,7 @@ export default function ExplorePage() {
     return schools
       .filter(s => {
         const tags = s.disciplines.map(d => d.discipline.name.toLowerCase())
-        const matchType = mode === 'camps' ? s.type === 'CAMP' : s.type !== 'CAMP'
+        const matchType = s.type === 'SCHOOL'
         const matchDiscipline = discipline === 'All' || tags.some(tag => tag.includes(discipline.toLowerCase()))
         const matchSearch = !q || s.name.toLowerCase().includes(q) || tags.some(t => t.includes(q)) || (s.description ?? '').toLowerCase().includes(q)
         const matchLocation = !l || (s.city ?? '').toLowerCase().includes(l) || (s.address ?? '').toLowerCase().includes(l)
@@ -678,6 +753,26 @@ export default function ExplorePage() {
     })
   }, [classes, search, location, discipline, selectedDay])
 
+  // Filter + sort events
+  const filteredEvents = useMemo(() => {
+    const q = search.toLowerCase()
+    const l = location.toLowerCase()
+    const minPrice = (ev: DbEvent) => ev.tickets.length > 0 ? Math.min(...ev.tickets.map(t => t.price)) : Infinity
+    return events
+      .filter(ev => {
+        const matchDiscipline = discipline === 'All' || ev.title.toLowerCase().includes(discipline.toLowerCase())
+        const matchSearch = !q || ev.title.toLowerCase().includes(q) || ev.school.name.toLowerCase().includes(q)
+        const matchLocation = !l || ev.school.city.toLowerCase().includes(l) || (ev.location ?? '').toLowerCase().includes(l)
+        return matchDiscipline && matchSearch && matchLocation
+      })
+      .sort((a, b) => {
+        if (sort === 'Price') return minPrice(a) - minPrice(b)
+        if (sort === 'Name') return a.title.localeCompare(b.title)
+        // Soonest / Nearest / Rating all fall back to date order — events have no lat/lng or rating
+        return new Date(a.startAt).getTime() - new Date(b.startAt).getTime()
+      })
+  }, [events, search, location, discipline, sort])
+
   // Open booking modal for a class
   function openClassBooking(cls: DbClass) {
     const next = (cls.schedule ?? []).find(s => s.dayOfWeek === selectedDay) ?? cls.schedule?.[0]
@@ -711,8 +806,14 @@ export default function ExplorePage() {
     setQuickView(null)
   }
 
-  const isLoading = mode === 'classes' ? loadingClasses : loadingSchools
-  const resultCount = mode === 'classes' ? filteredClasses.length : filteredSchools.length
+  // Navigate to the school profile's Events section — ticket purchase needs full
+  // school context (location, other events), so it lives on the profile, not Explore.
+  function openEvent(event: DbEvent) {
+    router.push(`/school/${event.school.slug}#events`)
+  }
+
+  const isLoading = mode === 'classes' ? loadingClasses : mode === 'events' ? loadingEvents : loadingSchools
+  const resultCount = mode === 'classes' ? filteredClasses.length : mode === 'events' ? filteredEvents.length : filteredSchools.length
   const hasSearch = search || location || discipline !== 'All'
 
   // Build 7-day strip starting from today
@@ -826,7 +927,7 @@ export default function ExplorePage() {
               <div className="inline-flex p-1 rounded-full bg-[#F9FAFB] border border-[#E5E7EB]">
                 {([
                   { key: 'schools', label: t?.explore?.schools ?? 'Schools' },
-                  { key: 'camps',   label: 'Camps' },
+                  { key: 'events',  label: t?.explore?.events ?? 'Events' },
                   { key: 'classes', label: t?.explore?.classes ?? 'Classes' },
                 ] as const).map(({ key, label }) => (
                   <button
@@ -836,7 +937,7 @@ export default function ExplorePage() {
                       mode === key ? 'bg-white text-[#111827] shadow-sm' : 'text-[#6B7280] hover:text-[#111827]'
                     }`}
                   >
-                    {key === 'camps' ? (
+                    {key === 'events' ? (
                       <span className="flex items-center gap-1.5">
                         {label}
                         <span className="text-[9px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full uppercase tracking-wide leading-none">New</span>
@@ -897,7 +998,7 @@ export default function ExplorePage() {
         {/* Result count + clear */}
         <div className="flex items-center justify-between mb-4">
           <p className="text-sm font-semibold text-[#6B7280]">
-            {isLoading ? 'Loading…' : `${resultCount} ${mode === 'schools' ? 'schools' : mode === 'camps' ? 'camps' : 'classes'} found`}
+            {isLoading ? 'Loading…' : `${resultCount} ${mode === 'schools' ? 'schools' : mode === 'events' ? 'events' : 'classes'} found`}
           </p>
           {hasSearch && (
             <button
@@ -936,8 +1037,8 @@ export default function ExplorePage() {
           </div>
         )}
 
-        {/* Map view */}
-        {view === 'map' && (mode === 'schools' || mode === 'camps') && (
+        {/* Map view — schools only: Event.location is free text with no lat/lng to plot */}
+        {view === 'map' && mode === 'schools' && (
           <div className="mb-6">
             <ExploreMap
               schools={filteredSchools}
@@ -963,12 +1064,20 @@ export default function ExplorePage() {
               <div className="col-span-full">
                 <EmptyState mode={mode} />
               </div>
-            ) : mode === 'schools' || mode === 'camps' ? (
+            ) : mode === 'schools' ? (
               filteredSchools.map(school => (
                 <SchoolCard
                   key={school.id}
                   school={school}
                   onClick={() => setQuickView(school)}
+                />
+              ))
+            ) : mode === 'events' ? (
+              filteredEvents.map(event => (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  onClick={() => openEvent(event)}
                 />
               ))
             ) : (
@@ -985,7 +1094,7 @@ export default function ExplorePage() {
         )}
 
         {/* Map + list side by side on wide screens when map active */}
-        {view === 'map' && (mode === 'schools' || mode === 'camps') && !isLoading && filteredSchools.length > 0 && (
+        {view === 'map' && mode === 'schools' && !isLoading && filteredSchools.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
             <p className="col-span-full text-xs font-semibold text-[#6B7280] uppercase tracking-wide">Schools on map</p>
             {filteredSchools.filter(s => s.lat && s.lng).slice(0, 10).map(school => (

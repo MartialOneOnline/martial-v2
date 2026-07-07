@@ -42,9 +42,19 @@ export async function GET(req: NextRequest) {
         take: 1,
         select: { name: true, belt: true, isHead: true },
       },
+      events: {
+        where: { isPublished: true, isCancelled: false, startAt: { gte: new Date() } },
+        take: 1,
+        select: { id: true },
+      },
     },
     orderBy: { googleRating: 'desc' },
   })
 
-  return NextResponse.json(schools)
+  const result = schools.map(({ events, ...school }) => ({
+    ...school,
+    hasUpcomingEvent: events.length > 0,
+  }))
+
+  return NextResponse.json(result)
 }
