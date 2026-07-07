@@ -21,20 +21,7 @@ interface Product {
   image: string
 }
 
-const PRODUCTS: Product[] = [
-  { id:1,  name:'Fuji BJJ Gi White',         category:'Gi',          price:'€129.00', priceRaw:129, stock:12, sold:34, status:'Active',       image:'' },
-  { id:2,  name:'Fuji BJJ Gi Blue',          category:'Gi',          price:'€129.00', priceRaw:129, stock:8,  sold:28, status:'Active',       image:'' },
-  { id:3,  name:'Tatami Estilo 6.0 Gi',      category:'Gi',          price:'€159.00', priceRaw:159, stock:0,  sold:15, status:'Out of Stock', image:'' },
-  { id:4,  name:'Scramble No-Gi Shorts',     category:'No-Gi',       price:'€45.00',  priceRaw:45,  stock:20, sold:42, status:'Active',       image:'' },
-  { id:5,  name:'Scramble Rash Guard LS',    category:'No-Gi',       price:'€55.00',  priceRaw:55,  stock:15, sold:31, status:'Active',       image:'' },
-  { id:6,  name:'Mouthguard Pro',            category:'Accessories', price:'€18.00',  priceRaw:18,  stock:3,  sold:67, status:'Active',       image:'' },
-  { id:7,  name:'Finger Tape 5-pack',        category:'Accessories', price:'€12.00',  priceRaw:12,  stock:25, sold:89, status:'Active',       image:'' },
-  { id:8,  name:'Whey Protein 2kg',          category:'Supplements', price:'€49.00',  priceRaw:49,  stock:2,  sold:22, status:'Active',       image:'' },
-  { id:9,  name:'Creatine 500g',             category:'Supplements', price:'€29.00',  priceRaw:29,  stock:0,  sold:18, status:'Out of Stock', image:'' },
-  { id:10, name:'Academy T-Shirt',           category:'Apparel',     price:'€25.00',  priceRaw:25,  stock:30, sold:55, status:'Active',       image:'' },
-  { id:11, name:'Academy Hoodie',            category:'Apparel',     price:'€55.00',  priceRaw:55,  stock:4,  sold:19, status:'Active',       image:'' },
-  { id:12, name:'Old Gi Model 2023',         category:'Gi',          price:'€89.00',  priceRaw:89,  stock:0,  sold:45, status:'Archived',     image:'' },
-]
+const PRODUCTS: Product[] = []
 
 const STATUS_MAP: Record<ProductStatus, { bg: string; color: string; border: string }> = {
   'Active':       { bg: '#F0FDF4', color: '#16A34A', border: '#BBF7D0' },
@@ -193,10 +180,10 @@ export default function StoreClient() {
   const pages      = getPaginationPages(safePage, totalPages)
 
   const STATS = [
-    { label: t.school.totalProducts, value: String(totalProducts),  icon: Package,     color: '#0071E3', bg: '#EFF6FF', trend: '+2',   trendUp: true  },
-    { label: t.school.inStock,       value: String(activeProducts), icon: Check,       color: '#16A34A', bg: '#F0FDF4', trend: '+1',   trendUp: true  },
-    { label: t.paymentsPage.totalRevenue, value: '€' + totalRevenue.toLocaleString('es-ES'), icon: TrendingUp, color: '#6D28D9', bg: '#F5F3FF', trend: '+12%', trendUp: true },
-    { label: t.school.outOfStock,    value: String(lowStock),       icon: TrendingDown, color: '#DC2626', bg: '#FEF2F2', trend: String(lowStock), trendUp: false },
+    { label: t.school.totalProducts, value: String(totalProducts),  icon: Package,     color: '#0071E3', bg: '#EFF6FF' },
+    { label: t.school.inStock,       value: String(activeProducts), icon: Check,       color: '#16A34A', bg: '#F0FDF4' },
+    { label: t.paymentsPage.totalRevenue, value: '€' + totalRevenue.toLocaleString('es-ES'), icon: TrendingUp, color: '#6D28D9', bg: '#F5F3FF' },
+    { label: t.school.outOfStock,    value: String(lowStock),       icon: TrendingDown, color: '#DC2626', bg: '#FEF2F2' },
   ]
 
   const FILTERS: { id: Filter; label: string }[] = [
@@ -244,17 +231,10 @@ export default function StoreClient() {
               {STATS.map(s => (
                 <div key={s.label} className="rounded-2xl"
                   style={{ background: '#fff', border: '1px solid #E5E7EB', padding: '18px 20px' }}>
-                  <div className="flex items-start justify-between mb-3">
+                  <div className="mb-3">
                     <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: s.bg }}>
                       <s.icon size={16} style={{ color: s.color }} />
                     </div>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 11, fontWeight: 600,
-                      background: s.trendUp ? '#F0FDF4' : '#FEF2F2',
-                      color: s.trendUp ? '#16A34A' : '#DC2626',
-                      padding: '2px 7px', borderRadius: 999 }}>
-                      {s.trendUp ? <TrendingUp size={9} /> : <TrendingDown size={9} />}
-                      {s.trend}
-                    </span>
                   </div>
                   <p style={{ fontSize: 26, fontWeight: 700, color: '#111827', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 4 }}>{s.value}</p>
                   <p style={{ fontSize: 12, fontWeight: 500, color: '#6B7280' }}>{s.label}</p>

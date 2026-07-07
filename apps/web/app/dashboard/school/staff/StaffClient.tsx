@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import {
   Bell,
-  Menu, X, Search, Check, TrendingUp, TrendingDown,
+  Menu, X, Search, Check, TrendingUp,
   MoreHorizontal, Eye, Plus, Users, Award,
 } from 'lucide-react'
 import { useDashboard } from '../../../../components/DashboardShell'
@@ -26,18 +26,7 @@ interface StaffMember {
   status: StaffStatus
 }
 
-const STAFF: StaffMember[] = [
-  { id:1,  avatar:'https://i.pravatar.cc/32?u=s1',  name:'Carlos Silva',      email:'carlos.s@academy.com',  role:'Head Instructor', belt:'Black',  classes:['Mon 7pm','Wed 7pm','Fri 7pm'], salary:'€3,500',  since:'Jan 2018', status:'Active'   },
-  { id:2,  avatar:'https://i.pravatar.cc/32?u=s2',  name:'Ana Rodrigues',     email:'ana.r@academy.com',     role:'Instructor',      belt:'Black',  classes:['Tue 6pm','Thu 6pm'],           salary:'€2,800',  since:'Mar 2019', status:'Active'   },
-  { id:3,  avatar:'https://i.pravatar.cc/32?u=s3',  name:'Marcos Freitas',    email:'marcos.f@academy.com',  role:'Instructor',      belt:'Brown',  classes:['Sat 10am','Sun 10am'],         salary:'€2,200',  since:'Jun 2021', status:'Active'   },
-  { id:4,  avatar:'https://i.pravatar.cc/32?u=s4',  name:'Sofia Lopes',       email:'sofia.l@academy.com',   role:'Assistant',       belt:'Purple', classes:['Mon 6pm','Wed 6pm'],           salary:'€1,500',  since:'Sep 2022', status:'Active'   },
-  { id:5,  avatar:'https://i.pravatar.cc/32?u=s5',  name:'Diego Almeida',     email:'diego.a@academy.com',   role:'Assistant',       belt:'Blue',   classes:['Tue 5pm'],                     salary:'€1,200',  since:'Jan 2023', status:'Active'   },
-  { id:6,  avatar:'https://i.pravatar.cc/32?u=s6',  name:'Laura Torres',      email:'laura.t@academy.com',   role:'Admin',           belt:'White',  classes:[],                              salary:'€1,800',  since:'Feb 2020', status:'Active'   },
-  { id:7,  avatar:'https://i.pravatar.cc/32?u=s7',  name:'Pedro Gomes',       email:'pedro.g@academy.com',   role:'Receptionist',    belt:'White',  classes:[],                              salary:'€1,200',  since:'Apr 2022', status:'On Leave' },
-  { id:8,  avatar:'https://i.pravatar.cc/32?u=s8',  name:'Inês Carvalho',     email:'ines.c@academy.com',    role:'Admin',           belt:'White',  classes:[],                              salary:'€1,800',  since:'Jul 2021', status:'Active'   },
-  { id:9,  avatar:'https://i.pravatar.cc/32?u=s9',  name:'Tiago Mendes',      email:'tiago.m@academy.com',   role:'Instructor',      belt:'Brown',  classes:['Thu 7pm','Sat 12pm'],          salary:'€2,400',  since:'Nov 2020', status:'Inactive' },
-  { id:10, avatar:'https://i.pravatar.cc/32?u=s10', name:'Beatriz Santos',    email:'beatriz.s@academy.com', role:'Assistant',       belt:'Purple', classes:['Fri 6pm'],                     salary:'€1,400',  since:'Mar 2023', status:'Active'   },
-]
+const STAFF: StaffMember[] = []
 
 const ROLE_MAP: Record<StaffRole, { bg: string; color: string }> = {
   'Head Instructor': { bg: '#FDF2F8', color: '#9D174D' },
@@ -61,16 +50,7 @@ const STATUS_MAP: Record<StaffStatus, { bg: string; color: string; border: strin
   'Inactive': { bg: '#F3F4F6', color: '#6B7280', border: '#E5E7EB' },
 }
 
-const MEMBERS = [
-  { id:1,  avatar:'https://i.pravatar.cc/32?u=fn',  name:'Fernanda Neves',    email:'fernanda@mail.com'  },
-  { id:2,  avatar:'https://i.pravatar.cc/32?u=pm',  name:'Patricia Mancera',  email:'patricia@mail.com'  },
-  { id:3,  avatar:'https://i.pravatar.cc/32?u=mt',  name:'Matias Toloza',     email:'matias@mail.com'    },
-  { id:4,  avatar:'https://i.pravatar.cc/32?u=fw',  name:'Florian Walter',    email:'florian@mail.com'   },
-  { id:5,  avatar:'https://i.pravatar.cc/32?u=ad',  name:'Alejandro DB',      email:'alejandro@mail.com' },
-  { id:6,  avatar:'https://i.pravatar.cc/32?u=rg',  name:'Rafael Gonzalez',   email:'rafael@mail.com'    },
-  { id:7,  avatar:'https://i.pravatar.cc/32?u=ma',  name:'Miguel Ángel Ruiz', email:'miguel@mail.com'    },
-  { id:8,  avatar:'https://i.pravatar.cc/32?u=ls',  name:'Laura Sánchez',     email:'laura@mail.com'     },
-]
+const MEMBERS: { id: number; avatar: string; name: string; email: string }[] = []
 
 function AddStaffDrawer({ open, onClose, onSuccess }: { open: boolean; onClose: () => void; onSuccess: () => void }) {
   const [memberQuery, setMemberQuery]       = useState('')
@@ -284,7 +264,8 @@ export default function StaffClient() {
   const totalStaff    = STAFF.length
   const instructors   = STAFF.filter(s => ['Head Instructor','Instructor'].includes(s.role)).length
   const activeCount   = STAFF.filter(s => s.status === 'Active').length
-  const avgClasses    = Math.round(STAFF.filter(s => s.classes.length > 0).reduce((sum, s) => sum + s.classes.length, 0) / STAFF.filter(s => s.classes.length > 0).length)
+  const staffWithClasses = STAFF.filter(s => s.classes.length > 0)
+  const avgClasses    = staffWithClasses.length === 0 ? 0 : Math.round(staffWithClasses.reduce((sum, s) => sum + s.classes.length, 0) / staffWithClasses.length)
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE))
   const safePage   = Math.min(currentPage, totalPages)
@@ -292,10 +273,10 @@ export default function StaffClient() {
   const pages      = getPaginationPages(safePage, totalPages)
 
   const STATS = [
-    { label: t.school.totalStaff,   value: String(totalStaff),  icon: Users,       color: '#0071E3', bg: '#EFF6FF', trend: '+1',  trendUp: true  },
-    { label: t.school.instructors,  value: String(instructors), icon: Award,       color: '#6D28D9', bg: '#F5F3FF', trend: '+1',  trendUp: true  },
-    { label: t.common.active,       value: String(activeCount), icon: Check,       color: '#16A34A', bg: '#F0FDF4', trend: '+1',  trendUp: true  },
-    { label: 'Avg Classes/Week',    value: String(avgClasses),  icon: TrendingUp,  color: '#D97706', bg: '#FFFBEB', trend: '~3',  trendUp: true  },
+    { label: t.school.totalStaff,   value: String(totalStaff),  icon: Users,       color: '#0071E3', bg: '#EFF6FF' },
+    { label: t.school.instructors,  value: String(instructors), icon: Award,       color: '#6D28D9', bg: '#F5F3FF' },
+    { label: t.common.active,       value: String(activeCount), icon: Check,       color: '#16A34A', bg: '#F0FDF4' },
+    { label: 'Avg Classes/Week',    value: String(avgClasses),  icon: TrendingUp,  color: '#D97706', bg: '#FFFBEB' },
   ]
 
   const FILTERS: { id: Filter; label: string }[] = [
@@ -343,17 +324,10 @@ export default function StaffClient() {
               {STATS.map(s => (
                 <div key={s.label} className="rounded-2xl"
                   style={{ background: '#fff', border: '1px solid #E5E7EB', padding: '18px 20px' }}>
-                  <div className="flex items-start justify-between mb-3">
+                  <div className="mb-3">
                     <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: s.bg }}>
                       <s.icon size={16} style={{ color: s.color }} />
                     </div>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 11, fontWeight: 600,
-                      background: s.trendUp ? '#F0FDF4' : '#FEF2F2',
-                      color: s.trendUp ? '#16A34A' : '#DC2626',
-                      padding: '2px 7px', borderRadius: 999 }}>
-                      {s.trendUp ? <TrendingUp size={9} /> : <TrendingDown size={9} />}
-                      {s.trend}
-                    </span>
                   </div>
                   <p style={{ fontSize: 26, fontWeight: 700, color: '#111827', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 4 }}>{s.value}</p>
                   <p style={{ fontSize: 12, fontWeight: 500, color: '#6B7280' }}>{s.label}</p>

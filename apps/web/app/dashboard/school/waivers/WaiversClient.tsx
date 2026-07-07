@@ -2,7 +2,7 @@
 
 import { useDashboard } from '../../../../components/DashboardShell'
 import { useState } from 'react'
-import {Users, Calendar, CreditCard, BarChart2, Settings, Bell, ChevronRight, ChevronDown, Menu, X, Search, Check, TrendingUp, TrendingDown, MoreHorizontal, Eye, Plus, FileText, Download, Send} from 'lucide-react'
+import {Users, Calendar, CreditCard, BarChart2, Settings, Bell, ChevronRight, ChevronDown, Menu, X, Search, Check, TrendingDown, MoreHorizontal, Eye, Plus, FileText, Download, Send} from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 
 type WaiverType = 'Liability' | 'Medical' | 'Photo Release' | 'Minor'
@@ -19,24 +19,7 @@ interface Waiver {
   status: WaiverStatus
 }
 
-const WAIVERS: Waiver[] = [
-  { id:1,  avatar:'https://i.pravatar.cc/32?u=fn',  name:'Fernanda Neves',    email:'fernanda@mail.com',  type:'Liability',    signedDate:'01 Jan 2025', expiryDate:'01 Jan 2027', status:'Signed'  },
-  { id:2,  avatar:'https://i.pravatar.cc/32?u=pm',  name:'Patricia Mancera',  email:'patricia@mail.com',  type:'Medical',      signedDate:'15 Feb 2025', expiryDate:'15 Feb 2027', status:'Signed'  },
-  { id:3,  avatar:'https://i.pravatar.cc/32?u=mt',  name:'Matias Toloza',     email:'matias@mail.com',    type:'Liability',    signedDate:'',            expiryDate:'',            status:'Pending' },
-  { id:4,  avatar:'https://i.pravatar.cc/32?u=fw',  name:'Florian Walter',    email:'florian@mail.com',   type:'Photo Release',signedDate:'10 Mar 2024', expiryDate:'10 Mar 2025', status:'Expired' },
-  { id:5,  avatar:'https://i.pravatar.cc/32?u=ad',  name:'Alejandro DB',      email:'alejandro@mail.com', type:'Liability',    signedDate:'20 Apr 2025', expiryDate:'20 Apr 2027', status:'Signed'  },
-  { id:6,  avatar:'https://i.pravatar.cc/32?u=rg',  name:'Rafael Gonzalez',   email:'rafael@mail.com',    type:'Medical',      signedDate:'',            expiryDate:'',            status:'Pending' },
-  { id:7,  avatar:'https://i.pravatar.cc/32?u=ma',  name:'Miguel Ángel Ruiz', email:'miguel@mail.com',    type:'Liability',    signedDate:'05 May 2025', expiryDate:'05 May 2027', status:'Signed'  },
-  { id:8,  avatar:'https://i.pravatar.cc/32?u=ls',  name:'Laura Sánchez',     email:'laura@mail.com',     type:'Minor',        signedDate:'12 Jun 2024', expiryDate:'12 Jun 2025', status:'Expired' },
-  { id:9,  avatar:'https://i.pravatar.cc/32?u=jk',  name:'James Kim',         email:'james@mail.com',     type:'Liability',    signedDate:'18 Jul 2025', expiryDate:'18 Jul 2027', status:'Signed'  },
-  { id:10, avatar:'https://i.pravatar.cc/32?u=sg',  name:'Sara García',       email:'sara@mail.com',      type:'Photo Release',signedDate:'22 Aug 2025', expiryDate:'22 Aug 2027', status:'Signed'  },
-  { id:11, avatar:'https://i.pravatar.cc/32?u=dt',  name:'Diego Torres',      email:'diego@mail.com',     type:'Medical',      signedDate:'',            expiryDate:'',            status:'Pending' },
-  { id:12, avatar:'https://i.pravatar.cc/32?u=ab',  name:'Ana Belén López',   email:'ana@mail.com',       type:'Minor',        signedDate:'30 Sep 2025', expiryDate:'30 Sep 2027', status:'Signed'  },
-  { id:13, avatar:'https://i.pravatar.cc/32?u=cr',  name:'Carlos Romero',     email:'carlos@mail.com',    type:'Liability',    signedDate:'05 Oct 2024', expiryDate:'05 Oct 2025', status:'Expired' },
-  { id:14, avatar:'https://i.pravatar.cc/32?u=vp',  name:'Valeria Pérez',     email:'valeria@mail.com',   type:'Liability',    signedDate:'11 Nov 2025', expiryDate:'11 Nov 2027', status:'Signed'  },
-  { id:15, avatar:'https://i.pravatar.cc/32?u=hm',  name:'Hugo Martínez',     email:'hugo@mail.com',      type:'Medical',      signedDate:'20 Dec 2025', expiryDate:'20 Dec 2027', status:'Signed'  },
-  { id:16, avatar:'https://i.pravatar.cc/32?u=io',  name:'Irina Okonkwo',     email:'irina@mail.com',     type:'Photo Release',signedDate:'',            expiryDate:'',            status:'Pending' },
-]
+const WAIVERS: Waiver[] = []
 
 const STATUS_MAP: Record<WaiverStatus, { bg: string; color: string; border: string }> = {
   Signed:  { bg: '#F0FDF4', color: '#16A34A', border: '#BBF7D0' },
@@ -51,16 +34,7 @@ const TYPE_MAP: Record<WaiverType, { bg: string; color: string }> = {
   'Minor':        { bg: '#FFFBEB', color: '#D97706' },
 }
 
-const MEMBERS = [
-  { id:1,  avatar:'https://i.pravatar.cc/32?u=fn',  name:'Fernanda Neves',    email:'fernanda@mail.com'  },
-  { id:2,  avatar:'https://i.pravatar.cc/32?u=pm',  name:'Patricia Mancera',  email:'patricia@mail.com'  },
-  { id:3,  avatar:'https://i.pravatar.cc/32?u=mt',  name:'Matias Toloza',     email:'matias@mail.com'    },
-  { id:4,  avatar:'https://i.pravatar.cc/32?u=fw',  name:'Florian Walter',    email:'florian@mail.com'   },
-  { id:5,  avatar:'https://i.pravatar.cc/32?u=ad',  name:'Alejandro DB',      email:'alejandro@mail.com' },
-  { id:6,  avatar:'https://i.pravatar.cc/32?u=rg',  name:'Rafael Gonzalez',   email:'rafael@mail.com'    },
-  { id:7,  avatar:'https://i.pravatar.cc/32?u=ma',  name:'Miguel Ángel Ruiz', email:'miguel@mail.com'    },
-  { id:8,  avatar:'https://i.pravatar.cc/32?u=ls',  name:'Laura Sánchez',     email:'laura@mail.com'     },
-]
+const MEMBERS: { id: number; avatar: string; name: string; email: string }[] = []
 
 function AddWaiverDrawer({ open, onClose, onSuccess }: { open: boolean; onClose: () => void; onSuccess: () => void }) {
   const [memberQuery, setMemberQuery]       = useState('')
@@ -267,10 +241,10 @@ export default function WaiversClient() {
   const pages      = getPaginationPages(safePage, totalPages)
 
   const STATS = [
-    { label: t.school.totalWaivers, value: String(totalWaivers), icon: FileText,    color: '#0071E3', bg: '#EFF6FF', trend: '+4',  trendUp: true  },
-    { label: t.school.signed,       value: String(signed),       icon: Check,       color: '#16A34A', bg: '#F0FDF4', trend: '+3',  trendUp: true  },
-    { label: t.common.pending,      value: String(pending),      icon: TrendingDown, color: '#D97706', bg: '#FFFBEB', trend: String(pending), trendUp: false },
-    { label: 'Expired',             value: String(expired),      icon: TrendingDown, color: '#DC2626', bg: '#FEF2F2', trend: String(expired), trendUp: false },
+    { label: t.school.totalWaivers, value: String(totalWaivers), icon: FileText,    color: '#0071E3', bg: '#EFF6FF' },
+    { label: t.school.signed,       value: String(signed),       icon: Check,       color: '#16A34A', bg: '#F0FDF4' },
+    { label: t.common.pending,      value: String(pending),      icon: TrendingDown, color: '#D97706', bg: '#FFFBEB' },
+    { label: 'Expired',             value: String(expired),      icon: TrendingDown, color: '#DC2626', bg: '#FEF2F2' },
   ]
 
   const FILTERS: { id: Filter; label: string }[] = [
@@ -318,17 +292,10 @@ export default function WaiversClient() {
               {STATS.map(s => (
                 <div key={s.label} className="rounded-2xl"
                   style={{ background: '#fff', border: '1px solid #E5E7EB', padding: '18px 20px' }}>
-                  <div className="flex items-start justify-between mb-3">
+                  <div className="mb-3">
                     <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: s.bg }}>
                       <s.icon size={16} style={{ color: s.color }} />
                     </div>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 11, fontWeight: 600,
-                      background: s.trendUp ? '#F0FDF4' : '#FEF2F2',
-                      color: s.trendUp ? '#16A34A' : '#DC2626',
-                      padding: '2px 7px', borderRadius: 999 }}>
-                      {s.trendUp ? <TrendingUp size={9} /> : <TrendingDown size={9} />}
-                      {s.trend}
-                    </span>
                   </div>
                   <p style={{ fontSize: 26, fontWeight: 700, color: '#111827', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 4 }}>{s.value}</p>
                   <p style={{ fontSize: 12, fontWeight: 500, color: '#6B7280' }}>{s.label}</p>

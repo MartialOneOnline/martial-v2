@@ -2,7 +2,7 @@
 
 import { useDashboard } from '../../../../components/DashboardShell'
 import { useState } from 'react'
-import {Users, Calendar, CreditCard, BarChart2, Settings, Bell, ChevronRight, ChevronDown, Menu, X, Search, Check, TrendingUp, TrendingDown, MoreHorizontal, Eye, Plus, Globe} from 'lucide-react'
+import {Users, Calendar, CreditCard, BarChart2, Settings, Bell, ChevronRight, ChevronDown, Menu, X, Search, Check, TrendingDown, MoreHorizontal, Eye, Plus, Globe} from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 
 type AffiliateStatus = 'Active' | 'Inactive' | 'Pending'
@@ -19,18 +19,7 @@ interface Affiliate {
   status: AffiliateStatus
 }
 
-const AFFILIATES: Affiliate[] = [
-  { id:1,  name:'BJJ Lisboa Academy',     country:'Portugal',    city:'Lisbon',      contact:'João Ferreira',   email:'joao@bjjlisboa.com',    students:45,  since:'Jan 2020', status:'Active'   },
-  { id:2,  name:'Madrid Grappling Club',  country:'Spain',       city:'Madrid',      contact:'Luis Moreno',     email:'luis@madridgrappling.es',students:38,  since:'Mar 2021', status:'Active'   },
-  { id:3,  name:'Paris BJJ Squad',        country:'France',      city:'Paris',       contact:'Pierre Laurent',  email:'pierre@parisbj.fr',      students:62,  since:'Jun 2019', status:'Active'   },
-  { id:4,  name:'Berlin Jiu-Jitsu',       country:'Germany',     city:'Berlin',      contact:'Klaus Braun',     email:'klaus@berlinbjj.de',     students:29,  since:'Sep 2022', status:'Active'   },
-  { id:5,  name:'Amsterdam Fight Lab',    country:'Netherlands', city:'Amsterdam',   contact:'Pieter van Dam',  email:'pieter@afightlab.nl',    students:0,   since:'Nov 2023', status:'Pending'  },
-  { id:6,  name:'Rome Submission Arts',   country:'Italy',       city:'Rome',        contact:'Marco Rossi',     email:'marco@romesub.it',       students:33,  since:'Feb 2021', status:'Active'   },
-  { id:7,  name:'Zurich Ground Zero',     country:'Switzerland', city:'Zurich',      contact:'Stefan Meier',    email:'stefan@groundzero.ch',   students:21,  since:'Jul 2022', status:'Active'   },
-  { id:8,  name:'London BJJ Hub',         country:'UK',          city:'London',      contact:'James Wright',    email:'james@londonbjj.co.uk',  students:0,   since:'Jan 2024', status:'Pending'  },
-  { id:9,  name:'Warsaw Combat Sports',   country:'Poland',      city:'Warsaw',      contact:'Piotr Kowalski',  email:'piotr@warsawcombat.pl',  students:0,   since:'Apr 2021', status:'Inactive' },
-  { id:10, name:'Stockholm Grappling',    country:'Sweden',      city:'Stockholm',   contact:'Erik Lindqvist',  email:'erik@stockholmgrpl.se',  students:18,  since:'Aug 2023', status:'Active'   },
-]
+const AFFILIATES: Affiliate[] = []
 
 const STATUS_MAP: Record<AffiliateStatus, { bg: string; color: string; border: string }> = {
   Active:   { bg: '#F0FDF4', color: '#16A34A', border: '#BBF7D0' },
@@ -184,10 +173,10 @@ export default function AffiliatesClient() {
   const pages      = getPaginationPages(safePage, totalPages)
 
   const STATS = [
-    { label: t.school.totalAffiliates, value: String(totalAffiliates), icon: Globe,      color: '#0071E3', bg: '#EFF6FF', trend: '+1',  trendUp: true  },
-    { label: t.common.active,          value: String(activeCount),     icon: Check,      color: '#16A34A', bg: '#F0FDF4', trend: '+1',  trendUp: true  },
-    { label: t.common.pending,         value: String(pendingCount),    icon: TrendingDown, color: '#D97706', bg: '#FFFBEB', trend: String(pendingCount), trendUp: false },
-    { label: 'Total Students',         value: String(totalStudents),   icon: Users,      color: '#6D28D9', bg: '#F5F3FF', trend: '+12', trendUp: true  },
+    { label: t.school.totalAffiliates, value: String(totalAffiliates), icon: Globe,      color: '#0071E3', bg: '#EFF6FF' },
+    { label: t.common.active,          value: String(activeCount),     icon: Check,      color: '#16A34A', bg: '#F0FDF4' },
+    { label: t.common.pending,         value: String(pendingCount),    icon: TrendingDown, color: '#D97706', bg: '#FFFBEB' },
+    { label: 'Total Students',         value: String(totalStudents),   icon: Users,      color: '#6D28D9', bg: '#F5F3FF' },
   ]
 
   const FILTERS: { id: Filter; label: string }[] = [
@@ -235,17 +224,10 @@ export default function AffiliatesClient() {
               {STATS.map(s => (
                 <div key={s.label} className="rounded-2xl"
                   style={{ background: '#fff', border: '1px solid #E5E7EB', padding: '18px 20px' }}>
-                  <div className="flex items-start justify-between mb-3">
+                  <div className="mb-3">
                     <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: s.bg }}>
                       <s.icon size={16} style={{ color: s.color }} />
                     </div>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 11, fontWeight: 600,
-                      background: s.trendUp ? '#F0FDF4' : '#FEF2F2',
-                      color: s.trendUp ? '#16A34A' : '#DC2626',
-                      padding: '2px 7px', borderRadius: 999 }}>
-                      {s.trendUp ? <TrendingUp size={9} /> : <TrendingDown size={9} />}
-                      {s.trend}
-                    </span>
                   </div>
                   <p style={{ fontSize: 26, fontWeight: 700, color: '#111827', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 4 }}>{s.value}</p>
                   <p style={{ fontSize: 12, fontWeight: 500, color: '#6B7280' }}>{s.label}</p>
