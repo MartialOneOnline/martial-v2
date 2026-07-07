@@ -50,7 +50,9 @@ export async function GET(req: NextRequest) {
           hasFreeTrialCls: true,
           googleRating: true,
           membershipPlans: {
-            where: { isActive: true },
+            // Feeds ClassBookingModal's public "no membership" plan list — never
+            // surface a plan the school marked non-public.
+            where: { isActive: true, isPublic: true },
             orderBy: [{ isPopular: 'desc' }, { price: 'asc' }],
             select: {
               id: true,

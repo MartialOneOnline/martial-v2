@@ -86,10 +86,21 @@ export async function POST(req: NextRequest) {
             ...(endDate && { endDate }),
           },
         })
-        await tx.schoolMember.updateMany({
-          where: { userId: membership.userId, schoolId: membership.schoolId },
-          data:  { status: 'ACTIVE' },
-        })
+        // Try to create first (race-safe via the (schoolId, userId) unique
+        // constraint). If one already exists, promote it — except ARCHIVED: a
+        // staff member archived this person for a reason, and a payment webhook
+        // must not silently undo that moderation decision.
+        try {
+          await tx.schoolMember.create({
+            data: { userId: membership.userId, schoolId: membership.schoolId, role: 'STUDENT', status: 'ACTIVE', joinedAt: new Date() },
+          })
+        } catch (err: unknown) {
+          if ((err as { code?: string }).code !== 'P2002') throw err
+          await tx.schoolMember.updateMany({
+            where: { schoolId: membership.schoolId, userId: membership.userId, status: { not: 'ARCHIVED' } },
+            data: { status: 'ACTIVE' },
+          })
+        }
         await recordOnlinePayment(tx, {
           schoolId:      membership.schoolId,
           userId:        membership.userId,

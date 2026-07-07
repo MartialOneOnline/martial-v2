@@ -74,7 +74,8 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
       instructors:     { where: { isActive: true }, orderBy: { sortOrder: 'asc' } },
       classes:         { where: { isActive: true, isPublished: true }, orderBy: { name: 'asc' } },
       membershipPlans: {
-        where: { isActive: true },
+        // Public profile — never expose plans the school marked non-public.
+        where: { isActive: true, isPublic: true },
         orderBy: [{ isPopular: 'desc' }, { price: 'asc' }],
       },
       events: {
@@ -420,7 +421,7 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
                   className="w-full h-12 rounded-xl border border-[#0870E2] text-[#0870E2] hover:bg-blue-50 font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
                 >
                   <UserPlus className="w-4 h-4" />
-                  Join this school
+                  Solicitar unirme
                 </Link>
               )}
               <a
@@ -433,7 +434,9 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
             </div>
 
             {/* Contact form */}
-            <LeadForm slug={slug} schoolName={school.name} disciplines={disciplines} />
+            <div id="contact">
+              <LeadForm slug={slug} schoolName={school.name} disciplines={disciplines} />
+            </div>
 
             {/* Location */}
             <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">

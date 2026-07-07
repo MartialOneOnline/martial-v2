@@ -216,10 +216,22 @@ export async function POST(req: NextRequest) {
             ...(session.customer     && { stripeCustomerId: String(session.customer) }),
           },
         })
-        await tx.schoolMember.updateMany({
-          where: { userId, schoolId },
-          data:  { status: 'ACTIVE' },
-        })
+        // Try to create first (race-safe via the (schoolId, userId) unique
+        // constraint — a plain findFirst-then-create would let two concurrent
+        // webhook deliveries both create a row). If one already exists, promote
+        // it — except ARCHIVED: a staff member archived this person for a reason,
+        // and a payment webhook must not silently undo that moderation decision.
+        try {
+          await tx.schoolMember.create({
+            data: { userId, schoolId, role: 'STUDENT', status: 'ACTIVE', joinedAt: new Date() },
+          })
+        } catch (err: unknown) {
+          if ((err as { code?: string }).code !== 'P2002') throw err
+          await tx.schoolMember.updateMany({
+            where: { schoolId, userId, status: { not: 'ARCHIVED' } },
+            data: { status: 'ACTIVE' },
+          })
+        }
         await recordOnlinePayment(tx, {
           schoolId,
           userId,

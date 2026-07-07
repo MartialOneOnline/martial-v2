@@ -40,22 +40,21 @@ export async function GET(
   })
 
   if (!dbUser) {
-    return NextResponse.json({ authenticated: true, hasMembership: false, schoolId: school.id, hasFreeTrialCls: school.hasFreeTrialCls })
+    return NextResponse.json({ authenticated: true, hasMembership: false, memberStatus: null, schoolId: school.id, hasFreeTrialCls: school.hasFreeTrialCls })
   }
 
-  // Check active membership
-  const membership = await prisma.schoolMember.findFirst({
-    where: {
-      schoolId: school.id,
-      userId: dbUser.id,
-      status: 'ACTIVE',
-    },
+  // Any existing SchoolMember row, regardless of status — lets callers (e.g. the
+  // /join page) tell "not a member yet" apart from "already has a pending/lead
+  // request", instead of only learning that on a 409 from a submit attempt.
+  const member = await prisma.schoolMember.findFirst({
+    where: { schoolId: school.id, userId: dbUser.id },
   })
 
   return NextResponse.json({
     authenticated: true,
-    hasMembership: !!membership,
-    membershipRole: membership?.role ?? null,
+    hasMembership: member?.status === 'ACTIVE',
+    membershipRole: member?.role ?? null,
+    memberStatus: member?.status ?? null,
     schoolId: school.id,
     userId: dbUser.id,
     hasFreeTrialCls: school.hasFreeTrialCls,

@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
 import { notifyNewLead } from '@/lib/notifications/create'
+import { normalizePhone } from '@/lib/phone'
 
 export async function POST(req: NextRequest) {
   const cookieStore = await cookies()
@@ -52,6 +53,28 @@ export async function POST(req: NextRequest) {
       { error: 'You have already used a trial at this school' },
       { status: 409 },
     )
+  }
+
+  // Same check by phone, across other accounts — email alone can't be reused
+  // (User.email is unique), but nothing stops someone from signing up with a
+  // second email and the same phone number to re-trial. Phone numbers are
+  // stored as free-typed text ("+34 600 000 000" vs "600000000" vs
+  // "0034 600 000 000" are all the same number), so this can't be a DB-level
+  // string match — fetch this school's members with a phone on file and
+  // compare normalized values in JS.
+  if (dbUser.phone) {
+    const normalizedTarget = normalizePhone(dbUser.phone)
+    const otherMembers = await prisma.membership.findMany({
+      where: { schoolId, userId: { not: dbUser.id }, user: { phone: { not: null } } },
+      select: { user: { select: { phone: true } } },
+    })
+    const phoneReuse = otherMembers.some(m => m.user.phone && normalizePhone(m.user.phone) === normalizedTarget)
+    if (phoneReuse) {
+      return NextResponse.json(
+        { error: 'A trial has already been used with this phone number at this school' },
+        { status: 409 },
+      )
+    }
   }
 
   // Race-condition protection: use a transaction

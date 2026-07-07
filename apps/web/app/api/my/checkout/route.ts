@@ -43,10 +43,23 @@ export async function POST(req: NextRequest) {
   if (!useRevolut && !plan.paymentMethods.includes('STRIPE'))
     return NextResponse.json({ error: 'No online payment method available for this plan' }, { status: 400 })
 
-  const member = await prisma.schoolMember.findFirst({
-    where: { userId: dbUser.id, schoolId: plan.schoolId },
+  // No SchoolMember requirement here — a brand-new user with no prior relationship
+  // to the school can check out directly. The webhook creates the SchoolMember
+  // (status ACTIVE) once the payment actually succeeds; see /api/webhooks/stripe
+  // and /api/webhooks/revolut. The one exception is ARCHIVED: staff removed this
+  // person for a reason, and the webhook deliberately won't reactivate that status
+  // (see the ARCHIVED guard there) — so don't take their money for an activation
+  // that will never happen. They need to contact the school first.
+  const archivedMember = await prisma.schoolMember.findFirst({
+    where: { userId: dbUser.id, schoolId: plan.schoolId, status: 'ARCHIVED' },
+    select: { id: true },
   })
-  if (!member) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (archivedMember) {
+    return NextResponse.json(
+      { error: 'Your membership at this school was archived — please contact the school before purchasing a plan' },
+      { status: 403 },
+    )
+  }
 
   const existing = await prisma.membership.findFirst({
     where: { userId: dbUser.id, planId: plan.id, status: { in: ['ACTIVE', 'PAUSED', 'PENDING'] } },

@@ -56,3 +56,15 @@ export function notifyNewLead(schoolId: string, leadName: string) {
     href: '/dashboard/school/leads',
   })
 }
+
+// A logged-in user confirmed "Join this school" — a SchoolMember (status LEAD)
+// was created directly, not a Lead record, so this points at the members list.
+export function notifySelfJoinRequest(schoolId: string, name: string) {
+  createNotification({
+    schoolId,
+    type: 'NEW_LEAD',
+    title: 'Nueva solicitud para unirse',
+    body: `${name} quiere unirse a tu academia`,
+    href: '/dashboard/users',
+  })
+}

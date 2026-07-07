@@ -8,7 +8,7 @@ import Link from 'next/link'
 import {
   Search, MapPin, Star, Filter, X, ChevronLeft, ChevronRight,
   ArrowRight, Sparkles, Dumbbell, Calendar, ChevronDown, List, Map,
-  Navigation,
+  Navigation, UserPlus, Mail,
 } from 'lucide-react'
 import Header from '../../components/Header'
 import Footer from '../../components/Footer'
@@ -47,6 +47,7 @@ type DbSchool = {
   description: string | null
   priceFrom: number | null
   hasFreeTrialCls: boolean
+  hasPublicPlans: boolean
   facilities: string[]
   type: SchoolType
   disciplines: { discipline: { name: string; slug: string } }[]
@@ -431,15 +432,28 @@ function SchoolQuickView({
   school,
   onClose,
   onBookClass,
+  hasClasses,
 }: {
   school: DbSchool
   onClose: () => void
   onBookClass: () => void
+  hasClasses: boolean
 }) {
+  // priceFrom is a free-typed display field on School (set manually in the
+  // admin form), not derived from real MembershipPlan rows — it must never
+  // gate product logic. hasPublicPlans reflects an actual isPublic&&isActive
+  // plan count from /api/schools.
+  const hasPlans = school.hasPublicPlans
   const [idx, setIdx] = useState(0)
   const imgs = school.coverUrl ? [school.coverUrl] : []
   const disciplines = school.disciplines.map(d => d.discipline.name.toUpperCase())
   const headInstructor = school.instructors.find(i => i.isHead)
+
+  useEffect(() => {
+    const original = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = original }
+  }, [])
 
   return (
     <div
@@ -450,7 +464,7 @@ function SchoolQuickView({
 
       <div
         onClick={e => e.stopPropagation()}
-        className="relative w-full md:w-[680px] md:max-w-[92vw] bg-white rounded-t-3xl md:rounded-3xl shadow-2xl max-h-[88vh] md:max-h-[90vh] overflow-y-auto"
+        className="relative w-full md:w-[680px] md:max-w-[92vw] bg-white rounded-t-3xl md:rounded-3xl shadow-2xl max-h-[88dvh] md:max-h-[90dvh] overflow-y-auto"
         style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" }}
       >
         {/* Drag handle (mobile) */}
@@ -537,21 +551,43 @@ function SchoolQuickView({
           )}
 
           {/* Actions */}
+          {/* Priority: public trial (explicit hasFreeTrialCls flag, never inferred) >
+              bookable class > public plans ("join") > contact fallback. */}
           <div className="flex flex-col-reverse sm:flex-row gap-3">
             <Link
               href={`/school/${school.slug}`}
               className="flex-1 h-12 rounded-xl border border-[#E5E7EB] text-[#111827] font-semibold text-sm flex items-center justify-center hover:bg-[#F9FAFB] transition-colors"
             >
-              View Full Profile
+              Ver perfil completo
             </Link>
-            <button
-              onClick={onBookClass}
-              className="flex-1 h-12 rounded-xl text-white font-semibold text-sm flex items-center justify-center hover:opacity-90 transition-opacity gap-2"
-              style={{ background: BLUE }}
-            >
-              <Dumbbell className="w-4 h-4" />
-              {school.hasFreeTrialCls ? 'Book Free Trial' : 'Book a Class'}
-            </button>
+            {hasClasses ? (
+              <button
+                onClick={onBookClass}
+                className="flex-1 h-12 rounded-xl text-white font-semibold text-sm flex items-center justify-center hover:opacity-90 transition-opacity gap-2"
+                style={{ background: BLUE }}
+              >
+                <Dumbbell className="w-4 h-4" />
+                {school.hasFreeTrialCls ? 'Reservar prueba gratis' : 'Reservar clase'}
+              </button>
+            ) : hasPlans ? (
+              <Link
+                href={`/join/${school.slug}`}
+                className="flex-1 h-12 rounded-xl text-white font-semibold text-sm flex items-center justify-center hover:opacity-90 transition-opacity gap-2"
+                style={{ background: BLUE }}
+              >
+                <UserPlus className="w-4 h-4" />
+                Solicitar unirme
+              </Link>
+            ) : (
+              <Link
+                href={`/school/${school.slug}#contact`}
+                className="flex-1 h-12 rounded-xl text-white font-semibold text-sm flex items-center justify-center hover:opacity-90 transition-opacity gap-2"
+                style={{ background: BLUE }}
+              >
+                <Mail className="w-4 h-4" />
+                Contactar escuela
+              </Link>
+            )}
           </div>
         </div>
       </div>
@@ -845,6 +881,7 @@ export default function ExplorePage() {
           school={quickView}
           onClose={() => setQuickView(null)}
           onBookClass={() => openSchoolBooking(quickView)}
+          hasClasses={classes.some(c => c.school.slug === quickView.slug && (c.schedule?.length ?? 0) > 0)}
         />
       )}
 

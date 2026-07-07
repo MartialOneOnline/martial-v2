@@ -44,6 +44,12 @@ export default function ClassBookingModal({ session, schoolSlug, plans, onClose 
   const [errorMsg, setErrorMsg] = useState('')
 
   useEffect(() => {
+    const original = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = original }
+  }, [])
+
+  useEffect(() => {
     fetch(`/api/schools/${schoolSlug}/membership-check`)
       .then(r => r.json())
       .then(data => {
@@ -106,16 +112,16 @@ export default function ClassBookingModal({ session, schoolSlug, plans, onClose 
 
       <div
         onClick={e => e.stopPropagation()}
-        className="relative w-full md:w-[480px] bg-white rounded-t-3xl md:rounded-3xl shadow-2xl overflow-hidden"
+        className="relative w-full md:w-[480px] bg-white rounded-t-3xl md:rounded-3xl shadow-2xl max-h-[90dvh] md:max-h-[85dvh] flex flex-col overflow-hidden"
         style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" }}
       >
         {/* Drag handle (mobile) */}
-        <div className="md:hidden flex justify-center pt-3 pb-1">
+        <div className="md:hidden flex justify-center pt-3 pb-1 shrink-0">
           <div className="w-10 h-1.5 rounded-full bg-[#E5E7EB]" />
         </div>
 
         {/* Header */}
-        <div className="flex items-start justify-between px-6 pt-4 pb-4 border-b border-[#F3F4F6]">
+        <div className="shrink-0 flex items-start justify-between px-6 pt-4 pb-4 border-b border-[#F3F4F6]">
           <div>
             <h2 className="text-lg font-bold text-[#111827]">{session.className}</h2>
             <div className="flex items-center gap-3 mt-1 text-sm text-[#6B7280]">
@@ -137,8 +143,9 @@ export default function ClassBookingModal({ session, schoolSlug, plans, onClose 
           </button>
         </div>
 
-        {/* Body */}
-        <div className="px-6 py-5">
+        {/* Body — scrolls independently so a long plan list never pushes the
+            primary CTA (in the sticky footer below) off-screen on mobile */}
+        <div className="flex-1 min-h-0 overflow-y-auto px-6 py-5">
           {/* Loading */}
           {auth.state === 'loading' && (
             <div className="flex items-center justify-center py-8">
@@ -205,14 +212,15 @@ export default function ClassBookingModal({ session, schoolSlug, plans, onClose 
                 You need a membership to book this class. Choose an option below:
               </p>
 
-              {/* Free trial CTA */}
+              {/* Free trial CTA — only ever shown when the school explicitly enabled
+                  hasFreeTrialCls; never inferred from class/schedule data. */}
               {auth.hasFreeTrialCls && (
                 <button
                   onClick={() => activateTrial(auth.schoolId)}
                   className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3.5 rounded-2xl transition-colors flex items-center justify-center gap-2"
                 >
                   <CheckCircle className="w-5 h-5" />
-                  Start Free 1-Week Trial
+                  Reservar prueba gratis
                 </button>
               )}
 
@@ -235,14 +243,6 @@ export default function ClassBookingModal({ session, schoolSlug, plans, onClose 
                   )
                 })}
               </div>
-
-              <button
-                onClick={() => router.push(`/school/${schoolSlug}#memberships`)}
-                className="w-full border border-[#0870E2] text-[#0870E2] hover:bg-[#e8f7ff] font-semibold py-3 rounded-2xl transition-colors flex items-center justify-center gap-2"
-              >
-                <CreditCard className="w-4 h-4" />
-                View All Plans
-              </button>
             </div>
           )}
 
@@ -274,24 +274,49 @@ export default function ClassBookingModal({ session, schoolSlug, plans, onClose 
                   <span className="font-semibold text-emerald-600">Included in membership</span>
                 </div>
               </div>
-
-              <button
-                onClick={confirmBooking}
-                disabled={bookingState === 'booking'}
-                className="w-full bg-[#0870E2] hover:bg-[#005080] disabled:opacity-50 text-white font-semibold py-3 rounded-2xl transition-colors flex items-center justify-center gap-2"
-              >
-                {bookingState === 'booking' ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" /> Confirming...</>
-                ) : (
-                  <>
-                    <Calendar className="w-4 h-4" />
-                    Confirm Booking
-                  </>
-                )}
-              </button>
             </div>
           )}
         </div>
+
+        {/* Sticky footer — keeps the primary CTA reachable without scrolling,
+            even when the plans list above is long. Safe-area padding clears the
+            home-indicator bar on iPhone. */}
+        {auth.state === 'no_membership' && bookingState === 'idle' && (
+          <div
+            className="shrink-0 border-t border-[#F3F4F6] px-6 pt-3 bg-white"
+            style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
+          >
+            <button
+              onClick={() => router.push(`/school/${schoolSlug}#memberships`)}
+              className="w-full border border-[#0870E2] text-[#0870E2] hover:bg-[#e8f7ff] font-semibold py-3 rounded-2xl transition-colors flex items-center justify-center gap-2"
+            >
+              <CreditCard className="w-4 h-4" />
+              Ver todos los planes
+            </button>
+          </div>
+        )}
+
+        {auth.state === 'has_membership' && bookingState !== 'success' && bookingState !== 'error' && (
+          <div
+            className="shrink-0 border-t border-[#F3F4F6] px-6 pt-3 bg-white"
+            style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
+          >
+            <button
+              onClick={confirmBooking}
+              disabled={bookingState === 'booking'}
+              className="w-full bg-[#0870E2] hover:bg-[#005080] disabled:opacity-50 text-white font-semibold py-3 rounded-2xl transition-colors flex items-center justify-center gap-2"
+            >
+              {bookingState === 'booking' ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Confirming...</>
+              ) : (
+                <>
+                  <Calendar className="w-4 h-4" />
+                  Confirmar reserva
+                </>
+              )}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

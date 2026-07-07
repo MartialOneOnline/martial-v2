@@ -47,13 +47,22 @@ export async function GET(req: NextRequest) {
         take: 1,
         select: { id: true },
       },
+      // Real signal for "has something to join" — priceFrom is a free-typed
+      // display field on School and isn't derived from actual plans, so it
+      // can't be trusted to gate product logic (see /join CTA below).
+      membershipPlans: {
+        where: { isActive: true, isPublic: true },
+        take: 1,
+        select: { id: true },
+      },
     },
     orderBy: { googleRating: 'desc' },
   })
 
-  const result = schools.map(({ events, ...school }) => ({
+  const result = schools.map(({ events, membershipPlans, ...school }) => ({
     ...school,
     hasUpcomingEvent: events.length > 0,
+    hasPublicPlans: membershipPlans.length > 0,
   }))
 
   return NextResponse.json(result)
