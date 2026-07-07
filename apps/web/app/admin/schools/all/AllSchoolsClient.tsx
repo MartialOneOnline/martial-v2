@@ -238,6 +238,7 @@ type EditForm = {
   city: string; country: string; address: string; postcode: string
   email: string; phone: string; website: string; instagram: string
   description: string; tagline: string
+  hasFreeTrialCls: boolean; priceFrom: string
 }
 
 function AdminEditSchoolModal({ schoolId, onClose, onSaved }: {
@@ -256,12 +257,15 @@ function AdminEditSchoolModal({ schoolId, onClose, onSaved }: {
         city: d.school.city ?? '', country: d.school.country ?? '', address: d.school.address ?? '', postcode: d.school.postcode ?? '',
         email: d.school.email ?? '', phone: d.school.phone ?? '', website: d.school.website ?? '', instagram: d.school.instagram ?? '',
         description: d.school.description ?? '', tagline: d.school.tagline ?? '',
+        hasFreeTrialCls: d.school.hasFreeTrialCls ?? false,
+        priceFrom: d.school.priceFrom != null ? String(d.school.priceFrom) : '',
       }))
       .catch(() => setError('Could not load school'))
       .finally(() => setLoading(false))
   }, [schoolId])
 
   function set(k: keyof EditForm, v: string) { setForm(f => f && ({ ...f, [k]: v })) }
+  function toggleFreeTrial() { setForm(f => f && ({ ...f, hasFreeTrialCls: !f.hasFreeTrialCls })) }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -391,6 +395,18 @@ function AdminEditSchoolModal({ schoolId, onClose, onSaved }: {
                 <option value="SUSPENDED">Suspended</option>
                 <option value="ARCHIVED">Archived</option>
               </select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 items-end">
+              <div>
+                <label className={label}>Starting from (display only)</label>
+                <input type="number" step="0.01" value={form.priceFrom} onChange={e => set('priceFrom', e.target.value)}
+                  placeholder="e.g. 65" className={field} />
+              </div>
+              <label className="flex items-center gap-2 h-9 cursor-pointer">
+                <input type="checkbox" checked={form.hasFreeTrialCls} onChange={toggleFreeTrial} className="rounded" />
+                <span className="text-xs font-medium text-gray-600">Free trial (public)</span>
+              </label>
             </div>
 
             <div>

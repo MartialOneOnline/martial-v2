@@ -64,6 +64,7 @@ export async function GET(req: NextRequest) {
     stripePublishableKey: true,
     revolutPublicKey: true,
     modules: true,
+    hasFreeTrialCls: true,
   } as const
 
   const school = await prisma.school.findUnique({
@@ -130,7 +131,7 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json()
   const { language, name, phone, email, website, instagram, facebook, youtube, tiktok,
           description, tagline, address, postcode, city, country, logoUrl, coverUrl,
-          defaultBookingSettings, cancelPolicy, modules,
+          defaultBookingSettings, cancelPolicy, modules, hasFreeTrialCls,
           stripePublishableKey, stripeSecretKey, stripeWebhookSecret,
           revolutPublicKey, revolutSecretKey, revolutWebhookSecret } = body
 
@@ -171,6 +172,7 @@ export async function PATCH(req: NextRequest) {
       ...(defaultBookingSettings !== undefined && { defaultBookingSettings: gatedBookingSettings }),
       ...(cancelPolicy !== undefined && VALID_CANCEL_POLICIES.includes(cancelPolicy) && { cancelPolicy }),
       ...(modules !== undefined && { modules: getSchoolModules(modules) }),
+      ...(hasFreeTrialCls !== undefined && { hasFreeTrialCls: Boolean(hasFreeTrialCls) }),
       ...(stripePublishableKey !== undefined && { stripePublishableKey: stripePublishableKey?.trim() || null }),
       ...(stripeSecretKey      !== undefined && { stripeSecretKey:      stripeSecretKey?.trim()      || null }),
       ...(stripeWebhookSecret  !== undefined && { stripeWebhookSecret:  stripeWebhookSecret?.trim()  || null }),
@@ -180,7 +182,7 @@ export async function PATCH(req: NextRequest) {
       // ever written by /api/dashboard/revolut/register-webhook from Revolut's own response.
       ...(revolutWebhookSecret === null && { revolutWebhookSecret: null }),
     },
-    select: { id: true, language: true, name: true, cancelPolicy: true, modules: true },
+    select: { id: true, language: true, name: true, cancelPolicy: true, modules: true, hasFreeTrialCls: true },
   })
 
   return NextResponse.json({ school: { ...updated, modules: getSchoolModules(updated.modules) } })

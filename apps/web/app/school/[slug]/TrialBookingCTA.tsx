@@ -43,6 +43,9 @@ interface Props {
   /** Rendered as the button label (e.g. "Book a Trial Class") */
   label?: string
   className?: string
+  /** School.hasFreeTrialCls — gates the trial-specific copy below, same flag
+      ClassBookingModal itself checks before offering the trial action. */
+  hasFreeTrialCls: boolean
 }
 
 interface SessionForModal {
@@ -78,9 +81,12 @@ export default function TrialBookingCTA({
   schoolEmail,
   schoolPhone,
   plans,
-  label = 'Book a Trial Class',
+  label,
   className = '',
+  hasFreeTrialCls,
 }: Props) {
+  const heading = hasFreeTrialCls ? 'Book a Trial Class' : 'Book a Class'
+  const buttonLabel = label ?? heading
   const [state, setState] = useState<'idle' | 'choosing' | 'modal'>('idle')
   const [session, setSession] = useState<SessionForModal | null>(null)
 
@@ -107,7 +113,7 @@ export default function TrialBookingCTA({
         className={className}
       >
         <Dumbbell className="w-4 h-4" />
-        {label}
+        {buttonLabel}
       </button>
 
       {/* Chooser / fallback overlay */}
@@ -124,13 +130,15 @@ export default function TrialBookingCTA({
             </div>
 
             <div className="px-6 pt-4 pb-6">
-              <h2 className="text-lg font-bold text-[#111827] mb-1">Book a Trial Class</h2>
+              <h2 className="text-lg font-bold text-[#111827] mb-1">{heading}</h2>
 
               {trialClasses.length === 0 ? (
                 /* No trial classes published */
                 <>
                   <p className="text-sm text-[#6B7280] mb-4">
-                    There are no trial classes available online right now. Contact us directly to arrange a trial.
+                    {hasFreeTrialCls
+                      ? 'There are no trial classes available online right now. Contact us directly to arrange a trial.'
+                      : 'There are no bookable classes available online right now. Contact us directly to book one.'}
                   </p>
                   <div className="space-y-2">
                     {schoolEmail && (
@@ -163,7 +171,7 @@ export default function TrialBookingCTA({
               ) : (
                 /* Multiple trial classes — let user choose */
                 <>
-                  <p className="text-sm text-[#6B7280] mb-4">Choose a trial class to book:</p>
+                  <p className="text-sm text-[#6B7280] mb-4">{hasFreeTrialCls ? 'Choose a trial class to book:' : 'Choose a class to book:'}</p>
                   <div className="space-y-2">
                     {trialClasses.map(cls => {
                       const slot = cls.schedule[0]

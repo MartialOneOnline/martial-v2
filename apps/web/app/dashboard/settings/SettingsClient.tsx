@@ -216,6 +216,7 @@ function SchoolTab() {
     phone: '', email: '', website: '',
     instagram: '', facebook: '', youtube: '', tiktok: '',
     logoUrl: '', coverUrl: '', language: 'en',
+    hasFreeTrialCls: false,
   })
   const [loading,    setLoading]    = useState(true)
   const [saving,     setSaving]     = useState(false)
@@ -244,6 +245,7 @@ function SchoolTab() {
         logoUrl:     d.school.logoUrl     ?? '',
         coverUrl:    d.school.coverUrl    ?? '',
         language:    d.school.language    ?? 'en',
+        hasFreeTrialCls: d.school.hasFreeTrialCls ?? false,
       })
     }).finally(() => setLoading(false))
   }, [])
@@ -453,6 +455,20 @@ function SchoolTab() {
             </button>
           ))}
         </div>
+      </div>
+
+      <hr style={DIVIDER} />
+
+      {/* Free trial */}
+      <div>
+        <p style={SECTION_TITLE}>Prueba gratuita</p>
+        <p style={SECTION_SUB}>Controla si tu escuela ofrece una prueba gratuita reservable públicamente</p>
+        <ToggleRow
+          label="Permitir prueba gratuita pública"
+          description="Si está activado, los usuarios podrán ver y reservar una prueba gratuita desde el perfil público y Explore."
+          value={form.hasFreeTrialCls}
+          onChange={v => setForm(p => ({ ...p, hasFreeTrialCls: v }))}
+        />
       </div>
 
       {error && <p style={{ fontSize: 13, color: '#E11D48' }}>{error}</p>}

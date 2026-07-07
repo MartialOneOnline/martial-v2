@@ -16,6 +16,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       email: true, phone: true, website: true, instagram: true,
       address: true, postcode: true, city: true, country: true,
       description: true, tagline: true,
+      hasFreeTrialCls: true, priceFrom: true,
     },
   })
   if (!school) return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -34,6 +35,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     name, email, phone, website, instagram,
     address, postcode, city, country,
     description, tagline, status, type,
+    hasFreeTrialCls, priceFrom,
   } = body
 
   if (name !== undefined && !name.trim()) {
@@ -56,12 +58,17 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       ...(tagline !== undefined && { tagline: tagline?.trim() || null }),
       ...(status !== undefined && { status }),
       ...(type !== undefined && { type }),
+      ...(hasFreeTrialCls !== undefined && { hasFreeTrialCls: Boolean(hasFreeTrialCls) }),
+      // Display-only "Starting from" text (see /join CTA logic) — never used to
+      // gate whether a school has real public plans; that's hasPublicPlans.
+      ...(priceFrom !== undefined && { priceFrom: priceFrom === '' || priceFrom == null ? null : parseFloat(priceFrom) }),
     },
     select: {
       id: true, name: true, slug: true, status: true, type: true,
       email: true, phone: true, website: true, instagram: true,
       address: true, postcode: true, city: true, country: true,
       description: true, tagline: true,
+      hasFreeTrialCls: true, priceFrom: true,
     },
   })
 

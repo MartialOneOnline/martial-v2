@@ -393,6 +393,8 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
                   schoolEmail={school.email}
                   schoolPhone={school.phone}
                   plans={plansMapped}
+                  hasFreeTrialCls={school.hasFreeTrialCls}
+                  label={school.hasFreeTrialCls ? 'Reservar prueba gratis' : 'Reservar clase'}
                   className="w-full h-12 rounded-xl bg-[#0870E2] hover:bg-[#005580] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
                 />
               )}
@@ -535,6 +537,8 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
               schoolEmail={school.email}
               schoolPhone={school.phone}
               plans={plansMapped}
+              hasFreeTrialCls={school.hasFreeTrialCls}
+              label={school.hasFreeTrialCls ? 'Reservar prueba gratis' : 'Reservar clase'}
               className="flex-1 h-12 rounded-xl bg-[#0870E2] hover:bg-[#005580] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
             />
           )}
