@@ -155,7 +155,7 @@ export async function POST(req: NextRequest) {
   const eventBooking = await prisma.eventBooking.findFirst({
     where: { revolutOrderId: eventBookingId },
     select: {
-      id: true, status: true, quantity: true, ticketId: true, eventId: true, ticketName: true, amountPaid: true, currency: true, userId: true,
+      id: true, status: true, quantity: true, ticketId: true, eventId: true, ticketName: true, amountPaid: true, currency: true, userId: true, qrToken: true,
       event: { select: { title: true, startAt: true, location: true, capacity: true, schoolId: true, school: { select: { revolutSecretKey: true, revolutWebhookSecret: true, name: true, city: true, language: true } } } },
       ticket: { select: { capacity: true } },
       user: { select: { email: true, name: true } },
@@ -228,6 +228,7 @@ export async function POST(req: NextRequest) {
           startAt:     eventBooking.event.startAt,
           location:    eventBooking.event.location,
           bookingId:   eventBooking.id,
+          qrToken:     eventBooking.qrToken,
           lang:        eventBooking.event.school.language,
         }).catch(err => console.error('[revolut webhook] event confirmation email failed:', err))
       }

@@ -81,6 +81,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       startAt:     event.startAt,
       location:    event.location,
       bookingId,
+      qrToken:     updated.qrToken,
       lang:        event.school.language,
     }).catch(err => console.error('[admin] cash confirmation email failed:', err))
   }

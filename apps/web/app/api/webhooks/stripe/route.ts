@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
             where: { id: eventBookingId },
             select: {
               status: true, quantity: true, ticketId: true, eventId: true, ticketName: true, amountPaid: true, currency: true,
-              userId: true,
+              userId: true, qrToken: true,
               event: { select: { title: true, startAt: true, location: true, capacity: true, schoolId: true, school: { select: { name: true, city: true, language: true } } } },
               ticket: { select: { capacity: true } },
               user: { select: { email: true, name: true } },
@@ -158,6 +158,7 @@ export async function POST(req: NextRequest) {
             startAt:     outcome.booking.event.startAt,
             location:    outcome.booking.event.location,
             bookingId:   eventBookingId,
+            qrToken:     outcome.booking.qrToken,
             lang:        outcome.booking.event.school.language,
           }).catch(err => console.error('[stripe webhook] event confirmation email failed:', err))
         } else if (outcome && !outcome.sold) {

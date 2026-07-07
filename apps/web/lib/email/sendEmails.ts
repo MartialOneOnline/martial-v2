@@ -8,6 +8,7 @@ import {
   buildEventTicketConfirmationEmail, getEventTicketConfirmationSubject,
   buildEventTicketRefundEmail, getEventTicketRefundSubject,
 } from './templates/eventTicketReceipt'
+import { generateEventQrDataUri } from './qr'
 
 type SendResult = { success: true; emailId?: string } | { success: false; error: string }
 
@@ -189,6 +190,7 @@ export async function sendEventTicketConfirmationEmail({
   startAt,
   location,
   bookingId,
+  qrToken,
   lang,
 }: {
   to: string
@@ -203,10 +205,12 @@ export async function sendEventTicketConfirmationEmail({
   startAt: Date
   location?: string | null
   bookingId: string
+  qrToken?: string | null
   lang?: string | null
 }): Promise<SendResult> {
   const l = detectLang(lang)
   const subject = getEventTicketConfirmationSubject(eventTitle, l)
+  const qrDataUri = qrToken ? await generateEventQrDataUri(qrToken).catch(() => null) : null
   const html = buildEventTicketConfirmationEmail({
     studentName,
     schoolName,
@@ -219,6 +223,7 @@ export async function sendEventTicketConfirmationEmail({
     startAt,
     location,
     bookingId,
+    qrDataUri,
     dashboardUrl: `${APP_URL}/my/events`,
     lang,
   })

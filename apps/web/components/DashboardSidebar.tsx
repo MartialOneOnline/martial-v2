@@ -157,6 +157,7 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen }: Props) {
     { label: t.sidebar.classes,     icon: Calendar,   children: [
       { label: t.sidebar.classes,   href: '/dashboard/classes' },
       { label: t.sidebar.events,    href: '/dashboard/classes/events' },
+      { label: t.sidebar.registrations, href: '/dashboard/classes/events/registrations' },
       { label: t.sidebar.calendar,  href: '/dashboard/classes/calendar' },
       { label: t.sidebar.timetable, href: '/dashboard/classes/timetable' },
     ]},

@@ -21,6 +21,7 @@ const CONFIRM_T: Record<Lang, {
   labels: { event: string; ticket: string; quantity: string; amount: string; date: string; location: string; ref: string }
   cta: string
   footer: string
+  qrCaption: string
 }> = {
   en: {
     subject: e => `Ticket confirmed — ${e}`,
@@ -30,6 +31,7 @@ const CONFIRM_T: Record<Lang, {
     labels: { event: 'Event', ticket: 'Ticket', quantity: 'Quantity', amount: 'Amount paid', date: 'Date', location: 'Location', ref: 'Reference' },
     cta: 'View my tickets',
     footer: 'Sent by Martial on behalf of your school.',
+    qrCaption: 'Show this QR code at check-in',
   },
   es: {
     subject: e => `Entrada confirmada — ${e}`,
@@ -39,6 +41,7 @@ const CONFIRM_T: Record<Lang, {
     labels: { event: 'Evento', ticket: 'Entrada', quantity: 'Cantidad', amount: 'Importe pagado', date: 'Fecha', location: 'Ubicación', ref: 'Referencia' },
     cta: 'Ver mis entradas',
     footer: 'Enviado por Martial en nombre de tu escuela.',
+    qrCaption: 'Muestra este código QR en el check-in',
   },
   pt: {
     subject: e => `Bilhete confirmado — ${e}`,
@@ -48,6 +51,7 @@ const CONFIRM_T: Record<Lang, {
     labels: { event: 'Evento', ticket: 'Bilhete', quantity: 'Quantidade', amount: 'Valor pago', date: 'Data', location: 'Localização', ref: 'Referência' },
     cta: 'Ver os meus bilhetes',
     footer: 'Enviado pelo Martial em nome da sua escola.',
+    qrCaption: 'Mostre este código QR no check-in',
   },
   fr: {
     subject: e => `Billet confirmé — ${e}`,
@@ -57,6 +61,7 @@ const CONFIRM_T: Record<Lang, {
     labels: { event: 'Événement', ticket: 'Billet', quantity: 'Quantité', amount: 'Montant payé', date: 'Date', location: 'Lieu', ref: 'Référence' },
     cta: 'Voir mes billets',
     footer: 'Envoyé par Martial au nom de votre école.',
+    qrCaption: 'Présentez ce code QR au check-in',
   },
 }
 
@@ -174,6 +179,15 @@ function rowsTable(rows: { label: string; value: string }[]): string {
   </table>`
 }
 
+function qrBlock(qrDataUri: string, caption: string): string {
+  return `<table cellpadding="0" cellspacing="0" style="margin:0 auto 28px;">
+    <tr><td align="center">
+      <img src="${qrDataUri}" width="180" height="180" alt="Check-in QR code" style="display:block;border:1px solid ${C.border};border-radius:12px;" />
+      <p style="margin:10px 0 0;font-size:12px;color:${C.muted};">${caption}</p>
+    </td></tr>
+  </table>`
+}
+
 function ctaButton(url: string, label: string): string {
   return `<table cellpadding="0" cellspacing="0" style="margin:0 auto;">
     <tr><td align="center" style="background:${C.primary};border-radius:10px;">
@@ -199,6 +213,7 @@ export function buildEventTicketConfirmationEmail({
   location,
   bookingId,
   dashboardUrl,
+  qrDataUri,
   lang: rawLang,
 }: {
   studentName?: string | null
@@ -213,6 +228,7 @@ export function buildEventTicketConfirmationEmail({
   location?: string | null
   bookingId: string
   dashboardUrl: string
+  qrDataUri?: string | null
   lang?: string | null
 }): string {
   const lang = detectLang(rawLang) as Lang
@@ -233,6 +249,7 @@ export function buildEventTicketConfirmationEmail({
     <p style="margin:0 0 8px;font-size:15px;font-weight:600;color:${C.text};">${t.greeting(studentName ?? undefined)}</p>
     <p style="margin:0 0 28px;font-size:14px;color:${C.muted};line-height:1.6;">${t.body}</p>
     ${rowsTable(rows)}
+    ${qrDataUri ? qrBlock(qrDataUri, t.qrCaption) : ''}
     ${ctaButton(dashboardUrl, t.cta)}
   `
   return shell(schoolName, schoolCity, t.headline, bodyHtml)

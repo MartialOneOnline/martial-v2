@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   Bell, Menu, X, Plus, MoreHorizontal, Search,
   TrendingUp, Check, Upload, Clock, MapPin, Star,
-  Ticket, Calendar, Pencil, Trash2, Globe, EyeOff, QrCode, CheckCircle2,
+  Ticket, Calendar, Pencil, Trash2, Globe, EyeOff, QrCode,
 } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useDashboard } from '../../../../components/DashboardShell'
@@ -666,168 +667,6 @@ function SuccessModal({ open, onClose, message }: { open: boolean; onClose: () =
   )
 }
 
-// ── Attendees modal ──────────────────────────────────────────────────────────────
-
-interface AttendeeRow {
-  id: string
-  ticketName: string
-  quantity: number
-  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' | 'NO_SHOW'
-  paymentMethod: PaymentMethod
-  amountPaid: number | null
-  currency: string
-  createdAt: string
-  checkedIn: boolean
-  checkedInAt: string | null
-  user: { name: string | null; email: string }
-}
-
-const ATTENDEE_STATUS_MAP: Record<string, { bg: string; color: string; label: string }> = {
-  PENDING:   { bg: '#FEF9C3', color: '#A16207', label: 'Pending' },
-  CONFIRMED: { bg: '#DCFCE7', color: '#15803D', label: 'Confirmed' },
-  CANCELLED: { bg: '#F3F4F6', color: '#6B7280', label: 'Cancelled' },
-  COMPLETED: { bg: '#EFF6FF', color: '#1D4ED8', label: 'Completed' },
-  NO_SHOW:   { bg: '#FEF2F2', color: '#B91C1C', label: 'No show' },
-}
-
-function AttendeesModal({ ev, onClose }: { ev: EventRow | null; onClose: () => void }) {
-  const [attendees, setAttendees] = useState<AttendeeRow[]>([])
-  const [loading, setLoading]     = useState(true)
-  const [updatingId, setUpdatingId] = useState<string | null>(null)
-
-  // `silent` skips the loading flip for background polling — otherwise the whole
-  // list flashes to "Loading…" and back every 5s while the modal is just sitting open.
-  const load = useCallback(async (opts: { silent?: boolean } = {}) => {
-    if (!ev) return
-    if (!opts.silent) setLoading(true)
-    try {
-      const res = await adminFetch(`/api/dashboard/events/${ev.id}/bookings`)
-      if (res.ok) setAttendees((await res.json()).bookings ?? [])
-    } finally {
-      if (!opts.silent) setLoading(false)
-    }
-  }, [ev])
-
-  useEffect(() => { load() }, [load])
-
-  // Poll while open so check-ins scanned from another phone show up live
-  useEffect(() => {
-    if (!ev) return
-    const interval = setInterval(() => load({ silent: true }), 5000)
-    return () => clearInterval(interval)
-  }, [ev, load])
-
-  if (!ev) return null
-
-  const checkedInCount = attendees.filter(a => a.checkedIn).length
-
-  async function updateStatus(bookingId: string, status: 'CONFIRMED' | 'CANCELLED') {
-    setUpdatingId(bookingId)
-    try {
-      const res = await adminFetch(`/api/dashboard/events/${ev!.id}/bookings/${bookingId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
-      })
-      if (res.ok) setAttendees(prev => prev.map(a => a.id === bookingId ? { ...a, status } : a))
-    } finally {
-      setUpdatingId(null)
-    }
-  }
-
-  async function deleteBooking(bookingId: string) {
-    setUpdatingId(bookingId)
-    try {
-      const res = await adminFetch(`/api/dashboard/events/${ev!.id}/bookings/${bookingId}`, { method: 'DELETE' })
-      if (res.ok) setAttendees(prev => prev.filter(a => a.id !== bookingId))
-    } finally {
-      setUpdatingId(null)
-    }
-  }
-
-  return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onClose}>
-      <div className="rounded-2xl flex flex-col" style={{ background: '#fff', width: 560, maxHeight: '80vh', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }} onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #F3F4F6' }}>
-          <div>
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0 }}>Registrations</h3>
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>
-              {ev.title} · {checkedInCount} / {attendees.length} checked in
-            </p>
-          </div>
-          <button onClick={onClose} className="cursor-pointer" style={{ background: 'none', border: 'none' }}>
-            <X size={18} style={{ color: '#9CA3AF' }} />
-          </button>
-        </div>
-
-        <div className="overflow-y-auto px-6 py-4" style={{ flex: 1 }}>
-          {loading ? (
-            <p style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</p>
-          ) : attendees.length === 0 ? (
-            <p style={{ fontSize: 13, color: '#9CA3AF' }}>No registrations yet.</p>
-          ) : (
-            <div className="flex flex-col gap-2">
-              {attendees.map(a => {
-                const sc = ATTENDEE_STATUS_MAP[a.status] ?? { bg: '#F3F4F6', color: '#6B7280', label: a.status }
-                const canConfirm = a.status === 'PENDING' && a.paymentMethod === 'CASH'
-                const canCancel  = a.status === 'PENDING' || a.status === 'CONFIRMED'
-                const canDelete  = a.status === 'CANCELLED'
-                return (
-                  <div key={a.id} className="flex items-center justify-between gap-3 p-3 rounded-xl" style={{ border: '1px solid #F3F4F6' }}>
-                    <div className="min-w-0">
-                      <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{a.user.name ?? a.user.email}</p>
-                      <p style={{ fontSize: 11, color: '#9CA3AF' }}>
-                        {a.ticketName} × {a.quantity} · {a.paymentMethod}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 999, background: sc.bg, color: sc.color }}>
-                        {sc.label}
-                      </span>
-                      {a.checkedIn && (
-                        <span className="flex items-center gap-1" style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 999, background: '#DCFCE7', color: '#15803D' }}>
-                          <CheckCircle2 size={11} /> Checked in
-                        </span>
-                      )}
-                      {canConfirm && (
-                        <button
-                          onClick={() => updateStatus(a.id, 'CONFIRMED')}
-                          disabled={updatingId === a.id}
-                          className="cursor-pointer"
-                          style={{ fontSize: 11, fontWeight: 600, color: '#fff', background: '#16A34A', border: 'none', borderRadius: 8, padding: '5px 10px' }}>
-                          Mark as paid
-                        </button>
-                      )}
-                      {canCancel && (
-                        <button
-                          onClick={() => updateStatus(a.id, 'CANCELLED')}
-                          disabled={updatingId === a.id}
-                          className="cursor-pointer"
-                          style={{ fontSize: 11, fontWeight: 600, color: '#B91C1C', background: '#FEF2F2', border: 'none', borderRadius: 8, padding: '5px 10px' }}>
-                          Cancel
-                        </button>
-                      )}
-                      {canDelete && (
-                        <button
-                          onClick={() => deleteBooking(a.id)}
-                          disabled={updatingId === a.id}
-                          className="cursor-pointer"
-                          style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', background: '#F3F4F6', border: 'none', borderRadius: 8, padding: '5px 10px' }}>
-                          Delete
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
-
 // ── QR Check-in modal ────────────────────────────────────────────────────────
 
 function CheckinQRModal({ ev, onClose }: { ev: EventRow | null; onClose: () => void }) {
@@ -872,6 +711,7 @@ type Filter = 'All' | EventStatus
 export default function EventsClient() {
   const { menuOpen, setMenuOpen } = useDashboard()
   const t = useT()
+  const router = useRouter()
 
   const [events, setEvents]           = useState<EventRow[]>([])
   const [instructors, setInstructors] = useState<Instructor[]>([])
@@ -884,7 +724,6 @@ export default function EventsClient() {
   const [editingEvent, setEditingEvent] = useState<EventRow | null>(null)
   const [deleteEvent, setDeleteEvent]   = useState<EventRow | null>(null)
   const [successMsg, setSuccessMsg]     = useState('')
-  const [attendeesEvent, setAttendeesEvent] = useState<EventRow | null>(null)
   const [checkinEvent, setCheckinEvent]     = useState<EventRow | null>(null)
 
   const loadEvents = useCallback(async () => {
@@ -1180,7 +1019,7 @@ export default function EventsClient() {
                             const { booked, capacity } = registrationSummary(ev)
                             return (
                               <button
-                                onClick={e => { e.stopPropagation(); setAttendeesEvent(ev) }}
+                                onClick={e => { e.stopPropagation(); router.push(`/dashboard/classes/events/registrations?event=${ev.id}`) }}
                                 className="cursor-pointer hover:underline"
                                 style={{ fontSize: 13, fontWeight: 600, background: 'none', border: 'none', padding: 0,
                                   color: capacity !== null && booked >= capacity ? '#B91C1C' : '#374151' }}>
@@ -1339,11 +1178,6 @@ export default function EventsClient() {
         open={!!successMsg}
         onClose={() => setSuccessMsg('')}
         message={successMsg}
-      />
-
-      <AttendeesModal
-        ev={attendeesEvent}
-        onClose={() => { setAttendeesEvent(null); loadEvents() }}
       />
 
       <CheckinQRModal
