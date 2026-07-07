@@ -47,7 +47,7 @@ interface EventRow {
   isCancelled: boolean
   externalUrl: string | null
   instructor: Instructor | null
-  tickets: { id: string; name: string; price: number; currency: string; capacity: number | null; _count?: { bookings: number } }[]
+  tickets: { id: string; name: string; price: number; currency: string; capacity: number | null; bookedCount?: number }[]
   coverUrl: string | null
 }
 
@@ -108,7 +108,7 @@ function fmtTicketPrice(tickets: EventRow['tickets']): string {
 }
 
 function registrationSummary(ev: EventRow): { booked: number; capacity: number | null } {
-  const booked = ev.tickets.reduce((sum, t) => sum + (t._count?.bookings ?? 0), 0)
+  const booked = ev.tickets.reduce((sum, t) => sum + (t.bookedCount ?? 0), 0)
   const ticketCapacities = ev.tickets.map(t => t.capacity)
   const capacity = ev.capacity ?? (ticketCapacities.every(c => c !== null) && ticketCapacities.length > 0
     ? ticketCapacities.reduce((sum, c) => sum + (c ?? 0), 0)

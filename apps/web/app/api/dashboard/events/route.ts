@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { getBookedCounts } from '@/lib/services/eventCapacity'
 
 async function authorise(roles = ['OWNER', 'ADMIN', 'INSTRUCTOR']) {
   const user = await getAuthUser()
@@ -21,10 +22,7 @@ async function authorise(roles = ['OWNER', 'ADMIN', 'INSTRUCTOR']) {
 
 const EVENT_INCLUDE = {
   instructor: { select: { id: true, name: true } },
-  tickets: {
-    orderBy: { sortOrder: 'asc' as const },
-    include: { _count: { select: { bookings: { where: { status: 'CONFIRMED' as const } } } } },
-  },
+  tickets: { orderBy: { sortOrder: 'asc' as const } },
 }
 
 // GET /api/dashboard/events
@@ -45,7 +43,16 @@ export async function GET() {
     }),
   ])
 
-  return NextResponse.json({ events, instructors })
+  // "Booked" must match the PENDING+CONFIRMED, quantity-summed definition used
+  // everywhere capacity is enforced (checkEventCapacity) — otherwise pending
+  // registrations silently vanish from the dashboard's headcount.
+  const { byTicket } = await getBookedCounts(events.map(e => e.id))
+  const eventsWithCounts = events.map(ev => ({
+    ...ev,
+    tickets: ev.tickets.map(t => ({ ...t, bookedCount: byTicket.get(t.id) ?? 0 })),
+  }))
+
+  return NextResponse.json({ events: eventsWithCounts, instructors })
 }
 
 // POST /api/dashboard/events
