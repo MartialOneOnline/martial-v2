@@ -129,7 +129,7 @@ export async function PATCH(req: NextRequest) {
 
   const body = await req.json()
   const { language, name, phone, email, website, instagram, facebook, youtube, tiktok,
-          description, tagline, address, postcode, city, country, logoUrl,
+          description, tagline, address, postcode, city, country, logoUrl, coverUrl,
           defaultBookingSettings, cancelPolicy, modules,
           stripePublishableKey, stripeSecretKey, stripeWebhookSecret,
           revolutPublicKey, revolutSecretKey, revolutWebhookSecret } = body
@@ -167,6 +167,7 @@ export async function PATCH(req: NextRequest) {
       ...(city        !== undefined && { city:        city?.trim()        || null }),
       ...(country     !== undefined && { country:     country?.trim()     || null }),
       ...(logoUrl                !== undefined && { logoUrl: logoUrl?.trim() || null }),
+      ...(coverUrl               !== undefined && { coverUrl: coverUrl?.trim() || null }),
       ...(defaultBookingSettings !== undefined && { defaultBookingSettings: gatedBookingSettings }),
       ...(cancelPolicy !== undefined && VALID_CANCEL_POLICIES.includes(cancelPolicy) && { cancelPolicy }),
       ...(modules !== undefined && { modules: getSchoolModules(modules) }),

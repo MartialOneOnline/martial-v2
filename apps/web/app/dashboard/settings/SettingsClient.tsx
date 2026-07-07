@@ -215,13 +215,14 @@ function SchoolTab() {
     address: '', city: '', country: '', postcode: '',
     phone: '', email: '', website: '',
     instagram: '', facebook: '', youtube: '', tiktok: '',
-    logoUrl: '', language: 'en',
+    logoUrl: '', coverUrl: '', language: 'en',
   })
   const [loading,    setLoading]    = useState(true)
   const [saving,     setSaving]     = useState(false)
   const [saved,      setSaved]      = useState(false)
   const [error,      setError]      = useState('')
   const [uploading,  setUploading]  = useState(false)
+  const [uploadingCover, setUploadingCover] = useState(false)
 
   useEffect(() => {
     fetch('/api/dashboard/school').then(r => r.json()).then(d => {
@@ -241,6 +242,7 @@ function SchoolTab() {
         youtube:     d.school.youtube     ?? '',
         tiktok:      d.school.tiktok      ?? '',
         logoUrl:     d.school.logoUrl     ?? '',
+        coverUrl:    d.school.coverUrl    ?? '',
         language:    d.school.language    ?? 'en',
       })
     }).finally(() => setLoading(false))
@@ -254,11 +256,26 @@ function SchoolTab() {
     setUploading(true); setError('')
     const fd = new FormData(); fd.append('file', file)
     const res = await fetch('/api/dashboard/upload?bucket=avatars', { method: 'POST', body: fd })
-    if (!res.ok) { setError('Upload failed'); setUploading(false); return }
+    if (!res.ok) { const d = await res.json().catch(() => ({})); setError(d.error ?? 'Upload failed'); setUploading(false); return }
     const { url } = await res.json()
     await fetch('/api/dashboard/school', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ logoUrl: url }) })
     setForm(p => ({ ...p, logoUrl: url }))
     setUploading(false); setSaved(true); setTimeout(() => setSaved(false), 2500)
+  }
+
+  // Organization banner shown on the public Explore card and school profile hero —
+  // not to be confused with an individual Event's own cover image.
+  async function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingCover(true); setError('')
+    const fd = new FormData(); fd.append('file', file)
+    const res = await fetch('/api/dashboard/upload?bucket=avatars', { method: 'POST', body: fd })
+    if (!res.ok) { const d = await res.json().catch(() => ({})); setError(d.error ?? 'Upload failed'); setUploadingCover(false); return }
+    const { url } = await res.json()
+    await fetch('/api/dashboard/school', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ coverUrl: url }) })
+    setForm(p => ({ ...p, coverUrl: url }))
+    setUploadingCover(false); setSaved(true); setTimeout(() => setSaved(false), 2500)
   }
 
   async function save() {
@@ -314,6 +331,29 @@ function SchoolTab() {
           <label style={LBL}>Description</label>
           <textarea rows={3} value={form.description} onChange={e => set('description', e.target.value)}
             style={{ ...INP, resize: 'vertical', lineHeight: 1.6 }} />
+        </div>
+        <div className="mt-4">
+          <label style={LBL}>Cover photo</label>
+          <p style={{ fontSize: 12, color: '#9CA3AF', margin: '-2px 0 8px' }}>
+            The banner shown on your public Explore card and profile page. Not the same as an event's own banner.
+          </p>
+          <label className="block relative cursor-pointer group w-full" style={{ height: 140 }}>
+            <div className="w-full h-full rounded-2xl overflow-hidden flex items-center justify-center"
+              style={{ background: '#F3F4F6', border: '2px dashed #D1D5DB' }}>
+              {uploadingCover
+                ? <RefreshCw size={20} style={{ color: '#9CA3AF' }} className="animate-spin" />
+                : form.coverUrl
+                  ? <img src={form.coverUrl} alt="cover" className="w-full h-full object-cover" />
+                  : <Upload size={20} style={{ color: '#9CA3AF' }} />
+              }
+            </div>
+            <div className="absolute inset-0 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+              style={{ background: 'rgba(0,0,0,0.35)' }}>
+              <Upload size={16} style={{ color: '#fff' }} />
+            </div>
+            <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleCoverChange} />
+          </label>
+          <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 6 }}>Click to upload · JPEG, PNG or WebP · max 5MB</p>
         </div>
       </div>
 

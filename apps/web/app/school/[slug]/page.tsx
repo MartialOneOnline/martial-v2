@@ -139,6 +139,16 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
     })),
   }))
 
+  // Public CTA policy, based on what's actually bookable — not on School.type:
+  // a normal school that also hosts a one-off seminar keeps all its usual CTAs.
+  const hasClasses = classesMapped.length > 0
+  const hasPlans = plans.length > 0
+  const hasEvents = eventsMapped.length > 0
+  const showTrialCta = hasClasses
+  const showJoinCta = hasPlans || hasClasses
+  // Event-only profile: nothing to trial or join, so ticket purchase becomes the primary action.
+  const eventCtaIsPrimary = hasEvents && !hasClasses && !hasPlans
+
   return (
     <div className="min-h-screen bg-[#F8F9FB]">
 
@@ -375,19 +385,23 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
 
             {/* CTAs */}
             <div className="hidden md:flex flex-col gap-2">
-              <TrialBookingCTA
-                trialClasses={trialClasses}
-                schoolSlug={slug}
-                schoolEmail={school.email}
-                schoolPhone={school.phone}
-                plans={plansMapped}
-                className="w-full h-12 rounded-xl bg-[#0870E2] hover:bg-[#005580] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
-              />
-              {eventsMapped.length > 0 && (
+              {showTrialCta && (
+                <TrialBookingCTA
+                  trialClasses={trialClasses}
+                  schoolSlug={slug}
+                  schoolEmail={school.email}
+                  schoolPhone={school.phone}
+                  plans={plansMapped}
+                  className="w-full h-12 rounded-xl bg-[#0870E2] hover:bg-[#005580] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
+                />
+              )}
+              {hasEvents && (
                 <EventTicketCTA
                   events={eventsMapped}
                   schoolSlug={slug}
-                  className="w-full h-12 rounded-xl border border-[#0870E2] text-[#0870E2] hover:bg-blue-50 font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
+                  className={eventCtaIsPrimary
+                    ? 'w-full h-12 rounded-xl bg-[#0870E2] hover:bg-[#005580] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors'
+                    : 'w-full h-12 rounded-xl border border-[#0870E2] text-[#0870E2] hover:bg-blue-50 font-semibold text-sm flex items-center justify-center gap-2 transition-colors'}
                 />
               )}
               {school.phone && (
@@ -400,13 +414,15 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
                   WhatsApp
                 </a>
               )}
-              <Link
-                href={`/join/${slug}`}
-                className="w-full h-12 rounded-xl border border-[#0870E2] text-[#0870E2] hover:bg-blue-50 font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
-              >
-                <UserPlus className="w-4 h-4" />
-                Join this school
-              </Link>
+              {showJoinCta && (
+                <Link
+                  href={`/join/${slug}`}
+                  className="w-full h-12 rounded-xl border border-[#0870E2] text-[#0870E2] hover:bg-blue-50 font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  Join this school
+                </Link>
+              )}
               <a
                 href={`mailto:${school.email}?subject=Enquiry — ${school.name}`}
                 className="w-full h-12 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
@@ -499,22 +515,26 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
               <MessageCircle className="w-4 h-4" />
             </a>
           )}
-          {eventsMapped.length > 0 && (
+          {hasEvents && (
             <EventTicketCTA
               events={eventsMapped}
               schoolSlug={slug}
-              className="flex items-center justify-center gap-2 h-12 px-4 rounded-xl border border-[#0870E2] text-[#0870E2] font-semibold text-sm transition-colors"
-              iconOnly
+              className={eventCtaIsPrimary
+                ? 'flex-1 h-12 rounded-xl bg-[#0870E2] hover:bg-[#005580] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors'
+                : 'flex items-center justify-center gap-2 h-12 px-4 rounded-xl border border-[#0870E2] text-[#0870E2] font-semibold text-sm transition-colors'}
+              iconOnly={!eventCtaIsPrimary}
             />
           )}
-          <TrialBookingCTA
-            trialClasses={trialClasses}
-            schoolSlug={slug}
-            schoolEmail={school.email}
-            schoolPhone={school.phone}
-            plans={plansMapped}
-            className="flex-1 h-12 rounded-xl bg-[#0870E2] hover:bg-[#005580] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
-          />
+          {showTrialCta && (
+            <TrialBookingCTA
+              trialClasses={trialClasses}
+              schoolSlug={slug}
+              schoolEmail={school.email}
+              schoolPhone={school.phone}
+              plans={plansMapped}
+              className="flex-1 h-12 rounded-xl bg-[#0870E2] hover:bg-[#005580] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
+            />
+          )}
         </div>
       </div>
     </div>
