@@ -87,3 +87,24 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   return NextResponse.json(updated)
 }
+
+// DELETE /api/dashboard/events/[id]/bookings/[bookingId] — remove a cancelled
+// registration. Only CANCELLED bookings are deletable: a PENDING/CONFIRMED one
+// must be cancelled first, and a CONFIRMED booking always has a matching
+// Transaction ledger entry that we don't want to orphan silently.
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string; bookingId: string }> }) {
+  const auth = await authorise()
+  if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
+
+  const { id, bookingId } = await params
+  const booking = await prisma.eventBooking.findFirst({
+    where: { id: bookingId, eventId: id, event: { schoolId: auth.schoolId } },
+    select: { status: true },
+  })
+  if (!booking) return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
+  if (booking.status !== 'CANCELLED')
+    return NextResponse.json({ error: 'Only cancelled registrations can be deleted' }, { status: 400 })
+
+  await prisma.eventBooking.delete({ where: { id: bookingId } })
+  return NextResponse.json({ ok: true })
+}

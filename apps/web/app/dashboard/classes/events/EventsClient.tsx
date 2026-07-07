@@ -735,6 +735,16 @@ function AttendeesModal({ ev, onClose }: { ev: EventRow | null; onClose: () => v
     }
   }
 
+  async function deleteBooking(bookingId: string) {
+    setUpdatingId(bookingId)
+    try {
+      const res = await adminFetch(`/api/dashboard/events/${ev!.id}/bookings/${bookingId}`, { method: 'DELETE' })
+      if (res.ok) setAttendees(prev => prev.filter(a => a.id !== bookingId))
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onClose}>
       <div className="rounded-2xl flex flex-col" style={{ background: '#fff', width: 560, maxHeight: '80vh', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }} onClick={e => e.stopPropagation()}>
@@ -761,6 +771,7 @@ function AttendeesModal({ ev, onClose }: { ev: EventRow | null; onClose: () => v
                 const sc = ATTENDEE_STATUS_MAP[a.status] ?? { bg: '#F3F4F6', color: '#6B7280', label: a.status }
                 const canConfirm = a.status === 'PENDING' && a.paymentMethod === 'CASH'
                 const canCancel  = a.status === 'PENDING' || a.status === 'CONFIRMED'
+                const canDelete  = a.status === 'CANCELLED'
                 return (
                   <div key={a.id} className="flex items-center justify-between gap-3 p-3 rounded-xl" style={{ border: '1px solid #F3F4F6' }}>
                     <div className="min-w-0">
@@ -794,6 +805,15 @@ function AttendeesModal({ ev, onClose }: { ev: EventRow | null; onClose: () => v
                           className="cursor-pointer"
                           style={{ fontSize: 11, fontWeight: 600, color: '#B91C1C', background: '#FEF2F2', border: 'none', borderRadius: 8, padding: '5px 10px' }}>
                           Cancel
+                        </button>
+                      )}
+                      {canDelete && (
+                        <button
+                          onClick={() => deleteBooking(a.id)}
+                          disabled={updatingId === a.id}
+                          className="cursor-pointer"
+                          style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', background: '#F3F4F6', border: 'none', borderRadius: 8, padding: '5px 10px' }}>
+                          Delete
                         </button>
                       )}
                     </div>
