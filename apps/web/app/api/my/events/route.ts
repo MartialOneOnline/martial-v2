@@ -17,11 +17,13 @@ export async function GET() {
 
   const dbUser = await prisma.user.findUnique({
     where: { supabaseAuthId: authUser.id },
-    select: { id: true },
+    select: { id: true, name: true, email: true },
   })
   if (!dbUser) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  const myBookings = await prisma.eventBooking.findMany({
+  const buyerName = dbUser.name ?? dbUser.email
+
+  const myBookingsRaw = await prisma.eventBooking.findMany({
     where: { userId: dbUser.id },
     select: {
       id: true,
@@ -39,6 +41,7 @@ export async function GET() {
     },
     orderBy: { createdAt: 'desc' },
   })
+  const myBookings = myBookingsRaw.map(b => ({ ...b, buyerName }))
 
   // Get user's active membership school IDs
   const memberships = await prisma.membership.findMany({

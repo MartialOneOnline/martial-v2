@@ -39,6 +39,7 @@ type MyBooking = {
   qrToken: string | null
   checkedIn: boolean
   checkedInAt: string | null
+  buyerName: string
   event: { id: string; title: string; startAt: string; location: string | null; coverUrl: string | null; school: { name: string; slug: string } }
 }
 
@@ -269,8 +270,8 @@ function TicketDrawer({ ev, onClose }: { ev: EventItem; onClose: () => void }) {
 function TicketQrModal({ booking, onClose }: { booking: MyBooking; onClose: () => void }) {
   const t = useT()
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
-      <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl text-center" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto" onClick={onClose}>
+      <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl text-center my-8" onClick={e => e.stopPropagation()}>
         <div className="flex justify-end -mt-1 -mr-1 mb-1">
           <button onClick={onClose}><X className="w-5 h-5 text-gray-400" /></button>
         </div>
@@ -286,7 +287,20 @@ function TicketQrModal({ booking, onClose }: { booking: MyBooking; onClose: () =
             <QRCodeSVG value={`martial:event:${booking.qrToken}`} size={200} level="M" />
           </div>
         )}
-        <p className="text-xs text-gray-500">{t.my.ticketQrHint}</p>
+        <p className="text-sm font-semibold text-[#101828] mb-1">{booking.buyerName}</p>
+        <p className="text-xs text-gray-500 mb-5">{t.my.ticketQrHint}</p>
+
+        <div className="rounded-2xl border border-gray-100 overflow-hidden text-left">
+          <p className="px-4 pt-3 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">{t.my.ticketQrHowItWorks}</p>
+          {[t.my.ticketQrStep1, t.my.ticketQrStep2, t.my.ticketQrStep3].map((text, i) => (
+            <div key={i} className="flex items-start gap-3 px-4 py-2.5" style={i > 0 ? { borderTop: '1px solid #F3F4F6' } : {}}>
+              <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 bg-[#E8F4FF]">
+                <span className="text-[11px] font-semibold text-[#0870E2]">{i + 1}</span>
+              </div>
+              <p className="text-xs text-gray-600 leading-snug">{text}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )

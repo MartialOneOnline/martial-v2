@@ -598,6 +598,10 @@ export const translations = {
       payAtDoorBtn: 'Pay at the door', cashReservedTitle: 'Reservation received',
       cashReservedDesc: 'Your spot is held — pay in cash when you arrive.',
       showTicketBtn: 'Show ticket', ticketQrHint: 'Show this code at the door to check in',
+      ticketQrHowItWorks: 'How it works',
+      ticketQrStep1: 'Open this screen before you arrive at the venue',
+      ticketQrStep2: 'Show the QR code to staff at the entrance',
+      ticketQrStep3: 'Your ticket is checked in automatically',
       checkedInLabel: 'Checked in',
     },
 
@@ -1151,6 +1155,10 @@ export const translations = {
       payAtDoorBtn: 'Pagar en la puerta', cashReservedTitle: 'Reserva recibida',
       cashReservedDesc: 'Tu plaza queda reservada — paga en efectivo cuando llegues.',
       showTicketBtn: 'Ver entrada', ticketQrHint: 'Muestra este código en la puerta para registrar tu entrada',
+      ticketQrHowItWorks: 'Cómo funciona',
+      ticketQrStep1: 'Abre esta pantalla antes de llegar al lugar',
+      ticketQrStep2: 'Muestra el código QR al personal en la entrada',
+      ticketQrStep3: 'Tu entrada se registra automáticamente',
       checkedInLabel: 'Registrado',
     },
 
@@ -1704,6 +1712,10 @@ export const translations = {
       payAtDoorBtn: 'Pagar à porta', cashReservedTitle: 'Reserva recebida',
       cashReservedDesc: 'O seu lugar está reservado — pague em dinheiro quando chegar.',
       showTicketBtn: 'Ver bilhete', ticketQrHint: 'Mostre este código na porta para o check-in',
+      ticketQrHowItWorks: 'Como funciona',
+      ticketQrStep1: 'Abra esta tela antes de chegar ao local',
+      ticketQrStep2: 'Mostre o código QR à equipe na entrada',
+      ticketQrStep3: 'Seu bilhete é registrado automaticamente',
       checkedInLabel: 'Registado',
     },
 
@@ -2257,6 +2269,10 @@ export const translations = {
       payAtDoorBtn: 'Payer sur place', cashReservedTitle: 'Réservation reçue',
       cashReservedDesc: 'Votre place est retenue — payez en espèces sur place.',
       showTicketBtn: 'Voir le billet', ticketQrHint: "Montrez ce code à l'entrée pour l'enregistrement",
+      ticketQrHowItWorks: 'Comment ça marche',
+      ticketQrStep1: "Ouvrez cet écran avant d'arriver sur place",
+      ticketQrStep2: "Montrez le code QR au personnel à l'entrée",
+      ticketQrStep3: 'Votre billet est enregistré automatiquement',
       checkedInLabel: 'Enregistré',
     },
 
