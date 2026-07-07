@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState, useCallback, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { CalendarDays, Clock, MapPin, Ticket, CheckCircle2, X, Minus, Plus, AlertCircle, QrCode } from 'lucide-react'
+import { CalendarDays, Clock, MapPin, Ticket, CheckCircle2, X, Minus, Plus, AlertCircle, QrCode, MessageCircle, Mail, Globe, Instagram } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../lib/format'
@@ -40,7 +40,7 @@ type MyBooking = {
   checkedIn: boolean
   checkedInAt: string | null
   buyerName: string
-  event: { id: string; title: string; startAt: string; location: string | null; coverUrl: string | null; school: { name: string; slug: string } }
+  event: { id: string; title: string; startAt: string; location: string | null; coverUrl: string | null; school: { name: string; slug: string; phone: string | null; email: string | null; website: string | null; instagram: string | null } }
 }
 
 /* ── Helpers ── */
@@ -306,10 +306,74 @@ function TicketQrModal({ booking, onClose }: { booking: MyBooking; onClose: () =
   )
 }
 
+/* ── Contact organizer sheet ── */
+type OrganizerContact = { name: string; phone: string | null; email: string | null; website: string | null; instagram: string | null }
+
+function ContactOrganizerSheet({ school, subject, onClose }: { school: OrganizerContact; subject: string; onClose: () => void }) {
+  const t = useT()
+  const items = [
+    school.phone && {
+      key: 'whatsapp', icon: MessageCircle, color: '#34C759', bg: 'rgba(52,199,89,.10)',
+      label: t.my.contactWhatsappBtn, sub: school.phone,
+      href: `https://wa.me/${school.phone.replace(/\D/g, '')}`,
+    },
+    school.email && {
+      key: 'email', icon: Mail, color: '#007AFF', bg: 'rgba(0,122,255,.10)',
+      label: t.my.contactEmailBtn, sub: school.email,
+      href: `mailto:${school.email}?subject=${encodeURIComponent(subject)}`,
+    },
+    school.website && {
+      key: 'website', icon: Globe, color: '#0870E2', bg: '#E8F4FF',
+      label: t.my.contactWebsiteBtn, sub: school.website.replace(/^https?:\/\//, ''),
+      href: school.website.startsWith('http') ? school.website : `https://${school.website}`,
+    },
+    school.instagram && {
+      key: 'instagram', icon: Instagram, color: '#E1306C', bg: 'rgba(225,48,108,.10)',
+      label: t.my.contactInstagramBtn, sub: school.instagram.startsWith('@') ? school.instagram : `@${school.instagram}`,
+      href: `https://instagram.com/${school.instagram.replace('@', '')}`,
+    },
+  ].filter((x): x is { key: string; icon: typeof MessageCircle; color: string; bg: string; label: string; sub: string; href: string } => Boolean(x))
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-sm bg-white rounded-t-3xl shadow-2xl pb-8" onClick={e => e.stopPropagation()}>
+        <div className="flex justify-center pt-3 pb-1"><div className="w-10 h-1 bg-gray-200 rounded-full" /></div>
+        <div className="px-5 pt-2 pb-1 flex items-center justify-between">
+          <div>
+            <h2 className="text-base font-bold text-[#061229]">{t.my.contactOrganizerLabel}</h2>
+            <p className="text-xs text-gray-400">{school.name}</p>
+          </div>
+          <button onClick={onClose}><X className="w-5 h-5 text-gray-400" /></button>
+        </div>
+        <div className="mx-5 mt-3 rounded-2xl border border-gray-100 overflow-hidden">
+          {items.map((item, i) => (
+            <a
+              key={item.key}
+              href={item.href}
+              target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-3 px-4 py-3"
+              style={i > 0 ? { borderTop: '1px solid #F3F4F6' } : {}}
+            >
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: item.bg }}>
+                <item.icon className="w-4 h-4" style={{ color: item.color }} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-[#061229]">{item.label}</p>
+                <p className="text-xs text-gray-400 truncate">{item.sub}</p>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /* ── My ticket card ── */
 function MyTicketCard({ booking }: { booking: MyBooking }) {
   const t = useT()
   const [showQr, setShowQr] = useState(false)
+  const [showContact, setShowContact] = useState(false)
   const isCashPending = booking.status === 'PENDING' && booking.paymentMethod === 'CASH'
   const cfg = booking.checkedIn
     ? { label: t.my.checkedInLabel, color: '#22C55E' }
@@ -317,6 +381,8 @@ function MyTicketCard({ booking }: { booking: MyBooking }) {
     ? { label: t.my.payAtDoorBtn, color: '#EAB308' }
     : getTicketStatusConfig(t)[booking.status] ?? { label: booking.status, color: '#9CA3AF' }
   const canShowTicket = booking.qrToken && booking.status !== 'CANCELLED'
+  const school = booking.event.school
+  const hasContact = school.phone || school.email || school.website || school.instagram
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div className="p-4">
@@ -336,18 +402,29 @@ function MyTicketCard({ booking }: { booking: MyBooking }) {
           <p className="text-xs text-gray-500">
             {booking.ticketName} × {booking.quantity} · {booking.amountPaid ? fmtPrice(booking.amountPaid, booking.currency) : t.my.freeEntry}
           </p>
-          {canShowTicket && (
-            <button
-              onClick={() => setShowQr(true)}
-              className="flex items-center gap-1.5 text-xs font-semibold rounded-xl px-3 py-1.5 shrink-0"
-              style={{ background: '#E8F4FF', color: '#0870E2' }}
-            >
-              <QrCode className="w-3.5 h-3.5" />{t.my.showTicketBtn}
-            </button>
-          )}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {hasContact && (
+              <button
+                onClick={() => setShowContact(true)}
+                className="flex items-center gap-1.5 text-xs font-semibold rounded-xl px-3 py-1.5 border border-gray-200 text-gray-500 hover:text-[#0870E2] hover:border-[#0870E2] transition-colors"
+              >
+                <MessageCircle className="w-3.5 h-3.5" />{t.my.contactOrganizerLabel}
+              </button>
+            )}
+            {canShowTicket && (
+              <button
+                onClick={() => setShowQr(true)}
+                className="flex items-center gap-1.5 text-xs font-semibold rounded-xl px-3 py-1.5 shrink-0"
+                style={{ background: '#E8F4FF', color: '#0870E2' }}
+              >
+                <QrCode className="w-3.5 h-3.5" />{t.my.showTicketBtn}
+              </button>
+            )}
+          </div>
         </div>
       </div>
       {showQr && <TicketQrModal booking={booking} onClose={() => setShowQr(false)} />}
+      {showContact && <ContactOrganizerSheet school={school} subject={booking.event.title} onClose={() => setShowContact(false)} />}
     </div>
   )
 }

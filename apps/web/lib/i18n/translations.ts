@@ -603,6 +603,8 @@ export const translations = {
       ticketQrStep2: 'Show the QR code to staff at the entrance',
       ticketQrStep3: 'Your ticket is checked in automatically',
       checkedInLabel: 'Checked in',
+      contactOrganizerLabel: 'Contact organizer', contactWhatsappBtn: 'WhatsApp', contactEmailBtn: 'Email',
+      contactWebsiteBtn: 'Website', contactInstagramBtn: 'Instagram',
     },
 
     sidebar: {
@@ -1160,6 +1162,8 @@ export const translations = {
       ticketQrStep2: 'Muestra el código QR al personal en la entrada',
       ticketQrStep3: 'Tu entrada se registra automáticamente',
       checkedInLabel: 'Registrado',
+      contactOrganizerLabel: 'Contactar organizador', contactWhatsappBtn: 'WhatsApp', contactEmailBtn: 'Email',
+      contactWebsiteBtn: 'Sitio web', contactInstagramBtn: 'Instagram',
     },
 
     sidebar: {
@@ -1717,6 +1721,8 @@ export const translations = {
       ticketQrStep2: 'Mostre o código QR à equipe na entrada',
       ticketQrStep3: 'Seu bilhete é registrado automaticamente',
       checkedInLabel: 'Registado',
+      contactOrganizerLabel: 'Contatar organizador', contactWhatsappBtn: 'WhatsApp', contactEmailBtn: 'Email',
+      contactWebsiteBtn: 'Site', contactInstagramBtn: 'Instagram',
     },
 
     sidebar: {
@@ -2274,6 +2280,8 @@ export const translations = {
       ticketQrStep2: "Montrez le code QR au personnel à l'entrée",
       ticketQrStep3: 'Votre billet est enregistré automatiquement',
       checkedInLabel: 'Enregistré',
+      contactOrganizerLabel: "Contacter l'organisateur", contactWhatsappBtn: 'WhatsApp', contactEmailBtn: 'Email',
+      contactWebsiteBtn: 'Site web', contactInstagramBtn: 'Instagram',
     },
 
     sidebar: {

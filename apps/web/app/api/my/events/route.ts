@@ -37,7 +37,7 @@ export async function GET() {
       qrToken: true,
       checkedIn: true,
       checkedInAt: true,
-      event: { select: { id: true, title: true, startAt: true, location: true, coverUrl: true, school: { select: { name: true, slug: true } } } },
+      event: { select: { id: true, title: true, startAt: true, location: true, coverUrl: true, school: { select: { name: true, slug: true, phone: true, email: true, website: true, instagram: true } } } },
     },
     orderBy: { createdAt: 'desc' },
   })
