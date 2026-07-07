@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useEffect, useState, useCallback } from 'react'
+import { Suspense, useEffect, useState, useCallback, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { CalendarDays, Clock, MapPin, Ticket, CheckCircle2, X, Minus, Plus, AlertCircle, QrCode } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
@@ -370,12 +370,22 @@ function MyEventsPageInner() {
   const [loading, setLoading] = useState(true)
   const [openEvent, setOpenEvent] = useState<EventItem | null>(null)
   const [banner, setBanner] = useState<'success' | 'cancelled' | null>(null)
+  const tabInitialized = useRef(false)
 
   const load = useCallback(() => {
     setLoading(true)
     fetch('/api/my/events')
       .then(r => r.json())
-      .then(d => { setEvents(d.events ?? []); setMyBookings(d.myBookings ?? []); setLoading(false) })
+      .then(d => {
+        const bookings = d.myBookings ?? []
+        setEvents(d.events ?? [])
+        setMyBookings(bookings)
+        setLoading(false)
+        if (!tabInitialized.current) {
+          tabInitialized.current = true
+          setMainTab(bookings.length > 0 ? 'mine' : 'available')
+        }
+      })
       .catch(() => setLoading(false))
   }, [])
 
@@ -385,7 +395,7 @@ function MyEventsPageInner() {
     const checkout = searchParams.get('checkout')
     if (checkout === 'success' || checkout === 'cancelled') {
       setBanner(checkout)
-      if (checkout === 'success') { setMainTab('mine'); load() }
+      if (checkout === 'success') { tabInitialized.current = true; setMainTab('mine'); load() }
       const timer = setTimeout(() => setBanner(null), 4000)
       return () => clearTimeout(timer)
     }
@@ -399,20 +409,19 @@ function MyEventsPageInner() {
             <h1 className="text-base font-bold text-[#101828]">{t.my.eventsHeader}</h1>
           </div>
           <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
-            <button
-              onClick={() => setMainTab('available')}
-              className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
-              style={{ background: mainTab === 'available' ? '#fff' : 'transparent', color: mainTab === 'available' ? '#0870E2' : '#9CA3AF' }}
-            >
-              {t.my.availableTab}
-            </button>
-            <button
-              onClick={() => setMainTab('mine')}
-              className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
-              style={{ background: mainTab === 'mine' ? '#fff' : 'transparent', color: mainTab === 'mine' ? '#0870E2' : '#9CA3AF' }}
-            >
-              {t.my.myTicketsTab}
-            </button>
+            {(myBookings.length > 0
+              ? (['mine', 'available'] as const)
+              : (['available', 'mine'] as const)
+            ).map(tab => (
+              <button
+                key={tab}
+                onClick={() => setMainTab(tab)}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                style={{ background: mainTab === tab ? '#fff' : 'transparent', color: mainTab === tab ? '#0870E2' : '#9CA3AF' }}
+              >
+                {tab === 'available' ? t.my.availableTab : t.my.myTicketsTab}
+              </button>
+            ))}
           </div>
         </div>
       </div>
