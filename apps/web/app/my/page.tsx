@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import {
   Calendar, Clock, CalendarCheck, QrCode, CalendarPlus,
-  CreditCard, TrendingUp, ChevronRight, Play, ArrowRight,
+  CreditCard, TrendingUp, ChevronRight,
 } from 'lucide-react'
 import { fmtPrice } from '../../lib/format'
 import { getBeltImage } from '../../lib/belts'
@@ -143,7 +143,6 @@ export default function MyHomePage() {
   const [detailOcc, setDetailOcc]   = useState<Occurrence | null>(null)
   const [cancelOcc, setCancelOcc]   = useState<Occurrence | null>(null)
   const [cancelling, setCancelling] = useState(false)
-  const [videoPlaying, setVideoPlaying] = useState(false)
   const carRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -469,39 +468,21 @@ export default function MyHomePage() {
       {/* ── Progress + Membership — side by side on desktop ──────────────── */}
       <div className="md:grid md:grid-cols-2 md:gap-4 md:px-6 md:mb-0">
 
-      {/* ── Progress ring ──────────────────────────────────────────────────── */}
+      {/* ── Belt badge ─────────────────────────────────────────────────────── */}
       {primaryMember?.belt && (
         <div className="mx-4 md:mx-0 mb-4 rounded-2xl overflow-hidden" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)', padding: 18 }}>
           <div className="flex items-center gap-4">
-            {/* Ring */}
-            <div className="relative shrink-0" style={{ width: 72, height: 72 }}>
-              <svg width="72" height="72" viewBox="0 0 72 72" style={{ transform: 'rotate(-90deg)' }}>
-                <circle cx="36" cy="36" r="29" fill="none" stroke="#E5E5EA" strokeWidth="5" />
-                <circle cx="36" cy="36" r="29" fill="none" stroke="#007AFF" strokeWidth="5" strokeDasharray="182.2" strokeDashoffset="45.6" strokeLinecap="round" />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-[17px] font-medium leading-none" style={{ color: '#1C1C1E' }}>75%</span>
-                <span className="text-[9px] font-normal mt-0.5" style={{ color: '#6B6B70' }}>{t.my.toStripe}</span>
-              </div>
-            </div>
-            {/* Info */}
+            <img
+              src={getBeltImage(primaryMember.belt, primaryMember.beltDegree ?? 0)}
+              alt={primaryMember.belt}
+              className="h-8 w-auto max-w-[90px] object-contain shrink-0"
+            />
             <div className="flex-1" style={{ minWidth: 0 }}>
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <img
-                  src={getBeltImage(primaryMember.belt, primaryMember.beltDegree ?? 0)}
-                  alt={primaryMember.belt}
-                  className="h-3.5 w-auto max-w-[60px] object-contain"
-                />
-                <ArrowRight className="w-3.5 h-3.5" style={{ color: '#AEAEB2' }} />
-                <span className="text-sm font-medium" style={{ color: '#1C1C1E' }}>
-                  {primaryMember.belt} {(primaryMember.beltDegree ?? 0) + 1} Stripe
-                </span>
-              </div>
-              <p className="text-sm font-medium mb-2" style={{ color: '#007AFF' }}>2 {t.my.classesToGo}</p>
-              <div className="h-1 rounded-full mb-3" style={{ background: '#E5E5EA' }}>
-                <div className="h-full rounded-full" style={{ width: '75%', background: '#007AFF' }} />
-              </div>
-              <Link href="/my/progress" prefetch={false} className="flex items-center gap-0.5 text-sm font-medium" style={{ color: '#007AFF' }}>
+              <p className="text-sm font-medium" style={{ color: '#1C1C1E' }}>
+                {primaryMember.belt}
+                {(primaryMember.beltDegree ?? 0) > 0 && ` · ${primaryMember.beltDegree} ${t.my.stripesLabel}`}
+              </p>
+              <Link href="/my/progress" prefetch={false} className="flex items-center gap-0.5 text-sm font-medium mt-1" style={{ color: '#007AFF' }}>
                 {t.my.viewProgress}<ChevronRight className="w-3.5 h-3.5" />
               </Link>
             </div>
@@ -537,61 +518,6 @@ export default function MyHomePage() {
       )}
 
       </div>{/* end md:grid */}
-
-      {/* ── Recommended video ──────────────────────────────────────────────── */}
-      <div className="mx-4 md:mx-6 mb-4">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-base md:text-lg font-semibold" style={{ color: '#1C1C1E', letterSpacing: '-0.2px' }}>{t.my.recommended}</span>
-          <button className="flex items-center text-sm font-normal" style={{ color: '#007AFF', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
-            {t.my.viewAll}<ChevronRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-        <div className="rounded-2xl overflow-hidden" style={{ background: '#08213D', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)' }}>
-          {videoPlaying ? (
-            <div style={{ position: 'relative', paddingTop: '56.25%' }}>
-              <iframe
-                src="https://www.youtube.com/embed/pYvnU1DU1Vg?autoplay=1&rel=0&modestbranding=1"
-                title="Closed Guard Basics"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="absolute inset-0 w-full h-full"
-                style={{ border: 'none' }}
-              />
-            </div>
-          ) : (
-            <div
-              className="relative cursor-pointer"
-              style={{ height: 200, background: '#071624' }}
-              onClick={() => setVideoPlaying(true)}
-            >
-              <img
-                src="https://img.youtube.com/vi/pYvnU1DU1Vg/hqdefault.jpg"
-                alt="Closed Guard Basics"
-                className="absolute inset-0 w-full h-full object-cover"
-                onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
-              />
-              <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,.28)', zIndex: 1 }} />
-              <span className="absolute text-[9px] font-medium rounded-md px-1.5 py-0.5 tracking-wide" style={{ top: 10, left: 12, background: '#007AFF', color: '#fff', zIndex: 2, letterSpacing: '.5px' }}>
-                RECOMMENDED
-              </span>
-              <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 2 }}>
-                <div className="flex items-center justify-center rounded-full transition-transform hover:scale-110" style={{ width: 52, height: 52, background: 'rgba(255,255,255,.92)', boxShadow: '0 4px 20px rgba(0,0,0,.35)' }}>
-                  <Play className="w-5 h-5 fill-current ml-1" style={{ color: '#08213D' }} />
-                </div>
-              </div>
-              <span className="absolute text-xs rounded-md px-1.5 py-0.5" style={{ bottom: 10, right: 12, background: 'rgba(0,0,0,.65)', color: '#fff', zIndex: 2 }}>
-                15m 10s
-              </span>
-            </div>
-          )}
-          {/* Info */}
-          <div style={{ padding: '11px 14px 13px' }}>
-            <p className="text-[10px] font-medium mb-0.5" style={{ color: 'rgba(100,220,220,.88)', letterSpacing: '.9px' }}>Guard · Roger Gracie</p>
-            <p className="text-sm font-medium" style={{ color: '#fff' }}>Closed Guard Basics</p>
-            <p className="text-xs" style={{ color: 'rgba(255,255,255,.42)' }}>Improve control and sweeps from closed guard</p>
-          </div>
-        </div>
-      </div>
 
       {/* ── Empty state (no school / membership) ──────────────────────────── */}
       {!activeMembership && !nextBooking && (user?.schoolMembers?.length ?? 0) === 0 && (

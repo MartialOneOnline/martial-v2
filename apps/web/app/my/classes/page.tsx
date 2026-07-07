@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
+import Link from 'next/link'
 import { Calendar, Clock, MapPin, ChevronLeft, ChevronRight, Users, CheckCircle2, X, Info, CalendarDays, Ticket, Zap } from 'lucide-react'
 import { useT } from '../../../lib/i18n/LanguageContext'
 
@@ -569,6 +570,7 @@ function PassCard({ plan, onRequest, requesting }: {
 export default function MyClassesPage() {
   const t = useT()
   const [mainTab, setMainTab] = useState<'book' | 'schedule'>('book')
+  const [hasSchool, setHasSchool] = useState(true)
 
   // Book tab state
   const [occurrences, setOccurrences] = useState<Occurrence[]>([])
@@ -617,6 +619,10 @@ export default function MyClassesPage() {
     fetch('/api/my/school-plans')
       .then(r => r.json())
       .then(d => setPassPlans((d.plans ?? []).filter((p: PassPlan) => ['SINGLE_PASS', 'TRIAL'].includes(p.planType))))
+      .catch(() => {})
+    fetch('/api/my')
+      .then(r => r.json())
+      .then(d => setHasSchool((d.user?.schoolMembers?.length ?? 0) > 0))
       .catch(() => {})
   }, [loadOccurrences])
 
@@ -725,12 +731,27 @@ export default function MyClassesPage() {
             ) : filteredOcc.length === 0 ? (
               <div className="bg-white border border-gray-100 rounded-2xl p-10 shadow-sm text-center mt-2">
                 <Calendar className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-                <p className="text-sm font-semibold text-[#101828] mb-1">
-                  {occDate ? t.my.noClassesThisDay : t.my.noClassesAvailable}
-                </p>
-                <p className="text-xs text-gray-400">
-                  {occDate ? t.my.tryAnotherDay : t.my.schoolNoClasses}
-                </p>
+                {!hasSchool ? (
+                  <>
+                    <p className="text-sm font-semibold text-[#101828] mb-1">{t.my.findYourAcademy}</p>
+                    <p className="text-xs text-gray-400 mb-4">{t.my.searchNearYou}</p>
+                    <Link
+                      href="/explore"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-xs font-semibold bg-[#0870E2] hover:bg-[#0558b0] transition-colors"
+                    >
+                      {t.my.exploreSchools}
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm font-semibold text-[#101828] mb-1">
+                      {occDate ? t.my.noClassesThisDay : t.my.noClassesAvailable}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {occDate ? t.my.tryAnotherDay : t.my.schoolNoClasses}
+                    </p>
+                  </>
+                )}
               </div>
             ) : (
               <div className="space-y-6">
