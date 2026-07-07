@@ -7,6 +7,7 @@ import {
   ChevronLeft, ChevronRight, MoreHorizontal, Bell,
 } from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
+import SharedRowMenu from '../../../../components/RowMenu'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface GradingRecord {
@@ -560,43 +561,34 @@ function EditGradingDrawer({ grading, onClose, onSuccess, ranks }: {
 
 // ── Row menu ──────────────────────────────────────────────────────────────────
 function RowMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    if (!open) return
-    function handler(e: MouseEvent) { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [open])
   return (
-    <div ref={ref} className="relative">
-      <button onClick={() => setOpen(o => !o)} className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
+    <SharedRowMenu trigger={({ onClick }) => (
+      <button onClick={onClick} className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
         style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
         onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
         onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
         <MoreHorizontal size={15} />
       </button>
-      {open && (
-        <div className="absolute right-0 rounded-xl z-20 py-1 overflow-hidden"
-          style={{ background: '#fff', border: '1px solid #E5E7EB',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 140, top: '100%' }}>
-          <button onClick={() => { setOpen(false); onEdit() }}
-            className="w-full text-left px-4 py-2.5 cursor-pointer"
-            style={{ fontSize: 13, color: '#374151', background: 'transparent', border: 'none' }}
-            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
-            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-            Edit record
-          </button>
-          <button onClick={() => { setOpen(false); onDelete() }}
-            className="w-full text-left px-4 py-2.5 cursor-pointer"
-            style={{ fontSize: 13, color: '#DC2626', background: 'transparent', border: 'none' }}
-            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#FEF2F2'}
-            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-            Delete record
-          </button>
-        </div>
-      )}
-    </div>
+    )}>
+      <div className="rounded-xl py-1 overflow-hidden"
+        style={{ background: '#fff', border: '1px solid #E5E7EB',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 140 }}>
+        <button onClick={onEdit}
+          className="w-full text-left px-4 py-2.5 cursor-pointer"
+          style={{ fontSize: 13, color: '#374151', background: 'transparent', border: 'none' }}
+          onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
+          onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+          Edit record
+        </button>
+        <button onClick={onDelete}
+          className="w-full text-left px-4 py-2.5 cursor-pointer"
+          style={{ fontSize: 13, color: '#DC2626', background: 'transparent', border: 'none' }}
+          onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#FEF2F2'}
+          onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+          Delete record
+        </button>
+      </div>
+    </SharedRowMenu>
   )
 }
 

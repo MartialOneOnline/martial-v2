@@ -10,6 +10,7 @@ import {
 import { useDashboard } from '../../../../components/DashboardShell'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../../lib/format'
+import RowMenu from '../../../../components/RowMenu'
 
 type TxStatus  = 'PAID' | 'PENDING' | 'FAILED' | 'REFUNDED'
 type FilterTab = 'ALL' | TxStatus
@@ -280,94 +281,75 @@ function RowActions({ tx, onStatusChange, onDelete, onView }: {
   onDelete: (id: string) => Promise<void>
   onView: () => void
 }) {
-  const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    function handler(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
 
   async function act(fn: () => Promise<void>) {
-    setBusy(true); setOpen(false)
+    setBusy(true)
     await fn()
     setBusy(false)
   }
 
   return (
-    <div ref={ref} style={{ display: 'flex', alignItems: 'center' }}>
-      {/* More */}
-      <div style={{ position: 'relative' }}>
-        <button onClick={e => { e.stopPropagation(); setOpen(o => !o) }} disabled={busy}
-          style={{ width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            borderRadius: 7, border: 'none', background: 'transparent', cursor: busy ? 'wait' : 'pointer', color: '#9CA3AF' }}
-          onMouseEnter={e => (e.currentTarget.style.background = '#F3F4F6')}
+    <RowMenu trigger={({ onClick }) => (
+      <button onClick={onClick} disabled={busy}
+        style={{ width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          borderRadius: 7, border: 'none', background: 'transparent', cursor: busy ? 'wait' : 'pointer', color: '#9CA3AF' }}
+        onMouseEnter={e => (e.currentTarget.style.background = '#F3F4F6')}
+        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+        <MoreHorizontal size={14} />
+      </button>
+    )}>
+      <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12,
+        boxShadow: '0 4px 16px rgba(0,0,0,0.10)', minWidth: 170, padding: '4px 0', overflow: 'hidden' }}>
+
+        <button onClick={e => { e.stopPropagation(); onView() }}
+          style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
+            fontWeight: 500, color: '#374151', background: 'transparent', border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 8 }}
+          onMouseEnter={e => (e.currentTarget.style.background = '#F9FAFB')}
           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-          <MoreHorizontal size={14} />
+          <Eye size={13} /> View Details
         </button>
 
-        {open && (
-          <>
-            <div style={{ position: 'fixed', inset: 0, zIndex: 10 }} onClick={() => setOpen(false)} />
-            <div style={{ position: 'absolute', right: 0, top: '100%', marginTop: 4, zIndex: 20,
-              background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12,
-              boxShadow: '0 4px 16px rgba(0,0,0,0.10)', minWidth: 170, padding: '4px 0', overflow: 'hidden' }}>
+        <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
 
-              <button onClick={e => { e.stopPropagation(); setOpen(false); onView() }}
-                style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
-                  fontWeight: 500, color: '#374151', background: 'transparent', border: 'none', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', gap: 8 }}
-                onMouseEnter={e => (e.currentTarget.style.background = '#F9FAFB')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-                <Eye size={13} /> View Details
-              </button>
-
-              <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
-
-              {tx.status === 'PENDING' && (
-                <button onClick={e => { e.stopPropagation(); act(() => onStatusChange(tx.id, 'PAID')) }}
-                  style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
-                    fontWeight: 500, color: '#16A34A', background: 'transparent', border: 'none', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', gap: 8 }}
-                  onMouseEnter={e => (e.currentTarget.style.background = '#F0FDF4')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-                  <Check size={13} /> Mark as Paid
-                </button>
-              )}
-
-              {/* TODO(phase-5-refunds): restore "Mark as Refunded" once compensating
-                  transaction logic and membership void are implemented. */}
-
-              {tx.status !== 'FAILED' && (
-                <button onClick={e => { e.stopPropagation(); act(() => onStatusChange(tx.id, 'FAILED')) }}
-                  style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
-                    fontWeight: 500, color: '#D97706', background: 'transparent', border: 'none', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', gap: 8 }}
-                  onMouseEnter={e => (e.currentTarget.style.background = '#FFFBEB')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-                  <AlertCircle size={13} /> Mark as Failed
-                </button>
-              )}
-
-              <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
-
-              <button onClick={e => { e.stopPropagation(); act(() => onDelete(tx.id)) }}
-                style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
-                  fontWeight: 500, color: '#DC2626', background: 'transparent', border: 'none', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', gap: 8 }}
-                onMouseEnter={e => (e.currentTarget.style.background = '#FEF2F2')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-                <Trash2 size={13} /> Delete
-              </button>
-            </div>
-          </>
+        {tx.status === 'PENDING' && (
+          <button onClick={e => { e.stopPropagation(); act(() => onStatusChange(tx.id, 'PAID')) }}
+            style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
+              fontWeight: 500, color: '#16A34A', background: 'transparent', border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 8 }}
+            onMouseEnter={e => (e.currentTarget.style.background = '#F0FDF4')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+            <Check size={13} /> Mark as Paid
+          </button>
         )}
+
+        {/* TODO(phase-5-refunds): restore "Mark as Refunded" once compensating
+            transaction logic and membership void are implemented. */}
+
+        {tx.status !== 'FAILED' && (
+          <button onClick={e => { e.stopPropagation(); act(() => onStatusChange(tx.id, 'FAILED')) }}
+            style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
+              fontWeight: 500, color: '#D97706', background: 'transparent', border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 8 }}
+            onMouseEnter={e => (e.currentTarget.style.background = '#FFFBEB')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+            <AlertCircle size={13} /> Mark as Failed
+          </button>
+        )}
+
+        <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
+
+        <button onClick={e => { e.stopPropagation(); act(() => onDelete(tx.id)) }}
+          style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
+            fontWeight: 500, color: '#DC2626', background: 'transparent', border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 8 }}
+          onMouseEnter={e => (e.currentTarget.style.background = '#FEF2F2')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+          <Trash2 size={13} /> Delete
+        </button>
       </div>
-    </div>
+    </RowMenu>
   )
 }
 

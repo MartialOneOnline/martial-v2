@@ -4,6 +4,7 @@ import { useDashboard } from '../../../../components/DashboardShell'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Menu, Bell, Search, ChevronLeft, ChevronRight, Filter, MoreVertical } from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
+import SharedRowMenu from '../../../../components/RowMenu'
 import {
   AreaChart, Area, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -126,31 +127,23 @@ function FiltersPanel({ filters, onChange }: { filters: FiltersState; onChange: 
 }
 
 function RowMenu({ items }: { items: { label: string; onClick: () => void; variant?: 'danger' }[] }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    function h(e: MouseEvent) { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
-    document.addEventListener('mousedown', h)
-    return () => document.removeEventListener('mousedown', h)
-  }, [])
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <button onClick={() => setOpen(o => !o)} className="cursor-pointer"
+    <SharedRowMenu trigger={({ onClick }) => (
+      <button onClick={onClick} className="cursor-pointer"
         style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #E5E7EB', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <MoreVertical size={13} style={{ color: '#6B7280' }} />
       </button>
-      {open && (
-        <div style={{ position: 'absolute', right: 0, top: '100%', marginTop: 4, zIndex: 50, background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, boxShadow: '0 6px 20px rgba(0,0,0,0.1)', minWidth: 160, overflow: 'hidden' }}>
-          {items.map(item => (
-            <button key={item.label} onClick={() => { item.onClick(); setOpen(false) }}
-              className="w-full text-left cursor-pointer hover:bg-[#F9FAFB]"
-              style={{ padding: '9px 14px', fontSize: 12, fontWeight: 500, color: item.variant === 'danger' ? '#DC2626' : '#374151', border: 'none', background: 'transparent', display: 'block' }}>
-              {item.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
+    )}>
+      <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, boxShadow: '0 6px 20px rgba(0,0,0,0.1)', minWidth: 160, overflow: 'hidden' }}>
+        {items.map(item => (
+          <button key={item.label} onClick={item.onClick}
+            className="w-full text-left cursor-pointer hover:bg-[#F9FAFB]"
+            style={{ padding: '9px 14px', fontSize: 12, fontWeight: 500, color: item.variant === 'danger' ? '#DC2626' : '#374151', border: 'none', background: 'transparent', display: 'block' }}>
+            {item.label}
+          </button>
+        ))}
+      </div>
+    </SharedRowMenu>
   )
 }
 

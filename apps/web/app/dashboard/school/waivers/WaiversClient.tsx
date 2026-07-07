@@ -4,6 +4,7 @@ import { useDashboard } from '../../../../components/DashboardShell'
 import { useState } from 'react'
 import {Users, Calendar, CreditCard, BarChart2, Settings, Bell, ChevronRight, ChevronDown, Menu, X, Search, Check, TrendingDown, MoreHorizontal, Eye, Plus, FileText, Download, Send} from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
+import RowMenu from '../../../../components/RowMenu'
 
 type WaiverType = 'Liability' | 'Medical' | 'Photo Release' | 'Minor'
 type WaiverStatus = 'Signed' | 'Pending' | 'Expired'
@@ -219,7 +220,6 @@ export default function WaiversClient() {
   const [activeFilter, setActiveFilter] = useState<Filter>('All')
   const [search, setSearch]             = useState('')
   const [currentPage, setCurrentPage]   = useState(1)
-  const [openMenuId, setOpenMenuId]     = useState<number | null>(null)
   const [drawerOpen, setDrawerOpen]     = useState(false)
   const [toast, setToast]               = useState(false)
 
@@ -384,7 +384,7 @@ export default function WaiversClient() {
                             {waiver.status}
                           </span>
                         </td>
-                        <td className="px-5 py-3 relative">
+                        <td className="px-5 py-3">
                           <div className="flex items-center gap-1">
                             <button className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
                               style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
@@ -398,22 +398,20 @@ export default function WaiversClient() {
                               onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
                               <Download size={14} />
                             </button>
-                            <button onClick={e => { e.stopPropagation(); setOpenMenuId(openMenuId === waiver.id ? null : waiver.id) }}
-                              className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
-                              style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
-                              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
-                              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                              <MoreHorizontal size={15} />
-                            </button>
-                          </div>
-                          {openMenuId === waiver.id && (
-                            <>
-                              <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
-                              <div className="absolute right-4 rounded-xl z-20 py-1 overflow-hidden"
+                            <RowMenu trigger={({ onClick }) => (
+                              <button onClick={onClick}
+                                className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
+                                style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
+                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
+                                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+                                <MoreHorizontal size={15} />
+                              </button>
+                            )}>
+                              <div className="rounded-xl py-1 overflow-hidden"
                                 style={{ background: '#fff', border: '1px solid #E5E7EB',
-                                  boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 160, top: '100%' }}>
+                                  boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 160 }}>
                                 {['View waiver','Download PDF','Resend','Delete'].map((label, i) => (
-                                  <button key={label} onClick={() => setOpenMenuId(null)}
+                                  <button key={label}
                                     className="w-full text-left px-4 py-2.5 cursor-pointer"
                                     style={{ fontSize: 13, color: i === 3 ? '#DC2626' : '#374151',
                                       background: 'transparent', border: 'none' }}
@@ -423,8 +421,8 @@ export default function WaiversClient() {
                                   </button>
                                 ))}
                               </div>
-                            </>
-                          )}
+                            </RowMenu>
+                          </div>
                         </td>
                       </tr>
                     )

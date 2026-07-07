@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Users, Calendar, CreditCard, BarChart2, Settings, Bell, ChevronRight, Menu, X, Plus, ChevronLeft, Clock, Search, LayoutList, CalendarDays, MoreHorizontal, TrendingUp, Pencil, Copy, Trash2, Eye, Check, Upload, Flame, Award, School, ShoppingBag, HelpCircle, CheckCircle, XCircle, Loader2 } from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import type { Translations } from '../../../../lib/i18n/translations'
+import RowMenu from '../../../../components/RowMenu'
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 const HOUR_HEIGHT = 64
@@ -526,7 +527,6 @@ export default function TimetableClient() {
   const [weekOffset, setWeekOffset]     = useState(0)
   const [view, setView]                 = useState<'calendar' | 'list'>('calendar')
   const [currentPage, setCurrentPage]   = useState(1)
-  const [openMenuId, setOpenMenuId]     = useState<string | null>(null)
   const [drawerOpen, setDrawerOpen]     = useState(false)
   const [successOpen, setSuccessOpen]   = useState(false)
   const [selectedSlot, setSelectedSlot] = useState<ClassSlot | null>(null)
@@ -810,50 +810,46 @@ export default function TimetableClient() {
                           </span>
                         </td>
                         {/* Actions */}
-                        <td className="px-5 py-3 relative">
-                          <button onClick={e => { e.stopPropagation(); setOpenMenuId(openMenuId === row.id ? null : row.id) }}
-                            className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
-                            style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
-                            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
-                            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                            <MoreHorizontal size={15} />
-                          </button>
-                          {openMenuId === row.id && (
-                            <>
-                              <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
-                              <div className="absolute right-6 rounded-xl z-20 py-1 overflow-hidden"
-                                style={{ background: '#fff', border: '1px solid #E5E7EB',
-                                  boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 130, top: '100%' }}>
-                                {[
-                                  { label: 'Edit', action: () => { setOpenMenuId(null); router.push('/dashboard/classes') } },
-                                  { label: 'Duplicate', action: async () => {
-                                    setOpenMenuId(null)
-                                    await fetch('/api/dashboard/classes', {
-                                      method: 'POST', headers: { 'Content-Type': 'application/json' },
-                                      body: JSON.stringify({ name: row.title + ' (copy)' }),
-                                    })
-                                    loadClasses()
-                                  }},
-                                  { label: 'Delete', action: async () => {
-                                    setOpenMenuId(null)
-                                    if (!confirm(`Delete "${row.title}"? This cannot be undone.`)) return
-                                    await fetch(`/api/dashboard/classes/${row.id}`, { method: 'DELETE' })
-                                    setListRows(prev => prev.filter(r => r.id !== row.id))
-                                    setSchedule(prev => prev.filter(s => s.classId !== row.id))
-                                  }},
-                                ].map(({ label, action }) => (
-                                  <button key={label} onClick={action}
-                                    className="w-full text-left px-4 py-2 cursor-pointer"
-                                    style={{ fontSize: 13, color: label === 'Delete' ? '#DC2626' : '#374151',
-                                      background: 'transparent', border: 'none' }}
-                                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
-                                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                                    {label}
-                                  </button>
-                                ))}
-                              </div>
-                            </>
-                          )}
+                        <td className="px-5 py-3">
+                          <RowMenu trigger={({ onClick }) => (
+                            <button onClick={onClick}
+                              className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
+                              style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
+                              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
+                              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+                              <MoreHorizontal size={15} />
+                            </button>
+                          )}>
+                            <div className="rounded-xl py-1 overflow-hidden"
+                              style={{ background: '#fff', border: '1px solid #E5E7EB',
+                                boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 130 }}>
+                              {[
+                                { label: 'Edit', action: () => { router.push('/dashboard/classes') } },
+                                { label: 'Duplicate', action: async () => {
+                                  await fetch('/api/dashboard/classes', {
+                                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ name: row.title + ' (copy)' }),
+                                  })
+                                  loadClasses()
+                                }},
+                                { label: 'Delete', action: async () => {
+                                  if (!confirm(`Delete "${row.title}"? This cannot be undone.`)) return
+                                  await fetch(`/api/dashboard/classes/${row.id}`, { method: 'DELETE' })
+                                  setListRows(prev => prev.filter(r => r.id !== row.id))
+                                  setSchedule(prev => prev.filter(s => s.classId !== row.id))
+                                }},
+                              ].map(({ label, action }) => (
+                                <button key={label} onClick={action}
+                                  className="w-full text-left px-4 py-2 cursor-pointer"
+                                  style={{ fontSize: 13, color: label === 'Delete' ? '#DC2626' : '#374151',
+                                    background: 'transparent', border: 'none' }}
+                                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
+                                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+                                  {label}
+                                </button>
+                              ))}
+                            </div>
+                          </RowMenu>
                         </td>
                       </tr>
                     )

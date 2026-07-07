@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { useDashboard } from '../../../../components/DashboardShell'
 import { useT } from '../../../../lib/i18n/LanguageContext'
+import RowMenu from '../../../../components/RowMenu'
 
 type FilterTab = 'ALL' | 'NEW' | 'CONTACTED' | 'TRIAL_BOOKED' | 'CONVERTED' | 'LOST'
 
@@ -206,7 +207,6 @@ export default function LeadsClient() {
   const [activeFilter, setActiveFilter] = useState<FilterTab>('ALL')
   const [search, setSearch]         = useState('')
   const [currentPage, setCurrentPage] = useState(1)
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [toast, setToast]           = useState(false)
 
@@ -401,7 +401,7 @@ export default function LeadsClient() {
                         {STATUS_DISPLAY[lead.status] ?? lead.status}
                       </span>
                     </td>
-                    <td className="px-5 py-3 relative">
+                    <td className="px-5 py-3">
                       <div className="flex items-center gap-1">
                         <button className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
                           style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
@@ -409,22 +409,20 @@ export default function LeadsClient() {
                           onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
                           <Eye size={14} />
                         </button>
-                        <button onClick={e => { e.stopPropagation(); setOpenMenuId(openMenuId === lead.id ? null : lead.id) }}
-                          className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
-                          style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
-                          onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
-                          onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                          <MoreHorizontal size={15} />
-                        </button>
-                      </div>
-                      {openMenuId === lead.id && (
-                        <>
-                          <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
-                          <div className="absolute right-4 rounded-xl z-20 py-1 overflow-hidden"
+                        <RowMenu trigger={({ onClick }) => (
+                          <button onClick={onClick}
+                            className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
+                            style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
+                            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
+                            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+                            <MoreHorizontal size={15} />
+                          </button>
+                        )}>
+                          <div className="rounded-xl py-1 overflow-hidden"
                             style={{ background: '#fff', border: '1px solid #E5E7EB',
-                              boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 160, top: '100%' }}>
+                              boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 160 }}>
                             {lead.status !== 'LOST' && (
-                              <button onClick={() => { setOpenMenuId(null); markAsLost(lead.id) }}
+                              <button onClick={() => markAsLost(lead.id)}
                                 className="w-full text-left px-4 py-2.5 cursor-pointer"
                                 style={{ fontSize: 13, color: '#374151', background: 'transparent', border: 'none' }}
                                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
@@ -432,7 +430,7 @@ export default function LeadsClient() {
                                 Mark as lost
                               </button>
                             )}
-                            <button onClick={() => { setOpenMenuId(null); deleteLead(lead.id) }}
+                            <button onClick={() => deleteLead(lead.id)}
                               className="w-full text-left px-4 py-2.5 cursor-pointer"
                               style={{ fontSize: 13, color: '#DC2626', background: 'transparent', border: 'none' }}
                               onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#FEF2F2'}
@@ -440,8 +438,8 @@ export default function LeadsClient() {
                               Delete lead
                             </button>
                           </div>
-                        </>
-                      )}
+                        </RowMenu>
+                      </div>
                     </td>
                   </tr>
                 )

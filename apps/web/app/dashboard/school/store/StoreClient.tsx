@@ -5,6 +5,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import {Users, Calendar, CreditCard, BarChart2, Settings, Bell, ChevronRight, ChevronDown, Menu, X, Search, Check, TrendingUp, TrendingDown, MoreHorizontal, Eye, Plus, Package, ShoppingBag} from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
+import RowMenu from '../../../../components/RowMenu'
 
 type ProductCategory = 'Gi' | 'No-Gi' | 'Accessories' | 'Supplements' | 'Apparel'
 type ProductStatus = 'Active' | 'Out of Stock' | 'Archived'
@@ -158,7 +159,6 @@ export default function StoreClient() {
   const [activeFilter, setActiveFilter] = useState<Filter>('All')
   const [search, setSearch]             = useState('')
   const [currentPage, setCurrentPage]   = useState(1)
-  const [openMenuId, setOpenMenuId]     = useState<number | null>(null)
   const [drawerOpen, setDrawerOpen]     = useState(false)
   const [toast, setToast]               = useState(false)
 
@@ -321,7 +321,7 @@ export default function StoreClient() {
                             {product.status}
                           </span>
                         </td>
-                        <td className="px-5 py-3 relative">
+                        <td className="px-5 py-3">
                           <div className="flex items-center gap-1">
                             <button className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
                               style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
@@ -329,22 +329,20 @@ export default function StoreClient() {
                               onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
                               <Eye size={14} />
                             </button>
-                            <button onClick={e => { e.stopPropagation(); setOpenMenuId(openMenuId === product.id ? null : product.id) }}
-                              className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
-                              style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
-                              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
-                              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                              <MoreHorizontal size={15} />
-                            </button>
-                          </div>
-                          {openMenuId === product.id && (
-                            <>
-                              <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
-                              <div className="absolute right-4 rounded-xl z-20 py-1 overflow-hidden"
+                            <RowMenu trigger={({ onClick }) => (
+                              <button onClick={onClick}
+                                className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
+                                style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
+                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
+                                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+                                <MoreHorizontal size={15} />
+                              </button>
+                            )}>
+                              <div className="rounded-xl py-1 overflow-hidden"
                                 style={{ background: '#fff', border: '1px solid #E5E7EB',
-                                  boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 160, top: '100%' }}>
+                                  boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 160 }}>
                                 {['Edit product','Archive product','Delete product'].map((label, i) => (
-                                  <button key={label} onClick={() => setOpenMenuId(null)}
+                                  <button key={label}
                                     className="w-full text-left px-4 py-2.5 cursor-pointer"
                                     style={{ fontSize: 13, color: i === 2 ? '#DC2626' : '#374151',
                                       background: 'transparent', border: 'none' }}
@@ -354,8 +352,8 @@ export default function StoreClient() {
                                   </button>
                                 ))}
                               </div>
-                            </>
-                          )}
+                            </RowMenu>
+                          </div>
                         </td>
                       </tr>
                     )

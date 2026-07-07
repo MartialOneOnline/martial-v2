@@ -11,6 +11,7 @@ import {
   QrCode, Pencil, MessageSquare, RefreshCw, CreditCard, Receipt, Globe,
 } from 'lucide-react'
 import { useDashboard } from '../../../components/DashboardShell'
+import RowMenu from '../../../components/RowMenu'
 import DashboardLanguageSelector from '../../../components/DashboardLanguageSelector'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { StatusBadge } from '../../../components/ui/StatusBadge'
@@ -175,26 +176,16 @@ function ActionsMenu({
   showToast: (msg: string, type?: 'success' | 'error' | 'info') => void
 }) {
   const router = useRouter()
-  const [open, setOpen] = useState(false)
   const [statusOpen, setStatusOpen] = useState(false)
   const [beltOpen, setBeltOpen] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  const closeAll = () => { setOpen(false); setStatusOpen(false); setBeltOpen(false); setConfirmDelete(false) }
-
-  useEffect(() => {
-    if (!open) return
-    const handler = (e: MouseEvent) => {
-      if (!ref.current?.contains(e.target as Node)) closeAll()
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [open])
 
   const currentDisplay = STATUS_DISPLAY[student.status] ?? student.status
   const currentBelt = student.belt ?? 'Blanco'
 
+  // Items call their action directly and let the click bubble to RowMenu's
+  // content wrapper, which closes the portal on any click. Submenu toggles and
+  // the delete-confirm step stop propagation so they don't close the menu.
   const menuItem = (
     icon: React.ReactNode,
     label: string,
@@ -202,7 +193,7 @@ function ActionsMenu({
     danger = false,
   ) => (
     <button
-      onClick={e => { e.stopPropagation(); onClick() }}
+      onClick={onClick}
       className="w-full flex items-center gap-2 cursor-pointer"
       style={{ padding: '8px 14px', fontSize: 13, border: 'none', textAlign: 'left',
         color: danger ? '#DC2626' : '#374151', background: 'transparent' }}
@@ -214,226 +205,216 @@ function ActionsMenu({
   )
 
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
+    <RowMenu trigger={({ onClick }) => (
       <button
-        onClick={e => { e.stopPropagation(); setOpen(o => !o); setStatusOpen(false); setBeltOpen(false) }}
+        onClick={e => { setStatusOpen(false); setBeltOpen(false); setConfirmDelete(false); onClick(e) }}
         className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
-        style={{ color: open ? '#111827' : '#9CA3AF', background: open ? '#F3F4F6' : 'transparent', border: 'none', transition: 'all .15s' }}>
+        style={{ color: '#9CA3AF', background: 'transparent', border: 'none', transition: 'all .15s' }}>
         <MoreHorizontal size={15} />
       </button>
+    )}>
+      <div style={{
+        minWidth: 190,
+        background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10,
+        boxShadow: '0 8px 24px rgba(0,0,0,0.10)', padding: '4px 0',
+      }}>
 
-      {open && (
-        <div style={{
-          position: 'absolute', right: 0, top: 32, zIndex: 50, minWidth: 190,
-          background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10,
-          boxShadow: '0 8px 24px rgba(0,0,0,0.10)', padding: '4px 0',
-        }}>
+        {/* View profile */}
+        {menuItem(
+          <Eye size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
+          'Ver perfil',
+          () => router.push(`/dashboard/users/${student.id}`),
+        )}
 
-          {/* View profile */}
-          {menuItem(
-            <Eye size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
-            'Ver perfil',
-            () => { closeAll(); router.push(`/dashboard/users/${student.id}`) },
-          )}
+        {/* Edit */}
+        {menuItem(
+          <Pencil size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
+          'Editar',
+          () => onEdit(student),
+        )}
 
-          {/* Edit */}
-          {menuItem(
-            <Pencil size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
-            'Editar',
-            () => { closeAll(); onEdit(student) },
-          )}
+        <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
 
-          <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
+        {menuItem(
+          <MessageSquare size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
+          'Enviar mensaje',
+          () => onSendMsg(student),
+        )}
 
-          {menuItem(
-            <MessageSquare size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
-            'Enviar mensaje',
-            () => { closeAll(); onSendMsg(student) },
-          )}
+        {/* QR Code */}
+        {menuItem(
+          <QrCode size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
+          'QR Code',
+          () => onQRCode(student),
+        )}
 
-          {/* QR Code */}
-          {menuItem(
-            <QrCode size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
-            'QR Code',
-            () => { closeAll(); onQRCode(student) },
-          )}
+        <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
 
-          <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
+        {/* Change status submenu */}
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={e => { e.stopPropagation(); setStatusOpen(o => !o); setBeltOpen(false) }}
+            className="w-full flex items-center justify-between cursor-pointer"
+            style={{ padding: '8px 14px', fontSize: 13, color: '#374151', background: 'transparent', border: 'none', textAlign: 'left' }}
+            onMouseEnter={e => (e.currentTarget.style.background = '#F9FAFB')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+            <span className="flex items-center gap-2">
+              <UserCheck size={13} style={{ color: '#6B7280' }} />
+              Cambiar estado
+            </span>
+            <ChevronDown size={12} style={{ color: '#9CA3AF', transform: statusOpen ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} />
+          </button>
 
-          {/* Change status submenu */}
-          <div style={{ position: 'relative' }}>
-            <button
-              onClick={e => { e.stopPropagation(); setStatusOpen(o => !o); setBeltOpen(false) }}
-              className="w-full flex items-center justify-between cursor-pointer"
-              style={{ padding: '8px 14px', fontSize: 13, color: '#374151', background: 'transparent', border: 'none', textAlign: 'left' }}
-              onMouseEnter={e => (e.currentTarget.style.background = '#F9FAFB')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-              <span className="flex items-center gap-2">
-                <UserCheck size={13} style={{ color: '#6B7280' }} />
-                Cambiar estado
-              </span>
-              <ChevronDown size={12} style={{ color: '#9CA3AF', transform: statusOpen ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} />
-            </button>
-
-            {statusOpen && (
-              <div style={{
-                position: 'absolute', right: '100%', top: 0, zIndex: 51, minWidth: 150,
-                background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10,
-                boxShadow: '0 8px 24px rgba(0,0,0,0.10)', padding: '4px 0', marginRight: 4,
-              }}>
-                {STATUSES.map(s => (
-                  <button
-                    key={s.value}
-                    onClick={e => {
-                      e.stopPropagation()
-                      onStatusChange(student.id, s.value)
-                      closeAll()
-                    }}
-                    className="w-full flex items-center gap-2 cursor-pointer"
-                    style={{
-                      padding: '8px 14px', fontSize: 13, border: 'none', textAlign: 'left',
-                      color: s.label === currentDisplay ? '#0071E3' : '#374151',
-                      background: s.label === currentDisplay ? '#EFF6FF' : 'transparent',
-                      fontWeight: s.label === currentDisplay ? 600 : 400,
-                    }}
-                    onMouseEnter={e => { if (s.label !== currentDisplay) e.currentTarget.style.background = '#F9FAFB' }}
-                    onMouseLeave={e => { if (s.label !== currentDisplay) e.currentTarget.style.background = 'transparent' }}>
-                    <StatusBadge status={s.label} />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Change belt submenu */}
-          <div style={{ position: 'relative' }}>
-            <button
-              onClick={e => { e.stopPropagation(); setBeltOpen(o => !o); setStatusOpen(false) }}
-              className="w-full flex items-center justify-between cursor-pointer"
-              style={{ padding: '8px 14px', fontSize: 13, color: '#374151', background: 'transparent', border: 'none', textAlign: 'left' }}
-              onMouseEnter={e => (e.currentTarget.style.background = '#F9FAFB')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-              <span className="flex items-center gap-2">
-                <Shield size={13} style={{ color: '#6B7280' }} />
-                Cambiar cinturón
-              </span>
-              <ChevronDown size={12} style={{ color: '#9CA3AF', transform: beltOpen ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} />
-            </button>
-
-            {beltOpen && (
-              <div style={{
-                position: 'absolute', right: '100%', top: 0, zIndex: 51, minWidth: 140,
-                background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10,
-                boxShadow: '0 8px 24px rgba(0,0,0,0.10)', padding: '4px 0', marginRight: 4,
-              }}>
-                {BELTS.map(b => {
-                  const isActive = b === currentBelt
-                  const col = BELT_COLORS[b] ?? { dot: '#9CA3AF' }
-                  return (
-                    <button
-                      key={b}
-                      onClick={e => {
-                        e.stopPropagation()
-                        onBeltChange(student.id, b)
-                        closeAll()
-                      }}
-                      className="w-full flex items-center gap-2 cursor-pointer"
-                      style={{
-                        padding: '8px 14px', fontSize: 13, border: 'none', textAlign: 'left',
-                        color: isActive ? '#0071E3' : '#374151',
-                        background: isActive ? '#EFF6FF' : 'transparent',
-                        fontWeight: isActive ? 600 : 400,
-                      }}
-                      onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#F9FAFB' }}
-                      onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent' }}>
-                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: col.dot, flexShrink: 0, display: 'inline-block' }} />
-                      {BELT_DISPLAY[b]?.label ?? b}
-                    </button>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-
-          <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
-
-          {/* TODO(sync-membership): implement Stripe/V1 sync, then restore
-          {menuItem(
-            <RefreshCw size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
-            'Sync Membership',
-            () => { closeAll(); onSyncMembership(student) },
-          )} */}
-
-          {/* Mark as Paid */}
-          {menuItem(
-            <CreditCard size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
-            'Mark as Paid',
-            () => { closeAll(); onMarkPaid(student) },
-          )}
-
-          {menuItem(
-            <Receipt size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
-            'Invoice',
-            () => { closeAll(); showToast('Invoice — Coming soon', 'info') },
-          )}
-
-          {/* TODO(waiver): build waiver document model + send flow, then restore
-          {menuItem(
-            <FileText size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
-            'Send Waiver',
-            () => { closeAll(); showToast('Send Waiver — Coming soon', 'info') },
-          )} */}
-
-          <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
-
-          {/* Resend invite — only for PENDING */}
-          {student.status === 'PENDING' && menuItem(
-            <Send size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
-            'Reenviar invitación',
-            () => { closeAll(); onResendInvite(student) },
-          )}
-
-          {student.status === 'PENDING' && <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />}
-
-          {/* Archive */}
-          {menuItem(
-            <Archive size={13} style={{ flexShrink: 0 }} />,
-            'Archivar',
-            () => { closeAll(); onDelete(student.id) },
-            true,
-          )}
-
-          {/* Delete with confirm */}
-          {!confirmDelete ? (
-            <button
-              onClick={e => { e.stopPropagation(); setConfirmDelete(true) }}
-              className="w-full flex items-center gap-2 cursor-pointer"
-              style={{ padding: '8px 14px', fontSize: 13, border: 'none', textAlign: 'left', color: '#DC2626', background: 'transparent' }}
-              onMouseEnter={e => (e.currentTarget.style.background = '#FEF2F2')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-              <Trash2 size={13} style={{ flexShrink: 0 }} />
-              Eliminar
-            </button>
-          ) : (
-            <div style={{ padding: '8px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <p style={{ margin: 0, fontSize: 12, color: '#DC2626', fontWeight: 600 }}>¿Eliminar permanentemente?</p>
-              <div style={{ display: 'flex', gap: 6 }}>
+          {statusOpen && (
+            <div style={{
+              position: 'absolute', right: '100%', top: 0, zIndex: 51, minWidth: 150,
+              background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10,
+              boxShadow: '0 8px 24px rgba(0,0,0,0.10)', padding: '4px 0', marginRight: 4,
+            }}>
+              {STATUSES.map(s => (
                 <button
-                  onClick={e => { e.stopPropagation(); closeAll(); onDeleteUser(student.id) }}
-                  style={{ flex: 1, padding: '5px 0', fontSize: 12, fontWeight: 600, background: '#DC2626', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
-                  Sí, eliminar
+                  key={s.value}
+                  onClick={() => onStatusChange(student.id, s.value)}
+                  className="w-full flex items-center gap-2 cursor-pointer"
+                  style={{
+                    padding: '8px 14px', fontSize: 13, border: 'none', textAlign: 'left',
+                    color: s.label === currentDisplay ? '#0071E3' : '#374151',
+                    background: s.label === currentDisplay ? '#EFF6FF' : 'transparent',
+                    fontWeight: s.label === currentDisplay ? 600 : 400,
+                  }}
+                  onMouseEnter={e => { if (s.label !== currentDisplay) e.currentTarget.style.background = '#F9FAFB' }}
+                  onMouseLeave={e => { if (s.label !== currentDisplay) e.currentTarget.style.background = 'transparent' }}>
+                  <StatusBadge status={s.label} />
                 </button>
-                <button
-                  onClick={e => { e.stopPropagation(); setConfirmDelete(false) }}
-                  style={{ flex: 1, padding: '5px 0', fontSize: 12, background: '#F3F4F6', color: '#374151', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
-                  Cancelar
-                </button>
-              </div>
+              ))}
             </div>
           )}
         </div>
-      )}
-    </div>
+
+        {/* Change belt submenu */}
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={e => { e.stopPropagation(); setBeltOpen(o => !o); setStatusOpen(false) }}
+            className="w-full flex items-center justify-between cursor-pointer"
+            style={{ padding: '8px 14px', fontSize: 13, color: '#374151', background: 'transparent', border: 'none', textAlign: 'left' }}
+            onMouseEnter={e => (e.currentTarget.style.background = '#F9FAFB')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+            <span className="flex items-center gap-2">
+              <Shield size={13} style={{ color: '#6B7280' }} />
+              Cambiar cinturón
+            </span>
+            <ChevronDown size={12} style={{ color: '#9CA3AF', transform: beltOpen ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} />
+          </button>
+
+          {beltOpen && (
+            <div style={{
+              position: 'absolute', right: '100%', top: 0, zIndex: 51, minWidth: 140,
+              background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10,
+              boxShadow: '0 8px 24px rgba(0,0,0,0.10)', padding: '4px 0', marginRight: 4,
+            }}>
+              {BELTS.map(b => {
+                const isActive = b === currentBelt
+                const col = BELT_COLORS[b] ?? { dot: '#9CA3AF' }
+                return (
+                  <button
+                    key={b}
+                    onClick={() => onBeltChange(student.id, b)}
+                    className="w-full flex items-center gap-2 cursor-pointer"
+                    style={{
+                      padding: '8px 14px', fontSize: 13, border: 'none', textAlign: 'left',
+                      color: isActive ? '#0071E3' : '#374151',
+                      background: isActive ? '#EFF6FF' : 'transparent',
+                      fontWeight: isActive ? 600 : 400,
+                    }}
+                    onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#F9FAFB' }}
+                    onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent' }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: col.dot, flexShrink: 0, display: 'inline-block' }} />
+                    {BELT_DISPLAY[b]?.label ?? b}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
+
+        {/* TODO(sync-membership): implement Stripe/V1 sync, then restore
+        {menuItem(
+          <RefreshCw size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
+          'Sync Membership',
+          () => onSyncMembership(student),
+        )} */}
+
+        {/* Mark as Paid */}
+        {menuItem(
+          <CreditCard size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
+          'Mark as Paid',
+          () => onMarkPaid(student),
+        )}
+
+        {menuItem(
+          <Receipt size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
+          'Invoice',
+          () => showToast('Invoice — Coming soon', 'info'),
+        )}
+
+        {/* TODO(waiver): build waiver document model + send flow, then restore
+        {menuItem(
+          <FileText size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
+          'Send Waiver',
+          () => showToast('Send Waiver — Coming soon', 'info'),
+        )} */}
+
+        <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
+
+        {/* Resend invite — only for PENDING */}
+        {student.status === 'PENDING' && menuItem(
+          <Send size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
+          'Reenviar invitación',
+          () => onResendInvite(student),
+        )}
+
+        {student.status === 'PENDING' && <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />}
+
+        {/* Archive */}
+        {menuItem(
+          <Archive size={13} style={{ flexShrink: 0 }} />,
+          'Archivar',
+          () => onDelete(student.id),
+          true,
+        )}
+
+        {/* Delete with confirm */}
+        {!confirmDelete ? (
+          <button
+            onClick={e => { e.stopPropagation(); setConfirmDelete(true) }}
+            className="w-full flex items-center gap-2 cursor-pointer"
+            style={{ padding: '8px 14px', fontSize: 13, border: 'none', textAlign: 'left', color: '#DC2626', background: 'transparent' }}
+            onMouseEnter={e => (e.currentTarget.style.background = '#FEF2F2')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+            <Trash2 size={13} style={{ flexShrink: 0 }} />
+            Eliminar
+          </button>
+        ) : (
+          <div onClick={e => e.stopPropagation()} style={{ padding: '8px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <p style={{ margin: 0, fontSize: 12, color: '#DC2626', fontWeight: 600 }}>¿Eliminar permanentemente?</p>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button
+                onClick={() => onDeleteUser(student.id)}
+                style={{ flex: 1, padding: '5px 0', fontSize: 12, fontWeight: 600, background: '#DC2626', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
+                Sí, eliminar
+              </button>
+              <button
+                onClick={e => { e.stopPropagation(); setConfirmDelete(false) }}
+                style={{ flex: 1, padding: '5px 0', fontSize: 12, background: '#F3F4F6', color: '#374151', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </RowMenu>
   )
 }
 
