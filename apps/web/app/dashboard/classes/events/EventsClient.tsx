@@ -695,14 +695,16 @@ function AttendeesModal({ ev, onClose }: { ev: EventRow | null; onClose: () => v
   const [loading, setLoading]     = useState(true)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
 
-  const load = useCallback(async () => {
+  // `silent` skips the loading flip for background polling — otherwise the whole
+  // list flashes to "Loading…" and back every 5s while the modal is just sitting open.
+  const load = useCallback(async (opts: { silent?: boolean } = {}) => {
     if (!ev) return
-    setLoading(true)
+    if (!opts.silent) setLoading(true)
     try {
       const res = await adminFetch(`/api/dashboard/events/${ev.id}/bookings`)
       if (res.ok) setAttendees((await res.json()).bookings ?? [])
     } finally {
-      setLoading(false)
+      if (!opts.silent) setLoading(false)
     }
   }, [ev])
 
@@ -711,7 +713,7 @@ function AttendeesModal({ ev, onClose }: { ev: EventRow | null; onClose: () => v
   // Poll while open so check-ins scanned from another phone show up live
   useEffect(() => {
     if (!ev) return
-    const interval = setInterval(load, 5000)
+    const interval = setInterval(() => load({ silent: true }), 5000)
     return () => clearInterval(interval)
   }, [ev, load])
 
@@ -1118,8 +1120,8 @@ export default function EventsClient() {
 
                         {/* Date */}
                         <td className="hidden sm:table-cell px-5 py-3">
-                          <p style={{ fontSize: 13, fontWeight: 500, color: '#374151' }}>{fmtDate(ev.startAt)}</p>
-                          <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 1 }}>
+                          <p style={{ fontSize: 12, fontWeight: 500, color: '#374151', whiteSpace: 'nowrap' }}>{fmtDate(ev.startAt)}</p>
+                          <p style={{ fontSize: 10, color: '#9CA3AF', marginTop: 1, whiteSpace: 'nowrap' }}>
                             {fmtTime(ev.startAt)}{ev.endAt ? ` – ${fmtTime(ev.endAt)}` : ''}
                           </p>
                         </td>
