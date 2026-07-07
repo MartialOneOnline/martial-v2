@@ -2,10 +2,20 @@
 
 import { Suspense, useEffect, useState, useCallback, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { CalendarDays, Clock, MapPin, Ticket, CheckCircle2, X, Minus, Plus, AlertCircle, QrCode, MessageCircle, Mail, Globe, Instagram } from 'lucide-react'
+import { CalendarDays, Clock, MapPin, Ticket, CheckCircle2, X, Minus, Plus, AlertCircle, QrCode, MessageCircle, Mail, Globe } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../lib/format'
+
+function InstagramIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z" />
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+    </svg>
+  )
+}
 
 /* ── Types ── */
 type TicketOption = { id: string; name: string; description: string | null; price: number; currency: string; capacity: number | null; booked: number }
@@ -328,7 +338,7 @@ function ContactOrganizerSheet({ school, subject, onClose }: { school: Organizer
       href: school.website.startsWith('http') ? school.website : `https://${school.website}`,
     },
     school.instagram && {
-      key: 'instagram', icon: Instagram, color: '#E1306C', bg: 'rgba(225,48,108,.10)',
+      key: 'instagram', icon: InstagramIcon, color: '#E1306C', bg: 'rgba(225,48,108,.10)',
       label: t.my.contactInstagramBtn, sub: school.instagram.startsWith('@') ? school.instagram : `@${school.instagram}`,
       href: `https://instagram.com/${school.instagram.replace('@', '')}`,
     },
