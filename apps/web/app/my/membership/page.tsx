@@ -56,7 +56,23 @@ type Plan = {
   hasActiveInSchool: boolean
   paymentMethods: string[]
   classAccess: string
-  school: { id: string; name: string; slug: string; stripeEnabled?: boolean }
+  school: { id: string; name: string; slug: string; stripeEnabled?: boolean; revolutEnabled?: boolean }
+}
+
+type PaymentOption = { value: string; label: string; online: boolean }
+
+function getAvailablePaymentOptions(plan: Plan, t: Translations): PaymentOption[] {
+  const labels = getPaymentLabels(t)
+  const options: PaymentOption[] = []
+  if (plan.school?.stripeEnabled && plan.paymentMethods?.includes('STRIPE'))
+    options.push({ value: 'STRIPE', label: labels.STRIPE ?? 'STRIPE', online: true })
+  if (plan.school?.revolutEnabled && plan.paymentMethods?.includes('REVOLUT'))
+    options.push({ value: 'REVOLUT', label: labels.REVOLUT ?? 'REVOLUT', online: true })
+  for (const method of ['CASH', 'BANK_TRANSFER', 'DIRECT_DEBIT', 'OTHER'] as const) {
+    if (plan.paymentMethods?.includes(method))
+      options.push({ value: method, label: labels[method] ?? method, online: false })
+  }
+  return options
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -92,6 +108,7 @@ function getBillingLabels(t: Translations): Record<string, string> {
 function getPaymentLabels(t: Translations): Record<string, string> {
   return {
     STRIPE:        t.my.payCard,
+    REVOLUT:       t.my.payCard,
     CASH:          t.my.payCash,
     BANK_TRANSFER: t.my.payBank,
     DIRECT_DEBIT:  t.my.payDebit,
@@ -580,6 +597,71 @@ function PlanCard({ plan, onRequest, requesting, t }: {
   )
 }
 
+// ── Payment method picker modal ────────────────────────────────────────────────
+
+function PaymentMethodModal({
+  plan, options, onSelect, onClose, loading, t,
+}: {
+  plan: Plan
+  options: PaymentOption[]
+  onSelect: (method: string) => void
+  onClose: () => void
+  loading: boolean
+  t: Translations
+}) {
+  const [selected, setSelected] = useState(options[0]?.value ?? '')
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'flex-end',
+      justifyContent: 'center', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(2px)' }}
+      onClick={onClose}>
+      <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', padding: '24px 20px 32px',
+        width: '100%', maxWidth: 520 }}
+        onClick={e => e.stopPropagation()}>
+        <p style={{ fontSize: 17, fontWeight: 800, color: '#111827', margin: '0 0 4px', textAlign: 'center' }}>
+          {t.my.choosePaymentMethod}
+        </p>
+        <p style={{ fontSize: 13, color: '#6B7280', margin: '0 0 20px', textAlign: 'center', lineHeight: 1.5 }}>
+          {t.my.choosePaymentMethodDesc.replace('{plan}', plan.name)}
+        </p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
+          {options.map(opt => {
+            const active = selected === opt.value
+            return (
+              <button key={opt.value} onClick={() => setSelected(opt.value)}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  width: '100%', padding: '13px 16px', borderRadius: 14,
+                  border: active ? '2px solid #0870E2' : '1.5px solid #E5E7EB',
+                  background: active ? '#EFF6FF' : '#fff', cursor: 'pointer', textAlign: 'left' }}>
+                <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{opt.label}</span>
+                  <span style={{ fontSize: 11, color: '#9CA3AF' }}>
+                    {opt.online ? t.my.payOnline : t.my.payAtSchool}
+                  </span>
+                </span>
+                {active && <CheckCircle2 size={18} style={{ color: '#0870E2', flexShrink: 0 }} />}
+              </button>
+            )
+          })}
+        </div>
+
+        <button onClick={() => onSelect(selected)} disabled={loading || !selected}
+          style={{ width: '100%', padding: '13px', borderRadius: 14, background: '#0870E2',
+            color: '#fff', fontSize: 14, fontWeight: 700, border: 'none',
+            cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1, marginBottom: 10 }}>
+          {loading ? t.my.pleaseWait : t.my.continueLabel}
+        </button>
+        <button onClick={onClose}
+          style={{ width: '100%', padding: '13px', borderRadius: 14, background: 'none',
+            color: '#6B7280', fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' }}>
+          {t.common.cancel}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ── Request success modal ──────────────────────────────────────────────────────
 
 function RequestSuccessModal({ plan, onClose, t }: { plan: Plan; onClose: () => void; t: Translations }) {
@@ -623,6 +705,7 @@ export default function MyMembershipPage() {
   const [actionLoading, setActionLoading] = useState(false)
   const [requestingPlanId, setRequestingPlanId] = useState<string | null>(null)
   const [successPlan, setSuccessPlan] = useState<Plan | null>(null)
+  const [pickerPlan, setPickerPlan] = useState<Plan | null>(null)
 
   useEffect(() => {
     Promise.all([
@@ -658,26 +741,35 @@ export default function MyMembershipPage() {
     }
   }
 
-  async function handleRequest(plan: Plan, forceMethod?: string) {
+  function handlePlanClick(plan: Plan) {
+    const options = getAvailablePaymentOptions(plan, t)
+    if (options.length > 1) {
+      setPickerPlan(plan)
+    } else {
+      handleRequest(plan, options[0]?.value)
+    }
+  }
+
+  async function handleRequest(plan: Plan, method?: string) {
     setRequestingPlanId(plan.id)
     try {
-      // If plan supports Stripe AND school has Stripe, redirect to Stripe Checkout
-      const useStripe = forceMethod === 'STRIPE'
-        || (plan.school?.stripeEnabled && plan.paymentMethods?.includes('STRIPE') && !forceMethod)
-      if (useStripe) {
+      if (method === 'STRIPE' || method === 'REVOLUT') {
         const res = await fetch('/api/my/checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ planId: plan.id }),
+          body: JSON.stringify({ planId: plan.id, provider: method }),
         })
         if (res.ok) {
           const { url } = await res.json()
           if (url) { window.location.href = url; return }
         }
+        return
       }
 
       const res = await fetch(`/api/my/memberships/${plan.id}`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentMethod: method }),
       })
       if (res.ok) {
         const [mData, pData] = await Promise.all([
@@ -690,6 +782,7 @@ export default function MyMembershipPage() {
       }
     } finally {
       setRequestingPlanId(null)
+      setPickerPlan(null)
     }
   }
 
@@ -782,7 +875,7 @@ export default function MyMembershipPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {availablePlans.map(p => (
                     <PlanCard key={p.id} plan={p} t={t}
-                      onRequest={handleRequest}
+                      onRequest={handlePlanClick}
                       requesting={requestingPlanId === p.id} />
                   ))}
                 </div>
@@ -849,6 +942,18 @@ export default function MyMembershipPage() {
       {/* Request success modal */}
       {successPlan && (
         <RequestSuccessModal plan={successPlan} onClose={() => setSuccessPlan(null)} t={t} />
+      )}
+
+      {/* Payment method picker modal */}
+      {pickerPlan && (
+        <PaymentMethodModal
+          plan={pickerPlan}
+          options={getAvailablePaymentOptions(pickerPlan, t)}
+          loading={requestingPlanId === pickerPlan.id}
+          onSelect={method => handleRequest(pickerPlan, method)}
+          onClose={() => setPickerPlan(null)}
+          t={t}
+        />
       )}
     </div>
   )

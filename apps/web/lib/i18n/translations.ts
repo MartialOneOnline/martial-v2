@@ -516,6 +516,8 @@ export const translations = {
       billing2Weeks: '2 weeks', billingOnce: 'once', billingDayPass: '{n}-day pass',
       // Payment methods
       payCard: 'Card', payCash: 'Cash', payBank: 'Bank transfer', payDebit: 'Direct debit', payOther: 'Other',
+      choosePaymentMethod: 'Choose payment method', choosePaymentMethodDesc: 'How would you like to pay for {plan}?',
+      payOnline: 'Pay online now', payAtSchool: 'Pay at the school', continueLabel: 'Continue',
       // Payments page
       payments: 'Payments', totalThisPage: 'Total this page', noPaymentHistory: 'No payment history yet',
       // Progress page
@@ -1084,6 +1086,8 @@ export const translations = {
       billingMonth: 'mes', billing3Months: '3 meses', billingYear: 'año',
       billing2Weeks: '2 semanas', billingOnce: 'una vez', billingDayPass: 'pase de {n} días',
       payCard: 'Tarjeta', payCash: 'Efectivo', payBank: 'Transferencia bancaria', payDebit: 'Débito directo', payOther: 'Otro',
+      choosePaymentMethod: 'Elige el método de pago', choosePaymentMethodDesc: '¿Cómo quieres pagar {plan}?',
+      payOnline: 'Pagar online ahora', payAtSchool: 'Pagar en la escuela', continueLabel: 'Continuar',
       payments: 'Pagos', totalThisPage: 'Total esta página', noPaymentHistory: 'Sin historial de pagos',
       ranking: 'Ranking', beltProgressionHistory: 'Progresión de cinturón e historial de graduaciones',
       stripesLabel: 'galones', currentBelt: 'Cinturón actual', stripesCount: 'Galones', gradingsCount: 'Graduaciones',
@@ -1644,6 +1648,8 @@ export const translations = {
       billingMonth: 'mês', billing3Months: '3 meses', billingYear: 'ano',
       billing2Weeks: '2 semanas', billingOnce: 'uma vez', billingDayPass: 'passe de {n} dias',
       payCard: 'Cartão', payCash: 'Dinheiro', payBank: 'Transferência bancária', payDebit: 'Débito direto', payOther: 'Outro',
+      choosePaymentMethod: 'Escolha o método de pagamento', choosePaymentMethodDesc: 'Como deseja pagar {plan}?',
+      payOnline: 'Pagar online agora', payAtSchool: 'Pagar na escola', continueLabel: 'Continuar',
       payments: 'Pagamentos', totalThisPage: 'Total desta página', noPaymentHistory: 'Sem histórico de pagamentos',
       ranking: 'Ranking', beltProgressionHistory: 'Progressão de faixa e histórico de graduações',
       stripesLabel: 'graus', currentBelt: 'Faixa atual', stripesCount: 'Graus', gradingsCount: 'Graduações',
@@ -2204,6 +2210,8 @@ export const translations = {
       billingMonth: 'mois', billing3Months: '3 mois', billingYear: 'an',
       billing2Weeks: '2 semaines', billingOnce: 'une fois', billingDayPass: 'pass de {n} jours',
       payCard: 'Carte', payCash: 'Espèces', payBank: 'Virement bancaire', payDebit: 'Prélèvement', payOther: 'Autre',
+      choosePaymentMethod: 'Choisir le mode de paiement', choosePaymentMethodDesc: 'Comment souhaitez-vous payer {plan} ?',
+      payOnline: 'Payer en ligne maintenant', payAtSchool: "Payer à l'école", continueLabel: 'Continuer',
       payments: 'Paiements', totalThisPage: 'Total cette page', noPaymentHistory: 'Aucun historique de paiement',
       ranking: 'Classement', beltProgressionHistory: 'Progression de ceinture et historique des gradations',
       stripesLabel: 'galons', currentBelt: 'Ceinture actuelle', stripesCount: 'Galons', gradingsCount: 'Gradations',

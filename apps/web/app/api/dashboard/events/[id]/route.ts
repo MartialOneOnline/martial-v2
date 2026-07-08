@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { getSchoolPaymentCapabilities, sanitizePaymentMethods } from '@/lib/services/paymentCapabilities'
 
 async function authorise(roles = ['OWNER', 'ADMIN']) {
   const user = await getAuthUser()
@@ -85,6 +86,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     }
   })()
 
+  const { availableMethods } = await getSchoolPaymentCapabilities(auth.schoolId)
+
   const event = await prisma.event.update({
     where: { id },
     data: {
@@ -95,7 +98,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       startAt:        startAt                     ? new Date(startAt) : existing.startAt,
       endAt:          endAt !== undefined         ? (endAt ? new Date(endAt) : null) : existing.endAt,
       capacity:       capacity !== undefined      ? (capacity != null ? Number(capacity) : null) : existing.capacity,
-      paymentMethods: Array.isArray(paymentMethods) ? paymentMethods : existing.paymentMethods,
+      paymentMethods: paymentMethods !== undefined ? sanitizePaymentMethods(paymentMethods, availableMethods) : existing.paymentMethods,
       isPublished:    isPublished                 ?? existing.isPublished,
       isCancelled:    isCancelled                 ?? existing.isCancelled,
       externalUrl:    externalUrl !== undefined   ? (externalUrl?.trim() || null) : existing.externalUrl,

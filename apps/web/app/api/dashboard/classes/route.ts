@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { getSchoolPaymentCapabilities, sanitizePaymentMethods } from '@/lib/services/paymentCapabilities'
 
 async function authorise(roles = ['OWNER', 'ADMIN', 'INSTRUCTOR']) {
   const user = await getAuthUser()
@@ -24,7 +25,7 @@ export async function GET() {
   const auth = await authorise(['OWNER', 'ADMIN', 'INSTRUCTOR'])
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
-  const [classes, instructors, schoolDisciplines] = await Promise.all([
+  const [classes, instructors, schoolDisciplines, paymentCapabilities] = await Promise.all([
     prisma.class.findMany({
       where: { schoolId: auth.schoolId },
       include: {
@@ -43,12 +44,14 @@ export async function GET() {
       where: { schoolId: auth.schoolId },
       include: { discipline: { select: { id: true, name: true } } },
     }),
+    getSchoolPaymentCapabilities(auth.schoolId),
   ])
 
   return NextResponse.json({
     classes,
     instructors,
     disciplines: schoolDisciplines.map(sd => sd.discipline),
+    paymentCapabilities,
   })
 }
 
@@ -66,6 +69,8 @@ export async function POST(req: NextRequest) {
 
   if (!name?.trim()) return NextResponse.json({ error: 'Name is required' }, { status: 400 })
 
+  const { availableMethods } = await getSchoolPaymentCapabilities(auth.schoolId)
+
   const cls = await prisma.class.create({
     data: {
       schoolId: auth.schoolId,
@@ -80,7 +85,7 @@ export async function POST(req: NextRequest) {
       isTrial: isTrial ?? false,
       isActive: isActive ?? true,
       isPublished: isPublished ?? false,
-      paymentMethods: Array.isArray(paymentMethods) ? paymentMethods : [],
+      paymentMethods: sanitizePaymentMethods(paymentMethods, availableMethods),
       bookingSettings: bookingSettings ?? null,
       schedule: schedule ?? null,
       instructorId: instructorId || null,

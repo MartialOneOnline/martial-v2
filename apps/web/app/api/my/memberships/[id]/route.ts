@@ -85,10 +85,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const plan = await prisma.membershipPlan.findUnique({
     where: { id: planId },
-    select: { id: true, schoolId: true, name: true, price: true, currency: true, isPublic: true, isActive: true },
+    select: { id: true, schoolId: true, name: true, price: true, currency: true, isPublic: true, isActive: true, paymentMethods: true },
   })
   if (!plan || !plan.isPublic || !plan.isActive)
     return NextResponse.json({ error: 'Plan not found' }, { status: 404 })
+
+  const manualMethods = ['CASH', 'BANK_TRANSFER', 'DIRECT_DEBIT', 'OTHER'] as const
+  const { paymentMethod: requestedMethod } = await req.json().catch(() => ({})) as { paymentMethod?: string }
+  const paymentMethod = requestedMethod && manualMethods.includes(requestedMethod as typeof manualMethods[number])
+    && plan.paymentMethods.includes(requestedMethod)
+    ? (requestedMethod as PaymentMethod)
+    : (manualMethods.find(m => plan.paymentMethods.includes(m)) as PaymentMethod | undefined) ?? PaymentMethod.CASH
 
   // Check student belongs to this school
   const member = await prisma.schoolMember.findFirst({
@@ -111,7 +118,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       planName: plan.name,
       price: plan.price,
       currency: plan.currency,
-      paymentMethod: PaymentMethod.CASH,
+      paymentMethod,
       status: MembershipStatus.PENDING,
       // startDate is intentionally set to now as a placeholder — it will be
       // overwritten with the real activation date when the admin approves.

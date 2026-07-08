@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { getSchoolPaymentCapabilities, sanitizePaymentMethods } from '@/lib/services/paymentCapabilities'
 
 async function authorise(roles = ['OWNER', 'ADMIN']) {
   const user = await getAuthUser()
@@ -35,6 +36,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     classAccess, stripePriceId, imageUrl, paymentMethods,
   } = body
 
+  const { availableMethods } = await getSchoolPaymentCapabilities(auth.schoolId)
+
   const plan = await prisma.membershipPlan.update({
     where: { id },
     data: {
@@ -52,7 +55,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       classAccess: classAccess !== undefined ? classAccess : existing.classAccess,
       stripePriceId: stripePriceId !== undefined ? (stripePriceId?.trim() || null) : existing.stripePriceId,
       imageUrl: imageUrl !== undefined ? (imageUrl?.trim() || null) : existing.imageUrl,
-      paymentMethods: Array.isArray(paymentMethods) ? paymentMethods : existing.paymentMethods,
+      paymentMethods: paymentMethods !== undefined ? sanitizePaymentMethods(paymentMethods, availableMethods) : existing.paymentMethods,
     },
   })
 

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 import { getBookedCounts } from '@/lib/services/eventCapacity'
+import { getSchoolPaymentCapabilities, sanitizePaymentMethods } from '@/lib/services/paymentCapabilities'
 
 async function authorise(roles = ['OWNER', 'ADMIN', 'INSTRUCTOR']) {
   const user = await getAuthUser()
@@ -30,7 +31,7 @@ export async function GET() {
   const auth = await authorise()
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
-  const [events, instructors] = await Promise.all([
+  const [events, instructors, paymentCapabilities] = await Promise.all([
     prisma.event.findMany({
       where: { schoolId: auth.schoolId },
       include: EVENT_INCLUDE,
@@ -41,6 +42,7 @@ export async function GET() {
       select: { id: true, name: true },
       orderBy: { name: 'asc' },
     }),
+    getSchoolPaymentCapabilities(auth.schoolId),
   ])
 
   // "Booked" must match the PENDING+CONFIRMED, quantity-summed definition used
@@ -52,7 +54,7 @@ export async function GET() {
     tickets: ev.tickets.map(t => ({ ...t, bookedCount: byTicket.get(t.id) ?? 0 })),
   }))
 
-  return NextResponse.json({ events: eventsWithCounts, instructors })
+  return NextResponse.json({ events: eventsWithCounts, instructors, paymentCapabilities })
 }
 
 // POST /api/dashboard/events
@@ -70,6 +72,8 @@ export async function POST(req: NextRequest) {
   if (!title?.trim()) return NextResponse.json({ error: 'Title is required' }, { status: 400 })
   if (!startAt)       return NextResponse.json({ error: 'Start date is required' }, { status: 400 })
 
+  const { availableMethods } = await getSchoolPaymentCapabilities(auth.schoolId)
+
   const event = await prisma.event.create({
     data: {
       schoolId: auth.schoolId,
@@ -81,7 +85,7 @@ export async function POST(req: NextRequest) {
       endAt: endAt ? new Date(endAt) : null,
       // `!= null` (not truthy) — 0 is a valid capacity ("sold out"/"no seats"), distinct from unset (null = unlimited).
       capacity: capacity != null ? Number(capacity) : null,
-      paymentMethods: Array.isArray(paymentMethods) ? paymentMethods : [],
+      paymentMethods: sanitizePaymentMethods(paymentMethods, availableMethods),
       isPublished: isPublished ?? false,
       externalUrl: externalUrl?.trim() || null,
       instructorId: instructorId || null,

@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import Link from 'next/link'
 import {
   X, Plus, Pencil, Trash2, Check, Infinity, Menu, Image as ImageIcon,
   Users, Share2, Copy, Mail, Upload, MoreVertical,
-  CheckCircle, Pause, Play, XCircle, Loader2,
+  CheckCircle, Pause, Play, XCircle, Loader2, AlertTriangle,
 } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useDashboard } from '../../../components/DashboardShell'
@@ -392,12 +393,13 @@ const DRAWER_TABS: { id: DrawerTab; label: string }[] = [
   { id: 'TRIAL',        label: 'Trial'         },
 ]
 
-function PlanDrawer({ open, onClose, onSaved, editPlan, classes }: {
+function PlanDrawer({ open, onClose, onSaved, editPlan, classes, availableMethods }: {
   open: boolean
   onClose: () => void
   onSaved: (plan: PlanRow) => void
   editPlan: PlanRow | null
   classes: ClassOption[]
+  availableMethods: string[]
 }) {
   const defaultForm = (planType: PlanType = 'SUBSCRIPTION'): PlanForm => ({
     name: '', description: '', imageUrl: '',
@@ -406,7 +408,7 @@ function PlanDrawer({ open, onClose, onSaved, editPlan, classes }: {
     billingCycle: 'monthly',
     validityDays: '30', validityPeriod: 'days',
     isPublic: true, isPopular: false, isActive: true,
-    paymentMethods: ['CASH'],
+    paymentMethods: availableMethods.includes('CASH') ? ['CASH'] : [],
     classRules: buildDefaultClassRules(classes),
     globalLimit: '', globalLimitType: 'PER_MONTH',
   })
@@ -593,29 +595,42 @@ function PlanDrawer({ open, onClose, onSaved, editPlan, classes }: {
               {/* Payment methods */}
               <div>
                 <label style={labelSt}>Accepted payment methods</label>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {BOOKING_PAYMENT_OPTIONS.map(opt => {
-                    const active = form.paymentMethods.includes(opt.value)
-                    return (
-                      <button key={opt.value} type="button"
-                        onClick={() => set('paymentMethods', active
-                          ? form.paymentMethods.filter(m => m !== opt.value)
-                          : [...form.paymentMethods, opt.value]
-                        )}
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-all"
-                        style={{
-                          fontSize: 12, fontWeight: 500,
-                          border: `1.5px solid ${active ? '#0071E3' : '#E5E7EB'}`,
-                          background: active ? '#EFF6FF' : '#fff',
-                          color: active ? '#0071E3' : '#6B7280',
-                        }}>
-                        <span>{opt.icon}</span>
-                        {opt.label}
-                        {active && <Check size={11} strokeWidth={2.5} />}
-                      </button>
-                    )
-                  })}
-                </div>
+                {availableMethods.length === 0 ? (
+                  <div className="flex items-start gap-2 mt-1" style={{
+                    padding: '10px 12px', borderRadius: 12, background: '#FFFBEB', border: '1px solid #FDE68A' }}>
+                    <AlertTriangle size={14} style={{ color: '#D97706', flexShrink: 0, marginTop: 1 }} />
+                    <p style={{ fontSize: 12, color: '#92400E', margin: 0, lineHeight: 1.5 }}>
+                      No payment methods are set up for your school yet.{' '}
+                      <Link href="/dashboard/settings?tab=payments" style={{ color: '#0071E3', fontWeight: 600 }}>
+                        Configure them in Settings
+                      </Link>{' '}before this plan can accept payments.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {BOOKING_PAYMENT_OPTIONS.filter(opt => availableMethods.includes(opt.value)).map(opt => {
+                      const active = form.paymentMethods.includes(opt.value)
+                      return (
+                        <button key={opt.value} type="button"
+                          onClick={() => set('paymentMethods', active
+                            ? form.paymentMethods.filter(m => m !== opt.value)
+                            : [...form.paymentMethods, opt.value]
+                          )}
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-all"
+                          style={{
+                            fontSize: 12, fontWeight: 500,
+                            border: `1.5px solid ${active ? '#0071E3' : '#E5E7EB'}`,
+                            background: active ? '#EFF6FF' : '#fff',
+                            color: active ? '#0071E3' : '#6B7280',
+                          }}>
+                          <span>{opt.icon}</span>
+                          {opt.label}
+                          {active && <Check size={11} strokeWidth={2.5} />}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Class access */}
@@ -1231,6 +1246,7 @@ export default function MembershipsClient() {
   const [plans, setPlans]           = useState<PlanRow[]>([])
   const [classes, setClasses]       = useState<ClassOption[]>([])
   const [schoolSlug, setSchoolSlug] = useState<string | null>(null)
+  const [availableMethods, setAvailableMethods] = useState<string[]>([])
   const [loading, setLoading]       = useState(true)
   const [activeTab, setActiveTab]   = useState<TabId>('subscriptions')
   const [pendingCount, setPendingCount] = useState(0)
@@ -1249,6 +1265,7 @@ export default function MembershipsClient() {
         setPlans(data.plans)
         setClasses(data.classes)
         setSchoolSlug(data.schoolSlug ?? null)
+        setAvailableMethods(data.paymentCapabilities?.availableMethods ?? [])
       }
     } finally {
       setLoading(false)
@@ -1419,6 +1436,7 @@ export default function MembershipsClient() {
         onSaved={handleSaved}
         editPlan={editPlan}
         classes={classes}
+        availableMethods={availableMethods}
       />
 
       {deletePlan && (

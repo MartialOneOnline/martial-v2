@@ -32,11 +32,12 @@ export async function GET() {
 
   const schools = await prisma.school.findMany({
     where: { id: { in: schoolIds } },
-    select: { id: true, name: true, slug: true, stripeSecretKey: true },
+    select: { id: true, name: true, slug: true, stripeSecretKey: true, revolutSecretKey: true, revolutWebhookSecret: true },
   })
   const schoolMap = Object.fromEntries(schools.map(s => [s.id, {
     id: s.id, name: s.name, slug: s.slug,
     stripeEnabled: !!s.stripeSecretKey,
+    revolutEnabled: !!(s.revolutSecretKey && s.revolutWebhookSecret),
   }]))
 
   const plans = await prisma.membershipPlan.findMany({

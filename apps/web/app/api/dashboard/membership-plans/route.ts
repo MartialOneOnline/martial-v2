@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { getSchoolPaymentCapabilities, sanitizePaymentMethods } from '@/lib/services/paymentCapabilities'
 
 async function authorise(roles = ['OWNER', 'ADMIN']) {
   const user = await getAuthUser()
@@ -24,7 +25,7 @@ export async function GET() {
   const auth = await authorise(['OWNER', 'ADMIN', 'INSTRUCTOR'])
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
-  const [plans, classes, memberships, school] = await Promise.all([
+  const [plans, classes, memberships, school, paymentCapabilities] = await Promise.all([
     prisma.membershipPlan.findMany({
       where: { schoolId: auth.schoolId },
       orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
@@ -41,6 +42,7 @@ export async function GET() {
       _count: { id: true },
     }),
     prisma.school.findUnique({ where: { id: auth.schoolId }, select: { slug: true } }),
+    getSchoolPaymentCapabilities(auth.schoolId),
   ])
 
   const memberCountByPlan = Object.fromEntries(
@@ -51,6 +53,7 @@ export async function GET() {
     plans: plans.map(p => ({ ...p, memberCount: memberCountByPlan[p.id] ?? 0 })),
     classes,
     schoolSlug: school?.slug ?? null,
+    paymentCapabilities,
   })
 }
 
@@ -67,6 +70,8 @@ export async function POST(req: NextRequest) {
   } = body
 
   if (!name?.trim()) return NextResponse.json({ error: 'Name is required' }, { status: 400 })
+
+  const { availableMethods } = await getSchoolPaymentCapabilities(auth.schoolId)
 
   const plan = await prisma.membershipPlan.create({
     data: {
@@ -85,7 +90,7 @@ export async function POST(req: NextRequest) {
       classAccess: classAccess ?? {},
       stripePriceId: stripePriceId?.trim() || null,
       imageUrl: imageUrl?.trim() || null,
-      paymentMethods: Array.isArray(paymentMethods) ? paymentMethods : ['CASH'],
+      paymentMethods: sanitizePaymentMethods(paymentMethods, availableMethods),
     },
   })
 

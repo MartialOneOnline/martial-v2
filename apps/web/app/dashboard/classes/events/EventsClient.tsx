@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import {
   Bell, Menu, X, Plus, MoreHorizontal, Search,
   TrendingUp, Check, Upload, Clock, MapPin, Star,
-  Ticket, Calendar, Pencil, Trash2, Globe, EyeOff, QrCode,
+  Ticket, Calendar, Pencil, Trash2, Globe, EyeOff, QrCode, AlertTriangle,
 } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useDashboard } from '../../../../components/DashboardShell'
@@ -219,6 +220,7 @@ interface EventDrawerProps {
   onSaved: () => void
   editing: EventRow | null
   instructors: Instructor[]
+  availableMethods: string[]
 }
 
 const eventInp: React.CSSProperties = {
@@ -311,7 +313,7 @@ function BannerUploadZone({ value, onChange, label, height = 180, hint, dropLabe
   )
 }
 
-function EventDrawer({ open, onClose, onSaved, editing, instructors }: EventDrawerProps) {
+function EventDrawer({ open, onClose, onSaved, editing, instructors, availableMethods }: EventDrawerProps) {
   const t = useT()
   const [form, setForm]     = useState<EventFormData>(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
@@ -479,36 +481,51 @@ function EventDrawer({ open, onClose, onSaved, editing, instructors }: EventDraw
               {/* Payment methods */}
               <div>
                 <label style={eventLbl}>Payment methods</label>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {PAYMENT_OPTIONS.map(opt => {
-                    const active = form.paymentMethods.includes(opt.value)
-                    return (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => {
-                          const next = active
-                            ? form.paymentMethods.filter(m => m !== opt.value)
-                            : [...form.paymentMethods, opt.value]
-                          set('paymentMethods', next)
-                        }}
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-all"
-                        style={{
-                          fontSize: 13, fontWeight: 500,
-                          border: `1.5px solid ${active ? '#0071E3' : '#E5E7EB'}`,
-                          background: active ? '#EFF6FF' : '#fff',
-                          color: active ? '#0071E3' : '#6B7280',
-                        }}>
-                        <span>{opt.icon}</span>
-                        {opt.label}
-                        {active && <Check size={12} strokeWidth={2.5} />}
-                      </button>
-                    )
-                  })}
-                </div>
-                <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 5 }}>
-                  Select how attendees can pay for this event
-                </p>
+                {availableMethods.length === 0 ? (
+                  <div className="flex items-start gap-2 mt-1" style={{
+                    padding: '10px 12px', borderRadius: 12, background: '#FFFBEB', border: '1px solid #FDE68A' }}>
+                    <AlertTriangle size={14} style={{ color: '#D97706', flexShrink: 0, marginTop: 1 }} />
+                    <p style={{ fontSize: 12, color: '#92400E', margin: 0, lineHeight: 1.5 }}>
+                      No payment methods are set up for your school yet.{' '}
+                      <Link href="/dashboard/settings?tab=payments" style={{ color: '#0071E3', fontWeight: 600 }}>
+                        Configure them in Settings
+                      </Link>{' '}before this event can accept payments.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {PAYMENT_OPTIONS.filter(opt => availableMethods.includes(opt.value)).map(opt => {
+                        const active = form.paymentMethods.includes(opt.value)
+                        return (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => {
+                              const next = active
+                                ? form.paymentMethods.filter(m => m !== opt.value)
+                                : [...form.paymentMethods, opt.value]
+                              set('paymentMethods', next)
+                            }}
+                            className="flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-all"
+                            style={{
+                              fontSize: 13, fontWeight: 500,
+                              border: `1.5px solid ${active ? '#0071E3' : '#E5E7EB'}`,
+                              background: active ? '#EFF6FF' : '#fff',
+                              color: active ? '#0071E3' : '#6B7280',
+                            }}>
+                            <span>{opt.icon}</span>
+                            {opt.label}
+                            {active && <Check size={12} strokeWidth={2.5} />}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 5 }}>
+                      Select how attendees can pay for this event
+                    </p>
+                  </>
+                )}
               </div>
 
               <EventField label="External link (optional)">
@@ -715,6 +732,7 @@ export default function EventsClient() {
 
   const [events, setEvents]           = useState<EventRow[]>([])
   const [instructors, setInstructors] = useState<Instructor[]>([])
+  const [availableMethods, setAvailableMethods] = useState<string[]>([])
   const [loading, setLoading]         = useState(true)
 
   const [activeFilter, setActiveFilter] = useState<Filter>('All')
@@ -734,6 +752,7 @@ export default function EventsClient() {
         const data = await res.json()
         setEvents(data.events ?? [])
         setInstructors(data.instructors ?? [])
+        setAvailableMethods(data.paymentCapabilities?.availableMethods ?? [])
       }
     } finally {
       setLoading(false)
@@ -1166,6 +1185,7 @@ export default function EventsClient() {
         onSaved={handleSaved}
         editing={editingEvent}
         instructors={instructors}
+        availableMethods={availableMethods}
       />
 
       <DeleteModal

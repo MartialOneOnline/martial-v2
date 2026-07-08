@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { getSchoolPaymentCapabilities, sanitizePaymentMethods } from '@/lib/services/paymentCapabilities'
 
 async function authorise(roles = ['OWNER', 'ADMIN']) {
   const user = await getAuthUser()
@@ -35,6 +36,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     bookingSettings, schedule, instructorId, coverUrl,
   } = body
 
+  const { availableMethods } = await getSchoolPaymentCapabilities(auth.schoolId)
+
   const cls = await prisma.class.update({
     where: { id },
     data: {
@@ -49,7 +52,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       isTrial: isTrial ?? existing.isTrial,
       isActive: isActive ?? existing.isActive,
       isPublished: isPublished ?? existing.isPublished,
-      paymentMethods: Array.isArray(paymentMethods) ? paymentMethods : existing.paymentMethods,
+      paymentMethods: paymentMethods !== undefined ? sanitizePaymentMethods(paymentMethods, availableMethods) : existing.paymentMethods,
       bookingSettings: bookingSettings !== undefined ? bookingSettings : existing.bookingSettings,
       schedule: schedule !== undefined ? schedule : existing.schedule,
       instructorId: instructorId !== undefined ? (instructorId || null) : existing.instructorId,

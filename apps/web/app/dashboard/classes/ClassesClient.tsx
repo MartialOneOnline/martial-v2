@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import Link from 'next/link'
 import {
   Bell, Calendar, Menu, X, Plus, MoreHorizontal, Search,
   ChevronLeft, ChevronRight, TrendingUp, Check, Upload, Clock, Trash2, Pencil,
-  ChevronDown, Users, CheckCircle2,
+  ChevronDown, Users, CheckCircle2, AlertTriangle,
 } from 'lucide-react'
 import { useDashboard } from '../../../components/DashboardShell'
 import DashboardLanguageSelector from '../../../components/DashboardLanguageSelector'
@@ -444,6 +445,7 @@ interface ClassDrawerProps {
   editing: ClassRow | null
   instructors: Instructor[]
   disciplines: Discipline[]
+  availableMethods: string[]
 }
 
 const drawerInputStyle: React.CSSProperties = {
@@ -537,7 +539,7 @@ function BannerUploadZone({ value, onChange, label, height = 160, hint = 'PNG, J
   )
 }
 
-function ClassDrawer({ open, onClose, onSaved, editing, instructors, disciplines }: ClassDrawerProps) {
+function ClassDrawer({ open, onClose, onSaved, editing, instructors, disciplines, availableMethods }: ClassDrawerProps) {
   const t = useT()
   const [form, setForm] = useState<ClassFormData>(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
@@ -711,29 +713,42 @@ function ClassDrawer({ open, onClose, onSaved, editing, instructors, disciplines
                 <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 5 }}>
                   Payment methods
                 </label>
-                <div className="flex gap-2 flex-wrap">
-                  {PAYMENT_OPTIONS.map(opt => {
-                    const active = form.paymentMethods.includes(opt.value)
-                    return (
-                      <button key={opt.value} type="button"
-                        onClick={() => set('paymentMethods', active
-                          ? form.paymentMethods.filter(m => m !== opt.value)
-                          : [...form.paymentMethods, opt.value]
-                        )}
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-all"
-                        style={{
-                          fontSize: 12, fontWeight: 500,
-                          border: `1.5px solid ${active ? '#0071E3' : '#E5E7EB'}`,
-                          background: active ? '#EFF6FF' : '#fff',
-                          color: active ? '#0071E3' : '#6B7280',
-                        }}>
-                        <span>{opt.icon}</span>
-                        {opt.label}
-                        {active && <Check size={11} strokeWidth={2.5} />}
-                      </button>
-                    )
-                  })}
-                </div>
+                {availableMethods.length === 0 ? (
+                  <div className="flex items-start gap-2" style={{
+                    padding: '10px 12px', borderRadius: 12, background: '#FFFBEB', border: '1px solid #FDE68A' }}>
+                    <AlertTriangle size={14} style={{ color: '#D97706', flexShrink: 0, marginTop: 1 }} />
+                    <p style={{ fontSize: 12, color: '#92400E', margin: 0, lineHeight: 1.5 }}>
+                      No payment methods are set up for your school yet.{' '}
+                      <Link href="/dashboard/settings?tab=payments" style={{ color: '#0071E3', fontWeight: 600 }}>
+                        Configure them in Settings
+                      </Link>{' '}before this class can accept payments.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex gap-2 flex-wrap">
+                    {PAYMENT_OPTIONS.filter(opt => availableMethods.includes(opt.value)).map(opt => {
+                      const active = form.paymentMethods.includes(opt.value)
+                      return (
+                        <button key={opt.value} type="button"
+                          onClick={() => set('paymentMethods', active
+                            ? form.paymentMethods.filter(m => m !== opt.value)
+                            : [...form.paymentMethods, opt.value]
+                          )}
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-all"
+                          style={{
+                            fontSize: 12, fontWeight: 500,
+                            border: `1.5px solid ${active ? '#0071E3' : '#E5E7EB'}`,
+                            background: active ? '#EFF6FF' : '#fff',
+                            color: active ? '#0071E3' : '#6B7280',
+                          }}>
+                          <span>{opt.icon}</span>
+                          {opt.label}
+                          {active && <Check size={11} strokeWidth={2.5} />}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Public on Explore */}
@@ -1145,6 +1160,7 @@ export default function ClassesClient() {
   const [classes, setClasses]         = useState<ClassRow[]>([])
   const [instructors, setInstructors] = useState<Instructor[]>([])
   const [disciplines, setDisciplines] = useState<Discipline[]>([])
+  const [availableMethods, setAvailableMethods] = useState<string[]>([])
   const [loading, setLoading]         = useState(true)
 
   const [activeFilter, setActiveFilter] = useState<Filter>('All')
@@ -1165,6 +1181,7 @@ export default function ClassesClient() {
         setClasses(data.classes ?? [])
         setInstructors(data.instructors ?? [])
         setDisciplines(data.disciplines ?? [])
+        setAvailableMethods(data.paymentCapabilities?.availableMethods ?? [])
       }
     } finally {
       setLoading(false)
@@ -1542,6 +1559,7 @@ export default function ClassesClient() {
         editing={editingClass}
         instructors={instructors}
         disciplines={disciplines}
+        availableMethods={availableMethods}
       />
 
       <DeleteModal
