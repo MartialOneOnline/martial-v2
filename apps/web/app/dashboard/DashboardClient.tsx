@@ -221,15 +221,21 @@ export default function DashboardClient({ userName, userEmail }: Props) {
     logoUrl: string | null; coverUrl: string | null; tagline: string | null
   } | null>(null)
 
+  const refreshTodayClasses = () => {
+    const sid = currentSchool?.schoolId
+    if (!sid) return
+    fetch(`/api/dashboard/classes/today?schoolId=${sid}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { setTodayClasses(d?.classes ?? []); setClassesLoaded(true) })
+  }
+
   useEffect(() => {
     const sid = currentSchool?.schoolId
     if (!sid) return
     fetch(`/api/dashboard/stats?schoolId=${sid}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => d && setStats(d))
-    fetch(`/api/dashboard/classes/today?schoolId=${sid}`)
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { setTodayClasses(d?.classes ?? []); setClassesLoaded(true) })
+    refreshTodayClasses()
     fetch('/api/dashboard/transactions?pageSize=6&page=1&type=INCOME')
       .then(r => r.ok ? r.json() : null)
       .then(d => d?.transactions && setRecentTx(d.transactions))
@@ -896,14 +902,14 @@ export default function DashboardClient({ userName, userEmail }: Props) {
         <ClassCapacityPopup
           cls={selectedClass}
           date={(() => { const d = new Date(); d.setDate(d.getDate() + activeDay); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` })()}
-          onClose={() => setSelectedClass(null)}
+          onClose={() => { setSelectedClass(null); refreshTodayClasses() }}
         />
       )}
       {detailClass && (
         <ClassDetailPopup
           cls={detailClass}
           date={(() => { const d = new Date(); d.setDate(d.getDate() + activeDay); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` })()}
-          onClose={() => setDetailClass(null)}
+          onClose={() => { setDetailClass(null); refreshTodayClasses() }}
         />
       )}
     </>

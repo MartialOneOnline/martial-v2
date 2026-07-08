@@ -2,13 +2,14 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
-import { X, UserPlus, Users, Clock, Search, Check, Loader2, ArrowLeft } from 'lucide-react'
+import { X, UserPlus, Users, Clock, Search, Check, CheckCircle2, Loader2, ArrowLeft } from 'lucide-react'
 
 interface Student {
   id: string
   name: string
   avatarUrl: string | null
   status: string
+  attendedAt?: string | null
 }
 
 interface Member {
@@ -67,6 +68,9 @@ export default function ClassCapacityPopup({ cls, date, onClose }: Props) {
   const [addedIds,        setAddedIds]        = useState<Set<string>>(new Set())
   const [addError,        setAddError]        = useState<string | null>(null)
 
+  // Attendance state
+  const [markingId, setMarkingId] = useState<string | null>(null)
+
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) onClose()
@@ -124,6 +128,36 @@ export default function ClassCapacityPopup({ cls, date, onClose }: Props) {
       setAddError('Network error')
     } finally {
       setAddingId(null)
+    }
+  }
+
+  async function markAttended(bookingId: string) {
+    setMarkingId(bookingId)
+    try {
+      const res = await fetch(`/api/dashboard/bookings/${bookingId}/attend`, { method: 'PATCH' })
+      if (res.ok) {
+        const data = await res.json()
+        setStudents(prev => prev.map(s =>
+          s.id === bookingId ? { ...s, status: data.status, attendedAt: data.attendedAt } : s
+        ))
+      }
+    } finally {
+      setMarkingId(null)
+    }
+  }
+
+  async function markNoShow(bookingId: string) {
+    setMarkingId(bookingId)
+    try {
+      const res = await fetch(`/api/dashboard/bookings/${bookingId}/no-show`, { method: 'PATCH' })
+      if (res.ok) {
+        const data = await res.json()
+        setStudents(prev => prev.map(s =>
+          s.id === bookingId ? { ...s, status: data.status } : s
+        ))
+      }
+    } finally {
+      setMarkingId(null)
     }
   }
 
@@ -233,14 +267,47 @@ export default function ClassCapacityPopup({ cls, date, onClose }: Props) {
               <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: '24px 0' }}>No bookings yet</p>
             ) : students.map((s, i) => {
               const st = STATUS_STYLE[s.status] ?? { label: s.status, color: '#6B7280', bg: '#F3F4F6' }
+              const isMarking = markingId === s.id
+              const isAttended = s.status === 'COMPLETED'
+              const isCancelled = s.status === 'CANCELLED'
               return (
                 <div key={s.id} className="flex items-center gap-3 px-4 py-2.5"
                   style={{ borderBottom: i < students.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
                   <div className="shrink-0"><Avatar name={s.name} avatarUrl={s.avatarUrl} /></div>
-                  <span style={{ fontSize: 13, color: '#111827', flex: 1 }}>{s.name}</span>
-                  <span style={{ fontSize: 10, fontWeight: 600, color: st.color, background: st.bg, padding: '2px 7px', borderRadius: 999 }}>
-                    {st.label}
-                  </span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: 13, color: '#111827' }}>{s.name}</span>
+                    <div className="mt-0.5">
+                      <span style={{ fontSize: 10, fontWeight: 600, color: st.color, background: st.bg, padding: '2px 7px', borderRadius: 999 }}>
+                        {st.label}
+                      </span>
+                    </div>
+                  </div>
+                  {isAttended ? (
+                    <CheckCircle2 size={18} style={{ color: '#16A34A', flexShrink: 0 }} />
+                  ) : isCancelled || s.status === 'NO_SHOW' ? null : (
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        onClick={() => markAttended(s.id)}
+                        disabled={isMarking}
+                        className="px-2.5 py-1.5 rounded-lg"
+                        style={{ fontSize: 11, fontWeight: 600, border: '1px solid #0870E2',
+                          background: isMarking ? '#F3F4F6' : '#EFF6FF',
+                          color: isMarking ? '#9CA3AF' : '#0870E2',
+                          cursor: isMarking ? 'not-allowed' : 'pointer' }}>
+                        {isMarking ? '…' : 'Attended'}
+                      </button>
+                      <button
+                        onClick={() => markNoShow(s.id)}
+                        disabled={isMarking}
+                        className="px-2.5 py-1.5 rounded-lg"
+                        style={{ fontSize: 11, fontWeight: 600, border: '1px solid #E5E7EB',
+                          background: isMarking ? '#F3F4F6' : '#FEF2F2',
+                          color: isMarking ? '#9CA3AF' : '#B91C1C',
+                          cursor: isMarking ? 'not-allowed' : 'pointer' }}>
+                        No-show
+                      </button>
+                    </div>
+                  )}
                 </div>
               )
             })}
