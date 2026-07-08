@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import {
   Calendar, Clock, CalendarCheck, QrCode, CalendarPlus,
-  CreditCard, TrendingUp, ChevronRight,
+  CreditCard, TrendingUp, ChevronRight, CheckCircle2,
 } from 'lucide-react'
 import { fmtPrice } from '../../lib/format'
 import { getBeltImage } from '../../lib/belts'
@@ -144,6 +144,7 @@ export default function MyHomePage() {
   const [detailOcc, setDetailOcc]   = useState<Occurrence | null>(null)
   const [cancelOcc, setCancelOcc]   = useState<Occurrence | null>(null)
   const [cancelling, setCancelling] = useState(false)
+  const [bookSuccessOcc, setBookSuccessOcc] = useState<Occurrence | null>(null)
   const carRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -190,6 +191,10 @@ export default function MyHomePage() {
             ? { ...o, alreadyBooked: true, booked: o.booked + 1 }
             : o
         ))
+        setDetailOcc(prev =>
+          prev && prev.classId === occ.classId && prev.scheduledAt === occ.scheduledAt ? null : prev
+        )
+        setBookSuccessOcc(occ)
       }
     } finally {
       setBookingId(null)
@@ -567,12 +572,12 @@ export default function MyHomePage() {
       {/* ── Cancel confirm modal ──────────────────────────────────────────── */}
       {cancelOcc && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
           style={{ background: 'rgba(0,0,0,.5)', backdropFilter: 'blur(4px)' }}
           onClick={() => !cancelling && setCancelOcc(null)}
         >
           <div
-            className="w-full max-w-lg bg-white rounded-t-3xl shadow-2xl p-6 pb-28"
+            className="w-full max-w-sm bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl p-6 pb-28 sm:pb-6"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex justify-center mb-4">
@@ -609,12 +614,12 @@ export default function MyHomePage() {
       {/* ── Class detail bottom sheet ──────────────────────────────────────── */}
       {detailOcc && (
         <div
-          className="fixed inset-0 z-50 flex items-end"
+          className="fixed inset-0 z-50 flex items-end justify-center"
           style={{ background: 'rgba(0,0,0,.5)', backdropFilter: 'blur(4px)' }}
           onClick={() => setDetailOcc(null)}
         >
           <div
-            className="w-full bg-white rounded-t-3xl shadow-2xl overflow-y-auto"
+            className="w-full max-w-lg bg-white rounded-t-3xl shadow-2xl overflow-y-auto"
             style={{ maxHeight: '85vh' }}
             onClick={e => e.stopPropagation()}
           >
@@ -696,15 +701,48 @@ export default function MyHomePage() {
                   </div>
                 ) : (
                   <button
-                    onClick={() => { setDetailOcc(null); bookClass(detailOcc) }}
-                    className="flex-1 py-3 rounded-2xl text-sm font-medium"
+                    onClick={() => bookClass(detailOcc)}
+                    disabled={!!bookingId}
+                    className="flex-1 py-3 rounded-2xl text-sm font-medium disabled:opacity-60 flex items-center justify-center"
                     style={{ background: '#E8F7FF', color: '#006197', border: 'none', fontFamily: 'inherit', cursor: 'pointer' }}
                   >
-                    {t.my.bookNow}
+                    {bookingId === `${detailOcc.classId}:${detailOcc.scheduledAt}`
+                      ? <span className="inline-block w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#006197', borderTopColor: 'transparent' }} />
+                      : t.my.bookNow}
                   </button>
                 )}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Booking success popup ──────────────────────────────────────────── */}
+      {bookSuccessOcc && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,.5)', backdropFilter: 'blur(4px)' }}
+          onClick={() => setBookSuccessOcc(null)}
+        >
+          <div
+            className="w-full max-w-sm bg-white rounded-3xl shadow-2xl p-6 text-center"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: '#E4F7EB' }}>
+              <CheckCircle2 className="w-7 h-7" style={{ color: '#1E8734' }} />
+            </div>
+            <h2 className="text-base font-semibold mb-1" style={{ color: '#1C1C1E' }}>{t.my.bookingConfirmedTitle}</h2>
+            <p className="text-sm mb-1" style={{ color: '#6B6B70' }}>{bookSuccessOcc.className}</p>
+            <p className="text-xs mb-5" style={{ color: '#9CA3AF' }}>
+              {new Date(bookSuccessOcc.scheduledAt).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })} · {fmtTime(bookSuccessOcc.scheduledAt)}
+            </p>
+            <button
+              onClick={() => setBookSuccessOcc(null)}
+              className="w-full py-3 rounded-2xl text-sm font-semibold text-white"
+              style={{ background: '#007AFF', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
+            >
+              {t.common.done}
+            </button>
           </div>
         </div>
       )}
