@@ -389,84 +389,87 @@ export default function MyHomePage() {
         />
       </div>
 
-      {/* ── Hero card — next booking ───────────────────────────────────────── */}
+      {/* ── Hero card — next booking ─────────────────────────────────────────
+          Minimal white card with small color accents, not a full navy banner —
+          keeps the app's info-card language consistent instead of one big
+          promotional-looking block at the top of every visit. ──────────────── */}
       {nextBooking ? (
-        <div className="mx-4 md:mx-6 mb-5 md:mb-6 lg:mb-8 rounded-3xl overflow-hidden lg:flex lg:items-stretch" style={{ background: 'linear-gradient(145deg, #0d2d52 0%, #08213D 55%, #061729 100%)' }}>
+        <div className="mx-4 md:mx-6 mb-5 md:mb-6 lg:mb-8 rounded-[20px] overflow-hidden lg:flex lg:items-stretch" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)' }}>
           {/* Photo panel — desktop/tablet only; falls back to the discipline gradient if no cover photo */}
-          <div className="hidden lg:block lg:shrink-0 relative overflow-hidden" style={{ width: 180, aspectRatio: '1 / 1', background: classGradient(nextBooking.class.name) }}>
+          <div className="hidden lg:block lg:shrink-0 relative overflow-hidden" style={{ width: 160, aspectRatio: '1 / 1', background: classGradient(nextBooking.class.name) }}>
             {nextBookingOcc?.coverUrl && (
               <img src={nextBookingOcc.coverUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
             )}
           </div>
 
-          <div className="relative flex-1" style={{ padding: '22px 22px 20px' }}>
-          {/* Decorative circles */}
-          <div className="absolute" style={{ right: -20, top: -40, width: 160, height: 160, borderRadius: '50%', border: '28px solid rgba(255,255,255,.04)' }} />
-          <div className="absolute" style={{ right: 60, top: -70, width: 100, height: 100, borderRadius: '50%', border: '16px solid rgba(255,255,255,.025)' }} />
-
-          {/* Pill badge */}
-          {days !== null && (
-            <div className="inline-flex items-center gap-1 mb-3 rounded-full" style={{ background: 'rgba(255,255,255,.1)', border: '1px solid rgba(255,255,255,.16)', padding: '3px 10px' }}>
-              <Clock className="w-3 h-3" style={{ color: 'rgba(255,255,255,.7)' }} />
-              <span className="text-xs font-medium" style={{ color: 'rgba(255,255,255,.88)' }}>
-                {days === 0 ? t.my.today : days === 1 ? t.my.tomorrow : t.my.inDays.replace('{n}', String(days))}
-              </span>
-            </div>
-          )}
-
-          <p className="text-[10px] font-medium uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,.35)', letterSpacing: '1.5px' }}>{t.my.nextClass}</p>
-          <p className="text-lg font-medium mb-0.5" style={{ color: '#fff', letterSpacing: '-0.2px' }}>{nextBooking.class.name}</p>
-          <p className="text-xs mb-3" style={{ color: 'rgba(255,255,255,.4)' }}>{nextBooking.class.school.name}</p>
-
-          <div className="flex items-center gap-2 mb-4">
-            <div className="flex items-center gap-1" style={{ color: 'rgba(255,255,255,.7)' }}>
-              <Calendar className="w-3 h-3" style={{ color: 'rgba(255,255,255,.38)' }} />
-              <span className="text-xs">{fmtDate(nextBooking.scheduledAt)}</span>
-            </div>
-            <span className="text-[10px]" style={{ color: 'rgba(255,255,255,.2)' }}>·</span>
-            <div className="flex items-center gap-1" style={{ color: 'rgba(255,255,255,.7)' }}>
-              <Clock className="w-3 h-3" style={{ color: 'rgba(255,255,255,.38)' }} />
-              <span className="text-xs">{fmtTime(nextBooking.scheduledAt)}</span>
-              {nextBooking.class.duration && (
-                <span className="text-xs" style={{ color: 'rgba(255,255,255,.35)' }}>· {nextBooking.class.duration}min</span>
+          <div className="flex-1" style={{ padding: '18px 20px 20px' }}>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center justify-center rounded-full shrink-0" style={{ width: 26, height: 26, background: 'rgba(0,122,255,.1)' }}>
+                <Clock className="w-3.5 h-3.5" style={{ color: '#007AFF' }} />
+              </div>
+              <span className="text-[11px] font-semibold uppercase" style={{ color: '#9CA3AF', letterSpacing: '.6px' }}>{t.my.nextClass}</span>
+              {days !== null && (
+                <span className="ml-auto text-[11px] font-semibold rounded-full" style={{ background: '#E8F4FF', color: '#007AFF', padding: '3px 10px' }}>
+                  {days === 0 ? t.my.today : days === 1 ? t.my.tomorrow : t.my.inDays.replace('{n}', String(days))}
+                </span>
               )}
             </div>
-          </div>
 
-          <div className="flex gap-2">
-            <Link
-              href="/my/classes"
-              prefetch={false}
-              className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium rounded-full"
-              style={{ background: 'rgba(255,255,255,.22)', color: '#fff', border: '1px solid rgba(255,255,255,.35)', padding: '9px 10px' }}
-            >
-              <CalendarCheck className="w-3.5 h-3.5" />
-              {t.my.viewBooking}
-            </Link>
-            <Link
-              href="/my/qr"
-              prefetch={false}
-              className="flex-1 flex items-center justify-center gap-1.5 text-xs font-normal rounded-full"
-              style={{ background: 'rgba(255,255,255,.08)', color: '#fff', border: '1px solid rgba(255,255,255,.2)', padding: '9px 10px' }}
-            >
-              <QrCode className="w-3.5 h-3.5" style={{ opacity: 0.8 }} />
-              {t.my.qrCheckIn}
-            </Link>
-          </div>
+            <p className="text-base font-semibold mb-0.5" style={{ color: '#1C1C1E', letterSpacing: '-0.2px' }}>{nextBooking.class.name}</p>
+            <p className="text-xs mb-3" style={{ color: '#9CA3AF' }}>{nextBooking.class.school.name}</p>
+
+            <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center gap-1" style={{ color: '#6B6B70' }}>
+                <Calendar className="w-3 h-3" style={{ color: '#AEAEB2' }} />
+                <span className="text-xs">{fmtDate(nextBooking.scheduledAt)}</span>
+              </div>
+              <span className="text-[10px]" style={{ color: '#D1D5DB' }}>·</span>
+              <div className="flex items-center gap-1" style={{ color: '#6B6B70' }}>
+                <Clock className="w-3 h-3" style={{ color: '#AEAEB2' }} />
+                <span className="text-xs">{fmtTime(nextBooking.scheduledAt)}</span>
+                {nextBooking.class.duration && (
+                  <span className="text-xs" style={{ color: '#9CA3AF' }}>· {nextBooking.class.duration}min</span>
+                )}
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Link
+                href="/my/classes"
+                prefetch={false}
+                className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold rounded-full"
+                style={{ background: '#E8F7FF', color: '#006197', padding: '10px' }}
+              >
+                <CalendarCheck className="w-3.5 h-3.5" />
+                {t.my.viewBooking}
+              </Link>
+              <Link
+                href="/my/qr"
+                prefetch={false}
+                className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium rounded-full"
+                style={{ background: '#F5F5F5', color: '#374151', padding: '10px' }}
+              >
+                <QrCode className="w-3.5 h-3.5" style={{ opacity: 0.7 }} />
+                {t.my.qrCheckIn}
+              </Link>
+            </div>
           </div>
         </div>
       ) : (
         /* No upcoming booking */
-        <div className="mx-4 md:mx-6 mb-5 md:mb-6 rounded-3xl overflow-hidden relative" style={{ background: 'linear-gradient(145deg, #0d2d52 0%, #08213D 55%, #061729 100%)', padding: '22px 22px 20px' }}>
-          <div className="absolute" style={{ right: -20, top: -40, width: 160, height: 160, borderRadius: '50%', border: '28px solid rgba(255,255,255,.04)' }} />
-          <div className="absolute" style={{ right: 60, top: -70, width: 100, height: 100, borderRadius: '50%', border: '16px solid rgba(255,255,255,.025)' }} />
-          <p className="text-[10px] font-medium uppercase tracking-widest mb-2" style={{ color: 'rgba(255,255,255,.35)', letterSpacing: '1.5px' }}>{t.my.nextClass}</p>
-          <p className="text-lg font-medium mb-3" style={{ color: '#fff' }}>{t.my.noUpcomingClasses}</p>
+        <div className="mx-4 md:mx-6 mb-5 md:mb-6 rounded-[20px]" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)', padding: '18px 20px 20px' }}>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center justify-center rounded-full shrink-0" style={{ width: 26, height: 26, background: 'rgba(0,122,255,.1)' }}>
+              <Calendar className="w-3.5 h-3.5" style={{ color: '#007AFF' }} />
+            </div>
+            <span className="text-[11px] font-semibold uppercase" style={{ color: '#9CA3AF', letterSpacing: '.6px' }}>{t.my.nextClass}</span>
+          </div>
+          <p className="text-sm font-medium mb-3" style={{ color: '#1C1C1E' }}>{t.my.noUpcomingClasses}</p>
           <Link
             href="/my/classes"
             prefetch={false}
-            className="inline-flex items-center gap-1.5 text-xs font-medium rounded-full"
-            style={{ background: 'rgba(255,255,255,.22)', color: '#fff', border: '1px solid rgba(255,255,255,.35)', padding: '9px 14px' }}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold rounded-full"
+            style={{ background: '#E8F7FF', color: '#006197', padding: '10px 16px' }}
           >
             <CalendarPlus className="w-3.5 h-3.5" />
             {t.my.bookAClass}
@@ -521,11 +524,12 @@ export default function MyHomePage() {
                 <div
                   key={`${occ.classId}:${occ.scheduledAt}`}
                   className="car-card flex flex-col shrink-0 rounded-xl overflow-hidden"
-                  style={{ width: 'calc(88vw)', maxWidth: 325, background: '#fff', border: '1px solid rgba(0,0,0,.07)', boxShadow: '0 1px 4px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04)', scrollSnapAlign: 'start' }}
+                  style={{ width: 'calc(100vw - 80px)', maxWidth: 360, background: '#fff', border: '1px solid rgba(0,0,0,.07)', boxShadow: '0 1px 4px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04)', scrollSnapAlign: 'start' }}
                 >
                   {/* Photo — fixed aspect-ratio (not a fixed height) so it scales cleanly
-                      with the card width instead of stretching or cropping oddly */}
-                  <div className="relative shrink-0 overflow-hidden" style={{ aspectRatio: '325 / 261', borderRadius: '8px 8px 0 0', background: classGradient(occ.className) }}>
+                      with the card width instead of stretching or cropping oddly. 16:9 keeps
+                      the card shorter overall than a taller 4:3-ish ratio would. */}
+                  <div className="relative shrink-0 overflow-hidden" style={{ aspectRatio: '16 / 9', borderRadius: '8px 8px 0 0', background: classGradient(occ.className) }}>
                     {occ.coverUrl && (
                       <img
                         src={occ.coverUrl}
@@ -550,17 +554,13 @@ export default function MyHomePage() {
                         <span className="text-xs font-normal shrink-0" style={{ color: '#061229' }}>{occ.booked}/{occ.capacity}</span>
                       )}
                     </div>
-                    <div className="flex items-center justify-between mb-1.5">
+                    <div className="flex items-center justify-between mb-3">
                       <span className="text-[10.5px] font-medium" style={{ color: '#4f4f4f' }}>{classTypeBadge(occ.className)}</span>
                       <span className="text-[10.5px] font-normal" style={{ color: '#4f4f4f' }}>{fmtDateShortFn(occ.scheduledAt, t.my.today, t.my.tomorrow)}</span>
                       <span className="text-[10.5px] font-normal text-right" style={{ color: '#4f4f4f' }}>
                         {fmtTime(occ.scheduledAt)}{endTime ? `–${endTime}` : ''}
                       </span>
                     </div>
-                    <div className="mb-2" style={{ height: 0.5, background: '#eaeaea' }} />
-                    <p className="text-[11px] font-normal leading-relaxed mb-2.5 overflow-hidden" style={{ color: '#111', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                      {occ.instructor ? `${t.my.instructor}: ${occ.instructor.name}` : occ.school.name}
-                    </p>
                     <div className="flex gap-1.5 mt-auto">
                       <button
                         onClick={() => setDetailOcc(occ)}
