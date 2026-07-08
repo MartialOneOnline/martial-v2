@@ -283,28 +283,28 @@ export default function ClassCapacityPopup({ cls, date, onClose }: Props) {
                     </div>
                   </div>
                   {isAttended ? (
-                    <CheckCircle2 size={18} style={{ color: '#16A34A', flexShrink: 0 }} />
+                    <CheckCircle2 size={20} style={{ color: '#16A34A', flexShrink: 0 }} />
                   ) : isCancelled || s.status === 'NO_SHOW' ? null : (
-                    <div className="flex items-center gap-1.5 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0">
                       <button
                         onClick={() => markAttended(s.id)}
                         disabled={isMarking}
-                        className="px-2.5 py-1.5 rounded-lg"
-                        style={{ fontSize: 11, fontWeight: 600, border: '1px solid #0870E2',
-                          background: isMarking ? '#F3F4F6' : '#EFF6FF',
-                          color: isMarking ? '#9CA3AF' : '#0870E2',
+                        title="Mark attended"
+                        style={{ width: 30, height: 30, borderRadius: '50%', border: 'none',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          background: isMarking ? '#D1FAE5' : '#16A34A',
                           cursor: isMarking ? 'not-allowed' : 'pointer' }}>
-                        {isMarking ? '…' : 'Attended'}
+                        <Check size={16} style={{ color: '#fff' }} />
                       </button>
                       <button
                         onClick={() => markNoShow(s.id)}
                         disabled={isMarking}
-                        className="px-2.5 py-1.5 rounded-lg"
-                        style={{ fontSize: 11, fontWeight: 600, border: '1px solid #E5E7EB',
-                          background: isMarking ? '#F3F4F6' : '#FEF2F2',
-                          color: isMarking ? '#9CA3AF' : '#B91C1C',
+                        title="Mark no-show"
+                        style={{ width: 30, height: 30, borderRadius: '50%', border: '1px solid #E5E7EB',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          background: isMarking ? '#F3F4F6' : '#fff',
                           cursor: isMarking ? 'not-allowed' : 'pointer' }}>
-                        No-show
+                        <X size={15} style={{ color: '#9CA3AF' }} />
                       </button>
                     </div>
                   )}
