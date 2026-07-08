@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
-import { X, UserPlus, Users, Clock, Search, Check, CheckCircle2, Loader2, ArrowLeft } from 'lucide-react'
+import { X, UserPlus, Users, Clock, Search, Check, Loader2, ArrowLeft } from 'lucide-react'
 
 interface Student {
   id: string
@@ -161,6 +161,21 @@ export default function ClassCapacityPopup({ cls, date, onClose }: Props) {
     }
   }
 
+  async function unmarkAttendance(bookingId: string) {
+    setMarkingId(bookingId)
+    try {
+      const res = await fetch(`/api/dashboard/bookings/${bookingId}/unmark`, { method: 'PATCH' })
+      if (res.ok) {
+        const data = await res.json()
+        setStudents(prev => prev.map(s =>
+          s.id === bookingId ? { ...s, status: data.status, attendedAt: data.attendedAt } : s
+        ))
+      }
+    } finally {
+      setMarkingId(null)
+    }
+  }
+
   const activeStudents = students.filter(s => s.status !== 'CANCELLED')
 
   return (
@@ -269,6 +284,7 @@ export default function ClassCapacityPopup({ cls, date, onClose }: Props) {
               const st = STATUS_STYLE[s.status] ?? { label: s.status, color: '#6B7280', bg: '#F3F4F6' }
               const isMarking = markingId === s.id
               const isAttended = s.status === 'COMPLETED'
+              const isNoShow = s.status === 'NO_SHOW'
               const isCancelled = s.status === 'CANCELLED'
               return (
                 <div key={s.id} className="flex items-center gap-3 px-4 py-2.5"
@@ -282,29 +298,29 @@ export default function ClassCapacityPopup({ cls, date, onClose }: Props) {
                       </span>
                     </div>
                   </div>
-                  {isAttended ? (
-                    <CheckCircle2 size={20} style={{ color: '#16A34A', flexShrink: 0 }} />
-                  ) : isCancelled || s.status === 'NO_SHOW' ? null : (
+                  {!isCancelled && (
                     <div className="flex items-center gap-2 shrink-0">
                       <button
-                        onClick={() => markAttended(s.id)}
+                        onClick={() => isAttended ? unmarkAttendance(s.id) : markAttended(s.id)}
                         disabled={isMarking}
-                        title="Mark attended"
-                        style={{ width: 30, height: 30, borderRadius: '50%', border: 'none',
+                        title={isAttended ? 'Unmark attended' : 'Mark attended'}
+                        style={{ width: 30, height: 30, borderRadius: '50%',
+                          border: isAttended ? 'none' : '1px solid #D1FAE5',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          background: isMarking ? '#D1FAE5' : '#16A34A',
+                          background: isMarking ? '#F3F4F6' : isAttended ? '#16A34A' : '#F0FDF4',
                           cursor: isMarking ? 'not-allowed' : 'pointer' }}>
-                        <Check size={16} style={{ color: '#fff' }} />
+                        <Check size={16} style={{ color: isAttended ? '#fff' : '#16A34A' }} />
                       </button>
                       <button
-                        onClick={() => markNoShow(s.id)}
+                        onClick={() => isNoShow ? unmarkAttendance(s.id) : markNoShow(s.id)}
                         disabled={isMarking}
-                        title="Mark no-show"
-                        style={{ width: 30, height: 30, borderRadius: '50%', border: '1px solid #E5E7EB',
+                        title={isNoShow ? 'Unmark no-show' : 'Mark no-show'}
+                        style={{ width: 30, height: 30, borderRadius: '50%',
+                          border: isNoShow ? 'none' : '1px solid #E5E7EB',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          background: isMarking ? '#F3F4F6' : '#fff',
+                          background: isMarking ? '#F3F4F6' : isNoShow ? '#DC2626' : '#fff',
                           cursor: isMarking ? 'not-allowed' : 'pointer' }}>
-                        <X size={15} style={{ color: '#9CA3AF' }} />
+                        <X size={15} style={{ color: isNoShow ? '#fff' : '#9CA3AF' }} />
                       </button>
                     </div>
                   )}

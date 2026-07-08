@@ -8,14 +8,30 @@ export type NoShowResult =
   | { ok: true; alreadyDone: boolean }
   | { ok: false; reason: string; httpStatus: 422 }
 
+export type UnmarkResult =
+  | { ok: true; alreadyDone: boolean }
+  | { ok: false; reason: string; httpStatus: 422 }
+
 export function canMarkNoShow(status: BookingStatus): NoShowResult {
   if (status === 'CANCELLED') {
     return { ok: false, reason: 'Cannot mark a cancelled booking as no-show', httpStatus: 422 }
   }
-  if (status === 'COMPLETED') {
-    return { ok: false, reason: 'Cannot mark an attended booking as no-show', httpStatus: 422 }
-  }
   if (status === 'NO_SHOW') {
+    return { ok: true, alreadyDone: true }
+  }
+  // Staff/instructors may correct a mistaken "attended" mark by switching it to no-show.
+  return { ok: true, alreadyDone: false }
+}
+
+/**
+ * Pure guard for reverting a COMPLETED/NO_SHOW booking back to CONFIRMED,
+ * so staff can undo an attendance mark made by mistake.
+ */
+export function canUnmarkAttendance(status: BookingStatus): UnmarkResult {
+  if (status === 'CANCELLED') {
+    return { ok: false, reason: 'Cannot unmark a cancelled booking', httpStatus: 422 }
+  }
+  if (status !== 'COMPLETED' && status !== 'NO_SHOW') {
     return { ok: true, alreadyDone: true }
   }
   return { ok: true, alreadyDone: false }

@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { QRCodeSVG } from 'qrcode.react'
 import {
   X, UserPlus, Users, Clock, QrCode,
-  XCircle, ChevronRight, CheckCircle, CheckCircle2, Loader2,
+  XCircle, ChevronRight, CheckCircle, Loader2,
   Search, ArrowLeft, Check,
 } from 'lucide-react'
 
@@ -180,6 +180,21 @@ export default function ClassDetailPopup({ cls, date, onClose }: Props) {
         const data = await res.json()
         setBookings(prev => prev.map(b =>
           b.id === bookingId ? { ...b, status: data.status } : b
+        ))
+      }
+    } finally {
+      setMarkingId(null)
+    }
+  }
+
+  async function unmarkAttendance(bookingId: string) {
+    setMarkingId(bookingId)
+    try {
+      const res = await fetch(`/api/dashboard/bookings/${bookingId}/unmark`, { method: 'PATCH' })
+      if (res.ok) {
+        const data = await res.json()
+        setBookings(prev => prev.map(b =>
+          b.id === bookingId ? { ...b, status: data.status, attendedAt: data.attendedAt } : b
         ))
       }
     } finally {
@@ -387,6 +402,7 @@ export default function ClassDetailPopup({ cls, date, onClose }: Props) {
                 const st = BOOKING_STATUS[b.status] ?? { label: b.status, color: '#6B7280', bg: '#F3F4F6' }
                 const isMarking = markingId === b.id
                 const isAttended = b.status === 'COMPLETED'
+                const isNoShow = b.status === 'NO_SHOW'
                 const isCancelled = b.status === 'CANCELLED'
                 return (
                   <div key={b.id} className="flex items-center gap-3 px-4 py-2.5"
@@ -400,29 +416,29 @@ export default function ClassDetailPopup({ cls, date, onClose }: Props) {
                         </span>
                       </div>
                     </div>
-                    {isAttended ? (
-                      <CheckCircle2 size={20} style={{ color: '#16A34A', flexShrink: 0 }} />
-                    ) : isCancelled || b.status === 'NO_SHOW' ? null : (
+                    {!isCancelled && (
                       <div className="flex items-center gap-2 shrink-0">
                         <button
-                          onClick={() => markAttended(b.id)}
+                          onClick={() => isAttended ? unmarkAttendance(b.id) : markAttended(b.id)}
                           disabled={isMarking}
-                          title="Mark attended"
-                          style={{ width: 30, height: 30, borderRadius: '50%', border: 'none',
+                          title={isAttended ? 'Unmark attended' : 'Mark attended'}
+                          style={{ width: 30, height: 30, borderRadius: '50%',
+                            border: isAttended ? 'none' : '1px solid #D1FAE5',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            background: isMarking ? '#D1FAE5' : '#16A34A',
+                            background: isMarking ? '#F3F4F6' : isAttended ? '#16A34A' : '#F0FDF4',
                             cursor: isMarking ? 'not-allowed' : 'pointer' }}>
-                          <Check size={16} style={{ color: '#fff' }} />
+                          <Check size={16} style={{ color: isAttended ? '#fff' : '#16A34A' }} />
                         </button>
                         <button
-                          onClick={() => markNoShow(b.id)}
+                          onClick={() => isNoShow ? unmarkAttendance(b.id) : markNoShow(b.id)}
                           disabled={isMarking}
-                          title="Mark no-show"
-                          style={{ width: 30, height: 30, borderRadius: '50%', border: '1px solid #E5E7EB',
+                          title={isNoShow ? 'Unmark no-show' : 'Mark no-show'}
+                          style={{ width: 30, height: 30, borderRadius: '50%',
+                            border: isNoShow ? 'none' : '1px solid #E5E7EB',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            background: isMarking ? '#F3F4F6' : '#fff',
+                            background: isMarking ? '#F3F4F6' : isNoShow ? '#DC2626' : '#fff',
                             cursor: isMarking ? 'not-allowed' : 'pointer' }}>
-                          <X size={15} style={{ color: '#9CA3AF' }} />
+                          <X size={15} style={{ color: isNoShow ? '#fff' : '#9CA3AF' }} />
                         </button>
                       </div>
                     )}
