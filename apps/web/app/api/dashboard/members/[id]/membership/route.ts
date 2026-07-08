@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { hasPermission } from '@/lib/auth/permissions'
 import { assignPlan, cancelMembership } from '@/lib/services/membership'
 import { PaymentMethod } from '@/lib/prisma-client/enums'
 
@@ -13,7 +14,7 @@ async function authorise() {
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!['OWNER', 'ADMIN'].includes(member.role)) return { error: 'Forbidden', status: 403 }
+      if (!hasPermission(member.role, 'school.memberships.manage')) return { error: 'Forbidden', status: 403 }
     } catch {
       return { error: 'Forbidden', status: 403 }
     }

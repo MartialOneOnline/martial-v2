@@ -64,3 +64,19 @@ export async function requireSchoolAccess(userId: string, schoolId: string) {
   }
   return member
 }
+
+// Staff-facing SchoolMember roles — everyone else (STUDENT) belongs in /my, not /dashboard.
+const DASHBOARD_ROLES: SchoolMemberRole[] = [
+  'OWNER', 'ADMIN', 'MANAGER', 'INSTRUCTOR', 'ASSISTANT_INSTRUCTOR', 'RECEPTIONIST',
+]
+
+// Gate for entering /dashboard at all. Checked against SchoolMember, not the
+// global User.role — a user's global role can lag behind school-level grants
+// (e.g. claiming school ownership never touches it, see claim/[id]/route.ts),
+// so gating on User.role locks legitimate staff out of their own dashboard.
+export async function hasDashboardAccess(userId: string): Promise<boolean> {
+  const count = await prisma.schoolMember.count({
+    where: { userId, status: 'ACTIVE', role: { in: DASHBOARD_ROLES } },
+  })
+  return count > 0
+}
