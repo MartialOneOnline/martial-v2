@@ -269,7 +269,7 @@ function ActiveMembershipCard({
 
       {/* Plan image or gradient header */}
       {m.imageUrl ? (
-        <div style={{ position: 'relative', height: 120 }}>
+        <div style={{ position: 'relative', aspectRatio: '3 / 1' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={m.imageUrl} alt={m.planName}
             style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
@@ -544,7 +544,7 @@ function PlanCard({ plan, onRequest, requesting, t }: {
       )}
 
       {plan.imageUrl && (
-        <div style={{ height: 80, overflow: 'hidden' }}>
+        <div style={{ aspectRatio: '3 / 1', overflow: 'hidden' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={plan.imageUrl} alt={plan.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
@@ -800,7 +800,7 @@ export default function MyMembershipPage() {
         </p>
       </div>
 
-      <div style={{ padding: '20px 16px', maxWidth: 600, margin: '0 auto' }}>
+      <div className="max-w-[600px] lg:max-w-[900px] mx-auto" style={{ padding: '20px 16px' }}>
         {loading ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200 }}>
             <div style={{ width: 24, height: 24, border: '2.5px solid #0870E2',
@@ -817,7 +817,7 @@ export default function MyMembershipPage() {
                   letterSpacing: '0.07em', margin: '0 0 12px' }}>
                   {t.my.activeCount} · {active.length}
                 </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2 lg:gap-4">
                   {active.map(m => (
                     <ActiveMembershipCard key={m.id} m={m} t={t}
                       onAction={(id, action) => setConfirmModal({ id, action, name: m.planName })} />
@@ -872,7 +872,7 @@ export default function MyMembershipPage() {
                   letterSpacing: '0.07em', margin: '0 0 12px' }}>
                   {t.my.availablePlans}
                 </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div className="flex flex-col gap-2.5 lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-3">
                   {availablePlans.map(p => (
                     <PlanCard key={p.id} plan={p} t={t}
                       onRequest={handlePlanClick}

@@ -207,7 +207,7 @@ export default function MyProgressPage() {
         <p className="text-xs text-gray-400 mt-0.5">{t.my.beltProgressionHistory}</p>
       </div>
 
-      <div className="px-4 py-5 space-y-4 max-w-2xl">
+      <div className="px-4 py-5 space-y-4 max-w-2xl lg:max-w-[900px] lg:mx-auto">
         {loading ? (
           <div className="flex items-center justify-center h-40">
             <div className="w-5 h-5 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />
@@ -234,9 +234,11 @@ export default function MyProgressPage() {
             <p className="text-sm font-semibold text-[#101828]">{t.my.noGradingSystem}</p>
           </div>
         ) : (
-          gradedMembers.map(m => (
-            <RankCard key={m.id} member={m} gradings={gradings} t={t} />
-          ))
+          <div className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
+            {gradedMembers.map(m => (
+              <RankCard key={m.id} member={m} gradings={gradings} t={t} />
+            ))}
+          </div>
         )}
 
         {/* All gradings timeline */}

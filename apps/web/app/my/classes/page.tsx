@@ -124,8 +124,9 @@ function OccurrenceCard({ occ, onBook, onDetail, onCancelBooking }: {
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-      {/* Image */}
-      <div className="relative h-44 bg-gray-100">
+      {/* Image — fixed aspect-ratio (not a fixed height) so it scales cleanly
+          with the card width instead of stretching or cropping oddly */}
+      <div className="relative bg-gray-100" style={{ aspectRatio: '325 / 261' }}>
         {occ.coverUrl ? (
           <img src={occ.coverUrl} alt={occ.className} className="absolute inset-0 w-full h-full object-cover" />
         ) : (
@@ -242,7 +243,7 @@ function BookingCard({ booking, onCancel }: { booking: Booking; onCancel?: () =>
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       {booking.class.imageUrl && (
-        <div className="h-36 bg-gray-100 relative">
+        <div className="bg-gray-100 relative" style={{ aspectRatio: '325 / 261' }}>
           <img src={booking.class.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
         </div>
@@ -745,7 +746,7 @@ export default function MyClassesPage() {
           <div className="bg-white border-b border-gray-50">
             <DateCarousel selected={occDate} onChange={setOccDate} />
           </div>
-          <div className="px-4 py-4 max-w-2xl">
+          <div className="px-4 py-4 max-w-2xl lg:max-w-[1180px] lg:mx-auto">
             {loadingOcc || !schoolCheckDone ? (
               <div className="flex items-center justify-center h-40">
                 <div className="w-5 h-5 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />
@@ -780,7 +781,7 @@ export default function MyClassesPage() {
                 {occGroups.map(g => (
                   <div key={g.label}>
                     <p className="text-xs font-bold text-[#101828] mb-2.5 uppercase tracking-widest px-1">{g.label}</p>
-                    <div className="space-y-4">
+                    <div className="space-y-4 lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-4 lg:space-y-0">
                       {g.items.map(o => {
                         const matchedBooking = bookings.find(
                           b => b.class.id === o.classId && b.scheduledAt === o.scheduledAt && ['PENDING','CONFIRMED'].includes(b.status)
@@ -807,7 +808,7 @@ export default function MyClassesPage() {
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 px-1">
                   {t.my.passesTrials}
                 </p>
-                <div className="space-y-3">
+                <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
                   {passPlans.map(p => (
                     <PassCard key={p.id} plan={p}
                       onRequest={handlePassRequest}
@@ -843,7 +844,7 @@ export default function MyClassesPage() {
             </div>
           )}
 
-          <div className="px-4 py-4 max-w-2xl">
+          <div className="px-4 py-4 max-w-2xl lg:max-w-[1180px] lg:mx-auto">
             {loadingBookings ? (
               <div className="flex items-center justify-center h-40">
                 <div className="w-5 h-5 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />
@@ -871,7 +872,7 @@ export default function MyClassesPage() {
                 {bookingGroups.map(g => (
                   <div key={g.label}>
                     <p className="text-xs font-bold text-[#101828] mb-2.5 uppercase tracking-widest px-1">{g.label}</p>
-                    <div className="space-y-4">
+                    <div className="space-y-4 lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-4 lg:space-y-0">
                       {g.items.map(b => (
                         <BookingCard key={b.id} booking={b} onCancel={() => setCancelTarget(b)} />
                       ))}
