@@ -17,7 +17,8 @@ import {
 } from 'lucide-react'
 
 const FALLBACK_OG = 'https://images.unsplash.com/photo-1555597673-b21d5c935865?w=1200&h=630&fit=crop&q=85'
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://martial-v2-web.vercel.app'
+const RAW_APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://martial-v2-web.vercel.app'
+const APP_URL = /^https?:\/\//.test(RAW_APP_URL) ? RAW_APP_URL : `https://${RAW_APP_URL}`
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params

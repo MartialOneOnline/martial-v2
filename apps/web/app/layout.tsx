@@ -19,8 +19,11 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-mono",
 });
 
+const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://martial-v2-web.vercel.app'
+const appUrl = /^https?:\/\//.test(rawAppUrl) ? rawAppUrl : `https://${rawAppUrl}`
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://martial-v2-web.vercel.app'),
+  metadataBase: new URL(appUrl),
   title: "Martial — The Global Martial Arts Platform",
   description: "Innovative Management Software for Martial Arts Academies and Business & Users interaction Worldwide.",
 };
