@@ -127,7 +127,7 @@ function classTypeBadge(name: string) {
 
 function StatBox({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="rounded-2xl" style={{ background: '#fff', border: '1px solid rgba(0,0,0,.06)', boxShadow: '0 1px 2px rgba(16,24,40,.04)', padding: '16px 18px' }}>
+    <div className="rounded-[20px]" style={{ background: '#fff', border: '1px solid rgba(0,0,0,.06)', boxShadow: '0 1px 2px rgba(16,24,40,.04)', padding: '18px 20px' }}>
       <p className="text-[11px] mb-2" style={{ color: '#6B6B70' }}>{label}</p>
       <p className="text-[22px] font-semibold" style={{ color: '#1C1C1E', letterSpacing: '-0.2px' }}>{value}</p>
       {sub && <p className="text-[11.5px] mt-0.5" style={{ color: '#9CA3AF' }}>{sub}</p>}
@@ -269,30 +269,30 @@ export default function MyHomePage() {
   function renderSchoolCard() {
     if (!primarySchool) return null
     return (
-      <div className="rounded-2xl overflow-hidden" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)' }}>
-        <div className="relative" style={{ aspectRatio: '2.4 / 1', background: 'linear-gradient(135deg, #092E63, #06224A)' }}>
+      <div className="rounded-[20px]" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)', padding: 20 }}>
+        <div className="flex items-center gap-3.5">
           <div
-            className="absolute rounded-xl overflow-hidden flex items-center justify-center"
-            style={{ left: 16, bottom: -20, width: 46, height: 46, background: '#fff', border: '3px solid #fff', boxShadow: '0 2px 8px rgba(0,0,0,.12)' }}
+            className="rounded-2xl overflow-hidden flex items-center justify-center shrink-0"
+            style={{ width: 52, height: 52, background: 'rgba(0,122,255,.08)' }}
           >
             {primarySchool.logoUrl ? (
               <img src={primarySchool.logoUrl} alt="" className="w-full h-full object-cover" />
             ) : (
-              <span className="text-sm font-bold" style={{ color: '#007AFF' }}>{primarySchool.name[0]}</span>
+              <span className="text-base font-bold" style={{ color: '#007AFF' }}>{primarySchool.name[0]}</span>
             )}
           </div>
+          <div style={{ minWidth: 0 }}>
+            <p className="text-sm font-semibold truncate" style={{ color: '#1C1C1E' }}>{primarySchool.name}</p>
+            {primarySchool.city && <p className="text-xs mt-0.5" style={{ color: '#9CA3AF' }}>{primarySchool.city}</p>}
+          </div>
         </div>
-        <div style={{ padding: '28px 16px 16px' }}>
-          <p className="text-sm font-semibold" style={{ color: '#1C1C1E' }}>{primarySchool.name}</p>
-          {primarySchool.city && <p className="text-xs mt-0.5" style={{ color: '#6B6B70' }}>{primarySchool.city}</p>}
-          <Link
-            href={`/school/${primarySchool.slug}`}
-            className="mt-3 flex items-center justify-center text-xs font-semibold rounded-xl"
-            style={{ border: '1px solid #E5E5EA', padding: '9px 0', color: '#1C1C1E', textDecoration: 'none' }}
-          >
-            {t.my.viewSchool} {primarySchool.name}
-          </Link>
-        </div>
+        <Link
+          href={`/school/${primarySchool.slug}`}
+          className="mt-4 flex items-center justify-center text-xs font-semibold rounded-full"
+          style={{ border: '1px solid #E5E5EA', padding: '10px 0', color: '#1C1C1E', textDecoration: 'none' }}
+        >
+          {t.my.viewSchool} {primarySchool.name}
+        </Link>
       </div>
     )
   }
@@ -300,7 +300,7 @@ export default function MyHomePage() {
   function renderBeltCard() {
     if (!primaryMember?.belt) return null
     return (
-      <div className="rounded-2xl overflow-hidden" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)', padding: 18 }}>
+      <div className="rounded-[20px]" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)', padding: 20 }}>
         <div className="flex items-center gap-4">
           <img
             src={getBeltImage(primaryMember.belt, primaryMember.beltDegree ?? 0)}
@@ -324,7 +324,7 @@ export default function MyHomePage() {
   function renderMembershipCard() {
     if (!shownMembership) return null
     return (
-      <div className="rounded-2xl overflow-hidden" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)', padding: 18 }}>
+      <div className="rounded-[20px]" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)', padding: 20 }}>
         <div className="flex items-start justify-between mb-3">
           <div>
             <p className="text-[10px] font-normal uppercase tracking-widest mb-0.5" style={{ color: '#6B6B70', letterSpacing: '.8px' }}>{t.my.activePlan}</p>
@@ -374,7 +374,7 @@ export default function MyHomePage() {
       </div>
 
       {/* ── Stat row — desktop/tablet only ───────────────────────────────── */}
-      <div className="hidden lg:grid lg:grid-cols-4 lg:gap-3.5 lg:px-6 lg:mb-5">
+      <div className="hidden lg:grid lg:grid-cols-4 lg:gap-4 lg:px-6 lg:mb-6">
         <StatBox label={t.my.currentBelt} value={primaryMember?.belt ?? '—'} sub={primaryMember?.beltDegree ? `${primaryMember.beltDegree} ${t.my.stripesLabel}` : undefined} />
         <StatBox
           label={t.my.activePlan}
@@ -391,7 +391,7 @@ export default function MyHomePage() {
 
       {/* ── Hero card — next booking ───────────────────────────────────────── */}
       {nextBooking ? (
-        <div className="mx-4 md:mx-6 mb-5 md:mb-6 rounded-3xl overflow-hidden lg:flex lg:items-stretch" style={{ background: 'linear-gradient(145deg, #0d2d52 0%, #08213D 55%, #061729 100%)' }}>
+        <div className="mx-4 md:mx-6 mb-5 md:mb-6 lg:mb-8 rounded-3xl overflow-hidden lg:flex lg:items-stretch" style={{ background: 'linear-gradient(145deg, #0d2d52 0%, #08213D 55%, #061729 100%)' }}>
           {/* Photo panel — desktop/tablet only; falls back to the discipline gradient if no cover photo */}
           <div className="hidden lg:block lg:shrink-0 relative overflow-hidden" style={{ width: 180, aspectRatio: '1 / 1', background: classGradient(nextBooking.class.name) }}>
             {nextBookingOcc?.coverUrl && (
@@ -489,7 +489,9 @@ export default function MyHomePage() {
       </div>
 
       {/* ── Main column + right rail — rail is desktop/tablet only ─────────── */}
-      <div className="lg:grid lg:grid-cols-[1fr_320px] lg:gap-5 lg:items-start lg:px-6">
+      {/* minmax(0,1fr) — without it the carousel's flex-row min-content width pushes
+          this column past its track and spills into the rail (clipped by overflow-x:hidden) */}
+      <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-6 lg:items-start lg:px-6">
       <div>
       {/* ── Upcoming classes carousel ──────────────────────────────────────── */}
       {occurrences.length > 0 && (
@@ -634,7 +636,7 @@ export default function MyHomePage() {
       </div>{/* end main column */}
 
       {/* ── Right rail — school, membership, belt — desktop/tablet only ────── */}
-      <aside className="hidden lg:flex lg:flex-col lg:gap-4">
+      <aside className="hidden lg:flex lg:flex-col lg:gap-5">
         {renderSchoolCard()}
         {renderMembershipCard()}
         {renderBeltCard()}
