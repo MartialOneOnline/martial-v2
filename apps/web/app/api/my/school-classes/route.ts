@@ -4,7 +4,11 @@ import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
 import { nextOccurrence, type ScheduleSlot } from '@/lib/scheduling'
 
-// Returns upcoming class occurrences for the schools where the user has an active membership.
+// Returns upcoming class occurrences for the schools the user belongs to (any
+// SchoolMember status, so a LEAD awaiting payment approval can still see the
+// timetable). Each occurrence carries canBook — true only for schools where the
+// user has an active membership — so the client can show classes read-only and
+// prompt for membership activation instead of booking.
 // Each occurrence is one schedulable slot in the next 14 days.
 export async function GET() {
   const cookieStore = await cookies()
@@ -22,8 +26,17 @@ export async function GET() {
   })
   if (!dbUser) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  // Get user's active membership school IDs
-  const memberships = await prisma.membership.findMany({
+  // Schools the user belongs to at all (LEAD/ACTIVE/FROZEN) — determines what's visible.
+  const schoolMembers = await prisma.schoolMember.findMany({
+    where: { userId: dbUser.id, status: { in: ['ACTIVE', 'LEAD', 'FROZEN'] } },
+    select: { schoolId: true },
+  })
+  const schoolIds = [...new Set(schoolMembers.map(sm => sm.schoolId))]
+
+  if (schoolIds.length === 0) return NextResponse.json({ occurrences: [] })
+
+  // Schools with an active membership — determines what's bookable.
+  const activeMemberships = await prisma.membership.findMany({
     where: {
       userId: dbUser.id,
       status: 'ACTIVE',
@@ -31,9 +44,7 @@ export async function GET() {
     },
     select: { schoolId: true },
   })
-  const schoolIds = [...new Set(memberships.map(m => m.schoolId))]
-
-  if (schoolIds.length === 0) return NextResponse.json({ occurrences: [] })
+  const bookableSchoolIds = new Set(activeMemberships.map(m => m.schoolId))
 
   const classes = await prisma.class.findMany({
     where: { schoolId: { in: schoolIds }, isActive: true },
@@ -67,6 +78,7 @@ export async function GET() {
     instructor: { name: string; photoUrl: string | null } | null
     booked: number
     alreadyBooked: boolean
+    canBook: boolean
   }[] = []
 
   // Get user's existing bookings for these classes in the window
@@ -118,6 +130,7 @@ export async function GET() {
           instructor: cls.instructor,
           booked: capacityMap.get(key) ?? 0,
           alreadyBooked: bookedSet.has(key),
+          canBook: bookableSchoolIds.has(cls.schoolId),
         })
         // Next week same slot
         const next = new Date(cursor)

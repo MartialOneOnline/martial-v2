@@ -24,6 +24,7 @@ type Occurrence = {
   instructor: { name: string; photoUrl: string | null } | null
   booked: number
   alreadyBooked: boolean
+  canBook: boolean
 }
 
 type UserData = {
@@ -419,6 +420,15 @@ export default function MyHomePage() {
                         >
                           {t.my.cancel}
                         </button>
+                      ) : !occ.canBook ? (
+                        <Link
+                          href="/my/membership"
+                          prefetch={false}
+                          className="flex-1 text-center text-xs font-medium rounded-lg"
+                          style={{ background: '#FFFBEB', color: '#D97706', padding: '6px 0', fontSize: 11.5, textDecoration: 'none' }}
+                        >
+                          {t.my.activateToBook}
+                        </Link>
                       ) : isFull ? (
                         <span
                           className="flex-1 text-center text-xs font-medium rounded-lg"
@@ -670,6 +680,16 @@ export default function MyHomePage() {
                   <div className="flex-1 py-3 rounded-2xl text-sm font-medium flex items-center justify-center gap-1" style={{ background: '#E4F7EB', color: '#1E8734' }}>
                     {t.my.bookedCheck}
                   </div>
+                ) : !detailOcc.canBook ? (
+                  <Link
+                    href="/my/membership"
+                    prefetch={false}
+                    onClick={() => setDetailOcc(null)}
+                    className="flex-1 py-3 rounded-2xl text-sm font-medium flex items-center justify-center"
+                    style={{ background: '#FFFBEB', color: '#D97706', textDecoration: 'none' }}
+                  >
+                    {t.my.activateToBook}
+                  </Link>
                 ) : detailOcc.capacity !== null && detailOcc.booked >= detailOcc.capacity ? (
                   <div className="flex-1 py-3 rounded-2xl text-sm font-medium flex items-center justify-center" style={{ background: '#F5F5F5', color: '#9E9E9E' }}>
                     {t.my.full}

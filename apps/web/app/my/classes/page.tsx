@@ -36,6 +36,7 @@ type Occurrence = {
   instructor: { name: string; photoUrl: string | null } | null
   booked: number
   alreadyBooked: boolean
+  canBook: boolean
 }
 
 /* ── Helpers ── */
@@ -205,6 +206,14 @@ function OccurrenceCard({ occ, onBook, onDetail, onCancelBooking }: {
             >
               {t.my.cancelBtn2}
             </button>
+          ) : !occ.canBook ? (
+            <Link
+              href="/my/membership"
+              className="flex-1 flex items-center justify-center text-sm font-medium rounded-xl"
+              style={{ background: '#FFFBEB', color: '#D97706', padding: '8px 0' }}
+            >
+              {t.my.activateToBook}
+            </Link>
           ) : !isFull ? (
             <button
               onClick={() => onBook(occ)}
@@ -389,18 +398,26 @@ function DetailDrawer({ occ, onClose, onBook }: {
             >
               {t.my.closeBtn}
             </button>
-            {!occ.alreadyBooked && !isFull ? (
+            {occ.alreadyBooked ? (
+              <div className="flex-1 py-3 rounded-2xl bg-emerald-50 text-emerald-600 text-sm font-semibold flex items-center justify-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4" />
+                {t.my.bookedCheck}
+              </div>
+            ) : !occ.canBook ? (
+              <Link
+                href="/my/membership"
+                onClick={onClose}
+                className="flex-1 py-3 rounded-2xl bg-amber-50 text-amber-700 text-sm font-semibold flex items-center justify-center"
+              >
+                {t.my.activateToBook}
+              </Link>
+            ) : !isFull ? (
               <button
                 onClick={() => { onClose(); onBook(occ) }}
                 className="flex-1 py-3 rounded-2xl bg-[#E8F4FF] text-[#0870E2] text-sm font-semibold hover:bg-[#0870E2] hover:text-white transition-all"
               >
                 {t.my.bookNowBtn}
               </button>
-            ) : occ.alreadyBooked ? (
-              <div className="flex-1 py-3 rounded-2xl bg-emerald-50 text-emerald-600 text-sm font-semibold flex items-center justify-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4" />
-                {t.my.bookedCheck}
-              </div>
             ) : (
               <div className="flex-1 py-3 rounded-2xl bg-gray-50 text-gray-400 text-sm font-semibold flex items-center justify-center">
                 {t.my.fullBtn}
@@ -507,6 +524,7 @@ type PassPlan = {
   validityDays: number | null
   isPopular: boolean
   alreadyActive: boolean
+  pending: boolean
   school: { name: string }
 }
 
@@ -554,6 +572,8 @@ function PassCard({ plan, onRequest, requesting }: {
         <p className="text-base font-bold text-[#101828]">{fmtPassPrice(plan.price, plan.currency)}</p>
         {plan.alreadyActive ? (
           <span className="text-xs text-green-600 font-semibold">{t.my.active}</span>
+        ) : plan.pending ? (
+          <span className="text-xs text-amber-600 font-semibold">{t.my.pendingRequest}</span>
         ) : (
           <button onClick={() => onRequest(plan)} disabled={requesting}
             className="mt-1 text-xs font-bold text-white bg-[#0870E2] px-3 py-1.5 rounded-xl disabled:opacity-60"
@@ -633,7 +653,7 @@ export default function MyClassesPage() {
     try {
       const res = await fetch(`/api/my/memberships/${plan.id}`, { method: 'POST' })
       if (res.ok) {
-        setPassPlans(prev => prev.map(p => p.id === plan.id ? { ...p, alreadyActive: true } : p))
+        setPassPlans(prev => prev.map(p => p.id === plan.id ? { ...p, pending: true } : p))
         setPassSuccess(plan.name)
         setTimeout(() => setPassSuccess(null), 3500)
       }

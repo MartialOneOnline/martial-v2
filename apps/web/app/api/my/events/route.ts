@@ -4,7 +4,9 @@ import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
 
 // Returns upcoming published events (seminars, competitions, etc.) at the schools
-// where the user has an active membership, plus the user's own event bookings.
+// the user belongs to (any SchoolMember status), plus the user's own event bookings.
+// Event ticket purchase isn't gated on membership status, so LEAD members awaiting
+// payment approval can see and book events same as active members.
 export async function GET() {
   const cookieStore = await cookies()
   const supabase = createServerClient(
@@ -43,16 +45,12 @@ export async function GET() {
   })
   const myBookings = myBookingsRaw.map(b => ({ ...b, buyerName }))
 
-  // Get user's active membership school IDs
-  const memberships = await prisma.membership.findMany({
-    where: {
-      userId: dbUser.id,
-      status: 'ACTIVE',
-      OR: [{ endDate: null }, { endDate: { gte: new Date() } }],
-    },
+  // Get the schools the user belongs to (LEAD/ACTIVE/FROZEN)
+  const schoolMembers = await prisma.schoolMember.findMany({
+    where: { userId: dbUser.id, status: { in: ['ACTIVE', 'LEAD', 'FROZEN'] } },
     select: { schoolId: true },
   })
-  const schoolIds = [...new Set(memberships.map(m => m.schoolId))]
+  const schoolIds = [...new Set(schoolMembers.map(sm => sm.schoolId))]
 
   if (schoolIds.length === 0) return NextResponse.json({ events: [], myBookings })
 

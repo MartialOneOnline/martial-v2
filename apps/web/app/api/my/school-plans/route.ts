@@ -58,12 +58,21 @@ export async function GET() {
   const activePlanIds = new Set(activeMemberships.map(m => m.planId).filter(Boolean))
   const activeSchoolIds = new Set(activeMemberships.map(m => m.schoolId))
 
+  // Plans with a request already sent and awaiting the school's approval —
+  // lets the UI show "Pending" instead of letting the student request it again.
+  const pendingMemberships = await prisma.membership.findMany({
+    where: { userId: dbUser.id, status: 'PENDING' },
+    select: { planId: true },
+  })
+  const pendingPlanIds = new Set(pendingMemberships.map(m => m.planId).filter(Boolean))
+
   return NextResponse.json({
     plans: plans.map(p => ({
       ...p,
       price: Number(p.price),
       school: schoolMap[p.schoolId] ?? { id: p.schoolId, name: '', slug: '' },
       alreadyActive: activePlanIds.has(p.id),
+      pending: pendingPlanIds.has(p.id),
       hasActiveInSchool: activeSchoolIds.has(p.schoolId),
     })),
   })
