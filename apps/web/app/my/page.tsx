@@ -123,6 +123,18 @@ function classTypeBadge(name: string) {
   return 'CLASS'
 }
 
+// ── Desktop/tablet stat tile ────────────────────────────────────────────────
+
+function StatBox({ label, value, sub }: { label: string; value: string; sub?: string }) {
+  return (
+    <div className="rounded-2xl" style={{ background: '#fff', border: '1px solid rgba(0,0,0,.06)', boxShadow: '0 1px 2px rgba(16,24,40,.04)', padding: '16px 18px' }}>
+      <p className="text-[11px] mb-2" style={{ color: '#6B6B70' }}>{label}</p>
+      <p className="text-[22px] font-semibold" style={{ color: '#1C1C1E', letterSpacing: '-0.2px' }}>{value}</p>
+      {sub && <p className="text-[11.5px] mt-0.5" style={{ color: '#9CA3AF' }}>{sub}</p>}
+    </div>
+  )
+}
+
 // ── Quick actions ─────────────────────────────────────────────────────────────
 
 const QUICK_ACTION_KEYS = [
@@ -242,9 +254,118 @@ export default function MyHomePage() {
   const days              = nextBooking ? daysUntil(nextBooking.scheduledAt) : null
   const dotCount          = Math.min(occurrences.length, 4)
 
+  // Cross-reference the booked class against the occurrences list (which carries
+  // coverUrl) so the desktop hero can show a real photo without a second API call.
+  const nextBookingOcc = nextBooking
+    ? occurrences.find(o => o.classId === nextBooking.class.id && o.scheduledAt === nextBooking.scheduledAt)
+    : undefined
+
+  const primarySchool: { name: string; slug: string; logoUrl: string | null; city?: string | null } | undefined =
+    activeMembership?.school ?? pendingMembership?.school ?? primaryMember?.school
+
+  // ── Desktop rail cards — shared between the mobile stacked layout and the
+  // lg+ right rail so both stay in sync from one source of markup. ──────────
+
+  function renderSchoolCard() {
+    if (!primarySchool) return null
+    return (
+      <div className="rounded-2xl overflow-hidden" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)' }}>
+        <div className="relative" style={{ aspectRatio: '2.4 / 1', background: 'linear-gradient(135deg, #092E63, #06224A)' }}>
+          <div
+            className="absolute rounded-xl overflow-hidden flex items-center justify-center"
+            style={{ left: 16, bottom: -20, width: 46, height: 46, background: '#fff', border: '3px solid #fff', boxShadow: '0 2px 8px rgba(0,0,0,.12)' }}
+          >
+            {primarySchool.logoUrl ? (
+              <img src={primarySchool.logoUrl} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-sm font-bold" style={{ color: '#007AFF' }}>{primarySchool.name[0]}</span>
+            )}
+          </div>
+        </div>
+        <div style={{ padding: '28px 16px 16px' }}>
+          <p className="text-sm font-semibold" style={{ color: '#1C1C1E' }}>{primarySchool.name}</p>
+          {primarySchool.city && <p className="text-xs mt-0.5" style={{ color: '#6B6B70' }}>{primarySchool.city}</p>}
+          <Link
+            href={`/school/${primarySchool.slug}`}
+            className="mt-3 flex items-center justify-center text-xs font-semibold rounded-xl"
+            style={{ border: '1px solid #E5E5EA', padding: '9px 0', color: '#1C1C1E', textDecoration: 'none' }}
+          >
+            {t.my.viewSchool} {primarySchool.name}
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  function renderBeltCard() {
+    if (!primaryMember?.belt) return null
+    return (
+      <div className="rounded-2xl overflow-hidden" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)', padding: 18 }}>
+        <div className="flex items-center gap-4">
+          <img
+            src={getBeltImage(primaryMember.belt, primaryMember.beltDegree ?? 0)}
+            alt={primaryMember.belt}
+            className="h-8 w-auto max-w-[90px] object-contain shrink-0"
+          />
+          <div className="flex-1" style={{ minWidth: 0 }}>
+            <p className="text-sm font-medium" style={{ color: '#1C1C1E' }}>
+              {primaryMember.belt}
+              {(primaryMember.beltDegree ?? 0) > 0 && ` · ${primaryMember.beltDegree} ${t.my.stripesLabel}`}
+            </p>
+            <Link href="/my/progress" prefetch={false} className="flex items-center gap-0.5 text-sm font-medium mt-1" style={{ color: '#007AFF' }}>
+              {t.my.viewProgress}<ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  function renderMembershipCard() {
+    if (!shownMembership) return null
+    return (
+      <div className="rounded-2xl overflow-hidden" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)', padding: 18 }}>
+        <div className="flex items-start justify-between mb-3">
+          <div>
+            <p className="text-[10px] font-normal uppercase tracking-widest mb-0.5" style={{ color: '#6B6B70', letterSpacing: '.8px' }}>{t.my.activePlan}</p>
+            <p className="text-sm font-medium" style={{ color: '#1C1C1E' }}>{shownMembership.planName}</p>
+          </div>
+          {activeMembership ? (
+            <span className="text-xs font-medium rounded-full px-2.5 py-1" style={{ background: '#E4F7EB', color: '#1E8734' }}>{t.my.active}</span>
+          ) : (
+            <span className="text-xs font-medium rounded-full px-2.5 py-1" style={{ background: '#FFFBEB', color: '#D97706' }}>{t.my.statusPending}</span>
+          )}
+        </div>
+        <p className="text-[22px] font-medium mb-0.5" style={{ color: '#1C1C1E', letterSpacing: '-0.4px' }}>
+          {fmtPrice(shownMembership.price, shownMembership.currency)}
+          <span className="text-sm font-normal" style={{ color: '#6B6B70' }}> {t.my.perMonth}</span>
+        </p>
+        {activeMembership?.endDate && (
+          <p className="text-xs mb-3" style={{ color: '#6B6B70' }}>
+            {t.my.renews} {new Date(activeMembership.endDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+          </p>
+        )}
+        {pendingMembership && !activeMembership && (
+          <div className="mt-1 mb-3 rounded-xl flex items-start gap-2" style={{ background: '#FFFBEB', border: '1px solid #FDE68A', padding: '10px 12px' }}>
+            <Clock className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color: '#D97706' }} />
+            <div>
+              <p className="text-xs font-semibold" style={{ color: '#92400E' }}>{t.my.pendingApproval}</p>
+              <p className="text-xs leading-relaxed" style={{ color: '#B45309' }}>{t.my.pendingDesc}</p>
+            </div>
+          </div>
+        )}
+        <div style={{ height: 0.5, background: 'rgba(60,60,67,.1)', margin: '14px 0' }} />
+        <Link href="/my/membership" prefetch={false} className="flex items-center justify-between">
+          <span className="text-sm font-medium" style={{ color: '#007AFF' }}>{t.my.manageMembership}</span>
+          <ChevronRight className="w-3.5 h-3.5" style={{ color: '#AEAEB2' }} />
+        </Link>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen pb-4" style={{ background: '#F2F2F7', overflowX: 'hidden' }}>
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl lg:max-w-[1180px] mx-auto">
 
       {/* ── Greeting ──────────────────────────────────────────────────────── */}
       <div className="px-4 md:px-6 pt-4 md:pt-7 pb-4 md:pb-5">
@@ -252,9 +373,33 @@ export default function MyHomePage() {
         <h1 className="text-2xl md:text-3xl font-semibold tracking-tight" style={{ color: '#1C1C1E', letterSpacing: '-0.5px' }}>{firstName}</h1>
       </div>
 
+      {/* ── Stat row — desktop/tablet only ───────────────────────────────── */}
+      <div className="hidden lg:grid lg:grid-cols-4 lg:gap-3.5 lg:px-6 lg:mb-5">
+        <StatBox label={t.my.currentBelt} value={primaryMember?.belt ?? '—'} sub={primaryMember?.beltDegree ? `${primaryMember.beltDegree} ${t.my.stripesLabel}` : undefined} />
+        <StatBox
+          label={t.my.activePlan}
+          value={shownMembership ? fmtPrice(shownMembership.price, shownMembership.currency) : '—'}
+          sub={shownMembership ? (activeMembership ? t.my.active : t.my.statusPending) : undefined}
+        />
+        <StatBox label={t.my.myClasses} value={String(user?.bookings?.length ?? 0)} sub={t.my.upcomingClasses} />
+        <StatBox
+          label={t.my.nextClass}
+          value={nextBooking ? fmtTime(nextBooking.scheduledAt) : '—'}
+          sub={nextBooking ? (days === 0 ? t.my.today : days === 1 ? t.my.tomorrow : fmtDate(nextBooking.scheduledAt)) : undefined}
+        />
+      </div>
+
       {/* ── Hero card — next booking ───────────────────────────────────────── */}
       {nextBooking ? (
-        <div className="mx-4 md:mx-6 mb-5 md:mb-6 rounded-3xl overflow-hidden relative" style={{ background: 'linear-gradient(145deg, #0d2d52 0%, #08213D 55%, #061729 100%)', padding: '22px 22px 20px' }}>
+        <div className="mx-4 md:mx-6 mb-5 md:mb-6 rounded-3xl overflow-hidden lg:flex lg:items-stretch" style={{ background: 'linear-gradient(145deg, #0d2d52 0%, #08213D 55%, #061729 100%)' }}>
+          {/* Photo panel — desktop/tablet only; falls back to the discipline gradient if no cover photo */}
+          <div className="hidden lg:block lg:shrink-0 relative overflow-hidden" style={{ width: 180, aspectRatio: '1 / 1', background: classGradient(nextBooking.class.name) }}>
+            {nextBookingOcc?.coverUrl && (
+              <img src={nextBookingOcc.coverUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+            )}
+          </div>
+
+          <div className="relative flex-1" style={{ padding: '22px 22px 20px' }}>
           {/* Decorative circles */}
           <div className="absolute" style={{ right: -20, top: -40, width: 160, height: 160, borderRadius: '50%', border: '28px solid rgba(255,255,255,.04)' }} />
           <div className="absolute" style={{ right: 60, top: -70, width: 100, height: 100, borderRadius: '50%', border: '16px solid rgba(255,255,255,.025)' }} />
@@ -308,6 +453,7 @@ export default function MyHomePage() {
               {t.my.qrCheckIn}
             </Link>
           </div>
+          </div>
         </div>
       ) : (
         /* No upcoming booking */
@@ -342,10 +488,13 @@ export default function MyHomePage() {
         </div>
       </div>
 
+      {/* ── Main column + right rail — rail is desktop/tablet only ─────────── */}
+      <div className="lg:grid lg:grid-cols-[1fr_320px] lg:gap-5 lg:items-start lg:px-6">
+      <div>
       {/* ── Upcoming classes carousel ──────────────────────────────────────── */}
       {occurrences.length > 0 && (
         <div className="mb-2">
-          <div className="flex items-center justify-between px-4 md:px-6 mb-3">
+          <div className="flex items-center justify-between px-4 md:px-6 lg:px-0 mb-3">
             <span className="text-base md:text-lg font-semibold" style={{ color: '#1C1C1E', letterSpacing: '-0.2px' }}>{t.my.upcomingClasses}</span>
             <Link href="/my/classes" prefetch={false} className="flex items-center text-sm font-normal" style={{ color: '#007AFF' }}>
               {t.my.viewAll}<ChevronRight className="w-3.5 h-3.5" />
@@ -370,10 +519,11 @@ export default function MyHomePage() {
                 <div
                   key={`${occ.classId}:${occ.scheduledAt}`}
                   className="car-card flex flex-col shrink-0 rounded-xl overflow-hidden"
-                  style={{ width: 'calc(88vw)', maxWidth: 320, background: '#fff', border: '1px solid rgba(0,0,0,.07)', boxShadow: '0 1px 4px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04)', scrollSnapAlign: 'start' }}
+                  style={{ width: 'calc(88vw)', maxWidth: 325, background: '#fff', border: '1px solid rgba(0,0,0,.07)', boxShadow: '0 1px 4px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04)', scrollSnapAlign: 'start' }}
                 >
-                  {/* Photo */}
-                  <div className="relative shrink-0 overflow-hidden" style={{ height: 132, borderRadius: '8px 8px 0 0', background: classGradient(occ.className) }}>
+                  {/* Photo — fixed aspect-ratio (not a fixed height) so it scales cleanly
+                      with the card width instead of stretching or cropping oddly */}
+                  <div className="relative shrink-0 overflow-hidden" style={{ aspectRatio: '325 / 261', borderRadius: '8px 8px 0 0', background: classGradient(occ.className) }}>
                     {occ.coverUrl && (
                       <img
                         src={occ.coverUrl}
@@ -481,73 +631,21 @@ export default function MyHomePage() {
           )}
         </div>
       )}
+      </div>{/* end main column */}
 
-      {/* ── Progress + Membership — side by side on desktop ──────────────── */}
-      <div className="md:grid md:grid-cols-2 md:gap-4 md:px-6 md:mb-0">
+      {/* ── Right rail — school, membership, belt — desktop/tablet only ────── */}
+      <aside className="hidden lg:flex lg:flex-col lg:gap-4">
+        {renderSchoolCard()}
+        {renderMembershipCard()}
+        {renderBeltCard()}
+      </aside>
+      </div>{/* end lg:grid main+rail */}
 
-      {/* ── Belt badge ─────────────────────────────────────────────────────── */}
-      {primaryMember?.belt && (
-        <div className="mx-4 md:mx-0 mb-4 rounded-2xl overflow-hidden" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)', padding: 18 }}>
-          <div className="flex items-center gap-4">
-            <img
-              src={getBeltImage(primaryMember.belt, primaryMember.beltDegree ?? 0)}
-              alt={primaryMember.belt}
-              className="h-8 w-auto max-w-[90px] object-contain shrink-0"
-            />
-            <div className="flex-1" style={{ minWidth: 0 }}>
-              <p className="text-sm font-medium" style={{ color: '#1C1C1E' }}>
-                {primaryMember.belt}
-                {(primaryMember.beltDegree ?? 0) > 0 && ` · ${primaryMember.beltDegree} ${t.my.stripesLabel}`}
-              </p>
-              <Link href="/my/progress" prefetch={false} className="flex items-center gap-0.5 text-sm font-medium mt-1" style={{ color: '#007AFF' }}>
-                {t.my.viewProgress}<ChevronRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Membership card ────────────────────────────────────────────────── */}
-      {shownMembership && (
-        <div className="mx-4 md:mx-0 mb-4 rounded-2xl overflow-hidden" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)', padding: 18 }}>
-          <div className="flex items-start justify-between mb-3">
-            <div>
-              <p className="text-[10px] font-normal uppercase tracking-widest mb-0.5" style={{ color: '#6B6B70', letterSpacing: '.8px' }}>{t.my.activePlan}</p>
-              <p className="text-sm font-medium" style={{ color: '#1C1C1E' }}>{shownMembership.planName}</p>
-            </div>
-            {activeMembership ? (
-              <span className="text-xs font-medium rounded-full px-2.5 py-1" style={{ background: '#E4F7EB', color: '#1E8734' }}>{t.my.active}</span>
-            ) : (
-              <span className="text-xs font-medium rounded-full px-2.5 py-1" style={{ background: '#FFFBEB', color: '#D97706' }}>{t.my.statusPending}</span>
-            )}
-          </div>
-          <p className="text-[22px] font-medium mb-0.5" style={{ color: '#1C1C1E', letterSpacing: '-0.4px' }}>
-            {fmtPrice(shownMembership.price, shownMembership.currency)}
-            <span className="text-sm font-normal" style={{ color: '#6B6B70' }}> {t.my.perMonth}</span>
-          </p>
-          {activeMembership?.endDate && (
-            <p className="text-xs mb-3" style={{ color: '#6B6B70' }}>
-              {t.my.renews} {new Date(activeMembership.endDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-            </p>
-          )}
-          {pendingMembership && !activeMembership && (
-            <div className="mt-1 mb-3 rounded-xl flex items-start gap-2" style={{ background: '#FFFBEB', border: '1px solid #FDE68A', padding: '10px 12px' }}>
-              <Clock className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color: '#D97706' }} />
-              <div>
-                <p className="text-xs font-semibold" style={{ color: '#92400E' }}>{t.my.pendingApproval}</p>
-                <p className="text-xs leading-relaxed" style={{ color: '#B45309' }}>{t.my.pendingDesc}</p>
-              </div>
-            </div>
-          )}
-          <div style={{ height: 0.5, background: 'rgba(60,60,67,.1)', margin: '14px 0' }} />
-          <Link href="/my/membership" prefetch={false} className="flex items-center justify-between">
-            <span className="text-sm font-medium" style={{ color: '#007AFF' }}>{t.my.manageMembership}</span>
-            <ChevronRight className="w-3.5 h-3.5" style={{ color: '#AEAEB2' }} />
-          </Link>
-        </div>
-      )}
-
-      </div>{/* end md:grid */}
+      {/* ── Progress + Membership — mobile/tablet stacked, replaced by the rail on lg+ ── */}
+      <div className="md:grid md:grid-cols-2 md:gap-4 md:px-6 md:mb-0 lg:hidden">
+        {primaryMember?.belt && <div className="mx-4 md:mx-0 mb-4">{renderBeltCard()}</div>}
+        {shownMembership && <div className="mx-4 md:mx-0 mb-4">{renderMembershipCard()}</div>}
+      </div>
 
       {/* ── Empty state (no school / membership) ──────────────────────────── */}
       {!activeMembership && !nextBooking && (user?.schoolMembers?.length ?? 0) === 0 && (
