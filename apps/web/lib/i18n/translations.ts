@@ -594,6 +594,7 @@ export const translations = {
       // Events page
       eventsHeader: 'Events', availableTab: 'Available', myTicketsTab: 'My tickets',
       noEventsAvailable: 'No upcoming events', noEventsDesc: "Your school hasn't published any events yet.",
+      exploreEvents: 'Explore events',
       noTicketsYet: 'No tickets yet', noTicketsDesc: 'Tickets you buy will show up here.',
       selectTicket: 'Select a ticket', quantityLabel: 'Quantity',
       getTicketsBtn: 'Get tickets', soldOutBtn: 'Sold out', freeEntry: 'Free',
@@ -1157,6 +1158,7 @@ export const translations = {
       // Events page
       eventsHeader: 'Eventos', availableTab: 'Disponibles', myTicketsTab: 'Mis entradas',
       noEventsAvailable: 'No hay eventos próximos', noEventsDesc: 'Tu escuela aún no ha publicado ningún evento.',
+      exploreEvents: 'Explorar eventos',
       noTicketsYet: 'Aún no tienes entradas', noTicketsDesc: 'Las entradas que compres aparecerán aquí.',
       selectTicket: 'Elige una entrada', quantityLabel: 'Cantidad',
       getTicketsBtn: 'Comprar entradas', soldOutBtn: 'Agotado', freeEntry: 'Gratis',
@@ -1720,6 +1722,7 @@ export const translations = {
       // Events page
       eventsHeader: 'Eventos', availableTab: 'Disponíveis', myTicketsTab: 'Meus bilhetes',
       noEventsAvailable: 'Sem eventos próximos', noEventsDesc: 'A sua escola ainda não publicou nenhum evento.',
+      exploreEvents: 'Explorar eventos',
       noTicketsYet: 'Ainda não tem bilhetes', noTicketsDesc: 'Os bilhetes que comprar aparecerão aqui.',
       selectTicket: 'Escolha um bilhete', quantityLabel: 'Quantidade',
       getTicketsBtn: 'Comprar bilhetes', soldOutBtn: 'Esgotado', freeEntry: 'Grátis',
@@ -2283,6 +2286,7 @@ export const translations = {
       // Events page
       eventsHeader: 'Événements', availableTab: 'Disponibles', myTicketsTab: 'Mes billets',
       noEventsAvailable: 'Aucun événement à venir', noEventsDesc: "Votre école n'a pas encore publié d'événement.",
+      exploreEvents: 'Explorer les événements',
       noTicketsYet: 'Aucun billet pour le moment', noTicketsDesc: 'Les billets que vous achetez apparaîtront ici.',
       selectTicket: 'Choisir un billet', quantityLabel: 'Quantité',
       getTicketsBtn: 'Acheter des billets', soldOutBtn: 'Complet', freeEntry: 'Gratuit',

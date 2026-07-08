@@ -550,7 +550,7 @@ function MyEventsPageInner() {
                     href="/explore"
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-xs font-semibold bg-[#0870E2] hover:bg-[#0558b0] transition-colors"
                   >
-                    {t.my.exploreSchools}
+                    {t.my.exploreEvents}
                   </Link>
                 </>
               ) : (

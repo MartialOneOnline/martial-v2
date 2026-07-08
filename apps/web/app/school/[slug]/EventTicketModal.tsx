@@ -87,7 +87,7 @@ export default function EventTicketModal({ event, schoolSlug, redirectPath, onCl
 
       <div
         onClick={e => e.stopPropagation()}
-        className="relative w-full md:w-[480px] bg-white rounded-t-[28px] md:rounded-[28px] shadow-2xl overflow-hidden"
+        className="relative w-full md:w-[480px] bg-white rounded-t-[28px] md:rounded-[28px] shadow-2xl overflow-hidden isolate transform-gpu"
         style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" }}
       >
         <div className="md:hidden flex justify-center absolute top-2 left-0 right-0 z-20">
@@ -98,7 +98,7 @@ export default function EventTicketModal({ event, schoolSlug, redirectPath, onCl
         <div className="relative h-24">
           <Image src={event.coverUrl ?? FALLBACK_HERO} alt={event.title} fill className="object-cover" />
           <div className="absolute inset-0 bg-gradient-to-b from-black/5 to-black/60" />
-          <button onClick={onClose} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/35 backdrop-blur-sm hover:bg-black/50 flex items-center justify-center transition-colors">
+          <button onClick={onClose} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/45 hover:bg-black/60 flex items-center justify-center transition-colors">
             <X className="w-4 h-4 text-white" />
           </button>
           <div className="absolute left-4 md:left-5 bottom-3 right-16 text-white">
