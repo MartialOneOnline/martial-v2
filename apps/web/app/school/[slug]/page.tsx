@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/db'
 import WeeklyTimetable from './WeeklyTimetable'
+import EventsScrollHandler from './EventsScrollHandler'
 import MembershipSection from './MembershipSection'
 import TrialBookingCTA from './TrialBookingCTA'
 import EventTicketCTA from './EventTicketCTA'
@@ -152,6 +153,7 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
 
   return (
     <div className="min-h-screen bg-[#F8F9FB]">
+      <EventsScrollHandler />
 
       {/* ── Hero ─────────────────────────────────────────── */}
       <div className="relative h-72 md:h-[420px] bg-[#101828] overflow-hidden">
@@ -267,7 +269,7 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
 
             {/* Upcoming Events */}
             {eventsMapped.length > 0 && (
-              <div id="events" className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden scroll-mt-6">
+              <div data-events-anchor className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden scroll-mt-6">
                 <div className="px-5 py-4 border-b border-gray-50">
                   <p className="text-sm font-bold text-[#101828]">Upcoming Events</p>
                 </div>

@@ -844,7 +844,7 @@ export default function ExplorePage() {
   // Navigate to the school profile's Events section — ticket purchase needs full
   // school context (location, other events), so it lives on the profile, not Explore.
   function openEvent(event: DbEvent) {
-    router.push(`/school/${event.school.slug}#events`)
+    router.push(`/school/${event.school.slug}#events`, { scroll: false })
   }
 
   const isLoading = mode === 'classes' ? loadingClasses : mode === 'events' ? loadingEvents : loadingSchools
