@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json()
   const {
     title, description, type, location, startAt, endAt,
-    capacity, paymentMethods, isPublished, externalUrl, instructorId, coverUrl, gallery,
+    capacity, showCapacity, paymentMethods, isPublished, externalUrl, instructorId, coverUrl, gallery,
     tickets = [],
   } = body
 
@@ -90,6 +90,7 @@ export async function POST(req: NextRequest) {
       endAt: endAt ? new Date(endAt) : null,
       // `!= null` (not truthy) — 0 is a valid capacity ("sold out"/"no seats"), distinct from unset (null = unlimited).
       capacity: capacity != null ? Number(capacity) : null,
+      showCapacity: Boolean(showCapacity),
       paymentMethods: sanitizePaymentMethods(paymentMethods, availableMethods),
       isPublished: isPublished ?? false,
       externalUrl: externalUrl?.trim() || null,

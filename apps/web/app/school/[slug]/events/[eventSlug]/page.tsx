@@ -103,7 +103,7 @@ export default async function EventProfile(
   const timeLabel = event.startAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
   const redirectPath = `/school/${slug}/events/${eventSlug}`
   const mapQuery = event.location || event.school.address || event.school.city || ''
-  const remaining = event.capacity != null ? Math.max(0, event.capacity - eventForCta.booked) : null
+  const remaining = event.showCapacity && event.capacity != null ? Math.max(0, event.capacity - eventForCta.booked) : null
   const hasContactInfo = !!(event.school.phone || event.school.website || event.school.email || event.school.instagram)
 
   return (
@@ -197,6 +197,13 @@ export default async function EventProfile(
                   <MapPin className="w-4 h-4 text-[#0870E2] shrink-0 mt-0.5" />
                   {mapQuery}
                 </div>
+                <iframe
+                  title="Event location map"
+                  src={`https://www.google.com/maps?q=${encodeURIComponent(mapQuery)}&output=embed`}
+                  className="w-full h-56 border-0"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
               </div>
             )}
           </div>

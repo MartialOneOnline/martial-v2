@@ -43,6 +43,7 @@ interface EventRow {
   startAt: string
   endAt: string | null
   capacity: number | null
+  showCapacity: boolean
   paymentMethods: PaymentMethod[]
   isPublished: boolean
   isCancelled: boolean
@@ -140,6 +141,7 @@ interface EventFormData {
   instructorId: string
   location: string
   capacity: string
+  showCapacity: boolean
   tickets: EventTicket[]
   paymentMethods: PaymentMethod[]
   isPublished: boolean
@@ -151,7 +153,7 @@ interface EventFormData {
 
 const EMPTY_FORM: EventFormData = {
   title: '', type: 'SEMINAR', startDate: '', startTime: '', endTime: '',
-  instructorId: '', location: '', capacity: '',
+  instructorId: '', location: '', capacity: '', showCapacity: false,
   tickets: [{ ...EMPTY_TICKET, name: 'General' }],
   paymentMethods: [], isPublished: false, externalUrl: '', description: '', coverUrl: '', gallery: [],
 }
@@ -171,6 +173,7 @@ function eventToForm(ev: EventRow): EventFormData {
     instructorId: ev.instructor?.id ?? '',
     location: ev.location ?? '',
     capacity: ev.capacity?.toString() ?? '',
+    showCapacity: ev.showCapacity,
     tickets: ev.tickets.length > 0
       ? ev.tickets.map(t => ({ id: t.id, name: t.name, description: '', price: t.price, currency: t.currency, capacity: t.capacity?.toString() ?? '' }))
       : [{ ...EMPTY_TICKET, name: 'General' }],
@@ -200,6 +203,7 @@ function formToPayload(form: EventFormData) {
     location: form.location || null,
     // `!== ''` (not truthy) — 0 is a valid capacity ("sold out"/"no seats"), distinct from a blank field (= unlimited).
     capacity: form.capacity !== '' ? Number(form.capacity) : null,
+    showCapacity: form.showCapacity,
     tickets: form.tickets.filter(t => t.name.trim()).map(t => ({
       ...(t.id && { id: t.id }),
       name: t.name.trim(),
@@ -624,6 +628,32 @@ function EventDrawer({ open, onClose, onSaved, editing, instructors, availableMe
                     background: form.isPublished ? '#0071E3' : '#E5E7EB',
                     padding: 2, display: 'flex', alignItems: 'center',
                     justifyContent: form.isPublished ? 'flex-end' : 'flex-start',
+                    transition: 'background 0.2s', flexShrink: 0,
+                  }}>
+                  <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#fff',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.25)', transition: 'all 0.2s' }} />
+                </div>
+              </div>
+
+              {/* Show spots left toggle */}
+              <div className="flex items-center justify-between rounded-xl px-4 py-3"
+                style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>
+                    Show spots left
+                  </p>
+                  <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 1 }}>
+                    Displays remaining capacity ("X spots left") on the public event page
+                  </p>
+                </div>
+                <div
+                  onClick={() => set('showCapacity', !form.showCapacity)}
+                  className="cursor-pointer select-none"
+                  style={{
+                    width: 44, height: 24, borderRadius: 99,
+                    background: form.showCapacity ? '#0071E3' : '#E5E7EB',
+                    padding: 2, display: 'flex', alignItems: 'center',
+                    justifyContent: form.showCapacity ? 'flex-end' : 'flex-start',
                     transition: 'background 0.2s', flexShrink: 0,
                   }}>
                   <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#fff',

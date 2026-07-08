@@ -4110,6 +4110,7 @@ export const EventScalarFieldEnum = {
   startAt: 'startAt',
   endAt: 'endAt',
   capacity: 'capacity',
+  showCapacity: 'showCapacity',
   coverUrl: 'coverUrl',
   gallery: 'gallery',
   isPublished: 'isPublished',

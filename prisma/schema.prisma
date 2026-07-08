@@ -707,6 +707,7 @@ model Event {
   startAt        DateTime
   endAt          DateTime?
   capacity       Int?
+  showCapacity   Boolean   @default(false) // show "X spots left" publicly on the event page
   coverUrl       String?
   gallery        String[]  @default([]) // extra photos shown on the event's own page, beyond the banner
   isPublished    Boolean   @default(false)

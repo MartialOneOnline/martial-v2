@@ -36,6 +36,9 @@ function RegisterPageInner() {
   const searchParams = useSearchParams()
   const redirectParam = safeRedirect(searchParams.get('redirect'))
   const initialType = searchParams.get('type') === 'school' ? 'school' : 'student'
+  // Contexts like buying an event ticket only make sense as a student account —
+  // showing the School/Academy choice there is a non-sequitur, not a real option.
+  const typeLocked = searchParams.get('lock') === '1'
 
   const [accountType, setAccountType] = useState<AccountType>(initialType)
   const [disciplineOptions, setDisciplineOptions] = useState<{ slug: string; label: string }[]>([])
@@ -177,26 +180,30 @@ function RegisterPageInner() {
         </div>
 
         {/* Account type toggle */}
-        <div style={{ display: 'flex', borderRadius: 12, border: `1px solid ${BORDER}`, overflow: 'hidden', marginBottom: 10, background: '#fff' }}>
-          {(['student', 'school'] as AccountType[]).map(t => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => { setAccountType(t); setErrors({}); setApiError('') }}
-              style={{
-                flex: 1, padding: '12px 8px', fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer',
-                background: accountType === t ? BLUE : '#fff', color: accountType === t ? '#fff' : MUTED,
-                transition: 'all .15s',
-              }}
-            >
-              {t === 'student' ? '🥋 Student' : '🏛️ School / Academy'}
-            </button>
-          ))}
-        </div>
+        {!typeLocked && (
+          <div style={{ display: 'flex', borderRadius: 12, border: `1px solid ${BORDER}`, overflow: 'hidden', marginBottom: 10, background: '#fff' }}>
+            {(['student', 'school'] as AccountType[]).map(t => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => { setAccountType(t); setErrors({}); setApiError('') }}
+                style={{
+                  flex: 1, padding: '12px 8px', fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer',
+                  background: accountType === t ? BLUE : '#fff', color: accountType === t ? '#fff' : MUTED,
+                  transition: 'all .15s',
+                }}
+              >
+                {t === 'student' ? '🥋 Student' : '🏛️ School / Academy'}
+              </button>
+            ))}
+          </div>
+        )}
         <p style={{ margin: '0 0 20px', fontSize: 12.5, color: MUTED, textAlign: 'center', lineHeight: 1.5 }}>
-          {accountType === 'student'
-            ? 'Book classes, track your progress and manage your membership.'
-            : 'Manage your students, classes, timetable and payments.'}
+          {typeLocked
+            ? 'Create your free student account to get your ticket.'
+            : accountType === 'student'
+              ? 'Book classes, track your progress and manage your membership.'
+              : 'Manage your students, classes, timetable and payments.'}
         </p>
 
         <form onSubmit={handleSubmit} noValidate

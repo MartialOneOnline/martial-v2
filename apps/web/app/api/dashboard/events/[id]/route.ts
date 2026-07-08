@@ -41,11 +41,11 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const body = await req.json()
   const {
     title, description, type, location, startAt, endAt,
-    capacity, paymentMethods, isPublished, isCancelled, externalUrl, instructorId, coverUrl, gallery,
+    capacity, showCapacity, paymentMethods, isPublished, isCancelled, externalUrl, instructorId, coverUrl, gallery,
     tickets,
   } = body as {
     title?: string; description?: string; type?: string; location?: string; startAt?: string; endAt?: string
-    capacity?: number; paymentMethods?: string[]; isPublished?: boolean; isCancelled?: boolean
+    capacity?: number; showCapacity?: boolean; paymentMethods?: string[]; isPublished?: boolean; isCancelled?: boolean
     externalUrl?: string; instructorId?: string; coverUrl?: string; gallery?: string[]
     tickets?: { id?: string; name: string; description?: string; price?: number; currency?: string; capacity?: number }[]
   }
@@ -106,6 +106,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       startAt:        startAt                     ? new Date(startAt) : existing.startAt,
       endAt:          endAt !== undefined         ? (endAt ? new Date(endAt) : null) : existing.endAt,
       capacity:       capacity !== undefined      ? (capacity != null ? Number(capacity) : null) : existing.capacity,
+      showCapacity:   showCapacity                ?? existing.showCapacity,
       paymentMethods: paymentMethods !== undefined ? sanitizePaymentMethods(paymentMethods, availableMethods) : existing.paymentMethods,
       isPublished:    isPublished                 ?? existing.isPublished,
       isCancelled:    isCancelled                 ?? existing.isCancelled,

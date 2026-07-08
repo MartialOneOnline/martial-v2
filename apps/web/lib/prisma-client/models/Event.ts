@@ -45,6 +45,7 @@ export type EventMinAggregateOutputType = {
   startAt: Date | null
   endAt: Date | null
   capacity: number | null
+  showCapacity: boolean | null
   coverUrl: string | null
   isPublished: boolean | null
   isCancelled: boolean | null
@@ -65,6 +66,7 @@ export type EventMaxAggregateOutputType = {
   startAt: Date | null
   endAt: Date | null
   capacity: number | null
+  showCapacity: boolean | null
   coverUrl: string | null
   isPublished: boolean | null
   isCancelled: boolean | null
@@ -85,6 +87,7 @@ export type EventCountAggregateOutputType = {
   startAt: number
   endAt: number
   capacity: number
+  showCapacity: number
   coverUrl: number
   gallery: number
   isPublished: number
@@ -117,6 +120,7 @@ export type EventMinAggregateInputType = {
   startAt?: true
   endAt?: true
   capacity?: true
+  showCapacity?: true
   coverUrl?: true
   isPublished?: true
   isCancelled?: true
@@ -137,6 +141,7 @@ export type EventMaxAggregateInputType = {
   startAt?: true
   endAt?: true
   capacity?: true
+  showCapacity?: true
   coverUrl?: true
   isPublished?: true
   isCancelled?: true
@@ -157,6 +162,7 @@ export type EventCountAggregateInputType = {
   startAt?: true
   endAt?: true
   capacity?: true
+  showCapacity?: true
   coverUrl?: true
   gallery?: true
   isPublished?: true
@@ -266,6 +272,7 @@ export type EventGroupByOutputType = {
   startAt: Date
   endAt: Date | null
   capacity: number | null
+  showCapacity: boolean
   coverUrl: string | null
   gallery: string[]
   isPublished: boolean
@@ -311,6 +318,7 @@ export type EventWhereInput = {
   startAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   endAt?: Prisma.DateTimeNullableFilter<"Event"> | Date | string | null
   capacity?: Prisma.IntNullableFilter<"Event"> | number | null
+  showCapacity?: Prisma.BoolFilter<"Event"> | boolean
   coverUrl?: Prisma.StringNullableFilter<"Event"> | string | null
   gallery?: Prisma.StringNullableListFilter<"Event">
   isPublished?: Prisma.BoolFilter<"Event"> | boolean
@@ -337,6 +345,7 @@ export type EventOrderByWithRelationInput = {
   startAt?: Prisma.SortOrder
   endAt?: Prisma.SortOrderInput | Prisma.SortOrder
   capacity?: Prisma.SortOrderInput | Prisma.SortOrder
+  showCapacity?: Prisma.SortOrder
   coverUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   gallery?: Prisma.SortOrder
   isPublished?: Prisma.SortOrder
@@ -367,6 +376,7 @@ export type EventWhereUniqueInput = Prisma.AtLeast<{
   startAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   endAt?: Prisma.DateTimeNullableFilter<"Event"> | Date | string | null
   capacity?: Prisma.IntNullableFilter<"Event"> | number | null
+  showCapacity?: Prisma.BoolFilter<"Event"> | boolean
   coverUrl?: Prisma.StringNullableFilter<"Event"> | string | null
   gallery?: Prisma.StringNullableListFilter<"Event">
   isPublished?: Prisma.BoolFilter<"Event"> | boolean
@@ -393,6 +403,7 @@ export type EventOrderByWithAggregationInput = {
   startAt?: Prisma.SortOrder
   endAt?: Prisma.SortOrderInput | Prisma.SortOrder
   capacity?: Prisma.SortOrderInput | Prisma.SortOrder
+  showCapacity?: Prisma.SortOrder
   coverUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   gallery?: Prisma.SortOrder
   isPublished?: Prisma.SortOrder
@@ -423,6 +434,7 @@ export type EventScalarWhereWithAggregatesInput = {
   startAt?: Prisma.DateTimeWithAggregatesFilter<"Event"> | Date | string
   endAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Event"> | Date | string | null
   capacity?: Prisma.IntNullableWithAggregatesFilter<"Event"> | number | null
+  showCapacity?: Prisma.BoolWithAggregatesFilter<"Event"> | boolean
   coverUrl?: Prisma.StringNullableWithAggregatesFilter<"Event"> | string | null
   gallery?: Prisma.StringNullableListFilter<"Event">
   isPublished?: Prisma.BoolWithAggregatesFilter<"Event"> | boolean
@@ -444,6 +456,7 @@ export type EventCreateInput = {
   startAt: Date | string
   endAt?: Date | string | null
   capacity?: number | null
+  showCapacity?: boolean
   coverUrl?: string | null
   gallery?: Prisma.EventCreategalleryInput | string[]
   isPublished?: boolean
@@ -469,6 +482,7 @@ export type EventUncheckedCreateInput = {
   startAt: Date | string
   endAt?: Date | string | null
   capacity?: number | null
+  showCapacity?: boolean
   coverUrl?: string | null
   gallery?: Prisma.EventCreategalleryInput | string[]
   isPublished?: boolean
@@ -492,6 +506,7 @@ export type EventUpdateInput = {
   startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  showCapacity?: Prisma.BoolFieldUpdateOperationsInput | boolean
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gallery?: Prisma.EventUpdategalleryInput | string[]
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -517,6 +532,7 @@ export type EventUncheckedUpdateInput = {
   startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  showCapacity?: Prisma.BoolFieldUpdateOperationsInput | boolean
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gallery?: Prisma.EventUpdategalleryInput | string[]
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -541,6 +557,7 @@ export type EventCreateManyInput = {
   startAt: Date | string
   endAt?: Date | string | null
   capacity?: number | null
+  showCapacity?: boolean
   coverUrl?: string | null
   gallery?: Prisma.EventCreategalleryInput | string[]
   isPublished?: boolean
@@ -562,6 +579,7 @@ export type EventUpdateManyMutationInput = {
   startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  showCapacity?: Prisma.BoolFieldUpdateOperationsInput | boolean
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gallery?: Prisma.EventUpdategalleryInput | string[]
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -583,6 +601,7 @@ export type EventUncheckedUpdateManyInput = {
   startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  showCapacity?: Prisma.BoolFieldUpdateOperationsInput | boolean
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gallery?: Prisma.EventUpdategalleryInput | string[]
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -620,6 +639,7 @@ export type EventCountOrderByAggregateInput = {
   startAt?: Prisma.SortOrder
   endAt?: Prisma.SortOrder
   capacity?: Prisma.SortOrder
+  showCapacity?: Prisma.SortOrder
   coverUrl?: Prisma.SortOrder
   gallery?: Prisma.SortOrder
   isPublished?: Prisma.SortOrder
@@ -646,6 +666,7 @@ export type EventMaxOrderByAggregateInput = {
   startAt?: Prisma.SortOrder
   endAt?: Prisma.SortOrder
   capacity?: Prisma.SortOrder
+  showCapacity?: Prisma.SortOrder
   coverUrl?: Prisma.SortOrder
   isPublished?: Prisma.SortOrder
   isCancelled?: Prisma.SortOrder
@@ -666,6 +687,7 @@ export type EventMinOrderByAggregateInput = {
   startAt?: Prisma.SortOrder
   endAt?: Prisma.SortOrder
   capacity?: Prisma.SortOrder
+  showCapacity?: Prisma.SortOrder
   coverUrl?: Prisma.SortOrder
   isPublished?: Prisma.SortOrder
   isCancelled?: Prisma.SortOrder
@@ -828,6 +850,7 @@ export type EventCreateWithoutSchoolInput = {
   startAt: Date | string
   endAt?: Date | string | null
   capacity?: number | null
+  showCapacity?: boolean
   coverUrl?: string | null
   gallery?: Prisma.EventCreategalleryInput | string[]
   isPublished?: boolean
@@ -851,6 +874,7 @@ export type EventUncheckedCreateWithoutSchoolInput = {
   startAt: Date | string
   endAt?: Date | string | null
   capacity?: number | null
+  showCapacity?: boolean
   coverUrl?: string | null
   gallery?: Prisma.EventCreategalleryInput | string[]
   isPublished?: boolean
@@ -904,6 +928,7 @@ export type EventScalarWhereInput = {
   startAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   endAt?: Prisma.DateTimeNullableFilter<"Event"> | Date | string | null
   capacity?: Prisma.IntNullableFilter<"Event"> | number | null
+  showCapacity?: Prisma.BoolFilter<"Event"> | boolean
   coverUrl?: Prisma.StringNullableFilter<"Event"> | string | null
   gallery?: Prisma.StringNullableListFilter<"Event">
   isPublished?: Prisma.BoolFilter<"Event"> | boolean
@@ -925,6 +950,7 @@ export type EventCreateWithoutInstructorInput = {
   startAt: Date | string
   endAt?: Date | string | null
   capacity?: number | null
+  showCapacity?: boolean
   coverUrl?: string | null
   gallery?: Prisma.EventCreategalleryInput | string[]
   isPublished?: boolean
@@ -949,6 +975,7 @@ export type EventUncheckedCreateWithoutInstructorInput = {
   startAt: Date | string
   endAt?: Date | string | null
   capacity?: number | null
+  showCapacity?: boolean
   coverUrl?: string | null
   gallery?: Prisma.EventCreategalleryInput | string[]
   isPublished?: boolean
@@ -997,6 +1024,7 @@ export type EventCreateWithoutTicketsInput = {
   startAt: Date | string
   endAt?: Date | string | null
   capacity?: number | null
+  showCapacity?: boolean
   coverUrl?: string | null
   gallery?: Prisma.EventCreategalleryInput | string[]
   isPublished?: boolean
@@ -1021,6 +1049,7 @@ export type EventUncheckedCreateWithoutTicketsInput = {
   startAt: Date | string
   endAt?: Date | string | null
   capacity?: number | null
+  showCapacity?: boolean
   coverUrl?: string | null
   gallery?: Prisma.EventCreategalleryInput | string[]
   isPublished?: boolean
@@ -1059,6 +1088,7 @@ export type EventUpdateWithoutTicketsInput = {
   startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  showCapacity?: Prisma.BoolFieldUpdateOperationsInput | boolean
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gallery?: Prisma.EventUpdategalleryInput | string[]
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1083,6 +1113,7 @@ export type EventUncheckedUpdateWithoutTicketsInput = {
   startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  showCapacity?: Prisma.BoolFieldUpdateOperationsInput | boolean
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gallery?: Prisma.EventUpdategalleryInput | string[]
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1105,6 +1136,7 @@ export type EventCreateWithoutBookingsInput = {
   startAt: Date | string
   endAt?: Date | string | null
   capacity?: number | null
+  showCapacity?: boolean
   coverUrl?: string | null
   gallery?: Prisma.EventCreategalleryInput | string[]
   isPublished?: boolean
@@ -1129,6 +1161,7 @@ export type EventUncheckedCreateWithoutBookingsInput = {
   startAt: Date | string
   endAt?: Date | string | null
   capacity?: number | null
+  showCapacity?: boolean
   coverUrl?: string | null
   gallery?: Prisma.EventCreategalleryInput | string[]
   isPublished?: boolean
@@ -1167,6 +1200,7 @@ export type EventUpdateWithoutBookingsInput = {
   startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  showCapacity?: Prisma.BoolFieldUpdateOperationsInput | boolean
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gallery?: Prisma.EventUpdategalleryInput | string[]
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1191,6 +1225,7 @@ export type EventUncheckedUpdateWithoutBookingsInput = {
   startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  showCapacity?: Prisma.BoolFieldUpdateOperationsInput | boolean
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gallery?: Prisma.EventUpdategalleryInput | string[]
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1213,6 +1248,7 @@ export type EventCreateManySchoolInput = {
   startAt: Date | string
   endAt?: Date | string | null
   capacity?: number | null
+  showCapacity?: boolean
   coverUrl?: string | null
   gallery?: Prisma.EventCreategalleryInput | string[]
   isPublished?: boolean
@@ -1234,6 +1270,7 @@ export type EventUpdateWithoutSchoolInput = {
   startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  showCapacity?: Prisma.BoolFieldUpdateOperationsInput | boolean
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gallery?: Prisma.EventUpdategalleryInput | string[]
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1257,6 +1294,7 @@ export type EventUncheckedUpdateWithoutSchoolInput = {
   startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  showCapacity?: Prisma.BoolFieldUpdateOperationsInput | boolean
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gallery?: Prisma.EventUpdategalleryInput | string[]
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1280,6 +1318,7 @@ export type EventUncheckedUpdateManyWithoutSchoolInput = {
   startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  showCapacity?: Prisma.BoolFieldUpdateOperationsInput | boolean
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gallery?: Prisma.EventUpdategalleryInput | string[]
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1302,6 +1341,7 @@ export type EventCreateManyInstructorInput = {
   startAt: Date | string
   endAt?: Date | string | null
   capacity?: number | null
+  showCapacity?: boolean
   coverUrl?: string | null
   gallery?: Prisma.EventCreategalleryInput | string[]
   isPublished?: boolean
@@ -1322,6 +1362,7 @@ export type EventUpdateWithoutInstructorInput = {
   startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  showCapacity?: Prisma.BoolFieldUpdateOperationsInput | boolean
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gallery?: Prisma.EventUpdategalleryInput | string[]
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1346,6 +1387,7 @@ export type EventUncheckedUpdateWithoutInstructorInput = {
   startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  showCapacity?: Prisma.BoolFieldUpdateOperationsInput | boolean
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gallery?: Prisma.EventUpdategalleryInput | string[]
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1369,6 +1411,7 @@ export type EventUncheckedUpdateManyWithoutInstructorInput = {
   startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  showCapacity?: Prisma.BoolFieldUpdateOperationsInput | boolean
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gallery?: Prisma.EventUpdategalleryInput | string[]
   isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1430,6 +1473,7 @@ export type EventSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   startAt?: boolean
   endAt?: boolean
   capacity?: boolean
+  showCapacity?: boolean
   coverUrl?: boolean
   gallery?: boolean
   isPublished?: boolean
@@ -1457,6 +1501,7 @@ export type EventSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   startAt?: boolean
   endAt?: boolean
   capacity?: boolean
+  showCapacity?: boolean
   coverUrl?: boolean
   gallery?: boolean
   isPublished?: boolean
@@ -1481,6 +1526,7 @@ export type EventSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   startAt?: boolean
   endAt?: boolean
   capacity?: boolean
+  showCapacity?: boolean
   coverUrl?: boolean
   gallery?: boolean
   isPublished?: boolean
@@ -1505,6 +1551,7 @@ export type EventSelectScalar = {
   startAt?: boolean
   endAt?: boolean
   capacity?: boolean
+  showCapacity?: boolean
   coverUrl?: boolean
   gallery?: boolean
   isPublished?: boolean
@@ -1516,7 +1563,7 @@ export type EventSelectScalar = {
   updatedAt?: boolean
 }
 
-export type EventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "title" | "slug" | "description" | "type" | "location" | "startAt" | "endAt" | "capacity" | "coverUrl" | "gallery" | "isPublished" | "isCancelled" | "externalUrl" | "paymentMethods" | "instructorId" | "createdAt" | "updatedAt", ExtArgs["result"]["event"]>
+export type EventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "title" | "slug" | "description" | "type" | "location" | "startAt" | "endAt" | "capacity" | "showCapacity" | "coverUrl" | "gallery" | "isPublished" | "isCancelled" | "externalUrl" | "paymentMethods" | "instructorId" | "createdAt" | "updatedAt", ExtArgs["result"]["event"]>
 export type EventInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   instructor?: boolean | Prisma.Event$instructorArgs<ExtArgs>
@@ -1552,6 +1599,7 @@ export type $EventPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     startAt: Date
     endAt: Date | null
     capacity: number | null
+    showCapacity: boolean
     coverUrl: string | null
     gallery: string[]
     isPublished: boolean
@@ -1998,6 +2046,7 @@ export interface EventFieldRefs {
   readonly startAt: Prisma.FieldRef<"Event", 'DateTime'>
   readonly endAt: Prisma.FieldRef<"Event", 'DateTime'>
   readonly capacity: Prisma.FieldRef<"Event", 'Int'>
+  readonly showCapacity: Prisma.FieldRef<"Event", 'Boolean'>
   readonly coverUrl: Prisma.FieldRef<"Event", 'String'>
   readonly gallery: Prisma.FieldRef<"Event", 'String[]'>
   readonly isPublished: Prisma.FieldRef<"Event", 'Boolean'>
