@@ -3,11 +3,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   Menu, X, Search, Check, Clock, Filter,
-  TrendingUp, TrendingDown, RefreshCw, MoreHorizontal,
+  TrendingUp, TrendingDown, RefreshCw,
   PauseCircle, XCircle, Plus, AlertCircle,
 } from 'lucide-react'
 import { useDashboard } from '../../../../components/DashboardShell'
-import RowMenu from '../../../../components/RowMenu'
 import MembershipRowActions from '../../../../components/MembershipRowActions'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../../lib/format'
@@ -792,37 +791,13 @@ export default function PaymentSubscriptionsClient() {
                     </td>
 
                     <td className="px-5 py-3">
-                      <div className="flex items-center justify-end gap-1.5">
+                      <div className="flex items-center justify-end">
                         <MembershipRowActions
                           membershipId={sub.id}
                           status={sub.status}
                           onDone={() => load()}
+                          profileHref={sub.schoolMemberId ? `/dashboard/users/${sub.schoolMemberId}` : undefined}
                         />
-                        <RowMenu trigger={({ onClick }) => (
-                          <button
-                            onClick={onClick}
-                            className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
-                            style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
-                            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
-                            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                            <MoreHorizontal size={15} />
-                          </button>
-                        )}>
-                          <div className="rounded-xl py-1 overflow-hidden"
-                            style={{ background: '#fff', border: '1px solid #E5E7EB',
-                              boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 170 }}>
-                            {sub.schoolMemberId && (
-                              <a href={`/dashboard/users/${sub.schoolMemberId}`}
-                                className="w-full text-left px-4 py-2.5 flex items-center gap-2"
-                                style={{ fontSize: 13, color: '#374151', background: 'transparent',
-                                  border: 'none', textDecoration: 'none', display: 'block' }}
-                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
-                                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                                Ver perfil
-                              </a>
-                            )}
-                          </div>
-                        </RowMenu>
                       </div>
                     </td>
                   </tr>

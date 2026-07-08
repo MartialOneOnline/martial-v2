@@ -22,18 +22,20 @@ export function allowedMembershipActions(status: string): MembershipAction[] {
   }
 }
 
-// Per-row action menu (Activate / Pause / Resume / Cancel) for a Membership record.
-// Shared between the Memberships plan-members view and the Payments > Subscriptions
-// table — both operate on the same PATCH /api/dashboard/memberships/[id] endpoint.
+// Per-row action menu (Activate / Pause / Resume / Cancel) for a Membership record,
+// with an optional "Ver perfil" link folded into the same dropdown so a row never
+// shows two separate "..." triggers side by side. Shared between the Memberships
+// plan-members view and the Payments > Subscriptions table — both operate on the
+// same PATCH /api/dashboard/memberships/[id] endpoint.
 // Built on the shared portal-based RowMenu so the dropdown isn't clipped by the
 // `overflow-hidden` table/card wrappers both hosts use.
 export default function MembershipRowActions({
-  membershipId, status, onDone,
-}: { membershipId: string; status: string; onDone: (id: string, newStatus: string) => void }) {
+  membershipId, status, onDone, profileHref,
+}: { membershipId: string; status: string; onDone: (id: string, newStatus: string) => void; profileHref?: string }) {
   const [loading, setLoading] = useState<MembershipAction | null>(null)
   const actions = allowedMembershipActions(status)
 
-  if (actions.length === 0) return null
+  if (actions.length === 0 && !profileHref) return null
 
   async function doAction(action: MembershipAction) {
     setLoading(action)
@@ -71,7 +73,15 @@ export default function MembershipRowActions({
     )}>
       <div className="rounded-xl py-1 overflow-hidden"
         style={{ background: '#fff', border: '1px solid #E5E7EB',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.12)', minWidth: 148 }}>
+          boxShadow: '0 8px 24px rgba(0,0,0,0.12)', minWidth: 170 }}>
+        {profileHref && (
+          <a href={profileHref}
+            className="w-full text-left px-4 py-2.5 flex items-center gap-2"
+            style={{ fontSize: 13, fontWeight: 600, color: '#374151',
+              textDecoration: 'none', display: 'block' }}>
+            Ver perfil
+          </a>
+        )}
         {actions.map(action => {
           const cfg = ACTION_CONFIG[action]
           const Icon = cfg.icon
