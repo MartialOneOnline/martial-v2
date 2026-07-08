@@ -6,9 +6,16 @@ import { prisma } from '@/lib/db'
 import { getBookedCounts } from '@/lib/services/eventCapacity'
 import { fmtPrice, formatEventType } from '@/lib/format'
 import { ogImageUrl } from '@/lib/og'
+import InstagramIcon from '@/components/icons/InstagramIcon'
 import EventTicketCTA from '../../EventTicketCTA'
+import LeadForm from '../../LeadForm'
 import ShareButton from './ShareButton'
-import { ChevronLeft, Calendar, Clock, MapPin, Ticket, ExternalLink } from 'lucide-react'
+import Gallery from './Gallery'
+import EventCountdown from './EventCountdown'
+import {
+  ChevronLeft, Calendar, Clock, MapPin, Ticket, ExternalLink,
+  Phone, Globe, Mail, MessageCircle, Users,
+} from 'lucide-react'
 
 const FALLBACK = 'https://images.unsplash.com/photo-1555597673-b21d5c935865?w=1200&h=600&fit=crop&q=85'
 
@@ -21,7 +28,12 @@ async function getEvent(schoolSlug: string, eventSlug: string) {
       school: { slug: schoolSlug, status: { notIn: ['SUSPENDED', 'ARCHIVED'] } },
     },
     include: {
-      school: { select: { name: true, slug: true, coverUrl: true, address: true, city: true, country: true } },
+      school: {
+        select: {
+          name: true, slug: true, coverUrl: true, logoUrl: true, address: true, city: true, country: true,
+          phone: true, website: true, email: true, instagram: true,
+        },
+      },
       instructor: { select: { name: true, role: true, belt: true, bio: true, photoUrl: true } },
       tickets: { orderBy: { sortOrder: 'asc' } },
     },
@@ -91,6 +103,8 @@ export default async function EventProfile(
   const timeLabel = event.startAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
   const redirectPath = `/school/${slug}/events/${eventSlug}`
   const mapQuery = event.location || event.school.address || event.school.city || ''
+  const remaining = event.capacity != null ? Math.max(0, event.capacity - eventForCta.booked) : null
+  const hasContactInfo = !!(event.school.phone || event.school.website || event.school.email || event.school.instagram)
 
   return (
     <div className="min-h-screen bg-[#F8F9FB]">
@@ -139,6 +153,8 @@ export default async function EventProfile(
 
           {/* ── Left column ── */}
           <div className="lg:col-span-8 space-y-6">
+            <Gallery images={event.gallery} alt={event.title} />
+
             {event.description && (
               <div className="bg-white border border-gray-100 rounded-2xl shadow-sm px-5 py-5">
                 <p className="text-sm font-bold text-[#101828] mb-2">About this event</p>
@@ -188,11 +204,18 @@ export default async function EventProfile(
           {/* ── Right column (sticky) ── */}
           <div className="lg:col-span-4 space-y-4 lg:sticky lg:top-6">
             <div className="bg-white border border-gray-100 rounded-2xl shadow-sm px-5 py-5">
+              <EventCountdown startAt={event.startAt.toISOString()} className="mb-4" />
               {minPrice !== null && (
                 <>
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Tickets from</p>
-                  <p className="text-3xl font-bold text-[#101828] mb-4">{fmtPrice(minPrice, event.tickets[0]!.currency)}</p>
+                  <p className="text-3xl font-bold text-[#101828] mb-1">{fmtPrice(minPrice, event.tickets[0]!.currency)}</p>
                 </>
+              )}
+              {remaining !== null && (
+                <p className={`text-xs font-semibold mb-4 flex items-center gap-1.5 ${remaining <= 10 ? 'text-amber-600' : 'text-gray-400'}`}>
+                  <Users className="w-3.5 h-3.5" />
+                  {remaining <= 0 ? 'Sold out' : `${remaining} spot${remaining === 1 ? '' : 's'} left`}
+                </p>
               )}
               <div className="flex flex-col gap-2">
                 <EventTicketCTA
@@ -207,6 +230,65 @@ export default async function EventProfile(
                 />
               </div>
             </div>
+
+            {/* Hosted by */}
+            <Link
+              href={`/school/${slug}`}
+              className="flex items-center gap-3 bg-white border border-gray-100 rounded-2xl shadow-sm px-5 py-4 hover:border-[#0870E2]/30 transition-colors"
+            >
+              <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 bg-[#0870E2]/10 flex items-center justify-center text-[#0870E2] font-bold text-sm">
+                {event.school.logoUrl
+                  ? <Image src={event.school.logoUrl} alt={event.school.name} width={40} height={40} className="object-cover w-full h-full" />
+                  : event.school.name.charAt(0)}
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Hosted by</p>
+                <p className="text-sm font-bold text-[#101828] truncate">{event.school.name}</p>
+              </div>
+            </Link>
+
+            {/* Contact form */}
+            <LeadForm slug={slug} schoolName={event.school.name} disciplines={[]} />
+
+            {/* Contact info */}
+            {hasContactInfo && (
+              <div className="bg-white border border-gray-100 rounded-2xl shadow-sm px-4 py-3 space-y-2.5">
+                {event.school.phone && (
+                  <a
+                    href={`https://wa.me/${event.school.phone.replace(/\D/g, '')}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-3 text-xs text-gray-500 hover:text-emerald-600 transition-colors"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    WhatsApp
+                  </a>
+                )}
+                {event.school.phone && (
+                  <a href={`tel:${event.school.phone}`} className="flex items-center gap-3 text-xs text-gray-500 hover:text-[#0870E2] transition-colors">
+                    <Phone className="w-3.5 h-3.5 text-[#0870E2] shrink-0" />
+                    {event.school.phone}
+                  </a>
+                )}
+                {event.school.website && (
+                  <a href={event.school.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-xs text-gray-500 hover:text-[#0870E2] transition-colors truncate">
+                    <Globe className="w-3.5 h-3.5 text-[#0870E2] shrink-0" />
+                    <span className="truncate">{event.school.website.replace(/^https?:\/\//, '')}</span>
+                  </a>
+                )}
+                {event.school.email && (
+                  <a href={`mailto:${event.school.email}`} className="flex items-center gap-3 text-xs text-gray-500 hover:text-[#0870E2] transition-colors truncate">
+                    <Mail className="w-3.5 h-3.5 text-[#0870E2] shrink-0" />
+                    <span className="truncate">{event.school.email}</span>
+                  </a>
+                )}
+                {event.school.instagram && (
+                  <a href={`https://instagram.com/${event.school.instagram}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-xs text-gray-500 hover:text-[#0870E2] transition-colors">
+                    <InstagramIcon className="w-3.5 h-3.5 text-[#0870E2] shrink-0" />
+                    @{event.school.instagram}
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json()
   const {
     title, description, type, location, startAt, endAt,
-    capacity, paymentMethods, isPublished, externalUrl, instructorId, coverUrl,
+    capacity, paymentMethods, isPublished, externalUrl, instructorId, coverUrl, gallery,
     tickets = [],
   } = body
 
@@ -95,6 +95,7 @@ export async function POST(req: NextRequest) {
       externalUrl: externalUrl?.trim() || null,
       instructorId: instructorId || null,
       coverUrl: coverUrl || null,
+      gallery: Array.isArray(gallery) ? gallery.filter((u: unknown) => typeof u === 'string') : [],
       tickets: {
         create: tickets.map((t: { name: string; description?: string; price?: number; currency?: string; capacity?: number }, i: number) => ({
           name: t.name.trim(),

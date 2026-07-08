@@ -41,12 +41,12 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const body = await req.json()
   const {
     title, description, type, location, startAt, endAt,
-    capacity, paymentMethods, isPublished, isCancelled, externalUrl, instructorId, coverUrl,
+    capacity, paymentMethods, isPublished, isCancelled, externalUrl, instructorId, coverUrl, gallery,
     tickets,
   } = body as {
     title?: string; description?: string; type?: string; location?: string; startAt?: string; endAt?: string
     capacity?: number; paymentMethods?: string[]; isPublished?: boolean; isCancelled?: boolean
-    externalUrl?: string; instructorId?: string; coverUrl?: string
+    externalUrl?: string; instructorId?: string; coverUrl?: string; gallery?: string[]
     tickets?: { id?: string; name: string; description?: string; price?: number; currency?: string; capacity?: number }[]
   }
 
@@ -112,6 +112,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       externalUrl:    externalUrl !== undefined   ? (externalUrl?.trim() || null) : existing.externalUrl,
       instructorId:   instructorId !== undefined  ? (instructorId || null) : existing.instructorId,
       coverUrl:       coverUrl !== undefined       ? (coverUrl || null) : existing.coverUrl,
+      gallery:        Array.isArray(gallery)        ? gallery.filter(u => typeof u === 'string') : existing.gallery,
       ...(ticketWrite && { tickets: ticketWrite }),
     },
     include: EVENT_INCLUDE,

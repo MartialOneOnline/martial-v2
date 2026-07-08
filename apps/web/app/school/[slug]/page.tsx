@@ -12,6 +12,7 @@ import LeadForm from './LeadForm'
 import { getBookedCounts } from '@/lib/services/eventCapacity'
 import { fmtPrice, formatEventType } from '@/lib/format'
 import { ogImageUrl } from '@/lib/og'
+import InstagramIcon from '@/components/icons/InstagramIcon'
 import {
   MapPin, Star, Phone, Globe, Mail, ChevronLeft,
   CheckCircle, MessageCircle, ExternalLink, UserPlus, Calendar,
@@ -45,16 +46,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       images: [image],
     },
   }
-}
-
-function InstagramIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-      <path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z" />
-      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-    </svg>
-  )
 }
 
 const FALLBACK = 'https://images.unsplash.com/photo-1555597673-b21d5c935865?w=1200&h=600&fit=crop&q=85'

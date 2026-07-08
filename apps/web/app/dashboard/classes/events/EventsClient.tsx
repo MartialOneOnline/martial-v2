@@ -6,7 +6,7 @@ import Link from 'next/link'
 import {
   Bell, Menu, X, Plus, MoreHorizontal, Search,
   TrendingUp, Check, Upload, Clock, MapPin, Star,
-  Ticket, Calendar, Pencil, Trash2, Globe, EyeOff, QrCode, AlertTriangle,
+  Ticket, Calendar, Pencil, Trash2, Globe, EyeOff, QrCode, AlertTriangle, RefreshCw,
 } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useDashboard } from '../../../../components/DashboardShell'
@@ -50,6 +50,7 @@ interface EventRow {
   instructor: Instructor | null
   tickets: { id: string; name: string; price: number; currency: string; capacity: number | null; bookedCount?: number }[]
   coverUrl: string | null
+  gallery: string[]
 }
 
 // ── Constants ──────────────────────────────────────────────────────────────────
@@ -145,13 +146,14 @@ interface EventFormData {
   externalUrl: string
   description: string
   coverUrl: string
+  gallery: string[]
 }
 
 const EMPTY_FORM: EventFormData = {
   title: '', type: 'SEMINAR', startDate: '', startTime: '', endTime: '',
   instructorId: '', location: '', capacity: '',
   tickets: [{ ...EMPTY_TICKET, name: 'General' }],
-  paymentMethods: [], isPublished: false, externalUrl: '', description: '', coverUrl: '',
+  paymentMethods: [], isPublished: false, externalUrl: '', description: '', coverUrl: '', gallery: [],
 }
 
 function eventToForm(ev: EventRow): EventFormData {
@@ -177,6 +179,7 @@ function eventToForm(ev: EventRow): EventFormData {
     externalUrl: ev.externalUrl ?? '',
     description: ev.description ?? '',
     coverUrl: ev.coverUrl ?? '',
+    gallery: ev.gallery ?? [],
   }
 }
 
@@ -209,6 +212,7 @@ function formToPayload(form: EventFormData) {
     externalUrl: form.externalUrl || null,
     description: form.description || null,
     coverUrl: form.coverUrl || null,
+    gallery: form.gallery,
   }
 }
 
@@ -309,6 +313,68 @@ function BannerUploadZone({ value, onChange, label, height = 180, hint, dropLabe
         </div>
       )}
       <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
+    </div>
+  )
+}
+
+// Extra photos shown on the event's own public page, beyond the single banner above.
+function GalleryUploadZone({ value, onChange, label }: { value: string[]; onChange: (urls: string[]) => void; label: string }) {
+  const [uploading, setUploading] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  async function uploadFiles(files: FileList | File[]) {
+    const images = Array.from(files).filter(f => f.type.startsWith('image/'))
+    if (images.length === 0) return
+    setUploading(true)
+    try {
+      const uploaded = await Promise.all(images.map(async file => {
+        const fd = new FormData()
+        fd.append('file', file)
+        const res = await adminFetch('/api/dashboard/upload?bucket=class-images', { method: 'POST', body: fd })
+        if (!res.ok) return null
+        const { url } = await res.json()
+        return url as string
+      }))
+      onChange([...value, ...uploaded.filter((u): u is string => !!u)])
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  function removeAt(i: number) {
+    onChange(value.filter((_, idx) => idx !== i))
+  }
+
+  return (
+    <div>
+      <label style={eventLbl}>{label}</label>
+      <div className="grid grid-cols-3 gap-2">
+        {value.map((url, i) => (
+          <div key={url + i} style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', border: '1px solid #E5E7EB', aspectRatio: '1' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            <button type="button" onClick={() => removeAt(i)}
+              className="cursor-pointer"
+              style={{ position: 'absolute', top: 4, right: 4, width: 20, height: 20, borderRadius: '50%',
+                background: 'rgba(0,0,0,0.55)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <X size={10} style={{ color: '#fff' }} />
+            </button>
+          </div>
+        ))}
+        <div
+          onClick={() => fileRef.current?.click()}
+          className="flex items-center justify-center cursor-pointer"
+          style={{ aspectRatio: '1', borderRadius: 12, border: '2px dashed #D1D5DB', background: '#fff' }}
+        >
+          {uploading ? (
+            <RefreshCw size={16} style={{ color: '#9CA3AF' }} className="animate-spin" />
+          ) : (
+            <Plus size={16} style={{ color: '#9CA3AF' }} />
+          )}
+        </div>
+      </div>
+      <input ref={fileRef} type="file" accept="image/*" multiple className="hidden"
+        onChange={e => { if (e.target.files) uploadFiles(e.target.files); e.target.value = '' }} />
     </div>
   )
 }
@@ -579,6 +645,14 @@ function EventDrawer({ open, onClose, onSaved, editing, instructors, availableMe
                 hint={t.common.pngJpg}
               />
               <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 8 }}>{t.classes.recommendedSize}</p>
+
+              <div className="mt-5">
+                <GalleryUploadZone
+                  label="Gallery photos"
+                  value={form.gallery}
+                  onChange={urls => set('gallery', urls)}
+                />
+              </div>
 
               {/* Quick preview */}
               <div className="mt-6 rounded-xl p-4 flex flex-col gap-2"

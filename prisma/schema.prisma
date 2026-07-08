@@ -708,6 +708,7 @@ model Event {
   endAt          DateTime?
   capacity       Int?
   coverUrl       String?
+  gallery        String[]  @default([]) // extra photos shown on the event's own page, beyond the banner
   isPublished    Boolean   @default(false)
   isCancelled    Boolean   @default(false)
   externalUrl    String?
