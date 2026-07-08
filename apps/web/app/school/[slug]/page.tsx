@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 
 const FALLBACK_OG = 'https://images.unsplash.com/photo-1555597673-b21d5c935865?w=1200&h=630&fit=crop&q=85'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://martial-v2-web.vercel.app'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -28,7 +29,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   const title = `${school.name}${school.city ? ` — ${school.city}` : ''}`
   const description = school.tagline ?? school.description ?? `Join ${school.name} and start your martial arts journey.`
-  const image = school.coverUrl ?? FALLBACK_OG
+  // Raw uploads can be several MB — WhatsApp/iMessage link-preview crawlers time
+  // out or skip the image above ~1MB, so route uploaded covers through the
+  // image optimizer to get a small, correctly-sized JPEG for og:image.
+  const image = school.coverUrl
+    ? `${APP_URL}/_next/image?url=${encodeURIComponent(school.coverUrl)}&w=1200&q=75`
+    : FALLBACK_OG
 
   return {
     title,
@@ -278,29 +284,34 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
                     const minPrice = ev.tickets.length > 0 ? Math.min(...ev.tickets.map(t => t.price)) : null
                     const dateLabel = new Date(ev.startAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
                     return (
-                      <div key={ev.id} className="flex items-center gap-3 px-5 py-4">
-                        <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-[#0E3A7A] flex items-center justify-center">
+                      <div key={ev.id} className="flex items-center gap-3 px-4 sm:px-5 py-4">
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden shrink-0 bg-[#0E3A7A] flex items-center justify-center">
                           {ev.coverUrl ? (
                             <Image src={ev.coverUrl} alt={ev.title} width={56} height={56} className="object-cover w-full h-full" />
                           ) : (
-                            <Calendar className="w-6 h-6 text-white/60" />
+                            <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-white/60" />
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2 flex-wrap">
+                          <div className="flex items-center gap-2">
                             <p className="text-sm font-bold text-[#101828] truncate">{ev.title}</p>
                             <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[#0870E2]/8 text-[#0870E2] shrink-0">
                               {formatEventType(ev.type)}
                             </span>
                           </div>
-                          <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
-                            <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{dateLabel}</span>
-                            {ev.location && <span className="flex items-center gap-1 truncate"><MapPin className="w-3 h-3 shrink-0" />{ev.location}</span>}
+                          <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
+                            <span className="flex items-center gap-1 shrink-0"><Calendar className="w-3 h-3" />{dateLabel}</span>
+                            {ev.location && (
+                              <span className="flex items-center gap-1 min-w-0">
+                                <MapPin className="w-3 h-3 shrink-0" />
+                                <span className="truncate">{ev.location}</span>
+                              </span>
+                            )}
                           </div>
                         </div>
                         {minPrice !== null && (
-                          <p className="text-sm font-bold text-[#0870E2] shrink-0">
-                            <span className="font-normal text-gray-400 text-xs">from </span>{fmtPrice(minPrice, ev.tickets[0]!.currency)}
+                          <p className="text-sm font-bold text-[#0870E2] shrink-0 text-right">
+                            <span className="font-normal text-gray-400 text-xs hidden sm:inline">from </span>{fmtPrice(minPrice, ev.tickets[0]!.currency)}
                           </p>
                         )}
                       </div>
