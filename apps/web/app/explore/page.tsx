@@ -235,7 +235,7 @@ function SchoolCard({ school, onClick }: { school: DbSchool; onClick: () => void
   return (
     <button
       onClick={onClick}
-      className="group w-full text-left rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-lg transition-all duration-300 border border-[#E5E7EB]"
+      className="group relative w-full text-left rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-lg transition-all duration-300 border border-[#E5E7EB]"
     >
       {/* Photo */}
       <div className={`relative w-full h-48 overflow-hidden ${showGradient ? `bg-gradient-to-br ${gradient}` : 'bg-[#E5E7EB]'}`}>
@@ -263,18 +263,17 @@ function SchoolCard({ school, onClick }: { school: DbSchool; onClick: () => void
           </span>
         )}
 
-        {/* School logo bottom-left */}
-        <div className="absolute bottom-0 left-0 right-0 px-4 pb-0 translate-y-1/2 flex items-end">
-          <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-md bg-white shrink-0">
-            {school.logoUrl ? (
-              <Image src={school.logoUrl} alt="" width={48} height={48} className="object-cover w-full h-full" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-sm font-bold text-white" style={{ background: BLUE }}>
-                {initials}
-              </div>
-            )}
+      </div>
+
+      {/* School logo bottom-left, straddling photo/info boundary */}
+      <div className="absolute left-4 top-48 -translate-y-1/2 z-10 w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-md bg-white shrink-0">
+        {school.logoUrl ? (
+          <Image src={school.logoUrl} alt="" width={48} height={48} className="object-cover w-full h-full" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-sm font-bold text-white" style={{ background: BLUE }}>
+            {initials}
           </div>
-        </div>
+        )}
       </div>
 
       {/* Info panel */}
