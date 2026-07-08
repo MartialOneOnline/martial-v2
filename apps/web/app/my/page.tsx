@@ -227,6 +227,8 @@ export default function MyHomePage() {
   const user              = data?.user
   const firstName         = user?.name?.split(' ')[0] ?? 'there'
   const activeMembership  = user?.memberships?.find(m => m.status === 'ACTIVE')
+  const pendingMembership = user?.memberships?.find(m => m.status === 'PENDING')
+  const shownMembership   = activeMembership ?? pendingMembership
   const nextBooking       = user?.bookings?.[0]
   const primaryMember     = user?.schoolMembers?.[0]
   const hour              = new Date().getHours()
@@ -491,23 +493,36 @@ export default function MyHomePage() {
       )}
 
       {/* ── Membership card ────────────────────────────────────────────────── */}
-      {activeMembership && (
+      {shownMembership && (
         <div className="mx-4 md:mx-0 mb-4 rounded-2xl overflow-hidden" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)', padding: 18 }}>
           <div className="flex items-start justify-between mb-3">
             <div>
               <p className="text-[10px] font-normal uppercase tracking-widest mb-0.5" style={{ color: '#6B6B70', letterSpacing: '.8px' }}>{t.my.activePlan}</p>
-              <p className="text-sm font-medium" style={{ color: '#1C1C1E' }}>{activeMembership.planName}</p>
+              <p className="text-sm font-medium" style={{ color: '#1C1C1E' }}>{shownMembership.planName}</p>
             </div>
-            <span className="text-xs font-medium rounded-full px-2.5 py-1" style={{ background: '#E4F7EB', color: '#1E8734' }}>{t.my.active}</span>
+            {activeMembership ? (
+              <span className="text-xs font-medium rounded-full px-2.5 py-1" style={{ background: '#E4F7EB', color: '#1E8734' }}>{t.my.active}</span>
+            ) : (
+              <span className="text-xs font-medium rounded-full px-2.5 py-1" style={{ background: '#FFFBEB', color: '#D97706' }}>{t.my.statusPending}</span>
+            )}
           </div>
           <p className="text-[22px] font-medium mb-0.5" style={{ color: '#1C1C1E', letterSpacing: '-0.4px' }}>
-            {fmtPrice(activeMembership.price, activeMembership.currency)}
+            {fmtPrice(shownMembership.price, shownMembership.currency)}
             <span className="text-sm font-normal" style={{ color: '#6B6B70' }}> {t.my.perMonth}</span>
           </p>
-          {activeMembership.endDate && (
+          {activeMembership?.endDate && (
             <p className="text-xs mb-3" style={{ color: '#6B6B70' }}>
               {t.my.renews} {new Date(activeMembership.endDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
             </p>
+          )}
+          {pendingMembership && !activeMembership && (
+            <div className="mt-1 mb-3 rounded-xl flex items-start gap-2" style={{ background: '#FFFBEB', border: '1px solid #FDE68A', padding: '10px 12px' }}>
+              <Clock className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color: '#D97706' }} />
+              <div>
+                <p className="text-xs font-semibold" style={{ color: '#92400E' }}>{t.my.pendingApproval}</p>
+                <p className="text-xs leading-relaxed" style={{ color: '#B45309' }}>{t.my.pendingDesc}</p>
+              </div>
+            </div>
           )}
           <div style={{ height: 0.5, background: 'rgba(60,60,67,.1)', margin: '14px 0' }} />
           <Link href="/my/membership" prefetch={false} className="flex items-center justify-between">

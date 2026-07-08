@@ -253,19 +253,23 @@ export default function MyLayout({ children }: { children: React.ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [school, setSchool] = useState<School>(null)
 
-  // Fetch the student's primary school for sidebar branding
+  // Fetch the student's primary school for sidebar branding.
+  // Prefer the school behind an active/pending/paused membership, but fall back
+  // to the school of a plain SchoolMember record (e.g. a LEAD awaiting payment
+  // approval) so branding + module-gated nav still show before any membership exists.
   useEffect(() => {
     fetch('/api/my')
       .then(r => r.json())
       .then(d => {
         const membership = d.user?.memberships?.find((m: { status: string }) => m.status === 'ACTIVE')
           ?? d.user?.memberships?.[0]
-        if (membership?.school) {
+        const school = membership?.school ?? d.user?.schoolMembers?.[0]?.school
+        if (school) {
           setSchool({
-            name: membership.school.name,
-            logoUrl: membership.school.logoUrl,
-            modules: membership.school.modules,
-            hasGrading: membership.school.hasGrading,
+            name: school.name,
+            logoUrl: school.logoUrl,
+            modules: school.modules,
+            hasGrading: school.hasGrading,
           })
         }
       })

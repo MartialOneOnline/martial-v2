@@ -20,7 +20,7 @@ export async function GET() {
       id: true, name: true, email: true, phone: true,
       avatarUrl: true, dateOfBirth: true, role: true,
       memberships: {
-        where: { status: 'ACTIVE' },
+        where: { status: { in: ['ACTIVE', 'PENDING', 'PAUSED'] } },
         orderBy: { startDate: 'desc' },
         take: 3,
         select: {
@@ -55,7 +55,7 @@ export async function GET() {
           id: true, belt: true, beltDegree: true, beltDate: true, role: true, status: true,
           school: {
             select: {
-              id: true, name: true, slug: true, logoUrl: true,
+              id: true, name: true, slug: true, logoUrl: true, modules: true,
               _count: { select: { gradingSystems: { where: { isActive: true } } } },
             },
           },
@@ -88,7 +88,7 @@ export async function GET() {
     const { _count, ...school } = sm.school ?? {}
     return {
       ...sm,
-      school: sm.school && { ...school, hasGrading: (_count?.gradingSystems ?? 0) > 0 },
+      school: sm.school && { ...school, modules: getSchoolModules(sm.school.modules), hasGrading: (_count?.gradingSystems ?? 0) > 0 },
     }
   })
 
