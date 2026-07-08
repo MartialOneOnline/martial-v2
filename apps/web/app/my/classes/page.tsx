@@ -570,7 +570,8 @@ function PassCard({ plan, onRequest, requesting }: {
 export default function MyClassesPage() {
   const t = useT()
   const [mainTab, setMainTab] = useState<'book' | 'schedule'>('book')
-  const [hasSchool, setHasSchool] = useState(true)
+  const [hasSchool, setHasSchool] = useState(false)
+  const [schoolCheckDone, setSchoolCheckDone] = useState(false)
 
   // Book tab state
   const [occurrences, setOccurrences] = useState<Occurrence[]>([])
@@ -624,6 +625,7 @@ export default function MyClassesPage() {
       .then(r => r.json())
       .then(d => setHasSchool((d.user?.schoolMembers?.length ?? 0) > 0))
       .catch(() => {})
+      .finally(() => setSchoolCheckDone(true))
   }, [loadOccurrences])
 
   async function handlePassRequest(plan: PassPlan) {
@@ -724,7 +726,7 @@ export default function MyClassesPage() {
             <DateCarousel selected={occDate} onChange={setOccDate} />
           </div>
           <div className="px-4 py-4 max-w-2xl">
-            {loadingOcc ? (
+            {loadingOcc || !schoolCheckDone ? (
               <div className="flex items-center justify-center h-40">
                 <div className="w-5 h-5 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />
               </div>

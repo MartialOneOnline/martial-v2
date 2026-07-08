@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState, useCallback, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { CalendarDays, Clock, MapPin, Ticket, CheckCircle2, X, Minus, Plus, AlertCircle, QrCode, MessageCircle, Mail, Globe } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useT } from '../../../lib/i18n/LanguageContext'
@@ -457,6 +458,7 @@ function MyEventsPageInner() {
   const [loading, setLoading] = useState(true)
   const [openEvent, setOpenEvent] = useState<EventItem | null>(null)
   const [banner, setBanner] = useState<'success' | 'cancelled' | null>(null)
+  const [hasSchool, setHasSchool] = useState(false)
   const tabInitialized = useRef(false)
 
   const load = useCallback(() => {
@@ -477,6 +479,13 @@ function MyEventsPageInner() {
   }, [])
 
   useEffect(() => { load() }, [load])
+
+  useEffect(() => {
+    fetch('/api/my')
+      .then(r => r.json())
+      .then(d => setHasSchool((d.user?.schoolMembers?.length ?? 0) > 0))
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     const checkout = searchParams.get('checkout')
@@ -533,8 +542,23 @@ function MyEventsPageInner() {
           events.length === 0 ? (
             <div className="text-center py-16">
               <Ticket className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-              <p className="text-sm font-semibold text-gray-500">{t.my.noEventsAvailable}</p>
-              <p className="text-xs text-gray-400 mt-1">{t.my.noEventsDesc}</p>
+              {!hasSchool ? (
+                <>
+                  <p className="text-sm font-semibold text-gray-500">{t.my.findYourAcademy}</p>
+                  <p className="text-xs text-gray-400 mt-1 mb-4">{t.my.searchNearYou}</p>
+                  <Link
+                    href="/explore"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-xs font-semibold bg-[#0870E2] hover:bg-[#0558b0] transition-colors"
+                  >
+                    {t.my.exploreSchools}
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-semibold text-gray-500">{t.my.noEventsAvailable}</p>
+                  <p className="text-xs text-gray-400 mt-1">{t.my.noEventsDesc}</p>
+                </>
+              )}
             </div>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
