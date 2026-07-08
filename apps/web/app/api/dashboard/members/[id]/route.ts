@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { hasPermission } from '@/lib/auth/permissions'
 
 function getAdminSupabase() {
   const key = process.env.SUPABASE_SECRET_KEY
@@ -23,7 +24,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!['OWNER', 'ADMIN', 'INSTRUCTOR'].includes(member.role)) {
+      if (!hasPermission(member.role, 'school.members.update')) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
       }
     } catch {
@@ -78,7 +79,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!['OWNER', 'ADMIN'].includes(member.role)) {
+      if (!hasPermission(member.role, 'school.members.delete')) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
       }
     } catch {

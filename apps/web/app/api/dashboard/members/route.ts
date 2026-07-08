@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { hasPermission } from '@/lib/auth/permissions'
 
 // GET /api/dashboard/members — list all school members with active membership
 export async function GET() {
@@ -14,7 +15,7 @@ export async function GET() {
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!['OWNER', 'ADMIN', 'INSTRUCTOR'].includes(member.role)) {
+      if (!hasPermission(member.role, 'school.members.view')) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
       }
     } catch {
@@ -102,7 +103,7 @@ export async function POST(req: NextRequest) {
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!['OWNER', 'ADMIN', 'INSTRUCTOR'].includes(member.role)) {
+      if (!hasPermission(member.role, 'school.members.create')) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
       }
     } catch {

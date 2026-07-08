@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { hasPermission, type Permission } from '@/lib/auth/permissions'
 import { getSchoolPaymentCapabilities, sanitizePaymentMethods } from '@/lib/services/paymentCapabilities'
 
-async function authorise(roles = ['OWNER', 'ADMIN']) {
+async function authorise(permission: Permission) {
   const user = await getAuthUser()
   if (!user) return { error: 'Unauthorized', status: 401 }
   const schoolId = await getCurrentSchoolId()
@@ -12,7 +13,7 @@ async function authorise(roles = ['OWNER', 'ADMIN']) {
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!roles.includes(member.role)) return { error: 'Forbidden', status: 403 }
+      if (!hasPermission(member.role, permission)) return { error: 'Forbidden', status: 403 }
     } catch {
       return { error: 'Forbidden', status: 403 }
     }
@@ -22,7 +23,7 @@ async function authorise(roles = ['OWNER', 'ADMIN']) {
 
 // GET /api/dashboard/membership-plans — list plans + classes for current school
 export async function GET() {
-  const auth = await authorise(['OWNER', 'ADMIN', 'INSTRUCTOR'])
+  const auth = await authorise('school.membershipPlans.view')
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const [plans, classes, memberships, school, paymentCapabilities] = await Promise.all([
@@ -59,7 +60,7 @@ export async function GET() {
 
 // POST /api/dashboard/membership-plans — create a plan
 export async function POST(req: NextRequest) {
-  const auth = await authorise()
+  const auth = await authorise('school.membershipPlans.create')
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const body = await req.json()

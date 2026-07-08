@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { hasPermission, type Permission } from '@/lib/auth/permissions'
 import { getSchoolPaymentCapabilities, sanitizePaymentMethods } from '@/lib/services/paymentCapabilities'
 
-async function authorise(roles = ['OWNER', 'ADMIN']) {
+async function authorise(permission: Permission) {
   const user = await getAuthUser()
   if (!user) return { error: 'Unauthorized', status: 401 }
   const schoolId = await getCurrentSchoolId()
@@ -12,7 +13,7 @@ async function authorise(roles = ['OWNER', 'ADMIN']) {
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!roles.includes(member.role)) return { error: 'Forbidden', status: 403 }
+      if (!hasPermission(member.role, permission)) return { error: 'Forbidden', status: 403 }
     } catch {
       return { error: 'Forbidden', status: 403 }
     }
@@ -22,7 +23,7 @@ async function authorise(roles = ['OWNER', 'ADMIN']) {
 
 // PUT /api/dashboard/classes/[id] — update a class
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await authorise()
+  const auth = await authorise('school.classes.update')
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const { id } = await params
@@ -69,7 +70,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
 // DELETE /api/dashboard/classes/[id] — soft delete (deactivate) or hard delete
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await authorise()
+  const auth = await authorise('school.classes.delete')
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const { id } = await params

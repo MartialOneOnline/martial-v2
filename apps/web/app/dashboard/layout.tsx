@@ -1,8 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getAuthUser } from '@/lib/auth/server'
+import { hasDashboardAccess } from '@/lib/auth/contexts'
 import DashboardShell from '../../components/DashboardShell'
-
-const STAFF_ROLES = new Set(['SUPERADMIN', 'SCHOOL_OWNER', 'ADMIN', 'INSTRUCTOR'])
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const user = await getAuthUser()
@@ -11,7 +10,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect('/login?redirect=/dashboard')
   }
 
-  if (!STAFF_ROLES.has(user.role)) {
+  // SUPERADMIN bypasses the school-membership check; everyone else needs an
+  // active, staff-facing SchoolMember somewhere — see hasDashboardAccess().
+  if (user.role !== 'SUPERADMIN' && !(await hasDashboardAccess(user.id))) {
     redirect('/my')
   }
 
