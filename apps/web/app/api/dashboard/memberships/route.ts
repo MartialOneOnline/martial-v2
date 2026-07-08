@@ -73,15 +73,17 @@ export async function GET(req: NextRequest) {
     }),
   ])
 
-  // Batch-fetch belts from SchoolMember
+  // Batch-fetch belts + SchoolMember id (needed to link to /dashboard/users/[id],
+  // which takes a SchoolMember id — distinct from both the User id and Membership id)
   const userIds = [...new Set(memberships.map(m => m.userId))]
   const schoolMembers = userIds.length
     ? await prisma.schoolMember.findMany({
         where: { schoolId: auth.schoolId, userId: { in: userIds } },
-        select: { userId: true, belt: true },
+        select: { id: true, userId: true, belt: true },
       })
     : []
   const beltMap = Object.fromEntries(schoolMembers.map(sm => [sm.userId, sm.belt ?? null]))
+  const schoolMemberIdMap = Object.fromEntries(schoolMembers.map(sm => [sm.userId, sm.id]))
 
   const statMap = Object.fromEntries(stats.map(s => [s.status, { count: s._count.id, sum: s._sum.price ?? 0 }]))
   const totalRevenue = statMap['ACTIVE']?.sum ?? 0
@@ -90,6 +92,7 @@ export async function GET(req: NextRequest) {
     memberships: memberships.map(m => ({
       id:            m.id,
       userId:        m.userId,
+      schoolMemberId: schoolMemberIdMap[m.userId] ?? null,
       userName:      m.user?.name  ?? '—',
       userEmail:     m.user?.email ?? null,
       userAvatar:    m.user?.avatarUrl ?? null,

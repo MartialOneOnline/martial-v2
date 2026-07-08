@@ -4,12 +4,12 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import {
   X, Plus, Pencil, Trash2, Check, Infinity, Menu, Image as ImageIcon,
-  Users, Share2, Copy, Mail, Upload, MoreVertical,
-  CheckCircle, Pause, Play, XCircle, Loader2, AlertTriangle,
+  Users, Share2, Copy, Mail, Upload, MoreVertical, AlertTriangle,
 } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useDashboard } from '../../../components/DashboardShell'
 import RowMenu from '../../../components/RowMenu'
+import MembershipRowActions from '../../../components/MembershipRowActions'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../lib/format'
 import { BOOKING_PAYMENT_OPTIONS } from '../../../lib/paymentMethods'
@@ -757,100 +757,6 @@ const MEMBERSHIP_STATUS_COLORS: Record<string, { bg: string; color: string }> = 
   CANCELLED:{ bg: '#FFF1F2', color: '#E11D48' },
 }
 
-// ── Action menu per membership row ────────────────────────────────────────────
-
-type MembershipAction = 'activate' | 'pause' | 'resume' | 'cancel'
-
-const ACTION_CONFIG: Record<MembershipAction, { label: string; icon: React.ElementType; color: string }> = {
-  activate: { label: 'Activate',   icon: CheckCircle, color: '#16A34A' },
-  pause:    { label: 'Pause',      icon: Pause,       color: '#D97706' },
-  resume:   { label: 'Resume',     icon: Play,        color: '#0870E2' },
-  cancel:   { label: 'Cancel',     icon: XCircle,     color: '#EF4444' },
-}
-
-function allowedActions(status: string): MembershipAction[] {
-  switch (status) {
-    case 'PENDING':  return ['activate', 'cancel']
-    case 'ACTIVE':   return ['pause', 'cancel']
-    case 'PAUSED':   return ['resume', 'cancel']
-    default:         return []
-  }
-}
-
-function MemberRowActions({
-  membershipId, status, onDone,
-}: { membershipId: string; status: string; onDone: (id: string, newStatus: string) => void }) {
-  const [open, setOpen]       = useState(false)
-  const [loading, setLoading] = useState<MembershipAction | null>(null)
-  const ref                   = useRef<HTMLDivElement>(null)
-  const actions               = allowedActions(status)
-
-  useEffect(() => {
-    function close(e: MouseEvent) { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
-    document.addEventListener('mousedown', close)
-    return () => document.removeEventListener('mousedown', close)
-  }, [])
-
-  if (actions.length === 0) return null
-
-  async function doAction(action: MembershipAction) {
-    setLoading(action)
-    setOpen(false)
-    try {
-      const res = await fetch(`/api/dashboard/memberships/${membershipId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action }),
-      })
-      if (!res.ok) throw new Error(await res.text())
-      const { status: newStatus } = await res.json()
-      onDone(membershipId, newStatus)
-      // Notify sidebar to re-fetch pending count when PENDING status changes
-      if (status === 'PENDING' || newStatus === 'PENDING') {
-        window.dispatchEvent(new CustomEvent('membership-pending-changed'))
-      }
-    } catch (err) {
-      console.error('[membership action]', err)
-    } finally {
-      setLoading(null)
-    }
-  }
-
-  return (
-    <div ref={ref} style={{ position: 'relative', flexShrink: 0 }}>
-      <button
-        onClick={() => setOpen(o => !o)}
-        style={{ width: 28, height: 28, borderRadius: 8, border: '1px solid #E5E7EB',
-          background: open ? '#F3F4F6' : '#fff', display: 'flex', alignItems: 'center',
-          justifyContent: 'center', cursor: 'pointer' }}>
-        {loading
-          ? <Loader2 size={13} className="animate-spin" style={{ color: '#9CA3AF' }} />
-          : <MoreVertical size={13} style={{ color: '#6B7280' }} />}
-      </button>
-
-      {open && (
-        <div style={{ position: 'absolute', right: 0, top: 32, zIndex: 10, background: '#fff',
-          borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', border: '1px solid #E5E7EB',
-          minWidth: 148, padding: '4px 0', overflow: 'hidden' }}>
-          {actions.map(action => {
-            const cfg = ACTION_CONFIG[action]
-            const Icon = cfg.icon
-            return (
-              <button key={action} onClick={() => doAction(action)}
-                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-                  padding: '9px 14px', background: 'none', border: 'none', cursor: 'pointer',
-                  fontSize: 13, fontWeight: 600, color: cfg.color, textAlign: 'left' }}>
-                <Icon size={14} />
-                {cfg.label}
-              </button>
-            )
-          })}
-        </div>
-      )}
-    </div>
-  )
-}
-
 // ── Members modal ──────────────────────────────────────────────────────────────
 
 function PlanMembersModal({ plan, onClose }: { plan: PlanRow; onClose: () => void }) {
@@ -946,7 +852,7 @@ function PlanMembersModal({ plan, onClose }: { plan: PlanRow; onClose: () => voi
                   {m.status}
                 </span>
                 {/* Action menu */}
-                <MemberRowActions
+                <MembershipRowActions
                   membershipId={m.id}
                   status={m.status}
                   onDone={handleActionDone}

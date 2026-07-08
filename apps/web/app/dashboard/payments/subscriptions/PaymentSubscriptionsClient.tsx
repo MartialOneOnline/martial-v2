@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { useDashboard } from '../../../../components/DashboardShell'
 import RowMenu from '../../../../components/RowMenu'
+import MembershipRowActions from '../../../../components/MembershipRowActions'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../../lib/format'
 
@@ -16,8 +17,9 @@ type MemStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED' | 'EXPIRED' | 'PENDING'
 type Filter = 'ALL' | MemStatus
 
 interface SubRow {
-  memberId: string
+  id: string
   userId: string
+  schoolMemberId: string | null
   memberName: string
   memberEmail: string
   memberAvatar: string | null
@@ -530,13 +532,14 @@ export default function PaymentSubscriptionsClient() {
       setServerCounts({ ALL: total, PENDING: cs.PENDING ?? 0, ACTIVE: cs.ACTIVE ?? 0, PAUSED: cs.PAUSED ?? 0, CANCELLED: cs.CANCELLED ?? 0, EXPIRED: cs.EXPIRED ?? 0 })
 
       const rows: SubRow[] = memberships.map((m: {
-        id: string; userId?: string; userName: string; userEmail?: string; userAvatar?: string;
+        id: string; userId?: string; schoolMemberId?: string | null; userName: string; userEmail?: string; userAvatar?: string;
         belt?: string | null; planName: string; planType?: string; paymentMethod?: string;
         price: number; currency?: string; startDate: string; endDate?: string; status: MemStatus;
         classesUsed?: number; totalLimit?: number;
       }) => ({
-        memberId:    m.id,
-        userId:      m.userId ?? m.id,
+        id:            m.id,
+        userId:        m.userId ?? m.id,
+        schoolMemberId: m.schoolMemberId ?? null,
         memberName:   m.userName,
         memberEmail:  m.userEmail ?? '',
         memberAvatar: m.userAvatar ?? null,
@@ -729,7 +732,7 @@ export default function PaymentSubscriptionsClient() {
                 const pt  = PLAN_TYPE_MAP[sub.planType] ?? PLAN_TYPE_MAP.SUBSCRIPTION!
                 const StatusIcon = sc.icon
                 return (
-                  <tr key={sub.memberId}
+                  <tr key={sub.id}
                     className="hover:bg-[#FAFAFA] transition-colors cursor-pointer"
                     style={{ borderBottom: idx < paginated.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
 
@@ -789,29 +792,38 @@ export default function PaymentSubscriptionsClient() {
                     </td>
 
                     <td className="px-5 py-3">
-                      <RowMenu trigger={({ onClick }) => (
-                        <button
-                          onClick={onClick}
-                          className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
-                          style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
-                          onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
-                          onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                          <MoreHorizontal size={15} />
-                        </button>
-                      )}>
-                        <div className="rounded-xl py-1 overflow-hidden"
-                          style={{ background: '#fff', border: '1px solid #E5E7EB',
-                            boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 170 }}>
-                          <a href={`/dashboard/users/${sub.memberId}`}
-                            className="w-full text-left px-4 py-2.5 flex items-center gap-2"
-                            style={{ fontSize: 13, color: '#374151', background: 'transparent',
-                              border: 'none', textDecoration: 'none', display: 'block' }}
+                      <div className="flex items-center justify-end gap-1.5">
+                        <MembershipRowActions
+                          membershipId={sub.id}
+                          status={sub.status}
+                          onDone={() => load()}
+                        />
+                        <RowMenu trigger={({ onClick }) => (
+                          <button
+                            onClick={onClick}
+                            className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
+                            style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
                             onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
                             onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                            Ver perfil
-                          </a>
-                        </div>
-                      </RowMenu>
+                            <MoreHorizontal size={15} />
+                          </button>
+                        )}>
+                          <div className="rounded-xl py-1 overflow-hidden"
+                            style={{ background: '#fff', border: '1px solid #E5E7EB',
+                              boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 170 }}>
+                            {sub.schoolMemberId && (
+                              <a href={`/dashboard/users/${sub.schoolMemberId}`}
+                                className="w-full text-left px-4 py-2.5 flex items-center gap-2"
+                                style={{ fontSize: 13, color: '#374151', background: 'transparent',
+                                  border: 'none', textDecoration: 'none', display: 'block' }}
+                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
+                                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+                                Ver perfil
+                              </a>
+                            )}
+                          </div>
+                        </RowMenu>
+                      </div>
                     </td>
                   </tr>
                 )
