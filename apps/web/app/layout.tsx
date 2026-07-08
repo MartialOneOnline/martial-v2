@@ -3,6 +3,7 @@ import { Inter, Outfit, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from '../lib/i18n/LanguageContext'
 import { resolveAuthHashRedirect } from '../lib/authHashRedirect'
+import { APP_URL } from '../lib/og'
 
 const inter = Inter({
   subsets: ["latin"],
@@ -19,11 +20,8 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-mono",
 });
 
-const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://martial-v2-web.vercel.app'
-const appUrl = /^https?:\/\//.test(rawAppUrl) ? rawAppUrl : `https://${rawAppUrl}`
-
 export const metadata: Metadata = {
-  metadataBase: new URL(appUrl),
+  metadataBase: new URL(APP_URL),
   title: "Martial — The Global Martial Arts Platform",
   description: "Innovative Management Software for Martial Arts Academies and Business & Users interaction Worldwide.",
 };

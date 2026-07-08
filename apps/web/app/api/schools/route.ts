@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
     // School also holds plaintext Stripe/Revolut secret keys.
     select: {
       id: true, slug: true, name: true, city: true, country: true, address: true,
-      lat: true, lng: true, coverUrl: true, logoUrl: true,
+      lat: true, lng: true, coverUrl: true, coverPosY: true, logoUrl: true,
       googleRating: true, googleReviews: true, description: true, tagline: true,
       priceFrom: true, hasFreeTrialCls: true, facilities: true, type: true,
       disciplines: { select: { discipline: { select: { name: true, slug: true } } } },

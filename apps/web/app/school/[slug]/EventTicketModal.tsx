@@ -9,6 +9,8 @@ import type { EventForCta } from './EventTicketCTA'
 type Props = {
   event: EventForCta
   schoolSlug: string
+  // Defaults to the school profile's events section when not given.
+  redirectPath?: string
   onClose: () => void
 }
 
@@ -25,8 +27,9 @@ const PAYMENT_LABELS: Record<string, { label: string; icon: typeof CreditCard }>
 // reservation endpoint yet, so it's intentionally left out here).
 const SUPPORTED_METHODS = ['STRIPE', 'REVOLUT', 'CASH']
 
-export default function EventTicketModal({ event, schoolSlug, onClose }: Props) {
+export default function EventTicketModal({ event, schoolSlug, redirectPath, onClose }: Props) {
   const router = useRouter()
+  const backTo = redirectPath ?? `/school/${schoolSlug}#events`
   const [auth, setAuth] = useState<AuthStatus>('loading')
   const [bookingState, setBookingState] = useState<BookingState>('idle')
   const [errorMsg, setErrorMsg] = useState('')
@@ -144,13 +147,13 @@ export default function EventTicketModal({ event, schoolSlug, onClose }: Props) 
                 <p className="text-sm text-[#0369A1]">You need to be logged in to buy a ticket.</p>
               </div>
               <button
-                onClick={() => router.push(`/login?redirect=${encodeURIComponent(`/school/${schoolSlug}#events`)}`)}
+                onClick={() => router.push(`/login?redirect=${encodeURIComponent(backTo)}`)}
                 className="w-full bg-[#0870E2] hover:bg-[#005080] text-white font-semibold py-3 rounded-2xl transition-colors"
               >
                 Log In to Book
               </button>
               <button
-                onClick={() => router.push(`/register?redirect=${encodeURIComponent(`/school/${schoolSlug}#events`)}`)}
+                onClick={() => router.push(`/register?redirect=${encodeURIComponent(backTo)}`)}
                 className="w-full border border-[#0870E2] text-[#0870E2] hover:bg-[#e8f7ff] font-semibold py-3 rounded-2xl transition-colors"
               >
                 Create Free Account

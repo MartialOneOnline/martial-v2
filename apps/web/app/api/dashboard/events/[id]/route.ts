@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 import { getSchoolPaymentCapabilities, sanitizePaymentMethods } from '@/lib/services/paymentCapabilities'
+import { slugify, uniqueSlug } from '@/lib/slug'
 
 async function authorise(roles = ['OWNER', 'ADMIN']) {
   const user = await getAuthUser()
@@ -49,6 +50,12 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     tickets?: { id?: string; name: string; description?: string; price?: number; currency?: string; capacity?: number }[]
   }
 
+  // Slug is assigned once and kept stable across edits (shared links must
+  // keep working) — only backfill it for older events that predate this field.
+  const slug = existing.slug ?? await uniqueSlug(slugify((title ?? existing.title).trim()), async candidate =>
+    (await prisma.event.count({ where: { schoolId: auth.schoolId, slug: candidate, id: { not: id } } })) > 0
+  )
+
   // Reconcile tickets by id instead of delete-everything-and-recreate: a ticket that
   // already has bookings must keep its id (and those bookings' ticketId FK) across edits,
   // otherwise it becomes permanently stuck while a fresh duplicate gets created next to it.
@@ -92,6 +99,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     where: { id },
     data: {
       title:          title?.trim()              ?? existing.title,
+      slug,
       description:    description !== undefined  ? (description?.trim() || null) : existing.description,
       type:           (type as typeof existing.type) ?? existing.type,
       location:       location !== undefined      ? (location?.trim() || null) : existing.location,

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import {
@@ -225,6 +225,14 @@ function SchoolTab() {
   const [uploading,  setUploading]  = useState(false)
   const [uploadingCover, setUploadingCover] = useState(false)
 
+  // Facebook-style cover reposition — dragged locally, persisted separately
+  // from the rest of the form so it can save on its own "Save position" click.
+  const [coverPosY, setCoverPosY]       = useState(50)
+  const [coverPosDirty, setCoverPosDirty] = useState(false)
+  const [savingPos, setSavingPos]       = useState(false)
+  const coverFrameRef = useRef<HTMLDivElement>(null)
+  const coverDrag = useRef<{ startY: number; startPos: number } | null>(null)
+
   useEffect(() => {
     fetch('/api/dashboard/school').then(r => r.json()).then(d => {
       if (d.school) setForm({
@@ -247,6 +255,7 @@ function SchoolTab() {
         language:    d.school.language    ?? 'en',
         hasFreeTrialCls: d.school.hasFreeTrialCls ?? false,
       })
+      if (d.school) setCoverPosY(d.school.coverPosY ?? 50)
     }).finally(() => setLoading(false))
   }, [])
 
@@ -275,9 +284,30 @@ function SchoolTab() {
     const res = await fetch('/api/dashboard/upload?bucket=avatars', { method: 'POST', body: fd })
     if (!res.ok) { const d = await res.json().catch(() => ({})); setError(d.error ?? 'Upload failed'); setUploadingCover(false); return }
     const { url } = await res.json()
-    await fetch('/api/dashboard/school', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ coverUrl: url }) })
+    await fetch('/api/dashboard/school', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ coverUrl: url, coverPosY: 50 }) })
     setForm(p => ({ ...p, coverUrl: url }))
+    setCoverPosY(50); setCoverPosDirty(false)
     setUploadingCover(false); setSaved(true); setTimeout(() => setSaved(false), 2500)
+  }
+
+  function coverPointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    coverDrag.current = { startY: e.clientY, startPos: coverPosY }
+    e.currentTarget.setPointerCapture(e.pointerId)
+  }
+  function coverPointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (!coverDrag.current || !coverFrameRef.current) return
+    const dy = e.clientY - coverDrag.current.startY
+    const pct = coverDrag.current.startPos + (dy / coverFrameRef.current.clientHeight) * 100
+    setCoverPosY(Math.max(0, Math.min(100, pct)))
+    setCoverPosDirty(true)
+  }
+  function coverPointerUp() { coverDrag.current = null }
+
+  async function saveCoverPos() {
+    setSavingPos(true)
+    await fetch('/api/dashboard/school', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ coverPosY }) })
+    setSavingPos(false); setCoverPosDirty(false)
+    setSaved(true); setTimeout(() => setSaved(false), 2500)
   }
 
   async function save() {
@@ -339,23 +369,64 @@ function SchoolTab() {
           <p style={{ fontSize: 12, color: '#9CA3AF', margin: '-2px 0 8px' }}>
             The banner shown on your public Explore card and profile page. Not the same as an event's own banner.
           </p>
-          <label className="block relative cursor-pointer group w-full" style={{ height: 140 }}>
-            <div className="w-full h-full rounded-2xl overflow-hidden flex items-center justify-center relative"
-              style={{ background: '#F3F4F6', border: '2px dashed #D1D5DB' }}>
-              {uploadingCover
-                ? <RefreshCw size={20} style={{ color: '#9CA3AF' }} className="animate-spin" />
-                : form.coverUrl
-                  ? <Image src={form.coverUrl} alt="cover" fill sizes="(max-width: 768px) 100vw, 600px" className="object-cover" />
+
+          {!form.coverUrl ? (
+            <label className="block relative cursor-pointer group w-full" style={{ height: 140 }}>
+              <div className="w-full h-full rounded-2xl overflow-hidden flex items-center justify-center relative"
+                style={{ background: '#F3F4F6', border: '2px dashed #D1D5DB' }}>
+                {uploadingCover
+                  ? <RefreshCw size={20} style={{ color: '#9CA3AF' }} className="animate-spin" />
                   : <Upload size={20} style={{ color: '#9CA3AF' }} />
-              }
-            </div>
-            <div className="absolute inset-0 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-              style={{ background: 'rgba(0,0,0,0.35)' }}>
-              <Upload size={16} style={{ color: '#fff' }} />
-            </div>
-            <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleCoverChange} />
-          </label>
-          <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 6 }}>Click to upload · JPEG, PNG or WebP · max 5MB</p>
+                }
+              </div>
+              <div className="absolute inset-0 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ background: 'rgba(0,0,0,0.35)' }}>
+                <Upload size={16} style={{ color: '#fff' }} />
+              </div>
+              <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleCoverChange} />
+            </label>
+          ) : (
+            <>
+              <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 6 }}>Drag the photo up or down to choose what shows in the banner.</p>
+              <div
+                ref={coverFrameRef}
+                onPointerDown={coverPointerDown}
+                onPointerMove={coverPointerMove}
+                onPointerUp={coverPointerUp}
+                className="relative w-full rounded-2xl overflow-hidden"
+                style={{ height: 140, background: '#0E3A7A', border: '2px dashed #D1D5DB', cursor: 'grab', touchAction: 'none' }}
+              >
+                {uploadingCover ? (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <RefreshCw size={20} style={{ color: '#9CA3AF' }} className="animate-spin" />
+                  </div>
+                ) : (
+                  <Image
+                    src={form.coverUrl} alt="cover" fill draggable={false}
+                    sizes="(max-width: 768px) 100vw, 600px" className="object-cover pointer-events-none"
+                    style={{ objectPosition: `50% ${coverPosY}%` }}
+                  />
+                )}
+              </div>
+              <div className="flex items-center justify-between mt-2">
+                <label className="text-xs font-semibold cursor-pointer" style={{ color: '#0870E2' }}>
+                  Change photo
+                  <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleCoverChange} />
+                </label>
+                <div className="flex items-center gap-3">
+                  <span style={{ fontSize: 11, color: '#9CA3AF' }}>{coverPosDirty ? 'Unsaved position' : ' '}</span>
+                  <button
+                    type="button" onClick={saveCoverPos} disabled={!coverPosDirty || savingPos}
+                    className="text-xs font-semibold rounded-full px-3 py-1.5 disabled:opacity-40"
+                    style={{ background: '#0870E2', color: '#fff' }}
+                  >
+                    {savingPos ? 'Saving…' : 'Save position'}
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+          <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 6 }}>JPEG, PNG or WebP · max 5MB</p>
         </div>
       </div>
 

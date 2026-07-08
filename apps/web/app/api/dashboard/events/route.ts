@@ -4,6 +4,7 @@ import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 import { getBookedCounts } from '@/lib/services/eventCapacity'
 import { getSchoolPaymentCapabilities, sanitizePaymentMethods } from '@/lib/services/paymentCapabilities'
+import { slugify, uniqueSlug } from '@/lib/slug'
 
 async function authorise(roles = ['OWNER', 'ADMIN', 'INSTRUCTOR']) {
   const user = await getAuthUser()
@@ -73,11 +74,15 @@ export async function POST(req: NextRequest) {
   if (!startAt)       return NextResponse.json({ error: 'Start date is required' }, { status: 400 })
 
   const { availableMethods } = await getSchoolPaymentCapabilities(auth.schoolId)
+  const slug = await uniqueSlug(slugify(title.trim()), async candidate =>
+    (await prisma.event.count({ where: { schoolId: auth.schoolId, slug: candidate } })) > 0
+  )
 
   const event = await prisma.event.create({
     data: {
       schoolId: auth.schoolId,
       title: title.trim(),
+      slug,
       description: description?.trim() || null,
       type: type || 'OTHER',
       location: location?.trim() || null,

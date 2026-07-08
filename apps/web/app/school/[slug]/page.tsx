@@ -10,15 +10,12 @@ import TrialBookingCTA from './TrialBookingCTA'
 import EventTicketCTA from './EventTicketCTA'
 import LeadForm from './LeadForm'
 import { getBookedCounts } from '@/lib/services/eventCapacity'
-import { fmtPrice } from '@/lib/format'
+import { fmtPrice, formatEventType } from '@/lib/format'
+import { ogImageUrl } from '@/lib/og'
 import {
   MapPin, Star, Phone, Globe, Mail, ChevronLeft,
   CheckCircle, MessageCircle, ExternalLink, UserPlus, Calendar,
 } from 'lucide-react'
-
-const FALLBACK_OG = 'https://images.unsplash.com/photo-1555597673-b21d5c935865?w=1200&h=630&fit=crop&q=85'
-const RAW_APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://martial-v2-web.vercel.app'
-const APP_URL = /^https?:\/\//.test(RAW_APP_URL) ? RAW_APP_URL : `https://${RAW_APP_URL}`
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -30,12 +27,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   const title = `${school.name}${school.city ? ` — ${school.city}` : ''}`
   const description = school.tagline ?? school.description ?? `Join ${school.name} and start your martial arts journey.`
-  // Raw uploads can be several MB — WhatsApp/iMessage link-preview crawlers time
-  // out or skip the image above ~1MB, so route uploaded covers through the
-  // image optimizer to get a small, correctly-sized JPEG for og:image.
-  const image = school.coverUrl
-    ? `${APP_URL}/_next/image?url=${encodeURIComponent(school.coverUrl)}&w=1200&q=75`
-    : FALLBACK_OG
+  const image = ogImageUrl(school.coverUrl)
 
   return {
     title,
@@ -66,10 +58,6 @@ function InstagramIcon({ className }: { className?: string }) {
 }
 
 const FALLBACK = 'https://images.unsplash.com/photo-1555597673-b21d5c935865?w=1200&h=600&fit=crop&q=85'
-
-function formatEventType(type: string) {
-  return type.charAt(0) + type.slice(1).toLowerCase().replace(/_/g, ' ')
-}
 
 export default async function SchoolProfile({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -133,6 +121,7 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
   const { byTicket, byEvent } = await getBookedCounts(school.events.map(e => e.id))
   const eventsMapped = school.events.map(e => ({
     id: e.id,
+    slug: e.slug ?? e.id,
     title: e.title,
     type: e.type,
     location: e.location,
@@ -164,7 +153,11 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
 
       {/* ── Hero ─────────────────────────────────────────── */}
       <div className="relative h-72 md:h-[420px] bg-[#101828] overflow-hidden">
-        <Image src={cover} alt={school.name} fill className="object-cover opacity-80" priority />
+        <Image
+          src={cover} alt={school.name} fill priority
+          className="object-cover opacity-80"
+          style={{ objectPosition: `50% ${school.coverPosY}%` }}
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/20" />
 
         {/* Back button */}
@@ -285,7 +278,11 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
                     const minPrice = ev.tickets.length > 0 ? Math.min(...ev.tickets.map(t => t.price)) : null
                     const dateLabel = new Date(ev.startAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
                     return (
-                      <div key={ev.id} className="flex items-center gap-3 px-4 sm:px-5 py-4">
+                      <Link
+                        key={ev.id}
+                        href={`/school/${slug}/events/${ev.slug}`}
+                        className="flex items-center gap-3 px-4 sm:px-5 py-4 hover:bg-gray-50/80 transition-colors"
+                      >
                         <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden shrink-0 bg-[#0E3A7A] flex items-center justify-center">
                           {ev.coverUrl ? (
                             <Image src={ev.coverUrl} alt={ev.title} width={56} height={56} className="object-cover w-full h-full" />
@@ -315,7 +312,7 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
                             <span className="font-normal text-gray-400 text-xs hidden sm:inline">from </span>{fmtPrice(minPrice, ev.tickets[0]!.currency)}
                           </p>
                         )}
-                      </div>
+                      </Link>
                     )
                   })}
                 </div>

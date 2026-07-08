@@ -41,6 +41,7 @@ type DbSchool = {
   lat: number | null
   lng: number | null
   coverUrl: string | null
+  coverPosY: number | null
   logoUrl: string | null
   googleRating: number | null
   googleReviews: number | null
@@ -81,6 +82,7 @@ type EventTicket = { id: string; name: string; description: string | null; price
 type DbEvent = {
   id: string
   title: string
+  slug: string | null
   description: string | null
   type: string
   location: string | null
@@ -240,7 +242,12 @@ function SchoolCard({ school, onClick }: { school: DbSchool; onClick: () => void
       {/* Photo */}
       <div className={`relative w-full h-48 overflow-hidden ${showGradient ? `bg-gradient-to-br ${gradient}` : 'bg-[#E5E7EB]'}`}>
         {school.coverUrl && !imgError && (
-          <Image src={school.coverUrl} alt={school.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" onError={() => setImgError(true)} />
+          <Image
+            src={school.coverUrl} alt={school.name} fill
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            style={{ objectPosition: `50% ${school.coverPosY ?? 50}%` }}
+            onError={() => setImgError(true)}
+          />
         )}
         {showGradient && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 opacity-20">
@@ -841,10 +848,10 @@ export default function ExplorePage() {
     setQuickView(null)
   }
 
-  // Navigate to the school profile's Events section — ticket purchase needs full
-  // school context (location, other events), so it lives on the profile, not Explore.
+  // Navigate to the event's own marketing/ticket page — has its own banner,
+  // description and OG metadata, so link previews show that event specifically.
   function openEvent(event: DbEvent) {
-    router.push(`/school/${event.school.slug}#events`, { scroll: false })
+    router.push(`/school/${event.school.slug}/events/${event.slug ?? event.id}`)
   }
 
   const isLoading = mode === 'classes' ? loadingClasses : mode === 'events' ? loadingEvents : loadingSchools

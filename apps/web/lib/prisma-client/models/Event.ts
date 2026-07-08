@@ -38,6 +38,7 @@ export type EventMinAggregateOutputType = {
   id: string | null
   schoolId: string | null
   title: string | null
+  slug: string | null
   description: string | null
   type: $Enums.EventType | null
   location: string | null
@@ -57,6 +58,7 @@ export type EventMaxAggregateOutputType = {
   id: string | null
   schoolId: string | null
   title: string | null
+  slug: string | null
   description: string | null
   type: $Enums.EventType | null
   location: string | null
@@ -76,6 +78,7 @@ export type EventCountAggregateOutputType = {
   id: number
   schoolId: number
   title: number
+  slug: number
   description: number
   type: number
   location: number
@@ -106,6 +109,7 @@ export type EventMinAggregateInputType = {
   id?: true
   schoolId?: true
   title?: true
+  slug?: true
   description?: true
   type?: true
   location?: true
@@ -125,6 +129,7 @@ export type EventMaxAggregateInputType = {
   id?: true
   schoolId?: true
   title?: true
+  slug?: true
   description?: true
   type?: true
   location?: true
@@ -144,6 +149,7 @@ export type EventCountAggregateInputType = {
   id?: true
   schoolId?: true
   title?: true
+  slug?: true
   description?: true
   type?: true
   location?: true
@@ -251,6 +257,7 @@ export type EventGroupByOutputType = {
   id: string
   schoolId: string
   title: string
+  slug: string | null
   description: string | null
   type: $Enums.EventType
   location: string | null
@@ -294,6 +301,7 @@ export type EventWhereInput = {
   id?: Prisma.StringFilter<"Event"> | string
   schoolId?: Prisma.StringFilter<"Event"> | string
   title?: Prisma.StringFilter<"Event"> | string
+  slug?: Prisma.StringNullableFilter<"Event"> | string | null
   description?: Prisma.StringNullableFilter<"Event"> | string | null
   type?: Prisma.EnumEventTypeFilter<"Event"> | $Enums.EventType
   location?: Prisma.StringNullableFilter<"Event"> | string | null
@@ -318,6 +326,7 @@ export type EventOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   schoolId?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  slug?: Prisma.SortOrderInput | Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
   location?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -340,11 +349,13 @@ export type EventOrderByWithRelationInput = {
 
 export type EventWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  schoolId_slug?: Prisma.EventSchoolIdSlugCompoundUniqueInput
   AND?: Prisma.EventWhereInput | Prisma.EventWhereInput[]
   OR?: Prisma.EventWhereInput[]
   NOT?: Prisma.EventWhereInput | Prisma.EventWhereInput[]
   schoolId?: Prisma.StringFilter<"Event"> | string
   title?: Prisma.StringFilter<"Event"> | string
+  slug?: Prisma.StringNullableFilter<"Event"> | string | null
   description?: Prisma.StringNullableFilter<"Event"> | string | null
   type?: Prisma.EnumEventTypeFilter<"Event"> | $Enums.EventType
   location?: Prisma.StringNullableFilter<"Event"> | string | null
@@ -363,12 +374,13 @@ export type EventWhereUniqueInput = Prisma.AtLeast<{
   instructor?: Prisma.XOR<Prisma.InstructorNullableScalarRelationFilter, Prisma.InstructorWhereInput> | null
   tickets?: Prisma.EventTicketListRelationFilter
   bookings?: Prisma.EventBookingListRelationFilter
-}, "id">
+}, "id" | "schoolId_slug">
 
 export type EventOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   schoolId?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  slug?: Prisma.SortOrderInput | Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
   location?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -397,6 +409,7 @@ export type EventScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Event"> | string
   schoolId?: Prisma.StringWithAggregatesFilter<"Event"> | string
   title?: Prisma.StringWithAggregatesFilter<"Event"> | string
+  slug?: Prisma.StringNullableWithAggregatesFilter<"Event"> | string | null
   description?: Prisma.StringNullableWithAggregatesFilter<"Event"> | string | null
   type?: Prisma.EnumEventTypeWithAggregatesFilter<"Event"> | $Enums.EventType
   location?: Prisma.StringNullableWithAggregatesFilter<"Event"> | string | null
@@ -416,6 +429,7 @@ export type EventScalarWhereWithAggregatesInput = {
 export type EventCreateInput = {
   id?: string
   title: string
+  slug?: string | null
   description?: string | null
   type?: $Enums.EventType
   location?: string | null
@@ -439,6 +453,7 @@ export type EventUncheckedCreateInput = {
   id?: string
   schoolId: string
   title: string
+  slug?: string | null
   description?: string | null
   type?: $Enums.EventType
   location?: string | null
@@ -460,6 +475,7 @@ export type EventUncheckedCreateInput = {
 export type EventUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -483,6 +499,7 @@ export type EventUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   schoolId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -505,6 +522,7 @@ export type EventCreateManyInput = {
   id?: string
   schoolId: string
   title: string
+  slug?: string | null
   description?: string | null
   type?: $Enums.EventType
   location?: string | null
@@ -524,6 +542,7 @@ export type EventCreateManyInput = {
 export type EventUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -543,6 +562,7 @@ export type EventUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   schoolId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -569,10 +589,16 @@ export type EventOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type EventSchoolIdSlugCompoundUniqueInput = {
+  schoolId: string
+  slug: string
+}
+
 export type EventCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   schoolId?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  slug?: Prisma.SortOrder
   description?: Prisma.SortOrder
   type?: Prisma.SortOrder
   location?: Prisma.SortOrder
@@ -597,6 +623,7 @@ export type EventMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   schoolId?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  slug?: Prisma.SortOrder
   description?: Prisma.SortOrder
   type?: Prisma.SortOrder
   location?: Prisma.SortOrder
@@ -616,6 +643,7 @@ export type EventMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   schoolId?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  slug?: Prisma.SortOrder
   description?: Prisma.SortOrder
   type?: Prisma.SortOrder
   location?: Prisma.SortOrder
@@ -768,6 +796,7 @@ export type EventUpdateOneRequiredWithoutBookingsNestedInput = {
 export type EventCreateWithoutSchoolInput = {
   id?: string
   title: string
+  slug?: string | null
   description?: string | null
   type?: $Enums.EventType
   location?: string | null
@@ -789,6 +818,7 @@ export type EventCreateWithoutSchoolInput = {
 export type EventUncheckedCreateWithoutSchoolInput = {
   id?: string
   title: string
+  slug?: string | null
   description?: string | null
   type?: $Enums.EventType
   location?: string | null
@@ -840,6 +870,7 @@ export type EventScalarWhereInput = {
   id?: Prisma.StringFilter<"Event"> | string
   schoolId?: Prisma.StringFilter<"Event"> | string
   title?: Prisma.StringFilter<"Event"> | string
+  slug?: Prisma.StringNullableFilter<"Event"> | string | null
   description?: Prisma.StringNullableFilter<"Event"> | string | null
   type?: Prisma.EnumEventTypeFilter<"Event"> | $Enums.EventType
   location?: Prisma.StringNullableFilter<"Event"> | string | null
@@ -859,6 +890,7 @@ export type EventScalarWhereInput = {
 export type EventCreateWithoutInstructorInput = {
   id?: string
   title: string
+  slug?: string | null
   description?: string | null
   type?: $Enums.EventType
   location?: string | null
@@ -881,6 +913,7 @@ export type EventUncheckedCreateWithoutInstructorInput = {
   id?: string
   schoolId: string
   title: string
+  slug?: string | null
   description?: string | null
   type?: $Enums.EventType
   location?: string | null
@@ -927,6 +960,7 @@ export type EventUpdateManyWithWhereWithoutInstructorInput = {
 export type EventCreateWithoutTicketsInput = {
   id?: string
   title: string
+  slug?: string | null
   description?: string | null
   type?: $Enums.EventType
   location?: string | null
@@ -949,6 +983,7 @@ export type EventUncheckedCreateWithoutTicketsInput = {
   id?: string
   schoolId: string
   title: string
+  slug?: string | null
   description?: string | null
   type?: $Enums.EventType
   location?: string | null
@@ -985,6 +1020,7 @@ export type EventUpdateToOneWithWhereWithoutTicketsInput = {
 export type EventUpdateWithoutTicketsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1007,6 +1043,7 @@ export type EventUncheckedUpdateWithoutTicketsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   schoolId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1027,6 +1064,7 @@ export type EventUncheckedUpdateWithoutTicketsInput = {
 export type EventCreateWithoutBookingsInput = {
   id?: string
   title: string
+  slug?: string | null
   description?: string | null
   type?: $Enums.EventType
   location?: string | null
@@ -1049,6 +1087,7 @@ export type EventUncheckedCreateWithoutBookingsInput = {
   id?: string
   schoolId: string
   title: string
+  slug?: string | null
   description?: string | null
   type?: $Enums.EventType
   location?: string | null
@@ -1085,6 +1124,7 @@ export type EventUpdateToOneWithWhereWithoutBookingsInput = {
 export type EventUpdateWithoutBookingsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1107,6 +1147,7 @@ export type EventUncheckedUpdateWithoutBookingsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   schoolId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1127,6 +1168,7 @@ export type EventUncheckedUpdateWithoutBookingsInput = {
 export type EventCreateManySchoolInput = {
   id?: string
   title: string
+  slug?: string | null
   description?: string | null
   type?: $Enums.EventType
   location?: string | null
@@ -1146,6 +1188,7 @@ export type EventCreateManySchoolInput = {
 export type EventUpdateWithoutSchoolInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1167,6 +1210,7 @@ export type EventUpdateWithoutSchoolInput = {
 export type EventUncheckedUpdateWithoutSchoolInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1188,6 +1232,7 @@ export type EventUncheckedUpdateWithoutSchoolInput = {
 export type EventUncheckedUpdateManyWithoutSchoolInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1208,6 +1253,7 @@ export type EventCreateManyInstructorInput = {
   id?: string
   schoolId: string
   title: string
+  slug?: string | null
   description?: string | null
   type?: $Enums.EventType
   location?: string | null
@@ -1226,6 +1272,7 @@ export type EventCreateManyInstructorInput = {
 export type EventUpdateWithoutInstructorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1248,6 +1295,7 @@ export type EventUncheckedUpdateWithoutInstructorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   schoolId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1269,6 +1317,7 @@ export type EventUncheckedUpdateManyWithoutInstructorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   schoolId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1328,6 +1377,7 @@ export type EventSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   id?: boolean
   schoolId?: boolean
   title?: boolean
+  slug?: boolean
   description?: boolean
   type?: boolean
   location?: boolean
@@ -1353,6 +1403,7 @@ export type EventSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   id?: boolean
   schoolId?: boolean
   title?: boolean
+  slug?: boolean
   description?: boolean
   type?: boolean
   location?: boolean
@@ -1375,6 +1426,7 @@ export type EventSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   id?: boolean
   schoolId?: boolean
   title?: boolean
+  slug?: boolean
   description?: boolean
   type?: boolean
   location?: boolean
@@ -1397,6 +1449,7 @@ export type EventSelectScalar = {
   id?: boolean
   schoolId?: boolean
   title?: boolean
+  slug?: boolean
   description?: boolean
   type?: boolean
   location?: boolean
@@ -1413,7 +1466,7 @@ export type EventSelectScalar = {
   updatedAt?: boolean
 }
 
-export type EventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "title" | "description" | "type" | "location" | "startAt" | "endAt" | "capacity" | "coverUrl" | "isPublished" | "isCancelled" | "externalUrl" | "paymentMethods" | "instructorId" | "createdAt" | "updatedAt", ExtArgs["result"]["event"]>
+export type EventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "title" | "slug" | "description" | "type" | "location" | "startAt" | "endAt" | "capacity" | "coverUrl" | "isPublished" | "isCancelled" | "externalUrl" | "paymentMethods" | "instructorId" | "createdAt" | "updatedAt", ExtArgs["result"]["event"]>
 export type EventInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   instructor?: boolean | Prisma.Event$instructorArgs<ExtArgs>
@@ -1442,6 +1495,7 @@ export type $EventPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     id: string
     schoolId: string
     title: string
+    slug: string | null
     description: string | null
     type: $Enums.EventType
     location: string | null
@@ -1886,6 +1940,7 @@ export interface EventFieldRefs {
   readonly id: Prisma.FieldRef<"Event", 'String'>
   readonly schoolId: Prisma.FieldRef<"Event", 'String'>
   readonly title: Prisma.FieldRef<"Event", 'String'>
+  readonly slug: Prisma.FieldRef<"Event", 'String'>
   readonly description: Prisma.FieldRef<"Event", 'String'>
   readonly type: Prisma.FieldRef<"Event", 'EventType'>
   readonly location: Prisma.FieldRef<"Event", 'String'>

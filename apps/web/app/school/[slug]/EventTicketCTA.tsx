@@ -41,9 +41,13 @@ interface Props {
   schoolSlug: string
   className?: string
   iconOnly?: boolean
+  // Where login/register should send the user back to after auth. Defaults
+  // to the school profile's events section; the event's own page overrides
+  // this so a shared link keeps working after the auth round-trip.
+  redirectPath?: string
 }
 
-export default function EventTicketCTA({ events, schoolSlug, className = '', iconOnly = false }: Props) {
+export default function EventTicketCTA({ events, schoolSlug, className = '', iconOnly = false, redirectPath }: Props) {
   const [state, setState] = useState<'idle' | 'choosing' | 'modal'>('idle')
   const [selected, setSelected] = useState<EventForCta | null>(null)
 
@@ -125,6 +129,7 @@ export default function EventTicketCTA({ events, schoolSlug, className = '', ico
         <EventTicketModal
           event={selected}
           schoolSlug={schoolSlug}
+          redirectPath={redirectPath}
           onClose={() => setState('idle')}
         />
       )}

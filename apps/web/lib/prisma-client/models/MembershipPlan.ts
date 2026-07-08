@@ -793,14 +793,6 @@ export type MembershipPlanCreatepaymentMethodsInput = {
   set: string[]
 }
 
-export type FloatFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type MembershipPlanUpdatepaymentMethodsInput = {
   set?: string[]
   push?: string | string[]

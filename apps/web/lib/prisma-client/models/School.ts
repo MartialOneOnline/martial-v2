@@ -29,6 +29,7 @@ export type AggregateSchool = {
 export type SchoolAvgAggregateOutputType = {
   lat: number | null
   lng: number | null
+  coverPosY: number | null
   priceFrom: number | null
   foundedYear: number | null
   totalStudents: number | null
@@ -40,6 +41,7 @@ export type SchoolAvgAggregateOutputType = {
 export type SchoolSumAggregateOutputType = {
   lat: number | null
   lng: number | null
+  coverPosY: number | null
   priceFrom: number | null
   foundedYear: number | null
   totalStudents: number | null
@@ -74,6 +76,7 @@ export type SchoolMinAggregateOutputType = {
   tagline: string | null
   logoUrl: string | null
   coverUrl: string | null
+  coverPosY: number | null
   priceFrom: number | null
   hasFreeTrialCls: boolean | null
   foundedYear: number | null
@@ -124,6 +127,7 @@ export type SchoolMaxAggregateOutputType = {
   tagline: string | null
   logoUrl: string | null
   coverUrl: string | null
+  coverPosY: number | null
   priceFrom: number | null
   hasFreeTrialCls: boolean | null
   foundedYear: number | null
@@ -174,6 +178,7 @@ export type SchoolCountAggregateOutputType = {
   tagline: number
   logoUrl: number
   coverUrl: number
+  coverPosY: number
   photos: number
   priceFrom: number
   hasFreeTrialCls: number
@@ -207,6 +212,7 @@ export type SchoolCountAggregateOutputType = {
 export type SchoolAvgAggregateInputType = {
   lat?: true
   lng?: true
+  coverPosY?: true
   priceFrom?: true
   foundedYear?: true
   totalStudents?: true
@@ -218,6 +224,7 @@ export type SchoolAvgAggregateInputType = {
 export type SchoolSumAggregateInputType = {
   lat?: true
   lng?: true
+  coverPosY?: true
   priceFrom?: true
   foundedYear?: true
   totalStudents?: true
@@ -252,6 +259,7 @@ export type SchoolMinAggregateInputType = {
   tagline?: true
   logoUrl?: true
   coverUrl?: true
+  coverPosY?: true
   priceFrom?: true
   hasFreeTrialCls?: true
   foundedYear?: true
@@ -302,6 +310,7 @@ export type SchoolMaxAggregateInputType = {
   tagline?: true
   logoUrl?: true
   coverUrl?: true
+  coverPosY?: true
   priceFrom?: true
   hasFreeTrialCls?: true
   foundedYear?: true
@@ -352,6 +361,7 @@ export type SchoolCountAggregateInputType = {
   tagline?: true
   logoUrl?: true
   coverUrl?: true
+  coverPosY?: true
   photos?: true
   priceFrom?: true
   hasFreeTrialCls?: true
@@ -493,6 +503,7 @@ export type SchoolGroupByOutputType = {
   tagline: string | null
   logoUrl: string | null
   coverUrl: string | null
+  coverPosY: number
   photos: string[]
   priceFrom: number | null
   hasFreeTrialCls: boolean
@@ -570,6 +581,7 @@ export type SchoolWhereInput = {
   tagline?: Prisma.StringNullableFilter<"School"> | string | null
   logoUrl?: Prisma.StringNullableFilter<"School"> | string | null
   coverUrl?: Prisma.StringNullableFilter<"School"> | string | null
+  coverPosY?: Prisma.FloatFilter<"School"> | number
   photos?: Prisma.StringNullableListFilter<"School">
   priceFrom?: Prisma.FloatNullableFilter<"School"> | number | null
   hasFreeTrialCls?: Prisma.BoolFilter<"School"> | boolean
@@ -649,6 +661,7 @@ export type SchoolOrderByWithRelationInput = {
   tagline?: Prisma.SortOrderInput | Prisma.SortOrder
   logoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   coverUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  coverPosY?: Prisma.SortOrder
   photos?: Prisma.SortOrder
   priceFrom?: Prisma.SortOrderInput | Prisma.SortOrder
   hasFreeTrialCls?: Prisma.SortOrder
@@ -732,6 +745,7 @@ export type SchoolWhereUniqueInput = Prisma.AtLeast<{
   tagline?: Prisma.StringNullableFilter<"School"> | string | null
   logoUrl?: Prisma.StringNullableFilter<"School"> | string | null
   coverUrl?: Prisma.StringNullableFilter<"School"> | string | null
+  coverPosY?: Prisma.FloatFilter<"School"> | number
   photos?: Prisma.StringNullableListFilter<"School">
   priceFrom?: Prisma.FloatNullableFilter<"School"> | number | null
   hasFreeTrialCls?: Prisma.BoolFilter<"School"> | boolean
@@ -810,6 +824,7 @@ export type SchoolOrderByWithAggregationInput = {
   tagline?: Prisma.SortOrderInput | Prisma.SortOrder
   logoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   coverUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  coverPosY?: Prisma.SortOrder
   photos?: Prisma.SortOrder
   priceFrom?: Prisma.SortOrderInput | Prisma.SortOrder
   hasFreeTrialCls?: Prisma.SortOrder
@@ -872,6 +887,7 @@ export type SchoolScalarWhereWithAggregatesInput = {
   tagline?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
   logoUrl?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
   coverUrl?: Prisma.StringNullableWithAggregatesFilter<"School"> | string | null
+  coverPosY?: Prisma.FloatWithAggregatesFilter<"School"> | number
   photos?: Prisma.StringNullableListFilter<"School">
   priceFrom?: Prisma.FloatNullableWithAggregatesFilter<"School"> | number | null
   hasFreeTrialCls?: Prisma.BoolWithAggregatesFilter<"School"> | boolean
@@ -925,6 +941,7 @@ export type SchoolCreateInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -1002,6 +1019,7 @@ export type SchoolUncheckedCreateInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -1077,6 +1095,7 @@ export type SchoolUpdateInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1154,6 +1173,7 @@ export type SchoolUncheckedUpdateInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1230,6 +1250,7 @@ export type SchoolCreateManyInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -1283,6 +1304,7 @@ export type SchoolUpdateManyMutationInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1335,6 +1357,7 @@ export type SchoolUncheckedUpdateManyInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1417,6 +1440,7 @@ export type SchoolCountOrderByAggregateInput = {
   tagline?: Prisma.SortOrder
   logoUrl?: Prisma.SortOrder
   coverUrl?: Prisma.SortOrder
+  coverPosY?: Prisma.SortOrder
   photos?: Prisma.SortOrder
   priceFrom?: Prisma.SortOrder
   hasFreeTrialCls?: Prisma.SortOrder
@@ -1448,6 +1472,7 @@ export type SchoolCountOrderByAggregateInput = {
 export type SchoolAvgOrderByAggregateInput = {
   lat?: Prisma.SortOrder
   lng?: Prisma.SortOrder
+  coverPosY?: Prisma.SortOrder
   priceFrom?: Prisma.SortOrder
   foundedYear?: Prisma.SortOrder
   totalStudents?: Prisma.SortOrder
@@ -1482,6 +1507,7 @@ export type SchoolMaxOrderByAggregateInput = {
   tagline?: Prisma.SortOrder
   logoUrl?: Prisma.SortOrder
   coverUrl?: Prisma.SortOrder
+  coverPosY?: Prisma.SortOrder
   priceFrom?: Prisma.SortOrder
   hasFreeTrialCls?: Prisma.SortOrder
   foundedYear?: Prisma.SortOrder
@@ -1532,6 +1558,7 @@ export type SchoolMinOrderByAggregateInput = {
   tagline?: Prisma.SortOrder
   logoUrl?: Prisma.SortOrder
   coverUrl?: Prisma.SortOrder
+  coverPosY?: Prisma.SortOrder
   priceFrom?: Prisma.SortOrder
   hasFreeTrialCls?: Prisma.SortOrder
   foundedYear?: Prisma.SortOrder
@@ -1559,6 +1586,7 @@ export type SchoolMinOrderByAggregateInput = {
 export type SchoolSumOrderByAggregateInput = {
   lat?: Prisma.SortOrder
   lng?: Prisma.SortOrder
+  coverPosY?: Prisma.SortOrder
   priceFrom?: Prisma.SortOrder
   foundedYear?: Prisma.SortOrder
   totalStudents?: Prisma.SortOrder
@@ -1737,6 +1765,14 @@ export type EnumSchoolTypeFieldUpdateOperationsInput = {
 
 export type NullableFloatFieldUpdateOperationsInput = {
   set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
+export type FloatFieldUpdateOperationsInput = {
+  set?: number
   increment?: number
   decrement?: number
   multiply?: number
@@ -2082,6 +2118,7 @@ export type SchoolCreateWithoutAffiliationInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -2157,6 +2194,7 @@ export type SchoolUncheckedCreateWithoutAffiliationInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -2262,6 +2300,7 @@ export type SchoolScalarWhereInput = {
   tagline?: Prisma.StringNullableFilter<"School"> | string | null
   logoUrl?: Prisma.StringNullableFilter<"School"> | string | null
   coverUrl?: Prisma.StringNullableFilter<"School"> | string | null
+  coverPosY?: Prisma.FloatFilter<"School"> | number
   photos?: Prisma.StringNullableListFilter<"School">
   priceFrom?: Prisma.FloatNullableFilter<"School"> | number | null
   hasFreeTrialCls?: Prisma.BoolFilter<"School"> | boolean
@@ -2315,6 +2354,7 @@ export type SchoolCreateWithoutStaffInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -2391,6 +2431,7 @@ export type SchoolUncheckedCreateWithoutStaffInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -2470,6 +2511,7 @@ export type SchoolCreateWithoutClaimedByInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -2546,6 +2588,7 @@ export type SchoolUncheckedCreateWithoutClaimedByInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -2641,6 +2684,7 @@ export type SchoolUpdateWithoutStaffInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2717,6 +2761,7 @@ export type SchoolUncheckedUpdateWithoutStaffInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2807,6 +2852,7 @@ export type SchoolCreateWithoutDisciplinesInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -2883,6 +2929,7 @@ export type SchoolUncheckedCreateWithoutDisciplinesInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -2973,6 +3020,7 @@ export type SchoolUpdateWithoutDisciplinesInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3049,6 +3097,7 @@ export type SchoolUncheckedUpdateWithoutDisciplinesInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3123,6 +3172,7 @@ export type SchoolCreateWithoutFacilityCatalogInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -3199,6 +3249,7 @@ export type SchoolUncheckedCreateWithoutFacilityCatalogInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -3289,6 +3340,7 @@ export type SchoolUpdateWithoutFacilityCatalogInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3365,6 +3417,7 @@ export type SchoolUncheckedUpdateWithoutFacilityCatalogInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3439,6 +3492,7 @@ export type SchoolCreateWithoutBranchesInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -3515,6 +3569,7 @@ export type SchoolUncheckedCreateWithoutBranchesInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -3594,6 +3649,7 @@ export type SchoolCreateWithoutParentInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -3670,6 +3726,7 @@ export type SchoolUncheckedCreateWithoutParentInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -3765,6 +3822,7 @@ export type SchoolUpdateWithoutBranchesInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3841,6 +3899,7 @@ export type SchoolUncheckedUpdateWithoutBranchesInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3931,6 +3990,7 @@ export type SchoolCreateWithoutInstructorsInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -4007,6 +4067,7 @@ export type SchoolUncheckedCreateWithoutInstructorsInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -4097,6 +4158,7 @@ export type SchoolUpdateWithoutInstructorsInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4173,6 +4235,7 @@ export type SchoolUncheckedUpdateWithoutInstructorsInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4247,6 +4310,7 @@ export type SchoolCreateWithoutMembershipPlansInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -4323,6 +4387,7 @@ export type SchoolUncheckedCreateWithoutMembershipPlansInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -4413,6 +4478,7 @@ export type SchoolUpdateWithoutMembershipPlansInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4489,6 +4555,7 @@ export type SchoolUncheckedUpdateWithoutMembershipPlansInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4563,6 +4630,7 @@ export type SchoolCreateWithoutReviewsInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -4639,6 +4707,7 @@ export type SchoolUncheckedCreateWithoutReviewsInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -4729,6 +4798,7 @@ export type SchoolUpdateWithoutReviewsInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4805,6 +4875,7 @@ export type SchoolUncheckedUpdateWithoutReviewsInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4879,6 +4950,7 @@ export type SchoolCreateWithoutClassesInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -4955,6 +5027,7 @@ export type SchoolUncheckedCreateWithoutClassesInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -5045,6 +5118,7 @@ export type SchoolUpdateWithoutClassesInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -5121,6 +5195,7 @@ export type SchoolUncheckedUpdateWithoutClassesInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -5195,6 +5270,7 @@ export type SchoolCreateWithoutEventsInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -5271,6 +5347,7 @@ export type SchoolUncheckedCreateWithoutEventsInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -5361,6 +5438,7 @@ export type SchoolUpdateWithoutEventsInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -5437,6 +5515,7 @@ export type SchoolUncheckedUpdateWithoutEventsInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -5511,6 +5590,7 @@ export type SchoolCreateWithoutMembershipsInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -5587,6 +5667,7 @@ export type SchoolUncheckedCreateWithoutMembershipsInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -5677,6 +5758,7 @@ export type SchoolUpdateWithoutMembershipsInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -5753,6 +5835,7 @@ export type SchoolUncheckedUpdateWithoutMembershipsInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -5827,6 +5910,7 @@ export type SchoolCreateWithoutCampsInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -5903,6 +5987,7 @@ export type SchoolUncheckedCreateWithoutCampsInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -5993,6 +6078,7 @@ export type SchoolUpdateWithoutCampsInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -6069,6 +6155,7 @@ export type SchoolUncheckedUpdateWithoutCampsInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -6143,6 +6230,7 @@ export type SchoolCreateWithoutMembersInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -6219,6 +6307,7 @@ export type SchoolUncheckedCreateWithoutMembersInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -6309,6 +6398,7 @@ export type SchoolUpdateWithoutMembersInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -6385,6 +6475,7 @@ export type SchoolUncheckedUpdateWithoutMembersInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -6459,6 +6550,7 @@ export type SchoolCreateWithoutClaimsInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -6535,6 +6627,7 @@ export type SchoolUncheckedCreateWithoutClaimsInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -6625,6 +6718,7 @@ export type SchoolUpdateWithoutClaimsInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -6701,6 +6795,7 @@ export type SchoolUncheckedUpdateWithoutClaimsInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -6775,6 +6870,7 @@ export type SchoolCreateWithoutGradingSystemsInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -6851,6 +6947,7 @@ export type SchoolUncheckedCreateWithoutGradingSystemsInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -6941,6 +7038,7 @@ export type SchoolUpdateWithoutGradingSystemsInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -7017,6 +7115,7 @@ export type SchoolUncheckedUpdateWithoutGradingSystemsInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -7091,6 +7190,7 @@ export type SchoolCreateWithoutGradingsInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -7167,6 +7267,7 @@ export type SchoolUncheckedCreateWithoutGradingsInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -7257,6 +7358,7 @@ export type SchoolUpdateWithoutGradingsInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -7333,6 +7435,7 @@ export type SchoolUncheckedUpdateWithoutGradingsInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -7407,6 +7510,7 @@ export type SchoolCreateWithoutLeadsInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -7483,6 +7587,7 @@ export type SchoolUncheckedCreateWithoutLeadsInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -7573,6 +7678,7 @@ export type SchoolUpdateWithoutLeadsInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -7649,6 +7755,7 @@ export type SchoolUncheckedUpdateWithoutLeadsInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -7723,6 +7830,7 @@ export type SchoolCreateWithoutInvitationsInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -7799,6 +7907,7 @@ export type SchoolUncheckedCreateWithoutInvitationsInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -7889,6 +7998,7 @@ export type SchoolUpdateWithoutInvitationsInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -7965,6 +8075,7 @@ export type SchoolUncheckedUpdateWithoutInvitationsInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -8039,6 +8150,7 @@ export type SchoolCreateWithoutWaiversInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -8115,6 +8227,7 @@ export type SchoolUncheckedCreateWithoutWaiversInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -8205,6 +8318,7 @@ export type SchoolUpdateWithoutWaiversInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -8281,6 +8395,7 @@ export type SchoolUncheckedUpdateWithoutWaiversInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -8355,6 +8470,7 @@ export type SchoolCreateWithoutImpersonationLogsInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -8431,6 +8547,7 @@ export type SchoolUncheckedCreateWithoutImpersonationLogsInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -8521,6 +8638,7 @@ export type SchoolUpdateWithoutImpersonationLogsInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -8597,6 +8715,7 @@ export type SchoolUncheckedUpdateWithoutImpersonationLogsInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -8671,6 +8790,7 @@ export type SchoolCreateWithoutTransactionsInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -8747,6 +8867,7 @@ export type SchoolUncheckedCreateWithoutTransactionsInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -8837,6 +8958,7 @@ export type SchoolUpdateWithoutTransactionsInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -8913,6 +9035,7 @@ export type SchoolUncheckedUpdateWithoutTransactionsInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -8987,6 +9110,7 @@ export type SchoolCreateWithoutNotificationsInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -9063,6 +9187,7 @@ export type SchoolUncheckedCreateWithoutNotificationsInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -9153,6 +9278,7 @@ export type SchoolUpdateWithoutNotificationsInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -9229,6 +9355,7 @@ export type SchoolUncheckedUpdateWithoutNotificationsInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -9303,6 +9430,7 @@ export type SchoolCreateWithoutSubscriptionInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -9379,6 +9507,7 @@ export type SchoolUncheckedCreateWithoutSubscriptionInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -9469,6 +9598,7 @@ export type SchoolUpdateWithoutSubscriptionInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -9545,6 +9675,7 @@ export type SchoolUncheckedUpdateWithoutSubscriptionInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -9619,6 +9750,7 @@ export type SchoolCreateManyAffiliationInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -9672,6 +9804,7 @@ export type SchoolUpdateWithoutAffiliationInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -9747,6 +9880,7 @@ export type SchoolUncheckedUpdateWithoutAffiliationInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -9822,6 +9956,7 @@ export type SchoolUncheckedUpdateManyWithoutAffiliationInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -9876,6 +10011,7 @@ export type SchoolCreateManyClaimedByInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -9928,6 +10064,7 @@ export type SchoolUpdateWithoutClaimedByInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -10004,6 +10141,7 @@ export type SchoolUncheckedUpdateWithoutClaimedByInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -10079,6 +10217,7 @@ export type SchoolUncheckedUpdateManyWithoutClaimedByInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -10132,6 +10271,7 @@ export type SchoolCreateManyParentInput = {
   tagline?: string | null
   logoUrl?: string | null
   coverUrl?: string | null
+  coverPosY?: number
   photos?: Prisma.SchoolCreatephotosInput | string[]
   priceFrom?: number | null
   hasFreeTrialCls?: boolean
@@ -10184,6 +10324,7 @@ export type SchoolUpdateWithoutParentInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -10260,6 +10401,7 @@ export type SchoolUncheckedUpdateWithoutParentInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -10335,6 +10477,7 @@ export type SchoolUncheckedUpdateManyWithoutParentInput = {
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
   photos?: Prisma.SchoolUpdatephotosInput | string[]
   priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -10599,6 +10742,7 @@ export type SchoolSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   tagline?: boolean
   logoUrl?: boolean
   coverUrl?: boolean
+  coverPosY?: boolean
   photos?: boolean
   priceFrom?: boolean
   hasFreeTrialCls?: boolean
@@ -10679,6 +10823,7 @@ export type SchoolSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   tagline?: boolean
   logoUrl?: boolean
   coverUrl?: boolean
+  coverPosY?: boolean
   photos?: boolean
   priceFrom?: boolean
   hasFreeTrialCls?: boolean
@@ -10736,6 +10881,7 @@ export type SchoolSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   tagline?: boolean
   logoUrl?: boolean
   coverUrl?: boolean
+  coverPosY?: boolean
   photos?: boolean
   priceFrom?: boolean
   hasFreeTrialCls?: boolean
@@ -10793,6 +10939,7 @@ export type SchoolSelectScalar = {
   tagline?: boolean
   logoUrl?: boolean
   coverUrl?: boolean
+  coverPosY?: boolean
   photos?: boolean
   priceFrom?: boolean
   hasFreeTrialCls?: boolean
@@ -10821,7 +10968,7 @@ export type SchoolSelectScalar = {
   updatedAt?: boolean
 }
 
-export type SchoolOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "status" | "source" | "type" | "affiliationId" | "country" | "city" | "address" | "postcode" | "lat" | "lng" | "phone" | "email" | "website" | "language" | "instagram" | "facebook" | "youtube" | "tiktok" | "description" | "tagline" | "logoUrl" | "coverUrl" | "photos" | "priceFrom" | "hasFreeTrialCls" | "facilities" | "foundedYear" | "totalStudents" | "googleRating" | "googleReviews" | "googlePlaceId" | "v1UserId" | "defaultBookingSettings" | "cancelPolicy" | "modules" | "stripePublishableKey" | "stripeSecretKey" | "stripeWebhookSecret" | "revolutPublicKey" | "revolutSecretKey" | "revolutWebhookSecret" | "parentId" | "parentRelationshipType" | "leadStage" | "claimedById" | "claimedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["school"]>
+export type SchoolOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "status" | "source" | "type" | "affiliationId" | "country" | "city" | "address" | "postcode" | "lat" | "lng" | "phone" | "email" | "website" | "language" | "instagram" | "facebook" | "youtube" | "tiktok" | "description" | "tagline" | "logoUrl" | "coverUrl" | "coverPosY" | "photos" | "priceFrom" | "hasFreeTrialCls" | "facilities" | "foundedYear" | "totalStudents" | "googleRating" | "googleReviews" | "googlePlaceId" | "v1UserId" | "defaultBookingSettings" | "cancelPolicy" | "modules" | "stripePublishableKey" | "stripeSecretKey" | "stripeWebhookSecret" | "revolutPublicKey" | "revolutSecretKey" | "revolutWebhookSecret" | "parentId" | "parentRelationshipType" | "leadStage" | "claimedById" | "claimedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["school"]>
 export type SchoolInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   affiliation?: boolean | Prisma.School$affiliationArgs<ExtArgs>
   parent?: boolean | Prisma.School$parentArgs<ExtArgs>
@@ -10916,6 +11063,7 @@ export type $SchoolPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     tagline: string | null
     logoUrl: string | null
     coverUrl: string | null
+    coverPosY: number
     photos: string[]
     priceFrom: number | null
     hasFreeTrialCls: boolean
@@ -11415,6 +11563,7 @@ export interface SchoolFieldRefs {
   readonly tagline: Prisma.FieldRef<"School", 'String'>
   readonly logoUrl: Prisma.FieldRef<"School", 'String'>
   readonly coverUrl: Prisma.FieldRef<"School", 'String'>
+  readonly coverPosY: Prisma.FieldRef<"School", 'Float'>
   readonly photos: Prisma.FieldRef<"School", 'String[]'>
   readonly priceFrom: Prisma.FieldRef<"School", 'Float'>
   readonly hasFreeTrialCls: Prisma.FieldRef<"School", 'Boolean'>

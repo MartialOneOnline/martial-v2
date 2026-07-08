@@ -29,3 +29,8 @@ export function currencySymbol(currency: string): string {
   if (currency === 'USD') return '$'
   return currency
 }
+
+/** "SEMINAR" -> "Seminar", "OPEN_MAT" -> "Open mat" */
+export function formatEventType(type: string): string {
+  return type.charAt(0) + type.slice(1).toLowerCase().replace(/_/g, ' ')
+}

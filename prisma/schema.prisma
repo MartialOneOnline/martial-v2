@@ -458,6 +458,7 @@ model School {
   tagline     String? // "Elite BJJ training in the heart of Málaga"
   logoUrl     String?
   coverUrl    String?
+  coverPosY   Float    @default(50) // vertical focal point %, Facebook-style cover reposition
   photos      String[] // Array of image URLs
 
   // Public listing
@@ -699,6 +700,7 @@ model Event {
   school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   title          String
+  slug           String? // public URL segment — /school/[slug]/events/[slug], unique per school
   description    String?
   type           EventType @default(OTHER)
   location       String?
@@ -719,6 +721,7 @@ model Event {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([schoolId, slug])
   @@map("events")
 }
 
