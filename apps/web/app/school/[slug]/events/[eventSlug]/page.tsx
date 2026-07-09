@@ -106,6 +106,32 @@ export default async function EventProfile(
   const remaining = event.showCapacity && event.capacity != null ? Math.max(0, event.capacity - eventForCta.booked) : null
   const hasContactInfo = !!(event.school.phone || event.school.website || event.school.email || event.school.instagram)
 
+  const locationCard = mapQuery && (
+    <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50">
+        <p className="text-sm font-bold text-[#101828]">Location</p>
+        <a
+          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`}
+          target="_blank" rel="noopener noreferrer"
+          className="text-xs text-[#0870E2] font-semibold flex items-center gap-1 hover:underline"
+        >
+          Maps <ExternalLink className="w-3 h-3" />
+        </a>
+      </div>
+      <iframe
+        title="Event location map"
+        src={`https://www.google.com/maps?q=${encodeURIComponent(mapQuery)}&output=embed`}
+        className="w-full h-56 border-0"
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
+      />
+      <div className="px-5 py-4 text-sm text-gray-500 flex items-start gap-2 border-t border-gray-50">
+        <MapPin className="w-4 h-4 text-[#0870E2] shrink-0 mt-0.5" />
+        {mapQuery}
+      </div>
+    </div>
+  )
+
   return (
     <div className="min-h-screen bg-[#F8F9FB]">
 
@@ -180,6 +206,9 @@ export default async function EventProfile(
                 {event.instructor.bio && <p className="text-sm text-gray-500 leading-relaxed mt-3">{event.instructor.bio}</p>}
               </div>
             )}
+
+            {/* Location — original position, tablet/desktop only (md+) */}
+            {locationCard && <div className="hidden md:block">{locationCard}</div>}
           </div>
 
           {/* ── Right column (sticky) ── */}
@@ -219,31 +248,8 @@ export default async function EventProfile(
               </div>
             </div>
 
-            {mapQuery && (
-              <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
-                <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50">
-                  <p className="text-sm font-bold text-[#101828]">Location</p>
-                  <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`}
-                    target="_blank" rel="noopener noreferrer"
-                    className="text-xs text-[#0870E2] font-semibold flex items-center gap-1 hover:underline"
-                  >
-                    Maps <ExternalLink className="w-3 h-3" />
-                  </a>
-                </div>
-                <iframe
-                  title="Event location map"
-                  src={`https://www.google.com/maps?q=${encodeURIComponent(mapQuery)}&output=embed`}
-                  className="w-full h-56 border-0"
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                />
-                <div className="px-5 py-4 text-sm text-gray-500 flex items-start gap-2 border-t border-gray-50">
-                  <MapPin className="w-4 h-4 text-[#0870E2] shrink-0 mt-0.5" />
-                  {mapQuery}
-                </div>
-              </div>
-            )}
+            {/* Location — reordered above Hosted by, mobile only (below md) */}
+            {locationCard && <div className="md:hidden">{locationCard}</div>}
 
             {/* Hosted by */}
             <Link
