@@ -814,6 +814,12 @@ model Booking {
   @@index([userId, attendedAt])
   @@index([userId, scheduledAt])
   @@index([classId, scheduledAt])
+  // Also enforced at the DB level: a partial unique index on
+  // (userId, classId, scheduledAt) WHERE status IN ('PENDING','CONFIRMED') —
+  // see migrations/20260709090000_bookings_active_slot_unique_index. Prisma
+  // doesn't support partial/conditional @@unique, so it isn't declared here;
+  // don't reintroduce a plain @@unique for this, it would block rebooking
+  // after a cancellation.
   @@map("bookings")
 }
 

@@ -83,18 +83,67 @@ export async function POST(req: NextRequest) {
   endDate.setDate(endDate.getDate() + 7)
 
   try {
-    await prisma.$transaction([
-      prisma.schoolMember.create({
-        data: {
-          schoolId,
-          userId: dbUser.id,
-          role: 'STUDENT',
-          status: 'ACTIVE',
-          joinedAt: startDate,
-          notes: 'Free trial — 1 week',
-        },
-      }),
-      prisma.membership.create({
+    await prisma.$transaction(async (tx) => {
+      // Serialize concurrent trial requests for the same user+school — the
+      // previousMembership check above runs outside this transaction, so two
+      // simultaneous requests could otherwise both pass it and each create
+      // their own trial Membership (Membership has no unique constraint that
+      // would catch that at the DB level, unlike SchoolMember below).
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${schoolId}), hashtext(${dbUser.id}))`
+
+      const raceLoser = await tx.membership.findFirst({
+        where: { schoolId, userId: dbUser.id },
+        select: { id: true },
+      })
+      if (raceLoser) {
+        throw Object.assign(new Error('You have already used a trial at this school'), { code: 'TRIAL_USED' })
+      }
+
+      // A SchoolMember row may already exist here — most commonly LEAD (from
+      // "Join this school", see api/schools/[slug]/join/route.ts) or PENDING
+      // (from an admin invite). Branch on its status instead of blindly
+      // upserting: we only want to *upgrade* a not-yet-a-member row, never
+      // silently reactivate someone the school deliberately paused/archived,
+      // and never touch `role` (staff/owner rows must never be relabeled by
+      // a student-facing trial flow).
+      const existingMember = await tx.schoolMember.findUnique({
+        where: { schoolId_userId: { schoolId, userId: dbUser.id } },
+        select: { id: true, status: true },
+      })
+
+      if (!existingMember) {
+        await tx.schoolMember.create({
+          data: {
+            schoolId,
+            userId: dbUser.id,
+            role: 'STUDENT',
+            status: 'ACTIVE',
+            joinedAt: startDate,
+            notes: 'Free trial — 1 week',
+          },
+        })
+      } else if (existingMember.status === 'LEAD' || existingMember.status === 'PENDING') {
+        // Not a real member yet — safe to upgrade to an active trial.
+        await tx.schoolMember.update({
+          where: { id: existingMember.id },
+          data: { status: 'ACTIVE', joinedAt: startDate, notes: 'Free trial — 1 week' },
+        })
+      } else if (existingMember.status === 'ACTIVE') {
+        // Already an active member with no prior Membership row (edge case,
+        // e.g. manually added by staff) — leave the SchoolMember exactly as
+        // it is (no role/notes/joinedAt overwrite) and just grant the trial
+        // Membership below.
+      } else {
+        // INACTIVE, FROZEN, ARCHIVED, or any other administrative status —
+        // this is a school decision, not something a self-service trial
+        // request should silently override.
+        throw Object.assign(
+          new Error('Your membership at this school is not active — contact the school to reactivate it'),
+          { code: 'MEMBER_NOT_REACTIVATABLE' },
+        )
+      }
+
+      await tx.membership.create({
         data: {
           userId: dbUser.id,
           schoolId,
@@ -106,14 +155,19 @@ export async function POST(req: NextRequest) {
           startDate,
           endDate,
         },
-      }),
-    ])
+      })
+    })
   } catch (err: unknown) {
-    // Unique constraint violation — duplicate concurrent request
     const code = (err as { code?: string }).code
-    if (code === 'P2002') {
+    if (code === 'TRIAL_USED' || code === 'P2002') {
       return NextResponse.json(
         { error: 'You have already used a trial at this school' },
+        { status: 409 },
+      )
+    }
+    if (code === 'MEMBER_NOT_REACTIVATABLE') {
+      return NextResponse.json(
+        { error: (err as Error).message },
         { status: 409 },
       )
     }
