@@ -140,7 +140,7 @@ export default async function EventProfile(
             {minPrice !== null && (
               <span className="flex items-center gap-1.5">
                 <Ticket className="w-3.5 h-3.5 md:w-4 md:h-4 shrink-0" />
-                from {fmtPrice(minPrice, event.tickets[0]!.currency)}
+                {event.tickets.length > 1 && 'from '}{fmtPrice(minPrice, event.tickets[0]!.currency)}
               </span>
             )}
           </div>
@@ -157,7 +157,7 @@ export default async function EventProfile(
 
             {event.description && (
               <div className="bg-white border border-gray-100 rounded-2xl shadow-sm px-5 py-5">
-                <p className="text-sm font-bold text-[#101828] mb-2">About this event</p>
+                <p className="text-sm font-bold text-[#101828] mb-2">{event.title}</p>
                 <p className="text-gray-500 text-sm leading-relaxed whitespace-pre-line">{event.description}</p>
               </div>
             )}
@@ -213,10 +213,12 @@ export default async function EventProfile(
             <div className="bg-white border border-gray-100 rounded-2xl shadow-sm px-5 py-5">
               <EventCountdown startAt={event.startAt.toISOString()} className="mb-4" />
               {minPrice !== null && (
-                <>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Tickets from</p>
+                <div className="text-right">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">
+                    {event.tickets.length > 1 ? 'Tickets from' : 'Ticket'}
+                  </p>
                   <p className="text-3xl font-bold text-[#101828] mb-1">{fmtPrice(minPrice, event.tickets[0]!.currency)}</p>
-                </>
+                </div>
               )}
               {remaining !== null && (
                 <p className={`text-xs font-semibold mb-4 flex items-center gap-1.5 ${remaining <= 10 ? 'text-amber-600' : 'text-gray-400'}`}>
@@ -302,18 +304,12 @@ export default async function EventProfile(
 
       {/* ── Mobile fixed bottom CTA ── */}
       <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur border-t border-gray-100 px-4 py-3 safe-area-pb">
-        <div className="flex gap-2">
-          <ShareButton
-            title={event.title}
-            className="flex items-center justify-center gap-2 h-12 px-4 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm transition-colors"
-          />
-          <EventTicketCTA
-            events={[eventForCta]}
-            schoolSlug={slug}
-            redirectPath={redirectPath}
-            className="flex-1 h-12 rounded-xl bg-[#0870E2] hover:bg-[#005580] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
-          />
-        </div>
+        <EventTicketCTA
+          events={[eventForCta]}
+          schoolSlug={slug}
+          redirectPath={redirectPath}
+          className="w-full h-12 rounded-xl bg-[#0870E2] hover:bg-[#005580] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
+        />
       </div>
     </div>
   )
