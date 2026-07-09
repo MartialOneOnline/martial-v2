@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { Prisma } from '@/lib/prisma-client/client'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 
@@ -44,10 +45,22 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   })
   if (existing) return NextResponse.json({ error: 'Already booked' }, { status: 409 })
 
-  const booking = await prisma.booking.create({
-    data: { classId, userId, scheduledAt, status: 'CONFIRMED' },
-    include: { user: { select: { name: true, avatarUrl: true } } },
-  })
+  let booking
+  try {
+    booking = await prisma.booking.create({
+      data: { classId, userId, scheduledAt, status: 'CONFIRMED' },
+      include: { user: { select: { name: true, avatarUrl: true } } },
+    })
+  } catch (err) {
+    // Backstop for the same race the findFirst check above can't fully close
+    // (two concurrent staff bookings for the same student+class+slot) — the
+    // partial unique index on bookings enforces it at the DB level, see
+    // prisma/migrations/20260709090000_bookings_active_slot_unique_index.
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+      return NextResponse.json({ error: 'Already booked' }, { status: 409 })
+    }
+    throw err
+  }
 
   return NextResponse.json({
     booking: {

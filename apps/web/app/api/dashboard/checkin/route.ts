@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { Prisma } from '@/lib/prisma-client/client'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 
@@ -81,19 +82,29 @@ export async function POST(req: NextRequest) {
     })
   } else {
     // Walk-in: create booking and mark attended immediately
-    booking = await prisma.booking.create({
-      data: {
-        classId,
-        userId,
-        scheduledAt: base,
-        status: 'COMPLETED',
-        attendedAt: new Date(),
-        paymentMethod: 'CASH',
-        amountPaid: 0,
-        currency: 'EUR',
-      },
-      select: { id: true, status: true, attendedAt: true },
-    })
+    try {
+      booking = await prisma.booking.create({
+        data: {
+          classId,
+          userId,
+          scheduledAt: base,
+          status: 'COMPLETED',
+          attendedAt: new Date(),
+          paymentMethod: 'CASH',
+          amountPaid: 0,
+          currency: 'EUR',
+        },
+        select: { id: true, status: true, attendedAt: true },
+      })
+    } catch (err) {
+      // Backstop against a concurrent duplicate check-in for the same
+      // student+class+slot — see the partial unique index migration
+      // referenced in classes/[id]/bookings/route.ts.
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+        return NextResponse.json({ error: 'Already booked for this session' }, { status: 409 })
+      }
+      throw err
+    }
   }
 
   return NextResponse.json({

@@ -55,7 +55,7 @@ export default function LeadForm({ slug, schoolName, disciplines }: {
         className="w-full flex items-center justify-between gap-3 px-5 py-4 text-left"
       >
         <div>
-          <p className="text-sm font-bold text-[#101828]">Contactar con la escuela</p>
+          <p className="text-sm font-bold text-[#101828]">Contactar</p>
           <p className="text-xs text-gray-400 mt-0.5">Te responderemos lo antes posible</p>
         </div>
         <ChevronDown className={`w-4 h-4 text-gray-400 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
