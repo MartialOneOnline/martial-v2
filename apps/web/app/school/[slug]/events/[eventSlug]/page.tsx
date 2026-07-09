@@ -14,7 +14,7 @@ import Gallery from './Gallery'
 import EventCountdown from './EventCountdown'
 import {
   ChevronLeft, Calendar, Clock, MapPin, Ticket, ExternalLink,
-  Phone, Globe, Mail, MessageCircle, Users,
+  Phone, Globe, Mail, MessageCircle, Lock,
 } from 'lucide-react'
 
 const FALLBACK = 'https://images.unsplash.com/photo-1555597673-b21d5c935865?w=1200&h=600&fit=crop&q=85'
@@ -180,6 +180,44 @@ export default async function EventProfile(
                 {event.instructor.bio && <p className="text-sm text-gray-500 leading-relaxed mt-3">{event.instructor.bio}</p>}
               </div>
             )}
+          </div>
+
+          {/* ── Right column (sticky) ── */}
+          <div className="lg:col-span-4 space-y-4 lg:sticky lg:top-6">
+            <div className="bg-white border border-slate-200/70 rounded-[28px] shadow-[0_20px_60px_rgba(15,23,42,0.08)] p-6">
+              <EventCountdown
+                startAt={event.startAt.toISOString()}
+                className="mb-5"
+                action={
+                  <ShareButton
+                    title={event.title}
+                    className="inline-flex items-center gap-1 text-xs font-medium text-slate-400 hover:text-[#0870E2] transition-colors"
+                  />
+                }
+              />
+              {minPrice !== null && (
+                <div className="mb-1 text-right">
+                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-1">
+                    {event.tickets.length > 1 ? 'Tickets from' : 'Ticket'}
+                  </p>
+                  <p className="text-3xl font-bold text-[#101828]">{fmtPrice(minPrice, event.tickets[0]!.currency)}</p>
+                </div>
+              )}
+              <div className="flex flex-col gap-2.5 mt-5">
+                <EventTicketCTA
+                  events={[eventForCta]}
+                  schoolSlug={slug}
+                  redirectPath={redirectPath}
+                  className="w-full h-[52px] rounded-2xl bg-[#0870E2] hover:bg-[#075fc4] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors shadow-[0_8px_20px_rgba(8,112,226,0.25)]"
+                />
+                <p className={`text-[11px] font-medium flex items-center justify-center gap-1.5 ${remaining !== null && remaining <= 10 ? 'text-amber-600' : 'text-slate-400'}`}>
+                  <Lock className="w-3 h-3" />
+                  {remaining !== null
+                    ? <>Secure checkout · {remaining <= 0 ? 'Sold out' : `${remaining} spot${remaining === 1 ? '' : 's'} left`}</>
+                    : <>Secure checkout · Instant confirmation</>}
+                </p>
+              </div>
+            </div>
 
             {mapQuery && (
               <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
@@ -193,10 +231,6 @@ export default async function EventProfile(
                     Maps <ExternalLink className="w-3 h-3" />
                   </a>
                 </div>
-                <div className="px-5 py-4 text-sm text-gray-500 flex items-start gap-2">
-                  <MapPin className="w-4 h-4 text-[#0870E2] shrink-0 mt-0.5" />
-                  {mapQuery}
-                </div>
                 <iframe
                   title="Event location map"
                   src={`https://www.google.com/maps?q=${encodeURIComponent(mapQuery)}&output=embed`}
@@ -204,41 +238,12 @@ export default async function EventProfile(
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
                 />
+                <div className="px-5 py-4 text-sm text-gray-500 flex items-start gap-2 border-t border-gray-50">
+                  <MapPin className="w-4 h-4 text-[#0870E2] shrink-0 mt-0.5" />
+                  {mapQuery}
+                </div>
               </div>
             )}
-          </div>
-
-          {/* ── Right column (sticky) ── */}
-          <div className="lg:col-span-4 space-y-4 lg:sticky lg:top-6">
-            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm px-5 py-5">
-              <EventCountdown startAt={event.startAt.toISOString()} className="mb-4" />
-              {minPrice !== null && (
-                <div className="text-right">
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">
-                    {event.tickets.length > 1 ? 'Tickets from' : 'Ticket'}
-                  </p>
-                  <p className="text-3xl font-bold text-[#101828] mb-1">{fmtPrice(minPrice, event.tickets[0]!.currency)}</p>
-                </div>
-              )}
-              {remaining !== null && (
-                <p className={`text-xs font-semibold mb-4 flex items-center gap-1.5 ${remaining <= 10 ? 'text-amber-600' : 'text-gray-400'}`}>
-                  <Users className="w-3.5 h-3.5" />
-                  {remaining <= 0 ? 'Sold out' : `${remaining} spot${remaining === 1 ? '' : 's'} left`}
-                </p>
-              )}
-              <div className="flex flex-col gap-2">
-                <EventTicketCTA
-                  events={[eventForCta]}
-                  schoolSlug={slug}
-                  redirectPath={redirectPath}
-                  className="w-full h-12 rounded-xl bg-[#0870E2] hover:bg-[#005580] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
-                />
-                <ShareButton
-                  title={event.title}
-                  className="w-full h-12 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
-                />
-              </div>
-            </div>
 
             {/* Hosted by */}
             <Link
@@ -303,13 +308,23 @@ export default async function EventProfile(
       </div>
 
       {/* ── Mobile fixed bottom CTA ── */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur border-t border-gray-100 px-4 py-3 safe-area-pb">
-        <EventTicketCTA
-          events={[eventForCta]}
-          schoolSlug={slug}
-          redirectPath={redirectPath}
-          className="w-full h-12 rounded-xl bg-[#0870E2] hover:bg-[#005580] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
-        />
+      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur border-t border-slate-200/70 px-4 py-3 safe-area-pb">
+        <div className="flex items-center gap-3">
+          {minPrice !== null && (
+            <div className="shrink-0">
+              <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-widest leading-none mb-0.5">
+                {event.tickets.length > 1 ? 'From' : 'Ticket'}
+              </p>
+              <p className="text-lg font-bold text-[#101828] leading-none">{fmtPrice(minPrice, event.tickets[0]!.currency)}</p>
+            </div>
+          )}
+          <EventTicketCTA
+            events={[eventForCta]}
+            schoolSlug={slug}
+            redirectPath={redirectPath}
+            className="flex-1 h-[50px] rounded-2xl bg-[#0870E2] hover:bg-[#075fc4] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors shadow-[0_8px_20px_rgba(8,112,226,0.25)]"
+          />
+        </div>
       </div>
     </div>
   )

@@ -23,7 +23,7 @@ export default function ShareButton({ title, className = '' }: { title: string; 
 
   return (
     <button onClick={share} className={className}>
-      {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
+      {copied ? <Check className="w-3.5 h-3.5" /> : <Share2 className="w-3.5 h-3.5" />}
       {copied ? 'Link copied' : 'Share'}
     </button>
   )

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
 
 type Remaining = { days: number; hours: number; minutes: number; seconds: number }
 
@@ -16,7 +17,9 @@ function diff(target: number): Remaining | null {
   }
 }
 
-export default function EventCountdown({ startAt, className = '' }: { startAt: string; className?: string }) {
+export default function EventCountdown(
+  { startAt, className = '', action }: { startAt: string; className?: string; action?: ReactNode },
+) {
   const target = new Date(startAt).getTime()
   // Starts null so the server-rendered and first client-rendered pass match —
   // the live value only appears after mount, avoiding a hydration mismatch.
@@ -28,16 +31,19 @@ export default function EventCountdown({ startAt, className = '' }: { startAt: s
     return () => clearInterval(id)
   }, [target])
 
-  if (!remaining) return null
+  if (!remaining) return action ? <div className={`flex justify-end ${className}`}>{action}</div> : null
 
   return (
     <div className={className}>
-      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1.5">Starts in</p>
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Starts in</p>
+        {action}
+      </div>
       <div className="flex items-center gap-1.5">
         {([['d', remaining.days], ['h', remaining.hours], ['m', remaining.minutes], ['s', remaining.seconds]] as const).map(([unit, val]) => (
-          <div key={unit} className="flex flex-col items-center bg-[#0870E2]/8 rounded-lg px-2 py-1.5 flex-1">
-            <span className="text-base font-bold text-[#0870E2] tabular-nums">{String(val).padStart(2, '0')}</span>
-            <span className="text-[9px] text-gray-400 uppercase">{unit}</span>
+          <div key={unit} className="flex flex-1 flex-col items-center justify-center bg-blue-50/70 rounded-xl py-2">
+            <span className="text-sm md:text-base font-semibold text-[#0870E2] tabular-nums leading-none">{String(val).padStart(2, '0')}</span>
+            <span className="text-[9px] text-slate-400 uppercase tracking-wide mt-1">{unit}</span>
           </div>
         ))}
       </div>
