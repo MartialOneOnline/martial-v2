@@ -1,13 +1,54 @@
 import { NextRequest, NextResponse } from 'next/server'
+import type Stripe from 'stripe'
 import { prisma } from '@/lib/db'
 import { getStripe } from '@/lib/stripe'
 import { MembershipStatus } from '@/lib/prisma-client/client'
 import { sendMembershipReceiptEmail, sendEventTicketConfirmationEmail, sendEventTicketRefundedEmail } from '@/lib/email/sendEmails'
 import { checkEventCapacity } from '@/lib/services/eventCapacity'
 import { recordOnlinePayment } from '@/lib/services/transactions'
-import { PaymentMethod, TransactionCategory } from '@/lib/prisma-client/enums'
+import { PaymentMethod, TransactionCategory, StripeWebhookEventStatus } from '@/lib/prisma-client/enums'
 import { notifyPaymentReceived } from '@/lib/notifications/create'
 import { fmtPrice } from '@/lib/format'
+
+// A row still PROCESSING past this long was orphaned by a request that
+// crashed before ever reaching the PROCESSED/FAILED update at the bottom of
+// POST — long enough that no live handler would legitimately still be
+// running (Stripe itself times out webhook delivery at 20s).
+const STALE_PROCESSING_MS = 5 * 60_000
+
+// Claims exclusive ownership of a Stripe event by its (Stripe-assigned,
+// globally unique) id before any business logic runs. Every handled event
+// type goes through this — it's what makes retries idempotent and
+// concurrent duplicate deliveries resolve to exactly one activation:
+// the eventId unique constraint means only one create() can ever succeed
+// for a given event, and Postgres serializes concurrent inserts on the same
+// key, so a racing duplicate simply sees the row already there and skips.
+async function claimStripeEvent(eventId: string, type: string): Promise<boolean> {
+  try {
+    await prisma.stripeWebhookEvent.create({
+      data: { eventId, type, status: StripeWebhookEventStatus.PROCESSING },
+    })
+    return true
+  } catch (err: unknown) {
+    if ((err as { code?: string }).code !== 'P2002') throw err
+  }
+  // A row already exists for this event. Reclaim it only if it's a terminal
+  // failure (safe to retry immediately) or a PROCESSING row stuck past
+  // STALE_PROCESSING_MS (its owning request died without ever finishing) —
+  // otherwise this is a genuine retry/duplicate of an in-flight or already
+  // completed delivery, so leave it alone and let the caller no-op.
+  const reclaimed = await prisma.stripeWebhookEvent.updateMany({
+    where: {
+      eventId,
+      OR: [
+        { status: StripeWebhookEventStatus.FAILED },
+        { status: StripeWebhookEventStatus.PROCESSING, updatedAt: { lt: new Date(Date.now() - STALE_PROCESSING_MS) } },
+      ],
+    },
+    data: { status: StripeWebhookEventStatus.PROCESSING, error: null },
+  })
+  return reclaimed.count === 1
+}
 
 // POST /api/webhooks/stripe
 // Each school registers this URL in their Stripe dashboard.
@@ -63,6 +104,34 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Signature verification failed' }, { status: 400 })
   }
 
+  // Idempotency gate: claim this event by id before touching any business
+  // logic. A retried delivery of an event we already finished — the common
+  // case, Stripe redelivers on timeout even after we've succeeded — or a
+  // concurrent duplicate delivery short-circuits here to a plain 200.
+  if (!(await claimStripeEvent(event.id, event.type)))
+    return NextResponse.json({ received: true })
+
+  try {
+    await handleStripeEvent(event)
+    await prisma.stripeWebhookEvent.update({
+      where: { eventId: event.id },
+      data: { status: StripeWebhookEventStatus.PROCESSED, processedAt: new Date() },
+    })
+  } catch (err) {
+    // Mark FAILED (not left stuck PROCESSING) so an immediate retry from
+    // Stripe can reclaim and reprocess right away instead of waiting out
+    // STALE_PROCESSING_MS.
+    await prisma.stripeWebhookEvent.update({
+      where: { eventId: event.id },
+      data: { status: StripeWebhookEventStatus.FAILED, error: err instanceof Error ? err.message : String(err) },
+    }).catch(() => {}) // best-effort — don't mask the original error if this write itself fails
+    throw err
+  }
+
+  return NextResponse.json({ received: true })
+}
+
+async function handleStripeEvent(event: Stripe.Event) {
   switch (event.type) {
 
     // ── One-time payment OR subscription first payment ─────────────────────────
@@ -91,14 +160,26 @@ export async function POST(req: NextRequest) {
           const booking = await tx.eventBooking.findUnique({
             where: { id: eventBookingId },
             select: {
-              status: true, quantity: true, ticketId: true, eventId: true, ticketName: true, amountPaid: true, currency: true,
+              quantity: true, ticketId: true, eventId: true, ticketName: true, amountPaid: true, currency: true,
               userId: true, qrToken: true,
               event: { select: { title: true, startAt: true, location: true, capacity: true, schoolId: true, school: { select: { name: true, city: true, language: true } } } },
               ticket: { select: { capacity: true } },
               user: { select: { email: true, name: true } },
             },
           })
-          if (!booking || booking.status !== 'PENDING') return null
+          if (!booking) return null
+
+          // Claim atomically: only the delivery whose conditional update
+          // actually flips PENDING -> CONFIRMED goes on to check capacity and
+          // record the payment. A retried/duplicate delivery for this booking
+          // matches zero rows here and returns early, so it can never
+          // double-confirm or double-charge — the same pattern used for the
+          // membership claim below and for the Revolut side of this flow.
+          const claim = await tx.eventBooking.updateMany({
+            where: { id: eventBookingId, status: 'PENDING' },
+            data: { status: 'CONFIRMED', stripePaymentId: session.payment_intent ?? null },
+          })
+          if (claim.count === 0) return null
 
           const capacity = await checkEventCapacity(tx, {
             eventId: booking.eventId,
@@ -110,10 +191,6 @@ export async function POST(req: NextRequest) {
           })
 
           if (capacity.ok) {
-            await tx.eventBooking.update({
-              where: { id: eventBookingId },
-              data: { status: 'CONFIRMED', stripePaymentId: session.payment_intent ?? null },
-            })
             await recordOnlinePayment(tx, {
               schoolId:      booking.event.schoolId,
               userId:        booking.userId,
@@ -127,6 +204,7 @@ export async function POST(req: NextRequest) {
             })
             return { sold: true, booking }
           } else {
+            // Oversold after claiming — compensate by cancelling instead of confirming.
             await tx.eventBooking.update({
               where: { id: eventBookingId },
               data: { status: 'CANCELLED' },
@@ -192,8 +270,10 @@ export async function POST(req: NextRequest) {
       // it never leaves a phantom PENDING membership behind.
       let activatedMembershipId: string | null = null
       await prisma.$transaction(async (tx) => {
-        // Idempotency: a retried webhook delivery for the same successful session
-        // would otherwise create a second membership.
+        // Retry/duplicate-delivery protection for *this* event now lives in
+        // claimStripeEvent (only one delivery of a given event.id ever
+        // reaches here) — this check is a separate business guard against
+        // creating a second ACTIVE membership on the same plan, kept as-is.
         const alreadyActive = await tx.membership.findFirst({
           where: { userId, planId, status: 'ACTIVE' },
           select: { id: true },
@@ -388,6 +468,4 @@ export async function POST(req: NextRequest) {
       break
     }
   }
-
-  return NextResponse.json({ received: true })
 }
