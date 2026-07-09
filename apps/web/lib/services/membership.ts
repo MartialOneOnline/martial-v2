@@ -7,6 +7,7 @@
  */
 
 import { prisma } from '@/lib/db'
+import type { Prisma } from '@/lib/prisma-client/client'
 import { PaymentMethod, MembershipStatus, TransactionType, TransactionCategory, TransactionStatus } from '@/lib/prisma-client/enums'
 import { sendMembershipReceiptEmail } from '@/lib/email/sendEmails'
 import { getStripe } from '@/lib/stripe'
@@ -64,6 +65,107 @@ export function computeEndDate(
     return end
   }
   return null
+}
+
+// ── Lifecycle sync helpers ────────────────────────────────────────────────────
+//
+// These react to a Membership status change by projecting it onto the linked
+// SchoolMember record — used by the admin pause/resume/cancel routes and by
+// the Stripe webhook's subscription lifecycle events (invoice.payment_failed,
+// invoice.payment_succeeded, customer.subscription.deleted/updated), so a
+// subscription going stale/renewing/cancelling on Stripe's side keeps the
+// school's member list in sync instead of silently drifting from it.
+
+/** True if the user has another ACTIVE membership at this school (besides `excludeMembershipId`, if given). */
+export async function hasOtherActiveMembership(
+  tx: Prisma.TransactionClient,
+  input: { userId: string; schoolId: string; excludeMembershipId?: string },
+): Promise<boolean> {
+  const { userId, schoolId, excludeMembershipId } = input
+  const other = await tx.membership.findFirst({
+    where: {
+      userId, schoolId, status: MembershipStatus.ACTIVE,
+      ...(excludeMembershipId && { id: { not: excludeMembershipId } }),
+    },
+    select: { id: true },
+  })
+  return !!other
+}
+
+/** True if this user already has an ARCHIVED SchoolMember row at this school. */
+export async function isSchoolMemberArchived(
+  tx: Prisma.TransactionClient,
+  input: { userId: string; schoolId: string },
+): Promise<boolean> {
+  const member = await tx.schoolMember.findUnique({
+    where: { schoolId_userId: { schoolId: input.schoolId, userId: input.userId } },
+    select: { status: true },
+  })
+  return member?.status === 'ARCHIVED'
+}
+
+/**
+ * Projects a Membership status onto the linked SchoolMember record,
+ * conservatively:
+ *   ACTIVE    -> SchoolMember ACTIVE
+ *   PAUSED    -> SchoolMember FROZEN
+ *   CANCELLED -> SchoolMember INACTIVE, but only if the user has no other
+ *                ACTIVE membership at this school — a second plan/bono
+ *                shouldn't lose the student their access because a
+ *                different one ended.
+ *   anything else (PENDING/EXPIRED) -> no defined projection, left as-is.
+ *
+ * ARCHIVED is never touched or reactivated by this function — a staff
+ * member archived this person for a reason, and a subscription lifecycle
+ * event must not silently undo that moderation decision.
+ *
+ * Must be called inside the same transaction as the Membership status
+ * write it's reacting to, so the two updates land atomically.
+ */
+export async function syncSchoolMemberStatusForMembership(
+  tx: Prisma.TransactionClient,
+  input: { userId: string; schoolId: string; membershipStatus: MembershipStatus; excludeMembershipId?: string },
+) {
+  const { userId, schoolId, membershipStatus, excludeMembershipId } = input
+
+  let targetStatus: 'ACTIVE' | 'FROZEN' | 'INACTIVE'
+  if (membershipStatus === MembershipStatus.ACTIVE) {
+    targetStatus = 'ACTIVE'
+  } else if (membershipStatus === MembershipStatus.PAUSED) {
+    targetStatus = 'FROZEN'
+  } else if (membershipStatus === MembershipStatus.CANCELLED) {
+    if (await hasOtherActiveMembership(tx, { userId, schoolId, excludeMembershipId })) return
+    targetStatus = 'INACTIVE'
+  } else {
+    return
+  }
+
+  await tx.schoolMember.updateMany({
+    where: { userId, schoolId, status: { not: 'ARCHIVED' } },
+    data: { status: targetStatus },
+  })
+}
+
+/**
+ * Cancels (or schedules the cancellation of) a Stripe subscription, awaited
+ * so the caller only commits a local status change once Stripe has actually
+ * confirmed it — a fire-and-forget call here could leave the local record
+ * saying "cancelled" while Stripe silently keeps billing the customer.
+ */
+export async function cancelStripeSubscription(
+  stripe: ReturnType<typeof getStripe>,
+  stripeSubId: string,
+  policy: 'IMMEDIATE' | 'UNTIL_END_OF_PERIOD',
+): Promise<void> {
+  try {
+    if (policy === 'IMMEDIATE') {
+      await stripe.subscriptions.cancel(stripeSubId)
+    } else {
+      await stripe.subscriptions.update(stripeSubId, { cancel_at_period_end: true })
+    }
+  } catch (err) {
+    throw new Error(`Stripe subscription cancel failed: ${err instanceof Error ? err.message : String(err)}`)
+  }
 }
 
 // ── Core operations ────────────────────────────────────────────────────────────
@@ -195,10 +297,18 @@ export async function assignPlan(input: AssignPlanInput) {
  *
  * Respects the school's cancelPolicy:
  * - IMMEDIATE: access ends now → Membership CANCELLED + SchoolMember INACTIVE
+ *   (unless another ACTIVE membership covers the same user+school).
  * - UNTIL_END_OF_PERIOD: marks cancelledAt but keeps Membership ACTIVE until endDate.
  *   SchoolMember transitions to INACTIVE lazily when endDate passes (checkAndExpireMembership).
  *
  * TRIAL plans always cancel immediately regardless of school policy.
+ *
+ * If a Stripe subscription is attached, Stripe is cancelled (or scheduled to
+ * cancel at period end) *first*, awaited — local state is only written once
+ * Stripe has confirmed. A fire-and-forget call here could leave the local
+ * record saying "cancelled" while Stripe silently keeps billing the
+ * customer; if the Stripe call throws, this function throws too and no
+ * local write happens, so local and Stripe never drift out of sync.
  */
 export async function cancelMembership(input: CancelMembershipInput) {
   const { membershipId, schoolId, reason } = input
@@ -221,31 +331,30 @@ export async function cancelMembership(input: CancelMembershipInput) {
     ? [membership.notes, `Cancelled: ${reason}`].filter(Boolean).join(' | ')
     : membership.notes
 
+  if (membership.stripeSubId && membership.school?.stripeSecretKey) {
+    await cancelStripeSubscription(
+      getStripe(membership.school.stripeSecretKey),
+      membership.stripeSubId,
+      immediate ? 'IMMEDIATE' : 'UNTIL_END_OF_PERIOD',
+    )
+  }
+
   if (immediate) {
     await prisma.$transaction(async (tx) => {
       await tx.membership.update({
         where: { id: membershipId },
         data: { status: MembershipStatus.CANCELLED, cancelledAt: new Date(), notes: updatedNotes },
       })
-      await tx.schoolMember.updateMany({
-        where: { userId: membership.userId, schoolId },
-        data: { status: 'INACTIVE' },
+      await syncSchoolMemberStatusForMembership(tx, {
+        userId: membership.userId, schoolId, membershipStatus: MembershipStatus.CANCELLED, excludeMembershipId: membershipId,
       })
     })
   } else {
-    // Netflix model: mark intent, keep access until endDate
+    // Netflix model: mark intent, keep access until endDate — SchoolMember untouched.
     await prisma.membership.update({
       where: { id: membershipId },
       data: { cancelledAt: new Date(), notes: updatedNotes },
     })
-  }
-
-  // Cancel the Stripe subscription if one exists (fire-and-forget; Stripe webhook will sync status)
-  if (membership.stripeSubId && membership.school?.stripeSecretKey) {
-    const stripe = getStripe(membership.school.stripeSecretKey)
-    stripe.subscriptions.cancel(membership.stripeSubId).catch(err =>
-      console.error('[cancelMembership] Stripe cancel failed:', err)
-    )
   }
 
   return prisma.membership.findUnique({ where: { id: membershipId } })
@@ -273,9 +382,8 @@ export async function checkAndExpireMembership(membershipId: string): Promise<bo
       where: { id: membershipId },
       data: { status: MembershipStatus.CANCELLED },
     })
-    await tx.schoolMember.updateMany({
-      where: { userId: membership.userId, schoolId: membership.schoolId },
-      data: { status: 'INACTIVE' },
+    await syncSchoolMemberStatusForMembership(tx, {
+      userId: membership.userId, schoolId: membership.schoolId, membershipStatus: MembershipStatus.CANCELLED, excludeMembershipId: membershipId,
     })
   })
 

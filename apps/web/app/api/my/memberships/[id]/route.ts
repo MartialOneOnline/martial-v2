@@ -3,7 +3,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
 import { MembershipStatus, PaymentMethod } from '@/lib/prisma-client/client'
-import { cancelMembership } from '@/lib/services/membership'
+import { cancelMembership, syncSchoolMemberStatusForMembership } from '@/lib/services/membership'
 import { sendMembershipRequestEmail } from '@/lib/email/sendEmails'
 import { notifyMembershipRequest } from '@/lib/notifications/create'
 
@@ -45,22 +45,27 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   if (action === 'cancel') {
     // Delegates to service — respects school cancelPolicy + syncs SchoolMember
-    const updated = await cancelMembership({ membershipId: id, schoolId: membership.schoolId })
-    return NextResponse.json({ status: updated?.status })
+    try {
+      const updated = await cancelMembership({ membershipId: id, schoolId: membership.schoolId })
+      return NextResponse.json({ status: updated?.status })
+    } catch (err) {
+      // Covers both business errors (already cancelled) and a failed Stripe
+      // API call — cancelMembership only throws the latter *before* writing
+      // any local state, so nothing here needs rolling back.
+      return NextResponse.json({ error: err instanceof Error ? err.message : 'Cancellation failed' }, { status: 400 })
+    }
   }
 
   // pause / resume — sync SchoolMember status atomically
   const newMembershipStatus = action === 'pause' ? MembershipStatus.PAUSED : MembershipStatus.ACTIVE
-  const newMemberStatus = action === 'pause' ? 'FROZEN' : 'ACTIVE'
 
   await prisma.$transaction(async (tx) => {
     await tx.membership.update({
       where: { id },
       data: { status: newMembershipStatus },
     })
-    await tx.schoolMember.updateMany({
-      where: { userId: membership.userId, schoolId: membership.schoolId },
-      data: { status: newMemberStatus },
+    await syncSchoolMemberStatusForMembership(tx, {
+      userId: membership.userId, schoolId: membership.schoolId, membershipStatus: newMembershipStatus,
     })
   })
 
