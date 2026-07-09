@@ -31,6 +31,10 @@ export type Permission =
   | 'school.settings.manage'
   | 'school.waivers.manage'
   | 'school.gradings.manage'
+  | 'school.events.view'
+  | 'school.events.manage'
+  | 'school.communications.manage'
+  | 'school.notifications.view'
 
 const ALL: Permission[] = [
   'school.profile.view', 'school.profile.edit',
@@ -45,12 +49,19 @@ const ALL: Permission[] = [
   'school.analytics.view',
   'school.settings.view', 'school.settings.manage',
   'school.waivers.manage', 'school.gradings.manage',
+  'school.events.view', 'school.events.manage',
+  'school.communications.manage',
+  'school.notifications.view',
 ]
 
-// Permissions that stay OWNER/ADMIN-only even for MANAGER — irreversible or
-// bulk-impact actions (hard deletes, mass import) that must never be granted
-// implicitly through a broad "manage" bucket. Widen this list deliberately,
-// one permission at a time, not by handing MANAGER the parent permission.
+// Permissions that stay OWNER/ADMIN-only even for MANAGER. Two distinct
+// reasons land a permission here — keep both in mind before removing one:
+//   1. Irreversible or bulk-impact actions (hard deletes, mass import) that
+//      must never be granted implicitly through a broad "manage" bucket.
+//   2. Migrated from a hand-rolled route allowlist that was already
+//      OWNER/ADMIN-only before hasPermission() existed (school.events.*,
+//      school.communications.manage) — preserved as-is rather than widened
+//      during the migration; widen deliberately in a follow-up if desired.
 const OWNER_ADMIN_ONLY: Permission[] = [
   'school.staff.manage',
   'school.settings.manage',
@@ -58,6 +69,9 @@ const OWNER_ADMIN_ONLY: Permission[] = [
   'school.members.delete',
   'school.members.import',
   'school.membershipPlans.delete',
+  'school.events.view',
+  'school.events.manage',
+  'school.communications.manage',
 ]
 
 // Role → permission preset. Authorization always verified against SchoolMember.
@@ -82,6 +96,7 @@ export const ROLE_PERMISSIONS: Record<SchoolMemberRole, Permission[]> = {
     'school.leads.view',
     'school.analytics.view',
     'school.gradings.manage',
+    'school.events.view',
   ],
 
   ASSISTANT_INSTRUCTOR: [
