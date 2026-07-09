@@ -80,4 +80,46 @@ describe('hasPermission()', () => {
     expect(hasPermission('STUDENT', 'school.classes.create')).toBe(false)
     expect(hasPermission('STUDENT', 'school.members.view')).toBe(false)
   })
+
+  // Events/messages/notifications were migrated from hand-rolled route
+  // allowlists that were already OWNER/ADMIN(-ish)-only before hasPermission()
+  // existed. This migration preserves that behavior exactly rather than
+  // widening it to the "MANAGER can operate" default used elsewhere — see
+  // permissions.ts OWNER_ADMIN_ONLY comment and the PR report for the roles
+  // this deliberately does NOT match (MANAGER on events/communications,
+  // RECEPTIONIST on events/notifications, ASSISTANT_INSTRUCTOR on events).
+  it('school.events.view is OWNER/ADMIN/INSTRUCTOR only — MANAGER and RECEPTIONIST excluded', () => {
+    expect(hasPermission('OWNER', 'school.events.view')).toBe(true)
+    expect(hasPermission('ADMIN', 'school.events.view')).toBe(true)
+    expect(hasPermission('INSTRUCTOR', 'school.events.view')).toBe(true)
+    expect(hasPermission('MANAGER', 'school.events.view')).toBe(false)
+    expect(hasPermission('RECEPTIONIST', 'school.events.view')).toBe(false)
+    expect(hasPermission('ASSISTANT_INSTRUCTOR', 'school.events.view')).toBe(false)
+    expect(hasPermission('STUDENT', 'school.events.view')).toBe(false)
+  })
+
+  it('school.events.manage is OWNER/ADMIN only — MANAGER and INSTRUCTOR excluded', () => {
+    expect(hasPermission('OWNER', 'school.events.manage')).toBe(true)
+    expect(hasPermission('ADMIN', 'school.events.manage')).toBe(true)
+    expect(hasPermission('MANAGER', 'school.events.manage')).toBe(false)
+    expect(hasPermission('INSTRUCTOR', 'school.events.manage')).toBe(false)
+  })
+
+  it('school.communications.manage (broadcast messages) is OWNER/ADMIN only', () => {
+    expect(hasPermission('OWNER', 'school.communications.manage')).toBe(true)
+    expect(hasPermission('ADMIN', 'school.communications.manage')).toBe(true)
+    expect(hasPermission('MANAGER', 'school.communications.manage')).toBe(false)
+    expect(hasPermission('INSTRUCTOR', 'school.communications.manage')).toBe(false)
+    expect(hasPermission('RECEPTIONIST', 'school.communications.manage')).toBe(false)
+  })
+
+  it('school.notifications.view is OWNER/ADMIN/MANAGER only — RECEPTIONIST excluded', () => {
+    expect(hasPermission('OWNER', 'school.notifications.view')).toBe(true)
+    expect(hasPermission('ADMIN', 'school.notifications.view')).toBe(true)
+    expect(hasPermission('MANAGER', 'school.notifications.view')).toBe(true)
+    expect(hasPermission('RECEPTIONIST', 'school.notifications.view')).toBe(false)
+    expect(hasPermission('INSTRUCTOR', 'school.notifications.view')).toBe(false)
+    expect(hasPermission('ASSISTANT_INSTRUCTOR', 'school.notifications.view')).toBe(false)
+    expect(hasPermission('STUDENT', 'school.notifications.view')).toBe(false)
+  })
 })
