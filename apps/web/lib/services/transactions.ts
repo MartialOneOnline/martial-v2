@@ -24,26 +24,47 @@ interface RecordOnlinePaymentInput {
 // the event booking, so the money record and the access grant land atomically —
 // used by both apps/web/app/api/webhooks/stripe/route.ts and .../revolut/route.ts
 // to avoid duplicating this shape per provider.
+//
+// Idempotent on provider reference: the webhook handlers already guard against
+// reprocessing the same event/order (StripeWebhookEvent claim / conditional
+// PENDING->ACTIVE update), but this is a second, self-contained line of
+// defense — a pre-check plus a unique-constraint catch — so this function
+// can never itself create two ledger rows for the same payment.
 export async function recordOnlinePayment(tx: Prisma.TransactionClient, input: RecordOnlinePaymentInput) {
   if (input.amount <= 0) return // free plans/tickets don't need a ledger entry
 
-  await tx.transaction.create({
-    data: {
-      schoolId: input.schoolId,
-      userId: input.userId,
-      membershipId: input.membershipId ?? null,
-      bookingId: input.bookingId ?? null,
-      type: TransactionType.INCOME,
-      status: TransactionStatus.PAID,
-      category: input.category,
-      paymentMethod: input.paymentMethod,
-      amount: input.amount,
-      currency: input.currency,
-      description: input.description,
-      date: input.date ?? new Date(),
-      stripePaymentIntentId: input.stripePaymentIntentId ?? null,
-      stripeInvoiceId: input.stripeInvoiceId ?? null,
-      revolutOrderId: input.revolutOrderId ?? null,
-    },
-  })
+  if (input.stripePaymentIntentId) {
+    const existing = await tx.transaction.findFirst({ where: { stripePaymentIntentId: input.stripePaymentIntentId }, select: { id: true } })
+    if (existing) return
+  }
+  if (input.revolutOrderId) {
+    const existing = await tx.transaction.findFirst({ where: { revolutOrderId: input.revolutOrderId }, select: { id: true } })
+    if (existing) return
+  }
+
+  try {
+    await tx.transaction.create({
+      data: {
+        schoolId: input.schoolId,
+        userId: input.userId,
+        membershipId: input.membershipId ?? null,
+        bookingId: input.bookingId ?? null,
+        type: TransactionType.INCOME,
+        status: TransactionStatus.PAID,
+        category: input.category,
+        paymentMethod: input.paymentMethod,
+        amount: input.amount,
+        currency: input.currency,
+        description: input.description,
+        date: input.date ?? new Date(),
+        stripePaymentIntentId: input.stripePaymentIntentId ?? null,
+        stripeInvoiceId: input.stripeInvoiceId ?? null,
+        revolutOrderId: input.revolutOrderId ?? null,
+      },
+    })
+  } catch (err: unknown) {
+    // Backstop: a concurrent call raced past the pre-check above and the DB's
+    // unique constraint on the provider reference caught it instead.
+    if ((err as { code?: string }).code !== 'P2002') throw err
+  }
 }

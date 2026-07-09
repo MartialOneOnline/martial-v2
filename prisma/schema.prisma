@@ -1331,8 +1331,13 @@ model Transaction {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([stripePaymentIntentId])
-  @@index([revolutOrderId])
+  // Unique (not just indexed): a Postgres unique index allows unlimited NULLs,
+  // so manual/cash transactions (both fields null) are unaffected — this only
+  // blocks a second transaction row from reusing the same provider reference,
+  // as a DB-level backstop behind the webhook handlers' own idempotency claims
+  // (StripeWebhookEvent claim / conditional PENDING->ACTIVE update).
+  @@unique([stripePaymentIntentId])
+  @@unique([revolutOrderId])
   @@map("transactions")
 }
 

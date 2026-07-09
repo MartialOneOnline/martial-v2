@@ -77,15 +77,24 @@ export async function POST(req: NextRequest) {
         ? new Date(Date.now() + membership.plan.validityDays * 86_400_000)
         : undefined
 
-      await prisma.$transaction(async (tx) => {
-        await tx.membership.update({
-          where: { id: membership.id },
+      const claimed = await prisma.$transaction(async (tx) => {
+        // Claim atomically: only the delivery whose conditional update
+        // actually flips PENDING -> ACTIVE proceeds to grant access and
+        // record the payment. Revolut webhook payloads carry no per-delivery
+        // event id to dedupe on up front (unlike Stripe's event.id), so this
+        // in-transaction claim — not the early status check above, which
+        // reads outside the transaction and can't see a concurrent racer's
+        // write — is what actually closes the retry/concurrency race.
+        const claim = await tx.membership.updateMany({
+          where: { id: membership.id, status: 'PENDING' },
           data: {
             status:    MembershipStatus.ACTIVE,
             startDate: new Date(),
             ...(endDate && { endDate }),
           },
         })
+        if (claim.count === 0) return false
+
         // Try to create first (race-safe via the (schoolId, userId) unique
         // constraint). If one already exists, promote it — except ARCHIVED: a
         // staff member archived this person for a reason, and a payment webhook
@@ -112,7 +121,10 @@ export async function POST(req: NextRequest) {
           membershipId:  membership.id,
           revolutOrderId: payload.order_id,
         })
+        return true
       })
+
+      if (!claimed) return NextResponse.json({ received: true })
 
       // Notify + send receipt email (fire-and-forget)
       prisma.membership.findUnique({
@@ -189,6 +201,19 @@ export async function POST(req: NextRequest) {
     if (order.state !== 'COMPLETED') return NextResponse.json({ received: true })
 
     const outcome = await prisma.$transaction(async (tx) => {
+      // Claim atomically: only the delivery whose conditional update
+      // actually flips PENDING -> CONFIRMED goes on to check capacity and
+      // record the payment. A retried/concurrent delivery for this booking
+      // matches zero rows and returns early — the status check above reads
+      // outside the transaction and can't see a concurrent racer's write, so
+      // this in-transaction claim is what actually closes the race (same
+      // pattern as the membership branch and the Stripe side of this flow).
+      const claim = await tx.eventBooking.updateMany({
+        where: { id: eventBooking.id, status: 'PENDING' },
+        data: { status: 'CONFIRMED' },
+      })
+      if (claim.count === 0) return { sold: false, claimed: false }
+
       const capacity = await checkEventCapacity(tx, {
         eventId: eventBooking.eventId,
         ticketId: eventBooking.ticketId,
@@ -199,7 +224,6 @@ export async function POST(req: NextRequest) {
       })
 
       if (capacity.ok) {
-        await tx.eventBooking.update({ where: { id: eventBooking.id }, data: { status: 'CONFIRMED' } })
         await recordOnlinePayment(tx, {
           schoolId:      eventBooking.event.schoolId,
           userId:        eventBooking.userId,
@@ -211,12 +235,18 @@ export async function POST(req: NextRequest) {
           bookingId:     eventBooking.id,
           revolutOrderId: payload.order_id,
         })
-        return { sold: true }
+        return { sold: true, claimed: true }
       } else {
+        // Oversold after claiming — compensate by cancelling instead of confirming.
         await tx.eventBooking.update({ where: { id: eventBooking.id }, data: { status: 'CANCELLED' } })
-        return { sold: false }
+        return { sold: false, claimed: true }
       }
     })
+
+    if (!outcome.claimed) {
+      // Already processed by another delivery — no-op, not an oversell.
+      return NextResponse.json({ received: true })
+    }
 
     if (outcome.sold) {
       notifyPaymentReceived(
