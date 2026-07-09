@@ -54,61 +54,72 @@ export async function POST(req: NextRequest) {
   const startOfDay = new Date(base.getFullYear(), base.getMonth(), base.getDate())
   const endOfDay   = new Date(startOfDay.getTime() + 86_400_000)
 
-  // Find existing booking for this student on this date
-  let booking = await prisma.booking.findFirst({
-    where: {
-      classId,
-      userId,
-      scheduledAt: { gte: startOfDay, lt: endOfDay },
-      status: { notIn: ['CANCELLED'] },
-    },
-    select: { id: true, status: true, attendedAt: true },
-  })
+  // The partial unique index on bookings (see
+  // prisma/migrations/20260709090000_bookings_active_slot_unique_index) only
+  // covers status IN (PENDING, CONFIRMED) — a walk-in here is inserted
+  // directly as COMPLETED, so that index gives no protection against two
+  // concurrent check-ins for the same student+class+day both racing past the
+  // "no booking found" read and both creating a row. An advisory lock scoped
+  // to (classId, userId, date) serializes the whole find→create/update below
+  // per requester, so the second racer always observes the first one's write
+  // and takes the idempotent "already checked in" path instead of inserting
+  // a duplicate. Namespace 3, distinct from the slot lock (1) and per-user
+  // quota lock (2) in app/api/bookings/route.ts.
+  let result: { alreadyCheckedIn: boolean }
+  try {
+    result = await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(3, hashtext(${`${classId}:${userId}:${date}`}))`
 
-  const alreadyCheckedIn = booking?.status === 'COMPLETED'
-
-  if (alreadyCheckedIn) {
-    return NextResponse.json({
-      studentName: student.name ?? student.email,
-      alreadyCheckedIn: true,
-    })
-  }
-
-  if (booking) {
-    // Mark existing booking as attended
-    await prisma.booking.update({
-      where: { id: booking.id },
-      data: { status: 'COMPLETED', attendedAt: new Date() },
-    })
-  } else {
-    // Walk-in: create booking and mark attended immediately
-    try {
-      booking = await prisma.booking.create({
-        data: {
+      const booking = await tx.booking.findFirst({
+        where: {
           classId,
           userId,
-          scheduledAt: base,
-          status: 'COMPLETED',
-          attendedAt: new Date(),
-          paymentMethod: 'CASH',
-          amountPaid: 0,
-          currency: 'EUR',
+          scheduledAt: { gte: startOfDay, lt: endOfDay },
+          status: { notIn: ['CANCELLED'] },
         },
         select: { id: true, status: true, attendedAt: true },
       })
-    } catch (err) {
-      // Backstop against a concurrent duplicate check-in for the same
-      // student+class+slot — see the partial unique index migration
-      // referenced in classes/[id]/bookings/route.ts.
-      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
-        return NextResponse.json({ error: 'Already booked for this session' }, { status: 409 })
+
+      if (booking?.status === 'COMPLETED') {
+        return { alreadyCheckedIn: true }
       }
-      throw err
+
+      if (booking) {
+        // Mark existing booking as attended
+        await tx.booking.update({
+          where: { id: booking.id },
+          data: { status: 'COMPLETED', attendedAt: new Date() },
+        })
+      } else {
+        // Walk-in: create booking and mark attended immediately
+        await tx.booking.create({
+          data: {
+            classId,
+            userId,
+            scheduledAt: base,
+            status: 'COMPLETED',
+            attendedAt: new Date(),
+            paymentMethod: 'CASH',
+            amountPaid: 0,
+            currency: 'EUR',
+          },
+        })
+      }
+
+      return { alreadyCheckedIn: false }
+    })
+  } catch (err) {
+    // Defense in depth: any unexpected unique-constraint violation still
+    // maps to a clean 409 instead of a 500, even though the advisory lock
+    // above is what actually prevents the walk-in race in practice.
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+      return NextResponse.json({ error: 'Already booked for this session' }, { status: 409 })
     }
+    throw err
   }
 
   return NextResponse.json({
     studentName: student.name ?? student.email,
-    alreadyCheckedIn: false,
+    alreadyCheckedIn: result.alreadyCheckedIn,
   })
 }
