@@ -35,11 +35,20 @@ export async function GET(req: NextRequest) {
   const dateTo      = searchParams.get('dateTo')      || '' // ISO date string
   const page        = Math.max(1, parseInt(searchParams.get('page') || '1'))
   const pageSize    = Math.min(100, parseInt(searchParams.get('pageSize') || '20'))
+  // Only meaningful within status=FLAGGED (every other status always has
+  // resolvedAt=null) — 'false' (default when omitted) hides resolved cases
+  // from the "Needs review" tab, 'true' shows only resolved ones (a small
+  // audit view), 'all' shows both. Keeps the tab's default view = actually
+  // pending work, per the dashboard's own "Needs review" framing.
+  const resolved    = searchParams.get('resolved')    // 'true'|'false'|'all'|null
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const where: any = {
     schoolId: auth.schoolId,
     ...(status     && status !== 'ALL'  ? { status }                          : {}),
+    ...(status === 'FLAGGED' && resolved !== 'all'
+      ? { resolvedAt: resolved === 'true' ? { not: null } : null }
+      : {}),
     ...(method     && method !== 'ALL'  ? { paymentMethod: method }           : {}),
     ...(type       && type   !== 'ALL'  ? { type }                            : {}),
     ...(membership ? { description: { contains: membership, mode: 'insensitive' } } : {}),
@@ -59,11 +68,12 @@ export async function GET(req: NextRequest) {
     } : {}),
   }
 
-  const [transactions, total, stats] = await Promise.all([
+  const [transactions, total, stats, unresolvedFlaggedCount] = await Promise.all([
     prisma.transaction.findMany({
       where,
       include: {
         user: { select: { name: true, email: true, avatarUrl: true } },
+        resolvedByUser: { select: { name: true, email: true } },
       },
       orderBy: { date: 'desc' },
       skip: (page - 1) * pageSize,
@@ -77,6 +87,11 @@ export async function GET(req: NextRequest) {
       _count: { id: true },
       _sum: { amount: true },
     }) as any,
+    // FLAGGED's own tab count must reflect *pending* review, not every row
+    // ever flagged — resolved ones shouldn't inflate the "needs attention"
+    // badge. Can't get this split from the groupBy above (it only groups by
+    // status, not resolvedAt), so it's a dedicated count.
+    prisma.transaction.count({ where: { schoolId: auth.schoolId, status: 'FLAGGED', resolvedAt: null } }),
   ])
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -89,8 +104,9 @@ export async function GET(req: NextRequest) {
     REFUNDED: statMap['REFUNDED']?.count ?? 0,
     // Payments the provider already captured but that were deliberately not
     // turned into active access (e.g. ARCHIVED member) — never part of
-    // totalRevenue, surfaced separately so admins can find them.
-    FLAGGED:  statMap['FLAGGED']?.count  ?? 0,
+    // totalRevenue, surfaced separately so admins can find them. Unresolved
+    // only — see unresolvedFlaggedCount above.
+    FLAGGED:  unresolvedFlaggedCount,
   }
 
   return NextResponse.json({
@@ -117,6 +133,10 @@ export async function GET(req: NextRequest) {
       // the provider's own dashboard to decide on a refund.
       stripePaymentIntentId: t.stripePaymentIntentId ?? null,
       revolutOrderId:        t.revolutOrderId ?? null,
+      // Manual-review resolution (FLAGGED only) — see PATCH .../[id] action=resolve.
+      resolvedAt:      t.resolvedAt ? t.resolvedAt.toISOString() : null,
+      resolvedByName:  t.resolvedByUser?.name ?? t.resolvedByUser?.email ?? null,
+      resolutionNote:  t.resolutionNote ?? null,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       periodStart: (t as any).periodStart ? new Date((t as any).periodStart).toISOString() : null,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

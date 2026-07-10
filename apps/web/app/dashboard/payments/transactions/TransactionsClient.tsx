@@ -36,6 +36,11 @@ interface TxRow {
   bookingId: string | null
   stripePaymentIntentId: string | null
   revolutOrderId: string | null
+  // Manual-review resolution (FLAGGED only) — status stays FLAGGED even once
+  // resolved, this is metadata layered on top, not a status transition.
+  resolvedAt: string | null
+  resolvedByName: string | null
+  resolutionNote: string | null
 }
 
 interface StatusCounts { PAID: number; PENDING: number; FAILED: number; REFUNDED: number; FLAGGED: number }
@@ -281,11 +286,12 @@ function FiltersPanel({ filters, onChange }: {
 }
 
 // ── Row Actions Menu ──────────────────────────────────────────────────────────
-function RowActions({ tx, onStatusChange, onDelete, onView }: {
+function RowActions({ tx, onStatusChange, onDelete, onView, onResolve }: {
   tx: TxRow
   onStatusChange: (id: string, status: TxStatus) => Promise<void>
   onDelete: (id: string) => Promise<void>
   onView: () => void
+  onResolve: () => void
 }) {
   const [busy, setBusy] = useState(false)
 
@@ -318,6 +324,17 @@ function RowActions({ tx, onStatusChange, onDelete, onView }: {
         </button>
 
         <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
+
+        {tx.status === 'FLAGGED' && !tx.resolvedAt && (
+          <button onClick={e => { e.stopPropagation(); onResolve() }}
+            style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
+              fontWeight: 500, color: '#16A34A', background: 'transparent', border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 8 }}
+            onMouseEnter={e => (e.currentTarget.style.background = '#F0FDF4')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+            <Check size={13} /> Mark resolved
+          </button>
+        )}
 
         {tx.status === 'PENDING' && (
           <button onClick={e => { e.stopPropagation(); act(() => onStatusChange(tx.id, 'PAID')) }}
@@ -388,10 +405,19 @@ function TxDetailDrawer({ tx, onClose }: { tx: TxRow; onClose: () => void }) {
     ...(tx.periodEnd   ? [{ label: 'Renew',     value: <span style={{ color: '#374151' }}>{fmtDate(tx.periodEnd, true)}</span> }] : []),
     { label: 'Status',
       value: (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5,
-          fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999,
-          background: sc.bg, color: sc.color, border: '1px solid ' + sc.border }}>
-          <StatusIcon size={9} strokeWidth={2.5} />{sc.label}
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5,
+            fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999,
+            background: sc.bg, color: sc.color, border: '1px solid ' + sc.border }}>
+            <StatusIcon size={9} strokeWidth={2.5} />{sc.label}
+          </span>
+          {tx.status === 'FLAGGED' && tx.resolvedAt && (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4,
+              fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999,
+              background: '#F0FDF4', color: '#16A34A', border: '1px solid #BBF7D0' }}>
+              <Check size={9} strokeWidth={2.5} />Resolved
+            </span>
+          )}
         </span>
       ) },
     { label: 'Type',
@@ -406,6 +432,10 @@ function TxDetailDrawer({ tx, onClose }: { tx: TxRow; onClose: () => void }) {
       value: <span style={{ fontSize: 11, color: '#6B7280', fontFamily: 'monospace' }}>{tx.stripePaymentIntentId ?? tx.revolutOrderId}</span> }] : []),
     ...(tx.bookingId ? [{ label: 'Booking Ref',
       value: <span style={{ fontSize: 11, color: '#6B7280', fontFamily: 'monospace' }}>{tx.bookingId}</span> }] : []),
+    ...(tx.resolvedAt ? [{ label: 'Resolved',
+      value: <span style={{ fontSize: 12, color: '#374151' }}>{fmtDate(tx.resolvedAt, true)}{tx.resolvedByName ? ` — ${tx.resolvedByName}` : ''}</span> }] : []),
+    ...(tx.resolutionNote ? [{ label: 'Resolution note',
+      value: <span style={{ fontSize: 11, color: '#6B7280' }}>{tx.resolutionNote}</span> }] : []),
     ...(tx.notes ? [{ label: 'Notes',
       value: <span style={{ fontSize: 11, color: '#9CA3AF', fontFamily: 'monospace' }}>{tx.notes}</span> }] : []),
   ]
@@ -725,6 +755,72 @@ function AddPaymentModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
   )
 }
 
+// ── Resolve Modal ──────────────────────────────────────────────────────────────
+function ResolveModal({ tx, onClose, onResolved }: {
+  tx: TxRow
+  onClose: () => void
+  onResolved: (id: string, resolvedAt: string, resolvedByName: string | null, resolutionNote: string | null) => void
+}) {
+  const [note, setNote] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  async function handleConfirm() {
+    setSaving(true); setError('')
+    const res = await fetch(`/api/dashboard/transactions/${tx.id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'resolve', note: note.trim() || undefined }),
+    })
+    const data = await res.json().catch(() => ({}))
+    setSaving(false)
+    if (!res.ok) { setError(data.error ?? 'Could not resolve transaction.'); return }
+    onResolved(tx.id, data.resolvedAt, data.resolvedByName ?? null, data.resolutionNote ?? null)
+  }
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40" style={{ background: 'rgba(0,0,0,0.35)' }} onClick={onClose} />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-sm rounded-2xl flex flex-col" style={{ background: '#fff', boxShadow: '0 20px 60px rgba(0,0,0,0.18)', overflow: 'hidden' }}>
+
+          <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #F3F4F6' }}>
+            <p style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>Mark as resolved</p>
+            <button onClick={onClose} style={{ background: '#F3F4F6', border: 'none', borderRadius: 8, padding: 6, cursor: 'pointer', display: 'flex' }}>
+              <X size={15} style={{ color: '#6B7280' }} />
+            </button>
+          </div>
+
+          <div className="px-6 py-5 flex flex-col gap-4">
+            <p style={{ fontSize: 13, color: '#6B7280', lineHeight: 1.5, margin: 0 }}>
+              Confirms <strong style={{ color: '#111827' }}>{tx.userName}</strong>&apos;s flagged payment
+              ({fmtPrice(tx.amount, tx.currency)}) has been handled manually — refunded or the member reactivated.
+              The transaction stays on record for audit; this doesn&apos;t refund or reactivate anything automatically.
+            </p>
+            <div>
+              <label style={MODAL_LBL}>Resolution note (optional)</label>
+              <textarea rows={3} placeholder="e.g. Refunded via Stripe dashboard on 10 Jul"
+                value={note} onChange={e => setNote(e.target.value)}
+                style={{ ...MODAL_INP, resize: 'vertical', fontFamily: 'inherit' }} />
+            </div>
+            {error && <p style={{ fontSize: 12, color: '#DC2626', fontWeight: 500, margin: 0 }}>{error}</p>}
+          </div>
+
+          <div className="flex gap-3 px-6 py-4" style={{ borderTop: '1px solid #F3F4F6' }}>
+            <button onClick={onClose} style={{ flex: 1, padding: '10px', borderRadius: 10, border: '1px solid #E5E7EB',
+              background: '#fff', fontSize: 13, fontWeight: 500, color: '#374151', cursor: 'pointer' }}>
+              Cancel
+            </button>
+            <button onClick={handleConfirm} disabled={saving} style={{ flex: 2, padding: '10px', borderRadius: 10, border: 'none',
+              background: '#16A34A', fontSize: 13, fontWeight: 600, color: '#fff', cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.7 : 1 }}>
+              {saving ? 'Saving…' : 'Confirm resolved'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function TransactionsClient() {
   const { setMenuOpen } = useDashboard()
@@ -737,6 +833,8 @@ export default function TransactionsClient() {
   const [loading,        setLoading]       = useState(true)
   const [selectedTx,     setSelectedTx]   = useState<TxRow | null>(null)
   const [showAddPayment, setShowAddPayment] = useState(false)
+  const [resolvingTx,    setResolvingTx]  = useState<TxRow | null>(null)
+  const [showResolved,   setShowResolved] = useState(false)
 
   const [activeFilter,  setActiveFilter]  = useState<FilterTab>('ALL')
   const [activeType,    setActiveType]    = useState<TypeFilter>('INCOME')
@@ -751,6 +849,7 @@ export default function TransactionsClient() {
       pageSize: String(PAGE_SIZE),
       ...(activeType        !== 'ALL' ? { type:   activeType        } : {}),
       ...(activeFilter      !== 'ALL' ? { status: activeFilter      } : {}),
+      ...(activeFilter === 'FLAGGED' && showResolved ? { resolved: 'all' } : {}),
       ...(filters.method    !== 'ALL' ? { method: filters.method    } : {}),
       ...(filters.dateFrom            ? { dateFrom: filters.dateFrom } : {}),
       ...(filters.dateTo              ? { dateTo:   filters.dateTo   } : {}),
@@ -767,7 +866,7 @@ export default function TransactionsClient() {
     const cs = data.countByStatus ?? {}
     setCountByStatus({ PAID: cs.PAID ?? 0, PENDING: cs.PENDING ?? 0, FAILED: cs.FAILED ?? 0, REFUNDED: cs.REFUNDED ?? 0, FLAGGED: cs.FLAGGED ?? 0 })
     setLoading(false)
-  }, [page, activeFilter, filters, activeType, search])
+  }, [page, activeFilter, filters, activeType, search, showResolved])
 
   useEffect(() => { load() }, [load])
 
@@ -793,6 +892,22 @@ export default function TransactionsClient() {
       const data = await res.json().catch(() => ({}))
       alert(data.error ?? 'Could not delete transaction.')
     }
+  }
+
+  function handleResolved(id: string, resolvedAt: string, resolvedByName: string | null, resolutionNote: string | null) {
+    setResolvingTx(null)
+    if (!showResolved) {
+      // Default "Needs review" view only shows unresolved rows — once
+      // resolved, the row drops out of the current list rather than
+      // lingering with a stale badge.
+      setTransactions(prev => prev.filter(tx => tx.id !== id))
+      setTotal(prev => Math.max(0, prev - 1))
+      setCountByStatus(prev => ({ ...prev, FLAGGED: Math.max(0, prev.FLAGGED - 1) }))
+    } else {
+      setTransactions(prev => prev.map(tx => tx.id === id ? { ...tx, resolvedAt, resolvedByName, resolutionNote } : tx))
+      setCountByStatus(prev => ({ ...prev, FLAGGED: Math.max(0, prev.FLAGGED - 1) }))
+    }
+    if (selectedTx?.id === id) setSelectedTx(prev => prev ? { ...prev, resolvedAt, resolvedByName, resolutionNote } : null)
   }
 
   const totalCount = Object.values(countByStatus).reduce((a, b) => a + b, 0)
@@ -915,6 +1030,17 @@ export default function TransactionsClient() {
             )
           })}
 
+          {activeFilter === 'FLAGGED' && (
+            <button onClick={() => { setShowResolved(v => !v); setPage(1) }}
+              className="cursor-pointer"
+              style={{ fontSize: 12, fontWeight: showResolved ? 600 : 400, padding: '5px 12px', borderRadius: 8,
+                background: showResolved ? '#F0FDF4' : '#fff',
+                color: showResolved ? '#16A34A' : '#6B7280',
+                border: showResolved ? '1.5px solid #BBF7D0' : '1.5px solid #E5E7EB' }}>
+              {showResolved ? 'Showing resolved' : 'Show resolved'}
+            </button>
+          )}
+
           {/* Divider */}
           <div style={{ width: 1, height: 20, background: '#E5E7EB', flexShrink: 0 }} />
 
@@ -1001,11 +1127,20 @@ export default function TransactionsClient() {
                     </td>
 
                     <td className="hidden sm:table-cell px-5 py-3">
-                      <span className="inline-flex items-center gap-1.5"
-                        style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999,
-                          background: sc.bg, color: sc.color, border: '1px solid ' + sc.border, whiteSpace: 'nowrap' }}>
-                        <StatusIcon size={10} />{sc.label}
-                      </span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="inline-flex items-center gap-1.5"
+                          style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999,
+                            background: sc.bg, color: sc.color, border: '1px solid ' + sc.border, whiteSpace: 'nowrap' }}>
+                          <StatusIcon size={10} />{sc.label}
+                        </span>
+                        {tx.status === 'FLAGGED' && tx.resolvedAt && (
+                          <span className="inline-flex items-center gap-1"
+                            style={{ fontSize: 10, fontWeight: 600, padding: '3px 7px', borderRadius: 999,
+                              background: '#F0FDF4', color: '#16A34A', border: '1px solid #BBF7D0', whiteSpace: 'nowrap' }}>
+                            <Check size={9} />Resolved
+                          </span>
+                        )}
+                      </div>
                     </td>
 
                     <td className="px-4 py-3">
@@ -1014,6 +1149,7 @@ export default function TransactionsClient() {
                         onStatusChange={handleStatusChange}
                         onDelete={handleDelete}
                         onView={() => setSelectedTx(isSelected ? null : tx)}
+                        onResolve={() => setResolvingTx(tx)}
                       />
                     </td>
                   </tr>
@@ -1061,6 +1197,13 @@ export default function TransactionsClient() {
       <AddPaymentModal
         onClose={() => setShowAddPayment(false)}
         onSaved={() => { setShowAddPayment(false); load() }}
+      />
+    )}
+    {resolvingTx && (
+      <ResolveModal
+        tx={resolvingTx}
+        onClose={() => setResolvingTx(null)}
+        onResolved={handleResolved}
       />
     )}
     </>

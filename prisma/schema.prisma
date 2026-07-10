@@ -359,6 +359,7 @@ model User {
   leads                  Lead[]             @relation("LeadConvertedUser")
   leadNotes              LeadNote[]
   transactions           Transaction[]      @relation("TransactionUser")
+  resolvedTransactions   Transaction[]      @relation("TransactionResolvedBy")
   userWaivers            UserWaiver[]
   sentInvitations        SchoolInvitation[] @relation("InvitedByUser")
   preference             UserPreference?
@@ -1334,6 +1335,19 @@ model Transaction {
   notes       String?
   periodStart DateTime?
   periodEnd   DateTime?
+
+  // Manual-review resolution — set once an admin has looked into a FLAGGED
+  // transaction (e.g. refunded the payment, or reactivated the member and
+  // manually granted access) and marked it handled. The row is never
+  // deleted and status stays FLAGGED — this is metadata layered on top,
+  // not a status transition, so "was this ever flagged" stays visible in
+  // history. See recordFlaggedPayment in lib/services/transactions.ts for
+  // how FLAGGED rows are created, and the "Needs review" dashboard tab,
+  // which filters to resolvedAt IS NULL.
+  resolvedAt     DateTime?
+  resolvedBy     String?
+  resolvedByUser User?     @relation("TransactionResolvedBy", fields: [resolvedBy], references: [id])
+  resolutionNote String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
