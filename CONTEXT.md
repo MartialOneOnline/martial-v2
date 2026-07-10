@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado
+**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `c98fbcb` — membership lifecycle sync + Stripe cancel policy hardening (P1/P2)
 
 ---
 
@@ -234,7 +234,7 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 1. **Auth middleware `/my/**`** — ✅ Ya existía y funciona en `proxy.ts` (Next.js reconoce proxy.ts como middleware)
 2. **Ownership audit completo** — ✅ Toda la superficie verificada. Patrón correcto en todos los endpoints: `/my` compara `resource.userId !== dbUser.id` desde DB; `/dashboard` usa `schoolId` de cookie + filtra `{ id, schoolId }` en todas las queries
 3. **Booking atomicity** — ✅ Ya estaba implementado: duplicate check + capacity check + create dentro de `prisma.$transaction()`
-4. **Membership → SchoolMember sync** — ✅ Implementado (commit `e1cb9d1`): pause→FROZEN, resume→ACTIVE, cancel→INACTIVE. School.cancelPolicy (IMMEDIATE | UNTIL_END_OF_PERIOD) con lazy expiration sin cron
+4. **Membership → SchoolMember sync** — ✅ Implementado (commit `e1cb9d1`): pause→FROZEN, resume→ACTIVE, cancel→INACTIVE. School.cancelPolicy (IMMEDIATE | UNTIL_END_OF_PERIOD) con lazy expiration sin cron. **Hardened en `c98fbcb`** (2026-07-10): los 4 webhooks de suscripción de Stripe ahora sincronizan SchoolMember también; ARCHIVED nunca se reactiva desde ningún webhook; `cancelMembership()` espera a Stripe antes de escribir estado local — ver Sesión 48
 
 ### Sprint 2 — Business Rules (P1)
 5. **Class access filtering en `/api/my/school-classes`** — filtrar occurrences por membership activa + classAccess rules + créditos disponibles (no solo en POST booking)
@@ -260,6 +260,24 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 ---
 
 ## Historial de sesiones
+
+### Sesión 48 — 2026-07-10 ✅
+**Membership lifecycle sync + Stripe cancel policy hardening (P1/P2)** — merge a `main`: `c98fbcb`
+
+> Nota: hay trabajo real entre la Sesión 47 y esta (permisos de dashboard, events/notifications, booking/trial/capacity hardening, check-in/walk-in hardening, payment webhook idempotency — ver commits en GitHub) que no quedó documentado sesión a sesión en este archivo. Esta entrada cubre específicamente el PR de lifecycle sync.
+
+- **Sync `Membership.status` → `SchoolMember.status`** cableado en los 4 webhooks de suscripción de Stripe (`invoice.payment_failed`, `invoice.payment_succeeded`, `customer.subscription.deleted`, `customer.subscription.updated`) — antes solo actualizaban `Membership`, `SchoolMember` quedaba stale:
+  - Membership ACTIVE → SchoolMember ACTIVE (si no ARCHIVED)
+  - Membership PAUSED → SchoolMember FROZEN (si no ARCHIVED)
+  - Membership CANCELLED → SchoolMember INACTIVE (solo si no ARCHIVED **y** no hay otra membership ACTIVE del mismo user+school)
+  - **ARCHIVED nunca se reactiva ni se modifica desde ningún webhook** — la decisión de moderación del staff siempre prevalece
+- **`customer.subscription.updated` con `cancel_at_period_end=true`** ya no fuerza `Membership.CANCELLED` de inmediato (bug corregido) — mantiene la membership ACTIVE y solo marca `cancelledAt`; sincroniza `endDate` desde `current_period_end` de Stripe cuando Stripe lo aporta
+- **`cancelMembership()` — Stripe cancel policy segura**: la llamada a Stripe (`subscriptions.cancel` para IMMEDIATE, `subscriptions.update({cancel_at_period_end:true})` para UNTIL_END_OF_PERIOD) ahora se espera (`await`) *antes* de escribir cualquier estado local; si Stripe falla, no se cambia nada en local — cierra el caso "local CANCELLED pero Stripe sigue cobrando"
+- **Guard ARCHIVED entre checkout y webhook** (Stripe `checkout.session.completed` y Revolut `ORDER_COMPLETED`): si `SchoolMember` ya existe ARCHIVED cuando llega el pago confirmado, no se activa la membership ni se crea `Transaction` — el pago ya capturado por Stripe/Revolut **queda para revisión manual** (reembolso o reactivación), logueado con `console.error` con userId/schoolId/planId/paymentIntent
+- Helpers nuevos en `lib/services/membership.ts`: `syncSchoolMemberStatusForMembership()`, `hasOtherActiveMembership()`, `isSchoolMemberArchived()`, `cancelStripeSubscription()`
+- **28 tests nuevos** (`membershipLifecycleSync.test.ts`, `cancelMembership.test.ts`, `stripeWebhookLifecycleSync.test.ts`) — **209 tests pasando** en total (27 archivos), `check-types` / `lint` / `prisma validate` en verde
+- Sin cambios de schema/migraciones, sin cambios de permisos, emails, currency ni UI
+- Branch `fix/membership-lifecycle-sync` mergeada a `main` (merge commit `c98fbcb`, base `e5dac89`) y borrada (local + remoto)
 
 ### Sesión 47 — 2026-06-23 ✅
 **Sprint 1 Platform Safety — completado**
