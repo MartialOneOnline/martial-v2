@@ -5,6 +5,7 @@ import { MembershipStatus } from '@/lib/prisma-client/client'
 import { sendMembershipReceiptEmail, sendEventTicketConfirmationEmail, sendEventTicketRefundedEmail } from '@/lib/email/sendEmails'
 import { checkEventCapacity } from '@/lib/services/eventCapacity'
 import { recordOnlinePayment } from '@/lib/services/transactions'
+import { isSchoolMemberArchived } from '@/lib/services/membership'
 import { PaymentMethod, TransactionCategory } from '@/lib/prisma-client/enums'
 import { notifyPaymentReceived } from '@/lib/notifications/create'
 import { fmtPrice } from '@/lib/format'
@@ -77,7 +78,17 @@ export async function POST(req: NextRequest) {
         ? new Date(Date.now() + membership.plan.validityDays * 86_400_000)
         : undefined
 
-      const claimed = await prisma.$transaction(async (tx) => {
+      const outcome = await prisma.$transaction(async (tx) => {
+        // /api/my/checkout blocks starting a checkout while ARCHIVED, but a
+        // staff member can archive this person *between* checkout and this
+        // webhook delivery — Revolut has already captured the money by the
+        // time we find out. Don't activate: leave the Membership PENDING, no
+        // Transaction, no SchoolMember write. Needs manual follow-up (refund
+        // or reactivation) — logged below, not resolved here.
+        if (await isSchoolMemberArchived(tx, { userId: membership.userId, schoolId: membership.schoolId })) {
+          return { claimed: false, archivedBlock: true }
+        }
+
         // Claim atomically: only the delivery whose conditional update
         // actually flips PENDING -> ACTIVE proceeds to grant access and
         // record the payment. Revolut webhook payloads carry no per-delivery
@@ -93,12 +104,11 @@ export async function POST(req: NextRequest) {
             ...(endDate && { endDate }),
           },
         })
-        if (claim.count === 0) return false
+        if (claim.count === 0) return { claimed: false }
 
         // Try to create first (race-safe via the (schoolId, userId) unique
-        // constraint). If one already exists, promote it — except ARCHIVED: a
-        // staff member archived this person for a reason, and a payment webhook
-        // must not silently undo that moderation decision.
+        // constraint). The ARCHIVED case is already handled above, so a
+        // P2002 here just means the row already exists — promote it.
         try {
           await tx.schoolMember.create({
             data: { userId: membership.userId, schoolId: membership.schoolId, role: 'STUDENT', status: 'ACTIVE', joinedAt: new Date() },
@@ -121,10 +131,13 @@ export async function POST(req: NextRequest) {
           membershipId:  membership.id,
           revolutOrderId: payload.order_id,
         })
-        return true
+        return { claimed: true }
       })
 
-      if (!claimed) return NextResponse.json({ received: true })
+      if (outcome.archivedBlock) {
+        console.error(`[revolut webhook] payment captured for ARCHIVED member — userId=${membership.userId} schoolId=${membership.schoolId} membershipId=${membership.id} orderId=${payload.order_id}. Membership NOT activated; needs manual refund or reactivation review.`)
+      }
+      if (!outcome.claimed) return NextResponse.json({ received: true })
 
       // Notify + send receipt email (fire-and-forget)
       prisma.membership.findUnique({

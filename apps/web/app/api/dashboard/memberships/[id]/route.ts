@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 import { hasPermission } from '@/lib/auth/permissions'
-import { cancelMembership, computeEndDate } from '@/lib/services/membership'
+import { cancelMembership, computeEndDate, syncSchoolMemberStatusForMembership } from '@/lib/services/membership'
 import { MembershipStatus, TransactionType, TransactionStatus, TransactionCategory } from '@/lib/prisma-client/enums'
 
 async function authorise() {
@@ -128,9 +128,8 @@ export async function PATCH(
 
     await prisma.$transaction(async (tx) => {
       await tx.membership.update({ where: { id }, data: { status: MembershipStatus.PAUSED } })
-      await tx.schoolMember.updateMany({
-        where: { userId: membership.userId, schoolId: auth.schoolId },
-        data: { status: 'FROZEN' },
+      await syncSchoolMemberStatusForMembership(tx, {
+        userId: membership.userId, schoolId: auth.schoolId, membershipStatus: MembershipStatus.PAUSED,
       })
     })
     return NextResponse.json({ status: 'PAUSED' })
@@ -143,9 +142,8 @@ export async function PATCH(
 
     await prisma.$transaction(async (tx) => {
       await tx.membership.update({ where: { id }, data: { status: MembershipStatus.ACTIVE } })
-      await tx.schoolMember.updateMany({
-        where: { userId: membership.userId, schoolId: auth.schoolId },
-        data: { status: 'ACTIVE' },
+      await syncSchoolMemberStatusForMembership(tx, {
+        userId: membership.userId, schoolId: auth.schoolId, membershipStatus: MembershipStatus.ACTIVE,
       })
     })
     return NextResponse.json({ status: 'ACTIVE' })
@@ -153,8 +151,15 @@ export async function PATCH(
 
   // ── cancel ────────────────────────────────────────────────────────────────────
   if (action === 'cancel') {
-    const updated = await cancelMembership({ membershipId: id, schoolId: auth.schoolId })
-    return NextResponse.json({ status: updated?.status })
+    try {
+      const updated = await cancelMembership({ membershipId: id, schoolId: auth.schoolId })
+      return NextResponse.json({ status: updated?.status })
+    } catch (err) {
+      // Covers both business errors (already cancelled) and a failed Stripe
+      // API call — cancelMembership only throws the latter *before* writing
+      // any local state, so nothing here needs rolling back.
+      return NextResponse.json({ error: err instanceof Error ? err.message : 'Cancellation failed' }, { status: 400 })
+    }
   }
 
   return NextResponse.json({ error: 'Invalid action' }, { status: 400 })

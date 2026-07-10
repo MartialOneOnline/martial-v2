@@ -6,6 +6,7 @@ import { MembershipStatus } from '@/lib/prisma-client/client'
 import { sendMembershipReceiptEmail, sendEventTicketConfirmationEmail, sendEventTicketRefundedEmail } from '@/lib/email/sendEmails'
 import { checkEventCapacity } from '@/lib/services/eventCapacity'
 import { recordOnlinePayment } from '@/lib/services/transactions'
+import { syncSchoolMemberStatusForMembership, isSchoolMemberArchived } from '@/lib/services/membership'
 import { PaymentMethod, TransactionCategory, StripeWebhookEventStatus } from '@/lib/prisma-client/enums'
 import { notifyPaymentReceived } from '@/lib/notifications/create'
 import { fmtPrice } from '@/lib/format'
@@ -269,6 +270,7 @@ async function handleStripeEvent(event: Stripe.Event) {
       // An abandoned/cancelled Stripe session simply never reaches this handler, so
       // it never leaves a phantom PENDING membership behind.
       let activatedMembershipId: string | null = null
+      let blockedByArchivedMember = false
       await prisma.$transaction(async (tx) => {
         // Retry/duplicate-delivery protection for *this* event now lives in
         // claimStripeEvent (only one delivery of a given event.id ever
@@ -279,6 +281,17 @@ async function handleStripeEvent(event: Stripe.Event) {
           select: { id: true },
         })
         if (alreadyActive) return
+
+        // /api/my/checkout blocks starting a checkout while ARCHIVED, but a
+        // staff member can archive this person *between* checkout and this
+        // webhook delivery — Stripe has already captured the money by the
+        // time we find out. Don't grant access: no Membership, no
+        // Transaction, no SchoolMember write. This needs manual follow-up
+        // (refund or reactivation) — logged below, not resolved here.
+        if (await isSchoolMemberArchived(tx, { userId, schoolId })) {
+          blockedByArchivedMember = true
+          return
+        }
 
         const endDate = planType !== 'SUBSCRIPTION' && validityDays
           ? new Date(Date.now() + Number(validityDays) * 86_400_000)
@@ -298,9 +311,9 @@ async function handleStripeEvent(event: Stripe.Event) {
         })
         // Try to create first (race-safe via the (schoolId, userId) unique
         // constraint — a plain findFirst-then-create would let two concurrent
-        // webhook deliveries both create a row). If one already exists, promote
-        // it — except ARCHIVED: a staff member archived this person for a reason,
-        // and a payment webhook must not silently undo that moderation decision.
+        // webhook deliveries both create a row). The ARCHIVED case is already
+        // handled above, so a P2002 here just means the row already exists
+        // as PENDING/LEAD/ACTIVE/FROZEN/INACTIVE — promote it.
         try {
           await tx.schoolMember.create({
             data: { userId, schoolId, role: 'STUDENT', status: 'ACTIVE', joinedAt: new Date() },
@@ -325,6 +338,10 @@ async function handleStripeEvent(event: Stripe.Event) {
         })
         activatedMembershipId = created.id
       })
+
+      if (blockedByArchivedMember) {
+        console.error(`[stripe webhook] payment captured for ARCHIVED member — userId=${userId} schoolId=${schoolId} planId=${planId} paymentIntent=${session.payment_intent ?? 'n/a'}. Membership NOT activated; needs manual refund or reactivation review.`)
+      }
 
       // Notify + send receipt email (fire-and-forget)
       if (activatedMembershipId) {
@@ -419,6 +436,12 @@ async function handleStripeEvent(event: Stripe.Event) {
           stripePaymentIntentId: invoice.payment_intent,
           stripeInvoiceId:       invoice.id,
         })
+        // A renewal payment implies the subscription was ACTIVE (or is
+        // recovering from a previous failed payment that had frozen the
+        // member) — project that onto SchoolMember too, unless ARCHIVED.
+        await syncSchoolMemberStatusForMembership(tx, {
+          userId: membership.userId, schoolId: membership.schoolId, membershipStatus: MembershipStatus.ACTIVE,
+        })
         return true
       })
 
@@ -433,38 +456,100 @@ async function handleStripeEvent(event: Stripe.Event) {
       const invoice = event.data.object as { subscription?: string }
       if (!invoice.subscription) break
 
-      await prisma.membership.updateMany({
-        where:  { stripeSubId: invoice.subscription },
-        data:   { status: MembershipStatus.PAUSED },
+      const membership = await prisma.membership.findFirst({
+        where: { stripeSubId: invoice.subscription },
+        select: { id: true, userId: true, schoolId: true },
+      })
+      if (!membership) break
+
+      await prisma.$transaction(async (tx) => {
+        await tx.membership.updateMany({
+          where:  { stripeSubId: invoice.subscription },
+          data:   { status: MembershipStatus.PAUSED },
+        })
+        await syncSchoolMemberStatusForMembership(tx, {
+          userId: membership.userId, schoolId: membership.schoolId, membershipStatus: MembershipStatus.PAUSED,
+        })
       })
       break
     }
 
     // ── Subscription cancelled (from Stripe dashboard or API) ─────────────────
     case 'customer.subscription.deleted': {
-      const sub = event.data.object as { id: string; cancel_at_period_end?: boolean }
-      await prisma.membership.updateMany({
+      const sub = event.data.object as { id: string }
+
+      const membership = await prisma.membership.findFirst({
         where: { stripeSubId: sub.id },
-        data:  { status: MembershipStatus.CANCELLED, cancelledAt: new Date() },
+        select: { id: true, userId: true, schoolId: true },
+      })
+      if (!membership) break
+
+      await prisma.$transaction(async (tx) => {
+        await tx.membership.updateMany({
+          where: { stripeSubId: sub.id },
+          data:  { status: MembershipStatus.CANCELLED, cancelledAt: new Date() },
+        })
+        await syncSchoolMemberStatusForMembership(tx, {
+          userId: membership.userId, schoolId: membership.schoolId, membershipStatus: MembershipStatus.CANCELLED, excludeMembershipId: membership.id,
+        })
       })
       break
     }
 
-    // ── Subscription updated (pause, plan change, etc.) ───────────────────────
+    // ── Subscription updated (pause, plan change, cancellation scheduled) ─────
     case 'customer.subscription.updated': {
-      const sub = event.data.object as { id: string; status: string; cancel_at_period_end?: boolean }
+      const sub = event.data.object as {
+        id: string
+        status: string
+        cancel_at_period_end?: boolean
+        current_period_end?: number
+        items?: { data?: { current_period_end?: number }[] }
+      }
+
+      const membership = await prisma.membership.findFirst({
+        where: { stripeSubId: sub.id },
+        select: { id: true, userId: true, schoolId: true },
+      })
+      if (!membership) break
+
+      // sub.status is Stripe's actual current state — trust it as-is.
+      // cancel_at_period_end is a *separate* flag meaning "will cancel later"
+      // and must never force CANCELLED here: the subscription is still
+      // active (and the member should still have access) until Stripe
+      // itself sends customer.subscription.deleted at the period's end.
       let newStatus: MembershipStatus | undefined
       if (sub.status === 'active')   newStatus = MembershipStatus.ACTIVE
       if (sub.status === 'paused')   newStatus = MembershipStatus.PAUSED
       if (sub.status === 'canceled') newStatus = MembershipStatus.CANCELLED
-      if (sub.cancel_at_period_end)  newStatus = MembershipStatus.CANCELLED
 
-      if (newStatus) {
-        await prisma.membership.updateMany({
+      const cancelledAt = sub.cancel_at_period_end && sub.status !== 'canceled' ? new Date() : undefined
+
+      // Stripe moved the period-end field from the subscription's top level
+      // onto each subscription item in recent API versions — check both
+      // shapes. If neither is present, keep the existing endDate rather
+      // than guessing: a wrong endDate could cut access early or extend it
+      // wrongly, and checkAndExpireMembership only acts once cancelledAt is
+      // also set, so a stale endDate here is inert until then anyway.
+      const periodEndUnix = sub.current_period_end ?? sub.items?.data?.[0]?.current_period_end
+      const periodEndDate = periodEndUnix ? new Date(periodEndUnix * 1000) : undefined
+
+      if (!newStatus && cancelledAt === undefined && !periodEndDate) break // nothing to sync
+
+      await prisma.$transaction(async (tx) => {
+        await tx.membership.updateMany({
           where: { stripeSubId: sub.id },
-          data:  { status: newStatus },
+          data: {
+            ...(newStatus && { status: newStatus }),
+            ...(cancelledAt !== undefined && { cancelledAt }),
+            ...(periodEndDate && { endDate: periodEndDate }),
+          },
         })
-      }
+        if (newStatus) {
+          await syncSchoolMemberStatusForMembership(tx, {
+            userId: membership.userId, schoolId: membership.schoolId, membershipStatus: newStatus, excludeMembershipId: membership.id,
+          })
+        }
+      })
       break
     }
   }

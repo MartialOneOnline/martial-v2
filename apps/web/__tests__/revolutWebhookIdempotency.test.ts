@@ -68,6 +68,7 @@ const mockMembershipFindUnique = vi.fn((args: { where: { id: string } }) => {
 })
 const mockSchoolMemberCreate = vi.fn().mockResolvedValue({})
 const mockSchoolMemberUpdateMany = vi.fn().mockResolvedValue({ count: 0 })
+const mockSchoolMemberFindUnique = vi.fn().mockResolvedValue(null) // no existing row -> never ARCHIVED
 
 const mockEventBookingFindFirst = vi.fn((args: { where: { revolutOrderId: string } }) => {
   const b = Object.values(eventBookings).find(x => x.revolutOrderId === args.where.revolutOrderId)
@@ -88,7 +89,7 @@ const mockEventBookingUpdate = vi.fn((args: { where: { id: string }; data: Recor
 const mockTransaction = vi.fn((fn: (tx: unknown) => unknown) => {
   const tx = {
     membership: { updateMany: mockMembershipUpdateMany },
-    schoolMember: { create: mockSchoolMemberCreate, updateMany: mockSchoolMemberUpdateMany },
+    schoolMember: { create: mockSchoolMemberCreate, updateMany: mockSchoolMemberUpdateMany, findUnique: mockSchoolMemberFindUnique },
     eventBooking: { updateMany: mockEventBookingUpdateMany, update: mockEventBookingUpdate },
   }
   return fn(tx)
