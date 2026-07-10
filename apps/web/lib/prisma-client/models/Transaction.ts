@@ -378,6 +378,8 @@ export type TransactionOrderByWithRelationInput = {
 
 export type TransactionWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  stripePaymentIntentId?: string
+  revolutOrderId?: string
   AND?: Prisma.TransactionWhereInput | Prisma.TransactionWhereInput[]
   OR?: Prisma.TransactionWhereInput[]
   NOT?: Prisma.TransactionWhereInput | Prisma.TransactionWhereInput[]
@@ -393,9 +395,7 @@ export type TransactionWhereUniqueInput = Prisma.AtLeast<{
   membershipId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   bookingId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   userId?: Prisma.StringNullableFilter<"Transaction"> | string | null
-  stripePaymentIntentId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   stripeInvoiceId?: Prisma.StringNullableFilter<"Transaction"> | string | null
-  revolutOrderId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   notes?: Prisma.StringNullableFilter<"Transaction"> | string | null
   periodStart?: Prisma.DateTimeNullableFilter<"Transaction"> | Date | string | null
   periodEnd?: Prisma.DateTimeNullableFilter<"Transaction"> | Date | string | null
@@ -404,7 +404,7 @@ export type TransactionWhereUniqueInput = Prisma.AtLeast<{
   school?: Prisma.XOR<Prisma.SchoolScalarRelationFilter, Prisma.SchoolWhereInput>
   membership?: Prisma.XOR<Prisma.MembershipNullableScalarRelationFilter, Prisma.MembershipWhereInput> | null
   user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
-}, "id">
+}, "id" | "stripePaymentIntentId" | "revolutOrderId">
 
 export type TransactionOrderByWithAggregationInput = {
   id?: Prisma.SortOrder

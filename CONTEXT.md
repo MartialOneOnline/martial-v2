@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `c98fbcb` — membership lifecycle sync + Stripe cancel policy hardening (P1/P2)
+**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `c98fbcb` — membership lifecycle sync + Stripe cancel policy hardening (P1/P2). Branch abierta pendiente de merge: `fix/archived-member-payment-review` — pagos capturados con SchoolMember ARCHIVED ahora quedan auditables (ver Sesión 49)
 
 ---
 
@@ -260,6 +260,21 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 ---
 
 ## Historial de sesiones
+
+### Sesión 49 — 2026-07-10 ⏳ (branch abierta, pendiente de merge)
+**Pagos capturados con SchoolMember ARCHIVED — auditable, no solo log** — branch: `fix/archived-member-payment-review` (desde `main` en `a94e86b`)
+
+Continuación directa de la Sesión 48: el guard ARCHIVED de los webhooks Stripe/Revolut solo dejaba un `console.error`. Ahora el caso queda persistido y visible para el admin, sin hacer refund automático.
+
+- **`TransactionStatus.FLAGGED`** — nuevo valor de enum (migración `20260710120000_add_transaction_flagged_status`, `ALTER TYPE ... ADD VALUE`) para marcar "pago capturado, revisión manual pendiente". Nunca cuenta como `totalRevenue` (solo se suman filas `PAID`)
+- **`recordFlaggedPayment()`** (`lib/services/transactions.ts`) — crea la `Transaction` FLAGGED con `schoolId`, `userId`, `amount`, `currency`, `paymentMethod`, `stripePaymentIntentId`/`revolutOrderId`, y `planId`+motivo en `notes`. Idempotente igual que `recordOnlinePayment`: pre-check por referencia de proveedor + catch de P2002 — un replay del mismo webhook (Stripe: mismo `event.id`; Revolut: sin event id propio, cada entrega re-evalúa el guard) nunca duplica la fila
+- **Webhooks Stripe (`checkout.session.completed`) y Revolut (`ORDER_COMPLETED`)** — cuando el `SchoolMember` ya existe ARCHIVED al llegar el pago: no se crea/activa Membership, no se toca SchoolMember, se llama a `recordFlaggedPayment()` dentro de la misma transacción, y se sigue devolviendo 200
+- **Dashboard Payments \> Transactions** (`/dashboard/payments/transactions`) — nuevo tab de filtro "Needs review" + badge naranja + fila detalle muestra Provider Ref (`stripePaymentIntentId`/`revolutOrderId`) y Notes; `GET /api/dashboard/transactions` expone esos dos campos y el conteo `FLAGGED` en `countByStatus`; `DELETE /api/dashboard/transactions/[id]` bloquea borrar filas FLAGGED (perdería el único rastro del caso)
+- **No refund automático** — sigue siendo decisión manual del admin (reembolsar en Stripe/Revolut dashboard, o reactivar el SchoolMember y luego usar "Mark as Paid"/activar membership a mano)
+- **23 tests nuevos** (`recordFlaggedPayment.test.ts`, extensión de `stripeWebhookLifecycleSync.test.ts`, `revolutWebhookArchivedMemberReview.test.ts`) — **221 tests pasando** en total (29 archivos), `check-types` / `lint` / `prisma validate` en verde
+- `prisma generate` ejecutado localmente (sin tocar la DB) para que `TransactionStatus.FLAGGED` exista en el client generado — commit incluye los archivos regenerados en `apps/web/lib/prisma-client/`
+- Migración escrita a mano, no aplicada en esta sesión (`prisma migrate deploy` pendiente antes/durante release, igual que en la Sesión 48)
+- Branch pusheada, PR aún no creado/mergeado — pendiente de confirmación explícita para mergear, igual que el flujo de la Sesión 48
 
 ### Sesión 48 — 2026-07-10 ✅
 **Membership lifecycle sync + Stripe cancel policy hardening (P1/P2)** — merge a `main`: `c98fbcb`

@@ -4,7 +4,7 @@ import { getRevolutOrder, refundRevolutOrder, verifyRevolutWebhook } from '@/lib
 import { MembershipStatus } from '@/lib/prisma-client/client'
 import { sendMembershipReceiptEmail, sendEventTicketConfirmationEmail, sendEventTicketRefundedEmail } from '@/lib/email/sendEmails'
 import { checkEventCapacity } from '@/lib/services/eventCapacity'
-import { recordOnlinePayment } from '@/lib/services/transactions'
+import { recordOnlinePayment, recordFlaggedPayment } from '@/lib/services/transactions'
 import { isSchoolMemberArchived } from '@/lib/services/membership'
 import { PaymentMethod, TransactionCategory } from '@/lib/prisma-client/enums'
 import { notifyPaymentReceived } from '@/lib/notifications/create'
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
   const membership = await prisma.membership.findFirst({
     where: { revolutOrderId: payload.order_id },
     select: {
-      id: true, userId: true, schoolId: true, status: true, planName: true, price: true, currency: true,
+      id: true, userId: true, schoolId: true, status: true, planId: true, planName: true, price: true, currency: true,
       plan: { select: { validityDays: true } },
       school: { select: { revolutSecretKey: true, revolutWebhookSecret: true, name: true, city: true, language: true } },
     },
@@ -83,9 +83,22 @@ export async function POST(req: NextRequest) {
         // staff member can archive this person *between* checkout and this
         // webhook delivery — Revolut has already captured the money by the
         // time we find out. Don't activate: leave the Membership PENDING, no
-        // Transaction, no SchoolMember write. Needs manual follow-up (refund
-        // or reactivation) — logged below, not resolved here.
+        // SchoolMember write. The captured payment is persisted as a
+        // FLAGGED Transaction instead — auditable and visible in the
+        // dashboard Payments list — so this needs manual follow-up (refund
+        // or reactivation), not resolved here. Revolut retries land back on
+        // this same check every delivery (no per-event claim like Stripe's),
+        // so recordFlaggedPayment's own idempotency is what keeps this from
+        // creating a second flagged row.
         if (await isSchoolMemberArchived(tx, { userId: membership.userId, schoolId: membership.schoolId })) {
+          await recordFlaggedPayment(tx, {
+            schoolId: membership.schoolId, userId: membership.userId,
+            amount: Number(membership.price), currency: membership.currency,
+            paymentMethod: PaymentMethod.REVOLUT,
+            planId: membership.planId ?? undefined, planName: membership.planName,
+            reason: 'SchoolMember is ARCHIVED — payment captured but membership not activated',
+            revolutOrderId: payload.order_id,
+          })
           return { claimed: false, archivedBlock: true }
         }
 
@@ -135,7 +148,9 @@ export async function POST(req: NextRequest) {
       })
 
       if (outcome.archivedBlock) {
-        console.error(`[revolut webhook] payment captured for ARCHIVED member — userId=${membership.userId} schoolId=${membership.schoolId} membershipId=${membership.id} orderId=${payload.order_id}. Membership NOT activated; needs manual refund or reactivation review.`)
+        // Real-time alerting hook — the durable record is the FLAGGED
+        // Transaction created above, queryable from the dashboard.
+        console.error(`[revolut webhook] payment captured for ARCHIVED member — userId=${membership.userId} schoolId=${membership.schoolId} membershipId=${membership.id} orderId=${payload.order_id}. Flagged for manual review (see Transactions).`)
       }
       if (!outcome.claimed) return NextResponse.json({ received: true })
 

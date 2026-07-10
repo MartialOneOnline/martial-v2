@@ -5,14 +5,14 @@ import {
   Menu, Search, Download, Plus, Check, Clock, Filter,
   AlertCircle, XCircle, RefreshCw, ChevronLeft, ChevronRight, X,
   CreditCard, Banknote, Building2, Landmark, TrendingUp, TrendingDown,
-  LayoutList, Eye, MoreHorizontal, Trash2,
+  LayoutList, Eye, MoreHorizontal, Trash2, Flag,
 } from 'lucide-react'
 import { useDashboard } from '../../../../components/DashboardShell'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../../lib/format'
 import RowMenu from '../../../../components/RowMenu'
 
-type TxStatus  = 'PAID' | 'PENDING' | 'FAILED' | 'REFUNDED'
+type TxStatus  = 'PAID' | 'PENDING' | 'FAILED' | 'REFUNDED' | 'FLAGGED'
 type FilterTab = 'ALL' | TxStatus
 type MethodFilter = 'ALL' | 'STRIPE' | 'CASH' | 'BANK_TRANSFER' | 'DIRECT_DEBIT' | 'OTHER'
 type TypeFilter   = 'ALL' | 'INCOME' | 'EXPENSE'
@@ -33,15 +33,20 @@ interface TxRow {
   notes: string | null
   periodStart: string | null
   periodEnd: string | null
+  stripePaymentIntentId: string | null
+  revolutOrderId: string | null
 }
 
-interface StatusCounts { PAID: number; PENDING: number; FAILED: number; REFUNDED: number }
+interface StatusCounts { PAID: number; PENDING: number; FAILED: number; REFUNDED: number; FLAGGED: number }
 
 const STATUS_MAP: Record<TxStatus, { bg: string; color: string; border: string; icon: React.ElementType; label: string }> = {
   PAID:     { bg: '#F0FDF4', color: '#16A34A', border: '#BBF7D0', icon: Check,        label: 'Paid'     },
   PENDING:  { bg: '#FFFBEB', color: '#D97706', border: '#FDE68A', icon: Clock,        label: 'Pending'  },
   FAILED:   { bg: '#FEF2F2', color: '#DC2626', border: '#FECACA', icon: AlertCircle,  label: 'Failed'   },
   REFUNDED: { bg: '#F5F3FF', color: '#6D28D9', border: '#DDD6FE', icon: XCircle,      label: 'Refunded' },
+  // Payment captured by Stripe/Revolut but not turned into active access
+  // (e.g. ARCHIVED member) — needs a manual refund or reactivation decision.
+  FLAGGED:  { bg: '#FFF7ED', color: '#C2410C', border: '#FED7AA', icon: Flag,         label: 'Needs review' },
 }
 
 const METHOD_LABELS: Record<string, string> = {
@@ -396,6 +401,8 @@ function TxDetailDrawer({ tx, onClose }: { tx: TxRow; onClose: () => void }) {
       value: <span style={{ fontSize: 12, fontWeight: 500, color: '#6B7280', textTransform: 'capitalize' }}>
         {tx.category?.toLowerCase().replace(/_/g, ' ')}
       </span> },
+    ...(tx.stripePaymentIntentId || tx.revolutOrderId ? [{ label: 'Provider Ref',
+      value: <span style={{ fontSize: 11, color: '#6B7280', fontFamily: 'monospace' }}>{tx.stripePaymentIntentId ?? tx.revolutOrderId}</span> }] : []),
     ...(tx.notes ? [{ label: 'Notes',
       value: <span style={{ fontSize: 11, color: '#9CA3AF', fontFamily: 'monospace' }}>{tx.notes}</span> }] : []),
   ]
@@ -723,7 +730,7 @@ export default function TransactionsClient() {
   const [transactions,  setTransactions]  = useState<TxRow[]>([])
   const [total,         setTotal]         = useState(0)
   const [totalAmount,   setTotalAmount]   = useState(0)
-  const [countByStatus, setCountByStatus] = useState<StatusCounts>({ PAID: 0, PENDING: 0, FAILED: 0, REFUNDED: 0 })
+  const [countByStatus, setCountByStatus] = useState<StatusCounts>({ PAID: 0, PENDING: 0, FAILED: 0, REFUNDED: 0, FLAGGED: 0 })
   const [loading,        setLoading]       = useState(true)
   const [selectedTx,     setSelectedTx]   = useState<TxRow | null>(null)
   const [showAddPayment, setShowAddPayment] = useState(false)
@@ -755,7 +762,7 @@ export default function TransactionsClient() {
     setTotal(data.total ?? 0)
     setTotalAmount(data.totalRevenue ?? 0)
     const cs = data.countByStatus ?? {}
-    setCountByStatus({ PAID: cs.PAID ?? 0, PENDING: cs.PENDING ?? 0, FAILED: cs.FAILED ?? 0, REFUNDED: cs.REFUNDED ?? 0 })
+    setCountByStatus({ PAID: cs.PAID ?? 0, PENDING: cs.PENDING ?? 0, FAILED: cs.FAILED ?? 0, REFUNDED: cs.REFUNDED ?? 0, FLAGGED: cs.FLAGGED ?? 0 })
     setLoading(false)
   }, [page, activeFilter, filters, activeType, search])
 
@@ -790,11 +797,12 @@ export default function TransactionsClient() {
   const pages = getPaginationPages(page, totalPages)
 
   const STATUS_FILTERS: { id: FilterTab; label: string; count: number }[] = [
-    { id: 'ALL',      label: t.common.all,  count: totalCount             },
-    { id: 'PAID',     label: 'Paid',        count: countByStatus.PAID     },
-    { id: 'PENDING',  label: 'Pending',     count: countByStatus.PENDING  },
-    { id: 'FAILED',   label: 'Failed',      count: countByStatus.FAILED   },
-    { id: 'REFUNDED', label: 'Refunded',    count: countByStatus.REFUNDED },
+    { id: 'ALL',      label: t.common.all,     count: totalCount             },
+    { id: 'PAID',     label: 'Paid',           count: countByStatus.PAID     },
+    { id: 'PENDING',  label: 'Pending',        count: countByStatus.PENDING  },
+    { id: 'FAILED',   label: 'Failed',         count: countByStatus.FAILED   },
+    { id: 'REFUNDED', label: 'Refunded',       count: countByStatus.REFUNDED },
+    { id: 'FLAGGED',  label: 'Needs review',   count: countByStatus.FLAGGED  },
   ]
 
   const handleExport = () => {

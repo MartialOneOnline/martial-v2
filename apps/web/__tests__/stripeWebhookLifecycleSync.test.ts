@@ -27,7 +27,15 @@ vi.mock('@/lib/email/sendEmails', () => ({
   sendEventTicketRefundedEmail: vi.fn().mockResolvedValue(undefined),
 }))
 vi.mock('@/lib/notifications/create', () => ({ notifyPaymentReceived: vi.fn() }))
-vi.mock('@/lib/services/transactions', () => ({ recordOnlinePayment: vi.fn().mockResolvedValue(undefined) }))
+// recordOnlinePayment is mocked away (not the focus of these tests), but
+// recordFlaggedPayment is left as the REAL implementation — its own
+// idempotency guard (pre-check + unique-constraint catch against the fake
+// tx.transaction table below) is exactly what the ARCHIVED-member tests
+// need to exercise, not a stand-in.
+vi.mock('@/lib/services/transactions', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/services/transactions')>()
+  return { ...actual, recordOnlinePayment: vi.fn().mockResolvedValue(undefined) }
+})
 vi.mock('@/lib/services/eventCapacity', () => ({ checkEventCapacity: vi.fn().mockResolvedValue({ ok: true }) }))
 
 type Membership = {
@@ -37,16 +45,26 @@ type Membership = {
 }
 type SchoolMember = { userId: string; schoolId: string; status: string }
 
+type TransactionRow = {
+  id: string; schoolId: string; userId: string; status: string; amount: number
+  stripePaymentIntentId?: string | null; revolutOrderId?: string | null
+  notes?: string | null; description?: string | null; [k: string]: unknown
+}
+
 let webhookEvents: Record<string, { status: string; updatedAt: number }>
 let memberships: Record<string, Membership>
 let schoolMembers: Record<string, SchoolMember>
+let transactions: Record<string, TransactionRow>
 let membershipSeq: number
+let transactionSeq: number
 
 function resetState() {
   webhookEvents = {}
   memberships = {}
   schoolMembers = {}
+  transactions = {}
   membershipSeq = 0
+  transactionSeq = 0
 }
 function smKey(schoolId: string, userId: string) { return `${schoolId}:${userId}` }
 function seedMembership(m: Partial<Membership> & { id: string }) {
@@ -137,10 +155,34 @@ const mockSchoolMemberCreate = vi.fn((args: { data: { schoolId: string; userId: 
   return Promise.resolve(schoolMembers[key])
 })
 
+// Mirrors the real Postgres unique constraint on
+// Transaction.stripePaymentIntentId/revolutOrderId (see recordFlaggedPayment's
+// pre-check + P2002 catch) so the idempotent-replay tests below exercise the
+// actual guard, not a mock that just always succeeds.
+const mockTransactionFindFirst = vi.fn((args: { where: { stripePaymentIntentId?: string; revolutOrderId?: string } }) => {
+  const found = Object.values(transactions).find(t =>
+    (args.where.stripePaymentIntentId && t.stripePaymentIntentId === args.where.stripePaymentIntentId) ||
+    (args.where.revolutOrderId && t.revolutOrderId === args.where.revolutOrderId),
+  )
+  return Promise.resolve(found ? { id: found.id } : null)
+})
+const mockTransactionCreate = vi.fn((args: { data: Record<string, unknown> }) => {
+  const dupe = Object.values(transactions).some(t =>
+    (args.data.stripePaymentIntentId && t.stripePaymentIntentId === args.data.stripePaymentIntentId) ||
+    (args.data.revolutOrderId && t.revolutOrderId === args.data.revolutOrderId),
+  )
+  if (dupe) return Promise.reject(Object.assign(new Error('Unique constraint failed'), { code: 'P2002' }))
+  const id = `tx-${++transactionSeq}`
+  const row = { id, ...args.data } as TransactionRow
+  transactions[id] = row
+  return Promise.resolve(row)
+})
+
 const mockTransaction = vi.fn((fn: (tx: unknown) => unknown) => {
   const tx = {
     membership: { findFirst: mockMembershipFindFirst, create: mockMembershipCreate, updateMany: mockMembershipUpdateMany },
     schoolMember: { findUnique: mockSchoolMemberFindUnique, updateMany: mockSchoolMemberUpdateMany, create: mockSchoolMemberCreate },
+    transaction: { findFirst: mockTransactionFindFirst, create: mockTransactionCreate },
   }
   return fn(tx)
 })
@@ -288,7 +330,7 @@ describe('customer.subscription.updated', () => {
 })
 
 describe('checkout.session.completed — ARCHIVED member payment success', () => {
-  it('does not create a Membership or reactivate the ARCHIVED SchoolMember', async () => {
+  it('does not create a Membership or reactivate the ARCHIVED SchoolMember, and flags the payment for manual review', async () => {
     seedSchoolMember('school-1', 'user-1', 'ARCHIVED')
 
     const res = await POST(makeRequest({
@@ -304,6 +346,36 @@ describe('checkout.session.completed — ARCHIVED member payment success', () =>
     expect(res.status).toBe(200)
     expect(Object.keys(memberships)).toHaveLength(0) // no Membership created
     expect(schoolMembers[smKey('school-1', 'user-1')]!.status).toBe('ARCHIVED') // untouched
+
+    const flagged = Object.values(transactions)
+    expect(flagged).toHaveLength(1)
+    expect(flagged[0]).toMatchObject({
+      status: 'FLAGGED', schoolId: 'school-1', userId: 'user-1',
+      amount: 50, currency: 'EUR', stripePaymentIntentId: 'pi_1',
+    })
+    expect(flagged[0]!.notes).toContain('planId=plan-1')
+  })
+
+  it('replaying the same webhook event does not create a second flagged transaction', async () => {
+    seedSchoolMember('school-1', 'user-1', 'ARCHIVED')
+    const event = {
+      id: 'evt_10b', type: 'checkout.session.completed',
+      data: {
+        object: {
+          payment_status: 'paid', payment_intent: 'pi_1b',
+          metadata: { schoolId: 'school-1', userId: 'user-1', planId: 'plan-1', planName: 'Monthly', price: '50', currency: 'EUR' },
+        },
+      },
+    }
+
+    const first = await POST(makeRequest(event))
+    expect(first.status).toBe(200)
+    expect(Object.values(transactions)).toHaveLength(1)
+
+    // Stripe redelivers the identical event (e.g. our ack timed out).
+    const second = await POST(makeRequest(event))
+    expect(second.status).toBe(200)
+    expect(Object.values(transactions)).toHaveLength(1) // still just one
   })
 
   it('still creates Membership + SchoolMember ACTIVE for a brand-new user (no prior SchoolMember row)', async () => {
@@ -320,5 +392,25 @@ describe('checkout.session.completed — ARCHIVED member payment success', () =>
     expect(res.status).toBe(200)
     expect(Object.values(memberships)).toHaveLength(1)
     expect(schoolMembers[smKey('school-1', 'user-1')]!.status).toBe('ACTIVE')
+    expect(Object.values(transactions)).toHaveLength(0) // nothing to review
+  })
+
+  it('a non-ARCHIVED existing SchoolMember (e.g. LEAD) follows the normal activation flow, not the review path', async () => {
+    seedSchoolMember('school-1', 'user-1', 'LEAD')
+
+    const res = await POST(makeRequest({
+      id: 'evt_12', type: 'checkout.session.completed',
+      data: {
+        object: {
+          payment_status: 'paid', payment_intent: 'pi_3',
+          metadata: { schoolId: 'school-1', userId: 'user-1', planId: 'plan-1', planName: 'Monthly', price: '50', currency: 'EUR' },
+        },
+      },
+    }))
+
+    expect(res.status).toBe(200)
+    expect(Object.values(memberships)).toHaveLength(1)
+    expect(schoolMembers[smKey('school-1', 'user-1')]!.status).toBe('ACTIVE')
+    expect(Object.values(transactions)).toHaveLength(0) // no review case
   })
 })

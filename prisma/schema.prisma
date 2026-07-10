@@ -165,6 +165,13 @@ enum TransactionStatus {
   FAILED
   REFUNDED
   CANCELLED
+  // A payment the provider (Stripe/Revolut) already captured, but that we
+  // deliberately did NOT turn into an active membership — e.g. the
+  // SchoolMember was ARCHIVED between checkout and webhook delivery. Never
+  // counted as confirmed revenue; surfaces in the dashboard Transactions
+  // list for manual review (refund or reactivation). See recordFlaggedPayment
+  // in lib/services/transactions.ts.
+  FLAGGED
 }
 
 // Martial's own SaaS subscription status for a school (schools paying
