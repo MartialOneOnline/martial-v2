@@ -58,9 +58,14 @@ into the dashboard UI per test session (see 2.2) than to keep it in `.env`.
 
 ### 1.3 Run the seed script
 
-From the repo root:
+The script doesn't load `.env` itself (same as the other scripts in
+`apps/web/scripts/` — keeping it dependency-free is what keeps it out of
+Next.js's build-time type-check entirely), so export your env vars into
+the shell first:
 
 ```bash
+set -a && source .env && set +a   # from the repo root
+
 # Check current state (no writes):
 npx tsx apps/web/scripts/seed-sandbox-school.ts
 
@@ -263,6 +268,8 @@ into this docs/tooling change.
 ## Part 5 — Cleanup
 
 ```bash
+set -a && source .env && set +a   # from the repo root, if not already exported
+
 # Remove the sandbox school and everything under it (memberships,
 # transactions, bookings, classes, events, school members, plans):
 npx tsx apps/web/scripts/seed-sandbox-school.ts --cleanup

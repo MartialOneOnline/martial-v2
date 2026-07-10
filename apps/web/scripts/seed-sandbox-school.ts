@@ -17,7 +17,9 @@
  * This check does NOT exist on the real dashboard save route, which must
  * keep accepting live keys for real schools.
  *
- * Usage (run from the repo root so the .env path resolves):
+ * Usage (needs DATABASE_URL and, for --apply, the STRIPE_SANDBOX_* vars
+ * already present in the environment — same expectation as the other
+ * scripts in this directory, e.g. `set -a && source .env && set +a` first):
  *   # Status check (default — no writes):
  *   npx tsx apps/web/scripts/seed-sandbox-school.ts
  *
@@ -32,10 +34,6 @@
  *   STRIPE_SANDBOX_PUBLISHABLE_KEY  pk_test_...
  *   STRIPE_SANDBOX_WEBHOOK_SECRET   whsec_... (from `stripe listen`, see the runbook)
  */
-
-import { config } from 'dotenv'
-import path from 'path'
-config({ path: path.resolve(process.cwd(), '.env') })
 
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '../lib/prisma-client/client'
