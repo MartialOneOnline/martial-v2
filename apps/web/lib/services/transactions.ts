@@ -8,8 +8,13 @@ interface RecordFlaggedPaymentInput {
   currency: string
   paymentMethod: PaymentMethod
   reason: string
+  // Membership case
   planId?: string
   planName?: string
+  // Event ticket / booking case
+  eventId?: string
+  eventTitle?: string
+  bookingId?: string
   date?: Date
   stripePaymentIntentId?: string
   revolutOrderId?: string
@@ -84,16 +89,19 @@ export async function recordOnlinePayment(tx: Prisma.TransactionClient, input: R
 }
 
 // Persists a payment the provider (Stripe/Revolut) already captured but that
-// was deliberately NOT turned into an active membership — currently just the
-// ARCHIVED-SchoolMember case in apps/web/app/api/webhooks/stripe/route.ts and
-// .../revolut/route.ts, where the money is real but the account it belongs to
-// was moderated out between checkout and this webhook delivery.
+// was deliberately NOT turned into active access — the ARCHIVED-SchoolMember
+// case in apps/web/app/api/webhooks/stripe/route.ts and .../revolut/route.ts,
+// for both membership checkout and event/ticket bookings, where the money is
+// real but the account it belongs to was moderated out between checkout and
+// this webhook delivery.
 //
 // Creates a Transaction with status=FLAGGED so the case is auditable and
 // admin-visible in the existing dashboard Payments > Transactions list —
 // not just a server log — without being counted as confirmed revenue (only
-// status=PAID rows are summed into totalRevenue). No refund or reactivation
-// happens here; that stays a manual decision.
+// status=PAID rows are summed into totalRevenue). Transaction.bookingId is
+// set for the event case (same column recordOnlinePayment already uses for
+// confirmed event bookings — a plain string field, no FK). No refund or
+// reactivation happens here; that stays a manual decision.
 //
 // Idempotent the same way recordOnlinePayment is: a pre-check by provider
 // reference plus a unique-constraint catch, so a webhook retry (Stripe) or a
@@ -110,20 +118,29 @@ export async function recordFlaggedPayment(tx: Prisma.TransactionClient, input: 
     if (existing) return existing
   }
 
+  const isEvent = !!(input.eventId || input.bookingId)
+
   try {
     return await tx.transaction.create({
       data: {
         schoolId: input.schoolId,
         userId: input.userId,
+        bookingId: input.bookingId ?? null,
         type: TransactionType.INCOME,
         status: TransactionStatus.FLAGGED,
-        category: TransactionCategory.MEMBERSHIP,
+        // No dedicated EVENT category yet — matches recordOnlinePayment's
+        // choice for confirmed event-ticket transactions.
+        category: isEvent ? TransactionCategory.OTHER : TransactionCategory.MEMBERSHIP,
         paymentMethod: input.paymentMethod,
         amount: input.amount,
         currency: input.currency,
-        description: `${input.planName ?? 'Membership payment'} — requires manual review (member archived)`,
+        description: `${input.planName ?? input.eventTitle ?? 'Payment'} — requires manual review (member archived)`,
         date: input.date ?? new Date(),
-        notes: [input.reason, input.planId ? `planId=${input.planId}` : null].filter(Boolean).join(' | '),
+        notes: [
+          input.reason,
+          input.planId  ? `planId=${input.planId}`   : null,
+          input.eventId ? `eventId=${input.eventId}` : null,
+        ].filter(Boolean).join(' | '),
         stripePaymentIntentId: input.stripePaymentIntentId ?? null,
         revolutOrderId: input.revolutOrderId ?? null,
       },

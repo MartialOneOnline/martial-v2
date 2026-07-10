@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `c98fbcb` — membership lifecycle sync + Stripe cancel policy hardening (P1/P2). Branch abierta pendiente de merge: `fix/archived-member-payment-review` — pagos capturados con SchoolMember ARCHIVED ahora quedan auditables (ver Sesión 49)
+**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `ec924a1` — pagos de membership capturados con SchoolMember ARCHIVED ahora quedan auditables como `Transaction.FLAGGED` (Sesión 49). Branch abierta pendiente de merge: `fix/event-payments-archived-member-guard` — misma política extendida a pagos de eventos/tickets (ver Sesión 50)
 
 ---
 
@@ -261,8 +261,22 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 
 ## Historial de sesiones
 
-### Sesión 49 — 2026-07-10 ⏳ (branch abierta, pendiente de merge)
-**Pagos capturados con SchoolMember ARCHIVED — auditable, no solo log** — branch: `fix/archived-member-payment-review` (desde `main` en `a94e86b`)
+### Sesión 50 — 2026-07-10 ⏳ (branch abierta, pendiente de merge)
+**Cierra el mismo gap de ARCHIVED para pagos de eventos/tickets** — branch: `fix/event-payments-archived-member-guard` (desde `main` en `ec924a1`)
+
+Continuación directa de la Sesión 49: esa sesión solo cubrió memberships. Los event bookings (tickets) pagados vía Stripe/Revolut para un `SchoolMember` ARCHIVED seguían confirmándose sin ningún guard.
+
+- **Stripe (`checkout.session.completed` con `eventBookingId`) y Revolut (`ORDER_COMPLETED` para event ticket)** — si el `SchoolMember` del pagador está ARCHIVED al llegar el pago: el booking se cancela (`EventBooking.status = CANCELLED`, libera el cupo) en vez de confirmarse, no se reactiva `SchoolMember`, y se persiste una `Transaction.FLAGGED` en la misma transacción. Se sigue devolviendo 200
+- **Importante:** la rama ARCHIVED nunca cae en la rama de "oversell" del handler (que sí hace refund automático + email de reembolso) — se verificó explícitamente con test que `refunds.create`/`refundRevolutOrder` NO se llaman en el caso ARCHIVED, cumpliendo "no refunds automáticos"
+- **`recordFlaggedPayment()` extendido** (`lib/services/transactions.ts`) — nuevos campos opcionales `eventId`, `eventTitle`, `bookingId` (retrocompatible, no rompe las llamadas de membership); usa `Transaction.bookingId` (columna ya existente, sin FK, la misma que usa `recordOnlinePayment` para bookings confirmados) y mete `eventId` en `notes`; categoría `OTHER` para eventos vs `MEMBERSHIP` para planes
+- **Dashboard Payments \> Transactions** — el drawer de detalle ahora también muestra "Booking Ref" (antes solo Provider Ref); `GET /api/dashboard/transactions` expone `bookingId`
+- **Hallazgo documentado, no resuelto:** `/api/my/events/checkout` (a diferencia de `/api/my/checkout` para memberships) **no bloquea** iniciar un checkout si el `SchoolMember` ya está ARCHIVED — queda como riesgo restante, marcado con `TODO(event-checkout-archived-guard)` en el código; no se tocó por estar fuera del scope explícito de checkout creation flows
+- **13 tests nuevos** (`stripeEventBookingArchivedMemberReview.test.ts` nuevo, `revolutWebhookArchivedMemberReview.test.ts` extendido con bloque de event booking) — **230 tests pasando** en total (30 archivos), `check-types` / `lint` / `prisma validate` en verde
+- Sin cambios de schema — se reutilizó `TransactionStatus.FLAGGED` y `EventBooking.status` existentes, no hizo falta migración nueva
+- Branch pusheada, pendiente de confirmación explícita para mergear
+
+### Sesión 49 — 2026-07-10 ✅
+**Pagos de membership capturados con SchoolMember ARCHIVED — auditable, no solo log** — mergeado a `main` en `ec924a1` (branch `fix/archived-member-payment-review`, borrada tras el merge)
 
 Continuación directa de la Sesión 48: el guard ARCHIVED de los webhooks Stripe/Revolut solo dejaba un `console.error`. Ahora el caso queda persistido y visible para el admin, sin hacer refund automático.
 
@@ -274,7 +288,7 @@ Continuación directa de la Sesión 48: el guard ARCHIVED de los webhooks Stripe
 - **23 tests nuevos** (`recordFlaggedPayment.test.ts`, extensión de `stripeWebhookLifecycleSync.test.ts`, `revolutWebhookArchivedMemberReview.test.ts`) — **221 tests pasando** en total (29 archivos), `check-types` / `lint` / `prisma validate` en verde
 - `prisma generate` ejecutado localmente (sin tocar la DB) para que `TransactionStatus.FLAGGED` exista en el client generado — commit incluye los archivos regenerados en `apps/web/lib/prisma-client/`
 - Migración escrita a mano, no aplicada en esta sesión (`prisma migrate deploy` pendiente antes/durante release, igual que en la Sesión 48)
-- Branch pusheada, PR aún no creado/mergeado — pendiente de confirmación explícita para mergear, igual que el flujo de la Sesión 48
+- Mergeado a `main` tras confirmación explícita del usuario; branch borrada (local + remoto)
 
 ### Sesión 48 — 2026-07-10 ✅
 **Membership lifecycle sync + Stripe cancel policy hardening (P1/P2)** — merge a `main`: `c98fbcb`

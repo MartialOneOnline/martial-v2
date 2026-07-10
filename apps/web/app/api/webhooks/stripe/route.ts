@@ -157,6 +157,7 @@ async function handleStripeEvent(event: Stripe.Event) {
       if (session.payment_status !== 'paid') break
 
       if (eventBookingId) {
+        let blockedByArchivedMember = false
         const outcome = await prisma.$transaction(async (tx) => {
           const booking = await tx.eventBooking.findUnique({
             where: { id: eventBookingId },
@@ -169,6 +170,34 @@ async function handleStripeEvent(event: Stripe.Event) {
             },
           })
           if (!booking) return null
+
+          // /api/my/events/checkout doesn't currently block starting a
+          // checkout while ARCHIVED (unlike /api/my/checkout for
+          // memberships — see TODO(event-checkout-archived-guard)), so this
+          // can trigger even without the archive happening mid-checkout. A
+          // staff member can also archive this person *between* checkout and
+          // this webhook delivery either way — Stripe has already captured
+          // the money by the time we find out. Cancel the booking instead of
+          // confirming it (frees the capacity slot for someone else) and
+          // persist the payment as a FLAGGED Transaction for manual review —
+          // no automatic refund. Returning null here (not an outcome object)
+          // is what makes the sold/oversold branches below both no-op.
+          if (await isSchoolMemberArchived(tx, { userId: booking.userId, schoolId: booking.event.schoolId })) {
+            blockedByArchivedMember = true
+            await tx.eventBooking.updateMany({
+              where: { id: eventBookingId, status: 'PENDING' },
+              data: { status: 'CANCELLED' },
+            })
+            await recordFlaggedPayment(tx, {
+              schoolId: booking.event.schoolId, userId: booking.userId,
+              amount: Number(booking.amountPaid ?? 0), currency: booking.currency,
+              paymentMethod: PaymentMethod.STRIPE,
+              eventId: booking.eventId, eventTitle: booking.event.title, bookingId: eventBookingId,
+              reason: 'SchoolMember is ARCHIVED — payment captured but event booking not confirmed',
+              stripePaymentIntentId: session.payment_intent,
+            })
+            return null
+          }
 
           // Claim atomically: only the delivery whose conditional update
           // actually flips PENDING -> CONFIRMED goes on to check capacity and
@@ -213,6 +242,12 @@ async function handleStripeEvent(event: Stripe.Event) {
             return { sold: false, booking }
           }
         })
+
+        if (blockedByArchivedMember) {
+          // Real-time alerting hook — the durable record is the FLAGGED
+          // Transaction created above, queryable from the dashboard.
+          console.error(`[stripe webhook] event payment captured for ARCHIVED member — userId=${userId} schoolId=${schoolId} eventBookingId=${eventBookingId} paymentIntent=${session.payment_intent ?? 'n/a'}. Flagged for manual review (see Transactions).`)
+        }
 
         if (outcome?.sold) {
           notifyPaymentReceived(

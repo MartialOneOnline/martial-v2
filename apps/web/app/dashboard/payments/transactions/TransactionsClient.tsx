@@ -33,6 +33,7 @@ interface TxRow {
   notes: string | null
   periodStart: string | null
   periodEnd: string | null
+  bookingId: string | null
   stripePaymentIntentId: string | null
   revolutOrderId: string | null
 }
@@ -403,6 +404,8 @@ function TxDetailDrawer({ tx, onClose }: { tx: TxRow; onClose: () => void }) {
       </span> },
     ...(tx.stripePaymentIntentId || tx.revolutOrderId ? [{ label: 'Provider Ref',
       value: <span style={{ fontSize: 11, color: '#6B7280', fontFamily: 'monospace' }}>{tx.stripePaymentIntentId ?? tx.revolutOrderId}</span> }] : []),
+    ...(tx.bookingId ? [{ label: 'Booking Ref',
+      value: <span style={{ fontSize: 11, color: '#6B7280', fontFamily: 'monospace' }}>{tx.bookingId}</span> }] : []),
     ...(tx.notes ? [{ label: 'Notes',
       value: <span style={{ fontSize: 11, color: '#9CA3AF', fontFamily: 'monospace' }}>{tx.notes}</span> }] : []),
   ]

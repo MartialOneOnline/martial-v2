@@ -229,6 +229,34 @@ export async function POST(req: NextRequest) {
     if (order.state !== 'COMPLETED') return NextResponse.json({ received: true })
 
     const outcome = await prisma.$transaction(async (tx) => {
+      // /api/my/events/checkout doesn't currently block starting a checkout
+      // while ARCHIVED (unlike /api/my/checkout for memberships — see
+      // TODO(event-checkout-archived-guard)), so this can trigger even
+      // without the archive happening mid-checkout. A staff member can also
+      // archive this person *between* checkout and this webhook delivery
+      // either way — Revolut has already captured the money by the time we
+      // find out. Cancel the booking instead of confirming it (frees the
+      // capacity slot) and persist the payment as a FLAGGED Transaction for
+      // manual review — no automatic refund. Revolut retries land back on
+      // this same check every delivery (no per-event claim like Stripe's),
+      // so recordFlaggedPayment's own idempotency is what keeps this from
+      // creating a second flagged row.
+      if (await isSchoolMemberArchived(tx, { userId: eventBooking.userId, schoolId: eventBooking.event.schoolId })) {
+        await tx.eventBooking.updateMany({
+          where: { id: eventBooking.id, status: 'PENDING' },
+          data: { status: 'CANCELLED' },
+        })
+        await recordFlaggedPayment(tx, {
+          schoolId: eventBooking.event.schoolId, userId: eventBooking.userId,
+          amount: Number(eventBooking.amountPaid ?? 0), currency: eventBooking.currency,
+          paymentMethod: PaymentMethod.REVOLUT,
+          eventId: eventBooking.eventId, eventTitle: eventBooking.event.title, bookingId: eventBooking.id,
+          reason: 'SchoolMember is ARCHIVED — payment captured but event booking not confirmed',
+          revolutOrderId: payload.order_id,
+        })
+        return { sold: false, claimed: false, archivedBlock: true }
+      }
+
       // Claim atomically: only the delivery whose conditional update
       // actually flips PENDING -> CONFIRMED goes on to check capacity and
       // record the payment. A retried/concurrent delivery for this booking
@@ -271,8 +299,15 @@ export async function POST(req: NextRequest) {
       }
     })
 
+    if (outcome.archivedBlock) {
+      // Real-time alerting hook — the durable record is the FLAGGED
+      // Transaction created above, queryable from the dashboard.
+      console.error(`[revolut webhook] event payment captured for ARCHIVED member — userId=${eventBooking.userId} schoolId=${eventBooking.event.schoolId} eventBookingId=${eventBooking.id} orderId=${payload.order_id}. Flagged for manual review (see Transactions).`)
+    }
+
     if (!outcome.claimed) {
-      // Already processed by another delivery — no-op, not an oversell.
+      // Already processed by another delivery, or blocked by the ARCHIVED
+      // guard above — either way, no-op and not an oversell.
       return NextResponse.json({ received: true })
     }
 
