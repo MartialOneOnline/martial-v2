@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   const event = await prisma.event.findUnique({
     where: { id: eventId },
     select: {
-      id: true, isPublished: true, isCancelled: true, startAt: true, capacity: true, paymentMethods: true,
+      id: true, schoolId: true, isPublished: true, isCancelled: true, startAt: true, capacity: true, paymentMethods: true,
     },
   })
   if (!event || !event.isPublished || event.isCancelled || event.startAt <= new Date())
@@ -37,6 +37,21 @@ export async function POST(req: NextRequest) {
 
   if (!event.paymentMethods.includes('CASH'))
     return NextResponse.json({ error: 'Cash is not accepted for this event' }, { status: 400 })
+
+  // Mirrors the ARCHIVED guard in /api/my/events/checkout and /api/my/checkout —
+  // this reservation still creates a PENDING EventBooking (holding a capacity
+  // slot) for an admin to later mark paid, so an ARCHIVED member must not be
+  // able to reserve one either.
+  const archivedMember = await prisma.schoolMember.findFirst({
+    where: { userId: dbUser.id, schoolId: event.schoolId, status: 'ARCHIVED' },
+    select: { id: true },
+  })
+  if (archivedMember) {
+    return NextResponse.json(
+      { error: 'Your membership at this school was archived — please contact the school before booking this event' },
+      { status: 403 },
+    )
+  }
 
   const ticket = await prisma.eventTicket.findFirst({
     where: { id: ticketId, eventId },

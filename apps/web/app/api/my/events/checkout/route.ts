@@ -46,6 +46,25 @@ export async function POST(req: NextRequest) {
   if (useRevolut && !event.paymentMethods.includes('REVOLUT'))
     return NextResponse.json({ error: 'Revolut not accepted for this event' }, { status: 400 })
 
+  // No SchoolMember requirement here — a brand-new user with no prior relationship
+  // to the school can check out directly. The one exception is ARCHIVED (mirrors
+  // /api/my/checkout for memberships): staff removed this person for a reason,
+  // and the event webhook deliberately won't confirm a booking for them (see the
+  // ARCHIVED guard in /api/webhooks/stripe and /api/webhooks/revolut) — so don't
+  // take their money for a ticket that will never be honoured. They need to
+  // contact the school first. The webhook guard stays in place regardless, as
+  // defense-in-depth against being archived between this check and payment.
+  const archivedMember = await prisma.schoolMember.findFirst({
+    where: { userId: dbUser.id, schoolId: event.schoolId, status: 'ARCHIVED' },
+    select: { id: true },
+  })
+  if (archivedMember) {
+    return NextResponse.json(
+      { error: 'Your membership at this school was archived — please contact the school before booking this event' },
+      { status: 403 },
+    )
+  }
+
   const ticket = await prisma.eventTicket.findFirst({
     where: { id: ticketId, eventId },
     select: { id: true, name: true, price: true, currency: true, capacity: true },

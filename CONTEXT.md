@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `ec924a1` — pagos de membership capturados con SchoolMember ARCHIVED ahora quedan auditables como `Transaction.FLAGGED` (Sesión 49). Branch abierta pendiente de merge: `fix/event-payments-archived-member-guard` — misma política extendida a pagos de eventos/tickets (ver Sesión 50)
+**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `0c80bd2` — webhook guard ARCHIVED extendido a pagos de eventos/tickets (Sesión 50). Branch abierta pendiente de merge: `fix/event-checkout-archived-guard` — bloquea el checkout de eventos desde el origen para miembros ARCHIVED, cerrando el gap anterior al webhook (ver Sesión 51). **Pendiente antes de producción:** `npx prisma migrate deploy` — 3 migraciones sin aplicar en la DB (ver Sesión 51)
 
 ---
 
@@ -261,8 +261,22 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 
 ## Historial de sesiones
 
-### Sesión 50 — 2026-07-10 ⏳ (branch abierta, pendiente de merge)
-**Cierra el mismo gap de ARCHIVED para pagos de eventos/tickets** — branch: `fix/event-payments-archived-member-guard` (desde `main` en `ec924a1`)
+### Sesión 51 — 2026-07-10 ⏳ (branch abierta, pendiente de merge)
+**Bloquea el checkout de eventos desde el origen para ARCHIVED** — branch: `fix/event-checkout-archived-guard` (desde `main` en `0c80bd2`)
+
+Continuación directa de la Sesión 50: esa sesión solo defendía en el webhook (después de que Stripe/Revolut ya hubieran capturado el dinero). Ahora se bloquea antes, igual que ya pasaba con memberships desde antes.
+
+- **`POST /api/my/events/checkout`** — nuevo guard justo después de validar el método de pago disponible: si existe `SchoolMember` para `userId+schoolId` con `status=ARCHIVED`, devuelve 403 con mensaje claro, sin crear `EventBooking`, sin llamar a Stripe (`checkout.sessions.create`) ni a Revolut (`createRevolutOrder`). Mismo patrón exacto que ya usaba `/api/my/checkout` para memberships (inline `prisma.schoolMember.findFirst`, no el helper `isSchoolMemberArchived` de `lib/services/membership.ts`, que está pensado para usarse dentro de una `$transaction` de webhook)
+- **`POST /api/my/events/reserve`** (reserva en efectivo, "pay at the door") — mismo guard. Este endpoint también crea un `EventBooking` PENDING (ocupa cupo) sin pasar nunca por Stripe/Revolut/webhook, así que necesitaba el mismo bloqueo por separado. Se añadió `schoolId` al `select` de `event.findUnique` (no estaba seleccionado)
+- **Búsqueda exhaustiva confirmada:** solo existen esos dos call sites de `eventBooking.create` en todo `apps/web/app` — no hay un tercer flujo de "ticket gratis" ni un endpoint duplicado que se haya quedado sin cubrir
+- **El guard del webhook no se tocó** — sigue siendo necesario como defensa si el staff archiva a alguien entre este check y el webhook de confirmación de pago
+- **7 tests nuevos** (`eventCheckoutArchivedGuard.test.ts`) cubriendo ambos endpoints × {ARCHIVED, sin SchoolMember previo, no ARCHIVED} — **237 tests pasando** en total (31 archivos), `check-types` / `lint` / `prisma validate` en verde
+- Sin cambios de schema
+- **Verificado con `npx prisma migrate status` (solo lectura, sin aplicar nada):** 3 migraciones siguen sin desplegar en la DB — `20260709090000_bookings_active_slot_unique_index`, `20260709210000_transaction_provider_ref_unique`, `20260710120000_add_transaction_flagged_status`. Ninguna se aplicó en esta sesión ni en las anteriores — **sigue pendiente `npx prisma migrate deploy` antes de producción**
+- Branch pusheada, pendiente de confirmación explícita para mergear
+
+### Sesión 50 — 2026-07-10 ✅
+**Cierra el mismo gap de ARCHIVED para pagos de eventos/tickets** — mergeado a `main` en `0c80bd2` (branch `fix/event-payments-archived-member-guard`, borrada tras el merge)
 
 Continuación directa de la Sesión 49: esa sesión solo cubrió memberships. Los event bookings (tickets) pagados vía Stripe/Revolut para un `SchoolMember` ARCHIVED seguían confirmándose sin ningún guard.
 
@@ -273,7 +287,7 @@ Continuación directa de la Sesión 49: esa sesión solo cubrió memberships. Lo
 - **Hallazgo documentado, no resuelto:** `/api/my/events/checkout` (a diferencia de `/api/my/checkout` para memberships) **no bloquea** iniciar un checkout si el `SchoolMember` ya está ARCHIVED — queda como riesgo restante, marcado con `TODO(event-checkout-archived-guard)` en el código; no se tocó por estar fuera del scope explícito de checkout creation flows
 - **13 tests nuevos** (`stripeEventBookingArchivedMemberReview.test.ts` nuevo, `revolutWebhookArchivedMemberReview.test.ts` extendido con bloque de event booking) — **230 tests pasando** en total (30 archivos), `check-types` / `lint` / `prisma validate` en verde
 - Sin cambios de schema — se reutilizó `TransactionStatus.FLAGGED` y `EventBooking.status` existentes, no hizo falta migración nueva
-- Branch pusheada, pendiente de confirmación explícita para mergear
+- Mergeado a `main` tras confirmación explícita del usuario; branch borrada (local + remoto)
 
 ### Sesión 49 — 2026-07-10 ✅
 **Pagos de membership capturados con SchoolMember ARCHIVED — auditable, no solo log** — mergeado a `main` en `ec924a1` (branch `fix/archived-member-payment-review`, borrada tras el merge)
