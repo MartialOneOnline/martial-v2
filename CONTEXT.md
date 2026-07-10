@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `0c1c7ce` — script + runbook de sandbox de pagos para probar webhooks/cancelaciones Stripe con claves test, sin dinero real; deploy de producción en Vercel verificado en verde (Sesión 53). **PR abierta sin mergear:** `fix/flagged-transaction-resolution` (Sesión 54) — resolución manual de `Transaction.FLAGGED`, migración de schema pendiente de aplicar. **Pendiente:** sandbox Revolut no soportado (host de producción hardcodeado en `register-webhook`), documentado como gap, no implementado
+**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `98c4bdf` — resolución manual de `Transaction.FLAGGED` sin borrar la fila (Sesión 54); migración `20260710180000_add_transaction_resolution_fields` aún **no aplicada** en producción. **Pendiente:** sandbox Revolut no soportado (host de producción hardcodeado en `register-webhook`), documentado como gap, no implementado
 
 ---
 
@@ -261,8 +261,8 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 
 ## Historial de sesiones
 
-### Sesión 54 — 2026-07-10 ⏳ pendiente de mergear
-**Resolución manual de `Transaction.FLAGGED`** — branch `fix/flagged-transaction-resolution`, aún no mergeada
+### Sesión 54 — 2026-07-10 ✅
+**Resolución manual de `Transaction.FLAGGED`** — mergeado a `main` en `98c4bdf` (branch `fix/flagged-transaction-resolution`, sin borrar aún — pendiente confirmar Vercel Production y aplicar `prisma migrate deploy`)
 
 Permite a un admin marcar una `Transaction.FLAGGED` (creada por los webhooks de Stripe/Revolut cuando el `SchoolMember` está ARCHIVED — Sesiones 50/51) como resuelta, sin borrarla ni reactivar nada automáticamente.
 
@@ -274,7 +274,7 @@ Permite a un admin marcar una `Transaction.FLAGGED` (creada por los webhooks de 
 - **UI (`TransactionsClient.tsx`):** botón "Mark resolved" en el menú de fila (solo si `FLAGGED` y no resuelta) → `ResolveModal` (nota opcional + confirmación); badge "Resolved" en la tabla y en el drawer de detalle junto al status; toggle "Show resolved" en el tab "Needs review" para ver el histórico (oculto por defecto — la vista por defecto solo muestra pendientes reales)
 - **9 tests nuevos** (`transactionResolution.test.ts`): admin puede resolver, STUDENT no puede (403), no se puede resolver algo no-FLAGGED (400) ni ya resuelto (400), 404 si no existe, `DELETE` sigue bloqueado resuelto o no, `GET` filtra por `resolvedAt: null` por defecto y con `resolved=all` no filtra, el contador del tab usa el count dedicado — **261 tests pasando** en total (33 archivos), `check-types` / `lint` / `prisma validate` en verde
 - **Sin cambios** en `recordFlaggedPayment` ni en los webhooks Stripe/Revolut — la resolución es puramente un flujo admin sobre filas ya creadas
-- **Pendiente:** aplicar la migración en producción (`npx prisma migrate deploy`) al mergear; sin probar en el navegador (cambio backend-first, UI no verificada con `preview_*` en esta sesión)
+- **Pendiente:** aplicar la migración en producción (`npx prisma migrate deploy`) — todavía no ejecutada; sin probar en el navegador (cambio backend-first, UI no verificada con `preview_*` en esta sesión)
 
 ### Sesión 53 — 2026-07-10 ✅
 **Sandbox de pagos: script + runbook para probar Stripe sin dinero real** — mergeado a `main` en `0c1c7ce` (branch `fix/payment-sandbox-setup`, borrada tras el merge)
