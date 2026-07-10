@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `0c80bd2` — webhook guard ARCHIVED extendido a pagos de eventos/tickets (Sesión 50). Branch abierta pendiente de merge: `fix/event-checkout-archived-guard` — bloquea el checkout de eventos desde el origen para miembros ARCHIVED, cerrando el gap anterior al webhook (ver Sesión 51). **Pendiente antes de producción:** `npx prisma migrate deploy` — 3 migraciones sin aplicar en la DB (ver Sesión 51)
+**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `3228356` — bloqueo de checkout de eventos para ARCHIVED (Sesión 51). Migraciones desplegadas y duplicados de `bookings` limpiados en producción, smoke test end-to-end OK (Sesión 52). **Pendiente:** entorno/provider sandbox para probar webhooks de pago y cancelación Stripe/Revolut sin dinero real (ver Sesión 52)
 
 ---
 
@@ -261,8 +261,23 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 
 ## Historial de sesiones
 
-### Sesión 51 — 2026-07-10 ⏳ (branch abierta, pendiente de merge)
-**Bloquea el checkout de eventos desde el origen para ARCHIVED** — branch: `fix/event-checkout-archived-guard` (desde `main` en `0c80bd2`)
+### Sesión 52 — 2026-07-10 ✅
+**Migraciones aplicadas en producción + limpieza de duplicados + smoke test real** — `main` en `3228356` (sin cambios de código, solo operación de datos y verificación)
+
+- **Limpieza de `bookings` duplicados:** 38 filas canceladas (36 grupos `(userId, classId, scheduledAt)` con duplicados exactos del import de V1) vía script transaccional revisado y aprobado explícitamente. Verificado tras ejecutar: 0 grupos duplicados activos restantes
+- **`npx prisma migrate deploy`:** las 3 migraciones pendientes aplicadas — `20260709090000_bookings_active_slot_unique_index`, `20260709210000_transaction_provider_ref_unique`, `20260710120000_add_transaction_flagged_status`. `migrate status` final: "Database schema is up to date!"
+- **Smoke test funcional end-to-end** contra el entorno real (mismo Postgres que usa el deploy), con fixtures aislados (`smoketest_*`) creados y eliminados sin dejar rastro:
+  - Reserva normal de clase → 200
+  - Doble reserva mismo user/class/scheduledAt → 409 limpio (no 500)
+  - Event checkout + event reserve (cash) con `SchoolMember` ARCHIVED → 403 en ambos, sin crear `EventBooking`, sin reactivar `SchoolMember`
+  - Dashboard Payments: `Transaction.FLAGGED` visible en el filtro "Needs review" con provider ref + booking ref; `DELETE` sobre esa fila → 403
+  - Sin errores en logs del servidor durante toda la sesión
+  - Fixtures de prueba (school/class/event/users/Supabase Auth) eliminados al terminar, verificado con `COUNT(*) = 0`
+- **Pendiente:** no existe ninguna escuela con clave Stripe/Revolut en modo test/sandbox — el pago capturado con `SchoolMember` ARCHIVED (creación de `Transaction.FLAGGED` vía webhook real) y la política de cancelación Stripe (immediate / `cancel_at_period_end`) siguen validados solo por la suite automatizada (mocks), no por una prueba real con proveedor. Falta configurar un entorno/clave sandbox antes de poder probarlo sin riesgo de dinero real
+- `check-types` / `test` (237) / `lint` / `prisma validate` ejecutados de nuevo tras el deploy — todo verde
+
+### Sesión 51 — 2026-07-10 ✅
+**Bloquea el checkout de eventos desde el origen para ARCHIVED** — mergeado a `main` en `3228356` (branch `fix/event-checkout-archived-guard`, borrada tras el merge)
 
 Continuación directa de la Sesión 50: esa sesión solo defendía en el webhook (después de que Stripe/Revolut ya hubieran capturado el dinero). Ahora se bloquea antes, igual que ya pasaba con memberships desde antes.
 
@@ -273,7 +288,7 @@ Continuación directa de la Sesión 50: esa sesión solo defendía en el webhook
 - **7 tests nuevos** (`eventCheckoutArchivedGuard.test.ts`) cubriendo ambos endpoints × {ARCHIVED, sin SchoolMember previo, no ARCHIVED} — **237 tests pasando** en total (31 archivos), `check-types` / `lint` / `prisma validate` en verde
 - Sin cambios de schema
 - **Verificado con `npx prisma migrate status` (solo lectura, sin aplicar nada):** 3 migraciones siguen sin desplegar en la DB — `20260709090000_bookings_active_slot_unique_index`, `20260709210000_transaction_provider_ref_unique`, `20260710120000_add_transaction_flagged_status`. Ninguna se aplicó en esta sesión ni en las anteriores — **sigue pendiente `npx prisma migrate deploy` antes de producción**
-- Branch pusheada, pendiente de confirmación explícita para mergear
+- Mergeado a `main` tras confirmación explícita del usuario; branch borrada (local + remoto)
 
 ### Sesión 50 — 2026-07-10 ✅
 **Cierra el mismo gap de ARCHIVED para pagos de eventos/tickets** — mergeado a `main` en `0c80bd2` (branch `fix/event-payments-archived-member-guard`, borrada tras el merge)
