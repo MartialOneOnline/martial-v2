@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const { searchParams } = new URL(req.url)
-  const status      = searchParams.get('status')      // PAID|PENDING|FAILED|REFUNDED|ALL
+  const status      = searchParams.get('status')      // PAID|PENDING|FAILED|REFUNDED|FLAGGED|ALL
   const method      = searchParams.get('method')      // STRIPE|CASH|BANK_TRANSFER|DIRECT_DEBIT|OTHER|ALL
   const type        = searchParams.get('type')        // INCOME|EXPENSE|ALL
   const search      = searchParams.get('search')      || ''
@@ -87,6 +87,10 @@ export async function GET(req: NextRequest) {
     PENDING:  statMap['PENDING']?.count  ?? 0,
     FAILED:   statMap['FAILED']?.count   ?? 0,
     REFUNDED: statMap['REFUNDED']?.count ?? 0,
+    // Payments the provider already captured but that were deliberately not
+    // turned into active access (e.g. ARCHIVED member) — never part of
+    // totalRevenue, surfaced separately so admins can find them.
+    FLAGGED:  statMap['FLAGGED']?.count  ?? 0,
   }
 
   return NextResponse.json({
@@ -104,6 +108,11 @@ export async function GET(req: NextRequest) {
       status:      t.status,
       type:        t.type,
       notes:       t.notes ?? null,
+      // Provider payment reference — mainly relevant for online (Stripe/Revolut)
+      // transactions, especially FLAGGED ones an admin needs to trace back to
+      // the provider's own dashboard to decide on a refund.
+      stripePaymentIntentId: t.stripePaymentIntentId ?? null,
+      revolutOrderId:        t.revolutOrderId ?? null,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       periodStart: (t as any).periodStart ? new Date((t as any).periodStart).toISOString() : null,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

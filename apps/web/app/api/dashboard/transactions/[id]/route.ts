@@ -93,6 +93,15 @@ export async function DELETE(
       { status: 403 },
     )
   }
+  // FLAGGED rows are the auditable record of a payment captured for an
+  // ARCHIVED member — deleting one would erase the only trace that a
+  // refund or reactivation decision is still pending.
+  if (tx.status === 'FLAGGED') {
+    return NextResponse.json(
+      { error: 'Flagged transactions cannot be deleted — resolve manually (refund or reactivation) first.' },
+      { status: 403 },
+    )
+  }
 
   await prisma.transaction.delete({ where: { id } })
   return NextResponse.json({ ok: true })

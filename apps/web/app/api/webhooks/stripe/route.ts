@@ -5,7 +5,7 @@ import { getStripe } from '@/lib/stripe'
 import { MembershipStatus } from '@/lib/prisma-client/client'
 import { sendMembershipReceiptEmail, sendEventTicketConfirmationEmail, sendEventTicketRefundedEmail } from '@/lib/email/sendEmails'
 import { checkEventCapacity } from '@/lib/services/eventCapacity'
-import { recordOnlinePayment } from '@/lib/services/transactions'
+import { recordOnlinePayment, recordFlaggedPayment } from '@/lib/services/transactions'
 import { syncSchoolMemberStatusForMembership, isSchoolMemberArchived } from '@/lib/services/membership'
 import { PaymentMethod, TransactionCategory, StripeWebhookEventStatus } from '@/lib/prisma-client/enums'
 import { notifyPaymentReceived } from '@/lib/notifications/create'
@@ -285,11 +285,21 @@ async function handleStripeEvent(event: Stripe.Event) {
         // /api/my/checkout blocks starting a checkout while ARCHIVED, but a
         // staff member can archive this person *between* checkout and this
         // webhook delivery — Stripe has already captured the money by the
-        // time we find out. Don't grant access: no Membership, no
-        // Transaction, no SchoolMember write. This needs manual follow-up
-        // (refund or reactivation) — logged below, not resolved here.
+        // time we find out. Don't grant access: no Membership created, no
+        // SchoolMember write. The captured payment is persisted as a
+        // FLAGGED Transaction instead — auditable and visible in the
+        // dashboard Payments list — so this needs manual follow-up (refund
+        // or reactivation), not resolved here.
         if (await isSchoolMemberArchived(tx, { userId, schoolId })) {
           blockedByArchivedMember = true
+          await recordFlaggedPayment(tx, {
+            schoolId, userId,
+            amount: Number(price), currency,
+            paymentMethod: PaymentMethod.STRIPE,
+            planId, planName,
+            reason: 'SchoolMember is ARCHIVED — payment captured but membership not activated',
+            stripePaymentIntentId: session.payment_intent,
+          })
           return
         }
 
@@ -340,7 +350,9 @@ async function handleStripeEvent(event: Stripe.Event) {
       })
 
       if (blockedByArchivedMember) {
-        console.error(`[stripe webhook] payment captured for ARCHIVED member — userId=${userId} schoolId=${schoolId} planId=${planId} paymentIntent=${session.payment_intent ?? 'n/a'}. Membership NOT activated; needs manual refund or reactivation review.`)
+        // Real-time alerting hook — the durable record is the FLAGGED
+        // Transaction created above, queryable from the dashboard.
+        console.error(`[stripe webhook] payment captured for ARCHIVED member — userId=${userId} schoolId=${schoolId} planId=${planId} paymentIntent=${session.payment_intent ?? 'n/a'}. Flagged for manual review (see Transactions).`)
       }
 
       // Notify + send receipt email (fire-and-forget)
