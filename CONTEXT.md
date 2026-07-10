@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `9a7711c`. Migraciones desplegadas y duplicados de `bookings` limpiados en producción, smoke test end-to-end OK (Sesión 52). Branch abierta pendiente de merge: `fix/payment-sandbox-setup` — script + runbook para probar webhooks de pago y cancelación Stripe con claves test, sin dinero real (ver Sesión 53). **Pendiente:** sandbox Revolut no soportado (host de producción hardcodeado en `register-webhook`), documentado como gap, no implementado
+**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `0c1c7ce` — script + runbook de sandbox de pagos para probar webhooks/cancelaciones Stripe con claves test, sin dinero real; deploy de producción en Vercel verificado en verde (Sesión 53). **Pendiente:** sandbox Revolut no soportado (host de producción hardcodeado en `register-webhook`), documentado como gap, no implementado
 
 ---
 
@@ -261,8 +261,8 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 
 ## Historial de sesiones
 
-### Sesión 53 — 2026-07-10 ⏳ (branch abierta, pendiente de merge)
-**Sandbox de pagos: script + runbook para probar Stripe sin dinero real** — branch: `fix/payment-sandbox-setup` (desde `main` en `9a7711c`)
+### Sesión 53 — 2026-07-10 ✅
+**Sandbox de pagos: script + runbook para probar Stripe sin dinero real** — mergeado a `main` en `0c1c7ce` (branch `fix/payment-sandbox-setup`, borrada tras el merge)
 
 Cierra el pendiente de la Sesión 52: los webhooks de pago y las cancelaciones Stripe solo se habían validado con tests automatizados (mocks) porque la única escuela con Stripe configurado usa claves LIVE. Ahora hay una forma segura de probarlo con dinero de test.
 
@@ -274,7 +274,9 @@ Cierra el pendiente de la Sesión 52: los webhooks de pago y las cancelaciones S
 - **`.env.example`** — nueva sección `STRIPE_SANDBOX_*` con advertencia explícita de no poner claves live ahí
 - **14 tests nuevos** (`stripeKeyGuard.test.ts`) — **251 tests pasando** en total (32 archivos), `check-types` / `lint` / `prisma validate` en verde
 - Sin cambios de schema, sin tocar `stripe/route.ts` / `revolut/route.ts` / lógica core de pagos
-- Branch pusheada, pendiente de confirmación explícita para mergear
+- **Fix post-PR:** el primer push (`41eff2c`) rompió el build de Vercel — `seed-sandbox-school.ts` importaba `dotenv`, que en este monorepo nunca está declarado como dependencia directa (solo transitivo/hoisted, y de hecho `apps/api` y `apps/prototype` vendorizan cada uno su propia versión distinta), así que la fase de TypeScript de `next build` no podía resolverlo — funcionaba en local "por casualidad" pero no en el entorno limpio de Vercel. Corregido (`896bfa7`) quitando el import y alineando el script con el patrón ya usado por `publish-classes.ts`/`delete-user.ts` (asumir env ya exportado en el shell, `source .env` documentado en el runbook). Verificado corriendo `npm run build` real (no solo `check-types`) antes de repushear
+- **Mergeado a `main` en `0c1c7ce`** tras confirmar en verde: build de Vercel Preview (`896bfa7`) y luego el deploy de **Production** (`0c1c7ce`, alias `martial-v2-web.vercel.app`) — logs sin errores, sin ninguna mención a `dotenv`, `Compiled successfully` + `Finished TypeScript` + `Build Completed` + `Deployment completed`; app responde `200` en producción (`<title>Martial — The Global Martial Arts Platform</title>`)
+- Branch borrada (local + remoto) tras confirmar el merge
 
 ### Sesión 52 — 2026-07-10 ✅
 **Migraciones aplicadas en producción + limpieza de duplicados + smoke test real** — `main` en `3228356` (sin cambios de código, solo operación de datos y verificación)
