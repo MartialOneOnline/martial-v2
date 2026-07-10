@@ -781,6 +781,9 @@ export const TransactionScalarFieldEnum = {
   notes: 'notes',
   periodStart: 'periodStart',
   periodEnd: 'periodEnd',
+  resolvedAt: 'resolvedAt',
+  resolvedBy: 'resolvedBy',
+  resolutionNote: 'resolutionNote',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

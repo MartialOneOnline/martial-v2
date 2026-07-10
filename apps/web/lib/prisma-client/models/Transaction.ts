@@ -54,6 +54,9 @@ export type TransactionMinAggregateOutputType = {
   notes: string | null
   periodStart: Date | null
   periodEnd: Date | null
+  resolvedAt: Date | null
+  resolvedBy: string | null
+  resolutionNote: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -78,6 +81,9 @@ export type TransactionMaxAggregateOutputType = {
   notes: string | null
   periodStart: Date | null
   periodEnd: Date | null
+  resolvedAt: Date | null
+  resolvedBy: string | null
+  resolutionNote: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -102,6 +108,9 @@ export type TransactionCountAggregateOutputType = {
   notes: number
   periodStart: number
   periodEnd: number
+  resolvedAt: number
+  resolvedBy: number
+  resolutionNote: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -136,6 +145,9 @@ export type TransactionMinAggregateInputType = {
   notes?: true
   periodStart?: true
   periodEnd?: true
+  resolvedAt?: true
+  resolvedBy?: true
+  resolutionNote?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -160,6 +172,9 @@ export type TransactionMaxAggregateInputType = {
   notes?: true
   periodStart?: true
   periodEnd?: true
+  resolvedAt?: true
+  resolvedBy?: true
+  resolutionNote?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -184,6 +199,9 @@ export type TransactionCountAggregateInputType = {
   notes?: true
   periodStart?: true
   periodEnd?: true
+  resolvedAt?: true
+  resolvedBy?: true
+  resolutionNote?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -295,6 +313,9 @@ export type TransactionGroupByOutputType = {
   notes: string | null
   periodStart: Date | null
   periodEnd: Date | null
+  resolvedAt: Date | null
+  resolvedBy: string | null
+  resolutionNote: string | null
   createdAt: Date
   updatedAt: Date
   _count: TransactionCountAggregateOutputType | null
@@ -342,11 +363,15 @@ export type TransactionWhereInput = {
   notes?: Prisma.StringNullableFilter<"Transaction"> | string | null
   periodStart?: Prisma.DateTimeNullableFilter<"Transaction"> | Date | string | null
   periodEnd?: Prisma.DateTimeNullableFilter<"Transaction"> | Date | string | null
+  resolvedAt?: Prisma.DateTimeNullableFilter<"Transaction"> | Date | string | null
+  resolvedBy?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  resolutionNote?: Prisma.StringNullableFilter<"Transaction"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   school?: Prisma.XOR<Prisma.SchoolScalarRelationFilter, Prisma.SchoolWhereInput>
   membership?: Prisma.XOR<Prisma.MembershipNullableScalarRelationFilter, Prisma.MembershipWhereInput> | null
   user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  resolvedByUser?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
 
 export type TransactionOrderByWithRelationInput = {
@@ -369,11 +394,15 @@ export type TransactionOrderByWithRelationInput = {
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   periodStart?: Prisma.SortOrderInput | Prisma.SortOrder
   periodEnd?: Prisma.SortOrderInput | Prisma.SortOrder
+  resolvedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  resolvedBy?: Prisma.SortOrderInput | Prisma.SortOrder
+  resolutionNote?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   school?: Prisma.SchoolOrderByWithRelationInput
   membership?: Prisma.MembershipOrderByWithRelationInput
   user?: Prisma.UserOrderByWithRelationInput
+  resolvedByUser?: Prisma.UserOrderByWithRelationInput
 }
 
 export type TransactionWhereUniqueInput = Prisma.AtLeast<{
@@ -399,11 +428,15 @@ export type TransactionWhereUniqueInput = Prisma.AtLeast<{
   notes?: Prisma.StringNullableFilter<"Transaction"> | string | null
   periodStart?: Prisma.DateTimeNullableFilter<"Transaction"> | Date | string | null
   periodEnd?: Prisma.DateTimeNullableFilter<"Transaction"> | Date | string | null
+  resolvedAt?: Prisma.DateTimeNullableFilter<"Transaction"> | Date | string | null
+  resolvedBy?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  resolutionNote?: Prisma.StringNullableFilter<"Transaction"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   school?: Prisma.XOR<Prisma.SchoolScalarRelationFilter, Prisma.SchoolWhereInput>
   membership?: Prisma.XOR<Prisma.MembershipNullableScalarRelationFilter, Prisma.MembershipWhereInput> | null
   user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  resolvedByUser?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id" | "stripePaymentIntentId" | "revolutOrderId">
 
 export type TransactionOrderByWithAggregationInput = {
@@ -426,6 +459,9 @@ export type TransactionOrderByWithAggregationInput = {
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   periodStart?: Prisma.SortOrderInput | Prisma.SortOrder
   periodEnd?: Prisma.SortOrderInput | Prisma.SortOrder
+  resolvedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  resolvedBy?: Prisma.SortOrderInput | Prisma.SortOrder
+  resolutionNote?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.TransactionCountOrderByAggregateInput
@@ -458,6 +494,9 @@ export type TransactionScalarWhereWithAggregatesInput = {
   notes?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
   periodStart?: Prisma.DateTimeNullableWithAggregatesFilter<"Transaction"> | Date | string | null
   periodEnd?: Prisma.DateTimeNullableWithAggregatesFilter<"Transaction"> | Date | string | null
+  resolvedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Transaction"> | Date | string | null
+  resolvedBy?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
+  resolutionNote?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Transaction"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Transaction"> | Date | string
 }
@@ -479,11 +518,14 @@ export type TransactionCreateInput = {
   notes?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
+  resolvedAt?: Date | string | null
+  resolutionNote?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school: Prisma.SchoolCreateNestedOneWithoutTransactionsInput
   membership?: Prisma.MembershipCreateNestedOneWithoutTransactionsInput
   user?: Prisma.UserCreateNestedOneWithoutTransactionsInput
+  resolvedByUser?: Prisma.UserCreateNestedOneWithoutResolvedTransactionsInput
 }
 
 export type TransactionUncheckedCreateInput = {
@@ -506,6 +548,9 @@ export type TransactionUncheckedCreateInput = {
   notes?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
+  resolvedAt?: Date | string | null
+  resolvedBy?: string | null
+  resolutionNote?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -527,11 +572,14 @@ export type TransactionUpdateInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolutionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneRequiredWithoutTransactionsNestedInput
   membership?: Prisma.MembershipUpdateOneWithoutTransactionsNestedInput
   user?: Prisma.UserUpdateOneWithoutTransactionsNestedInput
+  resolvedByUser?: Prisma.UserUpdateOneWithoutResolvedTransactionsNestedInput
 }
 
 export type TransactionUncheckedUpdateInput = {
@@ -554,6 +602,9 @@ export type TransactionUncheckedUpdateInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resolutionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -578,6 +629,9 @@ export type TransactionCreateManyInput = {
   notes?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
+  resolvedAt?: Date | string | null
+  resolvedBy?: string | null
+  resolutionNote?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -599,6 +653,8 @@ export type TransactionUpdateManyMutationInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolutionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -623,6 +679,9 @@ export type TransactionUncheckedUpdateManyInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resolutionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -657,6 +716,9 @@ export type TransactionCountOrderByAggregateInput = {
   notes?: Prisma.SortOrder
   periodStart?: Prisma.SortOrder
   periodEnd?: Prisma.SortOrder
+  resolvedAt?: Prisma.SortOrder
+  resolvedBy?: Prisma.SortOrder
+  resolutionNote?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -685,6 +747,9 @@ export type TransactionMaxOrderByAggregateInput = {
   notes?: Prisma.SortOrder
   periodStart?: Prisma.SortOrder
   periodEnd?: Prisma.SortOrder
+  resolvedAt?: Prisma.SortOrder
+  resolvedBy?: Prisma.SortOrder
+  resolutionNote?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -709,6 +774,9 @@ export type TransactionMinOrderByAggregateInput = {
   notes?: Prisma.SortOrder
   periodStart?: Prisma.SortOrder
   periodEnd?: Prisma.SortOrder
+  resolvedAt?: Prisma.SortOrder
+  resolvedBy?: Prisma.SortOrder
+  resolutionNote?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -724,10 +792,24 @@ export type TransactionCreateNestedManyWithoutUserInput = {
   connect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
 }
 
+export type TransactionCreateNestedManyWithoutResolvedByUserInput = {
+  create?: Prisma.XOR<Prisma.TransactionCreateWithoutResolvedByUserInput, Prisma.TransactionUncheckedCreateWithoutResolvedByUserInput> | Prisma.TransactionCreateWithoutResolvedByUserInput[] | Prisma.TransactionUncheckedCreateWithoutResolvedByUserInput[]
+  connectOrCreate?: Prisma.TransactionCreateOrConnectWithoutResolvedByUserInput | Prisma.TransactionCreateOrConnectWithoutResolvedByUserInput[]
+  createMany?: Prisma.TransactionCreateManyResolvedByUserInputEnvelope
+  connect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+}
+
 export type TransactionUncheckedCreateNestedManyWithoutUserInput = {
   create?: Prisma.XOR<Prisma.TransactionCreateWithoutUserInput, Prisma.TransactionUncheckedCreateWithoutUserInput> | Prisma.TransactionCreateWithoutUserInput[] | Prisma.TransactionUncheckedCreateWithoutUserInput[]
   connectOrCreate?: Prisma.TransactionCreateOrConnectWithoutUserInput | Prisma.TransactionCreateOrConnectWithoutUserInput[]
   createMany?: Prisma.TransactionCreateManyUserInputEnvelope
+  connect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+}
+
+export type TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput = {
+  create?: Prisma.XOR<Prisma.TransactionCreateWithoutResolvedByUserInput, Prisma.TransactionUncheckedCreateWithoutResolvedByUserInput> | Prisma.TransactionCreateWithoutResolvedByUserInput[] | Prisma.TransactionUncheckedCreateWithoutResolvedByUserInput[]
+  connectOrCreate?: Prisma.TransactionCreateOrConnectWithoutResolvedByUserInput | Prisma.TransactionCreateOrConnectWithoutResolvedByUserInput[]
+  createMany?: Prisma.TransactionCreateManyResolvedByUserInputEnvelope
   connect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
 }
 
@@ -745,6 +827,20 @@ export type TransactionUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.TransactionScalarWhereInput | Prisma.TransactionScalarWhereInput[]
 }
 
+export type TransactionUpdateManyWithoutResolvedByUserNestedInput = {
+  create?: Prisma.XOR<Prisma.TransactionCreateWithoutResolvedByUserInput, Prisma.TransactionUncheckedCreateWithoutResolvedByUserInput> | Prisma.TransactionCreateWithoutResolvedByUserInput[] | Prisma.TransactionUncheckedCreateWithoutResolvedByUserInput[]
+  connectOrCreate?: Prisma.TransactionCreateOrConnectWithoutResolvedByUserInput | Prisma.TransactionCreateOrConnectWithoutResolvedByUserInput[]
+  upsert?: Prisma.TransactionUpsertWithWhereUniqueWithoutResolvedByUserInput | Prisma.TransactionUpsertWithWhereUniqueWithoutResolvedByUserInput[]
+  createMany?: Prisma.TransactionCreateManyResolvedByUserInputEnvelope
+  set?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  disconnect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  delete?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  connect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  update?: Prisma.TransactionUpdateWithWhereUniqueWithoutResolvedByUserInput | Prisma.TransactionUpdateWithWhereUniqueWithoutResolvedByUserInput[]
+  updateMany?: Prisma.TransactionUpdateManyWithWhereWithoutResolvedByUserInput | Prisma.TransactionUpdateManyWithWhereWithoutResolvedByUserInput[]
+  deleteMany?: Prisma.TransactionScalarWhereInput | Prisma.TransactionScalarWhereInput[]
+}
+
 export type TransactionUncheckedUpdateManyWithoutUserNestedInput = {
   create?: Prisma.XOR<Prisma.TransactionCreateWithoutUserInput, Prisma.TransactionUncheckedCreateWithoutUserInput> | Prisma.TransactionCreateWithoutUserInput[] | Prisma.TransactionUncheckedCreateWithoutUserInput[]
   connectOrCreate?: Prisma.TransactionCreateOrConnectWithoutUserInput | Prisma.TransactionCreateOrConnectWithoutUserInput[]
@@ -756,6 +852,20 @@ export type TransactionUncheckedUpdateManyWithoutUserNestedInput = {
   connect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
   update?: Prisma.TransactionUpdateWithWhereUniqueWithoutUserInput | Prisma.TransactionUpdateWithWhereUniqueWithoutUserInput[]
   updateMany?: Prisma.TransactionUpdateManyWithWhereWithoutUserInput | Prisma.TransactionUpdateManyWithWhereWithoutUserInput[]
+  deleteMany?: Prisma.TransactionScalarWhereInput | Prisma.TransactionScalarWhereInput[]
+}
+
+export type TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput = {
+  create?: Prisma.XOR<Prisma.TransactionCreateWithoutResolvedByUserInput, Prisma.TransactionUncheckedCreateWithoutResolvedByUserInput> | Prisma.TransactionCreateWithoutResolvedByUserInput[] | Prisma.TransactionUncheckedCreateWithoutResolvedByUserInput[]
+  connectOrCreate?: Prisma.TransactionCreateOrConnectWithoutResolvedByUserInput | Prisma.TransactionCreateOrConnectWithoutResolvedByUserInput[]
+  upsert?: Prisma.TransactionUpsertWithWhereUniqueWithoutResolvedByUserInput | Prisma.TransactionUpsertWithWhereUniqueWithoutResolvedByUserInput[]
+  createMany?: Prisma.TransactionCreateManyResolvedByUserInputEnvelope
+  set?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  disconnect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  delete?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  connect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  update?: Prisma.TransactionUpdateWithWhereUniqueWithoutResolvedByUserInput | Prisma.TransactionUpdateWithWhereUniqueWithoutResolvedByUserInput[]
+  updateMany?: Prisma.TransactionUpdateManyWithWhereWithoutResolvedByUserInput | Prisma.TransactionUpdateManyWithWhereWithoutResolvedByUserInput[]
   deleteMany?: Prisma.TransactionScalarWhereInput | Prisma.TransactionScalarWhereInput[]
 }
 
@@ -876,10 +986,13 @@ export type TransactionCreateWithoutUserInput = {
   notes?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
+  resolvedAt?: Date | string | null
+  resolutionNote?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school: Prisma.SchoolCreateNestedOneWithoutTransactionsInput
   membership?: Prisma.MembershipCreateNestedOneWithoutTransactionsInput
+  resolvedByUser?: Prisma.UserCreateNestedOneWithoutResolvedTransactionsInput
 }
 
 export type TransactionUncheckedCreateWithoutUserInput = {
@@ -901,6 +1014,9 @@ export type TransactionUncheckedCreateWithoutUserInput = {
   notes?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
+  resolvedAt?: Date | string | null
+  resolvedBy?: string | null
+  resolutionNote?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -912,6 +1028,68 @@ export type TransactionCreateOrConnectWithoutUserInput = {
 
 export type TransactionCreateManyUserInputEnvelope = {
   data: Prisma.TransactionCreateManyUserInput | Prisma.TransactionCreateManyUserInput[]
+  skipDuplicates?: boolean
+}
+
+export type TransactionCreateWithoutResolvedByUserInput = {
+  id?: string
+  type: $Enums.TransactionType
+  status?: $Enums.TransactionStatus
+  category?: $Enums.TransactionCategory
+  paymentMethod?: $Enums.PaymentMethod | null
+  amount: number
+  currency?: string
+  description?: string | null
+  date: Date | string
+  bookingId?: string | null
+  stripePaymentIntentId?: string | null
+  stripeInvoiceId?: string | null
+  revolutOrderId?: string | null
+  notes?: string | null
+  periodStart?: Date | string | null
+  periodEnd?: Date | string | null
+  resolvedAt?: Date | string | null
+  resolutionNote?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  school: Prisma.SchoolCreateNestedOneWithoutTransactionsInput
+  membership?: Prisma.MembershipCreateNestedOneWithoutTransactionsInput
+  user?: Prisma.UserCreateNestedOneWithoutTransactionsInput
+}
+
+export type TransactionUncheckedCreateWithoutResolvedByUserInput = {
+  id?: string
+  schoolId: string
+  type: $Enums.TransactionType
+  status?: $Enums.TransactionStatus
+  category?: $Enums.TransactionCategory
+  paymentMethod?: $Enums.PaymentMethod | null
+  amount: number
+  currency?: string
+  description?: string | null
+  date: Date | string
+  membershipId?: string | null
+  bookingId?: string | null
+  userId?: string | null
+  stripePaymentIntentId?: string | null
+  stripeInvoiceId?: string | null
+  revolutOrderId?: string | null
+  notes?: string | null
+  periodStart?: Date | string | null
+  periodEnd?: Date | string | null
+  resolvedAt?: Date | string | null
+  resolutionNote?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type TransactionCreateOrConnectWithoutResolvedByUserInput = {
+  where: Prisma.TransactionWhereUniqueInput
+  create: Prisma.XOR<Prisma.TransactionCreateWithoutResolvedByUserInput, Prisma.TransactionUncheckedCreateWithoutResolvedByUserInput>
+}
+
+export type TransactionCreateManyResolvedByUserInputEnvelope = {
+  data: Prisma.TransactionCreateManyResolvedByUserInput | Prisma.TransactionCreateManyResolvedByUserInput[]
   skipDuplicates?: boolean
 }
 
@@ -954,8 +1132,27 @@ export type TransactionScalarWhereInput = {
   notes?: Prisma.StringNullableFilter<"Transaction"> | string | null
   periodStart?: Prisma.DateTimeNullableFilter<"Transaction"> | Date | string | null
   periodEnd?: Prisma.DateTimeNullableFilter<"Transaction"> | Date | string | null
+  resolvedAt?: Prisma.DateTimeNullableFilter<"Transaction"> | Date | string | null
+  resolvedBy?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  resolutionNote?: Prisma.StringNullableFilter<"Transaction"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
+}
+
+export type TransactionUpsertWithWhereUniqueWithoutResolvedByUserInput = {
+  where: Prisma.TransactionWhereUniqueInput
+  update: Prisma.XOR<Prisma.TransactionUpdateWithoutResolvedByUserInput, Prisma.TransactionUncheckedUpdateWithoutResolvedByUserInput>
+  create: Prisma.XOR<Prisma.TransactionCreateWithoutResolvedByUserInput, Prisma.TransactionUncheckedCreateWithoutResolvedByUserInput>
+}
+
+export type TransactionUpdateWithWhereUniqueWithoutResolvedByUserInput = {
+  where: Prisma.TransactionWhereUniqueInput
+  data: Prisma.XOR<Prisma.TransactionUpdateWithoutResolvedByUserInput, Prisma.TransactionUncheckedUpdateWithoutResolvedByUserInput>
+}
+
+export type TransactionUpdateManyWithWhereWithoutResolvedByUserInput = {
+  where: Prisma.TransactionScalarWhereInput
+  data: Prisma.XOR<Prisma.TransactionUpdateManyMutationInput, Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserInput>
 }
 
 export type TransactionCreateWithoutSchoolInput = {
@@ -975,10 +1172,13 @@ export type TransactionCreateWithoutSchoolInput = {
   notes?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
+  resolvedAt?: Date | string | null
+  resolutionNote?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   membership?: Prisma.MembershipCreateNestedOneWithoutTransactionsInput
   user?: Prisma.UserCreateNestedOneWithoutTransactionsInput
+  resolvedByUser?: Prisma.UserCreateNestedOneWithoutResolvedTransactionsInput
 }
 
 export type TransactionUncheckedCreateWithoutSchoolInput = {
@@ -1000,6 +1200,9 @@ export type TransactionUncheckedCreateWithoutSchoolInput = {
   notes?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
+  resolvedAt?: Date | string | null
+  resolvedBy?: string | null
+  resolutionNote?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1047,10 +1250,13 @@ export type TransactionCreateWithoutMembershipInput = {
   notes?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
+  resolvedAt?: Date | string | null
+  resolutionNote?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school: Prisma.SchoolCreateNestedOneWithoutTransactionsInput
   user?: Prisma.UserCreateNestedOneWithoutTransactionsInput
+  resolvedByUser?: Prisma.UserCreateNestedOneWithoutResolvedTransactionsInput
 }
 
 export type TransactionUncheckedCreateWithoutMembershipInput = {
@@ -1072,6 +1278,9 @@ export type TransactionUncheckedCreateWithoutMembershipInput = {
   notes?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
+  resolvedAt?: Date | string | null
+  resolvedBy?: string | null
+  resolutionNote?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1121,6 +1330,35 @@ export type TransactionCreateManyUserInput = {
   notes?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
+  resolvedAt?: Date | string | null
+  resolvedBy?: string | null
+  resolutionNote?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type TransactionCreateManyResolvedByUserInput = {
+  id?: string
+  schoolId: string
+  type: $Enums.TransactionType
+  status?: $Enums.TransactionStatus
+  category?: $Enums.TransactionCategory
+  paymentMethod?: $Enums.PaymentMethod | null
+  amount: number
+  currency?: string
+  description?: string | null
+  date: Date | string
+  membershipId?: string | null
+  bookingId?: string | null
+  userId?: string | null
+  stripePaymentIntentId?: string | null
+  stripeInvoiceId?: string | null
+  revolutOrderId?: string | null
+  notes?: string | null
+  periodStart?: Date | string | null
+  periodEnd?: Date | string | null
+  resolvedAt?: Date | string | null
+  resolutionNote?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1142,10 +1380,13 @@ export type TransactionUpdateWithoutUserInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolutionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneRequiredWithoutTransactionsNestedInput
   membership?: Prisma.MembershipUpdateOneWithoutTransactionsNestedInput
+  resolvedByUser?: Prisma.UserUpdateOneWithoutResolvedTransactionsNestedInput
 }
 
 export type TransactionUncheckedUpdateWithoutUserInput = {
@@ -1167,6 +1408,9 @@ export type TransactionUncheckedUpdateWithoutUserInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resolutionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1190,6 +1434,87 @@ export type TransactionUncheckedUpdateManyWithoutUserInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resolutionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type TransactionUpdateWithoutResolvedByUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  category?: Prisma.EnumTransactionCategoryFieldUpdateOperationsInput | $Enums.TransactionCategory
+  paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
+  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  bookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolutionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  school?: Prisma.SchoolUpdateOneRequiredWithoutTransactionsNestedInput
+  membership?: Prisma.MembershipUpdateOneWithoutTransactionsNestedInput
+  user?: Prisma.UserUpdateOneWithoutTransactionsNestedInput
+}
+
+export type TransactionUncheckedUpdateWithoutResolvedByUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  schoolId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  category?: Prisma.EnumTransactionCategoryFieldUpdateOperationsInput | $Enums.TransactionCategory
+  paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
+  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  membershipId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolutionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type TransactionUncheckedUpdateManyWithoutResolvedByUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  schoolId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  category?: Prisma.EnumTransactionCategoryFieldUpdateOperationsInput | $Enums.TransactionCategory
+  paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
+  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  membershipId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolutionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1213,6 +1538,9 @@ export type TransactionCreateManySchoolInput = {
   notes?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
+  resolvedAt?: Date | string | null
+  resolvedBy?: string | null
+  resolutionNote?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1234,10 +1562,13 @@ export type TransactionUpdateWithoutSchoolInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolutionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   membership?: Prisma.MembershipUpdateOneWithoutTransactionsNestedInput
   user?: Prisma.UserUpdateOneWithoutTransactionsNestedInput
+  resolvedByUser?: Prisma.UserUpdateOneWithoutResolvedTransactionsNestedInput
 }
 
 export type TransactionUncheckedUpdateWithoutSchoolInput = {
@@ -1259,6 +1590,9 @@ export type TransactionUncheckedUpdateWithoutSchoolInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resolutionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1282,6 +1616,9 @@ export type TransactionUncheckedUpdateManyWithoutSchoolInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resolutionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1305,6 +1642,9 @@ export type TransactionCreateManyMembershipInput = {
   notes?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
+  resolvedAt?: Date | string | null
+  resolvedBy?: string | null
+  resolutionNote?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1326,10 +1666,13 @@ export type TransactionUpdateWithoutMembershipInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolutionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneRequiredWithoutTransactionsNestedInput
   user?: Prisma.UserUpdateOneWithoutTransactionsNestedInput
+  resolvedByUser?: Prisma.UserUpdateOneWithoutResolvedTransactionsNestedInput
 }
 
 export type TransactionUncheckedUpdateWithoutMembershipInput = {
@@ -1351,6 +1694,9 @@ export type TransactionUncheckedUpdateWithoutMembershipInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resolutionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1374,6 +1720,9 @@ export type TransactionUncheckedUpdateManyWithoutMembershipInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resolutionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1400,11 +1749,15 @@ export type TransactionSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   notes?: boolean
   periodStart?: boolean
   periodEnd?: boolean
+  resolvedAt?: boolean
+  resolvedBy?: boolean
+  resolutionNote?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   membership?: boolean | Prisma.Transaction$membershipArgs<ExtArgs>
   user?: boolean | Prisma.Transaction$userArgs<ExtArgs>
+  resolvedByUser?: boolean | Prisma.Transaction$resolvedByUserArgs<ExtArgs>
 }, ExtArgs["result"]["transaction"]>
 
 export type TransactionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1427,11 +1780,15 @@ export type TransactionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   notes?: boolean
   periodStart?: boolean
   periodEnd?: boolean
+  resolvedAt?: boolean
+  resolvedBy?: boolean
+  resolutionNote?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   membership?: boolean | Prisma.Transaction$membershipArgs<ExtArgs>
   user?: boolean | Prisma.Transaction$userArgs<ExtArgs>
+  resolvedByUser?: boolean | Prisma.Transaction$resolvedByUserArgs<ExtArgs>
 }, ExtArgs["result"]["transaction"]>
 
 export type TransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1454,11 +1811,15 @@ export type TransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   notes?: boolean
   periodStart?: boolean
   periodEnd?: boolean
+  resolvedAt?: boolean
+  resolvedBy?: boolean
+  resolutionNote?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   membership?: boolean | Prisma.Transaction$membershipArgs<ExtArgs>
   user?: boolean | Prisma.Transaction$userArgs<ExtArgs>
+  resolvedByUser?: boolean | Prisma.Transaction$resolvedByUserArgs<ExtArgs>
 }, ExtArgs["result"]["transaction"]>
 
 export type TransactionSelectScalar = {
@@ -1481,25 +1842,31 @@ export type TransactionSelectScalar = {
   notes?: boolean
   periodStart?: boolean
   periodEnd?: boolean
+  resolvedAt?: boolean
+  resolvedBy?: boolean
+  resolutionNote?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "type" | "status" | "category" | "paymentMethod" | "amount" | "currency" | "description" | "date" | "membershipId" | "bookingId" | "userId" | "stripePaymentIntentId" | "stripeInvoiceId" | "revolutOrderId" | "notes" | "periodStart" | "periodEnd" | "createdAt" | "updatedAt", ExtArgs["result"]["transaction"]>
+export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "type" | "status" | "category" | "paymentMethod" | "amount" | "currency" | "description" | "date" | "membershipId" | "bookingId" | "userId" | "stripePaymentIntentId" | "stripeInvoiceId" | "revolutOrderId" | "notes" | "periodStart" | "periodEnd" | "resolvedAt" | "resolvedBy" | "resolutionNote" | "createdAt" | "updatedAt", ExtArgs["result"]["transaction"]>
 export type TransactionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   membership?: boolean | Prisma.Transaction$membershipArgs<ExtArgs>
   user?: boolean | Prisma.Transaction$userArgs<ExtArgs>
+  resolvedByUser?: boolean | Prisma.Transaction$resolvedByUserArgs<ExtArgs>
 }
 export type TransactionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   membership?: boolean | Prisma.Transaction$membershipArgs<ExtArgs>
   user?: boolean | Prisma.Transaction$userArgs<ExtArgs>
+  resolvedByUser?: boolean | Prisma.Transaction$resolvedByUserArgs<ExtArgs>
 }
 export type TransactionIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   membership?: boolean | Prisma.Transaction$membershipArgs<ExtArgs>
   user?: boolean | Prisma.Transaction$userArgs<ExtArgs>
+  resolvedByUser?: boolean | Prisma.Transaction$resolvedByUserArgs<ExtArgs>
 }
 
 export type $TransactionPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1508,6 +1875,7 @@ export type $TransactionPayload<ExtArgs extends runtime.Types.Extensions.Interna
     school: Prisma.$SchoolPayload<ExtArgs>
     membership: Prisma.$MembershipPayload<ExtArgs> | null
     user: Prisma.$UserPayload<ExtArgs> | null
+    resolvedByUser: Prisma.$UserPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1529,6 +1897,9 @@ export type $TransactionPayload<ExtArgs extends runtime.Types.Extensions.Interna
     notes: string | null
     periodStart: Date | null
     periodEnd: Date | null
+    resolvedAt: Date | null
+    resolvedBy: string | null
+    resolutionNote: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["transaction"]>
@@ -1928,6 +2299,7 @@ export interface Prisma__TransactionClient<T, Null = never, ExtArgs extends runt
   school<T extends Prisma.SchoolDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SchoolDefaultArgs<ExtArgs>>): Prisma.Prisma__SchoolClient<runtime.Types.Result.GetResult<Prisma.$SchoolPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   membership<T extends Prisma.Transaction$membershipArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Transaction$membershipArgs<ExtArgs>>): Prisma.Prisma__MembershipClient<runtime.Types.Result.GetResult<Prisma.$MembershipPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   user<T extends Prisma.Transaction$userArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Transaction$userArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  resolvedByUser<T extends Prisma.Transaction$resolvedByUserArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Transaction$resolvedByUserArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1976,6 +2348,9 @@ export interface TransactionFieldRefs {
   readonly notes: Prisma.FieldRef<"Transaction", 'String'>
   readonly periodStart: Prisma.FieldRef<"Transaction", 'DateTime'>
   readonly periodEnd: Prisma.FieldRef<"Transaction", 'DateTime'>
+  readonly resolvedAt: Prisma.FieldRef<"Transaction", 'DateTime'>
+  readonly resolvedBy: Prisma.FieldRef<"Transaction", 'String'>
+  readonly resolutionNote: Prisma.FieldRef<"Transaction", 'String'>
   readonly createdAt: Prisma.FieldRef<"Transaction", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Transaction", 'DateTime'>
 }
@@ -2401,6 +2776,25 @@ export type Transaction$membershipArgs<ExtArgs extends runtime.Types.Extensions.
  * Transaction.user
  */
 export type Transaction$userArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the User
+   */
+  select?: Prisma.UserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the User
+   */
+  omit?: Prisma.UserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInclude<ExtArgs> | null
+  where?: Prisma.UserWhereInput
+}
+
+/**
+ * Transaction.resolvedByUser
+ */
+export type Transaction$resolvedByUserArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
    * Select specific fields to fetch from the User
    */
