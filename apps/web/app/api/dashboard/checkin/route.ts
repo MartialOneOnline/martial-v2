@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
   // Verify class belongs to this school
   const cls = await prisma.class.findFirst({
     where: { id: classId, schoolId },
-    select: { id: true, name: true },
+    select: { id: true, name: true, capacity: true },
   })
   if (!cls) return NextResponse.json({ error: 'Class not found' }, { status: 404 })
 
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
   // and takes the idempotent "already checked in" path instead of inserting
   // a duplicate. Namespace 3, distinct from the slot lock (1) and per-user
   // quota lock (2) in app/api/bookings/route.ts.
-  let result: { alreadyCheckedIn: boolean }
+  let result: { alreadyCheckedIn: boolean; atCapacity: boolean }
   try {
     result = await prisma.$transaction(async (tx) => {
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(3, hashtext(${`${classId}:${userId}:${date}`}))`
@@ -80,18 +80,20 @@ export async function POST(req: NextRequest) {
         select: { id: true, status: true, attendedAt: true },
       })
 
+      let alreadyCheckedIn = false
       if (booking?.status === 'COMPLETED') {
-        return { alreadyCheckedIn: true }
-      }
-
-      if (booking) {
+        alreadyCheckedIn = true
+      } else if (booking) {
         // Mark existing booking as attended
         await tx.booking.update({
           where: { id: booking.id },
           data: { status: 'COMPLETED', attendedAt: new Date() },
         })
       } else {
-        // Walk-in: create booking and mark attended immediately
+        // Walk-in: create booking and mark attended immediately. Never
+        // blocked by capacity — the student is already physically present,
+        // unlike a booking made ahead of time — see atCapacity below, which
+        // only surfaces the state for a non-blocking UI notice.
         await tx.booking.create({
           data: {
             classId,
@@ -106,7 +108,18 @@ export async function POST(req: NextRequest) {
         })
       }
 
-      return { alreadyCheckedIn: false }
+      // Informational only — computed after the write so it reflects the
+      // check-in that just happened. Same "active for this class today"
+      // definition as the duplicate check above (CANCELLED excluded).
+      let atCapacity = false
+      if (cls.capacity !== null) {
+        const activeCount = await tx.booking.count({
+          where: { classId, scheduledAt: { gte: startOfDay, lt: endOfDay }, status: { notIn: ['CANCELLED'] } },
+        })
+        atCapacity = activeCount >= cls.capacity
+      }
+
+      return { alreadyCheckedIn, atCapacity }
     })
   } catch (err) {
     // Defense in depth: any unexpected unique-constraint violation still
@@ -121,5 +134,6 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     studentName: student.name ?? student.email,
     alreadyCheckedIn: result.alreadyCheckedIn,
+    atCapacity: result.atCapacity,
   })
 }

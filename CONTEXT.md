@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `98c4bdf` — resolución manual de `Transaction.FLAGGED` sin borrar la fila (Sesión 54); migración `20260710180000_add_transaction_resolution_fields` **aplicada en producción**, `migrate status` en verde. **Pendiente:** sandbox Revolut no soportado (host de producción hardcodeado en `register-webhook`), documentado como gap, no implementado
+**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `98c4bdf` — resolución manual de `Transaction.FLAGGED` sin borrar la fila (Sesión 54); migración `20260710180000_add_transaction_resolution_fields` **aplicada en producción**, `migrate status` en verde. **PR abierta sin mergear:** `fix/staff-booking-capacity-guard` (Sesión 55) — guard de capacidad/membership en reservas de staff (add-booking + checkin walk-in), sin migración. **Pendiente:** sandbox Revolut no soportado (host de producción hardcodeado en `register-webhook`), documentado como gap, no implementado
 
 ---
 
@@ -260,6 +260,21 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 ---
 
 ## Historial de sesiones
+
+### Sesión 55 — 2026-07-11 ⏳ pendiente de mergear
+**Guard de capacidad/membership en reservas creadas por staff** — branch `fix/staff-booking-capacity-guard`, aún no mergeada
+
+Sale de una auditoría corta (P1/P2 fuera de pagos, sin cambios de código) que comparó `POST /api/bookings` (auto-reserva del alumno, con capacidad + membership + classAccess robusto y bien testeado) contra los dos endpoints equivalentes para staff, que no tenían ningún control.
+
+- **`POST /api/dashboard/classes/[id]/bookings`** ("Add Booking" del popup de clase) — dos gaps cerrados:
+  1. Verifica que `userId` tiene un `SchoolMember` en la escuela actual antes de crear la reserva → 404 "Student not found in this school" si no (antes: aceptaba cualquier userId de toda la tabla `User`, de cualquier escuela)
+  2. Duplicate check + capacity check + create ahora corren dentro de un `$transaction` con el mismo advisory lock (namespace 1, key `classId:scheduledAt`) que ya usa `POST /api/bookings` — así una reserva de staff y una auto-reserva concurrente para el mismo slot se serializan entre sí, no solo staff-vs-staff. Si `class.capacity` no es `null` y ya hay `capacity` reservas `CONFIRMED`/`PENDING` en ese `scheduledAt` exacto → 409 "Class is full" (mismo código que el `FULL` de `bookingEligibility`, sin importar `bookingEligibility.ts` — es una réplica mínima inline, ese archivo sigue intacto)
+- **`POST /api/dashboard/checkin`** (walk-in QR) — nunca bloquea el walk-in por capacidad (el alumno ya está físicamente presente); en vez de eso, dentro de la misma transacción existente (lock namespace 3) cuenta las reservas activas del día tras la escritura y devuelve `atCapacity: boolean` en la respuesta JSON. Comportamiento de creación/idempotencia sin cambios
+- **UI mínima:** `CheckinClient.tsx` (scanner QR) muestra un aviso no bloqueante "⚠ Class is at capacity" en el overlay de éxito cuando `atCapacity=true`; sin rediseño
+- **Race-safety:** ambos endpoints reutilizan el patrón ya probado de `/api/bookings` — `pg_advisory_xact_lock` dentro de `$transaction`, mismo namespace 1 para add-booking (comparte lock con self-booking), namespace 3 ya existente para checkin. Verificado con test de dos requests concurrentes contra `capacity=1` con dos alumnos distintos: exactamente una 200 y una 409, `booking.create` llamado una sola vez
+- **13 tests nuevos/actualizados** en `staffBookingConstraint.test.ts` (7 nuevos: 404 no-member, 409 llena, capacity=null sin límite, cupo libre 200, concurrencia add-booking, checkin atCapacity true/false; los 6 existentes de duplicados/idempotencia/lock siguen pasando sin cambios de comportamiento) — **268 tests pasando** en total (33 archivos), `check-types` / `lint` / `prisma validate` en verde
+- **Sin cambios** en `/api/bookings`, `bookingEligibility.ts`, pagos/memberships/Stripe/Revolut, permisos, ni schema/migraciones
+- **Riesgo restante documentado, no resuelto:** las reservas creadas por staff (`classes/[id]/bookings`) usan un `scheduledAt` fijo a mediodía (`date + 12:00:00`) en vez de la hora real del horario de la clase — preexistente, fuera del scope de este PR, significa que el lock/capacity de este endpoint coincide con una auto-reserva real solo si por casualidad caen en el mismo instante exacto
 
 ### Sesión 54 — 2026-07-10 ✅
 **Resolución manual de `Transaction.FLAGGED`** — mergeado a `main` en `98c4bdf` (branch `fix/flagged-transaction-resolution`, borrada local + remoto tras confirmar Vercel Production y migración aplicada)
