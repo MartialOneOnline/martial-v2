@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `3228356` — bloqueo de checkout de eventos para ARCHIVED (Sesión 51). Migraciones desplegadas y duplicados de `bookings` limpiados en producción, smoke test end-to-end OK (Sesión 52). **Pendiente:** entorno/provider sandbox para probar webhooks de pago y cancelación Stripe/Revolut sin dinero real (ver Sesión 52)
+**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `9a7711c`. Migraciones desplegadas y duplicados de `bookings` limpiados en producción, smoke test end-to-end OK (Sesión 52). Branch abierta pendiente de merge: `fix/payment-sandbox-setup` — script + runbook para probar webhooks de pago y cancelación Stripe con claves test, sin dinero real (ver Sesión 53). **Pendiente:** sandbox Revolut no soportado (host de producción hardcodeado en `register-webhook`), documentado como gap, no implementado
 
 ---
 
@@ -260,6 +260,21 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 ---
 
 ## Historial de sesiones
+
+### Sesión 53 — 2026-07-10 ⏳ (branch abierta, pendiente de merge)
+**Sandbox de pagos: script + runbook para probar Stripe sin dinero real** — branch: `fix/payment-sandbox-setup` (desde `main` en `9a7711c`)
+
+Cierra el pendiente de la Sesión 52: los webhooks de pago y las cancelaciones Stripe solo se habían validado con tests automatizados (mocks) porque la única escuela con Stripe configurado usa claves LIVE. Ahora hay una forma segura de probarlo con dinero de test.
+
+- **Investigación confirmada:** `School.stripeSecretKey`/`stripePublishableKey`/`stripeWebhookSecret`/`revolutSecretKey`/`revolutPublicKey`/`revolutWebhookSecret` son columnas de texto plano (sin cifrar), `PATCH /api/dashboard/school` no valida formato de clave (aceptaría un `sk_live_` sin problema) — el único guardrail existente es el masking en `GET` (`maskSecret()` en `app/api/dashboard/school/route.ts`)
+- **`lib/services/stripeKeyGuard.ts`** (nuevo, con tests) — `assertNotLiveStripeKey()` rechaza cualquier clave `sk_live_`/`pk_live_`/`rk_live_`. Deliberadamente **no** se añadió a la ruta real del dashboard (rompería el guardado de claves live para escuelas reales) — solo se usa en la herramienta nueva de abajo
+- **`apps/web/scripts/seed-sandbox-school.ts`** (nuevo) — crea/actualiza una escuela dedicada "Sandbox Payments (Test Only)" con claves `STRIPE_SANDBOX_*` desde `.env`, validadas con el guard de arriba. Modos `--apply` (escribe) y `--cleanup` (borra la escuela y todo lo que cuelga de ella, en orden de dependencias ya que `Membership` no cascada desde `School`); por defecto solo muestra estado, sin escribir — mismo patrón dry-run que `publish-classes.ts`
+- **`docs/payment-sandbox-runbook.md`** (nuevo) — procedimiento completo: obtener claves test de Stripe, `stripe listen` para reenviar webhooks a local, crear plan de prueba, y 5 escenarios paso a paso (checkout éxito, checkout fallido, cancel IMMEDIATE, cancel `cancel_at_period_end`, ARCHIVED→FLAGGED usando el hueco entre crear el Checkout Session y pagar). Nota importante documentada: `stripe trigger` **no sirve** para esta app porque no lleva el metadata (`schoolId`/`userId`/`planId`) que el webhook necesita — hay que disparar los eventos a través del flujo real de checkout de la app
+- **Revolut: gap documentado, no implementado** — `register-webhook/route.ts` tiene hardcodeado el host de producción de Revolut (`merchant.revolut.com`), sin ningún toggle sandbox. Añadir eso tocaría el código de registro de webhooks y probablemente el schema (`revolutEnvironment` o similar) — deliberadamente dejado fuera de esta PR, documentado como riesgo restante con el enfoque sugerido para una PR futura
+- **`.env.example`** — nueva sección `STRIPE_SANDBOX_*` con advertencia explícita de no poner claves live ahí
+- **14 tests nuevos** (`stripeKeyGuard.test.ts`) — **251 tests pasando** en total (32 archivos), `check-types` / `lint` / `prisma validate` en verde
+- Sin cambios de schema, sin tocar `stripe/route.ts` / `revolut/route.ts` / lógica core de pagos
+- Branch pusheada, pendiente de confirmación explícita para mergear
 
 ### Sesión 52 — 2026-07-10 ✅
 **Migraciones aplicadas en producción + limpieza de duplicados + smoke test real** — `main` en `3228356` (sin cambios de código, solo operación de datos y verificación)
