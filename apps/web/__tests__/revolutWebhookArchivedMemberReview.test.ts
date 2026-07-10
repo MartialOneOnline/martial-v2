@@ -44,18 +44,27 @@ vi.mock('@/lib/services/eventCapacity', () => ({ checkEventCapacity: (...args: u
 
 // ── In-memory "DB" shared across mocks, reset per test ──────────────────────
 type Membership = Record<string, unknown> & { id: string; userId: string; schoolId: string; status: string }
+type EventBooking = {
+  id: string; status: string; quantity: number; ticketId: string; eventId: string; ticketName: string
+  amountPaid: number; currency: string; userId: string; qrToken: string; revolutOrderId: string
+  event: { title: string; startAt: Date; location: string; capacity: number | null; schoolId: string; school: { revolutSecretKey: string; revolutWebhookSecret: string; name: string; city: string; language: string } }
+  ticket: { capacity: number | null }
+  user: { email: string; name: string }
+}
 type TransactionRow = {
-  id: string; schoolId: string; userId: string; status: string; amount: number
+  id: string; schoolId: string; userId: string; status: string; amount: number; bookingId?: string | null
   revolutOrderId?: string | null; stripePaymentIntentId?: string | null; notes?: string | null
 }
 
 let memberships: Record<string, Membership>
+let eventBookings: Record<string, EventBooking>
 let schoolMembers: Record<string, { userId: string; schoolId: string; status: string }>
 let transactions: Record<string, TransactionRow>
 let transactionSeq: number
 
 function resetState() {
   memberships = {}
+  eventBookings = {}
   schoolMembers = {}
   transactions = {}
   transactionSeq = 0
@@ -104,6 +113,22 @@ const mockSchoolMemberUpdateMany = vi.fn((args: { where: { userId?: string; scho
   return Promise.resolve({ count })
 })
 
+const mockEventBookingFindFirst = vi.fn((args: { where: { revolutOrderId: string } }) => {
+  const b = Object.values(eventBookings).find(x => x.revolutOrderId === args.where.revolutOrderId)
+  return Promise.resolve(b ? { ...b } : null)
+})
+const mockEventBookingUpdateMany = vi.fn((args: { where: { id: string; status: string }; data: Record<string, unknown> }) => {
+  const b = eventBookings[args.where.id]
+  if (!b || b.status !== args.where.status) return Promise.resolve({ count: 0 })
+  Object.assign(b, args.data)
+  return Promise.resolve({ count: 1 })
+})
+const mockEventBookingUpdate = vi.fn((args: { where: { id: string }; data: Record<string, unknown> }) => {
+  const b = eventBookings[args.where.id]
+  if (b) Object.assign(b, args.data)
+  return Promise.resolve(b)
+})
+
 // Mirrors the real unique constraint on Transaction.revolutOrderId /
 // stripePaymentIntentId — see recordFlaggedPayment's pre-check + P2002 catch.
 const mockTransactionFindFirst = vi.fn((args: { where: { stripePaymentIntentId?: string; revolutOrderId?: string } }) => {
@@ -129,6 +154,7 @@ const mockTransaction = vi.fn((fn: (tx: unknown) => unknown) => {
   const tx = {
     membership: { updateMany: mockMembershipUpdateMany },
     schoolMember: { create: mockSchoolMemberCreate, updateMany: mockSchoolMemberUpdateMany, findUnique: mockSchoolMemberFindUnique },
+    eventBooking: { updateMany: mockEventBookingUpdateMany, update: mockEventBookingUpdate },
     transaction: { findFirst: mockTransactionFindFirst, create: mockTransactionCreate },
   }
   return fn(tx)
@@ -137,7 +163,7 @@ const mockTransaction = vi.fn((fn: (tx: unknown) => unknown) => {
 vi.mock('@/lib/db', () => ({
   prisma: {
     membership: { findFirst: mockMembershipFindFirst, findUnique: mockMembershipFindUnique },
-    eventBooking: { findFirst: vi.fn().mockResolvedValue(null) },
+    eventBooking: { findFirst: (...args: unknown[]) => mockEventBookingFindFirst(...(args as [{ where: { revolutOrderId: string } }])) },
     $transaction: mockTransaction,
   },
 }))
@@ -162,6 +188,16 @@ function seedMembership(overrides: Partial<Membership> & { id: string; revolutOr
 }
 function seedSchoolMember(schoolId: string, userId: string, status: string) {
   schoolMembers[smKey(schoolId, userId)] = { userId, schoolId, status }
+}
+function seedEventBooking(overrides: Partial<EventBooking> & { id: string; revolutOrderId: string }) {
+  eventBookings[overrides.id] = {
+    status: 'PENDING', quantity: 1, ticketId: 'ticket-1', eventId: 'event-1', ticketName: 'General',
+    amountPaid: 30, currency: 'EUR', userId: 'user-1', qrToken: 'qr-1',
+    event: { title: 'Open Mat', startAt: new Date(), location: 'Gym', capacity: null, schoolId: 'school-1', school: { revolutSecretKey: 'sk_test', revolutWebhookSecret: 'whsec_test', name: 'Academy', city: 'City', language: 'en' } },
+    ticket: { capacity: null },
+    user: { email: 'user@test.com', name: 'Test User' },
+    ...overrides,
+  }
 }
 
 beforeEach(() => {
@@ -230,6 +266,66 @@ describe('POST /api/webhooks/revolut — ORDER_COMPLETED for an ARCHIVED member'
     expect(res.status).toBe(200)
     expect(memberships['membership-1']!.status).toBe('ACTIVE')
     expect(schoolMembers[smKey('school-1', 'user-1')]!.status).toBe('ACTIVE')
+    expect(Object.values(transactions)).toHaveLength(0)
+  })
+})
+
+describe('POST /api/webhooks/revolut — event booking ORDER_COMPLETED for an ARCHIVED member', () => {
+  it('cancels the booking instead of confirming it, and flags the payment for manual review', async () => {
+    seedEventBooking({ id: 'booking-1', revolutOrderId: 'ord_eb_1' })
+    seedSchoolMember('school-1', 'user-1', 'ARCHIVED')
+
+    const res = await POST(makeRequest({ event: 'ORDER_COMPLETED', order_id: 'ord_eb_1' }))
+
+    expect(res.status).toBe(200)
+    expect(eventBookings['booking-1']!.status).toBe('CANCELLED') // not CONFIRMED
+    expect(schoolMembers[smKey('school-1', 'user-1')]!.status).toBe('ARCHIVED') // untouched
+    expect(mockRecordOnlinePayment).not.toHaveBeenCalled()
+    expect(mockRefundRevolutOrder).not.toHaveBeenCalled() // no automatic refund
+
+    const flagged = Object.values(transactions)
+    expect(flagged).toHaveLength(1)
+    expect(flagged[0]).toMatchObject({
+      status: 'FLAGGED', schoolId: 'school-1', userId: 'user-1',
+      amount: 30, currency: 'EUR', bookingId: 'booking-1', revolutOrderId: 'ord_eb_1',
+    })
+    expect(flagged[0]!.notes).toContain('eventId=event-1')
+  })
+
+  it('replaying the same ORDER_COMPLETED delivery does not create a second flagged transaction', async () => {
+    seedEventBooking({ id: 'booking-2', revolutOrderId: 'ord_eb_2' })
+    seedSchoolMember('school-1', 'user-1', 'ARCHIVED')
+    const body = { event: 'ORDER_COMPLETED', order_id: 'ord_eb_2' }
+
+    const first = await POST(makeRequest(body))
+    expect(first.status).toBe(200)
+    expect(Object.values(transactions)).toHaveLength(1)
+
+    const second = await POST(makeRequest(body))
+    expect(second.status).toBe(200)
+    expect(Object.values(transactions)).toHaveLength(1) // still just one
+  })
+
+  it('a non-ARCHIVED SchoolMember confirms the booking normally', async () => {
+    seedEventBooking({ id: 'booking-3', revolutOrderId: 'ord_eb_3' })
+    seedSchoolMember('school-1', 'user-1', 'FROZEN')
+
+    const res = await POST(makeRequest({ event: 'ORDER_COMPLETED', order_id: 'ord_eb_3' }))
+
+    expect(res.status).toBe(200)
+    expect(eventBookings['booking-3']!.status).toBe('CONFIRMED')
+    expect(mockRecordOnlinePayment).toHaveBeenCalledTimes(1)
+    expect(Object.values(transactions)).toHaveLength(0)
+  })
+
+  it('a brand-new user with no prior SchoolMember row still confirms the booking normally', async () => {
+    seedEventBooking({ id: 'booking-4', revolutOrderId: 'ord_eb_4' })
+    // no seedSchoolMember call — no prior row
+
+    const res = await POST(makeRequest({ event: 'ORDER_COMPLETED', order_id: 'ord_eb_4' }))
+
+    expect(res.status).toBe(200)
+    expect(eventBookings['booking-4']!.status).toBe('CONFIRMED')
     expect(Object.values(transactions)).toHaveLength(0)
   })
 })

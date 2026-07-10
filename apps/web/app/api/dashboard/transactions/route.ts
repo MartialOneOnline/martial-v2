@@ -108,6 +108,10 @@ export async function GET(req: NextRequest) {
       status:      t.status,
       type:        t.type,
       notes:       t.notes ?? null,
+      // Booking reference (Booking or EventBooking id — plain string, no FK)
+      // — set for class/event transactions, including FLAGGED ones so an
+      // admin can trace the exact event booking under review.
+      bookingId:   t.bookingId ?? null,
       // Provider payment reference — mainly relevant for online (Stripe/Revolut)
       // transactions, especially FLAGGED ones an admin needs to trace back to
       // the provider's own dashboard to decide on a refund.
