@@ -3,8 +3,11 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
 import { checkAndExpireMembership } from '@/lib/services/membership'
+import { hasDashboardAccess } from '@/lib/auth/contexts'
+import { getActiveStudentContext } from '@/lib/auth/activeContextCookie'
 
-// GET /api/my/memberships — full membership list for the logged-in student
+// GET /api/my/memberships — full membership list for the logged-in student,
+// scoped to their active student school when they belong to more than one.
 export async function GET() {
   const cookieStore = await cookies()
   const supabase = createServerClient(
@@ -21,8 +24,20 @@ export async function GET() {
   })
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
+  // A student in 2+ schools would otherwise see every school's membership
+  // history mixed into one list — see getActiveStudentContext().
+  const studentContext = await getActiveStudentContext(user.id)
+  if (studentContext.kind === 'ambiguous') {
+    return NextResponse.json({ error: 'student_context_required' }, { status: 409 })
+  }
+  if (studentContext.kind === 'none' && (await hasDashboardAccess(user.id))) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+  const schoolId = studentContext.kind === 'ok' ? studentContext.schoolId : undefined
+  const where = { userId: user.id, ...(schoolId && { schoolId }) }
+
   const memberships = await prisma.membership.findMany({
-    where: { userId: user.id },
+    where,
     orderBy: { startDate: 'desc' },
     include: {
       school: { select: { id: true, name: true, slug: true, logoUrl: true, city: true } },
@@ -47,7 +62,7 @@ export async function GET() {
   // Re-fetch after expiry so status is accurate in the response
   const freshMemberships = memberships.some(m => m.cancelledAt && m.endDate && m.status === 'ACTIVE')
     ? await prisma.membership.findMany({
-        where: { userId: user.id },
+        where,
         orderBy: { startDate: 'desc' },
         include: {
           school: { select: { id: true, name: true, slug: true, logoUrl: true, city: true } },

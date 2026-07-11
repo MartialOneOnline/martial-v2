@@ -12,6 +12,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const mockIsValidContext = vi.fn()
+const mockListAvailableContexts = vi.fn()
 vi.mock('@/lib/auth/activeContext', async () => {
   const actual = await vi.importActual<typeof import('@/lib/auth/activeContext')>(
     '@/lib/auth/activeContext',
@@ -19,6 +20,7 @@ vi.mock('@/lib/auth/activeContext', async () => {
   return {
     ...actual,
     isValidContext: mockIsValidContext,
+    listAvailableContexts: mockListAvailableContexts,
   }
 })
 
@@ -31,8 +33,21 @@ const {
   parseActiveContextCookie,
   serializeActiveContextCookie,
   getActiveContext,
+  getActiveStudentContext,
   ACTIVE_CONTEXT_COOKIE_NAME,
 } = await import('@/lib/auth/activeContextCookie')
+
+function availableContext(overrides: Record<string, unknown> = {}) {
+  return {
+    mode: 'student',
+    schoolId: 'school-1',
+    schoolName: 'Roger Gracie',
+    schoolLogoUrl: null,
+    role: 'STUDENT',
+    subtitle: null,
+    ...overrides,
+  }
+}
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -149,5 +164,96 @@ describe('getActiveContext()', () => {
       mode: 'dashboard',
       schoolId: 'someone-elses-school',
     })
+  })
+})
+
+describe('getActiveStudentContext()', () => {
+  it('uses the cookie when it is a valid student-mode context', async () => {
+    mockCookieGet.mockReturnValue({ value: JSON.stringify({ mode: 'student', schoolId: 'school-9' }) })
+    mockIsValidContext.mockResolvedValue(true)
+
+    const result = await getActiveStudentContext('user-1')
+
+    expect(result).toEqual({ kind: 'ok', schoolId: 'school-9' })
+    expect(mockListAvailableContexts).not.toHaveBeenCalled()
+  })
+
+  it('treats a valid dashboard-mode cookie as "no student cookie" and falls back to listAvailableContexts', async () => {
+    mockCookieGet.mockReturnValue({ value: JSON.stringify({ mode: 'dashboard', schoolId: 'school-9' }) })
+    mockIsValidContext.mockResolvedValue(true)
+    mockListAvailableContexts.mockResolvedValue([availableContext({ schoolId: 'school-1' })])
+
+    const result = await getActiveStudentContext('user-1')
+
+    expect(result).toEqual({ kind: 'ok', schoolId: 'school-1' })
+  })
+
+  it('falls back when there is no cookie at all and exactly one real student context exists', async () => {
+    mockCookieGet.mockReturnValue(undefined)
+    mockListAvailableContexts.mockResolvedValue([availableContext({ schoolId: 'school-1' })])
+
+    const result = await getActiveStudentContext('user-1')
+
+    expect(result).toEqual({ kind: 'ok', schoolId: 'school-1' })
+  })
+
+  it('returns ambiguous for 2+ student contexts with no cookie', async () => {
+    mockCookieGet.mockReturnValue(undefined)
+    mockListAvailableContexts.mockResolvedValue([
+      availableContext({ schoolId: 'school-1' }),
+      availableContext({ schoolId: 'school-2' }),
+    ])
+
+    const result = await getActiveStudentContext('user-1')
+
+    expect(result).toEqual({ kind: 'ambiguous' })
+  })
+
+  it('returns ambiguous for 2+ student contexts even with a manipulated/foreign-school cookie rejected by isValidContext', async () => {
+    mockCookieGet.mockReturnValue({ value: JSON.stringify({ mode: 'student', schoolId: 'someone-elses-school' }) })
+    mockIsValidContext.mockResolvedValue(false)
+    mockListAvailableContexts.mockResolvedValue([
+      availableContext({ schoolId: 'school-1' }),
+      availableContext({ schoolId: 'school-2' }),
+    ])
+
+    const result = await getActiveStudentContext('user-1')
+
+    expect(result).toEqual({ kind: 'ambiguous' })
+  })
+
+  it('picks school B when the cookie points at B out of 2 real student contexts', async () => {
+    mockCookieGet.mockReturnValue({ value: JSON.stringify({ mode: 'student', schoolId: 'school-b' }) })
+    mockIsValidContext.mockResolvedValue(true)
+    mockListAvailableContexts.mockResolvedValue([
+      availableContext({ schoolId: 'school-a' }),
+      availableContext({ schoolId: 'school-b' }),
+    ])
+
+    const result = await getActiveStudentContext('user-1')
+
+    expect(result).toEqual({ kind: 'ok', schoolId: 'school-b' })
+    expect(mockListAvailableContexts).not.toHaveBeenCalled()
+  })
+
+  it('returns none when there are zero real student contexts', async () => {
+    mockCookieGet.mockReturnValue(undefined)
+    mockListAvailableContexts.mockResolvedValue([])
+
+    const result = await getActiveStudentContext('user-1')
+
+    expect(result).toEqual({ kind: 'none' })
+  })
+
+  it('ignores non-student contexts (dashboard) when counting for ambiguity', async () => {
+    mockCookieGet.mockReturnValue(undefined)
+    mockListAvailableContexts.mockResolvedValue([
+      availableContext({ mode: 'dashboard', schoolId: 'school-1', role: 'OWNER' }),
+      availableContext({ mode: 'student', schoolId: 'school-2' }),
+    ])
+
+    const result = await getActiveStudentContext('user-1')
+
+    expect(result).toEqual({ kind: 'ok', schoolId: 'school-2' })
   })
 })

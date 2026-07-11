@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import { useRouter, usePathname } from 'next/navigation'
 import {
   Calendar, Clock, CalendarCheck, QrCode, CalendarPlus,
   CreditCard, TrendingUp, ChevronRight, CheckCircle2,
@@ -9,6 +10,7 @@ import {
 import { fmtPrice } from '../../lib/format'
 import { getBeltImage } from '../../lib/belts'
 import { useT } from '../../lib/i18n/LanguageContext'
+import { isStudentContextRequired, chooseProfileUrl } from '../../lib/studentContext'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -148,6 +150,8 @@ const QUICK_ACTION_KEYS = [
 
 export default function MyHomePage() {
   const t = useT()
+  const router = useRouter()
+  const pathname = usePathname()
   const [data, setData]             = useState<UserData | null>(null)
   const [loading, setLoading]       = useState(true)
   const [occurrences, setOccurrences] = useState<Occurrence[]>([])
@@ -162,13 +166,28 @@ export default function MyHomePage() {
   useEffect(() => {
     fetch('/api/my')
       .then(r => r.json())
-      .then(d => { setData(d); setLoading(false) })
+      .then(d => {
+        // A student in 2+ schools with no resolved active context can't be
+        // served here without silently mixing schools — send them to pick
+        // one instead of rendering an empty/broken dashboard. Any other
+        // error shape (network failure already caught below, 401/500 with a
+        // different body) falls through to the normal empty state exactly
+        // as before this check existed.
+        if (isStudentContextRequired(d)) {
+          router.replace(chooseProfileUrl(pathname))
+          return
+        }
+        setData(d); setLoading(false)
+      })
       .catch(() => setLoading(false))
     fetch('/api/my/school-classes')
       .then(r => r.json())
-      .then(d => setOccurrences(d.occurrences ?? []))
+      .then(d => {
+        if (isStudentContextRequired(d)) return
+        setOccurrences(d.occurrences ?? [])
+      })
       .catch(() => {})
-  }, [])
+  }, [router, pathname])
 
   // Carousel dot sync
   useEffect(() => {

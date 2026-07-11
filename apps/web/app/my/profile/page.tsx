@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import { useRouter, usePathname } from 'next/navigation'
 import {
   CalendarDays, CreditCard, DollarSign, ChevronRight,
   Camera, LogOut, Medal, Settings, HelpCircle, Shield, QrCode,
@@ -9,6 +10,7 @@ import {
 import { getBeltImage } from '../../../lib/belts'
 import { createClient } from '../../../lib/supabase/client'
 import { useT } from '../../../lib/i18n/LanguageContext'
+import { isStudentContextRequired, chooseProfileUrl } from '../../../lib/studentContext'
 
 type Profile = {
   name: string | null
@@ -49,6 +51,8 @@ function getMenu(t: ReturnType<typeof useT>): MenuSection[] {
 
 export default function MyProfilePage() {
   const t = useT()
+  const router = useRouter()
+  const pathname = usePathname()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading]  = useState(true)
   const [editing, setEditing]     = useState(false)
@@ -62,6 +66,13 @@ export default function MyProfilePage() {
     fetch('/api/my')
       .then(r => r.json())
       .then(d => {
+        // Same rationale as app/my/page.tsx: a dual-school student with no
+        // resolved active context can't be served a profile without
+        // guessing which school it belongs to — send them to pick one.
+        if (isStudentContextRequired(d)) {
+          router.replace(chooseProfileUrl(pathname))
+          return
+        }
         const u = d.user
         setProfile(u)
         setName(u?.name ?? '')
@@ -69,7 +80,7 @@ export default function MyProfilePage() {
         setLoading(false)
       })
       .catch(() => setLoading(false))
-  }, [])
+  }, [router, pathname])
 
   async function handleSave() {
     setSaving(true)

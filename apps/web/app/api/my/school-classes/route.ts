@@ -5,6 +5,8 @@ import { prisma } from '@/lib/db'
 import { nextOccurrence, type ScheduleSlot } from '@/lib/scheduling'
 import type { ClassAccessConfig, BookingCounts } from '@/lib/services/classAccess'
 import { checkBookingEligibility, type EligibleMembership } from '@/lib/services/bookingEligibility'
+import { hasDashboardAccess } from '@/lib/auth/contexts'
+import { getActiveStudentContext } from '@/lib/auth/activeContextCookie'
 
 const EMPTY_COUNTS: BookingCounts = {
   perWeek: 0, perMonth: 0, total: 0, globalPerWeek: 0, globalPerMonth: 0, globalTotal: 0,
@@ -37,12 +39,30 @@ export async function GET() {
   })
   if (!dbUser) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  // Schools the user belongs to at all (LEAD/ACTIVE/FROZEN) — determines what's visible.
-  const schoolMembers = await prisma.schoolMember.findMany({
-    where: { userId: dbUser.id, status: { in: ['ACTIVE', 'LEAD', 'FROZEN'] } },
-    select: { schoolId: true },
-  })
-  const schoolIds = [...new Set(schoolMembers.map(sm => sm.schoolId))]
+  // A student in 2+ schools would otherwise see every school's timetable
+  // merged into one list of occurrences — see getActiveStudentContext().
+  const studentContext = await getActiveStudentContext(dbUser.id)
+  if (studentContext.kind === 'ambiguous') {
+    return NextResponse.json({ error: 'student_context_required' }, { status: 409 })
+  }
+  if (studentContext.kind === 'none' && (await hasDashboardAccess(dbUser.id))) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  // Single active student school when resolved; otherwise every school the
+  // user belongs to at all (LEAD/ACTIVE/FROZEN) — matches the 'none' fallback
+  // used elsewhere in this endpoint (only reachable for a user with zero real
+  // STUDENT memberships anywhere, so this naturally comes back empty too).
+  let schoolIds: string[]
+  if (studentContext.kind === 'ok') {
+    schoolIds = [studentContext.schoolId]
+  } else {
+    const schoolMembers = await prisma.schoolMember.findMany({
+      where: { userId: dbUser.id, status: { in: ['ACTIVE', 'LEAD', 'FROZEN'] } },
+      select: { schoolId: true },
+    })
+    schoolIds = [...new Set(schoolMembers.map(sm => sm.schoolId))]
+  }
 
   if (schoolIds.length === 0) return NextResponse.json({ occurrences: [] })
 

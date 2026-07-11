@@ -1,12 +1,13 @@
 'use client'
 
 import { Suspense, useEffect, useState, useCallback, useRef } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { CalendarDays, Clock, MapPin, Ticket, CheckCircle2, X, Minus, Plus, AlertCircle, QrCode, MessageCircle, Mail, Globe } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../lib/format'
+import { isStudentContextRequired, chooseProfileUrl } from '../../../lib/studentContext'
 
 function InstagramIcon({ className }: { className?: string }) {
   return (
@@ -452,6 +453,8 @@ export default function MyEventsPage() {
 function MyEventsPageInner() {
   const t = useT()
   const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
   const [mainTab, setMainTab] = useState<'available' | 'mine'>('available')
   const [events, setEvents] = useState<EventItem[]>([])
   const [myBookings, setMyBookings] = useState<MyBooking[]>([])
@@ -466,6 +469,13 @@ function MyEventsPageInner() {
     fetch('/api/my/events')
       .then(r => r.json())
       .then(d => {
+        // A dual-school student with no resolved active context can't be
+        // served events/bookings without guessing which school it belongs
+        // to — send them to pick one instead of rendering an empty page.
+        if (isStudentContextRequired(d)) {
+          router.replace(chooseProfileUrl(pathname))
+          return
+        }
         const bookings = d.myBookings ?? []
         setEvents(d.events ?? [])
         setMyBookings(bookings)
@@ -476,7 +486,7 @@ function MyEventsPageInner() {
         }
       })
       .catch(() => setLoading(false))
-  }, [])
+  }, [router, pathname])
 
   useEffect(() => { load() }, [load])
 

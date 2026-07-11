@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
+import { hasDashboardAccess } from '@/lib/auth/contexts'
+import { getActiveStudentContext } from '@/lib/auth/activeContextCookie'
 
 export async function GET(req: NextRequest) {
   const cookieStore = await cookies()
@@ -16,6 +18,21 @@ export async function GET(req: NextRequest) {
   const dbUser = await prisma.user.findUnique({ where: { supabaseAuthId: authUser.id }, select: { id: true } })
   if (!dbUser) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
+  // Bookings only carry a schoolId indirectly (via class.schoolId), so a
+  // student in 2+ schools would otherwise see every school's bookings mixed
+  // into one paginated list — see getActiveStudentContext() for the
+  // resolution rules (cookie > single real context > ambiguous).
+  const studentContext = await getActiveStudentContext(dbUser.id)
+  if (studentContext.kind === 'ambiguous') {
+    return NextResponse.json({ error: 'student_context_required' }, { status: 409 })
+  }
+  if (studentContext.kind === 'none' && (await hasDashboardAccess(dbUser.id))) {
+    // Staff-only account (no real STUDENT membership anywhere) — same guard
+    // as GET/PATCH /api/my (myRouteStaffGuard.test.ts).
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+  const schoolId = studentContext.kind === 'ok' ? studentContext.schoolId : undefined
+
   const { searchParams } = new URL(req.url)
   const past = searchParams.get('past') === 'true'
   const page = parseInt(searchParams.get('page') || '1')
@@ -25,6 +42,7 @@ export async function GET(req: NextRequest) {
   const where = {
     userId: dbUser.id,
     scheduledAt: past ? { lt: now } : { gte: now },
+    ...(schoolId && { class: { schoolId } }),
   }
 
   const [bookings, total] = await Promise.all([

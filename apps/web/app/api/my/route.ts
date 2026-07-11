@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
 import { getSchoolModules } from '@/lib/school-modules'
 import { hasDashboardAccess, hasStudentAccess } from '@/lib/auth/contexts'
+import { getActiveStudentContext } from '@/lib/auth/activeContextCookie'
 
 export async function GET() {
   const cookieStore = await cookies()
@@ -15,13 +16,33 @@ export async function GET() {
   const { data: { user: authUser } } = await supabase.auth.getUser()
   if (!authUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  const dbUserId = await prisma.user.findUnique({
+    where: { supabaseAuthId: authUser.id },
+    select: { id: true },
+  })
+  if (!dbUserId) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+
+  // A student in 2+ schools with no (or no matching) martial_active_context
+  // cookie can't be served without silently mixing schools — see
+  // getActiveStudentContext(). 'none'/'ok' are resolved below, alongside the
+  // pre-existing staff-only guard.
+  const studentContext = await getActiveStudentContext(dbUserId.id)
+  if (studentContext.kind === 'ambiguous') {
+    return NextResponse.json({ error: 'student_context_required' }, { status: 409 })
+  }
+  // undefined = don't filter by school. Safe for 'none': a user with zero
+  // real STUDENT memberships has no Membership/Booking/Grading rows to leak
+  // across schools in the first place (and the staff-only 403 check below
+  // still applies).
+  const schoolId = studentContext.kind === 'ok' ? studentContext.schoolId : undefined
+
   const user = await prisma.user.findUnique({
     where: { supabaseAuthId: authUser.id },
     select: {
       id: true, name: true, email: true, phone: true,
       avatarUrl: true, dateOfBirth: true, role: true,
       memberships: {
-        where: { status: { in: ['ACTIVE', 'PENDING', 'PAUSED'] } },
+        where: { status: { in: ['ACTIVE', 'PENDING', 'PAUSED'] }, ...(schoolId && { schoolId }) },
         orderBy: { startDate: 'desc' },
         take: 3,
         select: {
@@ -37,7 +58,7 @@ export async function GET() {
         },
       },
       bookings: {
-        where: { scheduledAt: { gte: new Date() } },
+        where: { scheduledAt: { gte: new Date() }, ...(schoolId && { class: { schoolId } }) },
         orderBy: { scheduledAt: 'asc' },
         take: 5,
         select: {
@@ -54,8 +75,11 @@ export async function GET() {
       // exists purely to grant dashboard permissions and never represents a
       // real student profile. Mixing it in here would let a staff-only
       // account render as a (fake, empty) student. See hasStudentAccess().
+      // Also scoped to the active student school when there is more than
+      // one — a dual-school student's belt/status here must match whichever
+      // school schoolId (memberships/bookings above) is scoped to.
       schoolMembers: {
-        where: { status: { in: ['ACTIVE', 'LEAD', 'FROZEN'] }, role: 'STUDENT' },
+        where: { status: { in: ['ACTIVE', 'LEAD', 'FROZEN'] }, role: 'STUDENT', ...(schoolId && { schoolId }) },
         select: {
           id: true, belt: true, beltDegree: true, beltDate: true, role: true, status: true,
           school: {
@@ -67,6 +91,7 @@ export async function GET() {
         },
       },
       gradings: {
+        where: { ...(schoolId && { schoolId }) },
         orderBy: { gradedAt: 'desc' },
         take: 10,
         select: {
@@ -84,7 +109,8 @@ export async function GET() {
   // Staff-only accounts (no real STUDENT enrollment anywhere) don't belong
   // in the student portal — mirrors the redirect in app/my/layout.tsx.
   // schoolMembers is already filtered to role: 'STUDENT' above, so an empty
-  // list here means "no student membership".
+  // list here means "no student membership" (at the active school, or
+  // anywhere, when studentContext.kind is 'none').
   if (user.schoolMembers.length === 0 && (await hasDashboardAccess(user.id))) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }

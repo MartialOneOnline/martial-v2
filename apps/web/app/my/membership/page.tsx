@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter, usePathname } from 'next/navigation'
 import {
   CreditCard, Building2, Zap, Clock, CalendarCheck,
   ChevronDown, ChevronUp, RefreshCw, CheckCircle2,
@@ -10,6 +11,7 @@ import {
 import { fmtPrice } from '../../../lib/format'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import type { Translations } from '../../../lib/i18n/translations'
+import { isStudentContextRequired, chooseProfileUrl } from '../../../lib/studentContext'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -697,6 +699,8 @@ function RequestSuccessModal({ plan, onClose, t }: { plan: Plan; onClose: () => 
 
 export default function MyMembershipPage() {
   const t = useT()
+  const router = useRouter()
+  const pathname = usePathname()
   const [memberships, setMemberships] = useState<Membership[]>([])
   const [plans, setPlans] = useState<Plan[]>([])
   const [loading, setLoading] = useState(true)
@@ -712,11 +716,19 @@ export default function MyMembershipPage() {
       fetch('/api/my/memberships').then(r => r.json()),
       fetch('/api/my/school-plans').then(r => r.json()),
     ]).then(([mData, pData]) => {
+      // A dual-school student with no resolved active context can't be
+      // served membership/plan data without guessing which school it
+      // belongs to — send them to pick one instead of rendering an
+      // empty/broken page.
+      if (isStudentContextRequired(mData) || isStudentContextRequired(pData)) {
+        router.replace(chooseProfileUrl(pathname))
+        return
+      }
       setMemberships(mData.memberships ?? [])
       setPlans(pData.plans ?? [])
       setLoading(false)
     }).catch(() => setLoading(false))
-  }, [])
+  }, [router, pathname])
 
   const active = memberships.filter(m => ['ACTIVE', 'PAUSED', 'PENDING'].includes(m.status))
   const past   = memberships.filter(m => ['CANCELLED', 'EXPIRED'].includes(m.status))
