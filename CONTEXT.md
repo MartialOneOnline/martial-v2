@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `98c4bdf` — resolución manual de `Transaction.FLAGGED` sin borrar la fila (Sesión 54); migración `20260710180000_add_transaction_resolution_fields` **aplicada en producción**, `migrate status` en verde. **PR abierta sin mergear:** `fix/staff-booking-capacity-guard` (Sesión 55) — guard de capacidad/membership en reservas de staff (add-booking + checkin walk-in), sin migración. **Pendiente:** sandbox Revolut no soportado (host de producción hardcodeado en `register-webhook`), documentado como gap, no implementado
+**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `d7d233a` — guard de capacidad/membership en reservas de staff (add-booking + checkin walk-in), con `scheduledAt` alineado al horario real de la clase (Sesión 55); sin migración, sin cambios de schema. **Pendiente:** sandbox Revolut no soportado (host de producción hardcodeado en `register-webhook`), documentado como gap, no implementado
 
 ---
 
@@ -261,8 +261,8 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 
 ## Historial de sesiones
 
-### Sesión 55 — 2026-07-11 ⏳ pendiente de mergear
-**Guard de capacidad/membership en reservas creadas por staff** — branch `fix/staff-booking-capacity-guard`, aún no mergeada
+### Sesión 55 — 2026-07-11 ✅
+**Guard de capacidad/membership en reservas creadas por staff** — mergeado a `main` en `d7d233a` (branch `fix/staff-booking-capacity-guard`, borrada local + remoto tras confirmar Vercel Production)
 
 Sale de una auditoría corta (P1/P2 fuera de pagos, sin cambios de código) que comparó `POST /api/bookings` (auto-reserva del alumno, con capacidad + membership + classAccess robusto y bien testeado) contra los dos endpoints equivalentes para staff, que no tenían ningún control.
 
