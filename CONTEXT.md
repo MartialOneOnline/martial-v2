@@ -261,8 +261,8 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 
 ## Historial de sesiones
 
-### Sesión 60 — 2026-07-11 🔄 (PR abierto, sin mergear todavía)
-**Base server-side del selector de contexto tipo Facebook: helpers puros `listAvailableContexts()` / `isValidContext()`** — branch `fix/context-selector-foundation`, PR abierto contra `main`, **no mergeado**
+### Sesión 60 — 2026-07-11 ✅
+**Base server-side del selector de contexto tipo Facebook: helpers puros `listAvailableContexts()` / `isValidContext()`** — mergeado a `main` en `fe9ad92` (branch `fix/context-selector-foundation`, PR [#3](https://github.com/MartialOneOnline/martial-v2/pull/3), borrada local + remoto tras confirmar Vercel Production)
 
 Continúa la línea de la Sesión 59 (guard `/my` vs `/dashboard`) hacia el selector de contexto: hoy un usuario con varias escuelas o roles duales no tiene forma de elegir explícitamente "en qué escuela/modo estoy" — `getUserContexts()` resuelve `currentSchoolId` con un fallback silencioso al primero encontrado. Este PR es solo la capa de librería pura que un selector de contexto (estilo Facebook, tarjetas de escuela/rol) va a necesitar — **sin UI, sin cookie, sin redirect, sin tocar `/api/my/**` ni `hasDashboardAccess()`/`hasStudentAccess()`** (se reutilizan tal cual, no se tocan).
 
