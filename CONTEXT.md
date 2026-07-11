@@ -261,8 +261,8 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 
 ## Historial de sesiones
 
-### Sesión 62 — 2026-07-11 ⏳ PR abierto, no mergeado
-**Primera UI del selector de perfil/contexto tipo Facebook: `/choose-profile`** — branch `feature/choose-profile`, PR [#5](https://github.com/MartialOneOnline/martial-v2/pull/5), **abierto, sin mergear**
+### Sesión 62 — 2026-07-11 ✅
+**Primera UI del selector de perfil/contexto tipo Facebook: `/choose-profile`** — mergeado a `main` en `692115a` (branch `feature/choose-profile`, PR [#5](https://github.com/MartialOneOnline/martial-v2/pull/5), borrada local + remoto tras confirmar Vercel Production). Verificado visualmente en mobile (375×812) y desktop antes de mergear: tema claro confirmado, tarjetas correctas, error state sin crash
 
 Consume la infraestructura ya mergeada en las Sesiones 60/61 (`listAvailableContexts()`, `GET /api/auth/contexts`, `POST/DELETE /api/auth/context/select`) para construir la primera pantalla real del selector — **sin tocar el scoping de `/api/my/**` ni de las APIs de dashboard** (eso queda para un PR futuro), sin tocar `currentSchoolId`, sin schema/migraciones.
 
