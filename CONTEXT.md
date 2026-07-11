@@ -261,8 +261,8 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 
 ## Historial de sesiones
 
-### Sesión 61 — 2026-07-11 🔵 (PR abierto, no mergeado todavía)
-**Cookie + endpoints server-side del contexto activo del selector tipo Facebook** — branch `fix/active-context-cookie-api`, PR [#4](https://github.com/MartialOneOnline/martial-v2/pull/4), **sin mergear**
+### Sesión 61 — 2026-07-11 ✅
+**Cookie + endpoints server-side del contexto activo del selector tipo Facebook** — mergeado a `main` en `6f34eed` (branch `fix/active-context-cookie-api`, PR [#4](https://github.com/MartialOneOnline/martial-v2/pull/4), borrada local + remoto tras confirmar Vercel Production)
 
 Continúa la Sesión 60: `listAvailableContexts()`/`isValidContext()` ya existían como capa pura sin cookie ni endpoint. Este PR añade exactamente eso — persistencia y validación server-side del `ActiveContext` elegido — **sin UI del selector (`/choose-profile`), sin tocar redirects de login, sin tocar el scoping de `/api/my/**` ni de dashboard**. El siguiente PR consumirá esto para construir la UI real.
 
