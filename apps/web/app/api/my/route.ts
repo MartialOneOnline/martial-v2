@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
 import { getSchoolModules } from '@/lib/school-modules'
+import { hasDashboardAccess, hasStudentAccess } from '@/lib/auth/contexts'
 
 export async function GET() {
   const cookieStore = await cookies()
@@ -49,8 +50,12 @@ export async function GET() {
           },
         },
       },
+      // STUDENT-role only — a staff-facing SchoolMember (OWNER, ADMIN, ...)
+      // exists purely to grant dashboard permissions and never represents a
+      // real student profile. Mixing it in here would let a staff-only
+      // account render as a (fake, empty) student. See hasStudentAccess().
       schoolMembers: {
-        where: { status: { in: ['ACTIVE', 'LEAD', 'FROZEN'] } },
+        where: { status: { in: ['ACTIVE', 'LEAD', 'FROZEN'] }, role: 'STUDENT' },
         select: {
           id: true, belt: true, beltDegree: true, beltDate: true, role: true, status: true,
           school: {
@@ -75,6 +80,14 @@ export async function GET() {
   })
 
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+
+  // Staff-only accounts (no real STUDENT enrollment anywhere) don't belong
+  // in the student portal — mirrors the redirect in app/my/layout.tsx.
+  // schoolMembers is already filtered to role: 'STUDENT' above, so an empty
+  // list here means "no student membership".
+  if (user.schoolMembers.length === 0 && (await hasDashboardAccess(user.id))) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
 
   const memberships = user.memberships.map(m => {
     const { _count, ...school } = m.school ?? {}
@@ -104,6 +117,17 @@ export async function PATCH(req: Request) {
   )
   const { data: { user: authUser } } = await supabase.auth.getUser()
   if (!authUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const dbUser = await prisma.user.findUnique({
+    where: { supabaseAuthId: authUser.id },
+    select: { id: true },
+  })
+  if (!dbUser) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+
+  // Same staff-only guard as GET — see hasStudentAccess() for rationale.
+  if ((await hasDashboardAccess(dbUser.id)) && !(await hasStudentAccess(dbUser.id))) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
 
   const body = await req.json()
   const { name, phone, dateOfBirth, avatarUrl } = body
