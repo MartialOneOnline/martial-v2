@@ -1085,8 +1085,8 @@ function BookingsDrawer({ cls, open, onClose }: {
 
 // ── Delete confirm modal ────────────────────────────────────────────────────────
 
-function DeleteModal({ cls, onConfirm, onCancel }: {
-  cls: ClassRow | null; onConfirm: () => void; onCancel: () => void
+function DeleteModal({ cls, error, deleting, onConfirm, onCancel }: {
+  cls: ClassRow | null; error?: string; deleting?: boolean; onConfirm: () => void; onCancel: () => void
 }) {
   const t = useT()
   if (!cls) return null
@@ -1105,6 +1105,7 @@ function DeleteModal({ cls, onConfirm, onCancel }: {
           <p style={{ fontSize: 13, color: '#6B7280', marginTop: 6 }}>
             <strong>{cls.name}</strong> will be permanently deleted. This cannot be undone.
           </p>
+          {error && <p style={{ fontSize: 12, color: '#DC2626', marginTop: 8 }}>{error}</p>}
         </div>
         <div className="flex gap-3 w-full">
           <button onClick={onCancel}
@@ -1112,10 +1113,10 @@ function DeleteModal({ cls, onConfirm, onCancel }: {
             style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
             {t.common.cancel}
           </button>
-          <button onClick={onConfirm}
+          <button onClick={onConfirm} disabled={deleting}
             className="flex-1 py-2.5 rounded-xl cursor-pointer"
-            style={{ fontSize: 13, fontWeight: 600, border: 'none', background: '#DC2626', color: '#fff' }}>
-            Delete
+            style={{ fontSize: 13, fontWeight: 600, border: 'none', background: '#DC2626', color: '#fff', opacity: deleting ? 0.7 : 1 }}>
+            {deleting ? 'Deleting…' : 'Delete'}
           </button>
         </div>
       </div>
@@ -1169,6 +1170,8 @@ export default function ClassesClient() {
   const [drawerOpen, setDrawerOpen]     = useState(false)
   const [editingClass, setEditingClass] = useState<ClassRow | null>(null)
   const [deleteClass, setDeleteClass]     = useState<ClassRow | null>(null)
+  const [deleteError, setDeleteError]     = useState('')
+  const [deleting, setDeleting]           = useState(false)
   const [bookingsClass, setBookingsClass] = useState<ClassRow | null>(null)
   const [successMsg, setSuccessMsg]       = useState('')
 
@@ -1215,7 +1218,15 @@ export default function ClassesClient() {
 
   async function handleDelete() {
     if (!deleteClass) return
-    await fetch(`/api/dashboard/classes/${deleteClass.id}`, { method: 'DELETE' })
+    setDeleting(true)
+    setDeleteError('')
+    const res = await fetch(`/api/dashboard/classes/${deleteClass.id}`, { method: 'DELETE' })
+    setDeleting(false)
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      setDeleteError(data.error ?? 'Could not delete class.')
+      return
+    }
     setDeleteClass(null)
     setSuccessMsg('Class deleted')
     loadClasses()
@@ -1479,7 +1490,7 @@ export default function ClassesClient() {
                               onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
                               {cls.isPublished ? '⊘ Unpublish' : '↑ Publish'}
                             </button>
-                            <button onClick={() => setDeleteClass(cls)}
+                            <button onClick={() => { setDeleteClass(cls); setDeleteError('') }}
                               className="w-full text-left px-4 py-2 transition-colors cursor-pointer flex items-center gap-2"
                               style={{ fontSize: 13, color: '#DC2626', background: 'transparent', border: 'none' }}
                               onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#FEF2F2'}
@@ -1564,8 +1575,10 @@ export default function ClassesClient() {
 
       <DeleteModal
         cls={deleteClass}
+        error={deleteError}
+        deleting={deleting}
         onConfirm={handleDelete}
-        onCancel={() => setDeleteClass(null)}
+        onCancel={() => { setDeleteClass(null); setDeleteError('') }}
       />
 
       <SuccessModal
