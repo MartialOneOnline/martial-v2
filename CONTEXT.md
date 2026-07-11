@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `d9f9b1a` — 409 limpio al borrar una clase con reservas, antes 500/fallo silencioso (Sesión 57); sin migración, sin cambios de schema. Con esto queda cerrada toda la auditoría P1/P2 fuera de pagos (Sesiones 55-57). **PR abierta sin mergear:** `fix/class-cancelled-notifications` (Sesión 58) — notificaciones `CLASS_CANCELLED` al cancelar ocurrencia de clase, visibles para staff (no para alumnos — limitación del modelo, documentada), sin migración. **Pendiente:** sandbox Revolut no soportado (host de producción hardcodeado en `register-webhook`), documentado como gap, no implementado
+**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `fb09c35` — notificaciones `CLASS_CANCELLED` al cancelar ocurrencia de clase, visibles para staff, no para alumnos (limitación del modelo `Notification`, documentada — Sesión 58); sin migración, sin cambios de schema. **Pendiente:** sandbox Revolut no soportado (host de producción hardcodeado en `register-webhook`), documentado como gap, no implementado; canal de notificaciones student-facing sigue siendo una feature futura separada
 
 ---
 
@@ -261,8 +261,8 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 
 ## Historial de sesiones
 
-### Sesión 58 — 2026-07-11 ⏳ pendiente de mergear
-**Notificaciones `CLASS_CANCELLED` al cancelar una ocurrencia de clase** — branch `fix/class-cancelled-notifications`, aún no mergeada
+### Sesión 58 — 2026-07-11 ✅
+**Notificaciones `CLASS_CANCELLED` al cancelar una ocurrencia de clase** — mergeado a `main` en `fb09c35` (branch `fix/class-cancelled-notifications`, borrada local + remoto tras confirmar Vercel Production)
 
 `NotificationType.CLASS_CANCELLED` existía en el enum y estaba pintado en la UI (`NotificationsClient.tsx`/`NotificationsPopup.tsx`) pero `POST /api/dashboard/classes/[id]/cancel-occurrence` cancelaba reservas sin disparar ninguna notificación — era uno de los 6 tipos del enum "vivos en la UI, muertos en el backend" identificados en la auditoría P1/P2. Este PR conecta ese tipo específico, sin tocar los otros 5 (`PAYMENT_PENDING`, `MEMBERSHIP_EXPIRING`, `CLASS_FULL`, `GRADING_COMPLETED`, `STUDENT_INACTIVE` — graduaciones explícitamente fuera de scope, el resto queda como gap conocido).
 
