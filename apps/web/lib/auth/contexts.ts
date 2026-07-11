@@ -83,3 +83,17 @@ export async function hasDashboardAccess(userId: string): Promise<boolean> {
   })
   return count > 0
 }
+
+// Gate for entering /my as a student. A staff-facing SchoolMember (OWNER,
+// ADMIN, ...) exists only to grant dashboard permissions — it never
+// represents real training activity (no belt progression, no bookings tied
+// to a student identity). So /my must not render off the mere presence of
+// *any* SchoolMember row; it needs a real STUDENT-role one. Status list
+// mirrors app/api/my/route.ts's schoolMembers query (ACTIVE/LEAD/FROZEN —
+// a lead awaiting payment or a paused student both still belong in /my).
+export async function hasStudentAccess(userId: string): Promise<boolean> {
+  const count = await prisma.schoolMember.count({
+    where: { userId, status: { in: ['ACTIVE', 'LEAD', 'FROZEN'] }, role: 'STUDENT' },
+  })
+  return count > 0
+}
