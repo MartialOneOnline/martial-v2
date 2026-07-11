@@ -185,6 +185,51 @@ describe('POST /api/dashboard/classes/[id]/bookings — membership + capacity gu
     expect(json.booking.id).toBe('booking-1')
   })
 
+  it('resolves scheduledAt to the class real schedule-slot time, not noon, so it matches self-booking', async () => {
+    // 2026-07-13 is a UTC Monday (dayOfWeek: 1) — the same convention
+    // GET /api/my/school-classes uses to generate real occurrences.
+    mockClassFindFirst.mockResolvedValue({
+      id: 'class-1', name: 'BJJ', schoolId: 'school-1', capacity: 5,
+      schedule: [{ dayOfWeek: 1, startTime: '18:00', endTime: '19:00' }],
+    })
+    mockBookingFindFirst.mockResolvedValue(null)
+    mockBookingCount.mockResolvedValue(0)
+    mockBookingCreate.mockResolvedValue({ id: 'booking-1', status: 'CONFIRMED', user: { name: 'Student', avatarUrl: null } })
+
+    await addBooking('class-1', { userId: 'student-1', date: '2026-07-13' })
+
+    const expected = new Date('2026-07-13T18:00:00.000Z')
+    expect(mockBookingCreate).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ scheduledAt: expected }),
+    }))
+    expect(mockBookingCount).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ scheduledAt: expected }),
+    }))
+  })
+
+  it('capacity check catches a self-booking already sitting on the real slot time (cross-path)', async () => {
+    // Regression test for the bug where this endpoint counted bookings at an
+    // arbitrary noon placeholder that never overlapped with self-bookings on
+    // the class's actual schedule time — a class full of self-bookings would
+    // look empty to this endpoint and staff could always add "just one more".
+    mockClassFindFirst.mockResolvedValue({
+      id: 'class-1', name: 'BJJ', schoolId: 'school-1', capacity: 1,
+      schedule: [{ dayOfWeek: 1, startTime: '18:00', endTime: '19:00' }],
+    })
+    mockBookingFindFirst.mockResolvedValue(null)
+    // Simulates a self-booking already occupying the one seat at the real
+    // 18:00 slot time — the count query (now scoped to that same instant)
+    // must see it.
+    mockBookingCount.mockResolvedValue(1)
+
+    const res = await addBooking('class-1', { userId: 'student-1', date: '2026-07-13' })
+
+    expect(res.status).toBe(409)
+    const json = await res.json()
+    expect(json.error).toMatch(/full/i)
+    expect(mockBookingCreate).not.toHaveBeenCalled()
+  })
+
   it('concurrent add-booking requests for the same slot never exceed capacity', async () => {
     mockClassFindFirst.mockResolvedValue({ id: 'class-1', name: 'BJJ', schoolId: 'school-1', capacity: 1 })
     mockBookingFindFirst.mockResolvedValue(null) // different students, never a duplicate

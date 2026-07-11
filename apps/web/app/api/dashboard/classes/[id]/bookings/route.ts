@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { Prisma } from '@/lib/prisma-client/client'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { scheduledAtForDate, type ScheduleSlot } from '@/lib/scheduling'
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser()
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 })
 
   // Verify class belongs to school
-  const cls = await prisma.class.findFirst({ where: { id: classId, schoolId }, select: { id: true, capacity: true } })
+  const cls = await prisma.class.findFirst({ where: { id: classId, schoolId }, select: { id: true, capacity: true, schedule: true } })
   if (!cls) return NextResponse.json({ error: 'Class not found' }, { status: 404 })
 
   // Verify the student is actually a member of this school — staff should
@@ -33,9 +34,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const member = await prisma.schoolMember.findFirst({ where: { userId, schoolId }, select: { id: true } })
   if (!member) return NextResponse.json({ error: 'Student not found in this school' }, { status: 404 })
 
-  const base = date ? new Date(date) : new Date()
-  const scheduledAt = new Date(base.getFullYear(), base.getMonth(), base.getDate(), 12, 0, 0)
-  const dayStart = new Date(scheduledAt.getFullYear(), scheduledAt.getMonth(), scheduledAt.getDate())
+  // Resolve to the class's real schedule-slot time for this date (same
+  // instant GET /api/my/school-classes would generate for a self-booking on
+  // this day) rather than an arbitrary noon placeholder — otherwise a
+  // staff-added booking and a self-booking for what a human considers "the
+  // same occurrence" land on different scheduledAt values, and the capacity
+  // count/advisory lock/unique index below would silently only ever see
+  // rows from this endpoint, never self-bookings on the real slot time.
+  const dateStr = date ?? new Date().toISOString().slice(0, 10)
+  const scheduledAt = scheduledAtForDate(dateStr, cls.schedule as ScheduleSlot[] | null)
+  const dayStart = new Date(Date.UTC(scheduledAt.getUTCFullYear(), scheduledAt.getUTCMonth(), scheduledAt.getUTCDate()))
   const dayEnd   = new Date(dayStart.getTime() + 86_400_000)
 
   // Duplicate check + capacity check + create run inside a transaction
