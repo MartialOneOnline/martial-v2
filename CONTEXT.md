@@ -261,8 +261,8 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 
 ## Historial de sesiones
 
-### Sesión 59 — 2026-07-11 🔧 PR abierto (sin mergear)
-**Guard inverso en `/my`: cuentas solo-staff no deben acceder al portal student** — PR [#2](https://github.com/MartialOneOnline/martial-v2/pull/2) (branch `fix/my-portal-staff-guard`), pendiente de review/merge
+### Sesión 59 — 2026-07-11 ✅
+**Guard inverso en `/my`: cuentas solo-staff no deben acceder al portal student** — mergeado a `main` en `f99a88f` (branch `fix/my-portal-staff-guard`, PR [#2](https://github.com/MartialOneOnline/martial-v2/pull/2), borrada local + remoto tras confirmar Vercel Production)
 
 `hasDashboardAccess()` (SchoolMember con rol staff: `OWNER`/`ADMIN`/`MANAGER`/`INSTRUCTOR`/`ASSISTANT_INSTRUCTOR`/`RECEPTIONIST`) gatea `/dashboard`, y `dashboard/layout.tsx` ya redirige a `/my` a quien no tenga ese acceso. Pero `/my` no tenía el guard contrario: su layout era un client component sin ningún chequeo de auth, y `GET`/`PATCH /api/my` leían `schoolMembers[0]` sin filtrar por rol. Una cuenta solo-staff (p.ej. un `OWNER` cuyo `SchoolMember` existe únicamente para darle permisos de dashboard — ese modelo es intencional y no se toca) podía abrir `/my/profile` a mano y ver un perfil de alumno falso/vacío (0 clases, sin cinturón), porque esa fila de `SchoolMember` nunca representó actividad de entrenamiento real.
 
