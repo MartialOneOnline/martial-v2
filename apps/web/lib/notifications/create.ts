@@ -68,3 +68,21 @@ export function notifySelfJoinRequest(schoolId: string, name: string) {
     href: '/dashboard/users',
   })
 }
+
+// One call per affected student, from cancel-occurrence — school-wide
+// (recipientUserId unset), same as every other factory here. The
+// Notification model has no dedicated recipient-facing delivery for
+// students today (GET /api/dashboard/notifications requires
+// school.notifications.view, which STUDENT never has), so this is staff
+// visibility of "who was affected", not a message reaching the student —
+// see the route for the full explanation. classId has no dedicated column
+// on Notification, so it rides along in href instead of a schema change.
+export function notifyClassCancelled(schoolId: string, studentName: string, className: string, dateLabel: string, classId: string) {
+  createNotification({
+    schoolId,
+    type: 'CLASS_CANCELLED',
+    title: 'Clase cancelada',
+    body: `${studentName} tenía una reserva en ${className} (${dateLabel}) que ha sido cancelada`,
+    href: `/dashboard/classes?classId=${classId}`,
+  })
+}
