@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `014463d` — control de acceso (staff no-STUDENT + SUPERADMIN) + allow-list de buckets en `POST /api/dashboard/upload` (Sesión 56); sin migración, sin cambios de schema. **Pendiente:** sandbox Revolut no soportado (host de producción hardcodeado en `register-webhook`), documentado como gap, no implementado
+**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `014463d` — control de acceso (staff no-STUDENT + SUPERADMIN) + allow-list de buckets en `POST /api/dashboard/upload` (Sesión 56); sin migración, sin cambios de schema. **PR abierta sin mergear:** `fix/class-delete-with-bookings` (Sesión 57) — 409 limpio al borrar una clase con reservas (antes 500/fallo silencioso), sin migración. **Pendiente:** sandbox Revolut no soportado (host de producción hardcodeado en `register-webhook`), documentado como gap, no implementado
 
 ---
 
@@ -260,6 +260,17 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 ---
 
 ## Historial de sesiones
+
+### Sesión 57 — 2026-07-11 ⏳ pendiente de mergear
+**Borrado de clase con reservas — 409 limpio en vez de 500/fallo silencioso** — branch `fix/class-delete-with-bookings`, aún no mergeada
+
+Cierra el último riesgo pendiente de la auditoría P1/P2 fuera de pagos: `DELETE /api/dashboard/classes/[id]` hacía `prisma.class.delete()` sin manejar la FK. `Booking.classId` es una FK requerida sin cascada — Postgres protege con `RESTRICT`, así que cualquier clase que alguna vez tuvo una reserva lanzaba una excepción no capturada (500) en vez de un error limpio. En el frontend, `ClassesClient.handleDelete()` ni revisaba `res.ok` ni mostraba nada — el admin veía la modal cerrarse y un toast de "Class deleted" incluso cuando el borrado había fallado en el servidor.
+
+- **Backend (`classes/[id]/route.ts`):** antes de borrar, cuenta `Booking` para ese `classId` — **sin filtrar por status**, a propósito: la FK bloquea el borrado sin importar si las reservas están `CANCELLED` o no, así que el pre-check tiene que reflejar exactamente esa realidad o predeciría éxito y luego igual crashearía. Si hay alguna → 409 `"Cannot delete a class with existing bookings. Deactivate it instead."`, sin tocar la clase. Si no hay ninguna, sigue el `delete` de siempre, ahora envuelto en `try/catch` capturando `Prisma.PrismaClientKnownRequestError` con `code==='P2003'` como backstop de una reserva creada en la ventana de carrera entre el conteo y el delete — mismo mensaje 409, nunca 500. Permisos sin cambios (`school.classes.delete`, sigue siendo OWNER/ADMIN vía `hasPermission`)
+- **Frontend (`ClassesClient.tsx`):** `handleDelete()` ahora revisa `res.ok`; si falla, guarda el mensaje de error y **no** cierra la modal ni borra la clase del estado local ni muestra el toast de éxito — antes hacía las tres cosas incondicionalmente. `DeleteModal` gana un slot de error opcional (mismo estilo que ya usa `AddClassDrawer` para sus propios errores: `fontSize: 12, color: '#DC2626'`) y un estado `deleting` que deshabilita el botón mientras la request está en vuelo (antes no había ningún feedback de carga). El error se limpia al abrir la modal para otra clase y al cancelar
+- **12 tests nuevos** (`classDeleteWithBookings.test.ts`, 7; `ClassesClient` no tiene infraestructura de tests de componente — no existe `@testing-library/react` en el repo, ni aquí ni en ningún otro archivo de test, así que el frontend queda sin cobertura automatizada, solo revisado a mano y con `check-types`): sin reservas → 200 + `class.delete` llamado; con reservas → 409, `class.delete` **no** llamado; el conteo cuenta cualquier status, no solo activas; P2003 en el delete real → 409 limpio (no 500); un error Prisma que no es P2003 se re-lanza tal cual (no se enmascara); 404 si la clase no existe en esta escuela; MANAGER (sin `school.classes.delete`) → 403 — **304 tests pasando** en total (35 archivos), `check-types` / `lint` / `prisma validate` en verde
+- **Sin cambios** de schema/migraciones, sin tocar la lógica de capacidad/booking creation de la Sesión 55, sin tocar pagos/memberships/Stripe/Revolut
+- **Riesgo restante, no resuelto:** ningún test de componente cubre el flujo del frontend (no borrar localmente, mostrar el mensaje) — la infraestructura no existe en el repo y añadirla habría sido una expansión de scope no pedida; verificado solo por lectura de código + `check-types`, sin `preview_*` en esta sesión (cambio de dashboard admin, no fácil de probar sin datos reales de clase+reservas)
 
 ### Sesión 56 — 2026-07-11 ✅
 **Hardening de `POST /api/dashboard/upload`** — mergeado a `main` en `014463d` (branch `fix/dashboard-upload-auth-guard`, borrada local + remoto tras confirmar Vercel Production)

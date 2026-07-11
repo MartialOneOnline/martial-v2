@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { Prisma } from '@/lib/prisma-client/client'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 import { hasPermission, type Permission } from '@/lib/auth/permissions'
 import { getSchoolPaymentCapabilities, sanitizePaymentMethods } from '@/lib/services/paymentCapabilities'
+
+const CLASS_HAS_BOOKINGS_ERROR = 'Cannot delete a class with existing bookings. Deactivate it instead.'
 
 async function authorise(permission: Permission) {
   const user = await getAuthUser()
@@ -68,7 +71,14 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   return NextResponse.json(cls)
 }
 
-// DELETE /api/dashboard/classes/[id] — soft delete (deactivate) or hard delete
+// DELETE /api/dashboard/classes/[id] — hard delete; blocked when the class
+// still has bookings. Booking.classId is a required FK with no cascade (see
+// prisma/schema.prisma) — Postgres RESTRICTs the delete, so any booking row
+// blocks it regardless of status (a purely-CANCELLED history still trips
+// the same FK, so this must count every row, not just active ones, or the
+// pre-check below would wrongly predict success). Deactivate the class
+// (isActive: false via PUT) is the supported alternative for a class with
+// history.
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await authorise('school.classes.delete')
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
@@ -77,6 +87,23 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const existing = await prisma.class.findFirst({ where: { id, schoolId: auth.schoolId } })
   if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  await prisma.class.delete({ where: { id } })
+  const bookingCount = await prisma.booking.count({ where: { classId: id } })
+  if (bookingCount > 0) {
+    return NextResponse.json({ error: CLASS_HAS_BOOKINGS_ERROR }, { status: 409 })
+  }
+
+  try {
+    await prisma.class.delete({ where: { id } })
+  } catch (err) {
+    // Defense in depth: a booking created between the count check above and
+    // this delete (e.g. a concurrent self-booking for this class) still
+    // trips the same FK — surface the same clean 409 instead of an
+    // unhandled 500.
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2003') {
+      return NextResponse.json({ error: CLASS_HAS_BOOKINGS_ERROR }, { status: 409 })
+    }
+    throw err
+  }
+
   return NextResponse.json({ ok: true })
 }
