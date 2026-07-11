@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ArrowLeft } from 'lucide-react'
@@ -9,6 +9,8 @@ import { createClient } from '../lib/supabase/client'
 import SchoolPicker from './SchoolPicker'
 import type { SchoolContext } from '@/lib/auth/contexts'
 import { safeRedirect } from '@/lib/safeRedirect'
+import { resolveLoginRedirectAction } from '@/lib/auth/loginRedirect'
+import { fetchAvailableContexts } from '@/app/choose-profile/logic'
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 function GoogleIcon() {
@@ -67,6 +69,7 @@ interface LoginModalProps {
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
   const router   = useRouter()
+  const pathname = usePathname()
   const supabase = createClient()
 
   const [view, setView]             = useState<'sso' | 'email' | 'forgot'>('sso')
@@ -102,30 +105,40 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
         return
       }
 
-      const schools: SchoolContext[] = json.contexts?.schools ?? []
-      const staffSchools = schools.filter(
-        s => s.role !== 'STUDENT'
-      )
+      const legacySchools: SchoolContext[] = json.contexts?.schools ?? []
 
-      // 2. Has staff/owner access to schools
-      if (staffSchools.length === 1 && staffSchools[0]) {
-        await fetch('/api/auth/context', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ schoolId: staffSchools[0].schoolId }),
-        })
-        router.push('/dashboard')
-        return
+      // 2/3. Decision extracted to lib/auth/loginRedirect.ts — see that file
+      // for the full priority order (explicit redirect / SUPERADMIN already
+      // handled above, so this only ever resolves the "how many real
+      // contexts does this user have" branch, with a safe fallback to the
+      // pre-existing staffSchools logic if GET /api/auth/contexts fails).
+      const action = await resolveLoginRedirectAction({
+        explicitPath: undefined,
+        isSuperAdmin: false,
+        legacySchools,
+        isOnChooseProfile: pathname === '/choose-profile',
+        fetchContexts: () => fetchAvailableContexts(),
+      })
+
+      switch (action.kind) {
+        case 'dashboard-auto':
+          await fetch('/api/auth/context', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ schoolId: action.schoolId }),
+          })
+          router.push('/dashboard')
+          return
+        case 'legacy-picker':
+          // Show school picker — includes personal option
+          setPickerSchools(action.schools)
+          return
+        case 'noop':
+          return
+        case 'push':
+          router.push(action.path)
+          return
       }
-
-      if (staffSchools.length > 1) {
-        // Show school picker — includes personal option
-        setPickerSchools(staffSchools)
-        return
-      }
-
-      // 3. Student or no context → /my
-      router.push('/my')
     } catch {
       router.push('/my')
     }
