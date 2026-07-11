@@ -431,7 +431,7 @@ function EventDrawer({ open, onClose, onSaved, editing, instructors, availableMe
         }}>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-8 py-5 shrink-0"
+        <div className="flex items-center justify-between px-4 sm:px-8 py-5 shrink-0"
           style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
           <div>
             <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111827', margin: 0, letterSpacing: '-0.02em' }}>
@@ -447,13 +447,13 @@ function EventDrawer({ open, onClose, onSaved, editing, instructors, availableMe
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-8 py-6">
-          <div className="flex gap-8" style={{ alignItems: 'flex-start' }}>
+        <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-6">
+          <div className="flex flex-col md:flex-row gap-6 md:gap-8" style={{ alignItems: 'flex-start' }}>
 
             {/* Left — form */}
-            <div className="flex-1 min-w-0 flex flex-col gap-5">
+            <div className="flex-1 min-w-0 w-full flex flex-col gap-5">
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <EventField label={t.classes.eventTitle}>
                   <input type="text" placeholder={t.classes.eventTitlePlaceholder}
                     value={form.title} onChange={e => set('title', e.target.value)} style={eventInp} />
@@ -467,7 +467,7 @@ function EventDrawer({ open, onClose, onSaved, editing, instructors, availableMe
                 </EventField>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <EventField label={t.common.date}>
                   <input type="date" value={form.startDate} onChange={e => set('startDate', e.target.value)} style={eventInp} />
                 </EventField>
@@ -479,7 +479,7 @@ function EventDrawer({ open, onClose, onSaved, editing, instructors, availableMe
                 </EventField>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <EventField label={t.classes.instructorHost}>
                   <select value={form.instructorId} onChange={e => set('instructorId', e.target.value)} style={eventInp}>
                     <option value="">No instructor / external guest</option>
@@ -514,13 +514,13 @@ function EventDrawer({ open, onClose, onSaved, editing, instructors, availableMe
                       set('tickets', form.tickets.map((t, i) => i === idx ? { ...t, ...patch } : t))
                     }
                     return (
-                    <div key={idx} className="flex items-center gap-2 p-3 rounded-xl"
+                    <div key={idx} className="flex items-center flex-wrap gap-2 p-3 rounded-xl"
                       style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
                       <Ticket size={14} style={{ color: '#9CA3AF', flexShrink: 0 }} />
                       <input type="text" placeholder="Ticket name (e.g. Member, Early Bird, VIP)"
                         value={ticket.name}
                         onChange={e => updateTicket({ name: e.target.value })}
-                        style={{ ...eventInp, flex: 2, minWidth: 0 }} />
+                        style={{ ...eventInp, flex: '1 1 160px', minWidth: 0 }} />
                       <div className="flex items-center gap-1 shrink-0" style={{ ...eventInp, width: 'auto', padding: '9px 10px' }}>
                         <span style={{ fontSize: 12, color: '#9CA3AF' }}>€</span>
                         <input type="text" inputMode="decimal" placeholder="0"
@@ -610,9 +610,9 @@ function EventDrawer({ open, onClose, onSaved, editing, instructors, availableMe
               </EventField>
 
               {/* Public toggle */}
-              <div className="flex items-center justify-between rounded-xl px-4 py-3"
+              <div className="flex items-center justify-between gap-3 rounded-xl px-4 py-3"
                 style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-                <div>
+                <div className="min-w-0">
                   <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>
                     Public on Explore
                   </p>
@@ -636,9 +636,9 @@ function EventDrawer({ open, onClose, onSaved, editing, instructors, availableMe
               </div>
 
               {/* Show spots left toggle */}
-              <div className="flex items-center justify-between rounded-xl px-4 py-3"
+              <div className="flex items-center justify-between gap-3 rounded-xl px-4 py-3"
                 style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-                <div>
+                <div className="min-w-0">
                   <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>
                     Show spots left
                   </p>
@@ -665,7 +665,7 @@ function EventDrawer({ open, onClose, onSaved, editing, instructors, availableMe
             </div>
 
             {/* Right — banner + preview */}
-            <div style={{ width: 240, flexShrink: 0 }}>
+            <div className="w-full md:w-[240px] md:shrink-0">
               <BannerUploadZone
                 label={t.classes.eventBanner}
                 value={form.coverUrl}
@@ -708,7 +708,7 @@ function EventDrawer({ open, onClose, onSaved, editing, instructors, availableMe
         </div>
 
         {/* Footer */}
-        <div className="px-8 py-5 flex items-center gap-3 justify-end shrink-0"
+        <div className="px-4 sm:px-8 py-5 flex items-center gap-3 justify-end shrink-0"
           style={{ background: '#fff', borderTop: '1px solid #E5E7EB' }}>
           <button onClick={onClose}
             className="px-5 py-2.5 rounded-xl cursor-pointer"
