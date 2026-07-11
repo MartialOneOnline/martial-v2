@@ -261,6 +261,19 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 
 ## Historial de sesiones
 
+### Sesión 59 — 2026-07-11 🔧 PR abierto (sin mergear)
+**Guard inverso en `/my`: cuentas solo-staff no deben acceder al portal student** — PR [#2](https://github.com/MartialOneOnline/martial-v2/pull/2) (branch `fix/my-portal-staff-guard`), pendiente de review/merge
+
+`hasDashboardAccess()` (SchoolMember con rol staff: `OWNER`/`ADMIN`/`MANAGER`/`INSTRUCTOR`/`ASSISTANT_INSTRUCTOR`/`RECEPTIONIST`) gatea `/dashboard`, y `dashboard/layout.tsx` ya redirige a `/my` a quien no tenga ese acceso. Pero `/my` no tenía el guard contrario: su layout era un client component sin ningún chequeo de auth, y `GET`/`PATCH /api/my` leían `schoolMembers[0]` sin filtrar por rol. Una cuenta solo-staff (p.ej. un `OWNER` cuyo `SchoolMember` existe únicamente para darle permisos de dashboard — ese modelo es intencional y no se toca) podía abrir `/my/profile` a mano y ver un perfil de alumno falso/vacío (0 clases, sin cinturón), porque esa fila de `SchoolMember` nunca representó actividad de entrenamiento real.
+
+- **`lib/auth/contexts.ts`** — nuevo `hasStudentAccess(userId)`: true solo si el usuario tiene un `SchoolMember` con rol `STUDENT` real (mismo shape/lista de status que `hasDashboardAccess()`)
+- **`app/my/layout.tsx`** — pasa de client component a server component: redirige a `/login` si no hay sesión, y a `/dashboard` si `staffAccess && !studentAccess` (inverso exacto del guard de `dashboard/layout.tsx`). El contenido del layout anterior se movió sin cambios a **`components/MyShell.tsx`** (mismo patrón que `DashboardShell.tsx`)
+- **`app/api/my/route.ts`** — el query de `schoolMembers` ahora filtra `role: 'STUDENT'`; `GET` y `PATCH` devuelven 403 para el mismo caso solo-staff (defensa en profundidad para acceso directo a la API)
+- **Regla de acceso implementada:** `/my` se bloquea solo cuando el usuario tiene acceso staff **y** ningún `STUDENT` real en ninguna escuela. Staff que *también* es alumno real en alguna escuela (rol dual) mantiene acceso. Usuario sin ningún `SchoolMember` (cuenta nueva sin escuela todavía) no se ve afectado — comportamiento igual que antes
+- **12 tests nuevos** (`myPortalStaffGuard.test.ts`, `myRouteStaffGuard.test.ts`): `hasStudentAccess()` aislado, redirect de `MyLayout` (sin sesión → `/login`, solo-staff → `/dashboard`, STUDENT normal → sin redirect, staff+student dual → sin redirect, sin `SchoolMember` → sin redirect), y la matriz 403/200 de `GET`/`PATCH /api/my` — **331 tests pasando** en total (38 archivos), `check-types` / `lint` (0 errores) / `prisma validate` en verde
+- **Sin cambios** de schema/migraciones, modelo `SchoolMember`, lógica de dashboard access (solo reutilizada), pagos/memberships/Stripe/Revolut, ni los redirects de login (`login/page.tsx`, `LoginModal.tsx`, `Header.tsx` no tocados)
+- **Riesgo/caso límite pendiente de decisión de producto:** un usuario con `SchoolMember` en varias escuelas con roles distintos (p.ej. staff en la escuela A, `STUDENT` en la escuela B) entra a `/my` pero `/api/my` no distingue de qué escuela es el contexto — el student portal sigue mostrando el primer `STUDENT` encontrado entre todas las escuelas, no necesariamente el de la escuela "activa". No se tocó porque el ticket pedía solo el guard, no un selector de escuela en `/my`
+
 ### Sesión 58 — 2026-07-11 ✅
 **Notificaciones `CLASS_CANCELLED` al cancelar una ocurrencia de clase** — mergeado a `main` en `fb09c35` (branch `fix/class-cancelled-notifications`, borrada local + remoto tras confirmar Vercel Production)
 
