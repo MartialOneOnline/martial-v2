@@ -15,6 +15,13 @@ import type { SchoolMemberRole } from '../prisma-client/enums'
 
 export type ActiveContextMode = 'dashboard' | 'student'
 
+// Runtime-checkable companion to the type above — anything reading a mode
+// from an untyped source (cookie JSON, request body) needs an actual array
+// to validate against, not just a compile-time union. Kept here, next to the
+// type it mirrors, so there is exactly one place that has to change if a
+// third mode is ever added.
+export const ACTIVE_CONTEXT_MODES: readonly ActiveContextMode[] = ['dashboard', 'student']
+
 // The persisted/selected context (future PR: read this shape out of a
 // cookie). Deliberately minimal — just enough to re-derive everything else
 // from the DB on every request, never trusted on its own.
