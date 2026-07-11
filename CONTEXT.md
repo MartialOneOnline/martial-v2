@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `014463d` — control de acceso (staff no-STUDENT + SUPERADMIN) + allow-list de buckets en `POST /api/dashboard/upload` (Sesión 56); sin migración, sin cambios de schema. **PR abierta sin mergear:** `fix/class-delete-with-bookings` (Sesión 57) — 409 limpio al borrar una clase con reservas (antes 500/fallo silencioso), sin migración. **Pendiente:** sandbox Revolut no soportado (host de producción hardcodeado en `register-webhook`), documentado como gap, no implementado
+**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `d9f9b1a` — 409 limpio al borrar una clase con reservas, antes 500/fallo silencioso (Sesión 57); sin migración, sin cambios de schema. Con esto queda cerrada toda la auditoría P1/P2 fuera de pagos (Sesiones 55-57). **Pendiente:** sandbox Revolut no soportado (host de producción hardcodeado en `register-webhook`), documentado como gap, no implementado
 
 ---
 
@@ -261,8 +261,8 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 
 ## Historial de sesiones
 
-### Sesión 57 — 2026-07-11 ⏳ pendiente de mergear
-**Borrado de clase con reservas — 409 limpio en vez de 500/fallo silencioso** — branch `fix/class-delete-with-bookings`, aún no mergeada
+### Sesión 57 — 2026-07-11 ✅
+**Borrado de clase con reservas — 409 limpio en vez de 500/fallo silencioso** — mergeado a `main` en `d9f9b1a` (branch `fix/class-delete-with-bookings`, borrada local + remoto tras confirmar Vercel Production)
 
 Cierra el último riesgo pendiente de la auditoría P1/P2 fuera de pagos: `DELETE /api/dashboard/classes/[id]` hacía `prisma.class.delete()` sin manejar la FK. `Booking.classId` es una FK requerida sin cascada — Postgres protege con `RESTRICT`, así que cualquier clase que alguna vez tuvo una reserva lanzaba una excepción no capturada (500) en vez de un error limpio. En el frontend, `ClassesClient.handleDelete()` ni revisaba `res.ok` ni mostraba nada — el admin veía la modal cerrarse y un toast de "Class deleted" incluso cuando el borrado había fallado en el servidor.
 
