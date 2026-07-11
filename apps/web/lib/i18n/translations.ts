@@ -642,6 +642,22 @@ export const translations = {
       support:      'Support',
       signOut:      'Sign out',
     },
+
+    chooseProfile: {
+      title: 'Choose a profile',
+      subtitle: 'Select how you’d like to continue',
+      dashboardLabel: 'Dashboard',
+      studentAt: 'Student at {school}',
+      useAnotherAccount: 'Use another account',
+      loading: 'Loading your profiles…',
+      errorTitle: 'Could not load your profiles',
+      errorDesc: 'Something went wrong. Please try again.',
+      retry: 'Retry',
+      selectError: 'Could not switch to that profile. Please try again.',
+      emptyTitle: 'No profiles available',
+      emptyDesc: 'You don’t have an active role at any school yet.',
+      emptyCta: 'Explore schools',
+    },
   },
 
   // ── ESPAÑOL ────────────────────────────────────────────────────────────────
@@ -1205,6 +1221,22 @@ export const translations = {
       notifications: 'Notificaciones',
       support:      'Soporte',
       signOut:      'Cerrar sesión',
+    },
+
+    chooseProfile: {
+      title: 'Elige un perfil',
+      subtitle: 'Selecciona cómo quieres continuar',
+      dashboardLabel: 'Panel',
+      studentAt: 'Alumno en {school}',
+      useAnotherAccount: 'Usar otra cuenta',
+      loading: 'Cargando tus perfiles…',
+      errorTitle: 'No se pudieron cargar tus perfiles',
+      errorDesc: 'Algo salió mal. Inténtalo de nuevo.',
+      retry: 'Reintentar',
+      selectError: 'No se pudo cambiar a ese perfil. Inténtalo de nuevo.',
+      emptyTitle: 'No hay perfiles disponibles',
+      emptyDesc: 'Todavía no tienes un rol activo en ninguna escuela.',
+      emptyCta: 'Explorar escuelas',
     },
   },
 
@@ -1770,6 +1802,22 @@ export const translations = {
       support:      'Suporte',
       signOut:      'Sair',
     },
+
+    chooseProfile: {
+      title: 'Escolha um perfil',
+      subtitle: 'Selecione como deseja continuar',
+      dashboardLabel: 'Painel',
+      studentAt: 'Aluno em {school}',
+      useAnotherAccount: 'Usar outra conta',
+      loading: 'Carregando seus perfis…',
+      errorTitle: 'Não foi possível carregar seus perfis',
+      errorDesc: 'Algo deu errado. Tente novamente.',
+      retry: 'Tentar novamente',
+      selectError: 'Não foi possível mudar para esse perfil. Tente novamente.',
+      emptyTitle: 'Nenhum perfil disponível',
+      emptyDesc: 'Você ainda não tem um papel ativo em nenhuma escola.',
+      emptyCta: 'Explorar escolas',
+    },
   },
 
   // ── FRANÇAIS ───────────────────────────────────────────────────────────────
@@ -2333,6 +2381,22 @@ export const translations = {
       notifications: 'Notifications',
       support:      'Support',
       signOut:      'Se déconnecter',
+    },
+
+    chooseProfile: {
+      title: 'Choisissez un profil',
+      subtitle: 'Sélectionnez comment vous souhaitez continuer',
+      dashboardLabel: 'Tableau de bord',
+      studentAt: 'Élève chez {school}',
+      useAnotherAccount: 'Utiliser un autre compte',
+      loading: 'Chargement de vos profils…',
+      errorTitle: 'Impossible de charger vos profils',
+      errorDesc: "Une erreur s'est produite. Veuillez réessayer.",
+      retry: 'Réessayer',
+      selectError: 'Impossible de passer à ce profil. Veuillez réessayer.',
+      emptyTitle: 'Aucun profil disponible',
+      emptyDesc: "Vous n'avez pas encore de rôle actif dans une école.",
+      emptyCta: 'Explorer les écoles',
     },
   },
 }
