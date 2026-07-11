@@ -9,7 +9,7 @@ interface Props {
   date: string  // YYYY-MM-DD
 }
 
-type ScanResult = { ok: true; name: string; walkin: boolean } | { ok: false; error: string }
+type ScanResult = { ok: true; name: string; walkin: boolean; atCapacity: boolean } | { ok: false; error: string }
 
 declare class BarcodeDetector {
   constructor(opts: { formats: string[] })
@@ -48,7 +48,8 @@ export default function CheckinClient({ classId, className, date }: Props) {
         setResult({ ok: false, error: data.error ?? 'Error' })
       } else {
         const name = data.studentName as string
-        setResult({ ok: true, name, walkin: false })
+        const atCapacity = data.atCapacity === true
+        setResult({ ok: true, name, walkin: false, atCapacity })
         if (data.alreadyCheckedIn) {
           setResult({ ok: false, error: `${name} already checked in` })
         } else {
@@ -185,7 +186,7 @@ export default function CheckinClient({ classId, className, date }: Props) {
         {result && (
           <div style={{ position: 'absolute', inset: 0, background: result.ok ? 'rgba(22,163,74,0.85)' : 'rgba(220,38,38,0.85)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, zIndex: 20, backdropFilter: 'blur(4px)' }}>
             {result.ok
-              ? <><CheckCircle size={52} color="#fff" strokeWidth={1.5} /><p style={{ fontSize: 20, fontWeight: 700, color: '#fff', textAlign: 'center', padding: '0 24px' }}>{result.name}</p><p style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>Checked in ✓</p></>
+              ? <><CheckCircle size={52} color="#fff" strokeWidth={1.5} /><p style={{ fontSize: 20, fontWeight: 700, color: '#fff', textAlign: 'center', padding: '0 24px' }}>{result.name}</p><p style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>Checked in ✓</p>{result.atCapacity && <p style={{ fontSize: 12, fontWeight: 600, color: '#FEF08A' }}>⚠ Class is at capacity</p>}</>
               : <><XCircle size={52} color="#fff" strokeWidth={1.5} /><p style={{ fontSize: 15, fontWeight: 600, color: '#fff', textAlign: 'center', padding: '0 24px' }}>{result.error}</p></>
             }
           </div>

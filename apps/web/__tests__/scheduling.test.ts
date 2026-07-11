@@ -1,9 +1,9 @@
 /**
  * Tests for lib/scheduling.ts
- * Covers: nextOccurrence, nextScheduledAt, isValidScheduledAt
+ * Covers: nextOccurrence, nextScheduledAt, isValidScheduledAt, scheduledAtForDate
  */
 import { describe, it, expect } from 'vitest'
-import { nextOccurrence, nextScheduledAt, isValidScheduledAt, type ScheduleSlot } from '../lib/scheduling'
+import { nextOccurrence, nextScheduledAt, isValidScheduledAt, scheduledAtForDate, type ScheduleSlot } from '../lib/scheduling'
 
 // Reference anchor: 2025-01-06T09:00:00Z — Monday
 const MONDAY_0900 = new Date('2025-01-06T09:00:00Z')
@@ -121,5 +121,41 @@ describe('isValidScheduledAt()', () => {
     const schedule: ScheduleSlot[] = [{ dayOfWeek: 1, startTime: '09:00', endTime: '10:30' }]
     const dt = new Date('2025-01-06T09:02:00Z')
     expect(isValidScheduledAt(dt, schedule)).toBe(false)
+  })
+})
+
+describe('scheduledAtForDate()', () => {
+  // 2026-07-13 is a UTC Monday (dayOfWeek: 1).
+  it('returns the real schedule-slot time when a slot matches the date day-of-week', () => {
+    const schedule: ScheduleSlot[] = [{ dayOfWeek: 1, startTime: '18:00', endTime: '19:00' }]
+    const result = scheduledAtForDate('2026-07-13', schedule)
+    expect(result.toISOString()).toBe('2026-07-13T18:00:00.000Z')
+  })
+
+  it('picks the matching slot out of several, ignoring slots for other days', () => {
+    const schedule: ScheduleSlot[] = [
+      { dayOfWeek: 3, startTime: '09:00', endTime: '10:00' }, // Wednesday
+      { dayOfWeek: 1, startTime: '07:30', endTime: '08:30' }, // Monday — the one that should match
+    ]
+    const result = scheduledAtForDate('2026-07-13', schedule)
+    expect(result.toISOString()).toBe('2026-07-13T07:30:00.000Z')
+  })
+
+  it('falls back to noon UTC when no slot matches that day-of-week', () => {
+    const schedule: ScheduleSlot[] = [{ dayOfWeek: 3, startTime: '09:00', endTime: '10:00' }] // Wednesday only
+    const result = scheduledAtForDate('2026-07-13', schedule) // a Monday
+    expect(result.toISOString()).toBe('2026-07-13T12:00:00.000Z')
+  })
+
+  it('falls back to noon UTC when the class has no schedule at all', () => {
+    expect(scheduledAtForDate('2026-07-13', null).toISOString()).toBe('2026-07-13T12:00:00.000Z')
+    expect(scheduledAtForDate('2026-07-13', []).toISOString()).toBe('2026-07-13T12:00:00.000Z')
+  })
+
+  it('matches the same instant GET /api/my/school-classes would generate via nextOccurrence for that date', () => {
+    const schedule: ScheduleSlot[] = [{ dayOfWeek: 1, startTime: '18:00', endTime: '19:00' }]
+    const viaDate    = scheduledAtForDate('2026-07-13', schedule)
+    const viaNextOcc = nextOccurrence(new Date('2026-07-12T00:00:00Z'), 1, '18:00')
+    expect(viaDate.toISOString()).toBe(viaNextOcc.toISOString())
   })
 })

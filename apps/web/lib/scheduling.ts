@@ -63,6 +63,37 @@ export function nextScheduledAt(schedule: ScheduleSlot[], from: Date = new Date(
 }
 
 /**
+ * Given a specific calendar date (YYYY-MM-DD, interpreted as UTC) and a
+ * class schedule, returns the scheduledAt Date for that day's occurrence —
+ * the same UTC-date + slot.startTime instant that occurrence generation
+ * (see GET /api/my/school-classes, which drives self-booking) would produce
+ * for a real slot on that day. Falls back to noon UTC on that date when the
+ * class has no schedule slot for that day-of-week (e.g. an unscheduled
+ * class, or a one-off booking on a day the class doesn't normally run), so
+ * callers that don't require a real slot still get a deterministic value.
+ *
+ * Used by staff-facing "add booking" flows, which only collect a date (not
+ * a full scheduledAt) — resolving through this keeps their bookings on the
+ * exact same instant a self-booking would use for that class+day, so
+ * capacity counts, advisory locks and the partial unique index all see the
+ * same rows regardless of which flow created them.
+ */
+export function scheduledAtForDate(dateStr: string, schedule: ScheduleSlot[] | null): Date {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  const year  = y ?? 1970
+  const month = (m ?? 1) - 1
+  const day   = d ?? 1
+  const dow = new Date(Date.UTC(year, month, day)).getUTCDay()
+
+  const slot = schedule?.find(s => s.dayOfWeek === dow)
+  if (slot) {
+    const [hh, mm] = slot.startTime.split(':').map(Number)
+    return new Date(Date.UTC(year, month, day, hh ?? 0, mm ?? 0, 0, 0))
+  }
+  return new Date(Date.UTC(year, month, day, 12, 0, 0, 0))
+}
+
+/**
  * Validates that a given `scheduledAt` Date matches one of the class's
  * schedule slots (same UTC day-of-week AND time within a 1-minute tolerance).
  *
