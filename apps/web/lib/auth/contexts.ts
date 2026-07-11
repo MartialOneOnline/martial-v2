@@ -66,7 +66,10 @@ export async function requireSchoolAccess(userId: string, schoolId: string) {
 }
 
 // Staff-facing SchoolMember roles — everyone else (STUDENT) belongs in /my, not /dashboard.
-const DASHBOARD_ROLES: SchoolMemberRole[] = [
+// Exported so individual /api/dashboard/** routes can reuse the same "is this
+// a staff role" check (e.g. app/api/dashboard/upload/route.ts) instead of
+// hand-rolling their own role list that could drift from this one.
+export const DASHBOARD_ROLES: SchoolMemberRole[] = [
   'OWNER', 'ADMIN', 'MANAGER', 'INSTRUCTOR', 'ASSISTANT_INSTRUCTOR', 'RECEPTIONIST',
 ]
 

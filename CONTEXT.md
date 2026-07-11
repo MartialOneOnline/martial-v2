@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `d7d233a` — guard de capacidad/membership en reservas de staff (add-booking + checkin walk-in), con `scheduledAt` alineado al horario real de la clase (Sesión 55); sin migración, sin cambios de schema. **Pendiente:** sandbox Revolut no soportado (host de producción hardcodeado en `register-webhook`), documentado como gap, no implementado
+**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `d7d233a` — guard de capacidad/membership en reservas de staff (add-booking + checkin walk-in), con `scheduledAt` alineado al horario real de la clase (Sesión 55); sin migración, sin cambios de schema. **PR abierta sin mergear:** `fix/dashboard-upload-auth-guard` (Sesión 56) — control de acceso + allow-list de buckets en `POST /api/dashboard/upload`, sin migración. **Pendiente:** sandbox Revolut no soportado (host de producción hardcodeado en `register-webhook`), documentado como gap, no implementado
 
 ---
 
@@ -260,6 +260,20 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 ---
 
 ## Historial de sesiones
+
+### Sesión 56 — 2026-07-11 ⏳ pendiente de mergear
+**Hardening de `POST /api/dashboard/upload`** — branch `fix/dashboard-upload-auth-guard`, aún no mergeada
+
+Cierra el siguiente riesgo de la misma auditoría P1/P2 fuera de pagos que dio lugar a la Sesión 55: de 57 rutas `/api/dashboard/**`, esta era una de las 2 sin ningún control de rol/escuela (la otra, `dashboard/profile/route.ts`, es legítima — autoscopeada por `user.id`). Cualquier usuario autenticado, incluso sin `SchoolMember` en ninguna escuela, podía subir archivos usando la service-role key de Supabase (bypassa RLS), y el parámetro `bucket` se pasaba tal cual a la Storage API sin allow-list.
+
+- **Control de acceso añadido:** mismo patrón que el resto de `/api/dashboard/**` (`getAuthUser` → `getCurrentSchoolId` → `requireSchoolAccess`), pero en vez de una lista de roles ad-hoc reutiliza `DASHBOARD_ROLES` (recién **exportada** desde `lib/auth/contexts.ts`, un cambio de una palabra — ya existía como const interna, es exactamente "todo rol excepto STUDENT", la misma definición que ya usa `hasDashboardAccess()` para la puerta de entrada a `/dashboard`). STUDENT o sin `SchoolMember` en la escuela actual → 403; sin sesión → 401; SUPERADMIN sigue pasando sin chequeo de rol (igual que el resto de rutas)
+  - **Decisión tomada, no la más estricta del enunciado original:** el ticket sugería `OWNER/ADMIN/INSTRUCTOR` como ejemplo; usé el set completo no-STUDENT (`OWNER/ADMIN/MANAGER/INSTRUCTOR/ASSISTANT_INSTRUCTOR/RECEPTIONIST`) porque uno de los 3 callers reales (subir el propio avatar en Settings > Profile) ya es alcanzable hoy por *cualquier* rol de dashboard — `PATCH /api/dashboard/profile` no tiene ningún gate de rol, es autoscopeado por `user.id` — así que restringir el upload a solo 3 roles habría roto el auto-avatar para ASSISTANT_INSTRUCTOR/RECEPTIONIST sin necesidad, violando el requisito de mantener compatibilidad con los callers actuales
+- **Allow-list de buckets:** `avatars` / `class-images` — únicos dos que existen de verdad en Supabase Storage (verificado antes vía `GET /storage/v1/bucket`, sesión anterior) y únicos que usa algún caller real (`SettingsClient` avatar/logo/cover, `ClassesClient`/`EventsClient`/`MembershipsClient` class-images). Cualquier otro valor → 400 antes de tocar Supabase
+- **Path traversal cerrado en el origen, no con un regex:** la extensión del archivo guardado ya no se parsea del `File.name` del cliente (`file.name.split('.').pop()` — la única entrada controlada por el cliente que llegaba al path) sino que se deriva de un mapa fijo `EXT_BY_TYPE` a partir del `File.type` ya validado (`image/jpeg`→`jpg`, `image/png`→`png`, `image/webp`→`webp`). El nombre real del archivo nunca se usa para construir el path — cero superficie de traversal, sin necesidad de sanitizar strings
+- **Compatibilidad verificada:** los 6 call sites reales (`SettingsClient.tsx` ×3 — avatar propio, logo escuela, cover escuela, todos `bucket=avatars`; `ClassesClient.tsx`/`EventsClient.tsx`×2/`MembershipsClient.tsx` — todos `bucket=class-images`) siguen funcionando sin cambios, ningún caller tocado
+- **22 tests nuevos** (`dashboardUploadAuth.test.ts`): 401 sin auth, 403 STUDENT, 403 sin SchoolMember, 200 para cada uno de los 6 roles no-STUDENT, SUPERADMIN bypassa el check de rol, 400 bucket no permitido (sin llamar a `fetch`), 200 avatars/class-images, default a avatars si se omite el param, 400 sin archivo, 400 tipo no soportado, 400 archivo >5MB, extensión derivada de `File.type` ignorando un `File.name` hostil (`../../../etc/passwd`), png/webp mapean bien, los 3 patrones de caller reales siguen en 200 — **297 tests pasando** en total (34 archivos), `check-types` / `lint` / `prisma validate` en verde
+- **Sin cambios** de schema/migraciones, sin tocar pagos/memberships/Stripe/Revolut, sin tocar UI (ningún caller necesitó cambios), sin tocar Laravel V1
+- **Riesgo restante, no resuelto:** los 2 buckets siguen siendo públicos en Supabase Storage (confirmado en sesión anterior) — este PR no cambia eso, solo evita que un usuario no autorizado pueda escribir en ellos vía este endpoint; la política de visibilidad de los buckets en sí es una decisión de infraestructura fuera del scope de una PR de código
 
 ### Sesión 55 — 2026-07-11 ✅
 **Guard de capacidad/membership en reservas creadas por staff** — mergeado a `main` en `d7d233a` (branch `fix/staff-booking-capacity-guard`, borrada local + remoto tras confirmar Vercel Production)
