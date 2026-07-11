@@ -1,12 +1,14 @@
 'use client'
 
 import { useState, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import SchoolPicker from '../../components/SchoolPicker'
 import type { SchoolContext } from '@/lib/auth/contexts'
 import { safeRedirect } from '@/lib/safeRedirect'
+import { resolveLoginRedirectAction } from '@/lib/auth/loginRedirect'
+import { fetchAvailableContexts } from '@/app/choose-profile/logic'
 
 const BLUE = '#0870E2'
 const NAVY = '#0E3A7A'
@@ -64,6 +66,7 @@ function SSOButton({ icon, label, onClick }: { icon: React.ReactNode; label: str
 function LoginPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const pathname = usePathname()
   const supabase = createClient()
   const redirectTo = safeRedirect(searchParams.get('redirect'))
   const justRegistered = searchParams.get('registered') === '1'
@@ -98,25 +101,39 @@ function LoginPageInner() {
         return
       }
 
-      const schools: SchoolContext[] = json.contexts?.schools ?? []
-      const staffSchools = schools.filter(s => s.role !== 'STUDENT')
+      const legacySchools: SchoolContext[] = json.contexts?.schools ?? []
 
-      if (staffSchools.length === 1 && staffSchools[0]) {
-        await fetch('/api/auth/context', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ schoolId: staffSchools[0].schoolId }),
-        })
-        router.push('/dashboard')
-        return
+      // Decision extracted to lib/auth/loginRedirect.ts — see that file for
+      // the full priority order (explicit redirect / SUPERADMIN already
+      // handled above, so this only ever resolves the "how many real
+      // contexts does this user have" branch, with a safe fallback to the
+      // pre-existing staffSchools logic if GET /api/auth/contexts fails).
+      const action = await resolveLoginRedirectAction({
+        explicitPath: undefined,
+        isSuperAdmin: false,
+        legacySchools,
+        isOnChooseProfile: pathname === '/choose-profile',
+        fetchContexts: () => fetchAvailableContexts(),
+      })
+
+      switch (action.kind) {
+        case 'dashboard-auto':
+          await fetch('/api/auth/context', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ schoolId: action.schoolId }),
+          })
+          router.push('/dashboard')
+          return
+        case 'legacy-picker':
+          setPickerSchools(action.schools)
+          return
+        case 'noop':
+          return
+        case 'push':
+          router.push(action.path)
+          return
       }
-
-      if (staffSchools.length > 1) {
-        setPickerSchools(staffSchools)
-        return
-      }
-
-      router.push('/my')
     } catch {
       router.push('/my')
     }
