@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `d7d233a` — guard de capacidad/membership en reservas de staff (add-booking + checkin walk-in), con `scheduledAt` alineado al horario real de la clase (Sesión 55); sin migración, sin cambios de schema. **PR abierta sin mergear:** `fix/dashboard-upload-auth-guard` (Sesión 56) — control de acceso + allow-list de buckets en `POST /api/dashboard/upload`, sin migración. **Pendiente:** sandbox Revolut no soportado (host de producción hardcodeado en `register-webhook`), documentado como gap, no implementado
+**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `014463d` — control de acceso (staff no-STUDENT + SUPERADMIN) + allow-list de buckets en `POST /api/dashboard/upload` (Sesión 56); sin migración, sin cambios de schema. **Pendiente:** sandbox Revolut no soportado (host de producción hardcodeado en `register-webhook`), documentado como gap, no implementado
 
 ---
 
@@ -261,8 +261,8 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 
 ## Historial de sesiones
 
-### Sesión 56 — 2026-07-11 ⏳ pendiente de mergear
-**Hardening de `POST /api/dashboard/upload`** — branch `fix/dashboard-upload-auth-guard`, aún no mergeada
+### Sesión 56 — 2026-07-11 ✅
+**Hardening de `POST /api/dashboard/upload`** — mergeado a `main` en `014463d` (branch `fix/dashboard-upload-auth-guard`, borrada local + remoto tras confirmar Vercel Production)
 
 Cierra el siguiente riesgo de la misma auditoría P1/P2 fuera de pagos que dio lugar a la Sesión 55: de 57 rutas `/api/dashboard/**`, esta era una de las 2 sin ningún control de rol/escuela (la otra, `dashboard/profile/route.ts`, es legítima — autoscopeada por `user.id`). Cualquier usuario autenticado, incluso sin `SchoolMember` en ninguna escuela, podía subir archivos usando la service-role key de Supabase (bypassa RLS), y el parámetro `bucket` se pasaba tal cual a la Storage API sin allow-list.
 
