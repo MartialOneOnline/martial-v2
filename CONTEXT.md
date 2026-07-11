@@ -261,8 +261,8 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 
 ## Historial de sesiones
 
-### Sesión 63 — 2026-07-11 🔄 (PR abierto, sin mergear)
-**Login → `/choose-profile` cuando hay más de un contexto real (dashboard+student combinados)** — branch `fix/login-choose-profile-redirect`, PR abierto contra `main` (partiendo de `602d7f2`), **NO mergeado todavía**.
+### Sesión 63 — 2026-07-11 ✅
+**Login → `/choose-profile` cuando hay más de un contexto real (dashboard+student combinados)** — mergeado a `main` en `d2b81be` (branch `fix/login-choose-profile-redirect`, PR [#6](https://github.com/MartialOneOnline/martial-v2/pull/6), borrada local + remoto tras confirmar Vercel Production y probar `/`, `/login`, `/choose-profile`, `/api/auth/contexts` en real).
 
 Conecta por fin el login con el selector construido en la Sesión 62: la Sesión 62 dejó documentado que `resolveRedirect()` (en `login/page.tsx` y `LoginModal.tsx`) seguía usando el modelo viejo `SchoolContext[]`/`GET /api/auth/me` (`staffSchools = schools.filter(s => s.role !== 'STUDENT')`), y que un usuario "STAFF en escuela A + STUDENT en escuela B" caía en `staffSchools.length === 1` → auto-redirect directo a `/dashboard` sin picker, un caso mal enrutado. Este PR es mínimo y aditivo, tratado con el mismo cuidado que un cambio de pagos: es el flujo de login, el de menor margen de error de toda la app.
 
