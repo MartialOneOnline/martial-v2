@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
-import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { getAuthUser, getCurrentSchoolId, requireDashboardAccess } from '@/lib/auth/server'
 
+// requireDashboardAccess() bypasses this for SUPERADMIN and otherwise
+// requires an ACTIVE SchoolMember with a staff-facing role — a STUDENT must
+// not read the full member roster (names/emails/belts/plans) for the school.
 async function authorise() {
   const user = await getAuthUser()
   if (!user) return { error: 'Unauthorized', status: 401 }
   const schoolId = await getCurrentSchoolId()
   if (!schoolId) return { error: 'No school context', status: 400 }
-  if (user.role !== 'SUPERADMIN') {
-    try { await requireSchoolAccess(user.id, schoolId) }
-    catch { return { error: 'Forbidden', status: 403 } }
-  }
+  try { await requireDashboardAccess(schoolId) }
+  catch { return { error: 'Forbidden', status: 403 } }
   return { schoolId }
 }
 

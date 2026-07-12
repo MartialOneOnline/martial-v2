@@ -2,7 +2,7 @@ import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { prisma } from '@/lib/db'
-import { requireSchoolAccess } from './contexts'
+import { requireSchoolAccess, DASHBOARD_ROLES } from './contexts'
 
 // Resolves the Prisma User for a given Supabase auth user (by supabaseAuthId,
 // falling back to linking by email if the link hasn't been made yet).
@@ -65,6 +65,10 @@ export async function getCurrentSchoolId(): Promise<string | null> {
 
 // Convenience: get auth user + validate school access in one call.
 // Throws 'UNAUTHORIZED' or 'FORBIDDEN' — catch in route handler.
+// Beyond requireSchoolAccess()'s ACTIVE-status check, this also enforces that
+// the member's role is staff-facing (DASHBOARD_ROLES) — a STUDENT with an
+// ACTIVE SchoolMember row must not read /api/dashboard/** report/billing data
+// just because they belong to the school.
 export async function requireDashboardAccess(schoolId?: string) {
   const user = await getAuthUser()
   if (!user) throw new Error('UNAUTHORIZED')
@@ -75,6 +79,7 @@ export async function requireDashboardAccess(schoolId?: string) {
   if (!sid) throw new Error('FORBIDDEN')
 
   const member = await requireSchoolAccess(user.id, sid)
+  if (!DASHBOARD_ROLES.includes(member.role)) throw new Error('FORBIDDEN')
   return { user, member }
 }
 
