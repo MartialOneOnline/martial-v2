@@ -2,8 +2,10 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import Link from 'next/link'
+import { useRouter, usePathname } from 'next/navigation'
 import { Calendar, Clock, MapPin, ChevronLeft, ChevronRight, Users, CheckCircle2, X, Info, CalendarDays, Ticket, Zap } from 'lucide-react'
 import { useT } from '../../../lib/i18n/LanguageContext'
+import { isStudentContextRequired, chooseProfileUrl } from '../../../lib/studentContext'
 
 /* ── Types ── */
 type Booking = {
@@ -590,6 +592,8 @@ function PassCard({ plan, onRequest, requesting }: {
 /* ── Main page ── */
 export default function MyClassesPage() {
   const t = useT()
+  const router = useRouter()
+  const pathname = usePathname()
   const [mainTab, setMainTab] = useState<'book' | 'schedule'>('book')
   const [hasSchool, setHasSchool] = useState(false)
   const [schoolCheckDone, setSchoolCheckDone] = useState(false)
@@ -622,17 +626,32 @@ export default function MyClassesPage() {
     setLoadingBookings(true)
     fetch(`/api/my/bookings?past=${scheduleSubTab === 'past'}&page=${page}`)
       .then(r => r.json())
-      .then(d => { setBookings(d.bookings ?? []); setTotal(d.total ?? 0); setPages(d.pages ?? 1); setLoadingBookings(false) })
+      .then(d => {
+        // A dual-school student with no resolved active context can't be
+        // served a booking list without guessing which school it belongs
+        // to — send them to pick one instead of rendering an empty page.
+        if (isStudentContextRequired(d)) {
+          router.replace(chooseProfileUrl(pathname))
+          return
+        }
+        setBookings(d.bookings ?? []); setTotal(d.total ?? 0); setPages(d.pages ?? 1); setLoadingBookings(false)
+      })
       .catch(() => setLoadingBookings(false))
-  }, [scheduleSubTab, page])
+  }, [scheduleSubTab, page, router, pathname])
 
   const loadOccurrences = useCallback(() => {
     setLoadingOcc(true)
     fetch('/api/my/school-classes')
       .then(r => r.json())
-      .then(d => { setOccurrences(d.occurrences ?? []); setLoadingOcc(false) })
+      .then(d => {
+        if (isStudentContextRequired(d)) {
+          router.replace(chooseProfileUrl(pathname))
+          return
+        }
+        setOccurrences(d.occurrences ?? []); setLoadingOcc(false)
+      })
       .catch(() => setLoadingOcc(false))
-  }, [])
+  }, [router, pathname])
 
   useEffect(() => { setPage(1) }, [scheduleSubTab])
   useEffect(() => { loadBookings() }, [loadBookings])

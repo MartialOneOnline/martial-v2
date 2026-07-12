@@ -33,6 +33,21 @@ vi.mock('@/lib/db', () => ({
   },
 }))
 
+const mockHasDashboardAccess = vi.fn()
+vi.mock('@/lib/auth/contexts', () => ({
+  hasDashboardAccess: mockHasDashboardAccess,
+}))
+
+// This suite predates the active-student-context scoping (see
+// mySchoolClassesScope.test.ts for that behaviour) — it only cares about the
+// canBook computation, so it keeps the pre-scoping fallback path: no
+// resolved context ('none'), which makes the route fall back to the exact
+// same unscoped prisma.schoolMember.findMany() call this file already mocks.
+const mockGetActiveStudentContext = vi.fn()
+vi.mock('@/lib/auth/activeContextCookie', () => ({
+  getActiveStudentContext: mockGetActiveStudentContext,
+}))
+
 const { GET } = await import('@/app/api/my/school-classes/route')
 
 // Tomorrow's weekday/time — avoids same-day edge cases in nextOccurrence()
@@ -59,6 +74,8 @@ beforeEach(() => {
   ])
   mockClassFindMany.mockResolvedValue([classRow])
   mockBookingCount.mockResolvedValue(0)
+  mockHasDashboardAccess.mockResolvedValue(false)
+  mockGetActiveStudentContext.mockResolvedValue({ kind: 'none' })
 })
 
 interface Occurrence {

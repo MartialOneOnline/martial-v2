@@ -35,6 +35,11 @@ vi.mock('@/lib/auth/contexts', () => ({
   hasStudentAccess: mockHasStudentAccess,
 }))
 
+const mockGetActiveStudentContext = vi.fn()
+vi.mock('@/lib/auth/activeContextCookie', () => ({
+  getActiveStudentContext: mockGetActiveStudentContext,
+}))
+
 const { GET, PATCH } = await import('@/app/api/my/route')
 
 function baseUser(schoolMembers: unknown[]) {
@@ -59,6 +64,10 @@ function patchRequest(body: unknown) {
 beforeEach(() => {
   vi.clearAllMocks()
   mockGetUser.mockResolvedValue({ data: { user: { id: 'auth-1' } } })
+  // Default: single/no student context (unchanged pre-existing behaviour for
+  // the tests below, none of which involve a dual-school student). Tests
+  // that care about scoping/ambiguity override this explicitly.
+  mockGetActiveStudentContext.mockResolvedValue({ kind: 'none' })
 })
 
 describe('GET /api/my', () => {
@@ -120,6 +129,54 @@ describe('GET /api/my', () => {
     const res = await GET()
 
     expect(res.status).toBe(404)
+  })
+
+  it('409s with student_context_required when the active student context is ambiguous, without running the main data query', async () => {
+    mockUserFindUnique.mockResolvedValue(baseUser([
+      { id: 'sm-1', belt: 'Blue Belt', beltDegree: 0, beltDate: null, role: 'STUDENT', status: 'ACTIVE', school: null },
+    ]))
+    mockGetActiveStudentContext.mockResolvedValue({ kind: 'ambiguous' })
+
+    const res = await GET()
+    const json = await res.json()
+
+    expect(res.status).toBe(409)
+    expect(json.error).toBe('student_context_required')
+    // Only the minimal { id: true } lookup should have run — never the full,
+    // unscoped select that would otherwise mix schools.
+    expect(mockUserFindUnique).toHaveBeenCalledTimes(1)
+  })
+
+  it('scopes memberships/bookings/schoolMembers/gradings to the active student context schoolId', async () => {
+    mockUserFindUnique.mockResolvedValue(baseUser([
+      { id: 'sm-1', belt: 'Blue Belt', beltDegree: 1, beltDate: null, role: 'STUDENT', status: 'ACTIVE', school: null },
+    ]))
+    mockHasDashboardAccess.mockResolvedValue(false)
+    mockGetActiveStudentContext.mockResolvedValue({ kind: 'ok', schoolId: 'school-b' })
+
+    const res = await GET()
+
+    expect(res.status).toBe(200)
+    const secondCallArgs = mockUserFindUnique.mock.calls[1]?.[0]
+    expect(secondCallArgs.select.memberships.where.schoolId).toBe('school-b')
+    expect(secondCallArgs.select.bookings.where.class.schoolId).toBe('school-b')
+    expect(secondCallArgs.select.schoolMembers.where.schoolId).toBe('school-b')
+    expect(secondCallArgs.select.gradings.where.schoolId).toBe('school-b')
+  })
+
+  it('does not filter by schoolId when the context is none (unchanged pre-existing behaviour)', async () => {
+    mockUserFindUnique.mockResolvedValue(baseUser([]))
+    mockHasDashboardAccess.mockResolvedValue(false)
+    mockGetActiveStudentContext.mockResolvedValue({ kind: 'none' })
+
+    const res = await GET()
+
+    expect(res.status).toBe(200)
+    const secondCallArgs = mockUserFindUnique.mock.calls[1]?.[0]
+    expect(secondCallArgs.select.memberships.where.schoolId).toBeUndefined()
+    expect(secondCallArgs.select.bookings.where.class).toBeUndefined()
+    expect(secondCallArgs.select.schoolMembers.where.schoolId).toBeUndefined()
+    expect(secondCallArgs.select.gradings.where.schoolId).toBeUndefined()
   })
 })
 

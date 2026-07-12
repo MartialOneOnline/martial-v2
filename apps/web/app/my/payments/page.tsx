@@ -1,9 +1,11 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
 import { CreditCard, ChevronLeft, ChevronRight, ArrowUpRight, ArrowDownLeft } from 'lucide-react'
 import { fmtPrice } from '../../../lib/format'
 import { useT } from '../../../lib/i18n/LanguageContext'
+import { isStudentContextRequired, chooseProfileUrl } from '../../../lib/studentContext'
 
 type Transaction = {
   id: string
@@ -27,6 +29,8 @@ function fmtAmount(amount: number, currency: string, type: string) {
 
 export default function MyPaymentsPage() {
   const t = useT()
+  const router = useRouter()
+  const pathname = usePathname()
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [total, setTotal] = useState(0)
   const [pages, setPages] = useState(1)
@@ -37,9 +41,19 @@ export default function MyPaymentsPage() {
     setLoading(true)
     fetch(`/api/my/payments?page=${page}`)
       .then(r => r.json())
-      .then(d => { setTransactions(d.transactions ?? []); setTotal(d.total ?? 0); setPages(d.pages ?? 1); setLoading(false) })
+      .then(d => {
+        // A dual-school student with no resolved active context can't be
+        // served a transaction history without guessing which school it
+        // belongs to — send them to pick one instead of rendering an
+        // empty/broken page.
+        if (isStudentContextRequired(d)) {
+          router.replace(chooseProfileUrl(pathname))
+          return
+        }
+        setTransactions(d.transactions ?? []); setTotal(d.total ?? 0); setPages(d.pages ?? 1); setLoading(false)
+      })
       .catch(() => setLoading(false))
-  }, [page])
+  }, [page, router, pathname])
 
   useEffect(() => { load() }, [load])
 

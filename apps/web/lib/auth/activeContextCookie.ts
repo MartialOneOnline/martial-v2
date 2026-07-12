@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers'
-import { ACTIVE_CONTEXT_MODES, isValidContext, type ActiveContext } from './activeContext'
+import { ACTIVE_CONTEXT_MODES, isValidContext, listAvailableContexts, type ActiveContext } from './activeContext'
 
 // Split out from activeContext.ts on purpose, mirroring why activeContext.ts
 // itself was split from contexts.ts: activeContext.ts is pure DB logic (no
@@ -106,4 +106,48 @@ export async function getActiveContext(userId: string): Promise<ActiveContext | 
 
   const valid = await isValidContext(userId, parsed)
   return valid ? parsed : null
+}
+
+// The single school id GET/PATCH /api/my/** should use when a real STUDENT
+// SchoolMember row exists at more than one school for this user. A 'dashboard'
+// cookie doesn't count as "no student context" being an error — it's just not
+// a student selection, so it falls through to the same resolution as no
+// cookie at all (see the mode check below).
+export type ActiveStudentContext =
+  | { kind: 'ok'; schoolId: string }
+  // The user has a real STUDENT SchoolMember at 2+ schools and neither a
+  // valid 'student' cookie nor an unambiguous single school to fall back to.
+  // Callers must respond 409 student_context_required — never guess by
+  // picking "the first one found".
+  | { kind: 'ambiguous' }
+  // No real STUDENT SchoolMember anywhere for this user. Callers decide what
+  // this means for them (e.g. /api/my still 200s a brand-new user with no
+  // school yet, but 403s a staff-only account — see hasDashboardAccess()).
+  | { kind: 'none' }
+
+// Resolves which single school's data a /api/my/** endpoint should serve for
+// this user, in priority order:
+//   1. A valid 'student'-mode martial_active_context cookie — the user's
+//      explicit choice from /choose-profile.
+//   2. Exactly one real STUDENT context (via listAvailableContexts) — a safe
+//      fallback for the common case (single-school student, or a fresh
+//      picker cookie that hasn't been set yet), no cookie required.
+//   3. Two or more STUDENT contexts with no (or no matching) cookie — this is
+//      the only case that can't be resolved safely, hence 'ambiguous'.
+//   4. Zero STUDENT contexts — 'none'.
+//
+// Never mixes schools: every branch above resolves to at most one schoolId,
+// or an explicit signal that none could be determined.
+export async function getActiveStudentContext(userId: string): Promise<ActiveStudentContext> {
+  const cookieContext = await getActiveContext(userId)
+  if (cookieContext && cookieContext.mode === 'student') {
+    return { kind: 'ok', schoolId: cookieContext.schoolId }
+  }
+
+  const studentContexts = (await listAvailableContexts(userId)).filter(c => c.mode === 'student')
+
+  if (studentContexts.length === 0) return { kind: 'none' }
+  const [only] = studentContexts
+  if (studentContexts.length === 1 && only) return { kind: 'ok', schoolId: only.schoolId }
+  return { kind: 'ambiguous' }
 }
