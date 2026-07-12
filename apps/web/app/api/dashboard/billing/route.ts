@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
-import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { getAuthUser, getCurrentSchoolId, requireDashboardAccess } from '@/lib/auth/server'
 
 // GET /api/dashboard/billing — school's Martial SaaS subscription + platform plan pricing
 export async function GET(req: NextRequest) {
@@ -12,12 +11,13 @@ export async function GET(req: NextRequest) {
   const schoolId = searchParams.get('schoolId') ?? (await getCurrentSchoolId())
   if (!schoolId) return NextResponse.json({ error: 'No school context' }, { status: 400 })
 
-  if (user.role !== 'SUPERADMIN') {
-    try {
-      await requireSchoolAccess(user.id, schoolId)
-    } catch {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
+  // requireDashboardAccess() bypasses this for SUPERADMIN and otherwise
+  // requires an ACTIVE SchoolMember with a staff-facing role — a STUDENT
+  // must not read billing/subscription data for the school.
+  try {
+    await requireDashboardAccess(schoolId)
+  } catch {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
   const [subscription, platformSettings] = await Promise.all([
