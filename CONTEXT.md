@@ -262,7 +262,7 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 ## Historial de sesiones
 
 ### Sesión 68 — 2026-07-12 ✅ (PR abierto, sin mergear)
-**7 endpoints GET de `/api/dashboard/**` reforzados con `requireDashboardAccess()` — cierra hallazgo P1/P2 de autorización** — branch `fix/dashboard-report-auth-guards`, PR pendiente de abrir/mergear contra `main`.
+**7 endpoints GET de `/api/dashboard/**` reforzados con `requireDashboardAccess()` — cierra hallazgo P1/P2 de autorización** — branch `fix/dashboard-report-auth-guards`, PR [#10](https://github.com/MartialOneOnline/martial-v2/pull/10) abierto contra `main` (base `dbe334d`), pendiente de revisión/aprobación del usuario antes de merge.
 
 Cierra el hallazgo #3 documentado como abierto en la Sesión 67 ("falta de chequeo de rol/pertenencia consistente en varias de las 56/57 rutas de `/api/dashboard/**` más allá de simplemente confiar en `currentSchoolId`"): 7 endpoints GET llamaban `requireSchoolAccess(userId, schoolId)` (`lib/auth/contexts.ts`) y se detenían ahí — esa función solo valida `SchoolMember.status === 'ACTIVE'`, nunca `role`. Un `SchoolMember` con rol `STUDENT` y status `ACTIVE` podía llamarlos directamente y leer datos administrativos: facturación de la escuela, roster completo de miembros con PII (nombre/email/belt/plan), ingresos por transacción individual, listado de ausencias/no-shows por alumno.
 
