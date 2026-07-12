@@ -262,7 +262,7 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 ## Historial de sesiones
 
 ### Sesión 66 — 2026-07-12 🟡 (PR abierto, sin mergear)
-**`/choose-profile` ahora consume `?redirect=` de forma segura al elegir contexto** — branch `fix/choose-profile-redirect-param`, PR abierto contra `main` (partiendo de `f18e119`, HEAD tras el merge de la Sesión 65). **No mergeado todavía** — pendiente de revisión/aprobación del usuario.
+**`/choose-profile` ahora consume `?redirect=` de forma segura al elegir contexto** — branch `fix/choose-profile-redirect-param`, PR [#8](https://github.com/MartialOneOnline/martial-v2/pull/8) abierto contra `main` (partiendo de `f18e119`, HEAD tras el merge de la Sesión 65). **No mergeado todavía** — pendiente de revisión/aprobación del usuario.
 
 Cierra el riesgo #1 documentado como abierto en la Sesión 65: `lib/studentContext.ts#chooseProfileUrl()` ya construía `/choose-profile?redirect=<path>` cuando `/api/my/**` devolvía `student_context_required` (409), pero `/choose-profile` lo ignoraba por completo — `logic.ts#redirectPathForMode()` siempre mandaba a `/dashboard` o `/my` tras elegir. Un alumno que llegaba a `/choose-profile?redirect=/my/events` (tras un 409 en `/my/events`) elegía su contexto y aterrizaba en `/my` genérico, perdiendo la página original.
 
