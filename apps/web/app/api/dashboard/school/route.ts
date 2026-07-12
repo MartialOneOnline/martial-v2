@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
+import { getAuthUser, getCurrentSchoolId, requireDashboardAccess } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 import { getSchoolModules } from '@/lib/school-modules'
 
@@ -25,18 +25,21 @@ export async function GET(req: NextRequest) {
 
   if (!schoolId) return NextResponse.json({ error: 'No school context' }, { status: 400 })
 
-  // Validate access (SUPERADMIN bypasses membership check)
-  // Only OWNER/ADMIN (or SUPERADMIN) may see the payment provider secret keys —
-  // everyone else with school access gets the public fields only.
-  let canViewPaymentSecrets = user.role === 'SUPERADMIN'
-  if (!canViewPaymentSecrets) {
-    try {
-      const member = await requireSchoolAccess(user.id, schoolId)
-      canViewPaymentSecrets = ['OWNER', 'ADMIN'].includes(member.role)
-    } catch {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
+  // requireDashboardAccess() bypasses this for SUPERADMIN and otherwise
+  // requires an ACTIVE SchoolMember with a staff-facing role — a STUDENT
+  // must not read school settings data (even the "public" fields) via this
+  // endpoint. This is the entry gate only; it does not decide which fields
+  // come back — that is still decided below, unchanged.
+  let member: { role: string } | null
+  try {
+    ;({ member } = await requireDashboardAccess(schoolId))
+  } catch {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
+
+  // Only OWNER/ADMIN (or SUPERADMIN) may see the payment provider secret keys —
+  // other staff roles with dashboard access get the public fields only.
+  const canViewPaymentSecrets = user.role === 'SUPERADMIN' || (member != null && ['OWNER', 'ADMIN'].includes(member.role))
 
   const baseSelect = {
     id: true,

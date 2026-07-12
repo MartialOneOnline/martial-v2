@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
-import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { getAuthUser, getCurrentSchoolId, requireDashboardAccess } from '@/lib/auth/server'
 
 // Day of week: 0=Sun, 1=Mon ... 6=Sat
 // Prisma schedule JSON: [{ dayOfWeek: 1, startTime: "18:00", endTime: "19:30" }]
@@ -14,9 +13,13 @@ export async function GET(req: NextRequest) {
   const schoolId = searchParams.get('schoolId') ?? (await getCurrentSchoolId())
   if (!schoolId) return NextResponse.json({ error: 'No school context' }, { status: 400 })
 
-  if (user.role !== 'SUPERADMIN') {
-    try { await requireSchoolAccess(user.id, schoolId) }
-    catch { return NextResponse.json({ error: 'Forbidden' }, { status: 403 }) }
+  // requireDashboardAccess() bypasses this for SUPERADMIN and otherwise
+  // requires an ACTIVE SchoolMember with a staff-facing role — a STUDENT
+  // must not read today's class roster/booking counts for the school.
+  try {
+    await requireDashboardAccess(schoolId)
+  } catch {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
   const todayDow = new Date().getDay() // 0=Sun
