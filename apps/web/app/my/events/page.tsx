@@ -197,8 +197,8 @@ function TicketDrawer({ ev, onClose }: { ev: EventItem; onClose: () => void }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
-      <div className="w-full max-w-lg bg-white rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto pb-8" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-lg bg-white rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto pb-[calc(2rem+env(safe-area-inset-bottom))]" onClick={e => e.stopPropagation()}>
         <div className="flex justify-center pt-3 pb-1"><div className="w-10 h-1 bg-gray-200 rounded-full" /></div>
         <div className="p-5">
           <div className="flex items-start justify-between gap-3 mb-4">
@@ -347,8 +347,8 @@ function ContactOrganizerSheet({ school, subject, onClose }: { school: Organizer
   ].filter((x): x is { key: string; icon: typeof MessageCircle; color: string; bg: string; label: string; sub: string; href: string } => Boolean(x))
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
-      <div className="w-full max-w-sm bg-white rounded-t-3xl shadow-2xl pb-8" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-sm bg-white rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto pb-[calc(2rem+env(safe-area-inset-bottom))]" onClick={e => e.stopPropagation()}>
         <div className="flex justify-center pt-3 pb-1"><div className="w-10 h-1 bg-gray-200 rounded-full" /></div>
         <div className="px-5 pt-2 pb-1 flex items-center justify-between">
           <div>

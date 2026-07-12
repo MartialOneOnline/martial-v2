@@ -1879,29 +1879,32 @@ export default function UsersClient({ students: initialStudents }: { students: S
         </div>
 
         {/* Filter tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none" style={{ WebkitOverflowScrolling: 'touch' }}>
-          {(['All', 'Active', 'Pending', 'Lead', 'Inactive', 'Archived'] as FilterType[]).map(f => {
-            const filterLabels: Record<FilterType, string> = {
-              All: t.common.all, Active: t.common.active, Pending: t.common.pending,
-              Lead: t.common.lead, Inactive: t.common.inactive, Archived: t.common.archived,
-            }
-            return (
-              <button key={f} onClick={() => handleFilter(f)}
-                className="cursor-pointer transition-all"
-                style={{
-                  fontSize: 13, fontWeight: 500, border: 'none', borderRadius: 8, padding: '6px 14px',
-                  color: activeFilter === f ? '#111827' : '#6B7280',
-                  background: activeFilter === f ? '#fff' : 'transparent',
-                  boxShadow: activeFilter === f ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                }}>
-                {filterLabels[f]}
-                <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 600, color: activeFilter === f ? '#0071E3' : '#9CA3AF' }}>
-                  {f === 'All' ? students.length
-                    : students.filter(s => (STATUS_DISPLAY[s.status] ?? s.status) === f).length}
-                </span>
-              </button>
-            )
-          })}
+        <div className="overflow-x-auto pb-1 scrollbar-none" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <div className="flex items-center gap-2 w-max">
+            {(['All', 'Active', 'Pending', 'Lead', 'Inactive', 'Archived'] as FilterType[]).map(f => {
+              const filterLabels: Record<FilterType, string> = {
+                All: t.common.all, Active: t.common.active, Pending: t.common.pending,
+                Lead: t.common.lead, Inactive: t.common.inactive, Archived: t.common.archived,
+              }
+              return (
+                <button key={f} onClick={() => handleFilter(f)}
+                  className="cursor-pointer transition-all"
+                  style={{
+                    fontSize: 13, fontWeight: 500, border: 'none', borderRadius: 8, padding: '6px 14px',
+                    color: activeFilter === f ? '#111827' : '#6B7280',
+                    background: activeFilter === f ? '#fff' : 'transparent',
+                    boxShadow: activeFilter === f ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                    whiteSpace: 'nowrap',
+                  }}>
+                  {filterLabels[f]}
+                  <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 600, color: activeFilter === f ? '#0071E3' : '#9CA3AF' }}>
+                    {f === 'All' ? students.length
+                      : students.filter(s => (STATUS_DISPLAY[s.status] ?? s.status) === f).length}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
         </div>
 
         {/* Active filter chips */}
