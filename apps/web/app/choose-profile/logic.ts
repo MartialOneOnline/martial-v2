@@ -1,4 +1,5 @@
 import type { ActiveContext, ActiveContextMode, AvailableContext } from '@/lib/auth/activeContext'
+import { safeRedirect } from '@/lib/safeRedirect'
 
 // Pure, framework-free logic for /choose-profile — deliberately kept out of
 // ChooseProfileClient.tsx so it's unit-testable without mocking React,
@@ -100,4 +101,67 @@ export async function selectProfileContext(
   if (!res.ok) return { ok: false, error: 'http' }
 
   return { ok: true, redirectTo: redirectPathForMode(context.mode) }
+}
+
+// ── ?redirect= handling for /choose-profile ──────────────────────────────
+//
+// safeRedirect() only guarantees "same-origin, relative path" — it has no
+// concept of dashboard vs student portals, so on its own it would happily
+// let a `student` context redirect into `/dashboard/...` (or vice versa).
+// This layer adds that mode/path compatibility check on top of
+// safeRedirect(), plus a loop guard so a `?redirect=/choose-profile...`
+// value can never send the user right back to this same page. Kept as its
+// own pure function (same reasoning as redirectPathForMode()/
+// classifyContexts() above) so ChooseProfileClient.tsx only has to call it
+// and router.push() the result — no branching lives in the component.
+const CHOOSE_PROFILE_PATH = '/choose-profile'
+
+// Strips a query string/hash so the prefix checks below operate on the path
+// only. A raw `?redirect=` value can itself carry a nested query string
+// (e.g. `/choose-profile?redirect=%2Fchoose-profile%3Ffoo%3Dbar`, which
+// `useSearchParams().get('redirect')` hands back already decoded as
+// `/choose-profile?foo=bar`), and `/my/events?utm=x` should still be
+// recognised as living under `/my`.
+function pathnameOf(path: string): string {
+  const cut = path.search(/[?#]/)
+  return cut === -1 ? path : path.slice(0, cut)
+}
+
+// True when `pathname` is exactly `prefix` or nested under it — avoids
+// `/myfoo` incorrectly matching prefix `/my`.
+function isUnderPath(pathname: string, prefix: string): boolean {
+  return pathname === prefix || pathname.startsWith(`${prefix}/`)
+}
+
+// Resolves where /choose-profile should send the user after they pick a
+// context, honouring an optional `?redirect=` query param when present.
+//
+// Rules, in order:
+//  1. No redirect param, or safeRedirect() rejects it outright (external
+//     host, `//`-protocol-relative, `javascript:`, etc.) -> the existing
+//     redirectPathForMode(mode) fallback — unchanged from before this
+//     param existed.
+//  2. The (safe) redirect resolves into /choose-profile itself, with or
+//     without its own query string -> fallback, so this never loops back
+//     to the selector page.
+//  3. The redirect is safe and not a loop, but points at the *other*
+//     portal's paths (a `student` context picking a `/dashboard/...` URL,
+//     or a `dashboard` context picking a `/my/...` URL) -> fallback. A
+//     `student` context must never land on /dashboard, and a `dashboard`
+//     context must never land on /my.
+//  4. Otherwise — safe, not a loop, matches the chosen mode's own portal
+//     prefix -> honour it as-is.
+export function resolveChooseProfileRedirect(
+  mode: ActiveContextMode,
+  rawRedirect: string | null | undefined,
+): string {
+  const fallback = redirectPathForMode(mode)
+  const safe = safeRedirect(rawRedirect)
+  if (!safe) return fallback
+
+  const pathname = pathnameOf(safe)
+  if (isUnderPath(pathname, CHOOSE_PROFILE_PATH)) return fallback
+
+  const allowedPrefix = mode === 'dashboard' ? '/dashboard' : '/my'
+  return isUnderPath(pathname, allowedPrefix) ? safe : fallback
 }

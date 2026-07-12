@@ -1,13 +1,18 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useCallback, useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { LogOut } from 'lucide-react'
 import { useT } from '@/lib/i18n/LanguageContext'
 import type { ActiveContext, AvailableContext } from '@/lib/auth/activeContext'
 import type { SchoolMemberRole } from '@/lib/prisma-client/enums'
-import { classifyContexts, fetchAvailableContexts, selectProfileContext } from './logic'
+import {
+  classifyContexts,
+  fetchAvailableContexts,
+  resolveChooseProfileRedirect,
+  selectProfileContext,
+} from './logic'
 
 // Same English-only role labels as components/SchoolPicker.tsx (the other
 // school-role picker in this repo) — role names aren't translated there
@@ -38,9 +43,19 @@ function Initials({ label }: { label: string }) {
   return <span>{label.trim().charAt(0).toUpperCase() || '?'}</span>
 }
 
-export default function ChooseProfileClient({ userName, userAvatarUrl }: Props) {
+// `useSearchParams()` requires a <Suspense> boundary in the app router — see
+// the default export below, which wraps this with the same pattern already
+// used by app/login/page.tsx (LoginPageInner inside <Suspense>).
+function ChooseProfileClientInner({ userName, userAvatarUrl }: Props) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const t = useT().chooseProfile
+
+  // Only ever consumed by resolveChooseProfileRedirect() below, which routes
+  // it through safeRedirect() + a mode/portal compatibility check — never
+  // used raw. See logic.ts for the full rule set (loop guard, dashboard vs
+  // student portal prefixes, external-host rejection).
+  const redirectParam = searchParams.get('redirect')
 
   const [status, setStatus] = useState<Status>('loading')
   const [contexts, setContexts] = useState<AvailableContext[]>([])
@@ -75,7 +90,11 @@ export default function ChooseProfileClient({ userName, userAvatarUrl }: Props) 
       return
     }
 
-    router.push(result.redirectTo)
+    // result.redirectTo is just the plain mode->portal fallback; the actual
+    // destination (honouring ?redirect= when it's safe and compatible with
+    // the chosen mode) is decided here so the error-handling above (which
+    // never calls this) stays untouched.
+    router.push(resolveChooseProfileRedirect(context.mode, redirectParam))
   }
 
   const handleSignOut = () => {
@@ -139,6 +158,27 @@ export default function ChooseProfileClient({ userName, userAvatarUrl }: Props) 
         )}
       </div>
     </div>
+  )
+}
+
+// Same fallback shown by ChooseProfileClientInner's own 'loading' status —
+// this one only ever flashes for the instant before useSearchParams() first
+// resolves, which in practice is imperceptible; kept minimal rather than
+// duplicating the full t.loading copy (i18n isn't available outside
+// ChooseProfileClientInner without its own LanguageContext plumbing).
+function ChooseProfileFallback() {
+  return (
+    <div className="min-h-screen bg-gray-25 flex items-center justify-center px-4 py-12">
+      <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
+}
+
+export default function ChooseProfileClient(props: Props) {
+  return (
+    <Suspense fallback={<ChooseProfileFallback />}>
+      <ChooseProfileClientInner {...props} />
+    </Suspense>
   )
 }
 

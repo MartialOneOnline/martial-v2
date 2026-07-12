@@ -20,6 +20,10 @@
  *  - selectProfileContext(): success posts the exact {mode, schoolId}
  *    payload and resolves the right redirectTo; 403/400 (modeled as any
  *    non-2xx) and network failures both resolve ok:false without throwing.
+ *  - resolveChooseProfileRedirect(): the mode/path compatibility layer on
+ *    top of safeRedirect() that ChooseProfileClient.tsx uses to honour an
+ *    incoming `?redirect=` — same/other-portal compatibility, the
+ *    /choose-profile loop guard, and the plain "no redirect param" fallback.
  */
 import { describe, it, expect, vi } from 'vitest'
 import {
@@ -27,6 +31,7 @@ import {
   redirectPathForMode,
   fetchAvailableContexts,
   selectProfileContext,
+  resolveChooseProfileRedirect,
 } from '@/app/choose-profile/logic'
 import type { AvailableContext } from '@/lib/auth/activeContext'
 
@@ -198,5 +203,77 @@ describe('selectProfileContext()', () => {
     )
 
     expect(result).toEqual({ ok: false, error: 'network' })
+  })
+})
+
+// ── resolveChooseProfileRedirect() ──────────────────────────────────────────
+
+describe('resolveChooseProfileRedirect()', () => {
+  it('student + /my/events (safe, compatible) -> honours the redirect', () => {
+    expect(resolveChooseProfileRedirect('student', '/my/events')).toBe('/my/events')
+  })
+
+  it('dashboard + /dashboard/classes (safe, compatible) -> honours the redirect', () => {
+    expect(resolveChooseProfileRedirect('dashboard', '/dashboard/classes')).toBe('/dashboard/classes')
+  })
+
+  it('student + /dashboard (incompatible mode) -> falls back to /my', () => {
+    expect(resolveChooseProfileRedirect('student', '/dashboard')).toBe('/my')
+  })
+
+  it('student + /dashboard/settings (incompatible mode) -> falls back to /my', () => {
+    expect(resolveChooseProfileRedirect('student', '/dashboard/settings')).toBe('/my')
+  })
+
+  it('dashboard + /my (incompatible mode) -> falls back to /dashboard', () => {
+    expect(resolveChooseProfileRedirect('dashboard', '/my')).toBe('/dashboard')
+  })
+
+  it('dashboard + /my/events (incompatible mode) -> falls back to /dashboard', () => {
+    expect(resolveChooseProfileRedirect('dashboard', '/my/events')).toBe('/dashboard')
+  })
+
+  it('rejects an external host (https://evil.com) -> falls back before the mode check', () => {
+    expect(resolveChooseProfileRedirect('student', 'https://evil.com')).toBe('/my')
+    expect(resolveChooseProfileRedirect('dashboard', 'https://evil.com')).toBe('/dashboard')
+  })
+
+  it('rejects a protocol-relative host (//evil.com) -> falls back before the mode check', () => {
+    expect(resolveChooseProfileRedirect('student', '//evil.com')).toBe('/my')
+  })
+
+  it('rejects a javascript: URL -> falls back', () => {
+    expect(resolveChooseProfileRedirect('dashboard', 'javascript:alert(1)')).toBe('/dashboard')
+  })
+
+  it('/choose-profile -> falls back, never loops back to the selector', () => {
+    expect(resolveChooseProfileRedirect('student', '/choose-profile')).toBe('/my')
+    expect(resolveChooseProfileRedirect('dashboard', '/choose-profile')).toBe('/dashboard')
+  })
+
+  it('/choose-profile with its own query string -> falls back, no loop', () => {
+    expect(resolveChooseProfileRedirect('student', '/choose-profile?redirect=/my/events')).toBe('/my')
+  })
+
+  it('/choose-profile as a path prefix (e.g. /choose-profile/extra) -> falls back, no loop', () => {
+    expect(resolveChooseProfileRedirect('dashboard', '/choose-profile/extra')).toBe('/dashboard')
+  })
+
+  it('no redirect param at all -> unchanged fallback behavior (dashboard -> /dashboard)', () => {
+    expect(resolveChooseProfileRedirect('dashboard', null)).toBe('/dashboard')
+    expect(resolveChooseProfileRedirect('dashboard', undefined)).toBe('/dashboard')
+  })
+
+  it('no redirect param at all -> unchanged fallback behavior (student -> /my)', () => {
+    expect(resolveChooseProfileRedirect('student', null)).toBe('/my')
+    expect(resolveChooseProfileRedirect('student', undefined)).toBe('/my')
+  })
+
+  it('a query string on an otherwise-compatible path is preserved', () => {
+    expect(resolveChooseProfileRedirect('student', '/my/events?tab=upcoming')).toBe('/my/events?tab=upcoming')
+  })
+
+  it('does not let a prefix collision (e.g. /myfoo) count as under /my', () => {
+    expect(resolveChooseProfileRedirect('student', '/myfoo')).toBe('/my')
   })
 })
