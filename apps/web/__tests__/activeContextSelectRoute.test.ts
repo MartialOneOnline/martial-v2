@@ -25,7 +25,7 @@ vi.mock('@/lib/db', () => ({
   },
 }))
 
-const { ACTIVE_CONTEXT_COOKIE_NAME, ACTIVE_CONTEXT_COOKIE_MAX_AGE, CURRENT_SCHOOL_ID_COOKIE_NAME, CURRENT_SCHOOL_ID_COOKIE_MAX_AGE } =
+const { ACTIVE_CONTEXT_COOKIE_NAME, ACTIVE_CONTEXT_COOKIE_MAX_AGE, CURRENT_SCHOOL_ID_COOKIE_NAME } =
   await vi.importActual<typeof import('@/lib/auth/activeContextCookie')>('@/lib/auth/activeContextCookie')
 
 const { POST, DELETE } = await import('@/app/api/auth/context/select/route')
