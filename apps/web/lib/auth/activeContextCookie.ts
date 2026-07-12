@@ -52,6 +52,27 @@ export function activeContextCookieOptions() {
   }
 }
 
+// currentSchoolId — the pre-existing, dashboard-only cookie from
+// api/auth/context/route.ts (see the big comment above). That file is
+// intentionally left untouched by this ticket (it's the old endpoint being
+// mirrored, not replaced), so its cookie name/options aren't defined there as
+// exports — they're just inline literals in that route. This trio mirrors
+// those exact literals so POST /api/auth/context/select can sync
+// currentSchoolId (mode==='dashboard' only — see route.ts for the branch)
+// without hand-copying the same 5-field options object a second time in a
+// second file. If api/auth/context/route.ts's literals ever change, keep
+// these in sync by hand — there is no single shared source for both files.
+export const CURRENT_SCHOOL_ID_COOKIE_NAME = 'currentSchoolId'
+export const CURRENT_SCHOOL_ID_COOKIE_MAX_AGE = 60 * 60 * 24 * 7 // 7 days — matches api/auth/context/route.ts, NOT the 60-day martial_active_context TTL above (different cookies, deliberately different lifetimes)
+export function currentSchoolIdCookieOptions() {
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax' as const,
+    path: '/',
+  }
+}
+
 // Parses the raw cookie value into an ActiveContext shape, or null if it's
 // missing, not valid JSON, or doesn't match the shape exactly (mode must be
 // one of ACTIVE_CONTEXT_MODES, schoolId a non-empty string). Never throws —

@@ -18,9 +18,15 @@ vi.mock('@/lib/auth/activeContext', () => ({
   isValidContext: mockIsValidContext,
 }))
 
-const { ACTIVE_CONTEXT_COOKIE_NAME, ACTIVE_CONTEXT_COOKIE_MAX_AGE } = await vi.importActual<
-  typeof import('@/lib/auth/activeContextCookie')
->('@/lib/auth/activeContextCookie')
+const mockUpsert = vi.fn()
+vi.mock('@/lib/db', () => ({
+  prisma: {
+    userPreference: { upsert: mockUpsert },
+  },
+}))
+
+const { ACTIVE_CONTEXT_COOKIE_NAME, ACTIVE_CONTEXT_COOKIE_MAX_AGE, CURRENT_SCHOOL_ID_COOKIE_NAME, CURRENT_SCHOOL_ID_COOKIE_MAX_AGE } =
+  await vi.importActual<typeof import('@/lib/auth/activeContextCookie')>('@/lib/auth/activeContextCookie')
 
 const { POST, DELETE } = await import('@/app/api/auth/context/select/route')
 
@@ -138,6 +144,89 @@ describe('POST /api/auth/context/select', () => {
 
     expect(json).toEqual({ activeContext: { mode: 'dashboard', schoolId: 'school-1' } })
     expect(mockIsValidContext).toHaveBeenCalledWith('user-1', { mode: 'dashboard', schoolId: 'school-1' })
+  })
+})
+
+// Bug fix under test: the 57 /api/dashboard/** routes only ever read the
+// pre-existing currentSchoolId cookie, never martial_active_context. Before
+// this fix, selecting a 'dashboard' context here left currentSchoolId
+// untouched/stale, so the dashboard kept serving whatever school it last
+// pointed to (or none) instead of the one just chosen.
+describe('POST /api/auth/context/select — currentSchoolId sync (dashboard-mode bug fix)', () => {
+  it("mode: 'dashboard' valid → 200, Set-Cookie has BOTH cookies with the same schoolId, and upserts UserPreference.lastSchoolId", async () => {
+    mockGetAuthUser.mockResolvedValue({ id: 'user-1' })
+    mockIsValidContext.mockResolvedValue(true)
+
+    const res = await POST(postRequest({ mode: 'dashboard', schoolId: 'school-1' }))
+
+    expect(res.status).toBe(200)
+
+    const activeCookie = res.cookies.get(ACTIVE_CONTEXT_COOKIE_NAME)
+    expect(activeCookie).toBeDefined()
+    expect(JSON.parse(activeCookie!.value)).toEqual({ mode: 'dashboard', schoolId: 'school-1' })
+
+    const schoolCookie = res.cookies.get(CURRENT_SCHOOL_ID_COOKIE_NAME)
+    expect(schoolCookie).toBeDefined()
+    expect(schoolCookie!.value).toBe('school-1')
+    expect(schoolCookie!.httpOnly).toBe(true)
+    expect(schoolCookie!.sameSite).toBe('lax')
+    expect(schoolCookie!.path).toBe('/')
+    expect(schoolCookie!.maxAge).toBe(60 * 60 * 24 * 7)
+    // Deliberately a different (shorter) TTL than martial_active_context's 60 days.
+    expect(schoolCookie!.maxAge).not.toBe(ACTIVE_CONTEXT_COOKIE_MAX_AGE)
+
+    expect(mockUpsert).toHaveBeenCalledTimes(1)
+    expect(mockUpsert).toHaveBeenCalledWith({
+      where: { userId: 'user-1' },
+      create: { userId: 'user-1', lastSchoolId: 'school-1', lastContextType: 'SCHOOL' },
+      update: { lastSchoolId: 'school-1', lastContextType: 'SCHOOL' },
+    })
+  })
+
+  it("mode: 'student' valid → 200, Set-Cookie has ONLY martial_active_context — no currentSchoolId cookie at all, no upsert", async () => {
+    mockGetAuthUser.mockResolvedValue({ id: 'user-1' })
+    mockIsValidContext.mockResolvedValue(true)
+
+    const res = await POST(postRequest({ mode: 'student', schoolId: 'school-1' }))
+
+    expect(res.status).toBe(200)
+    expect(res.cookies.get(ACTIVE_CONTEXT_COOKIE_NAME)).toBeDefined()
+    expect(res.cookies.get(CURRENT_SCHOOL_ID_COOKIE_NAME)).toBeUndefined()
+    expect(mockUpsert).not.toHaveBeenCalled()
+  })
+
+  it("mode: 'dashboard' but isValidContext() returns false (403) → no cookie at all is set (neither old nor new)", async () => {
+    mockGetAuthUser.mockResolvedValue({ id: 'user-1' })
+    mockIsValidContext.mockResolvedValue(false)
+
+    const res = await POST(postRequest({ mode: 'dashboard', schoolId: 'school-1' }))
+
+    expect(res.status).toBe(403)
+    expect(res.cookies.get(ACTIVE_CONTEXT_COOKIE_NAME)).toBeUndefined()
+    expect(res.cookies.get(CURRENT_SCHOOL_ID_COOKIE_NAME)).toBeUndefined()
+    expect(mockUpsert).not.toHaveBeenCalled()
+  })
+
+  it('mode outside the whitelist (400) → no cookie at all is set', async () => {
+    mockGetAuthUser.mockResolvedValue({ id: 'user-1' })
+
+    const res = await POST(postRequest({ mode: 'admin', schoolId: 'school-1' }))
+
+    expect(res.status).toBe(400)
+    expect(res.cookies.get(ACTIVE_CONTEXT_COOKIE_NAME)).toBeUndefined()
+    expect(res.cookies.get(CURRENT_SCHOOL_ID_COOKIE_NAME)).toBeUndefined()
+    expect(mockUpsert).not.toHaveBeenCalled()
+  })
+
+  it('schoolId empty/wrong type (400) → no cookie at all is set', async () => {
+    mockGetAuthUser.mockResolvedValue({ id: 'user-1' })
+
+    const res = await POST(postRequest({ mode: 'dashboard', schoolId: '' }))
+
+    expect(res.status).toBe(400)
+    expect(res.cookies.get(ACTIVE_CONTEXT_COOKIE_NAME)).toBeUndefined()
+    expect(res.cookies.get(CURRENT_SCHOOL_ID_COOKIE_NAME)).toBeUndefined()
+    expect(mockUpsert).not.toHaveBeenCalled()
   })
 })
 
