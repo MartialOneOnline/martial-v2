@@ -270,8 +270,8 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 - **`tsc --noEmit` limpio** en los 3 archivos tras cada cambio. No se corrió preview visual (decisión del usuario, ver memoria de feedback).
 - **Estado:** los 3 bugs de las capturas quedan resueltos a nivel de código. Pendiente únicamente que el usuario confirme visualmente en un iPhone real (Safari) antes de darlo por cerrado.
 
-### Sesión 65 — 2026-07-11 ⏳ (PR abierto, sin mergear)
-**Scoping de `/api/my/**` al contexto student activo (7 endpoints + helper + UI mínima)** — PR [#7](https://github.com/MartialOneOnline/martial-v2/pull/7) abierto contra `main` desde la rama `fix/my-active-student-context`, **pendiente de revisión/aprobación del usuario, NO mergeado**.
+### Sesión 65 — 2026-07-11 ✅
+**Scoping de `/api/my/**` al contexto student activo (7 endpoints + helper + UI mínima)** — mergeado a `main` en `f0749d8` (branch `fix/my-active-student-context`, PR [#7](https://github.com/MartialOneOnline/martial-v2/pull/7), borrada local + remoto tras confirmar Vercel Production y smoke test de `/`, `/my`, `/api/my`, `/choose-profile`). Nota: mientras el PR estaba abierto se mergeó a `main` un fix de CSS mobile no relacionado que también numeró su entrada como "Sesión 64" — resuelto renumerando esta entrada a 65 antes de mergear; sin conflictos de código, solo de numeración en este changelog.
 
 Cierra el pendiente #3 abierto en las Sesiones 61/62/63 ("Scoping de `/api/my/**` ... por contexto activo — sin cambios, sigue pendiente"): hasta ahora `martial_active_context` (cookie + endpoints, Sesión 61) y `/choose-profile` (selector, Sesión 62) existían pero ningún endpoint de datos los consumía. Un estudiante en 2+ escuelas veía sus bookings, memberships, pagos, eventos, horario y planes de TODAS sus escuelas mezclados en una sola lista (`schoolMembers[0]` o `schoolId:{in:[...todas]}` sin filtrar). Este es el PR de mayor superficie de la serie (7 endpoints), tratado endpoint por endpoint con test propio para cada uno, no como refactor en bloque.
 
