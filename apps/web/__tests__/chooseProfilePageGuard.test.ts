@@ -10,6 +10,15 @@
  * ChooseProfileClient (which owns the actual context-list fetch — see
  * chooseProfileLogic.test.ts for that layer, and the comment in page.tsx
  * for why the context list isn't fetched again here).
+ *
+ * The page now takes `searchParams: Promise<{ redirect?: string }>` (Next.js
+ * 16 server-component convention — see checkin/[classId]/page.tsx for the
+ * repo's existing precedent) so the no-session branch can preserve an
+ * incoming `?redirect=` through the login detour. That preservation/
+ * validation/encoding logic itself lives in loginRedirect.ts and has its own
+ * dedicated unit tests (chooseProfileLoginRedirect.test.ts) — the cases here
+ * only confirm page.tsx wires `searchParams` into it correctly, plus the
+ * pre-existing "no redirect param at all" and "has a session" behavior.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
@@ -26,9 +35,9 @@ vi.mock('@/app/choose-profile/ChooseProfileClient', () => ({
   default: (props: unknown) => props,
 }))
 
-async function callPage() {
+async function callPage(searchParams: { redirect?: string } = {}) {
   const { default: ChooseProfilePage } = await import('@/app/choose-profile/page')
-  return ChooseProfilePage()
+  return ChooseProfilePage({ searchParams: Promise.resolve(searchParams) })
 }
 
 beforeEach(() => {
@@ -36,11 +45,28 @@ beforeEach(() => {
 })
 
 describe('ChooseProfilePage (app/choose-profile/page.tsx)', () => {
-  it('redirects to /login when there is no authenticated user', async () => {
+  it('redirects to /login when there is no authenticated user and no redirect param', async () => {
     mockGetAuthUser.mockResolvedValue(null)
 
     await expect(callPage()).rejects.toThrow('NEXT_REDIRECT:/login?redirect=/choose-profile')
     expect(mockFindUnique).not.toHaveBeenCalled()
+  })
+
+  it('redirects to /login preserving a valid ?redirect= param', async () => {
+    mockGetAuthUser.mockResolvedValue(null)
+
+    await expect(callPage({ redirect: '/my/events' })).rejects.toThrow(
+      'NEXT_REDIRECT:/login?redirect=%2Fchoose-profile%3Fredirect%3D%252Fmy%252Fevents',
+    )
+    expect(mockFindUnique).not.toHaveBeenCalled()
+  })
+
+  it('falls back to the plain /login redirect for an unsafe ?redirect= param', async () => {
+    mockGetAuthUser.mockResolvedValue(null)
+
+    await expect(callPage({ redirect: 'https://evil.com' })).rejects.toThrow(
+      'NEXT_REDIRECT:/login?redirect=/choose-profile',
+    )
   })
 
   it('renders through (no redirect) for an authenticated user, passing name + avatar', async () => {
