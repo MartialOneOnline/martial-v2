@@ -3,6 +3,11 @@ import { redirect } from 'next/navigation'
 import { getAuthUser } from '@/lib/auth/server'
 import { prisma } from '@/lib/db'
 import ChooseProfileClient from './ChooseProfileClient'
+import { resolveChooseProfileLoginRedirect } from './loginRedirect'
+
+interface Props {
+  searchParams: Promise<{ redirect?: string }>
+}
 
 // Server component: owns exactly one responsibility — the auth guard (no
 // session -> /login), same pattern as dashboard/layout.tsx and
@@ -17,9 +22,19 @@ import ChooseProfileClient from './ChooseProfileClient'
 // logged-in user's own display name/avatar — GET /api/auth/contexts
 // describes *schools*, not "who is asking", so the student card's avatar
 // has nowhere else to come from.
-export default async function ChooseProfilePage() {
+//
+// The `redirect` query param (e.g. `?redirect=/my/events`, built by
+// chooseProfileUrl() in lib/studentContext.ts) has to survive the login
+// detour when there's no session yet — otherwise a user bounced here from a
+// deep link loses their destination the moment they're asked to log in.
+// See loginRedirect.ts#resolveChooseProfileLoginRedirect() for exactly how
+// that value is preserved/validated/encoded.
+export default async function ChooseProfilePage({ searchParams }: Props) {
   const user = await getAuthUser()
-  if (!user) redirect('/login?redirect=/choose-profile')
+  if (!user) {
+    const { redirect: rawRedirect } = await searchParams
+    redirect(resolveChooseProfileLoginRedirect(rawRedirect))
+  }
 
   const dbUser = await prisma.user.findUnique({
     where: { id: user.id },
