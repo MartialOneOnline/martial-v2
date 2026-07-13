@@ -261,8 +261,8 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 
 ## Historial de sesiones
 
-### Sesión 71 — 2026-07-13 ⏳ (PR abierto, sin mergear todavía)
-**`/choose-profile` preserva `?redirect=` al exigir login — cierra bug P3 confirmado por auditoría en vivo** — branch `fix/choose-profile-login-preserve-redirect`, PR [#13](https://github.com/MartialOneOnline/martial-v2/pull/13) abierto contra `main` (partiendo de `83bd862`, el `HEAD` de la Sesión 70), pendiente de revisión/aprobación del usuario antes de merge.
+### Sesión 71 — 2026-07-13 ✅
+**`/choose-profile` preserva `?redirect=` al exigir login — cierra bug P3 confirmado por auditoría en vivo** — mergeado a `main` en `8672cf1` (branch `fix/choose-profile-login-preserve-redirect`, PR [#13](https://github.com/MartialOneOnline/martial-v2/pull/13), borrada local + remoto tras confirmar Vercel Production). Smoke en producción real confirmó el string exacto verificado antes del merge: `GET /choose-profile?redirect=/my/events` sin sesión → `307` a `/login?redirect=%2Fchoose-profile%3Fredirect%3D%252Fmy%252Fevents`.
 
 Bug confirmado en vivo contra producción: `GET /choose-profile?redirect=/my/events` sin sesión respondía `307` a `/login?redirect=/choose-profile` — el `/my/events` original desaparecía por completo. Causa raíz: `apps/web/app/choose-profile/page.tsx` (línea 22 antes de este fix) tenía `redirect('/login?redirect=/choose-profile')` **hardcodeado como string literal**, ignorando el `?redirect=` real de la request entrante. Distinto del bug ya cerrado en la Sesión 66 (`resolveChooseProfileRedirect()` en `logic.ts`, que preserva el redirect DESPUÉS de elegir contexto) — este PR arregla el momento ANTES: cuando `/choose-profile` mismo exige login.
 
