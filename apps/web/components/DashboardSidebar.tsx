@@ -21,7 +21,7 @@ type NavItem = {
   children?: { label: string; href: string }[]
 }
 
-function NavGroup({ item }: { item: NavItem }) {
+function NavGroup({ item, setMenuOpen }: { item: NavItem; setMenuOpen: (v: boolean) => void }) {
   const pathname = usePathname()
 
   const isActive = item.href
@@ -35,6 +35,7 @@ function NavGroup({ item }: { item: NavItem }) {
       <Link
         href={item.href ?? '#'}
         prefetch={false}
+        onClick={() => setMenuOpen(false)}
         className="flex items-center gap-3 px-3 py-2.5 rounded-xl no-underline transition-colors"
         style={{
           color: '#374151',
@@ -97,6 +98,7 @@ function NavGroup({ item }: { item: NavItem }) {
                 key={child.label}
                 href={child.href}
                 prefetch={false}
+                onClick={() => setMenuOpen(false)}
                 className="flex items-center px-3 py-2 rounded-lg no-underline transition-colors"
                 style={{
                   fontSize: 13,
@@ -294,14 +296,14 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen }: Props) {
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-0.5">
           {NAV_MAIN.map(item => (
-            <NavGroup key={item.label} item={item} />
+            <NavGroup key={item.label} item={item} setMenuOpen={setMenuOpen} />
           ))}
         </nav>
 
         {/* Bottom nav + Sign out */}
         <div style={{ borderTop: '1px solid #E5E7EB' }} className="px-3 py-3 space-y-0.5">
           {NAV_BOTTOM.map(item => (
-            <NavGroup key={item.label} item={item} />
+            <NavGroup key={item.label} item={item} setMenuOpen={setMenuOpen} />
           ))}
           <button
             onClick={handleSignOut}
