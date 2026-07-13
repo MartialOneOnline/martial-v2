@@ -261,8 +261,10 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 
 ## Historial de sesiones
 
-### Sesión 69 — 2026-07-12 ⏳ (PR abierto, sin mergear)
-**Últimos 2 P3 de autorización dashboard cerrados: `classes/today` y `school` GET migrados a `requireDashboardAccess()`** — PR [#11](https://github.com/MartialOneOnline/martial-v2/pull/11) abierto contra `main` desde la rama `fix/dashboard-p3-auth-guards`, **pendiente de revisión/aprobación del usuario, NO mergeado**.
+### Sesión 69 — 2026-07-12 ✅
+**Últimos 2 P3 de autorización dashboard cerrados: `classes/today` y `school` GET migrados a `requireDashboardAccess()`** — mergeado a `main` en `13d0936` (branch `fix/dashboard-p3-auth-guards`, PR [#11](https://github.com/MartialOneOnline/martial-v2/pull/11), borrada local + remoto tras confirmar Vercel Production y smoke test de `/`, `/dashboard`, `/api/auth/contexts`).
+
+Nota: el primer intento de smoke test post-merge falló con "Tool permission request failed" — un fallo de la capa Bash/permisos del propio harness antes de que el comando llegara a ejecutarse, no una respuesta HTTP real. Re-ejecutados uno por uno con `curl -v`, los 3 checks pasaron limpio (200/307/401) — producción nunca estuvo en duda, solo el tooling local.
 
 Cierra el riesgo #2 documentado como abierto en la Sesión 68 ("`classes/today` y `school` GET siguen sin el guard reforzado — P3, ya documentado como fuera de alcance explícitamente en esta sesión; candidato a un PR futuro de menor prioridad"): ambos endpoints llamaban `requireSchoolAccess(userId, schoolId)` (`lib/auth/contexts.ts`) y se detenían ahí, igual que los 7 de la Sesión 68 antes de su fix — esa función solo valida `SchoolMember.status === 'ACTIVE'`, nunca `role`. Un `SchoolMember` con rol `STUDENT` y status `ACTIVE` podía llamarlos directamente y leer el roster de clases de hoy (con conteo de reservas) o el payload de configuración de la escuela.
 
