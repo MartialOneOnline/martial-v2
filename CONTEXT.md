@@ -262,7 +262,7 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 ## Historial de sesiones
 
 ### Sesión 70 — 2026-07-13 ✅
-**Menú lateral del dashboard en mobile se cierra automáticamente al navegar** — branch `fix/mobile-sidebar-close-on-nav`, PR abierto contra `main` (arrancado desde `2c5e6b9`), sin mergear todavía.
+**Menú lateral del dashboard en mobile se cierra automáticamente al navegar** — mergeado a `main` en `cf6d7ac` (branch `fix/mobile-sidebar-close-on-nav`, PR [#12](https://github.com/MartialOneOnline/martial-v2/pull/12), borrada local + remoto tras confirmar Vercel Production y smoke test de `/`, `/dashboard`).
 
 Bug de UX (no de auth, distinto de la serie de PRs P1-P3 de Sesiones 66-69): en `apps/web/components/DashboardSidebar.tsx`, el componente interno `NavGroup` renderizaba los `<Link>` finales (items de nivel superior sin `children`, y los de dentro de un submenu ya expandido) sin ningún `onClick` que cerrara el menú — `menuOpen`/`setMenuOpen` vive en `DashboardShell.tsx` y ya se pasaba como prop a `DashboardSidebar`, pero `NavGroup` no lo recibía. En mobile, tocar un link de navegación dejaba el overlay + el propio menú abiertos tapando la pantalla hasta que el usuario tocaba la X o el fondo a mano.
 
