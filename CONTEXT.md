@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 47 completada ✅ — Sprint 1 Platform Safety completado. Último merge a `main`: `fb09c35` — notificaciones `CLASS_CANCELLED` al cancelar ocurrencia de clase, visibles para staff, no para alumnos (limitación del modelo `Notification`, documentada — Sesión 58); sin migración, sin cambios de schema. **Pendiente:** sandbox Revolut no soportado (host de producción hardcodeado en `register-webhook`), documentado como gap, no implementado; canal de notificaciones student-facing sigue siendo una feature futura separada
+**Estado:** Sesión 71 completada ✅ — serie contexto/mobile/auth (selector de contexto tipo Facebook, guard `/my` staff-only, dashboard auth guards P1/P2/P3, cierre del sidebar mobile, preservación de `?redirect=`) cerrada de punta a punta, sin hallazgos abiertos. Último merge real a `main`: `8672cf1`; último commit (docs) `644f3d1`. Vercel production en verde (`martial-v2-web` + `martial-prototype`), `npx prisma migrate status` limpio (23 migraciones, sin pendientes). **Pendiente:** ver "Próximos pasos" — sandbox Revolut no soportado (host de producción hardcodeado en `register-webhook`), unificación `martial_active_context`/`currentSchoolId` sin decidir, confirmación visual manual del usuario en mobile real del fix de sidebar (Sesión 70)
 
 ---
 
@@ -230,32 +230,24 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 
 ## Próximos pasos
 
-### Sprint 1 — Platform Safety ✅ COMPLETADO
-1. **Auth middleware `/my/**`** — ✅ Ya existía y funciona en `proxy.ts` (Next.js reconoce proxy.ts como middleware)
-2. **Ownership audit completo** — ✅ Toda la superficie verificada. Patrón correcto en todos los endpoints: `/my` compara `resource.userId !== dbUser.id` desde DB; `/dashboard` usa `schoolId` de cookie + filtra `{ id, schoolId }` en todas las queries
-3. **Booking atomicity** — ✅ Ya estaba implementado: duplicate check + capacity check + create dentro de `prisma.$transaction()`
-4. **Membership → SchoolMember sync** — ✅ Implementado (commit `e1cb9d1`): pause→FROZEN, resume→ACTIVE, cancel→INACTIVE. School.cancelPolicy (IMMEDIATE | UNTIL_END_OF_PERIOD) con lazy expiration sin cron. **Hardened en `c98fbcb`** (2026-07-10): los 4 webhooks de suscripción de Stripe ahora sincronizan SchoolMember también; ARCHIVED nunca se reactiva desde ningún webhook; `cancelMembership()` espera a Stripe antes de escribir estado local — ver Sesión 48
+_Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" anterior (era Sesión 47) quedó obsoleto y parte de su contenido ya no era confiable (p. ej. marcaba Stripe Checkout como pendiente cuando sesiones posteriores lo dan por implementado). Si se necesita recuperar algún ítem de aquel backlog, está en el historial de git de este archivo._
 
-### Sprint 2 — Business Rules (P1)
-5. **Class access filtering en `/api/my/school-classes`** — filtrar occurrences por membership activa + classAccess rules + créditos disponibles (no solo en POST booking)
-6. **Booking endpoint re-validación** — backend debe volver a validar elegibilidad aunque frontend ya filtre
-
-### Sprint 3 — Data & UX (P2-P3)
-7. **Eliminar `Membership.classesUsed` como source of truth** — única fuente: `count(Bookings where membershipId and status != CANCELLED)`
-8. **Progress donut** — eliminar porcentaje hardcodeado (0.75); mostrar belt + degree + última grading + próximo milestone
-9. **Currency fix en payments summary** — usar `School.currency`, no hardcodear EUR
-10. **Avatar upload** — conectar botón de cámara en `/my/profile` a Supabase Storage
-
-### Backlog
-11. **Stripe Checkout** — flujo de pago real para membresías (Fase 5)
-12. **Admin: aprobar membresías PENDING** — notificación al admin + acción de activar desde dashboard
-13. **Class images para otras 19 escuelas** — solo Roger Gracie Málaga tiene imágenes en Supabase Storage
-14. **Disciplines faltantes** — nogi, mma, boxing, karate, muay-thai, judo, kickboxing tienen `disciplineId=null`
-15. **Color System — migración pendiente**: Payments page, Members table, transaction table
-16. **SSO OAuth** — configurar Google en Supabase
-17. **API deploy** — Railway o Render
-18. **Dominio propio** — conectar app.martialapp.online a Vercel
-19. **Email sending real** — conectar templates de Resend (welcome, trial confirmed, membership receipt ya implementados pero sin envío real)
+1. **Confirmación visual manual en mobile real del sidebar dashboard** (Sesión 70, PR #12 ya mergeado — pendiente solo la confirmación del usuario):
+   - link directo cierra el menú y navega
+   - grupo/submenú expande sin cerrar el menú
+   - link hijo (dentro de un submenú ya expandido) cierra el menú y navega
+   - desktop sigue con el sidebar fijo, sin cambios
+2. **Pagos sandbox**:
+   - Stripe sandbox/checkouts/webhooks cuando se decida retomarlo
+   - Revolut sandbox limitado/no soportado (host de producción hardcodeado en `register-webhook`) — documentar alternativa
+3. **Auth/context follow-ups no urgentes** (documentados a lo largo de la serie de Sesiones 59-68, ninguno bloqueante):
+   - decidir si unificar `martial_active_context` y `currentSchoolId` (dos cookies paralelas por diseño desde la Sesión 61)
+   - evaluar si `dashboard/layout.tsx` debe gatear por contexto activo específico en vez de acceso staff global
+   - re-auditar individualmente las ~90 rutas de `/api/dashboard/**` ya protegidas por `hasPermission()`/arrays manuales, si se quiere cerrar el 100% de la superficie
+4. **Limpieza técnica**:
+   - decidir qué hacer con las ramas antiguas de sesiones previas no tocadas en esta limpieza (`audit/tsc-revolut-register-webhook`, `claude/nice-haibt-837a37`, `fix/booking-validation-tests`, y las ya mergeadas sin worktree activo: `fix/checkin-walkin-hardening`, `fix/class-booking-trial-hardening`, `fix/payment-webhook-idempotency`, `fix/dashboard-permissions-schoolmember`, `fix/events-notifications-permissions`, `fix/test-suite-health`)
+   - decidir si `cleanup_bookings_dupes.sql` (sin trackear en la raíz) debe quedarse como artefacto local, moverse a `docs/`, o borrarse
+   - revisar `AGENTS.md` (sin trackear en la raíz) y decidir si debe trackearse o no
 
 ---
 
