@@ -658,6 +658,26 @@ export const translations = {
       emptyDesc: 'You don’t have an active role at any school yet.',
       emptyCta: 'Explore schools',
     },
+
+    // ── Email verification (register / login / /auth/confirm / /auth/verify-pending) ──
+    authVerify: {
+      confirmingTitle: 'Confirming your email…',
+      confirmingSubtitle: 'You will be redirected in a moment',
+      pendingTitle: 'Confirm your email',
+      pendingBody: 'We sent a confirmation link to {email}. Click it to activate your account.',
+      pendingBodyFallback: 'Check your inbox for a confirmation link to activate your account.',
+      sendFailedTitle: 'Account created',
+      sendFailedBody: 'We created your account for {email}, but could not send the confirmation email right now. Click below to try again.',
+      resend: 'Resend email',
+      resending: 'Sending…',
+      resent: 'If that email needs confirming, a new link is on its way.',
+      backToLogin: 'Back to login',
+      loginUnconfirmed: 'Please confirm your email before logging in.',
+      loginResendLink: 'Resend confirmation email',
+      registerCheckTitle: 'Check your email',
+      registerCheckBody: 'We sent a confirmation link to {email}. Click it to activate your account, then log in.',
+      registerGoToLogin: 'Go to login',
+    },
   },
 
   // ── ESPAÑOL ────────────────────────────────────────────────────────────────
@@ -1237,6 +1257,26 @@ export const translations = {
       emptyTitle: 'No hay perfiles disponibles',
       emptyDesc: 'Todavía no tienes un rol activo en ninguna escuela.',
       emptyCta: 'Explorar escuelas',
+    },
+
+    // ── Verificación de email (registro / login / /auth/confirm / /auth/verify-pending) ──
+    authVerify: {
+      confirmingTitle: 'Confirmando tu email…',
+      confirmingSubtitle: 'Serás redirigido en un momento',
+      pendingTitle: 'Confirma tu email',
+      pendingBody: 'Te enviamos un enlace de confirmación a {email}. Haz clic para activar tu cuenta.',
+      pendingBodyFallback: 'Revisa tu bandeja de entrada para encontrar el enlace de confirmación y activar tu cuenta.',
+      sendFailedTitle: 'Cuenta creada',
+      sendFailedBody: 'Creamos tu cuenta para {email}, pero no pudimos enviar el email de confirmación ahora mismo. Haz clic abajo para intentarlo de nuevo.',
+      resend: 'Reenviar email',
+      resending: 'Enviando…',
+      resent: 'Si ese email necesita confirmación, un nuevo enlace está en camino.',
+      backToLogin: 'Volver al login',
+      loginUnconfirmed: 'Confirma tu email antes de iniciar sesión.',
+      loginResendLink: 'Reenviar email de confirmación',
+      registerCheckTitle: 'Revisa tu email',
+      registerCheckBody: 'Te enviamos un enlace de confirmación a {email}. Haz clic para activar tu cuenta y luego inicia sesión.',
+      registerGoToLogin: 'Ir a iniciar sesión',
     },
   },
 
@@ -1818,6 +1858,26 @@ export const translations = {
       emptyDesc: 'Você ainda não tem um papel ativo em nenhuma escola.',
       emptyCta: 'Explorar escolas',
     },
+
+    // ── Verificação de email (registro / login / /auth/confirm / /auth/verify-pending) ──
+    authVerify: {
+      confirmingTitle: 'Confirmando seu email…',
+      confirmingSubtitle: 'Você será redirecionado em instantes',
+      pendingTitle: 'Confirme seu email',
+      pendingBody: 'Enviamos um link de confirmação para {email}. Clique nele para ativar sua conta.',
+      pendingBodyFallback: 'Verifique sua caixa de entrada para encontrar o link de confirmação e ativar sua conta.',
+      sendFailedTitle: 'Conta criada',
+      sendFailedBody: 'Criamos sua conta para {email}, mas não conseguimos enviar o email de confirmação agora. Clique abaixo para tentar novamente.',
+      resend: 'Reenviar email',
+      resending: 'Enviando…',
+      resent: 'Se esse email precisa de confirmação, um novo link está a caminho.',
+      backToLogin: 'Voltar ao login',
+      loginUnconfirmed: 'Confirme seu email antes de fazer login.',
+      loginResendLink: 'Reenviar email de confirmação',
+      registerCheckTitle: 'Verifique seu email',
+      registerCheckBody: 'Enviamos um link de confirmação para {email}. Clique nele para ativar sua conta e depois faça login.',
+      registerGoToLogin: 'Ir para o login',
+    },
   },
 
   // ── FRANÇAIS ───────────────────────────────────────────────────────────────
@@ -2397,6 +2457,26 @@ export const translations = {
       emptyTitle: 'Aucun profil disponible',
       emptyDesc: "Vous n'avez pas encore de rôle actif dans une école.",
       emptyCta: 'Explorer les écoles',
+    },
+
+    // ── Vérification d'email (inscription / connexion / /auth/confirm / /auth/verify-pending) ──
+    authVerify: {
+      confirmingTitle: 'Confirmation de votre email…',
+      confirmingSubtitle: 'Vous allez être redirigé dans un instant',
+      pendingTitle: 'Confirmez votre email',
+      pendingBody: 'Nous avons envoyé un lien de confirmation à {email}. Cliquez dessus pour activer votre compte.',
+      pendingBodyFallback: 'Consultez votre boîte de réception pour trouver le lien de confirmation et activer votre compte.',
+      sendFailedTitle: 'Compte créé',
+      sendFailedBody: "Nous avons créé votre compte pour {email}, mais nous n'avons pas pu envoyer l'email de confirmation pour le moment. Cliquez ci-dessous pour réessayer.",
+      resend: "Renvoyer l'email",
+      resending: 'Envoi…',
+      resent: "Si cet email doit être confirmé, un nouveau lien est en route.",
+      backToLogin: 'Retour à la connexion',
+      loginUnconfirmed: 'Confirmez votre email avant de vous connecter.',
+      loginResendLink: "Renvoyer l'email de confirmation",
+      registerCheckTitle: 'Vérifiez votre email',
+      registerCheckBody: 'Nous avons envoyé un lien de confirmation à {email}. Cliquez dessus pour activer votre compte, puis connectez-vous.',
+      registerGoToLogin: 'Aller à la connexion',
     },
   },
 }

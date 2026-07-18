@@ -7,8 +7,10 @@ import { createClient } from '@/lib/supabase/client'
 import SchoolPicker from '../../components/SchoolPicker'
 import type { SchoolContext } from '@/lib/auth/contexts'
 import { safeRedirect } from '@/lib/safeRedirect'
+import { safeConfirmRedirect } from '@/lib/authConfirmRedirect'
 import { resolveLoginRedirectAction } from '@/lib/auth/loginRedirect'
 import { fetchAvailableContexts } from '@/app/choose-profile/logic'
+import { useT } from '@/lib/i18n/LanguageContext'
 
 const BLUE = '#0870E2'
 const NAVY = '#0E3A7A'
@@ -65,10 +67,15 @@ function SSOButton({ icon, label, onClick }: { icon: React.ReactNode; label: str
 // its own (no marketing header/footer, no dependency on the homepage).
 function LoginPageInner() {
   const router = useRouter()
+  const t = useT()
   const searchParams = useSearchParams()
   const pathname = usePathname()
   const supabase = createClient()
   const redirectTo = safeRedirect(searchParams.get('redirect'))
+  // Same value, run through the extra /auth/** loop guard — only used when
+  // linking into the confirmation flow below, not for the normal post-login
+  // redirect above.
+  const confirmRedirect = safeConfirmRedirect(searchParams.get('redirect'))
   const justRegistered = searchParams.get('registered') === '1'
   const registeredType = searchParams.get('type')
 
@@ -78,6 +85,7 @@ function LoginPageInner() {
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [unconfirmedEmail, setUnconfirmedEmail] = useState('')
   const [emailErr, setEmailErr] = useState('')
   const [passErr, setPassErr] = useState('')
   const [pickerSchools, setPickerSchools] = useState<SchoolContext[] | null>(null)
@@ -141,7 +149,7 @@ function LoginPageInner() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    setEmailErr(''); setPassErr(''); setError('')
+    setEmailErr(''); setPassErr(''); setError(''); setUnconfirmedEmail('')
     let valid = true
     if (!email) { setEmailErr('Please provide a valid email address.'); valid = false }
     if (!password) { setPassErr('Password field cannot be left blank.'); valid = false }
@@ -150,7 +158,17 @@ function LoginPageInner() {
     setLoading(true)
     const { data, error: err } = await supabase.auth.signInWithPassword({ email, password })
     setLoading(false)
-    if (err) { setError(err.message); return }
+    if (err) {
+      // Only reachable if the Supabase project's "Confirm email" toggle is
+      // on — proxy.ts's email_confirmed_at gate is the authoritative check
+      // otherwise (a session can exist for an unconfirmed user).
+      if (err.message === 'Email not confirmed') {
+        setUnconfirmedEmail(email)
+      } else {
+        setError(err.message)
+      }
+      return
+    }
 
     if (data.session?.access_token) {
       fetch('/api/auth/login-event', {
@@ -313,6 +331,14 @@ function LoginPageInner() {
               </span>
             </div>
 
+            {unconfirmedEmail && (
+              <p style={{ margin: 0, fontSize: 13, color: '#DC2626', background: '#FEF2F2', padding: '8px 12px', borderRadius: 8 }}>
+                {t.authVerify.loginUnconfirmed}{' '}
+                <a href={`/auth/verify-pending?email=${encodeURIComponent(unconfirmedEmail)}${confirmRedirect ? `&redirect=${encodeURIComponent(confirmRedirect)}` : ''}`} style={{ color: '#DC2626', fontWeight: 700, textDecoration: 'underline' }}>
+                  {t.authVerify.loginResendLink}
+                </a>
+              </p>
+            )}
             {error && <p style={{ margin: 0, fontSize: 13, color: '#DC2626', background: '#FEF2F2', padding: '8px 12px', borderRadius: 8 }}>{error}</p>}
 
             <button

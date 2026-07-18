@@ -9,8 +9,8 @@
  * - /api/admin/**, /api/dashboard/**, /api/my/** → requires session (role check in each route handler)
  * - All other routes   → pass through
  *
- * Middleware only checks session cookie. Role/school authorisation is enforced
- * again inside page components and API routes — never rely solely on middleware.
+ * Middleware checks session cookie + email confirmation. Role/school authorisation
+ * is enforced again inside page components and API routes — never rely solely on middleware.
  *
  * Critically, this is also where the Supabase session gets refreshed and the
  * refreshed cookies get persisted back to the browser. API routes run their own
@@ -75,6 +75,19 @@ export async function proxy(request: NextRequest) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('redirect', pathname)
     return NextResponse.redirect(loginUrl)
+  }
+
+  // Self-serve accounts are created unconfirmed (see app/api/auth/register)
+  // and must redeem the emailed confirmation link at /auth/confirm before
+  // reaching the app — a valid session alone isn't enough.
+  if (!user.email_confirmed_at) {
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json({ error: 'Email not confirmed' }, { status: 403 })
+    }
+    const verifyUrl = new URL('/auth/verify-pending', request.url)
+    verifyUrl.searchParams.set('email', user.email ?? '')
+    verifyUrl.searchParams.set('redirect', pathname)
+    return NextResponse.redirect(verifyUrl)
   }
 
   return supabaseResponse

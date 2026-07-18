@@ -5,8 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { Mail, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { safeRedirect } from '@/lib/safeRedirect'
+import { safeConfirmRedirect } from '@/lib/authConfirmRedirect'
 import { disciplineEmoji } from '@/lib/disciplineEmoji'
+import { useT, useLanguage } from '@/lib/i18n/LanguageContext'
 
 const BLUE = '#0870E2'
 const NAVY = '#0E3A7A'
@@ -33,8 +34,10 @@ const ERROR_MESSAGES: Record<string, string> = {
 function RegisterPageInner() {
   const router = useRouter()
   const supabase = createClient()
+  const t = useT()
+  const { locale } = useLanguage()
   const searchParams = useSearchParams()
-  const redirectParam = safeRedirect(searchParams.get('redirect'))
+  const redirectParam = safeConfirmRedirect(searchParams.get('redirect'))
   const initialType = searchParams.get('type') === 'school' ? 'school' : 'student'
   // Contexts like buying an event ticket only make sense as a student account —
   // showing the School/Academy choice there is a non-sequitur, not a real option.
@@ -58,7 +61,10 @@ function RegisterPageInner() {
   const [apiError, setApiError] = useState('')
   const [loading, setLoading] = useState(false)
   const [checkEmail, setCheckEmail] = useState(false)
+  const [emailSent, setEmailSent] = useState(true)
   const [signingIn, setSigningIn] = useState(false)
+  const [resending, setResending] = useState(false)
+  const [resent, setResent] = useState(false)
 
   useEffect(() => {
     fetch('/api/disciplines')
@@ -112,6 +118,8 @@ function RegisterPageInner() {
           password,
           phone: accountType === 'student' ? phone : undefined,
           school: accountType === 'school' ? { name: schoolName, city, country, disciplines } : undefined,
+          redirect: redirectParam,
+          lang: locale,
         }),
       })
       const data = await res.json()
@@ -122,6 +130,7 @@ function RegisterPageInner() {
       }
 
       if (data.requiresEmailConfirmation) {
+        setEmailSent(data.emailSent !== false)
         setCheckEmail(true)
         return
       }
@@ -149,18 +158,48 @@ function RegisterPageInner() {
     }
   }
 
+  async function handleResend() {
+    if (resending || resent) return
+    setResending(true)
+    try {
+      await fetch('/api/auth/resend-confirmation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, redirect: redirectParam, lang: locale }),
+      })
+      setResent(true)
+    } finally {
+      setResending(false)
+    }
+  }
+
   if (checkEmail) {
     return (
       <CenteredCard>
         <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 56, height: 56, borderRadius: 16, background: '#EFF6FF', marginBottom: 20 }}>
           <Mail size={26} color={BLUE} />
         </div>
-        <h1 style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 700, color: TEXT }}>Check your email</h1>
+        <h1 style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 700, color: TEXT }}>
+          {emailSent ? t.authVerify.registerCheckTitle : t.authVerify.sendFailedTitle}
+        </h1>
         <p style={{ margin: '0 0 24px', fontSize: 14, color: MUTED, lineHeight: 1.6 }}>
-          We sent a confirmation link to <strong style={{ color: TEXT }}>{email}</strong>. Click it to activate your account, then log in.
+          {(emailSent ? t.authVerify.registerCheckBody : t.authVerify.sendFailedBody)
+            .split('{email}')
+            .flatMap((part, i) => i === 0 ? [part] : [<strong key={i} style={{ color: TEXT }}>{email}</strong>, part])}
         </p>
-        <a href="/login" style={{ display: 'block', width: '100%', padding: '13px', fontSize: 15, fontWeight: 700, background: BLUE, color: '#fff', border: 'none', borderRadius: 12, textAlign: 'center', textDecoration: 'none', boxSizing: 'border-box' }}>
-          Go to login
+
+        {!emailSent && (
+          <button
+            type="button"
+            onClick={handleResend}
+            disabled={resending || resent}
+            style={{ width: '100%', padding: '13px', fontSize: 15, fontWeight: 700, background: resent ? '#DCFCE7' : (resending ? '#93C5FD' : BLUE), color: resent ? '#166534' : '#fff', border: 'none', borderRadius: 12, cursor: (resending || resent) ? 'not-allowed' : 'pointer', marginBottom: 12, boxSizing: 'border-box' }}>
+            {resent ? t.authVerify.resent : resending ? t.authVerify.resending : t.authVerify.resend}
+          </button>
+        )}
+
+        <a href="/login" style={{ display: 'block', width: '100%', padding: '13px', fontSize: 15, fontWeight: 700, background: emailSent ? BLUE : '#fff', color: emailSent ? '#fff' : NAVY, border: emailSent ? 'none' : `1px solid ${BORDER}`, borderRadius: 12, textAlign: 'center', textDecoration: 'none', boxSizing: 'border-box' }}>
+          {t.authVerify.registerGoToLogin}
         </a>
       </CenteredCard>
     )
