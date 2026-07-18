@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesión 71 completada ✅ — serie contexto/mobile/auth (selector de contexto tipo Facebook, guard `/my` staff-only, dashboard auth guards P1/P2/P3, cierre del sidebar mobile, preservación de `?redirect=`) cerrada de punta a punta, sin hallazgos abiertos. Último merge real a `main`: `8672cf1`; último commit (docs) `644f3d1`. Vercel production en verde (`martial-v2-web` + `martial-prototype`), `npx prisma migrate status` limpio (23 migraciones, sin pendientes). **Pendiente:** ver "Próximos pasos" — sandbox Revolut no soportado (host de producción hardcodeado en `register-webhook`), unificación `martial_active_context`/`currentSchoolId` sin decidir, confirmación visual manual del usuario en mobile real del fix de sidebar (Sesión 70)
+**Estado:** Sesión 73 en curso 🔧 — Getting Started checklist en el dashboard (perfil/clases/memberships/pagos/alumnos/settings, cada paso derivado de datos reales, auto-promoción `School.status` `CLAIMED→VERIFIED` al completarse). Implementado inicialmente directo sobre `main` y movido después a su propia rama **`feature/getting-started-checklist`**, ya **commiteado en esa rama** (`9e19f36`), **sin PR, sin merge todavía** — ver Sesión 73 abajo. En paralelo sigue sin tocarse la Sesión 72 (verificación de email self-serve): vive en la rama/worktree `fix/email-verification-gate` (`.claude/worktrees/email-verification-gate`), **sin commitear, sin PR, sin merge todavía** — ver Sesión 72 abajo. `main` sigue en el estado de la Sesión 71 (`8672cf1`/`644f3d1`) más los archivos sueltos de `apps/web/app/api/claim/request/` y `apps/web/app/claim/page.tsx` (trabajo ajeno en curso, no tocado por ninguna de las dos sesiones). Vercel production en verde, `npx prisma migrate status` limpio (24 migraciones tras esta sesión, sin pendientes). **Pendiente:** ver "Próximos pasos" — abrir PR de `feature/getting-started-checklist`, commitear/abrir PR de `fix/email-verification-gate`, confirmar en Supabase (Auth → URL Configuration) que `/auth/confirm` está en la allowlist de redirect URLs, sandbox Revolut no soportado, unificación `martial_active_context`/`currentSchoolId` sin decidir, confirmación visual manual del usuario en mobile real del fix de sidebar (Sesión 70)
 
 ---
 
@@ -228,6 +228,20 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 
 ---
 
+## Flujo de confirmación de email (registro self-serve)
+
+Distinto del flujo de invitación de arriba — este es para quien se registra solo en `/register` (estudiante o escuela), no para quien es invitado por un admin.
+
+1. `POST /api/auth/register` crea el usuario de Supabase con `email_confirm: false` (nunca auto-login) y un `User`/`School`/`SchoolMember` en Prisma de inmediato.
+2. `generateLink({type: 'magiclink', redirectTo: '.../auth/confirm?redirect=...'})` + envío propio vía Resend (`lib/email/templates/confirmEmail.ts`, EN/ES/PT/FR) — nunca el email nativo de Supabase.
+3. Usuario hace click → `/auth/confirm` redime el hash, `email_confirmed_at` queda seteado como efecto secundario, y reusa `resolveLoginRedirectAction()` (el mismo de `login/page.tsx`) para aterrizar en `/dashboard`/`/my`/`/choose-profile` según su contexto.
+4. `proxy.ts` bloquea `/dashboard`, `/my`, `/admin` y sus APIs (`/api/dashboard`, `/api/my`, `/api/admin`) mientras `email_confirmed_at` sea `null`, redirigiendo a `/auth/verify-pending` (o 403 JSON en APIs).
+5. `/auth/verify-pending` + `POST /api/auth/resend-confirmation` — reenvío con rate limit (IP + email) y que **nunca** genera un link para una cuenta ya confirmada (evita que este endpoint se use como canal de login sin contraseña).
+
+**Gotcha real encontrado en vivo:** `layout.tsx` tiene un script inline (`resolveAuthHashRedirect()`) que intercepta *cualquier* página con `#...type=magiclink` en el hash y la manda a `/auth/set-password` — pensado solo para el flujo de invitación de arriba. Sin querer, también secuestraba `/auth/confirm` (mismo `type=magiclink`) antes de que su propio código corriera. Fix: `resolveAuthHashRedirect(hash, pathname)` ahora solo actúa cuando `pathname === '/'` (su intención original documentada: "cae en el homepage porque `redirect_to` no está en la allowlist"), nunca en una página que ya sabe manejar su propio hash.
+
+---
+
 ## Próximos pasos
 
 _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" anterior (era Sesión 47) quedó obsoleto y parte de su contenido ya no era confiable (p. ej. marcaba Stripe Checkout como pendiente cuando sesiones posteriores lo dan por implementado). Si se necesita recuperar algún ítem de aquel backlog, está en el historial de git de este archivo._
@@ -237,14 +251,21 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
    - grupo/submenú expande sin cerrar el menú
    - link hijo (dentro de un submenú ya expandido) cierra el menú y navega
    - desktop sigue con el sidebar fijo, sin cambios
-2. **Pagos sandbox**:
+2. **Getting Started checklist (Sesión 73, rama `feature/getting-started-checklist`, ya commiteado `9e19f36`):**
+   - abrir PR — el usuario no ha pedido push aún
+   - probar en navegador el flujo completo (crear clase/plan/pago/alumno uno a uno y ver el checklist avanzar), confirmar el auto-`VERIFIED` y la persistencia del dismiss — no se hizo verificación en navegador esta sesión, solo `check-types`/`lint`/`vitest` en verde
+3. **Verificación de email self-serve (Sesión 72, rama `fix/email-verification-gate`, sin commitear todavía):**
+   - commitear y abrir PR — el usuario no ha pedido push/commit aún
+   - confirmar en Supabase (Auth → URL Configuration) que `/auth/confirm` está en la allowlist de redirect URLs de producción
+   - re-correr `npm run lint` una vez más antes del PR (los dos últimos ajustes de la sesión — quitar `as any` sobrantes y un `?sent=0` muerto — no se pudieron re-verificar por una caída intermitente de `eslint` al final de la sesión)
+4. **Pagos sandbox**:
    - Stripe sandbox/checkouts/webhooks cuando se decida retomarlo
    - Revolut sandbox limitado/no soportado (host de producción hardcodeado en `register-webhook`) — documentar alternativa
-3. **Auth/context follow-ups no urgentes** (documentados a lo largo de la serie de Sesiones 59-68, ninguno bloqueante):
+5. **Auth/context follow-ups no urgentes** (documentados a lo largo de la serie de Sesiones 59-68, ninguno bloqueante):
    - decidir si unificar `martial_active_context` y `currentSchoolId` (dos cookies paralelas por diseño desde la Sesión 61)
    - evaluar si `dashboard/layout.tsx` debe gatear por contexto activo específico en vez de acceso staff global
    - re-auditar individualmente las ~90 rutas de `/api/dashboard/**` ya protegidas por `hasPermission()`/arrays manuales, si se quiere cerrar el 100% de la superficie
-4. **Limpieza técnica**:
+6. **Limpieza técnica**:
    - decidir qué hacer con las ramas antiguas de sesiones previas no tocadas en esta limpieza (`audit/tsc-revolut-register-webhook`, `claude/nice-haibt-837a37`, `fix/booking-validation-tests`, y las ya mergeadas sin worktree activo: `fix/checkin-walkin-hardening`, `fix/class-booking-trial-hardening`, `fix/payment-webhook-idempotency`, `fix/dashboard-permissions-schoolmember`, `fix/events-notifications-permissions`, `fix/test-suite-health`)
    - decidir si `cleanup_bookings_dupes.sql` (sin trackear en la raíz) debe quedarse como artefacto local, moverse a `docs/`, o borrarse
    - revisar `AGENTS.md` (sin trackear en la raíz) y decidir si debe trackearse o no
@@ -252,6 +273,48 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 ---
 
 ## Historial de sesiones
+
+### Sesión 73 — 2026-07-18 🔧 (en curso, commiteado en su rama, sin PR)
+**Getting Started checklist en el dashboard** — implementado inicialmente directo sobre `main` (a petición inicial del usuario en el chat, antes de decidir aislarlo), luego movido a la rama nueva `feature/getting-started-checklist` y commiteado ahí (`9e19f36`), **sin PR, sin merge**. Se dejó sin tocar el trabajo ajeno en curso (`apps/web/app/api/claim/request/`, `apps/web/app/claim/page.tsx`, untracked) y la Sesión 72 (`fix/email-verification-gate`, su propio worktree, no tocado).
+
+**Motivación:** el dashboard de una escuela recién registrada (`CLAIMED`) muestra ceros reales (0 alumnos, 0 clases, €0) sin ninguna guía para ponerla en marcha. Se diseñó primero un mockup interactivo vía Artifact (iterado con el usuario antes de tocar código real) y luego se planificó/implementó en modo plan.
+
+- **6 pasos, en este orden, cada uno derivado de datos reales (no de un flag marcado a mano):** perfil de la escuela (`city`+`country`) → clases (`Class.count`) → memberships (`MembershipPlan.count` — plantilla de plan, no las suscripciones individuales de `Membership`) → método de pago (claves de Stripe o Revolut guardadas) → alumnos (`SchoolMember.count` role `STUDENT`, sin filtrar por status para que una invitación pendiente ya cuente) → resto de settings (sin señal propia — se marca hecho automáticamente cuando los 5 anteriores lo están, es un empujón final, no una puerta).
+- **Auto-promoción de estado:** al completarse los 5 pasos reales, `apps/web/app/api/dashboard/stats/route.ts` sube `School.status` de `CLAIMED` a `VERIFIED` con un `updateMany` condicionado a `status: 'CLAIMED'` (nunca pisa `SUSPENDED`/`ARCHIVED`/`PARTNER` puestos a mano por un superadmin). Investigación previa confirmó que `VERIFIED` hoy no gatea nada de cara al público (ni un badge, ni el join/booking) — solo vacía más rápido la cola manual de verificación del admin, lo cual se documentó como aceptable, no bloqueante.
+- **Dismiss persistente:** campo nuevo `UserPreference.gettingStartedDismissedAt` (migración `20260718070147_add_getting_started_dismissed_at`), leído vía `/api/auth/me` (ya se llamaba en cada carga del dashboard, así que no añade un fetch nuevo) y escrito por el endpoint nuevo `POST /api/dashboard/getting-started/dismiss`.
+- **Sin fetch nuevo para 4 de los 6 pasos** — el componente nuevo `GettingStartedChecklist.tsx` (montado en `DashboardClient.tsx`, justo debajo de las stat cards, visible solo para roles OWNER/ADMIN) consume datos que ya se cargaban: `/api/dashboard/stats` (extendido con el conteo de `membershipPlan`/`schoolMember` y el objeto `gettingStarted`) y el perfil de escuela ya presente en el estado del dashboard. Sigue la convención real de estilos del archivo (`style={{}}` inline con hex tal cual, `#0071E3`, no el `#0870E2` del mockup standalone).
+- **i18n:** namespace nuevo `dashboard.gettingStarted` en las 4 secciones de idioma de `lib/i18n/translations.ts` (EN/ES/PT/FR).
+- **Regresión de test detectada y corregida:** `__tests__/dashboardReportAuthGuards.test.ts` mockea `prisma` modelo por modelo; le faltaba `membershipPlan` y rompía con la query nueva — se añadió al mock genérico (`makeModel()`), sin tocar el código de la ruta. Suite completa en verde tras el fix: 582 tests pasando (+1 respecto a la referencia previa, la línea de mock añadida), `check-types` y `lint` limpios (231 warnings preexistentes, 0 errores, dentro del `--max-warnings 255`).
+- **Sin verificar en navegador esta sesión** (a diferencia de otras sesiones, no se levantó el servidor de desarrollo — el usuario había pedido antes no lanzarlo proactivamente) — queda como pendiente explícito en "Próximos pasos".
+- **Limpieza colateral:** se encontró y eliminó una rama/worktree vacía `codex/getting-started-checklist` (`/private/tmp/martial-v2-getting-started`) creada por accidente — confirmado que estaba exactamente en el mismo commit que `main`, sin diffs ni cambios sin commitear, antes de borrarla.
+- **Archivos nuevos:** `apps/web/app/dashboard/GettingStartedChecklist.tsx`, `apps/web/app/api/dashboard/getting-started/dismiss/route.ts`, `prisma/migrations/20260718070147_add_getting_started_dismissed_at/`.
+
+### Sesión 72 — 2026-07-18 🔧 (en curso, sin commitear)
+**Verificación de email obligatoria en registro self-serve + auditoría de seguridad de la misma feature en la misma sesión** — vive en la rama/worktree nueva `fix/email-verification-gate` (`.claude/worktrees/email-verification-gate`), **sin commit, sin PR, sin merge**. El usuario pidió explícitamente no trabajar sobre `main` y aislar del trabajo ajeno en curso (`apps/web/app/api/claim/request/`, `apps/web/app/claim/page.tsx` — presentes como untracked desde el inicio de la sesión, nunca tocados).
+
+**Bug original reportado:** una escuela se registró sin verificar el email y aterrizó directo en `/dashboard`. Causa: `apps/web/app/api/auth/register/route.ts` tenía `AUTO_CONFIRM_EMAIL = true` hardcodeado — confirmaba el usuario de Supabase al instante y el cliente hacía auto-login, sin gate ninguno (ni en `proxy.ts` ni en los layouts).
+
+**Parte 1 — la feature (implementada primero, directamente sobre `main`, luego movida a la rama):**
+- `email_confirm: false` en `admin.createUser`, sin auto-login. `generateLink({type:'magiclink'})` + envío propio vía Resend (`lib/email/templates/confirmEmail.ts`, `lib/email/sendConfirmEmail.ts`) — mismo patrón que el flujo de invitación (`members/invite/route.ts`).
+- Páginas nuevas: `/auth/confirm` (redime el hash, reusa `resolveLoginRedirectAction()` de `login/page.tsx` para no romper el cookie `currentSchoolId` que necesitan los ~56 endpoints de `/api/dashboard/**`) y `/auth/verify-pending` (estado + reenvío).
+- `proxy.ts` gatea `email_confirmed_at` en `/dashboard`, `/my`, `/admin` y sus APIs.
+- **Hallazgo colateral durante la verificación en navegador real:** `layout.tsx`'s `resolveAuthHashRedirect()` (inline script pensado solo para el flujo de invitación) interceptaba *cualquier* página con `type=magiclink` en el hash, incluida `/auth/confirm` — la mandaba a `/auth/set-password` antes de que su propio código corriera. Fix: la función ahora recibe `pathname` y solo actúa cuando `pathname === '/'` (su intención original ya documentada en el comentario del archivo), sin tocar el comportamiento del flujo de invitación. Test de regresión nuevo en `authHashRedirect.test.ts`.
+- Verificado end-to-end con cuentas de prueba reales contra Supabase/Resend/Prisma (creadas y borradas dentro de la sesión): registro → email sin confirmar → redención del link → `email_confirmed_at` seteado + dashboard con datos reales → login bloqueado con Supabase devolviendo `Email not confirmed` (el toggle "Confirm email" del proyecto está activo) → reenvío funcionando.
+
+**Parte 2 — auditoría de seguridad de esa misma feature, aplicada en la misma sesión, en la rama nueva:**
+1. **P1 — `resend-confirmation` como canal de login sin contraseña:** el endpoint generaba un magiclink para *cualquier* email existente, incluido uno ya confirmado — eso es login sin contraseña disfrazado de "reenviar confirmación". Fix: `admin.auth.admin.getUserById(supabaseAuthId)` antes de generar nada; solo actúa si `email_confirmed_at` es `null`. Respuesta siempre `{ok:true}` para email inexistente/inválido/ya-confirmado/rate-limited — indistinguibles a propósito (anti-enumeración). Rate limiting nuevo (`lib/rateLimit.ts`, in-memory best-effort, documentado como no apto para multi-instancia sin Redis) por IP (20/hora) y por email (5/hora).
+2. **P2 — `?redirect=` no sobrevivía el viaje registro→email→confirm:** `lib/authConfirmRedirect.ts` (nuevo) — `safeConfirmRedirect()` envuelve el `safeRedirect()` ya existente y añade guard de loop contra `/auth/**`. Re-saneado server-side en `register/route.ts` y `resend-confirmation/route.ts` (nunca se confía en el valor ya saneado por el cliente), embebido en el `redirectTo` del `generateLink`, leído por `/auth/confirm` desde `?redirect=` de su propia URL.
+3. **P2 — falsos "email enviado":** `sendConfirmationLink()` ahora devuelve `{sent: boolean}` real (no se ignora); la respuesta de `/api/auth/register` incluye `emailSent`. La cuenta **nunca se revierte** por un fallo de envío (ya está creada, es un hecho consumado) — `register/page.tsx` muestra un estado distinto ("cuenta creada, no pudimos enviar el email") con botón de reenvío cuando `emailSent === false`. El endpoint de reenvío en sí sigue devolviendo siempre `{ok:true}` (no puede romper el anti-enumeración de arriba) — la copia del botón tras usarlo es deliberadamente no-comprometida ("si ese email necesita confirmación, va en camino") en vez de un "Email sent" categórico.
+4. **P2 — i18n:** namespace nuevo `authVerify` en `lib/i18n/translations.ts` (EN/ES/PT/FR) para todo el texto nuevo de `/auth/confirm`, `/auth/verify-pending`, el mensaje de "email no confirmado" en `login/page.tsx`, y el estado `checkEmail` de `register/page.tsx` (antes hardcodeado en inglés). `register/page.tsx`/`login/page.tsx` no tenían `LanguageContext` antes de esto — se añadió `useT()` solo para el texto nuevo, sin migrar el resto de esas páginas (fuera de alcance).
+5. **Limpieza propia detectada en revisión:** `/auth/verify-pending` tenía un parámetro `?sent=0` sin ningún caller real (código muerto) — eliminado antes del reporte final.
+- **Archivos nuevos:** `lib/rateLimit.ts`, `lib/authConfirmRedirect.ts`, `lib/email/templates/confirmEmail.ts`, `lib/email/sendConfirmEmail.ts`, `app/api/auth/resend-confirmation/route.ts`, `app/auth/confirm/page.tsx`, `app/auth/verify-pending/page.tsx`.
+- **631 tests pasando** en el worktree (61 archivos, +48 sobre los 583 de referencia — 8 `proxyEmailConfirmedGate` + 7 `authConfirmRedirect` + 4 `rateLimit` + 14 `resendConfirmationRoute` + 15 `registerRouteEmailConfirmation`), `check-types` limpio. `lint`: pase completo previo a los últimos dos ajustes (quitar `as any` sobrantes en los tests nuevos, cambiándolos por `NextRequest` real; borrar el `?sent=0` muerto) dio 0 errores/5 warnings (todos `no-explicit-any`, uno preexistente sin relación); `npx eslint` dejó de responder de forma intermitente al final de la sesión (mientras `tsc`/`vitest` seguían funcionando con normalidad) — no se pudo re-confirmar el lint tras esos dos últimos cambios, aunque por su naturaleza (pura eliminación de código/tipado más estricto) no deberían introducir warnings nuevos.
+- **Cobertura no duplicada a propósito:** el destino tras confirmar por rol (estudiante/owner/múltiples contextos/superadmin) ya está cubierto por los tests existentes de `resolveLoginRedirectAction()` (`loginRedirectLogic.test.ts`, Sesión 62-ish) — `/auth/confirm` reusa esa misma función sin lógica propia, así que no se duplicó esa matriz. Sin test de componente para `/auth/confirm`/`/auth/verify-pending` — mismo criterio que todas las sesiones anteriores (sin `@testing-library/react` en el repo); su lógica de decisión (saneo de redirect) sí está cubierta vía `authConfirmRedirect.test.ts`.
+- **Riesgos/decisiones abiertas:**
+  1. **Nada commiteado ni empujado** — toda la Parte 1 + Parte 2 vive sin commit en `.claude/worktrees/email-verification-gate`, a la espera de que el usuario decida commitear/abrir PR.
+  2. **Confirmar en Supabase (Auth → URL Configuration) que `/auth/confirm` está en la allowlist de redirect URLs** antes de desplegar — en local, `redirect_to=http://localhost:3000/...` cae al Site URL de producción (comportamiento esperado y ya manejado por el propio `resolveAuthHashRedirect`, pero no probado end-to-end contra el dominio de producción real).
+  3. **Rate limiter in-memory, no distribuido** — documentado en el propio archivo (`lib/rateLimit.ts`) como aceptable para el volumen actual, candidato a Redis/Upstash si esto escala.
+  4. **`eslint` sin re-confirmar tras los dos últimos ajustes** (ver arriba) — recomendable correr `npm run lint` una vez más antes de abrir el PR.
 
 ### Sesión 71 — 2026-07-13 ✅
 **`/choose-profile` preserva `?redirect=` al exigir login — cierra bug P3 confirmado por auditoría en vivo** — mergeado a `main` en `8672cf1` (branch `fix/choose-profile-login-preserve-redirect`, PR [#13](https://github.com/MartialOneOnline/martial-v2/pull/13), borrada local + remoto tras confirmar Vercel Production). Smoke en producción real confirmó el string exacto verificado antes del merge: `GET /choose-profile?redirect=/my/events` sin sesión → `307` a `/login?redirect=%2Fchoose-profile%3Fredirect%3D%252Fmy%252Fevents`.
