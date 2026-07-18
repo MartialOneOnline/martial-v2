@@ -796,6 +796,7 @@ export const UserPreferenceScalarFieldEnum = {
   userId: 'userId',
   lastSchoolId: 'lastSchoolId',
   lastContextType: 'lastContextType',
+  gettingStartedDismissedAt: 'gettingStartedDismissedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

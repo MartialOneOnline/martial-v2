@@ -35,6 +35,9 @@ export async function GET(req: NextRequest) {
     classesToday,
     newMembersThisMonth,
     bookingsThisMonth,
+    membershipPlanCount,
+    studentCount,
+    school,
   ] = await Promise.all([
     // Total active students
     prisma.schoolMember.count({
@@ -116,6 +119,20 @@ export async function GET(req: NextRequest) {
         status: { not: 'CANCELLED' },
       },
     }),
+    // Membership plan templates created (Getting Started checklist)
+    prisma.membershipPlan.count({ where: { schoolId } }),
+    // Any student added, including pending invites (Getting Started checklist —
+    // deliberately no status filter, unlike activeMembers/totalMembers above)
+    prisma.schoolMember.count({ where: { schoolId, role: 'STUDENT' } }),
+    // School fields needed for the Getting Started checklist + auto-verify check
+    prisma.school.findUnique({
+      where: { id: schoolId },
+      select: {
+        status: true, city: true, country: true,
+        stripePublishableKey: true, stripeSecretKey: true,
+        revolutPublicKey: true, revolutSecretKey: true,
+      },
+    }),
   ])
 
   const revenueNow = revenueThisMonth._sum.amount ?? 0
@@ -127,6 +144,33 @@ export async function GET(req: NextRequest) {
   const membersTrend = membersLastMonth > 0
     ? `+${totalMembers - membersLastMonth}`
     : null
+
+  // Getting Started checklist — each real step derives from data that already
+  // exists, not a manually-checked flag (see project plan). "settings" has no
+  // independent signal (the tab covers language/notifications/etc.) so it's
+  // just marked done once the five real steps are — a "go look around" nudge,
+  // not a gate.
+  const gettingStarted = {
+    profile: Boolean(school?.city && school?.country),
+    classes: activeClasses > 0,
+    memberships: membershipPlanCount > 0,
+    payments: Boolean(
+      (school?.stripePublishableKey && school?.stripeSecretKey) ||
+      (school?.revolutPublicKey && school?.revolutSecretKey)
+    ),
+    students: studentCount > 0,
+  }
+  const realStepsDone = Object.values(gettingStarted).every(Boolean)
+
+  // Auto-promote CLAIMED -> VERIFIED once the school is actually operational.
+  // Conditional on the current status so this can never override a status a
+  // superadmin just set (SUSPENDED/ARCHIVED/PARTNER etc. are left alone).
+  if (realStepsDone && school?.status === 'CLAIMED') {
+    await prisma.school.updateMany({
+      where: { id: schoolId, status: 'CLAIMED' },
+      data: { status: 'VERIFIED' },
+    })
+  }
 
   return NextResponse.json({
     members: { value: totalMembers, trend: membersTrend },
@@ -143,5 +187,11 @@ export async function GET(req: NextRequest) {
     classesToday:       { value: classesToday },
     newMembersThisMonth:{ value: newMembersThisMonth },
     bookingsThisMonth:  { value: bookingsThisMonth },
+    gettingStarted: {
+      ...gettingStarted,
+      settings: realStepsDone,
+      doneCount: Object.values(gettingStarted).filter(Boolean).length + (realStepsDone ? 1 : 0),
+      total: 6,
+    },
   })
 }

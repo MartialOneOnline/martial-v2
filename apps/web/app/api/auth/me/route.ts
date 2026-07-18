@@ -27,7 +27,7 @@ export async function GET() {
   // Get preference from DB as fallback (cross-device persistence)
   const pref = await prisma.userPreference.findUnique({
     where: { userId: dbUser.id },
-    select: { lastSchoolId: true },
+    select: { lastSchoolId: true, gettingStartedDismissedAt: true },
   })
 
   const contexts = await getUserContexts(dbUser.id, lastSchoolId ?? pref?.lastSchoolId)
@@ -38,6 +38,7 @@ export async function GET() {
       email: dbUser.email,
       name: dbUser.name,
       globalRole: dbUser.role,
+      gettingStartedDismissedAt: pref?.gettingStartedDismissedAt ?? null,
     },
     contexts,
   })

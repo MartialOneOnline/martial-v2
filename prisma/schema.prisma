@@ -1377,6 +1377,10 @@ model UserPreference {
   lastSchoolId    String?
   lastContextType String? // "SCHOOL" | "PERSONAL" | "ADMIN"
 
+  // Set when the owner hides the dashboard's "Getting Started" checklist —
+  // stays hidden even after it would otherwise re-qualify (e.g. data changes).
+  gettingStartedDismissedAt DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
