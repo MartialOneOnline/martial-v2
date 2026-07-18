@@ -64,7 +64,7 @@ export default function VerifyQueueClient() {
       <div className="bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
         <div>
           <h1 className="text-lg font-bold text-[#101828]">Verification Queue</h1>
-          <p className="text-xs text-gray-400">Schools that have claimed their listing and are awaiting approval</p>
+          <p className="text-xs text-gray-400">Schools that finished their own setup and are awaiting approval</p>
         </div>
         <button
           onClick={load}
@@ -119,7 +119,7 @@ export default function VerifyQueueClient() {
                               </span>
                             )}
                             <span className="flex items-center gap-1 text-xs text-gray-400">
-                              <Clock className="w-3 h-3" /> Claimed {fmtDate(school.updatedAt)}
+                              <Clock className="w-3 h-3" /> Ready for review {fmtDate(school.updatedAt)}
                             </span>
                             <span className="text-xs text-gray-400">{school._count.members} member{school._count.members !== 1 ? 's' : ''}</span>
                           </div>

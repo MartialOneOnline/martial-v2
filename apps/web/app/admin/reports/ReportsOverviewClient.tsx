@@ -30,7 +30,7 @@ interface ReportData {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  VERIFIED: '#10B981', CLAIMED: '#3B82F6', UNVERIFIED: '#9CA3AF',
+  VERIFIED: '#10B981', UNDER_REVIEW: '#F97316', CLAIMED: '#3B82F6', UNVERIFIED: '#9CA3AF',
   PARTNER: '#F59E0B', SUSPENDED: '#EF4444',
 }
 const ROLE_COLORS: Record<string, string> = {

@@ -15,7 +15,7 @@ import { adminFetch } from '@/lib/api/adminFetch'
 const AdminMap = dynamic(() => import('./AdminMap'), { ssr: false })
 
 interface Stats {
-  schools: { total: number; verified: number; claimed: number; unverified: number }
+  schools: { total: number; verified: number; claimed: number; underReview: number; unverified: number }
   users: { total: number }
   invitations: { total: number; sent: number; registered: number; pending: number }
   schoolsByCountry: { country: string; count: number }[]
@@ -25,10 +25,11 @@ interface Stats {
 }
 
 const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
-  VERIFIED:   { label: 'Verified',   cls: 'bg-emerald-50 text-emerald-700 border border-emerald-100' },
-  CLAIMED:    { label: 'Claimed',    cls: 'bg-blue-50 text-blue-700 border border-blue-100' },
-  UNVERIFIED: { label: 'Unverified', cls: 'bg-gray-100 text-gray-500 border border-gray-200' },
-  PARTNER:    { label: 'Partner',    cls: 'bg-amber-50 text-amber-700 border border-amber-100' },
+  VERIFIED:     { label: 'Verified',      cls: 'bg-emerald-50 text-emerald-700 border border-emerald-100' },
+  UNDER_REVIEW: { label: 'Under Review',  cls: 'bg-amber-50 text-amber-700 border border-amber-100' },
+  CLAIMED:      { label: 'Claimed',       cls: 'bg-blue-50 text-blue-700 border border-blue-100' },
+  UNVERIFIED:   { label: 'Unverified',    cls: 'bg-gray-100 text-gray-500 border border-gray-200' },
+  PARTNER:      { label: 'Partner',       cls: 'bg-amber-50 text-amber-700 border border-amber-100' },
 }
 
 function fmtDate(iso: string) {
@@ -71,10 +72,10 @@ export default function AdminDashboardClient() {
       color: '#F59E0B',
       bg: 'bg-amber-50',
       label: 'Pending verification',
-      value: stats?.schools.claimed ?? 0,
+      value: stats?.schools.underReview ?? 0,
       href: '/admin/schools/verify',
       cta: 'Review queue',
-      urgent: (stats?.schools.claimed ?? 0) > 0,
+      urgent: (stats?.schools.underReview ?? 0) > 0,
     },
     {
       icon: Mail,
@@ -146,7 +147,7 @@ export default function AdminDashboardClient() {
           {[
             { label: 'Total Schools',  value: stats?.schools.total ?? 0,    icon: Building2,   color: '#0870E2', sub: `${stats?.schools.verified ?? 0} verified` },
             { label: 'Verified',       value: stats?.schools.verified ?? 0, icon: CheckCircle2, color: '#10B981', sub: 'approved profiles' },
-            { label: 'Pending Review', value: stats?.schools.claimed ?? 0,  icon: AlertTriangle, color: '#F59E0B', sub: 'needs attention', alert: (stats?.schools.claimed ?? 0) > 0 },
+            { label: 'Pending Review', value: stats?.schools.underReview ?? 0, icon: AlertTriangle, color: '#F59E0B', sub: 'needs attention', alert: (stats?.schools.underReview ?? 0) > 0 },
             { label: 'Total Users',    value: stats?.users.total ?? 0,      icon: Users,        color: '#8B5CF6', sub: 'registered accounts' },
             { label: 'Conv. Rate',     value: `${convRate}%`,               icon: TrendingUp,   color: '#3B82F6', sub: `${registered} of ${total} invited` },
           ].map(card => (

@@ -7,7 +7,9 @@ export async function GET(req: NextRequest) {
   if (deny) return deny
 
   const schools = await prisma.school.findMany({
-    where: { status: 'CLAIMED' },
+    // Only schools that finished their own setup (Getting Started checklist)
+    // land here — a raw CLAIMED signup has nothing to review yet.
+    where: { status: 'UNDER_REVIEW' },
     orderBy: { updatedAt: 'desc' },
     select: {
       id: true, name: true, slug: true, status: true, source: true,

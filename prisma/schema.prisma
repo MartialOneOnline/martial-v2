@@ -26,6 +26,7 @@ enum Role {
 enum SchoolStatus {
   UNVERIFIED // Imported/seeded, not yet confirmed by owner
   CLAIMED // Owner signed up and confirmed listing
+  UNDER_REVIEW // Finished own setup (Getting Started checklist) — awaiting admin approval, not self-granted
   VERIFIED // Stripe connected, fully operational
   PARTNER // Affiliated (Roger Gracie, Checkmat, etc.) — premium listing
   SUSPENDED

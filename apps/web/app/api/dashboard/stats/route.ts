@@ -162,13 +162,17 @@ export async function GET(req: NextRequest) {
   }
   const realStepsDone = Object.values(gettingStarted).every(Boolean)
 
-  // Auto-promote CLAIMED -> VERIFIED once the school is actually operational.
-  // Conditional on the current status so this can never override a status a
-  // superadmin just set (SUSPENDED/ARCHIVED/PARTNER etc. are left alone).
+  // Auto-promote CLAIMED -> UNDER_REVIEW once the school has finished its own
+  // setup. Deliberately NOT -> VERIFIED: a school filling in its own data is
+  // not the same as a human confirming it's legitimate, so this only queues
+  // it for admin approval (/admin/schools/verify still does the real
+  // CLAIMED/UNDER_REVIEW -> VERIFIED flip). Conditional on the current status
+  // so this can never override a status a superadmin just set
+  // (SUSPENDED/ARCHIVED/PARTNER/VERIFIED etc. are left alone).
   if (realStepsDone && school?.status === 'CLAIMED') {
     await prisma.school.updateMany({
       where: { id: schoolId, status: 'CLAIMED' },
-      data: { status: 'VERIFIED' },
+      data: { status: 'UNDER_REVIEW' },
     })
   }
 

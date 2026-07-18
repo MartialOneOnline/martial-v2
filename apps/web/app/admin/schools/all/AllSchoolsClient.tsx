@@ -27,12 +27,13 @@ type School = {
 }
 
 const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
-  VERIFIED:   { label: 'Verified',   cls: 'bg-emerald-50 text-emerald-700 border border-emerald-100' },
-  CLAIMED:    { label: 'Claimed',    cls: 'bg-blue-50 text-blue-700 border border-blue-100' },
-  UNVERIFIED: { label: 'Unverified', cls: 'bg-gray-100 text-gray-500 border border-gray-200' },
-  PARTNER:    { label: 'Partner',    cls: 'bg-amber-50 text-amber-700 border border-amber-100' },
-  SUSPENDED:  { label: 'Suspended',  cls: 'bg-red-50 text-red-600 border border-red-100' },
-  ARCHIVED:   { label: 'Archived',   cls: 'bg-gray-100 text-gray-400 border border-gray-200' },
+  VERIFIED:     { label: 'Verified',     cls: 'bg-emerald-50 text-emerald-700 border border-emerald-100' },
+  UNDER_REVIEW: { label: 'Under Review', cls: 'bg-amber-50 text-amber-700 border border-amber-100' },
+  CLAIMED:      { label: 'Claimed',      cls: 'bg-blue-50 text-blue-700 border border-blue-100' },
+  UNVERIFIED:   { label: 'Unverified',   cls: 'bg-gray-100 text-gray-500 border border-gray-200' },
+  PARTNER:      { label: 'Partner',      cls: 'bg-amber-50 text-amber-700 border border-amber-100' },
+  SUSPENDED:    { label: 'Suspended',    cls: 'bg-red-50 text-red-600 border border-red-100' },
+  ARCHIVED:     { label: 'Archived',     cls: 'bg-gray-100 text-gray-400 border border-gray-200' },
 }
 
 // Martial's SaaS billing status for this school (not the school's own listing status above)
@@ -54,7 +55,7 @@ const TYPE_BADGE: Record<string, { label: string; cls: string }> = {
   BUSINESS: { label: 'Business', cls: 'bg-purple-50 text-purple-700' },
 }
 
-const STATUSES = ['', 'VERIFIED', 'CLAIMED', 'UNVERIFIED', 'PARTNER', 'SUSPENDED', 'ARCHIVED']
+const STATUSES = ['', 'VERIFIED', 'UNDER_REVIEW', 'CLAIMED', 'UNVERIFIED', 'PARTNER', 'SUSPENDED', 'ARCHIVED']
 
 const COUNTRIES = [
   ['ES','Spain'],['GB','United Kingdom'],['FR','France'],['DE','Germany'],['IT','Italy'],
@@ -201,6 +202,7 @@ function CreateSchoolModal({ onClose, onCreated }: { onClose: () => void; onCrea
             <label className={label}>Status</label>
             <select value={form.status} onChange={e => set('status', e.target.value)} className={field}>
               <option value="VERIFIED">Verified</option>
+              <option value="UNDER_REVIEW">Under Review</option>
               <option value="CLAIMED">Claimed</option>
               <option value="UNVERIFIED">Unverified</option>
               <option value="PARTNER">Partner</option>
@@ -389,6 +391,7 @@ function AdminEditSchoolModal({ schoolId, onClose, onSaved }: {
               <label className={label}>Status</label>
               <select value={form.status} onChange={e => set('status', e.target.value)} className={field}>
                 <option value="VERIFIED">Verified</option>
+                <option value="UNDER_REVIEW">Under Review</option>
                 <option value="CLAIMED">Claimed</option>
                 <option value="UNVERIFIED">Unverified</option>
                 <option value="PARTNER">Partner</option>
