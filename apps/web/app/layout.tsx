@@ -41,7 +41,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: `
           (function(){
             var resolve = ${resolveAuthHashRedirect.toString()};
-            var to = resolve(window.location.hash);
+            var to = resolve(window.location.hash, window.location.pathname);
             if (to) window.location.replace(to);
           })();
         `}} />

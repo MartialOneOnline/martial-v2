@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { prisma } from '@/lib/db'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { APP_URL } from '@/lib/email/resend'
+import { sendConfirmEmail } from '@/lib/email/sendConfirmEmail'
+import { safeConfirmRedirect } from '@/lib/authConfirmRedirect'
 
 // POST /api/auth/register — single entry point for self-serve signup.
 //
@@ -13,17 +16,13 @@ import { createAdminClient } from '@/lib/supabase/admin'
 // succeeded, the Supabase user is deleted again (or the request is rejected
 // as EMAIL_ALREADY_EXISTS if it can't be, so we never silently drop it).
 //
-// Email confirmation is intentionally skipped (email_confirm: true), same
-// as the school-invitation onboarding flow — see AUTO_CONFIRM_EMAIL below.
+// The Supabase user is created unconfirmed and a confirmation link is
+// emailed via Resend (same generateLink+custom-template pattern as the
+// member-invite flow) — the client never auto-signs-in here. See
+// /auth/confirm for the redemption page and proxy.ts for the access gate.
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const MIN_PASSWORD_LENGTH = 8
-
-// Self-serve accounts are confirmed immediately so the client can sign in
-// right after this call returns. Flip to false (and build a real "confirm
-// your email" landing page) if spam/fake signups become a problem — the
-// requiresEmailConfirmation branch below already exists for that case.
-const AUTO_CONFIRM_EMAIL = true
 
 type AccountType = 'student' | 'school'
 
@@ -33,6 +32,8 @@ type RegisterBody = {
   email?: string
   password?: string
   phone?: string
+  redirect?: string
+  lang?: string
   school?: {
     name?: string
     city?: string
@@ -64,6 +65,45 @@ function slugify(input: string): string {
     .substring(0, 80)
 }
 
+// Generates a one-time confirmation link (verifying it also flips
+// email_confirmed_at, same mechanism the member-invite flow relies on for
+// existing users — see app/api/dashboard/members/invite/route.ts) and emails
+// it via Resend. Best-effort in the sense that the Prisma rows are already
+// committed by the time this runs, so a Resend/Supabase hiccup here must
+// never fail the whole request or roll back the account — but the caller
+// DOES need the real outcome (returned as `sent`) so the response can be
+// honest about whether an email actually went out, instead of blindly
+// claiming success. See app/register/page.tsx's use of `emailSent` and the
+// resend-confirmation route for the recovery path.
+async function sendConfirmationLink(
+  admin: ReturnType<typeof createAdminClient>,
+  email: string,
+  fullName: string,
+  redirect: string | undefined,
+  lang: string | undefined,
+): Promise<{ sent: boolean }> {
+  try {
+    const redirectTo = redirect
+      ? `${APP_URL}/auth/confirm?redirect=${encodeURIComponent(redirect)}`
+      : `${APP_URL}/auth/confirm`
+    const { data, error } = await admin.auth.admin.generateLink({
+      type: 'magiclink',
+      email,
+      options: { redirectTo },
+    })
+    const confirmUrl = data?.properties?.action_link
+    if (error || !confirmUrl) {
+      console.error('[register] generateLink failed:', error)
+      return { sent: false }
+    }
+    const result = await sendConfirmEmail({ recipientEmail: email, name: fullName, confirmUrl, lang })
+    return { sent: result.success }
+  } catch (err) {
+    console.error('[register] sendConfirmationLink failed:', err)
+    return { sent: false }
+  }
+}
+
 export async function POST(req: NextRequest) {
   let body: RegisterBody
   try {
@@ -81,6 +121,9 @@ export async function POST(req: NextRequest) {
   const email = body.email?.trim().toLowerCase() ?? ''
   const password = body.password ?? ''
   const phone = body.phone?.trim() || null
+  // Never trust the client's own safeRedirect() call — re-sanitize server-side.
+  const redirect = safeConfirmRedirect(body.redirect)
+  const lang = body.lang
 
   if (!fullName || !email || !password) {
     return errorResponse('MISSING_REQUIRED_FIELDS', 'Please fill in all required fields.', 400)
@@ -140,7 +183,7 @@ export async function POST(req: NextRequest) {
   const { data: created, error: createErr } = await admin.auth.admin.createUser({
     email,
     password,
-    email_confirm: AUTO_CONFIRM_EMAIL,
+    email_confirm: false,
     user_metadata: { name: fullName },
   })
 
@@ -156,6 +199,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Orphan-heal path: prove ownership with the password just submitted.
+    // Note: if the Supabase project's "Confirm email" toggle is ever turned
+    // on, a genuinely-unconfirmed legacy orphan's signInWithPassword below
+    // would itself fail with "Email not confirmed" — that still surfaces as
+    // the EMAIL_ALREADY_EXISTS response below, which remains a reasonable
+    // (if imprecise) outcome for this rare case.
     const anon = createSupabaseClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
@@ -186,11 +234,13 @@ export async function POST(req: NextRequest) {
         },
       })
 
+      const { sent } = await sendConfirmationLink(admin, email, fullName, redirect, lang)
+
       return NextResponse.json({
         ok: true,
-        requiresEmailConfirmation: !AUTO_CONFIRM_EMAIL,
+        requiresEmailConfirmation: true,
+        emailSent: sent,
         accountType,
-        redirectTo: AUTO_CONFIRM_EMAIL ? '/my' : '/login',
       })
     }
 
@@ -244,11 +294,13 @@ export async function POST(req: NextRequest) {
       return { user, school }
     })
 
+    const { sent } = await sendConfirmationLink(admin, email, fullName, redirect, lang)
+
     return NextResponse.json({
       ok: true,
-      requiresEmailConfirmation: !AUTO_CONFIRM_EMAIL,
+      requiresEmailConfirmation: true,
+      emailSent: sent,
       accountType,
-      redirectTo: AUTO_CONFIRM_EMAIL ? '/dashboard' : '/login',
       schoolId: school.id,
     })
   } catch (err: any) {

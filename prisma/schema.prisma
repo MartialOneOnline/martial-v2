@@ -338,6 +338,7 @@ model User {
   avatarUrl      String?
   supabaseAuthId String?   @unique @db.Uuid
   role           Role      @default(STUDENT)
+  deletedAt      DateTime?
 
   // School this user manages (if SCHOOL_OWNER or INSTRUCTOR)
   schoolId String?
@@ -1381,6 +1382,16 @@ model UserPreference {
   // Set when the owner hides the dashboard's "Getting Started" checklist —
   // stays hidden even after it would otherwise re-qualify (e.g. data changes).
   gettingStartedDismissedAt DateTime?
+
+  // Student notification preferences (apps/web/app/my/settings). Not yet
+  // consumed by any send path — there is no class-reminder or promotional
+  // email system in this codebase yet, so these are stored for when one
+  // exists. Transactional receipts (trial/membership confirmations) are
+  // not gated by these and always send, same as any receipt.
+  notifyClassReminders     Boolean @default(true)
+  notifyBookingConfirmed   Boolean @default(true)
+  notifyMembershipUpdates  Boolean @default(true)
+  notifyPromotions         Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

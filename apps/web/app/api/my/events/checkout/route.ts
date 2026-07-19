@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
+import { getAuthUser } from '@/lib/auth/server'
 import { getStripe } from '@/lib/stripe'
 import { createRevolutOrder } from '@/lib/revolut'
 import { checkEventCapacity } from '@/lib/services/eventCapacity'
@@ -9,20 +8,8 @@ import { checkEventCapacity } from '@/lib/services/eventCapacity'
 // POST /api/my/events/checkout — create a checkout session for an event ticket
 // (seminars, competitions, etc). Supports Stripe and Revolut, one-time payment only.
 export async function POST(req: NextRequest) {
-  const cookieStore = await cookies()
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    { cookies: { getAll: () => cookieStore.getAll() } }
-  )
-  const { data: { user: authUser } } = await supabase.auth.getUser()
-  if (!authUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const dbUser = await prisma.user.findUnique({
-    where: { supabaseAuthId: authUser.id },
-    select: { id: true, name: true, email: true },
-  })
-  if (!dbUser) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  const dbUser = await getAuthUser()
+  if (!dbUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { eventId, ticketId, quantity: rawQuantity, provider = 'STRIPE' } = await req.json() as { eventId: string; ticketId: string; quantity?: number; provider?: string }
   if (!eventId || !ticketId) return NextResponse.json({ error: 'eventId and ticketId required' }, { status: 400 })

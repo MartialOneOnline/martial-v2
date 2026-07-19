@@ -33,6 +33,7 @@ export type UserMinAggregateOutputType = {
   avatarUrl: string | null
   supabaseAuthId: string | null
   role: $Enums.Role | null
+  deletedAt: Date | null
   schoolId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -47,6 +48,7 @@ export type UserMaxAggregateOutputType = {
   avatarUrl: string | null
   supabaseAuthId: string | null
   role: $Enums.Role | null
+  deletedAt: Date | null
   schoolId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -61,6 +63,7 @@ export type UserCountAggregateOutputType = {
   avatarUrl: number
   supabaseAuthId: number
   role: number
+  deletedAt: number
   schoolId: number
   createdAt: number
   updatedAt: number
@@ -77,6 +80,7 @@ export type UserMinAggregateInputType = {
   avatarUrl?: true
   supabaseAuthId?: true
   role?: true
+  deletedAt?: true
   schoolId?: true
   createdAt?: true
   updatedAt?: true
@@ -91,6 +95,7 @@ export type UserMaxAggregateInputType = {
   avatarUrl?: true
   supabaseAuthId?: true
   role?: true
+  deletedAt?: true
   schoolId?: true
   createdAt?: true
   updatedAt?: true
@@ -105,6 +110,7 @@ export type UserCountAggregateInputType = {
   avatarUrl?: true
   supabaseAuthId?: true
   role?: true
+  deletedAt?: true
   schoolId?: true
   createdAt?: true
   updatedAt?: true
@@ -192,6 +198,7 @@ export type UserGroupByOutputType = {
   avatarUrl: string | null
   supabaseAuthId: string | null
   role: $Enums.Role
+  deletedAt: Date | null
   schoolId: string | null
   createdAt: Date
   updatedAt: Date
@@ -227,6 +234,7 @@ export type UserWhereInput = {
   avatarUrl?: Prisma.StringNullableFilter<"User"> | string | null
   supabaseAuthId?: Prisma.UuidNullableFilter<"User"> | string | null
   role?: Prisma.EnumRoleFilter<"User"> | $Enums.Role
+  deletedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   schoolId?: Prisma.StringNullableFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -264,6 +272,7 @@ export type UserOrderByWithRelationInput = {
   avatarUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   supabaseAuthId?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   schoolId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -304,6 +313,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   dateOfBirth?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   avatarUrl?: Prisma.StringNullableFilter<"User"> | string | null
   role?: Prisma.EnumRoleFilter<"User"> | $Enums.Role
+  deletedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   schoolId?: Prisma.StringNullableFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -341,6 +351,7 @@ export type UserOrderByWithAggregationInput = {
   avatarUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   supabaseAuthId?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   schoolId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -361,6 +372,7 @@ export type UserScalarWhereWithAggregatesInput = {
   avatarUrl?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   supabaseAuthId?: Prisma.UuidNullableWithAggregatesFilter<"User"> | string | null
   role?: Prisma.EnumRoleWithAggregatesFilter<"User"> | $Enums.Role
+  deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   schoolId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
@@ -375,6 +387,7 @@ export type UserCreateInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
@@ -411,6 +424,7 @@ export type UserUncheckedCreateInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   schoolId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -447,6 +461,7 @@ export type UserUpdateInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
@@ -483,6 +498,7 @@ export type UserUncheckedUpdateInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -519,6 +535,7 @@ export type UserCreateManyInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   schoolId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -533,6 +550,7 @@ export type UserUpdateManyMutationInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -546,6 +564,7 @@ export type UserUncheckedUpdateManyInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -565,6 +584,7 @@ export type UserCountOrderByAggregateInput = {
   avatarUrl?: Prisma.SortOrder
   supabaseAuthId?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
   schoolId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -579,6 +599,7 @@ export type UserMaxOrderByAggregateInput = {
   avatarUrl?: Prisma.SortOrder
   supabaseAuthId?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
   schoolId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -593,6 +614,7 @@ export type UserMinOrderByAggregateInput = {
   avatarUrl?: Prisma.SortOrder
   supabaseAuthId?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
   schoolId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -996,6 +1018,7 @@ export type UserCreateWithoutContentAccessesInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
@@ -1031,6 +1054,7 @@ export type UserUncheckedCreateWithoutContentAccessesInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   schoolId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1082,6 +1106,7 @@ export type UserUpdateWithoutContentAccessesInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
@@ -1117,6 +1142,7 @@ export type UserUncheckedUpdateWithoutContentAccessesInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1152,6 +1178,7 @@ export type UserCreateWithoutClaimedSchoolsInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
@@ -1187,6 +1214,7 @@ export type UserUncheckedCreateWithoutClaimedSchoolsInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   schoolId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1227,6 +1255,7 @@ export type UserCreateWithoutSchoolInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
@@ -1262,6 +1291,7 @@ export type UserUncheckedCreateWithoutSchoolInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
@@ -1318,6 +1348,7 @@ export type UserUpdateWithoutClaimedSchoolsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
@@ -1353,6 +1384,7 @@ export type UserUncheckedUpdateWithoutClaimedSchoolsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1407,6 +1439,7 @@ export type UserScalarWhereInput = {
   avatarUrl?: Prisma.StringNullableFilter<"User"> | string | null
   supabaseAuthId?: Prisma.UuidNullableFilter<"User"> | string | null
   role?: Prisma.EnumRoleFilter<"User"> | $Enums.Role
+  deletedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   schoolId?: Prisma.StringNullableFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -1421,6 +1454,7 @@ export type UserCreateWithoutReviewsInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
@@ -1456,6 +1490,7 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   schoolId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1507,6 +1542,7 @@ export type UserUpdateWithoutReviewsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
@@ -1542,6 +1578,7 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1577,6 +1614,7 @@ export type UserCreateWithoutEventBookingsInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
@@ -1612,6 +1650,7 @@ export type UserUncheckedCreateWithoutEventBookingsInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   schoolId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1663,6 +1702,7 @@ export type UserUpdateWithoutEventBookingsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
@@ -1698,6 +1738,7 @@ export type UserUncheckedUpdateWithoutEventBookingsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1733,6 +1774,7 @@ export type UserCreateWithoutBookingsInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
@@ -1768,6 +1810,7 @@ export type UserUncheckedCreateWithoutBookingsInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   schoolId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1819,6 +1862,7 @@ export type UserUpdateWithoutBookingsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
@@ -1854,6 +1898,7 @@ export type UserUncheckedUpdateWithoutBookingsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1889,6 +1934,7 @@ export type UserCreateWithoutMembershipsInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
@@ -1924,6 +1970,7 @@ export type UserUncheckedCreateWithoutMembershipsInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   schoolId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1975,6 +2022,7 @@ export type UserUpdateWithoutMembershipsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
@@ -2010,6 +2058,7 @@ export type UserUncheckedUpdateWithoutMembershipsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2045,6 +2094,7 @@ export type UserCreateWithoutCampBookingsInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
@@ -2080,6 +2130,7 @@ export type UserUncheckedCreateWithoutCampBookingsInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   schoolId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2131,6 +2182,7 @@ export type UserUpdateWithoutCampBookingsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
@@ -2166,6 +2218,7 @@ export type UserUncheckedUpdateWithoutCampBookingsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2201,6 +2254,7 @@ export type UserCreateWithoutSchoolMembersInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
@@ -2236,6 +2290,7 @@ export type UserUncheckedCreateWithoutSchoolMembersInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   schoolId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2287,6 +2342,7 @@ export type UserUpdateWithoutSchoolMembersInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
@@ -2322,6 +2378,7 @@ export type UserUncheckedUpdateWithoutSchoolMembersInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2357,6 +2414,7 @@ export type UserCreateWithoutSchoolClaimsInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
@@ -2392,6 +2450,7 @@ export type UserUncheckedCreateWithoutSchoolClaimsInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   schoolId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2443,6 +2502,7 @@ export type UserUpdateWithoutSchoolClaimsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
@@ -2478,6 +2538,7 @@ export type UserUncheckedUpdateWithoutSchoolClaimsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2513,6 +2574,7 @@ export type UserCreateWithoutGradingsInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
@@ -2548,6 +2610,7 @@ export type UserUncheckedCreateWithoutGradingsInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   schoolId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2588,6 +2651,7 @@ export type UserCreateWithoutGradingsGivenInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
@@ -2623,6 +2687,7 @@ export type UserUncheckedCreateWithoutGradingsGivenInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   schoolId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2674,6 +2739,7 @@ export type UserUpdateWithoutGradingsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
@@ -2709,6 +2775,7 @@ export type UserUncheckedUpdateWithoutGradingsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2755,6 +2822,7 @@ export type UserUpdateWithoutGradingsGivenInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
@@ -2790,6 +2858,7 @@ export type UserUncheckedUpdateWithoutGradingsGivenInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2825,6 +2894,7 @@ export type UserCreateWithoutLeadsInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
@@ -2860,6 +2930,7 @@ export type UserUncheckedCreateWithoutLeadsInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   schoolId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2911,6 +2982,7 @@ export type UserUpdateWithoutLeadsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
@@ -2946,6 +3018,7 @@ export type UserUncheckedUpdateWithoutLeadsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2981,6 +3054,7 @@ export type UserCreateWithoutLeadNotesInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
@@ -3016,6 +3090,7 @@ export type UserUncheckedCreateWithoutLeadNotesInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   schoolId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -3067,6 +3142,7 @@ export type UserUpdateWithoutLeadNotesInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
@@ -3102,6 +3178,7 @@ export type UserUncheckedUpdateWithoutLeadNotesInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3137,6 +3214,7 @@ export type UserCreateWithoutSentInvitationsInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
@@ -3172,6 +3250,7 @@ export type UserUncheckedCreateWithoutSentInvitationsInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   schoolId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -3223,6 +3302,7 @@ export type UserUpdateWithoutSentInvitationsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
@@ -3258,6 +3338,7 @@ export type UserUncheckedUpdateWithoutSentInvitationsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3293,6 +3374,7 @@ export type UserCreateWithoutUserWaiversInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
@@ -3328,6 +3410,7 @@ export type UserUncheckedCreateWithoutUserWaiversInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   schoolId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -3379,6 +3462,7 @@ export type UserUpdateWithoutUserWaiversInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
@@ -3414,6 +3498,7 @@ export type UserUncheckedUpdateWithoutUserWaiversInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3449,6 +3534,7 @@ export type UserCreateWithoutLoginHistoryInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
@@ -3484,6 +3570,7 @@ export type UserUncheckedCreateWithoutLoginHistoryInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   schoolId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -3535,6 +3622,7 @@ export type UserUpdateWithoutLoginHistoryInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
@@ -3570,6 +3658,7 @@ export type UserUncheckedUpdateWithoutLoginHistoryInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3605,6 +3694,7 @@ export type UserCreateWithoutImpersonationsAsActorInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
@@ -3640,6 +3730,7 @@ export type UserUncheckedCreateWithoutImpersonationsAsActorInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   schoolId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -3680,6 +3771,7 @@ export type UserCreateWithoutImpersonationsAsTargetInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
@@ -3715,6 +3807,7 @@ export type UserUncheckedCreateWithoutImpersonationsAsTargetInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   schoolId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -3766,6 +3859,7 @@ export type UserUpdateWithoutImpersonationsAsActorInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
@@ -3801,6 +3895,7 @@ export type UserUncheckedUpdateWithoutImpersonationsAsActorInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3847,6 +3942,7 @@ export type UserUpdateWithoutImpersonationsAsTargetInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
@@ -3882,6 +3978,7 @@ export type UserUncheckedUpdateWithoutImpersonationsAsTargetInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3917,6 +4014,7 @@ export type UserCreateWithoutTransactionsInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
@@ -3952,6 +4050,7 @@ export type UserUncheckedCreateWithoutTransactionsInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   schoolId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -3992,6 +4091,7 @@ export type UserCreateWithoutResolvedTransactionsInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
@@ -4027,6 +4127,7 @@ export type UserUncheckedCreateWithoutResolvedTransactionsInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   schoolId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -4078,6 +4179,7 @@ export type UserUpdateWithoutTransactionsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
@@ -4113,6 +4215,7 @@ export type UserUncheckedUpdateWithoutTransactionsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4159,6 +4262,7 @@ export type UserUpdateWithoutResolvedTransactionsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
@@ -4194,6 +4298,7 @@ export type UserUncheckedUpdateWithoutResolvedTransactionsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4229,6 +4334,7 @@ export type UserCreateWithoutPreferenceInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
@@ -4264,6 +4370,7 @@ export type UserUncheckedCreateWithoutPreferenceInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   schoolId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -4315,6 +4422,7 @@ export type UserUpdateWithoutPreferenceInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
@@ -4350,6 +4458,7 @@ export type UserUncheckedUpdateWithoutPreferenceInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4385,6 +4494,7 @@ export type UserCreateWithoutTargetedNotificationsInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
@@ -4420,6 +4530,7 @@ export type UserUncheckedCreateWithoutTargetedNotificationsInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   schoolId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -4471,6 +4582,7 @@ export type UserUpdateWithoutTargetedNotificationsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
@@ -4506,6 +4618,7 @@ export type UserUncheckedUpdateWithoutTargetedNotificationsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4541,6 +4654,7 @@ export type UserCreateManySchoolInput = {
   avatarUrl?: string | null
   supabaseAuthId?: string | null
   role?: $Enums.Role
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -4554,6 +4668,7 @@ export type UserUpdateWithoutSchoolInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
@@ -4589,6 +4704,7 @@ export type UserUncheckedUpdateWithoutSchoolInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
@@ -4624,6 +4740,7 @@ export type UserUncheckedUpdateManyWithoutSchoolInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -4848,6 +4965,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   avatarUrl?: boolean
   supabaseAuthId?: boolean
   role?: boolean
+  deletedAt?: boolean
   schoolId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -4886,6 +5004,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   avatarUrl?: boolean
   supabaseAuthId?: boolean
   role?: boolean
+  deletedAt?: boolean
   schoolId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -4901,6 +5020,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   avatarUrl?: boolean
   supabaseAuthId?: boolean
   role?: boolean
+  deletedAt?: boolean
   schoolId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -4916,12 +5036,13 @@ export type UserSelectScalar = {
   avatarUrl?: boolean
   supabaseAuthId?: boolean
   role?: boolean
+  deletedAt?: boolean
   schoolId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "name" | "phone" | "dateOfBirth" | "avatarUrl" | "supabaseAuthId" | "role" | "schoolId" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "name" | "phone" | "dateOfBirth" | "avatarUrl" | "supabaseAuthId" | "role" | "deletedAt" | "schoolId" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.User$schoolArgs<ExtArgs>
   claimedSchools?: boolean | Prisma.User$claimedSchoolsArgs<ExtArgs>
@@ -4991,6 +5112,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     avatarUrl: string | null
     supabaseAuthId: string | null
     role: $Enums.Role
+    deletedAt: Date | null
     schoolId: string | null
     createdAt: Date
     updatedAt: Date
@@ -5448,6 +5570,7 @@ export interface UserFieldRefs {
   readonly avatarUrl: Prisma.FieldRef<"User", 'String'>
   readonly supabaseAuthId: Prisma.FieldRef<"User", 'String'>
   readonly role: Prisma.FieldRef<"User", 'Role'>
+  readonly deletedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly schoolId: Prisma.FieldRef<"User", 'String'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>

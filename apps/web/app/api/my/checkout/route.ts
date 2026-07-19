@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
+import { getAuthUser } from '@/lib/auth/server'
 import { getStripe } from '@/lib/stripe'
 import { createRevolutOrder } from '@/lib/revolut'
 import { MembershipStatus, PaymentMethod } from '@/lib/prisma-client/client'
@@ -9,20 +8,8 @@ import { MembershipStatus, PaymentMethod } from '@/lib/prisma-client/client'
 // POST /api/my/checkout — create a checkout session for a membership plan
 // Supports Stripe (one-time + subscription) and Revolut (one-time)
 export async function POST(req: NextRequest) {
-  const cookieStore = await cookies()
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    { cookies: { getAll: () => cookieStore.getAll() } }
-  )
-  const { data: { user: authUser } } = await supabase.auth.getUser()
-  if (!authUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const dbUser = await prisma.user.findUnique({
-    where: { supabaseAuthId: authUser.id },
-    select: { id: true, name: true, email: true },
-  })
-  if (!dbUser) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  const dbUser = await getAuthUser()
+  if (!dbUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { planId, provider = 'STRIPE' } = await req.json() as { planId: string; provider?: string }
   if (!planId) return NextResponse.json({ error: 'planId required' }, { status: 400 })

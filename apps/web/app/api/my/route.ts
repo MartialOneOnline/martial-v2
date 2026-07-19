@@ -40,7 +40,7 @@ export async function GET() {
     where: { supabaseAuthId: authUser.id },
     select: {
       id: true, name: true, email: true, phone: true,
-      avatarUrl: true, dateOfBirth: true, role: true,
+      avatarUrl: true, dateOfBirth: true, role: true, deletedAt: true,
       memberships: {
         where: { status: { in: ['ACTIVE', 'PENDING', 'PAUSED'] }, ...(schoolId && { schoolId }) },
         orderBy: { startDate: 'desc' },
@@ -104,7 +104,7 @@ export async function GET() {
     },
   })
 
-  if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+  if (!user || user.deletedAt) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
   // Staff-only accounts (no real STUDENT enrollment anywhere) don't belong
   // in the student portal — mirrors the redirect in app/my/layout.tsx.
@@ -146,9 +146,9 @@ export async function PATCH(req: Request) {
 
   const dbUser = await prisma.user.findUnique({
     where: { supabaseAuthId: authUser.id },
-    select: { id: true },
+    select: { id: true, deletedAt: true },
   })
-  if (!dbUser) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+  if (!dbUser || dbUser.deletedAt) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
   // Same staff-only guard as GET — see hasStudentAccess() for rationale.
   if ((await hasDashboardAccess(dbUser.id)) && !(await hasStudentAccess(dbUser.id))) {

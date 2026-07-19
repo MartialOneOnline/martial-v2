@@ -33,6 +33,12 @@ export async function POST(req: NextRequest) {
 
   // Get or create V2 user
   let dbUser = await prisma.user.findUnique({ where: { supabaseAuthId: user.id } })
+  // A self-deleted (anonymized) account keeps its supabaseAuthId link until a
+  // successful DELETE /api/my/account clears it — a still-live Supabase
+  // session must not be able to re-activate that identity via a trial
+  // signup. See resolveDbUser() in lib/auth/server.ts for the same gate on
+  // the routes that already share that helper.
+  if (dbUser?.deletedAt) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (!dbUser) {
     dbUser = await prisma.user.create({
       data: {

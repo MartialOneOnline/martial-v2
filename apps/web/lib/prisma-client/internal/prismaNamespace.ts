@@ -3908,6 +3908,7 @@ export const UserScalarFieldEnum = {
   avatarUrl: 'avatarUrl',
   supabaseAuthId: 'supabaseAuthId',
   role: 'role',
+  deletedAt: 'deletedAt',
   schoolId: 'schoolId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -4500,6 +4501,10 @@ export const UserPreferenceScalarFieldEnum = {
   lastSchoolId: 'lastSchoolId',
   lastContextType: 'lastContextType',
   gettingStartedDismissedAt: 'gettingStartedDismissedAt',
+  notifyClassReminders: 'notifyClassReminders',
+  notifyBookingConfirmed: 'notifyBookingConfirmed',
+  notifyMembershipUpdates: 'notifyMembershipUpdates',
+  notifyPromotions: 'notifyPromotions',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
