@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { CheckCircle2, ChevronDown, Building2, CalendarDays, Award, CreditCard, Users, Settings2 } from 'lucide-react'
 import { useT } from '../../lib/i18n/LanguageContext'
+import { submitGettingStartedDismiss } from '../../lib/gettingStartedDismiss'
 
 type GettingStarted = {
   profile: boolean
@@ -27,6 +28,7 @@ export default function GettingStartedChecklist({ gettingStarted, dismissed, onD
   const g = t.dashboard.gettingStarted
   const [collapsed, setCollapsed] = useState(false)
   const [dismissing, setDismissing] = useState(false)
+  const [dismissError, setDismissError] = useState(false)
 
   if (dismissed || gettingStarted.doneCount >= gettingStarted.total) return null
 
@@ -43,11 +45,15 @@ export default function GettingStartedChecklist({ gettingStarted, dismissed, onD
   const pct = Math.round((gettingStarted.doneCount / gettingStarted.total) * 100)
 
   async function handleDismiss() {
+    if (dismissing) return // avoid double-submits while a request is in flight
     setDismissing(true)
-    try {
-      await fetch('/api/dashboard/getting-started/dismiss', { method: 'POST' })
-    } finally {
+    setDismissError(false)
+    const ok = await submitGettingStartedDismiss()
+    if (ok) {
       onDismiss()
+    } else {
+      setDismissing(false)
+      setDismissError(true)
     }
   }
 
@@ -145,13 +151,16 @@ export default function GettingStartedChecklist({ gettingStarted, dismissed, onD
             })}
           </div>
 
-          <div className="flex justify-end" style={{ padding: '10px 22px 14px' }}>
+          <div className="flex items-center justify-end gap-3" style={{ padding: '10px 22px 14px' }}>
+            {dismissError && (
+              <span style={{ fontSize: 12.5, color: '#DC2626' }}>{g.dismissError}</span>
+            )}
             <button
               onClick={handleDismiss}
               disabled={dismissing}
               style={{
                 fontSize: 12.5, fontWeight: 600, color: '#9CA3AF', background: 'none', border: 'none',
-                cursor: 'pointer', padding: 0,
+                cursor: dismissing ? 'wait' : 'pointer', padding: 0, opacity: dismissing ? 0.6 : 1,
               }}
             >
               {g.hideChecklist}
