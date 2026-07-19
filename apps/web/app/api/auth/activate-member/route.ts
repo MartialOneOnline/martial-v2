@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { createServerClient } from '@supabase/ssr'
 import { prisma } from '@/lib/db'
+import { getAuthUser } from '@/lib/auth/server'
 import { sendWelcomeStudentEmail } from '@/lib/email/sendEmails'
 
 // POST /api/auth/activate-member — called after invite link is clicked
@@ -36,42 +35,19 @@ import { sendWelcomeStudentEmail } from '@/lib/email/sendEmails'
 //     picking one silently was exactly the kind of undocumented behavior
 //     this endpoint had before) -> flat, documented, tested default: '/my'.
 export async function POST(req: Request) {
-  const cookieStore = await cookies()
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    { cookies: { getAll: () => cookieStore.getAll() } }
-  )
-
-  const { data: { user: authUser } } = await supabase.auth.getUser()
-  if (!authUser?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  // getAuthUser() already does the same supabaseAuthId-first/email-fallback
+  // lookup (with auto-link) this route used to duplicate by hand, plus the
+  // deletedAt gate — a self-deleted account with a still-live Supabase
+  // session must not be able to activate an invitation under its old
+  // identity.
+  const dbUser = await getAuthUser()
+  if (!dbUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   let requestedSchoolId: string | null = null
   try {
     const body = await req.json()
     if (body && typeof body.schoolId === 'string' && body.schoolId) requestedSchoolId = body.schoolId
   } catch { /* no/invalid body — legacy caller */ }
-
-  // Find by supabaseAuthId first, fall back to email for invited users
-  let dbUser = await prisma.user.findFirst({
-    where: { supabaseAuthId: authUser.id },
-    select: { id: true },
-  })
-
-  if (!dbUser) {
-    dbUser = await prisma.user.findUnique({
-      where: { email: authUser.email },
-      select: { id: true },
-    })
-  }
-
-  if (!dbUser) return NextResponse.json({ error: 'User not found' }, { status: 404 })
-
-  // Link supabaseAuthId if missing
-  await prisma.user.update({
-    where: { id: dbUser.id },
-    data: { supabaseAuthId: authUser.id },
-  })
 
   const membershipSelect = {
     status: true,

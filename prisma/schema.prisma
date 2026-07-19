@@ -26,6 +26,7 @@ enum Role {
 enum SchoolStatus {
   UNVERIFIED // Imported/seeded, not yet confirmed by owner
   CLAIMED // Owner signed up and confirmed listing
+  UNDER_REVIEW // Finished own setup (Getting Started checklist) — awaiting admin approval, not self-granted
   VERIFIED // Stripe connected, fully operational
   PARTNER // Affiliated (Roger Gracie, Checkmat, etc.) — premium listing
   SUSPENDED
@@ -337,6 +338,7 @@ model User {
   avatarUrl      String?
   supabaseAuthId String?   @unique @db.Uuid
   role           Role      @default(STUDENT)
+  deletedAt      DateTime?
 
   // School this user manages (if SCHOOL_OWNER or INSTRUCTOR)
   schoolId String?
@@ -1376,6 +1378,20 @@ model UserPreference {
   // Last active school context — suggestion only, not authorization
   lastSchoolId    String?
   lastContextType String? // "SCHOOL" | "PERSONAL" | "ADMIN"
+
+  // Set when the owner hides the dashboard's "Getting Started" checklist —
+  // stays hidden even after it would otherwise re-qualify (e.g. data changes).
+  gettingStartedDismissedAt DateTime?
+
+  // Student notification preferences (apps/web/app/my/settings). Not yet
+  // consumed by any send path — there is no class-reminder or promotional
+  // email system in this codebase yet, so these are stored for when one
+  // exists. Transactional receipts (trial/membership confirmations) are
+  // not gated by these and always send, same as any receipt.
+  notifyClassReminders     Boolean @default(true)
+  notifyBookingConfirmed   Boolean @default(true)
+  notifyMembershipUpdates  Boolean @default(true)
+  notifyPromotions         Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -36,10 +36,16 @@ export async function GET(
   // Find user in V2 DB
   const dbUser = await prisma.user.findUnique({
     where: { supabaseAuthId: user.id },
-    select: { id: true },
+    select: { id: true, deletedAt: true },
   })
 
-  if (!dbUser) {
+  // A self-deleted (anonymized) account keeps its supabaseAuthId link until a
+  // successful DELETE /api/my/account clears it. Its SchoolMember rows are
+  // deliberately retained (school business records — see the PII retention
+  // policy in DELETE /api/my/account), but a still-live Supabase session for
+  // that identity shouldn't be able to read them back out — same as
+  // returning as if it had no V2 account at all.
+  if (!dbUser || dbUser.deletedAt) {
     return NextResponse.json({ authenticated: true, hasMembership: false, memberStatus: null, schoolId: school.id, hasFreeTrialCls: school.hasFreeTrialCls })
   }
 

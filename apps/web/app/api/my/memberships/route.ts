@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
+import { getAuthUser } from '@/lib/auth/server'
 import { checkAndExpireMembership } from '@/lib/services/membership'
 import { hasDashboardAccess } from '@/lib/auth/contexts'
 import { getActiveStudentContext } from '@/lib/auth/activeContextCookie'
@@ -9,20 +8,8 @@ import { getActiveStudentContext } from '@/lib/auth/activeContextCookie'
 // GET /api/my/memberships — full membership list for the logged-in student,
 // scoped to their active student school when they belong to more than one.
 export async function GET() {
-  const cookieStore = await cookies()
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    { cookies: { getAll: () => cookieStore.getAll() } }
-  )
-  const { data: { user: authUser } } = await supabase.auth.getUser()
-  if (!authUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const user = await prisma.user.findUnique({
-    where: { supabaseAuthId: authUser.id },
-    select: { id: true },
-  })
-  if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+  const user = await getAuthUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   // A student in 2+ schools would otherwise see every school's membership
   // history mixed into one list — see getActiveStudentContext().

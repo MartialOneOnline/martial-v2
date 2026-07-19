@@ -1,30 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
+import { getAuthUser } from '@/lib/auth/server'
 import { MembershipStatus, PaymentMethod } from '@/lib/prisma-client/client'
 import { cancelMembership, syncSchoolMemberStatusForMembership } from '@/lib/services/membership'
 import { sendMembershipRequestEmail } from '@/lib/email/sendEmails'
 import { notifyMembershipRequest } from '@/lib/notifications/create'
 
-async function getDbUser(authId: string) {
-  return prisma.user.findUnique({ where: { supabaseAuthId: authId }, select: { id: true, name: true } })
-}
-
 // PATCH /api/my/memberships/[id] — pause, resume, or cancel
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const cookieStore = await cookies()
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    { cookies: { getAll: () => cookieStore.getAll() } }
-  )
-  const { data: { user: authUser } } = await supabase.auth.getUser()
-  if (!authUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const dbUser = await getDbUser(authUser.id)
-  if (!dbUser) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  const dbUser = await getAuthUser()
+  if (!dbUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const membership = await prisma.membership.findUnique({
     where: { id },
@@ -76,17 +62,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 // This endpoint is for a new membership request, id = planId here
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: planId } = await params
-  const cookieStore = await cookies()
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    { cookies: { getAll: () => cookieStore.getAll() } }
-  )
-  const { data: { user: authUser } } = await supabase.auth.getUser()
-  if (!authUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const dbUser = await getDbUser(authUser.id)
-  if (!dbUser) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  const dbUser = await getAuthUser()
+  if (!dbUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const plan = await prisma.membershipPlan.findUnique({
     where: { id: planId },
