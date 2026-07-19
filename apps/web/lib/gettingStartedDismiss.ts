@@ -12,3 +12,38 @@ export async function submitGettingStartedDismiss(): Promise<boolean> {
     return false
   }
 }
+
+export type GettingStartedDismissCallbacks = {
+  onSuccess: () => void
+  onFailure: () => void
+}
+
+export type GettingStartedDismissRunner = (callbacks: GettingStartedDismissCallbacks) => Promise<void>
+
+// Orchestrates one dismiss attempt: guards against a second submission while
+// one is already in flight, then maps the outcome to exactly one of the two
+// callbacks. The in-flight guard lives in this closure rather than in the
+// component's React state — a click handler's `dismissing` state read at
+// call time can't guarantee it reflects an update `setDismissing(true)`
+// made earlier in the very same handler (React doesn't re-render
+// synchronously mid-handler), so a component-state-only guard can't fully
+// rule out two overlapping submissions. `submit` is injected so tests can
+// control the outcome without touching global fetch. Call
+// createGettingStartedDismissRunner() once per component instance (e.g. via
+// useRef/useState(() => ...)) — a fresh call makes a fresh, independent guard.
+export function createGettingStartedDismissRunner(
+  submit: () => Promise<boolean> = submitGettingStartedDismiss,
+): GettingStartedDismissRunner {
+  let inFlight = false
+  return async function runGettingStartedDismiss(callbacks) {
+    if (inFlight) return
+    inFlight = true
+    try {
+      const ok = await submit()
+      if (ok) callbacks.onSuccess()
+      else callbacks.onFailure()
+    } finally {
+      inFlight = false
+    }
+  }
+}

@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import Link from 'next/link'
 import { CheckCircle2, ChevronDown, Building2, CalendarDays, Award, CreditCard, Users, Settings2 } from 'lucide-react'
 import { useT } from '../../lib/i18n/LanguageContext'
-import { submitGettingStartedDismiss } from '../../lib/gettingStartedDismiss'
+import { createGettingStartedDismissRunner } from '../../lib/gettingStartedDismiss'
 
 type GettingStarted = {
   profile: boolean
@@ -29,6 +29,7 @@ export default function GettingStartedChecklist({ gettingStarted, dismissed, onD
   const [collapsed, setCollapsed] = useState(false)
   const [dismissing, setDismissing] = useState(false)
   const [dismissError, setDismissError] = useState(false)
+  const dismissRunner = useRef(createGettingStartedDismissRunner()).current
 
   if (dismissed || gettingStarted.doneCount >= gettingStarted.total) return null
 
@@ -45,16 +46,15 @@ export default function GettingStartedChecklist({ gettingStarted, dismissed, onD
   const pct = Math.round((gettingStarted.doneCount / gettingStarted.total) * 100)
 
   async function handleDismiss() {
-    if (dismissing) return // avoid double-submits while a request is in flight
     setDismissing(true)
     setDismissError(false)
-    const ok = await submitGettingStartedDismiss()
-    if (ok) {
-      onDismiss()
-    } else {
-      setDismissing(false)
-      setDismissError(true)
-    }
+    await dismissRunner({
+      onSuccess: onDismiss,
+      onFailure: () => {
+        setDismissing(false)
+        setDismissError(true)
+      },
+    })
   }
 
   return (

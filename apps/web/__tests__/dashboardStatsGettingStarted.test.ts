@@ -130,4 +130,38 @@ describe('GET /api/dashboard/stats — gettingStarted conditions', () => {
 
     expect(mockPrisma.school.updateMany).not.toHaveBeenCalled()
   })
+
+  it('scopes each condition\'s own Prisma call to the requested schoolId — not a shared/global count', async () => {
+    mockPrisma.school.findUnique.mockResolvedValue(COMPLETE_SCHOOL)
+    mockPrisma.class.count.mockResolvedValue(2)
+    mockPrisma.membershipPlan.count.mockResolvedValue(1)
+    mockPrisma.schoolMember.count.mockResolvedValue(4)
+
+    await GET(req('school-xyz'))
+
+    // school.findUnique — the single lookup gettingStarted.profile/payments read from.
+    expect(mockPrisma.school.findUnique).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: 'school-xyz' } }),
+    )
+
+    // membershipPlan.count — single call, the only source of `memberships`.
+    expect(mockPrisma.membershipPlan.count).toHaveBeenCalledWith({ where: { schoolId: 'school-xyz' } })
+
+    // class.count is called twice in this route (activeClasses feeds
+    // `classes`; classesToday is an unrelated stat with an extra `schedule`
+    // filter) — isolate the one `classes` actually reads by its shape.
+    const classCountCalls = mockPrisma.class.count.mock.calls as Array<[{ where: Record<string, unknown> }]>
+    const classesCondition = classCountCalls.find(([{ where }]) => !('schedule' in where))
+    expect(classesCondition).toBeDefined()
+    expect(classesCondition![0].where).toEqual({ schoolId: 'school-xyz', isActive: true })
+
+    // schoolMember.count is called 4 times for different stats — `students`
+    // is the one call with exactly {schoolId, role}, no status/joinedAt filter.
+    const schoolMemberCountCalls = mockPrisma.schoolMember.count.mock.calls as Array<[{ where: Record<string, unknown> }]>
+    const studentsCondition = schoolMemberCountCalls.find(
+      ([{ where }]) => !('status' in where) && !('joinedAt' in where),
+    )
+    expect(studentsCondition).toBeDefined()
+    expect(studentsCondition![0].where).toEqual({ schoolId: 'school-xyz', role: 'STUDENT' })
+  })
 })
