@@ -131,6 +131,14 @@ describe('GET /api/my', () => {
     expect(res.status).toBe(404)
   })
 
+  it('404s a self-deleted (anonymized) account even though the row still exists', async () => {
+    mockUserFindUnique.mockResolvedValue({ ...baseUser([]), deletedAt: new Date() })
+
+    const res = await GET()
+
+    expect(res.status).toBe(404)
+  })
+
   it('409s with student_context_required when the active student context is ambiguous, without running the main data query', async () => {
     mockUserFindUnique.mockResolvedValue(baseUser([
       { id: 'sm-1', belt: 'Blue Belt', beltDegree: 0, beltDate: null, role: 'STUDENT', status: 'ACTIVE', school: null },
@@ -191,6 +199,15 @@ describe('PATCH /api/my', () => {
     const res = await PATCH(patchRequest({ name: 'New Name' }))
 
     expect(res.status).toBe(401)
+  })
+
+  it('404s a self-deleted (anonymized) account even though the row still exists', async () => {
+    mockUserFindUnique.mockResolvedValue({ id: 'user-1', deletedAt: new Date() })
+
+    const res = await PATCH(patchRequest({ name: 'New Name' }))
+
+    expect(res.status).toBe(404)
+    expect(mockUserUpdate).not.toHaveBeenCalled()
   })
 
   it('403s a staff-only account and never touches prisma.user.update', async () => {

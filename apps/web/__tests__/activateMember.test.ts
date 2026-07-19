@@ -56,13 +56,21 @@ function matchesWhere(m: FakeMember, where: any) {
 }
 
 const mockUserUpdate = vi.fn(async (_args: any) => ({}))
-const mockUserFindUnique = vi.fn(async (_args: any) => ({ name: 'Alice', email: 'alice@example.com' }))
+// Serves both callers that now go through prisma.user.findUnique: getAuthUser()
+// (queries by supabaseAuthId, needs id/role/email/name/deletedAt) and the
+// route's own welcome-email lookup (queries by id, needs name/email only).
+const mockUserFindUnique = vi.fn(async ({ where }: any) => {
+  if (where.supabaseAuthId === 'auth-1') {
+    return { id: 'user-1', role: 'STUDENT', email: 'alice@example.com', name: 'Alice', deletedAt: null as Date | null }
+  }
+  if (where.id === 'user-1') return { name: 'Alice', email: 'alice@example.com' }
+  return null
+})
 const mockSendWelcome = vi.fn(async (_args: any) => ({}))
 
 vi.mock('@/lib/db', () => ({
   prisma: {
     user: {
-      findFirst: vi.fn(async ({ where }: any) => (where.supabaseAuthId === 'auth-1' ? { id: 'user-1' } : null)),
       update: mockUserUpdate,
       findUnique: mockUserFindUnique,
     },
@@ -120,9 +128,16 @@ describe('POST /api/auth/activate-member', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockUserUpdate.mockResolvedValue({})
-    mockUserFindUnique.mockResolvedValue({ name: 'Alice', email: 'alice@example.com' })
     mockSendWelcome.mockResolvedValue({})
     mockGetUser.mockResolvedValue({ data: { user: { id: 'auth-1', email: 'alice@example.com' } } })
+  })
+
+  it('401s a self-deleted (anonymized) account even with a live Supabase session', async () => {
+    mockUserFindUnique.mockResolvedValueOnce({ id: 'user-1', role: 'STUDENT', email: 'alice@example.com', name: 'Alice', deletedAt: new Date() })
+    seedTwoSchools()
+    const res = await POST(makeReq({ schoolId: 'school-a' }))
+    expect(res.status).toBe(401)
+    expect(members.find(m => m.schoolId === 'school-a')!.status).toBe('PENDING')
   })
 
   describe('schoolId provided', () => {

@@ -27,6 +27,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
     return NextResponse.json({ error: 'School not found' }, { status: 404 })
 
   let dbUser = await prisma.user.findUnique({ where: { supabaseAuthId: authUser.id } })
+  // A self-deleted (anonymized) account keeps its supabaseAuthId link until a
+  // successful DELETE /api/my/account clears it — a still-live Supabase
+  // session must not be able to re-activate that identity by joining a
+  // school under it. Mirrors the same gate on /api/memberships/trial.
+  if (dbUser?.deletedAt) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (!dbUser) {
     dbUser = await prisma.user.create({
       data: {

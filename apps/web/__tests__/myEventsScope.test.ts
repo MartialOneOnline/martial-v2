@@ -70,12 +70,21 @@ describe('GET /api/my/events', () => {
     expect(res.status).toBe(401)
   })
 
-  it('404s when the user row does not exist', async () => {
+  it('401s when the user row does not exist (now routed through the shared getAuthUser() gate)', async () => {
     mockUserFindUnique.mockResolvedValue(null)
 
     const res = await GET()
 
-    expect(res.status).toBe(404)
+    expect(res.status).toBe(401)
+  })
+
+  it('401s a self-deleted (anonymized) account even with a live Supabase session', async () => {
+    mockUserFindUnique.mockResolvedValue({ id: 'user-1', deletedAt: new Date() })
+
+    const res = await GET()
+
+    expect(res.status).toBe(401)
+    expect(mockEventBookingFindMany).not.toHaveBeenCalled()
   })
 
   it('single school (no cookie needed): scopes myBookings + events to that school', async () => {

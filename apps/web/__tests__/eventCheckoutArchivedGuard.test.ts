@@ -128,6 +128,15 @@ describe('POST /api/my/events/checkout', () => {
     }))
     expect(mockStripeSessionCreate).toHaveBeenCalledTimes(1)
   })
+
+  it('401s a self-deleted (anonymized) account even with a live Supabase session', async () => {
+    mockUserFindUnique.mockResolvedValue({ id: 'user-1', name: 'Test User', email: 'user@test.com', deletedAt: new Date() })
+
+    const res = await checkoutPOST(makeRequest('/api/my/events/checkout', { eventId: 'event-1', ticketId: 'ticket-1' }))
+
+    expect(res.status).toBe(401)
+    expect(mockStripeSessionCreate).not.toHaveBeenCalled()
+  })
 })
 
 describe('POST /api/my/events/reserve (cash, pay at the door)', () => {

@@ -11,14 +11,14 @@ import { requireSchoolAccess, DASHBOARD_ROLES } from './contexts'
 export async function resolveDbUser(supabaseUser: { id: string; email?: string | null }) {
   let dbUser = await prisma.user.findUnique({
     where: { supabaseAuthId: supabaseUser.id },
-    select: { id: true, role: true, email: true, name: true },
+    select: { id: true, role: true, email: true, name: true, deletedAt: true },
   })
 
   // Fallback: link by email if supabaseAuthId not set yet
   if (!dbUser && supabaseUser.email) {
     const byEmail = await prisma.user.findUnique({
       where: { email: supabaseUser.email },
-      select: { id: true, role: true, email: true, name: true },
+      select: { id: true, role: true, email: true, name: true, deletedAt: true },
     })
     if (byEmail) {
       await prisma.user.update({
@@ -28,6 +28,12 @@ export async function resolveDbUser(supabaseUser: { id: string; email?: string |
       dbUser = byEmail
     }
   }
+
+  // A self-deleted (anonymized) account must never be treated as
+  // authenticated again, even if its Supabase auth user still exists
+  // (e.g. the admin deleteUser call in /api/my/account failed and the
+  // session cookie is technically still valid) — see DELETE /api/my/account.
+  if (dbUser?.deletedAt) return null
 
   return dbUser ?? null
 }

@@ -22,6 +22,7 @@ export type Role = (typeof Role)[keyof typeof Role]
 export const SchoolStatus = {
   UNVERIFIED: 'UNVERIFIED',
   CLAIMED: 'CLAIMED',
+  UNDER_REVIEW: 'UNDER_REVIEW',
   VERIFIED: 'VERIFIED',
   PARTNER: 'PARTNER',
   SUSPENDED: 'SUSPENDED',

@@ -1,18 +1,22 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { ChevronRight, Eye, Trash2, Download } from 'lucide-react'
 import { useT } from '../../../lib/i18n/LanguageContext'
+import { createClient } from '../../../lib/supabase/client'
 
-function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
+function Toggle({ on, onChange, disabled = false }: { on: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
   return (
     <button
       onClick={() => onChange(!on)}
+      disabled={disabled}
       className="relative shrink-0 transition-colors"
       style={{
         width: 51, height: 31, borderRadius: 15.5,
         background: on ? '#34C759' : '#E5E5EA',
-        border: 'none', cursor: 'pointer', padding: 0,
+        border: 'none', cursor: disabled ? 'not-allowed' : 'pointer', padding: 0,
+        opacity: disabled ? 0.45 : 1,
       }}
     >
       <span
@@ -30,8 +34,47 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
 
 export default function MyPrivacyPage() {
   const t = useT()
-  const [analytics,  setAnalytics]  = useState(true)
+  const [analytics,  setAnalytics]  = useState(false)
   const [showDelete, setShowDelete] = useState(false)
+  const [downloading, setDownloading] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [actionError, setActionError] = useState(false)
+
+  async function downloadData() {
+    setDownloading(true)
+    setActionError(false)
+    try {
+      const res = await fetch('/api/my/export')
+      if (!res.ok) throw new Error('Export failed')
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = 'my-data.json'
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      URL.revokeObjectURL(url)
+    } catch {
+      setActionError(true)
+    } finally {
+      setDownloading(false)
+    }
+  }
+
+  async function deleteAccount() {
+    setDeleting(true)
+    setActionError(false)
+    try {
+      const res = await fetch('/api/my/account', { method: 'DELETE' })
+      if (!res.ok) throw new Error('Delete failed')
+      await createClient().auth.signOut()
+      window.location.href = '/login'
+    } catch {
+      setActionError(true)
+      setDeleting(false)
+    }
+  }
 
   return (
     <div className="min-h-screen pb-4" style={{ background: '#F2F2F7' }}>
@@ -55,24 +98,25 @@ export default function MyPrivacyPage() {
                 <p className="text-[11px]" style={{ color: '#6B6B70' }}>{t.my.privacyAnalyticsSub}</p>
               </div>
             </div>
-            <Toggle on={analytics} onChange={setAnalytics} />
+            <Toggle on={analytics} onChange={setAnalytics} disabled />
           </div>
 
-          <a
-            href="#"
+          <button
+            type="button"
+            onClick={downloadData}
+            disabled={downloading}
             className="flex items-center gap-4 px-4 py-3.5"
-            style={{ borderBottom: '0.5px solid rgba(60,60,67,.12)' }}
-            onClick={e => e.preventDefault()}
+            style={{ width: '100%', borderBottom: '0.5px solid rgba(60,60,67,.12)', opacity: downloading ? 0.65 : 1 }}
           >
             <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(50,173,230,.10)' }}>
               <Download className="w-4 h-4" style={{ color: '#32ADE6' }} />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium" style={{ color: '#1C1C1E' }}>{t.my.privacyDownload}</p>
+              <p className="text-sm font-medium text-left" style={{ color: '#1C1C1E' }}>{downloading ? `${t.common.loading}…` : t.my.privacyDownload}</p>
               <p className="text-[11px]" style={{ color: '#6B6B70' }}>{t.my.privacyDownloadSub}</p>
             </div>
             <ChevronRight className="w-4 h-4 shrink-0" style={{ color: '#C7C7CC' }} />
-          </a>
+          </button>
 
           <button
             onClick={() => setShowDelete(true)}
@@ -93,14 +137,13 @@ export default function MyPrivacyPage() {
         <p className="px-4 md:px-6 pb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: '#6B6B70' }}>{t.my.privacyLegal}</p>
         <div className="mx-4 md:mx-6 mb-4 rounded-2xl overflow-hidden" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)' }}>
           {[
-            { label: t.my.privacyPolicy,  sub: t.my.privacyPolicySub },
-            { label: t.my.privacyTerms,   sub: t.my.privacyTermsSub },
-            { label: t.my.privacyCookies, sub: t.my.privacyCookiesSub },
-          ].map(({ label, sub }, i) => (
-            <a
+            { label: t.my.privacyPolicy,  sub: t.my.privacyPolicySub, href: '/legal/privacy' },
+            { label: t.my.privacyTerms,   sub: t.my.privacyTermsSub, href: '/legal/terms' },
+            { label: t.my.privacyCookies, sub: t.my.privacyCookiesSub, href: '/legal/cookies' },
+          ].map(({ label, sub, href }, i) => (
+            <Link
               key={label}
-              href="#"
-              onClick={e => e.preventDefault()}
+              href={href}
               className="flex items-center justify-between px-4 py-3.5"
               style={i < 2 ? { borderBottom: '0.5px solid rgba(60,60,67,.12)' } : {}}
             >
@@ -109,13 +152,14 @@ export default function MyPrivacyPage() {
                 <p className="text-[11px]" style={{ color: '#6B6B70' }}>{sub}</p>
               </div>
               <ChevronRight className="w-4 h-4 shrink-0" style={{ color: '#C7C7CC' }} />
-            </a>
+            </Link>
           ))}
         </div>
 
         <p className="text-center text-xs pb-4 px-6" style={{ color: '#AEAEB2' }}>
           {t.my.privacyFooter}
         </p>
+        {actionError && <p className="text-center text-xs pb-4 px-6" style={{ color: '#FF3B30' }}>{t.common.error}</p>}
 
         {/* Delete confirm modal */}
         {showDelete && (
@@ -144,10 +188,12 @@ export default function MyPrivacyPage() {
                   {t.common.cancel}
                 </button>
                 <button
+                  onClick={deleteAccount}
+                  disabled={deleting}
                   className="flex-1 py-3 rounded-2xl text-sm font-semibold text-white"
-                  style={{ background: '#FF3B30', border: 'none', fontFamily: 'inherit', cursor: 'pointer' }}
+                  style={{ background: '#FF3B30', border: 'none', fontFamily: 'inherit', cursor: deleting ? 'wait' : 'pointer', opacity: deleting ? 0.65 : 1 }}
                 >
-                  {t.my.privacyDeleteBtn}
+                  {deleting ? `${t.common.loading}…` : t.my.privacyDeleteBtn}
                 </button>
               </div>
             </div>

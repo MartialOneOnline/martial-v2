@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
+import { getAuthUser } from '@/lib/auth/server'
 import { nextOccurrence, type ScheduleSlot } from '@/lib/scheduling'
 import type { ClassAccessConfig, BookingCounts } from '@/lib/services/classAccess'
 import { checkBookingEligibility, type EligibleMembership } from '@/lib/services/bookingEligibility'
@@ -24,20 +23,8 @@ function hasClassAccessRules(classAccess: ClassAccessConfig | null): boolean {
 // so this list can't drift from what actually books successfully.
 // Each occurrence is one schedulable slot in the next 14 days.
 export async function GET() {
-  const cookieStore = await cookies()
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    { cookies: { getAll: () => cookieStore.getAll() } }
-  )
-  const { data: { user: authUser } } = await supabase.auth.getUser()
-  if (!authUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const dbUser = await prisma.user.findUnique({
-    where: { supabaseAuthId: authUser.id },
-    select: { id: true },
-  })
-  if (!dbUser) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  const dbUser = await getAuthUser()
+  if (!dbUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   // A student in 2+ schools would otherwise see every school's timetable
   // merged into one list of occurrences — see getActiveStudentContext().
