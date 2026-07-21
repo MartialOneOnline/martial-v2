@@ -34,6 +34,14 @@ npm run db:seed       # prisma/seed.ts
 - `.env`, `.env.local` nunca se suben (están en `.gitignore`); usar `.env.example` como referencia de qué variables existen.
 - No tocar nada bajo dominio `martialapp.com` / la app Laravel V1 — solo lectura para referencia de comportamiento a replicar.
 
+## Reparto de responsabilidades Claude / Codex
+
+- **Claude desarrolla:** investiga, implementa correcciones/features, añade tests, prueba en navegador cuando corresponda, actualiza `CONTEXT.md` y prepara commit/push/PR.
+- **Codex es Project Audit:** revisa el diff y la evidencia entregada por Claude, ejecuta verificaciones independientes, busca regresiones/riesgos/affordances muertas y emite `APROBADO`, `APROBADO CON PENDIENTES` o `RECHAZADO`.
+- Codex no modifica código funcional durante una auditoría. Si encuentra un problema, documenta reproducción, severidad, archivo/línea y criterio de aceptación para devolverlo a Claude.
+- Claude no declara una tarea cerrada hasta recibir `APROBADO` de Project Audit o hasta que el usuario acepte explícitamente los pendientes.
+- El protocolo completo y el estado de cada lote viven en [`docs/PROJECT-AUDIT.md`](./docs/PROJECT-AUDIT.md).
+
 ## Convenciones de código
 
 - TypeScript estricto, Tailwind v4 para estilos.

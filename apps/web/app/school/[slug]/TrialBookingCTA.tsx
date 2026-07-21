@@ -13,7 +13,7 @@ import { useState } from 'react'
 import { Dumbbell, Mail, MessageCircle, ChevronRight } from 'lucide-react'
 import ClassBookingModal from './ClassBookingModal'
 import type { ScheduleSlot } from '@/lib/scheduling'
-import { nextOccurrence } from '@/lib/scheduling'
+import { buildBookingSession } from '@/lib/trialBooking'
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -48,33 +48,6 @@ interface Props {
   hasFreeTrialCls: boolean
 }
 
-interface SessionForModal {
-  classId: string
-  className: string
-  level: string
-  startTime: string
-  endTime: string
-  dayLabel: string
-  dayOfWeek: number
-  schedule: ScheduleSlot[]
-}
-
-function buildSession(cls: TrialClass): SessionForModal | null {
-  const slot = cls.schedule?.[0]
-  if (!slot) return null
-  const nextDate = nextOccurrence(new Date(), slot.dayOfWeek, slot.startTime)
-  return {
-    classId: cls.id,
-    className: cls.name,
-    level: cls.level ?? '',
-    startTime: slot.startTime,
-    endTime: slot.endTime,
-    dayLabel: DAY_NAMES[nextDate.getUTCDay()] ?? '',
-    dayOfWeek: slot.dayOfWeek,
-    schedule: cls.schedule,
-  }
-}
-
 export default function TrialBookingCTA({
   trialClasses,
   schoolSlug,
@@ -88,13 +61,13 @@ export default function TrialBookingCTA({
   const heading = hasFreeTrialCls ? 'Book a Trial Class' : 'Book a Class'
   const buttonLabel = label ?? heading
   const [state, setState] = useState<'idle' | 'choosing' | 'modal'>('idle')
-  const [session, setSession] = useState<SessionForModal | null>(null)
+  const [session, setSession] = useState<ReturnType<typeof buildBookingSession>>(null)
 
   function handleClick() {
     if (trialClasses.length === 0) {
       setState('choosing') // will show fallback
     } else if (trialClasses.length === 1) {
-      const s = buildSession(trialClasses[0]!)
+      const s = buildBookingSession(trialClasses[0]!)
       if (s) { setSession(s); setState('modal') }
     } else {
       setState('choosing')
@@ -102,7 +75,7 @@ export default function TrialBookingCTA({
   }
 
   function selectClass(cls: TrialClass) {
-    const s = buildSession(cls)
+    const s = buildBookingSession(cls)
     if (s) { setSession(s); setState('modal') }
   }
 

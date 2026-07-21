@@ -12,7 +12,7 @@
 **Repo:** https://github.com/MartialOneOnline/martial-v2  
 **Rama principal:** main  
 **Proyecto local:** /Users/pablocabo/Projects/martial-v2  
-**Estado:** Sesiones 72 y 74 ya mergeadas a `main` (`917e6f6` verificación de email self-serve, `9698e67`/PR [#15](https://github.com/MartialOneOnline/martial-v2/pull/15) Privacy+Settings — 4 rondas de auditoría, ver Sesión 74 abajo). Sesión 73 (Getting Started checklist en el dashboard: perfil/clases/memberships/pagos/alumnos/settings, cada paso derivado de datos reales, auto-promoción `School.status` `CLAIMED→UNDER_REVIEW` — no `VERIFIED`, eso requiere aprobación de admin, ver el segundo commit de esa rama) se está reconciliando ahora: rama **`feature/getting-started-checklist`** mergeada con `main` para cerrar 3 commits de retraso, PR pendiente de abrir. Los dos migrations de esa rama (`gettingStartedDismissedAt`, `SchoolStatus.UNDER_REVIEW`) ya viajaron a `main` vía el PR de Privacy+Settings (estaban aplicados en la DB compartida pero nunca habían llegado a `main`) — sin duplicación, el merge de esta reconciliación los reconoce como ya presentes. El trabajo ajeno `apps/web/app/api/claim/request/` y `apps/web/app/claim/page.tsx` sigue intacto en todo momento. Vercel production en verde, `npx prisma migrate status` limpio. **Pendiente:** abrir PR de `feature/getting-started-checklist`, probar el flujo completo en navegador (nunca verificado, ver Sesión 73), sandbox Revolut no soportado, unificación `martial_active_context`/`currentSchoolId` sin decidir, confirmación visual manual del usuario en mobile real del fix de sidebar (Sesión 70)
+**Estado:** Rama activa **`feature/getting-started-checklist`**, sincronizada con `origin`. Sesión 75 cerrada y entregada a Codex Project Audit (ver `docs/PROJECT-AUDIT.md`) — Claude no se autoaprueba. La re-verificación de `/my` está completa a nivel de código/tests, pero no end-to-end autenticado. Los fixes del CTA público de reserva están publicados (`bf60cf8`, `e23bb58`) y el caso Roger Gracie Málaga fue probado en navegador, incluido viewport móvil, sin autenticación. En la Sesión 75 se retiró la pantalla SSO decorativa de `/login` (los proveedores todavía no están implementados) para entrar directamente por email, se extrajo la lógica de selección/normalización de clases a `apps/web/lib/trialBooking.ts` y se añadieron 4 regresiones unitarias. **Requisito confirmado para el cambio al dominio final `martialapp.com`: conectar login social real con Google, Apple y Microsoft (no Facebook), incluyendo configuración de proveedores y callbacks del dominio final.** El trabajo ajeno `apps/web/app/api/claim/request/` y `apps/web/app/claim/page.tsx` sigue intacto. **La auditoría global NO está completa:** faltan pruebas con sesión autenticada real de `/my`/reserva/registro, la rama real `hasFreeTrialCls: true` con clases `isTrial`, y el ciclo de confirmación por email real. Pendientes previos: abrir PR de `feature/getting-started-checklist`, probar su flujo completo, sandbox Revolut no soportado, unificación `martial_active_context`/`currentSchoolId` sin decidir y confirmación visual mobile del sidebar.
 
 ---
 
@@ -269,6 +269,18 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 ---
 
 ## Historial de sesiones
+
+### Sesión 75 — 2026-07-21 ✅ (rama `feature/getting-started-checklist`, entregado a Codex Project Audit)
+**Cierre de hallazgos verificables de la auditoría `/my` + reserva + registro.** El informe externo confirmó que la auditoría global aún no puede declararse completa: `/my` está revisado con endpoints/tests reales pero sin sesión autenticada end-to-end; el fix público de RGM funciona, aunque faltan la rama trial real, viewport móvil y reserva autenticada; el embudo de registro no se recorrió con correo real.
+
+- `/login`: eliminada la pantalla inicial con botones Google/Facebook/Apple y handlers vacíos. Como SSO todavía no está implementado/configurado, el usuario llega directamente al formulario funcional de email; se eliminó también el código/iconos muertos y el botón Back hacia la pantalla placebo.
+- Requisito de lanzamiento confirmado: cuando V2 pase a `martialapp.com`, implementar login social con **Google, Apple y Microsoft** (Microsoft sustituye al antiguo placeholder de Facebook), configurando en Supabase y en cada proveedor las URLs de callback del dominio final. Los botones no deben reaparecer antes de tener handlers y flujo end-to-end reales.
+- Reserva pública: extraída lógica pura a `apps/web/lib/trialBooking.ts`. `selectCtaClasses()` conserva explícitamente la bifurcación trial vs. todas las clases; `buildBookingSession()` normaliza `schedule: null` sin lanzar excepciones.
+- Regresión: `apps/web/__tests__/trialBooking.test.ts` cubre las dos ramas de selección, `schedule: null` y la sesión real Mon 19:00–20:30 de una clase programada.
+- Verificación (re-ejecutada por Claude antes de entregar, no asumida): test nuevo 4/4 ✅, suite completa Vitest **693 passing, 1 todo, 694 total** (71 archivos) ✅, `npm --workspace web run check-types` ✅, `eslint` sobre los 5 archivos modificados sin errores ✅, `git diff --check` limpio ✅.
+- Navegador: `/login` en desktop y móvil (pantalla directa al email, sin SSO) ✅; Forgot Password → formulario real → Back sin romper estado ✅ (no se completó el envío real del email para no disparar una operación externa); página pública de RGM en viewport móvil (375×812) ✅; CTA sticky móvil "Reservar clase" → selector con las 6 clases reales (incluidas "Graduación"/"Open Mat" sin horario, mostradas sin crash) → "Jiu Jitsu Avanzado" (Mon 19:00–20:30) → modal correcto pidiendo login/registro ✅. Sin errores en consola ni en logs del servidor.
+- Sin tocar los untracked ajenos `apps/web/app/api/claim/request/` y `apps/web/app/claim/page.tsx` (confirmado antes y después).
+- **No verificado todavía (fuera del alcance de este lote):** rama real `hasFreeTrialCls: true` con clases `isTrial`, reserva completada con sesión autenticada real, y el ciclo de registro con correo real (confirmación + login). Ver `docs/PROJECT-AUDIT.md` para el estado por lote y el veredicto pendiente de Codex.
 
 ### Sesión 74 — 2026-07-19 ✅ (mergeada a `main`, PR [#15](https://github.com/MartialOneOnline/martial-v2/pull/15))
 **Privacy + Settings: sustituir interacciones falsas por acciones reales** — rama `fix/my-privacy-settings-real-actions`.
@@ -1278,6 +1290,7 @@ Prototipo movido a apps/prototype/ en el monorepo
 
 ## Reglas de trabajo
 
+- **Flujo de agentes desde la Sesión 75:** Claude desarrolla; Codex actúa como Project Audit y no corrige código durante la auditoría. Ver `docs/PROJECT-AUDIT.md` para protocolo, estados y siguiente entrega.
 - Un módulo a la vez. No pasar al siguiente hasta que funciona.
 - Commits pequeños y frecuentes. Cada cambio que funciona, a GitHub.
 - No usar `git add .` si solo queremos subir archivos concretos.
