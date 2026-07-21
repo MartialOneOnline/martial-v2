@@ -66,16 +66,20 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote B — CTA público de reserva
 
-- Estado: `APROBADO CON PENDIENTES`.
-- Confirmado: caso Roger Gracie Málaga sin trial, selector real, clase con `schedule: null` y modal no autenticado.
-- Fixes ya publicados: `bf60cf8`, `e23bb58`.
-- Pendiente: escuela real con `hasFreeTrialCls: true`, viewport móvil y reserva autenticada completada.
+- Estado: `APROBADO CON PENDIENTES`, con una corrección aplicada tras el rechazo del Lote C (ver abajo) porque tocaba el mismo componente: las clases con `schedule: null`/`[]` (p. ej. "Graduación", "Open Mat") ahora se renderizan `disabled` en el selector, en vez de ser un botón clicable que no hacía nada — ver detalle en Lote C.
+- Confirmado: caso Roger Gracie Málaga sin trial, selector real, clase con horario real abre el modal, clase sin horario visible y correctamente no-interactiva (probado pulsándola, no solo mostrándola), modal no autenticado, desktop y móvil.
+- Fixes publicados: `bf60cf8`, `e23bb58`, `56ea29e` (parte de Lote C).
+- Pendiente: escuela real con `hasFreeTrialCls: true`, reserva autenticada completada.
 
 ### Lote C — registro/login
 
-- Estado: `ENTREGADO PARA AUDITORÍA` — corrige el `RECHAZADO` original (botones SSO placebo). Claude revisó el delta local (no lo asumió correcto por existir), lo verificó y lo entrega a continuación; el veredicto (`APROBADO` / `APROBADO CON PENDIENTES` / `RECHAZADO`) lo emite Codex, no Claude.
-- Cambios: se retiró la pantalla SSO decorativa y `/login` entra directamente por el formulario de email; se extrajo la lógica de reserva pública a `apps/web/lib/trialBooking.ts` (`selectCtaClasses`, `buildBookingSession`) y se añadieron 4 tests de regresión en `apps/web/__tests__/trialBooking.test.ts`.
-- Verificado por Claude antes de entregar: `check-types` ✅, suite completa (693 passing/1 todo) ✅, `eslint` sobre los 5 archivos ✅, `git diff --check` ✅, y navegador: `/login` desktop+móvil, Forgot Password→Back, RGM en móvil, CTA sticky móvil→selector→clase con horario→modal no autenticado, clase sin horario sin crash. Sin errores de consola/servidor.
+- Estado: `EN CORRECCIÓN → REENTREGADO`. Codex rechazó el commit `56ea29e` (`RECHAZADO`, P1): las filas de clases sin horario en el selector del CTA (`TrialBookingCTA.tsx`) tenían el mismo aspecto y `onClick` que las reservables, pero `selectClass()` → `buildBookingSession()` devolvía `null` y el clic no producía ninguna respuesta visible — un affordance muerto, no un crash. La verificación anterior de Claude había probado que esas filas se *mostraban* sin romper la página, pero nunca las había *pulsado*.
+- Corrección (delta correctivo, mismo lote): `lib/trialBooking.ts` añade `hasBookableSchedule()` y `selectBookingSession(classes, classId)`; `TrialBookingCTA.tsx` renderiza las filas sin horario como `disabled`, sin `ChevronRight`, con el texto "No online schedule — contact us"; `handleClick()` ya no intenta abrir el modal en falso cuando la única clase disponible no es reservable.
+- Cambios previos que se mantienen: se retiró la pantalla SSO decorativa y `/login` entra directamente por el formulario de email.
+- Tests: 8 nuevos — `hasBookableSchedule` (`null`/`[]`/slot real), `buildBookingSession` con `schedule: []` (antes solo `null`), `selectBookingSession` sobre lista mixta reservable/no-reservable incluyendo selección explícita de la no reservable.
+- Verificado por Claude antes de reentregar: `check-types` ✅, suite completa (**701 passing/1 todo**, sube de 693 por los 8 tests nuevos) ✅, `eslint` sobre los archivos tocados ✅, `git diff --check` ✅.
+- Navegador (repetido, pulsando esta vez las filas específicas que Codex señaló): `/login` desktop+móvil, Forgot Password→Back, RGM en móvil → CTA sticky → selector → **"Graduación" pulsada: sin respuesta, correcto** → **"Open Mat" pulsada: sin respuesta, correcto** → "Jiu Jitsu Iniciación" (clase distinta a la probada en el intento anterior) → modal correcto pidiendo login/registro. Sin errores de consola/servidor.
+- Contradicción documental corregida: esta sección y `CONTEXT.md` (Sesión 75) decían "sin crash" dando a entender que el recorrido de clic estaba probado end-to-end; ahora ambos documentos distinguen explícitamente "se muestra sin crashear" (lo único verificado antes) de "se pulsa y responde correctamente" (verificado ahora).
 - Pendiente end-to-end (fuera de este lote, requiere sesión/correo real que Claude no puede generar por reglas de seguridad — no debe introducir contraseñas): registro → email → confirmación → login → redirección → reserva autenticada.
 
 ### Lote D — social login para dominio final
@@ -87,4 +91,4 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ## Próxima entrega de Claude
 
-Lote C entregado (ver arriba). Pendiente de veredicto de Codex Project Audit. Si `RECHAZADO`, Claude corrige exactamente los hallazgos devueltos y vuelve a entregar solo el delta. Si `APROBADO` / `APROBADO CON PENDIENTES`, el siguiente lote priorizado por el usuario decide si se ataca la rama `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real.
+Lote C reentregado con el delta correctivo del hallazgo P1 (ver arriba). Pendiente de veredicto de Codex Project Audit. Si `RECHAZADO` de nuevo, Claude corrige exactamente los hallazgos devueltos y vuelve a entregar solo el delta. Si `APROBADO` / `APROBADO CON PENDIENTES`, el siguiente lote priorizado por el usuario decide si se ataca la rama `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real.

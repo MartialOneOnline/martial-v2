@@ -13,7 +13,7 @@ import { useState } from 'react'
 import { Dumbbell, Mail, MessageCircle, ChevronRight } from 'lucide-react'
 import ClassBookingModal from './ClassBookingModal'
 import type { ScheduleSlot } from '@/lib/scheduling'
-import { buildBookingSession } from '@/lib/trialBooking'
+import { buildBookingSession, hasBookableSchedule, selectBookingSession } from '@/lib/trialBooking'
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -64,18 +64,20 @@ export default function TrialBookingCTA({
   const [session, setSession] = useState<ReturnType<typeof buildBookingSession>>(null)
 
   function handleClick() {
-    if (trialClasses.length === 0) {
-      setState('choosing') // will show fallback
-    } else if (trialClasses.length === 1) {
+    // Auto-open the modal only when there's exactly one class AND it's
+    // actually bookable — otherwise fall through to the chooser, which
+    // renders that single class in its (now correctly non-interactive)
+    // no-schedule state instead of the button silently doing nothing.
+    if (trialClasses.length === 1 && hasBookableSchedule(trialClasses[0]!)) {
       const s = buildBookingSession(trialClasses[0]!)
       if (s) { setSession(s); setState('modal') }
-    } else {
-      setState('choosing')
+      return
     }
+    setState('choosing')
   }
 
-  function selectClass(cls: TrialClass) {
-    const s = buildBookingSession(cls)
+  function selectClass(classId: string) {
+    const s = selectBookingSession(trialClasses, classId)
     if (s) { setSession(s); setState('modal') }
   }
 
@@ -148,24 +150,34 @@ export default function TrialBookingCTA({
                   <div className="space-y-2">
                     {trialClasses.map(cls => {
                       const slot = cls.schedule?.[0]
+                      const bookable = hasBookableSchedule(cls)
                       return (
                         <button
                           key={cls.id}
-                          onClick={() => selectClass(cls)}
-                          className="w-full flex items-center justify-between gap-3 border border-[#E5E7EB] rounded-xl px-4 py-3 hover:border-[#0870E2] hover:bg-[#f0f9ff] transition-colors text-left"
+                          type="button"
+                          onClick={bookable ? () => selectClass(cls.id) : undefined}
+                          disabled={!bookable}
+                          aria-disabled={!bookable}
+                          className={`w-full flex items-center justify-between gap-3 border rounded-xl px-4 py-3 text-left transition-colors ${
+                            bookable
+                              ? 'border-[#E5E7EB] hover:border-[#0870E2] hover:bg-[#f0f9ff] cursor-pointer'
+                              : 'border-[#F3F4F6] bg-[#FAFAFA] cursor-not-allowed'
+                          }`}
                         >
                           <div>
-                            <div className="text-sm font-semibold text-[#111827]">{cls.name}</div>
-                            {slot && (
+                            <div className={`text-sm font-semibold ${bookable ? 'text-[#111827]' : 'text-[#9CA3AF]'}`}>{cls.name}</div>
+                            {slot ? (
                               <div className="text-xs text-[#6B7280] mt-0.5">
                                 {DAY_NAMES[slot.dayOfWeek]} · {slot.startTime}–{slot.endTime}
                               </div>
+                            ) : (
+                              <div className="text-xs text-[#9CA3AF] mt-0.5">No online schedule — contact us</div>
                             )}
                             {cls.level && (
                               <div className="text-[10px] text-[#9CA3AF] mt-0.5">{cls.level}</div>
                             )}
                           </div>
-                          <ChevronRight className="w-4 h-4 text-[#9CA3AF] shrink-0" />
+                          {bookable && <ChevronRight className="w-4 h-4 text-[#9CA3AF] shrink-0" />}
                         </button>
                       )
                     })}
