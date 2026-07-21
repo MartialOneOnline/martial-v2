@@ -117,31 +117,22 @@ function RankCard({ member, gradings, t }: { member: SchoolMember; gradings: Gra
           </div>
         </div>
 
-        {/* Belt progression */}
+        {/* Belt progression — mirrors the donut fraction (degree/MAX_STRIPES),
+            no fabricated numbers: stripes are awarded by an instructor, not
+            earned on a predictable schedule, so there's no real "progress
+            toward next stripe" metric to plot. */}
         {belt && (
-          <div className="mt-5 grid grid-cols-2 gap-3 items-center">
-            <div>
-              <p className="text-xs font-bold text-[#101828] mb-2">{belt}</p>
-              <div className="h-3 rounded-full overflow-hidden bg-gray-100">
-                <div className="h-full rounded-full" style={{ width: '65%', background: color }} />
-              </div>
-              <p className="text-[10px] text-gray-400 mt-1.5">
-                {t.my.lastGrading} &nbsp;
-                {member.beltDate
-                  ? new Date(member.beltDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                  : '—'}
-              </p>
+          <div className="mt-5">
+            <p className="text-xs font-bold text-[#101828] mb-2">{belt}</p>
+            <div className="h-3 rounded-full overflow-hidden bg-gray-100">
+              <div className="h-full rounded-full" style={{ width: `${progress * 100}%`, background: color }} />
             </div>
-            <div className="flex items-start gap-2">
-              <span className="text-gray-300 text-lg mt-1">→</span>
-              <div className="flex-1">
-                <p className="text-xs font-bold text-[#101828] mb-2">{belt} {degree + 1} Stripe</p>
-                <div className="h-3 rounded-full overflow-hidden bg-gray-100">
-                  <div className="h-full rounded-full" style={{ width: '20%', background: color }} />
-                </div>
-                <p className="text-[10px] text-gray-400 mt-1.5">{t.my.nextGrading} &nbsp;—</p>
-              </div>
-            </div>
+            <p className="text-[10px] text-gray-400 mt-1.5">
+              {t.my.lastGrading} &nbsp;
+              {member.beltDate
+                ? new Date(member.beltDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                : '—'}
+            </p>
           </div>
         )}
       </div>

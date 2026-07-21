@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ChevronRight, Mail, MessageCircle } from 'lucide-react'
 import { useT } from '../../../lib/i18n/LanguageContext'
+
+type SchoolContact = { email: string | null; phone: string | null } | null
 
 const FAQS = [
   {
@@ -34,6 +36,25 @@ const FAQS = [
 export default function MyHelpPage() {
   const t = useT()
   const [open, setOpen] = useState<number | null>(null)
+  const [schoolContact, setSchoolContact] = useState<SchoolContact>(null)
+
+  useEffect(() => {
+    fetch('/api/my')
+      .then(r => r.json())
+      .then(d => {
+        const membership = d.user?.memberships?.find((m: { status: string }) => m.status === 'ACTIVE')
+          ?? d.user?.memberships?.[0]
+        const school = membership?.school ?? d.user?.schoolMembers?.[0]?.school
+        if (school) setSchoolContact({ email: school.email ?? null, phone: school.phone ?? null })
+      })
+      .catch(() => {})
+  }, [])
+
+  const academyHref = schoolContact?.email
+    ? `mailto:${schoolContact.email}`
+    : schoolContact?.phone
+      ? `tel:${schoolContact.phone}`
+      : null
 
   return (
     <div className="min-h-screen pb-4" style={{ background: '#F2F2F7' }}>
@@ -85,16 +106,28 @@ export default function MyHelpPage() {
             </div>
             <ChevronRight className="w-4 h-4 shrink-0" style={{ color: '#C7C7CC' }} />
           </a>
-          <div className="flex items-center gap-4 px-4 py-3.5">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(52,199,89,.10)' }}>
-              <MessageCircle className="w-4 h-4" style={{ color: '#34C759' }} />
+          {academyHref ? (
+            <a href={academyHref} className="flex items-center gap-4 px-4 py-3.5">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(52,199,89,.10)' }}>
+                <MessageCircle className="w-4 h-4" style={{ color: '#34C759' }} />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium" style={{ color: '#1C1C1E' }}>{t.my.helpChatAcademy}</p>
+                <p className="text-[11px]" style={{ color: '#6B6B70' }}>{schoolContact?.email ?? schoolContact?.phone}</p>
+              </div>
+              <ChevronRight className="w-4 h-4 shrink-0" style={{ color: '#C7C7CC' }} />
+            </a>
+          ) : (
+            <div className="flex items-center gap-4 px-4 py-3.5" style={{ opacity: 0.45 }}>
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(52,199,89,.10)' }}>
+                <MessageCircle className="w-4 h-4" style={{ color: '#34C759' }} />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium" style={{ color: '#1C1C1E' }}>{t.my.helpChatAcademy}</p>
+                <p className="text-[11px]" style={{ color: '#6B6B70' }}>{t.my.helpChatSub}</p>
+              </div>
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium" style={{ color: '#1C1C1E' }}>{t.my.helpChatAcademy}</p>
-              <p className="text-[11px]" style={{ color: '#6B6B70' }}>{t.my.helpChatSub}</p>
-            </div>
-            <ChevronRight className="w-4 h-4 shrink-0" style={{ color: '#C7C7CC' }} />
-          </div>
+          )}
         </div>
 
         {/* App version note */}
