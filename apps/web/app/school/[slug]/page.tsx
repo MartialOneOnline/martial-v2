@@ -109,6 +109,13 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
       schedule: (c.schedule as unknown as import('@/lib/scheduling').ScheduleSlot[]) ?? [],
     }))
 
+  // Classes offered by the "Reservar clase"/"Reservar prueba gratis" CTA. A school
+  // without hasFreeTrialCls uses this button as a generic "book a class" entry
+  // point (see label below) — it must offer all bookable classes, not just
+  // isTrial ones, or a school with real published classes but none flagged
+  // isTrial gets a CTA that always falls back to "no classes, contact us".
+  const ctaClasses = school.hasFreeTrialCls ? trialClasses : classesMapped
+
   const { byTicket, byEvent } = await getBookedCounts(school.events.map(e => e.id))
   const eventsMapped = school.events.map(e => ({
     id: e.id,
@@ -390,7 +397,7 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
             <div className="hidden md:flex flex-col gap-2">
               {showTrialCta && (
                 <TrialBookingCTA
-                  trialClasses={trialClasses}
+                  trialClasses={ctaClasses}
                   schoolSlug={slug}
                   schoolEmail={school.email}
                   schoolPhone={school.phone}
@@ -534,7 +541,7 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
           )}
           {showTrialCta && (
             <TrialBookingCTA
-              trialClasses={trialClasses}
+              trialClasses={ctaClasses}
               schoolSlug={slug}
               schoolEmail={school.email}
               schoolPhone={school.phone}
