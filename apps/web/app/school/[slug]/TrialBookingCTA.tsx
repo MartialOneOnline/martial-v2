@@ -60,7 +60,7 @@ interface SessionForModal {
 }
 
 function buildSession(cls: TrialClass): SessionForModal | null {
-  const slot = cls.schedule[0]
+  const slot = cls.schedule?.[0]
   if (!slot) return null
   const nextDate = nextOccurrence(new Date(), slot.dayOfWeek, slot.startTime)
   return {
@@ -174,7 +174,7 @@ export default function TrialBookingCTA({
                   <p className="text-sm text-[#6B7280] mb-4">{hasFreeTrialCls ? 'Choose a trial class to book:' : 'Choose a class to book:'}</p>
                   <div className="space-y-2">
                     {trialClasses.map(cls => {
-                      const slot = cls.schedule[0]
+                      const slot = cls.schedule?.[0]
                       return (
                         <button
                           key={cls.id}

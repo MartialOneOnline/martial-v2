@@ -91,7 +91,8 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
 
   const classesMapped = school.classes.map(c => ({
     id: c.id, name: c.name, level: c.level,
-    duration: c.duration, schedule: c.schedule as unknown as { dayOfWeek: number; startTime: string; endTime: string }[],
+    duration: c.duration,
+    schedule: (c.schedule as unknown as { dayOfWeek: number; startTime: string; endTime: string }[] | null) ?? [],
   }))
 
   const plansMapped = school.membershipPlans.map(p => ({
