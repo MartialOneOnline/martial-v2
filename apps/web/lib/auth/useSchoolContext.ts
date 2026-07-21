@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import type { SchoolContext } from './contexts'
 
 export type AuthMe = {
-  user: { id: string; email: string; name: string | null; globalRole: string }
+  user: { id: string; email: string; name: string | null; globalRole: string; gettingStartedDismissedAt: string | null }
   contexts: {
     isAdmin: boolean
     schools: SchoolContext[]

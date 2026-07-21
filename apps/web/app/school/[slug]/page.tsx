@@ -7,6 +7,7 @@ import WeeklyTimetable from './WeeklyTimetable'
 import EventsScrollHandler from './EventsScrollHandler'
 import MembershipSection from './MembershipSection'
 import TrialBookingCTA from './TrialBookingCTA'
+import { selectCtaClasses } from '@/lib/trialBooking'
 import EventTicketCTA from './EventTicketCTA'
 import LeadForm from './LeadForm'
 import { getBookedCounts } from '@/lib/services/eventCapacity'
@@ -91,7 +92,8 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
 
   const classesMapped = school.classes.map(c => ({
     id: c.id, name: c.name, level: c.level,
-    duration: c.duration, schedule: c.schedule as unknown as { dayOfWeek: number; startTime: string; endTime: string }[],
+    duration: c.duration,
+    schedule: (c.schedule as unknown as { dayOfWeek: number; startTime: string; endTime: string }[] | null) ?? [],
   }))
 
   const plansMapped = school.membershipPlans.map(p => ({
@@ -108,6 +110,13 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
       level: c.level,
       schedule: (c.schedule as unknown as import('@/lib/scheduling').ScheduleSlot[]) ?? [],
     }))
+
+  // Classes offered by the "Reservar clase"/"Reservar prueba gratis" CTA. A school
+  // without hasFreeTrialCls uses this button as a generic "book a class" entry
+  // point (see label below) — it must offer all bookable classes, not just
+  // isTrial ones, or a school with real published classes but none flagged
+  // isTrial gets a CTA that always falls back to "no classes, contact us".
+  const ctaClasses = selectCtaClasses(school.hasFreeTrialCls, trialClasses, classesMapped)
 
   const { byTicket, byEvent } = await getBookedCounts(school.events.map(e => e.id))
   const eventsMapped = school.events.map(e => ({
@@ -390,7 +399,7 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
             <div className="hidden md:flex flex-col gap-2">
               {showTrialCta && (
                 <TrialBookingCTA
-                  trialClasses={trialClasses}
+                  trialClasses={ctaClasses}
                   schoolSlug={slug}
                   schoolEmail={school.email}
                   schoolPhone={school.phone}
@@ -534,7 +543,7 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
           )}
           {showTrialCta && (
             <TrialBookingCTA
-              trialClasses={trialClasses}
+              trialClasses={ctaClasses}
               schoolSlug={slug}
               schoolEmail={school.email}
               schoolPhone={school.phone}

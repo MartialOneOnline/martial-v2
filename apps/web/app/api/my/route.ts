@@ -52,6 +52,7 @@ export async function GET() {
           school: {
             select: {
               id: true, name: true, slug: true, logoUrl: true, city: true, modules: true,
+              email: true, phone: true,
               _count: { select: { gradingSystems: { where: { isActive: true } } } },
             },
           },
@@ -85,6 +86,7 @@ export async function GET() {
           school: {
             select: {
               id: true, name: true, slug: true, logoUrl: true, modules: true,
+              email: true, phone: true,
               _count: { select: { gradingSystems: { where: { isActive: true } } } },
             },
           },

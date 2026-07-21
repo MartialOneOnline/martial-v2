@@ -24,6 +24,7 @@ import ClassDetailPopup          from '../../components/popups/ClassDetailPopup'
 import { TransactionActionsButton } from '../../components/popups/TransactionActionsPopup'
 import { useT }                  from '../../lib/i18n/LanguageContext'
 import DashboardLanguageSelector  from '../../components/DashboardLanguageSelector'
+import GettingStartedChecklist    from './GettingStartedChecklist'
 import { fmtPrice } from '../../lib/format'
 
 // ── Design tokens ──────────────────────────────────────────────────────────────
@@ -175,6 +176,16 @@ type DashStats = {
   openLeads: { value: number }
   gradings: { value: number }
   classesToday: { value: number }
+  gettingStarted?: {
+    profile: boolean
+    classes: boolean
+    memberships: boolean
+    payments: boolean
+    students: boolean
+    settings: boolean
+    doneCount: number
+    total: number
+  }
 }
 
 type TodayClass = {
@@ -186,7 +197,8 @@ type TodayClass = {
 
 export default function DashboardClient({ userName, userEmail }: Props) {
   const t = useT()
-  const { currentSchool, loading: ctxLoading } = useSchoolContext()
+  const { currentSchool, user: authUser, loading: ctxLoading } = useSchoolContext()
+  const [gettingStartedDismissed, setGettingStartedDismissed] = useState(false)
 
   const [period, setPeriod]         = useState<Period>('12 months')
   const [activeDay, setActiveDay]   = useState(0)
@@ -247,6 +259,9 @@ export default function DashboardClient({ userName, userEmail }: Props) {
         tagline: d.school.tagline ?? null,
       }))
   }, [currentSchool?.schoolId])
+  useEffect(() => {
+    if (authUser?.gettingStartedDismissedAt) setGettingStartedDismissed(true)
+  }, [authUser?.gettingStartedDismissedAt])
   const [aiInput, setAiInput]       = useState('')
   const [aiMessages, setAiMessages] = useState<{ role: 'ai' | 'user'; text: string }[]>([
     { role: 'ai', text: t.dashboard.aiGreeting },
@@ -510,6 +525,15 @@ export default function DashboardClient({ userName, userEmail }: Props) {
               </div>
             ))}
           </div>
+
+          {/* 3.5 Getting Started checklist — OWNER/ADMIN only, hides itself once done or dismissed */}
+          {stats?.gettingStarted && currentSchool?.role && ['OWNER', 'ADMIN'].includes(currentSchool.role) && (
+            <GettingStartedChecklist
+              gettingStarted={stats.gettingStarted}
+              dismissed={gettingStartedDismissed}
+              onDismiss={() => setGettingStartedDismissed(true)}
+            />
+          )}
 
           {/* 4. Upcoming Classes — mobile only */}
           <div className="lg:hidden rounded-2xl" style={{ border: '1px solid #E5E7EB', background: '#fff' }}>

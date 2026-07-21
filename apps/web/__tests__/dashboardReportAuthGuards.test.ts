@@ -67,6 +67,7 @@ const mockPrisma = {
   school: makeModel(),
   instructor: makeModel(),
   schoolDiscipline: makeModel(),
+  membershipPlan: makeModel(),
 }
 
 vi.mock('@/lib/db', () => ({ prisma: mockPrisma }))
