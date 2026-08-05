@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -23,10 +23,13 @@ function GoogleIcon() {
     </svg>
   )
 }
-function FacebookIcon() {
+function MicrosoftIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="w-5 h-5 shrink-0" fill="#1877F2">
-      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+    <svg viewBox="0 0 24 24" className="w-5 h-5 shrink-0">
+      <rect x="1" y="1" width="10" height="10" fill="#F25022"/>
+      <rect x="13" y="1" width="10" height="10" fill="#7FBA00"/>
+      <rect x="1" y="13" width="10" height="10" fill="#00A4EF"/>
+      <rect x="13" y="13" width="10" height="10" fill="#FFB900"/>
     </svg>
   )
 }
@@ -50,15 +53,17 @@ function EyeIcon({ open }: { open: boolean }) {
   return <svg viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
 }
 
-function SSOButton({ icon, label, onClick }: { icon: React.ReactNode; label: string; onClick: () => void }) {
+function SSOButton({ icon, label, onClick, loading, disabled }: { icon: React.ReactNode; label: string; onClick: () => void; loading?: boolean; disabled?: boolean }) {
   return (
-    <button type="button" onClick={onClick}
-      className="w-full h-[52px] flex items-center gap-4 px-5 border border-[#e8e8e8] rounded-[12px] bg-white hover:bg-[#fafafa] hover:border-[#d0d0d0] text-[14px] font-semibold text-[#1a1a1a] cursor-pointer transition-all">
+    <button type="button" onClick={onClick} disabled={disabled}
+      className="w-full h-[52px] flex items-center gap-4 px-5 border border-[#e8e8e8] rounded-[12px] bg-white hover:bg-[#fafafa] hover:border-[#d0d0d0] text-[14px] font-semibold text-[#1a1a1a] cursor-pointer transition-all disabled:opacity-60 disabled:cursor-not-allowed">
       {icon}
-      <span className="flex-1 text-center pr-5">{label}</span>
+      <span className="flex-1 text-center pr-5">{loading ? 'Redirecting…' : label}</span>
     </button>
   )
 }
+
+type OAuthProvider = 'google' | 'apple' | 'azure'
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 interface LoginModalProps {
@@ -85,6 +90,7 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
   const [resetErr, setResetErr]       = useState('')
   const [resetLoading, setResetLoading] = useState(false)
   const [resetSent, setResetSent]     = useState(false)
+  const [oauthLoading, setOauthLoading] = useState<OAuthProvider | null>(null)
 
   const resolveRedirect = async () => {
     try {
@@ -142,6 +148,33 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
     } catch {
       router.push('/my')
     }
+  }
+
+  // Supabase's OAuth flow returns here with the session in the URL hash
+  // (implicit flow — same pattern as app/login/page.tsx). Gated on the hash
+  // so this never double-fires alongside handleLogin's own resolveRedirect()
+  // call for password logins, which never touch the hash.
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session && window.location.hash.includes('access_token')) {
+        onClose()
+        resolveRedirect()
+      }
+    })
+    return () => subscription.unsubscribe()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const handleOAuth = async (provider: OAuthProvider) => {
+    setError('')
+    setOauthLoading(provider)
+    const safeTo = safeRedirect(redirectTo)
+    const redirectQuery = safeTo ? `?redirect=${encodeURIComponent(safeTo)}` : ''
+    const { error: err } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: `${window.location.origin}${pathname}${redirectQuery}` },
+    })
+    if (err) { setError(err.message); setOauthLoading(null) }
   }
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -258,10 +291,18 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
                 <p className="text-[14px] text-[#6b7280] text-center mb-7">Your martial journey starts here</p>
 
                 <div className="flex flex-col gap-3">
-                  <SSOButton icon={<GoogleIcon />}   label="Continue with Google"   onClick={() => {}} />
-                  <SSOButton icon={<FacebookIcon />} label="Continue with Facebook" onClick={() => {}} />
-                  <SSOButton icon={<AppleIcon />}    label="Continue with Apple"    onClick={() => {}} />
+                  <SSOButton icon={<GoogleIcon />} label="Continue with Google"
+                    loading={oauthLoading === 'google'} disabled={oauthLoading !== null}
+                    onClick={() => handleOAuth('google')} />
+                  <SSOButton icon={<AppleIcon />} label="Continue with Apple"
+                    loading={oauthLoading === 'apple'} disabled={oauthLoading !== null}
+                    onClick={() => handleOAuth('apple')} />
+                  <SSOButton icon={<MicrosoftIcon />} label="Continue with Microsoft"
+                    loading={oauthLoading === 'azure'} disabled={oauthLoading !== null}
+                    onClick={() => handleOAuth('azure')} />
                 </div>
+
+                {error && <p className="text-[#e43535] text-[13px] text-center mt-4">{error}</p>}
 
                 <div className="flex items-center gap-3 my-5">
                   <div className="flex-1 h-px bg-[#e8e8e8]" />

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
@@ -17,6 +17,58 @@ const NAVY = '#0E3A7A'
 const BORDER = '#E5E7EB'
 const MUTED = '#6B7280'
 const TEXT = '#101828'
+
+// ── Social login icons — same providers/layout as martialapp.com/login
+// (Google, Apple, Microsoft; no Facebook) ────────────────────────────────────
+function GoogleIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width={20} height={20}>
+      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+    </svg>
+  )
+}
+function AppleIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width={20} height={20} fill="#000000">
+      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98l-.09.06c-.22.14-2.15 1.26-2.13 3.75.03 2.99 2.62 3.99 2.65 4l-.07.27zM13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+    </svg>
+  )
+}
+function MicrosoftIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width={20} height={20}>
+      <rect x="1" y="1" width="10" height="10" fill="#F25022"/>
+      <rect x="13" y="1" width="10" height="10" fill="#7FBA00"/>
+      <rect x="1" y="13" width="10" height="10" fill="#00A4EF"/>
+      <rect x="13" y="13" width="10" height="10" fill="#FFB900"/>
+    </svg>
+  )
+}
+
+type OAuthProvider = 'google' | 'apple' | 'azure'
+
+function SocialButton({ provider, label, loading, disabled, onClick }: {
+  provider: OAuthProvider; label: string; loading: boolean; disabled: boolean; onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      style={{
+        width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+        height: 52, border: `1px solid ${BORDER}`, borderRadius: 12, background: '#fff',
+        fontSize: 14, fontWeight: 600, color: TEXT,
+        cursor: disabled ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1,
+      }}>
+      {provider === 'google' ? <GoogleIcon /> : provider === 'apple' ? <AppleIcon /> : <MicrosoftIcon />}
+      {loading ? 'Redirigiendo…' : label}
+    </button>
+  )
+}
 
 // Standalone login page — this is the actual entry screen the mobile app
 // WebView loads after its native splash screen, so it must work fully on
@@ -35,7 +87,7 @@ function LoginPageInner() {
   const justRegistered = searchParams.get('registered') === '1'
   const registeredType = searchParams.get('type')
 
-  const [view, setView] = useState<'email' | 'forgot'>('email')
+  const [view, setView] = useState<'email' | 'password' | 'forgot'>('email')
   const [email, setEmail] = useState(searchParams.get('email') ?? '')
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
@@ -49,6 +101,7 @@ function LoginPageInner() {
   const [resetErr, setResetErr] = useState('')
   const [resetLoading, setResetLoading] = useState(false)
   const [resetSent, setResetSent] = useState(false)
+  const [oauthLoading, setOauthLoading] = useState<OAuthProvider | null>(null)
 
   const resolveRedirect = async () => {
     try {
@@ -103,13 +156,43 @@ function LoginPageInner() {
     }
   }
 
+  // Supabase's OAuth flow returns here with the session in the URL hash
+  // (implicit flow — same pattern as auth/set-password's Google button and
+  // auth/accept-invite). Gated on the hash so this never double-fires
+  // alongside handleLogin's own resolveRedirect() call for password logins,
+  // which never touch the hash.
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session && window.location.hash.includes('access_token')) {
+        resolveRedirect()
+      }
+    })
+    return () => subscription.unsubscribe()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const handleOAuth = async (provider: OAuthProvider) => {
+    setError('')
+    setOauthLoading(provider)
+    const redirectQuery = redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ''
+    const { error: err } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: `${window.location.origin}/login${redirectQuery}` },
+    })
+    if (err) { setError(err.message); setOauthLoading(null) }
+  }
+
+  const handleContinueWithEmail = (e: React.FormEvent) => {
+    e.preventDefault()
+    setEmailErr('')
+    if (!email) { setEmailErr('Please provide a valid email address.'); return }
+    setView('password')
+  }
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    setEmailErr(''); setPassErr(''); setError(''); setUnconfirmedEmail('')
-    let valid = true
-    if (!email) { setEmailErr('Please provide a valid email address.'); valid = false }
-    if (!password) { setPassErr('Password field cannot be left blank.'); valid = false }
-    if (!valid) return
+    setPassErr(''); setError(''); setUnconfirmedEmail('')
+    if (!password) { setPassErr('Password field cannot be left blank.'); return }
 
     setLoading(true)
     const { data, error: err } = await supabase.auth.signInWithPassword({ email, password })
@@ -174,7 +257,11 @@ function LoginPageInner() {
             {view === 'forgot' ? 'Forgot Password?' : 'Welcome back'}
           </h1>
           <p style={{ margin: 0, fontSize: 14, color: MUTED }}>
-            {view === 'forgot' ? (resetSent ? 'Check your inbox for the reset link' : "Enter your email and we'll send you a reset link") : 'Log in to continue your martial journey'}
+            {view === 'forgot'
+              ? (resetSent ? 'Check your inbox for the reset link' : "Enter your email and we'll send you a reset link")
+              : view === 'password'
+              ? 'Enter your password to continue'
+              : 'Log in to continue your martial journey'}
           </p>
         </div>
 
@@ -228,67 +315,112 @@ function LoginPageInner() {
               </button>
             </form>
           )
-        ) : (
-          <form onSubmit={handleLogin} noValidate
-            style={{ background: '#fff', borderRadius: 16, border: `1px solid ${BORDER}`, boxShadow: '0 4px 24px rgba(0,0,0,0.06)', padding: 28, display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-            <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="you@email.com"
-                style={{ width: '100%', padding: '11px 14px', fontSize: 15, border: `1px solid ${emailErr ? '#DC2626' : BORDER}`, borderRadius: 10, outline: 'none', boxSizing: 'border-box', color: TEXT }}
-              />
-              {emailErr && <p style={{ margin: '6px 0 0', fontSize: 12, color: '#DC2626' }}>{emailErr}</p>}
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>Password</label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type={showPass ? 'text' : 'password'}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="Enter password"
-                  style={{ width: '100%', padding: '11px 44px 11px 14px', fontSize: 15, border: `1px solid ${passErr ? '#DC2626' : BORDER}`, borderRadius: 10, outline: 'none', boxSizing: 'border-box', color: TEXT }}
-                />
-                <button type="button" onClick={() => setShowPass(v => !v)}
-                  aria-label={showPass ? 'Hide password' : 'Show password'}
-                  style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: MUTED, fontSize: 12, fontWeight: 600 }}>
-                  {showPass ? 'Hide' : 'Show'}
-                </button>
-              </div>
-              {passErr && <p style={{ margin: '6px 0 0', fontSize: 12, color: '#DC2626' }}>{passErr}</p>}
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: -8 }}>
-              <span
-                onClick={() => { setResetEmail(email); setResetErr(''); setResetSent(false); setView('forgot') }}
-                style={{ fontSize: 13, fontWeight: 600, color: BLUE, cursor: 'pointer' }}>
-                Forgot Password?
-              </span>
-            </div>
-
-            {unconfirmedEmail && (
-              <p style={{ margin: 0, fontSize: 13, color: '#DC2626', background: '#FEF2F2', padding: '8px 12px', borderRadius: 8 }}>
-                {t.authVerify.loginUnconfirmed}{' '}
-                <a href={`/auth/verify-pending?email=${encodeURIComponent(unconfirmedEmail)}${confirmRedirect ? `&redirect=${encodeURIComponent(confirmRedirect)}` : ''}`} style={{ color: '#DC2626', fontWeight: 700, textDecoration: 'underline' }}>
-                  {t.authVerify.loginResendLink}
-                </a>
-              </p>
-            )}
-            {error && <p style={{ margin: 0, fontSize: 13, color: '#DC2626', background: '#FEF2F2', padding: '8px 12px', borderRadius: 8 }}>{error}</p>}
-
-            <button
-              type="submit"
-              disabled={loading}
-              style={{ width: '100%', padding: '13px', fontSize: 15, fontWeight: 700, background: loading ? '#93C5FD' : BLUE, color: '#fff', border: 'none', borderRadius: 12, cursor: loading ? 'not-allowed' : 'pointer' }}>
-              {loading ? 'Logging in…' : 'Log in'}
+        ) : view === 'password' ? (
+          <div style={{ background: '#fff', borderRadius: 16, border: `1px solid ${BORDER}`, boxShadow: '0 4px 24px rgba(0,0,0,0.06)', padding: 28 }}>
+            <button type="button" onClick={() => { setView('email'); setPassErr(''); setError(''); setUnconfirmedEmail('') }}
+              style={{ display: 'block', marginBottom: 16, padding: '4px 0', fontSize: 13, fontWeight: 600, background: 'none', border: 'none', color: MUTED, cursor: 'pointer' }}>
+              ← Back
             </button>
 
-          </form>
+            <form onSubmit={handleLogin} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="you@email.com"
+                  style={{ width: '100%', padding: '11px 14px', fontSize: 15, border: `1px solid ${BORDER}`, borderRadius: 10, outline: 'none', boxSizing: 'border-box', color: TEXT }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>Password</label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showPass ? 'text' : 'password'}
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder="Enter password"
+                    autoFocus
+                    style={{ width: '100%', padding: '11px 44px 11px 14px', fontSize: 15, border: `1px solid ${passErr ? '#DC2626' : BORDER}`, borderRadius: 10, outline: 'none', boxSizing: 'border-box', color: TEXT }}
+                  />
+                  <button type="button" onClick={() => setShowPass(v => !v)}
+                    aria-label={showPass ? 'Hide password' : 'Show password'}
+                    style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: MUTED, fontSize: 12, fontWeight: 600 }}>
+                    {showPass ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+                {passErr && <p style={{ margin: '6px 0 0', fontSize: 12, color: '#DC2626' }}>{passErr}</p>}
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: -8 }}>
+                <span
+                  onClick={() => { setResetEmail(email); setResetErr(''); setResetSent(false); setView('forgot') }}
+                  style={{ fontSize: 13, fontWeight: 600, color: BLUE, cursor: 'pointer' }}>
+                  Forgot Password?
+                </span>
+              </div>
+
+              {unconfirmedEmail && (
+                <p style={{ margin: 0, fontSize: 13, color: '#DC2626', background: '#FEF2F2', padding: '8px 12px', borderRadius: 8 }}>
+                  {t.authVerify.loginUnconfirmed}{' '}
+                  <a href={`/auth/verify-pending?email=${encodeURIComponent(unconfirmedEmail)}${confirmRedirect ? `&redirect=${encodeURIComponent(confirmRedirect)}` : ''}`} style={{ color: '#DC2626', fontWeight: 700, textDecoration: 'underline' }}>
+                    {t.authVerify.loginResendLink}
+                  </a>
+                </p>
+              )}
+              {error && <p style={{ margin: 0, fontSize: 13, color: '#DC2626', background: '#FEF2F2', padding: '8px 12px', borderRadius: 8 }}>{error}</p>}
+
+              <button
+                type="submit"
+                disabled={loading}
+                style={{ width: '100%', padding: '13px', fontSize: 15, fontWeight: 700, background: loading ? '#93C5FD' : BLUE, color: '#fff', border: 'none', borderRadius: 12, cursor: loading ? 'not-allowed' : 'pointer' }}>
+                {loading ? 'Logging in…' : 'Log in'}
+              </button>
+            </form>
+          </div>
+        ) : (
+          <div style={{ background: '#fff', borderRadius: 16, border: `1px solid ${BORDER}`, boxShadow: '0 4px 24px rgba(0,0,0,0.06)', padding: 28 }}>
+            <form onSubmit={handleContinueWithEmail} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="you@email.com"
+                  autoFocus
+                  style={{ width: '100%', padding: '11px 14px', fontSize: 15, border: `1px solid ${emailErr ? '#DC2626' : BORDER}`, borderRadius: 10, outline: 'none', boxSizing: 'border-box', color: TEXT }}
+                />
+                {emailErr && <p style={{ margin: '6px 0 0', fontSize: 12, color: '#DC2626' }}>{emailErr}</p>}
+              </div>
+
+              <button
+                type="submit"
+                style={{ width: '100%', padding: '13px', fontSize: 15, fontWeight: 700, background: BLUE, color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer' }}>
+                Continue with email
+              </button>
+            </form>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' }}>
+              <div style={{ flex: 1, height: 1, background: BORDER }} />
+              <span style={{ fontSize: 12, fontWeight: 600, color: MUTED }}>OR</span>
+              <div style={{ flex: 1, height: 1, background: BORDER }} />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <SocialButton provider="google" label="Continuar con Google"
+                loading={oauthLoading === 'google'} disabled={oauthLoading !== null}
+                onClick={() => handleOAuth('google')} />
+              <SocialButton provider="apple" label="Continuar con Apple"
+                loading={oauthLoading === 'apple'} disabled={oauthLoading !== null}
+                onClick={() => handleOAuth('apple')} />
+              <SocialButton provider="azure" label="Continuar con Microsoft"
+                loading={oauthLoading === 'azure'} disabled={oauthLoading !== null}
+                onClick={() => handleOAuth('azure')} />
+            </div>
+          </div>
         )}
 
         <p style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: MUTED }}>
