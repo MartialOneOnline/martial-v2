@@ -79,7 +79,7 @@ export default function EventTicketModal({ event, schoolSlug, redirectPath, onCl
     }
   }
 
-  const dateLabel = new Date(event.startAt).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+  const dateLabel = new Date(event.startAt).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Europe/Madrid' })
 
   return (
     <div className="fixed inset-0 z-[200] flex items-end md:items-center justify-center" onClick={onClose}>

@@ -276,7 +276,7 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
                 <div className="divide-y divide-gray-50">
                   {eventsMapped.map(ev => {
                     const minPrice = ev.tickets.length > 0 ? Math.min(...ev.tickets.map(t => t.price)) : null
-                    const dateLabel = new Date(ev.startAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                    const dateLabel = new Date(ev.startAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Madrid' })
                     return (
                       <Link
                         key={ev.id}

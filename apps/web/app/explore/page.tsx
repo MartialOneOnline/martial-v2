@@ -393,7 +393,7 @@ function formatEventType(type: string) {
 function EventCard({ event, onClick }: { event: DbEvent; onClick: () => void }) {
   const hasCover = !!event.coverUrl
   const minPrice = event.tickets.length > 0 ? Math.min(...event.tickets.map(t => t.price)) : null
-  const dateLabel = new Date(event.startAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+  const dateLabel = new Date(event.startAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'Europe/Madrid' })
 
   return (
     <button

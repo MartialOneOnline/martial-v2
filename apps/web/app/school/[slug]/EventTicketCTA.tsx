@@ -100,7 +100,7 @@ export default function EventTicketCTA({ events, schoolSlug, className = '', ico
                         <div className="text-sm font-semibold text-[#111827] truncate">{ev.title}</div>
                         <div className="flex items-center gap-1 text-xs text-[#6B7280] mt-0.5">
                           <Calendar className="w-3 h-3" />
-                          {new Date(ev.startAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                          {new Date(ev.startAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'Europe/Madrid' })}
                         </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
