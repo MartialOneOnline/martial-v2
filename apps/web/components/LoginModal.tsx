@@ -177,6 +177,13 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // OAuth does a full-page navigation away to the provider and back — this
+  // modal will have unmounted by the time the browser returns, so its own
+  // onAuthStateChange listener above never runs and nothing would redirect
+  // the user anywhere (confirmed: session gets created fine, but the visitor
+  // is silently stranded on whatever page the modal happened to be opened
+  // from). Land on /login instead — a full page that survives the round
+  // trip and already has the same listener + resolveRedirect logic.
   const handleOAuth = async (provider: OAuthProvider) => {
     setError('')
     setOauthLoading(provider)
@@ -184,7 +191,7 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
     const redirectQuery = safeTo ? `?redirect=${encodeURIComponent(safeTo)}` : ''
     const { error: err } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: `${window.location.origin}${pathname}${redirectQuery}` },
+      options: { redirectTo: `${window.location.origin}/login${redirectQuery}` },
     })
     if (err) { setError(err.message); setOauthLoading(null) }
   }
