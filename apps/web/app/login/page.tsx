@@ -171,6 +171,20 @@ function LoginPageInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Supabase also returns here with `#error=...&error_description=...` when
+  // the OAuth round trip itself succeeded but sign-in was rejected (e.g. this
+  // email already has an account under a different provider and manual
+  // identity linking is off). Without this, that case silently dumps the
+  // user back on a blank login form with no explanation.
+  useEffect(() => {
+    if (!window.location.hash.includes('error=')) return
+    const params = new URLSearchParams(window.location.hash.slice(1))
+    const description = params.get('error_description')
+    setError(description ? description.replace(/\+/g, ' ') : 'Sign-in failed. Please try again.')
+    window.history.replaceState(null, '', window.location.pathname + window.location.search)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const handleOAuth = async (provider: OAuthProvider) => {
     setError('')
     setOauthLoading(provider)
@@ -420,6 +434,8 @@ function LoginPageInner() {
                 loading={oauthLoading === 'azure'} disabled={oauthLoading !== null}
                 onClick={() => handleOAuth('azure')} />
             </div>
+
+            {error && <p style={{ margin: '16px 0 0', fontSize: 13, color: '#DC2626', background: '#FEF2F2', padding: '8px 12px', borderRadius: 8 }}>{error}</p>}
           </div>
         )}
 

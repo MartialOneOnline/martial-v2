@@ -165,6 +165,18 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Same hash-based error surfacing as app/login/page.tsx — see that file's
+  // comment for why this is needed (OAuth round trip can succeed while
+  // sign-in itself is rejected, e.g. identity-linking conflicts).
+  useEffect(() => {
+    if (!window.location.hash.includes('error=')) return
+    const params = new URLSearchParams(window.location.hash.slice(1))
+    const description = params.get('error_description')
+    setError(description ? description.replace(/\+/g, ' ') : 'Sign-in failed. Please try again.')
+    window.history.replaceState(null, '', window.location.pathname + window.location.search)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const handleOAuth = async (provider: OAuthProvider) => {
     setError('')
     setOauthLoading(provider)
