@@ -16,6 +16,7 @@ import DashboardLanguageSelector from '../../../components/DashboardLanguageSele
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { memberStatusColors } from '../../../lib/design/tokens'
+import { submitMemberStatusChange, applyOptimisticStatus } from '../../../lib/memberStatus'
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
 type ToastType = 'success' | 'error' | 'info'
@@ -1608,7 +1609,9 @@ function MarkAsPaidModal({
 }
 
 // ── Main component ─────────────────────────────────────────────────────────────
-export default function UsersClient({ students: initialStudents }: { students: Student[] }) {
+type DriftedMember = { id: string; name: string; status: string }
+
+export default function UsersClient({ students: initialStudents, driftedMembers = [] }: { students: Student[]; driftedMembers?: DriftedMember[] }) {
   const { menuOpen, setMenuOpen } = useDashboard()
   const t = useT()
   const router = useRouter()
@@ -1637,6 +1640,11 @@ export default function UsersClient({ students: initialStudents }: { students: S
       if (d.bookingsThisMonth?.value !== undefined) setBookingsThisMonth(d.bookingsThisMonth.value)
     }).catch(() => {})
   }, [])
+
+  // Members flagged server-side as having an ACTIVE membership but a
+  // non-ACTIVE access status — recomputed against live `students` state so
+  // a Reactivate click removes the row without a full reload.
+  const visibleDrift = driftedMembers.filter(d => students.find(s => s.id === d.id)?.status !== 'ACTIVE')
 
   const activeCount = students.filter(s => s.status === 'ACTIVE').length
   const STATS = [
@@ -1667,17 +1675,12 @@ export default function UsersClient({ students: initialStudents }: { students: S
 
   const handleStatusChange = async (memberId: string, newStatus: string) => {
     // Optimistic update
-    setStudents(prev => prev.map(s => s.id === memberId ? { ...s, status: newStatus } : s))
-    try {
-      await fetch(`/api/dashboard/members/${memberId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus }),
-      })
-    } catch {
-      // Revert on error
-      setStudents(initialStudents)
-    }
+    setStudents(prev => applyOptimisticStatus(prev, memberId, newStatus))
+    // A non-2xx response (e.g. 403 racing a permission change) must revert
+    // just like a network error would — otherwise the drift banner's
+    // Reactivate button can silently drop a member it never actually fixed.
+    const ok = await submitMemberStatusChange(memberId, newStatus)
+    if (!ok) setStudents(initialStudents)
   }
 
   const handleArchive = (memberId: string) => handleStatusChange(memberId, 'ARCHIVED')
@@ -1852,6 +1855,37 @@ export default function UsersClient({ students: initialStudents }: { students: S
             {t.common.export}
           </button>
         </div>
+
+        {/* Membership status drift banner — OWNER/ADMIN only, see page.tsx */}
+        {visibleDrift.length > 0 && (
+          <div className="rounded-2xl" style={{ padding: '12px 16px', background: '#FFF1F2', border: '1.5px solid #FDA4AF' }}>
+            <div className="flex items-center gap-2 mb-2">
+              <AlertCircle size={15} style={{ color: '#E11D48', flexShrink: 0 }} />
+              <p style={{ fontSize: 13, fontWeight: 600, color: '#9F1239', margin: 0 }}>
+                {(visibleDrift.length !== 1 ? t.users.driftBannerTitlePlural : t.users.driftBannerTitle)
+                  .replace('{n}', String(visibleDrift.length))}
+              </p>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              {visibleDrift.map(d => (
+                <div key={d.id} className="flex items-center justify-between gap-3" style={{ fontSize: 12 }}>
+                  <span style={{ color: '#881337' }}>{d.name}</span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <a href={`/dashboard/users/${d.id}`} style={{ color: '#9F1239', fontWeight: 600, textDecoration: 'underline' }}>
+                      {t.users.driftViewBtn}
+                    </a>
+                    <button
+                      onClick={() => handleStatusChange(d.id, 'ACTIVE')}
+                      style={{ fontSize: 11, fontWeight: 600, color: '#fff', background: '#E11D48',
+                        border: 'none', borderRadius: 8, padding: '4px 10px', cursor: 'pointer' }}>
+                      {t.users.driftReactivateBtn}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

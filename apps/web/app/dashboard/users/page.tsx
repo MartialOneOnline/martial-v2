@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/db'
 import { cookies } from 'next/headers'
 import UsersClient from './UsersClient'
+import { getAuthUser } from '@/lib/auth/server'
+import { getSchoolMembership } from '@/lib/auth/contexts'
 
 export default async function UsersPage() {
   const supabase = await createClient()
@@ -87,5 +89,21 @@ async function UsersPageWithSchool({ schoolId }: { schoolId: string }) {
     }
   })
 
-  return <UsersClient students={students} />
+  // Members with an ACTIVE membership whose access status disagrees (e.g.
+  // stuck INACTIVE) — surfaced as an OWNER/ADMIN-only banner below. Computed
+  // from data already fetched above, no extra query needed.
+  const driftedMembers = students
+    .filter(s => s.activeMembership && !['ACTIVE', 'ARCHIVED'].includes(s.status))
+    .map(s => ({ id: s.id, name: s.name, status: s.status }))
+
+  let canViewDrift = false
+  if (driftedMembers.length > 0) {
+    const viewer = await getAuthUser()
+    if (viewer) {
+      canViewDrift = viewer.role === 'SUPERADMIN'
+        || ['OWNER', 'ADMIN'].includes((await getSchoolMembership(viewer.id, schoolId))?.role ?? '')
+    }
+  }
+
+  return <UsersClient students={students} driftedMembers={canViewDrift ? driftedMembers : []} />
 }

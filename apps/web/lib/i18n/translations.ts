@@ -272,6 +272,9 @@ export const translations = {
       newThisMonth: 'New This Month', avgAttendance: 'Avg Attendance',
       belt: 'Belt', membership: 'Membership', lastSeen: 'Last seen',
       noStudents: 'No students found', students: 'students', ofMembers: 'members',
+      driftBannerTitle: '{n} member with an active membership but a non-active status',
+      driftBannerTitlePlural: '{n} members with an active membership but a non-active status',
+      driftViewBtn: 'View', driftReactivateBtn: 'Reactivate',
     },
 
     // ── Classes / Events / Calendar / Timetable ────────────────────────────────
@@ -947,6 +950,9 @@ export const translations = {
       newThisMonth: 'Nuevos este Mes', avgAttendance: 'Asistencia Media',
       belt: 'Cinturón', membership: 'Membresía', lastSeen: 'Última vez',
       noStudents: 'No se encontraron alumnos', students: 'alumnos', ofMembers: 'miembros',
+      driftBannerTitle: '{n} miembro con membresía activa pero estado no activo',
+      driftBannerTitlePlural: '{n} miembros con membresía activa pero estado no activo',
+      driftViewBtn: 'Ver', driftReactivateBtn: 'Reactivar',
     },
     classes: {
       title: 'Clases', searchPlaceholder: 'Buscar clases…', ofClasses: 'clases',
@@ -1576,6 +1582,9 @@ export const translations = {
       newThisMonth: 'Novos este Mês', avgAttendance: 'Presença Média',
       belt: 'Faixa', membership: 'Plano', lastSeen: 'Visto por último',
       noStudents: 'Nenhum aluno encontrado', students: 'alunos', ofMembers: 'membros',
+      driftBannerTitle: '{n} membro com plano ativo mas estado não ativo',
+      driftBannerTitlePlural: '{n} membros com plano ativo mas estado não ativo',
+      driftViewBtn: 'Ver', driftReactivateBtn: 'Reativar',
     },
     classes: {
       title: 'Aulas', searchPlaceholder: 'Buscar aulas…', ofClasses: 'aulas',
@@ -2205,6 +2214,9 @@ export const translations = {
       newThisMonth: 'Nouveaux ce Mois', avgAttendance: 'Présence Moyenne',
       belt: 'Ceinture', membership: 'Abonnement', lastSeen: 'Vu pour la dernière fois',
       noStudents: 'Aucun élève trouvé', students: 'élèves', ofMembers: 'membres',
+      driftBannerTitle: '{n} membre avec un abonnement actif mais un statut non actif',
+      driftBannerTitlePlural: '{n} membres avec un abonnement actif mais un statut non actif',
+      driftViewBtn: 'Voir', driftReactivateBtn: 'Réactiver',
     },
     classes: {
       title: 'Cours', searchPlaceholder: 'Rechercher des cours…', ofClasses: 'cours',

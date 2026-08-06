@@ -22,6 +22,7 @@ interface Stats {
   schoolsWithCoords: { id: string; name: string; city: string; country: string; lat: number; lng: number; status: string }[]
   recentSchools: { id: string; name: string; city: string; country: string; status: string; createdAt: string }[]
   invitationsByMonth: { month: string; count: number }[]
+  membershipDrift: number
 }
 
 const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
@@ -106,6 +107,16 @@ export default function AdminDashboardClient() {
       href: '/admin/users',
       cta: 'Manage',
       urgent: false,
+    },
+    {
+      icon: AlertTriangle,
+      color: '#DC2626',
+      bg: 'bg-red-50',
+      label: 'Membership status drift',
+      value: stats?.membershipDrift ?? 0,
+      href: '/admin/reports/membership-drift',
+      cta: 'Investigate',
+      urgent: (stats?.membershipDrift ?? 0) > 0,
     },
   ]
 
