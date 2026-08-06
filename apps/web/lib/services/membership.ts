@@ -43,6 +43,21 @@ export interface CancelMembershipInput {
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 /**
+ * Grace period (days) after endDate before a lapsed ACTIVE membership is
+ * actually expired/cancelled — matches V1's default (a subscription past
+ * its renewal date keeps access for 30 days before being cut off), so a
+ * membership that's merely a few days overdue (e.g. paid in cash but not
+ * renewed in the system yet) doesn't lose access the moment the cron runs.
+ */
+const EXPIRY_GRACE_PERIOD_DAYS = 30
+
+function graceCutoff(): Date {
+  const d = new Date()
+  d.setDate(d.getDate() - EXPIRY_GRACE_PERIOD_DAYS)
+  return d
+}
+
+/**
  * Compute endDate from plan billing rules.
  * - SUBSCRIPTION: endDate = start + one billing cycle (acts as the next renewal date)
  * - SINGLE_PASS / TRIAL: endDate = start + validityDays
@@ -455,9 +470,10 @@ async function expireOneMembership(membership: {
 /**
  * Lazy expiration check — call at any access-verification point.
  *
- * If the membership is ACTIVE and its endDate has passed, transitions it to
- * CANCELLED (if the student had already requested cancellation) or EXPIRED
- * (if it simply lapsed without ever being cancelled), and syncs SchoolMember
+ * If the membership is ACTIVE and its endDate passed more than
+ * EXPIRY_GRACE_PERIOD_DAYS ago, transitions it to CANCELLED (if the
+ * student had already requested cancellation) or EXPIRED (if it simply
+ * lapsed without ever being cancelled), and syncs SchoolMember
  * accordingly. Returns true if the membership no longer grants access.
  */
 export async function checkAndExpireMembership(membershipId: string): Promise<boolean> {
@@ -468,25 +484,67 @@ export async function checkAndExpireMembership(membershipId: string): Promise<bo
   if (!membership) return true
   if (membership.status === MembershipStatus.CANCELLED || membership.status === MembershipStatus.EXPIRED) return true
   if (membership.status !== MembershipStatus.ACTIVE) return false // PENDING/PAUSED — nothing to expire here
-  if (!membership.endDate || membership.endDate > new Date()) return false
+  if (!membership.endDate || membership.endDate > graceCutoff()) return false
 
   await expireOneMembership(membership)
   return true
 }
 
+export interface LapsedMembershipPreview {
+  id: string
+  userId: string
+  schoolId: string
+  schoolName: string
+  userName: string | null
+  userEmail: string
+  planName: string
+  endDate: Date
+  willBecome: 'EXPIRED' | 'CANCELLED'
+}
+
 /**
  * Bulk sweep for the daily cron job (see app/api/cron/expire-memberships):
- * finds every ACTIVE membership whose endDate has passed and expires it,
- * one at a time so each gets its own transaction and SchoolMember sync.
- * Nothing else in the codebase runs this periodically — without it,
- * lapsed-but-never-cancelled memberships stay ACTIVE (and inflate the
- * "active members" KPIs) forever.
+ * finds every ACTIVE membership whose endDate passed more than
+ * EXPIRY_GRACE_PERIOD_DAYS ago and expires it, one at a time so each gets
+ * its own transaction and SchoolMember sync. Nothing else in the codebase
+ * runs this periodically — without it, lapsed-but-never-cancelled
+ * memberships stay ACTIVE (and inflate the "active members" KPIs) forever.
+ *
+ * `dryRun: true` runs the same lookup but performs no writes — instead it
+ * returns a `preview` of every affected membership (who, which school,
+ * what it would become) so this can be reviewed before the first real run
+ * touches production data. See scripts/check-lapsed-memberships.ts.
  */
-export async function expireLapsedMemberships(): Promise<{ expiredCount: number; cancelledCount: number }> {
+export async function expireLapsedMemberships(
+  options: { dryRun?: boolean } = {},
+): Promise<{ expiredCount: number; cancelledCount: number; preview?: LapsedMembershipPreview[] }> {
   const lapsed = await prisma.membership.findMany({
-    where: { status: MembershipStatus.ACTIVE, endDate: { lt: new Date() } },
-    select: { id: true, userId: true, schoolId: true, cancelledAt: true },
+    where: { status: MembershipStatus.ACTIVE, endDate: { lt: graceCutoff() } },
+    select: {
+      id: true, userId: true, schoolId: true, cancelledAt: true, endDate: true, planName: true,
+      user: { select: { name: true, email: true } },
+      school: { select: { name: true } },
+    },
   })
+
+  if (options.dryRun) {
+    const preview: LapsedMembershipPreview[] = lapsed.map(m => ({
+      id: m.id,
+      userId: m.userId,
+      schoolId: m.schoolId,
+      schoolName: m.school?.name ?? '',
+      userName: m.user?.name ?? null,
+      userEmail: m.user?.email ?? '',
+      planName: m.planName,
+      endDate: m.endDate as Date,
+      willBecome: m.cancelledAt ? 'CANCELLED' : 'EXPIRED',
+    }))
+    return {
+      expiredCount: preview.filter(p => p.willBecome === 'EXPIRED').length,
+      cancelledCount: preview.filter(p => p.willBecome === 'CANCELLED').length,
+      preview,
+    }
+  }
 
   let expiredCount = 0
   let cancelledCount = 0
