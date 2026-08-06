@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { guardSuperadmin } from '@/lib/auth/server'
+import { findMembershipStatusDrift } from '@/lib/services/membership'
 
 export async function GET(req: NextRequest) {
   const deny = await guardSuperadmin(req)
@@ -21,6 +22,7 @@ export async function GET(req: NextRequest) {
     schoolsWithCoords,
     recentSchools,
     invitationsByMonth,
+    membershipDrift,
   ] = await Promise.all([
     prisma.school.count(),
     prisma.school.count({ where: { status: 'VERIFIED' } }),
@@ -56,6 +58,7 @@ export async function GET(req: NextRequest) {
       GROUP BY TO_CHAR("createdAt", 'Mon'), DATE_TRUNC('month', "createdAt")
       ORDER BY DATE_TRUNC('month', "createdAt")
     `.catch(() => []),
+    findMembershipStatusDrift(),
   ])
 
   return NextResponse.json({
@@ -83,5 +86,6 @@ export async function GET(req: NextRequest) {
       month: r.month,
       count: Number(r.count),
     })),
+    membershipDrift: membershipDrift.length,
   })
 }

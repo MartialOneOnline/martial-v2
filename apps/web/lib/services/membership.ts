@@ -146,6 +146,61 @@ export async function syncSchoolMemberStatusForMembership(
   })
 }
 
+export interface DriftedSchoolMember {
+  id: string
+  userId: string
+  schoolId: string
+  schoolName: string
+  status: string
+  userName: string | null
+  userEmail: string
+}
+
+/**
+ * SchoolMember rows whose status contradicts a currently ACTIVE Membership
+ * at the same school (e.g. status stuck at INACTIVE while the user has an
+ * active paid plan) — the exact drift assignPlan() used to leave behind
+ * before it was fixed to reactivate on assignment. Should be empty in
+ * steady state; exists as a monitoring safety net for other paths that can
+ * still touch SchoolMember.status (Stripe webhooks, CSV imports, manual
+ * admin edits) — see the "Needs attention" panels in the school dashboard
+ * and superadmin panel.
+ *
+ * Pass schoolId to scope to one school; omit for a platform-wide scan.
+ */
+export async function findMembershipStatusDrift(schoolId?: string): Promise<DriftedSchoolMember[]> {
+  const candidates = await prisma.schoolMember.findMany({
+    where: { status: { in: ['INACTIVE', 'PENDING', 'LEAD', 'FROZEN'] }, ...(schoolId && { schoolId }) },
+    select: {
+      id: true, status: true, userId: true, schoolId: true,
+      user: { select: { name: true, email: true } },
+      school: { select: { name: true } },
+    },
+  })
+  if (candidates.length === 0) return []
+
+  const activeMemberships = await prisma.membership.findMany({
+    where: {
+      status: MembershipStatus.ACTIVE,
+      OR: candidates.map(c => ({ userId: c.userId, schoolId: c.schoolId })),
+    },
+    select: { userId: true, schoolId: true },
+  })
+  const activeSet = new Set(activeMemberships.map(m => `${m.userId}:${m.schoolId}`))
+
+  return candidates
+    .filter(c => activeSet.has(`${c.userId}:${c.schoolId}`))
+    .map(c => ({
+      id: c.id,
+      userId: c.userId,
+      schoolId: c.schoolId,
+      schoolName: c.school?.name ?? '',
+      status: c.status,
+      userName: c.user?.name ?? null,
+      userEmail: c.user?.email ?? '',
+    }))
+}
+
 /**
  * Cancels (or schedules the cancellation of) a Stripe subscription, awaited
  * so the caller only commits a local status change once Stripe has actually
@@ -179,7 +234,7 @@ export async function cancelStripeSubscription(
  *  3. Cancels any currently ACTIVE membership for that user+school
  *  4. Creates the new Membership row
  *  5. Creates a Transaction record (income entry)
- *  6. Promotes SchoolMember.status from PENDING/LEAD → ACTIVE
+ *  6. Reactivates SchoolMember.status (PENDING/LEAD/INACTIVE → ACTIVE), unless ARCHIVED
  *
  * Returns the created membership with plan included.
  */
@@ -250,8 +305,10 @@ export async function assignPlan(input: AssignPlanInput) {
       })
     }
 
-    // Promote member status if they were a lead/pending
-    if (['PENDING', 'LEAD'].includes(schoolMember.status)) {
+    // Reactivate the member unless a staff member archived them — assigning
+    // a fresh active plan should always restore access (PENDING/LEAD/INACTIVE
+    // → ACTIVE), same exception ARCHIVED gets in syncSchoolMemberStatusForMembership.
+    if (schoolMember.status !== 'ARCHIVED' && schoolMember.status !== 'ACTIVE') {
       await tx.schoolMember.update({
         where: { id: schoolMemberId },
         data: { status: 'ACTIVE' },
