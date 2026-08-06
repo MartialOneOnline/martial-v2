@@ -10,6 +10,7 @@
 import { createClient } from '@supabase/supabase-js'
 import fs from 'fs'
 import path from 'path'
+import { parseCSV, mapBelt, resolveBelt, nullIfEmpty } from './lib/rga-belts.mjs'
 
 const DRY_RUN = process.argv.includes('--dry-run')
 
@@ -22,85 +23,8 @@ const env = Object.fromEntries(
 const db = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SECRET_KEY)
 const SCHOOL_ID = 'cmq6k2n5t0000x4o0rcvlmhmv'
 
-// RFC4180-aware: handles doubled-quote escaping ("" inside a quoted field
-// means a literal "), which several columns here rely on (e.g. userdetails.belts
-// is a JSON blob like {"18":"332"} re-quoted as "{""18"":""332""}").
-function parseLine(line) {
-  const cols = []
-  let cur = '', inQ = false
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i]
-    if (inQ) {
-      if (ch === '"') {
-        if (line[i + 1] === '"') { cur += '"'; i++ }
-        else inQ = false
-      } else cur += ch
-    } else {
-      if (ch === '"') inQ = true
-      else if (ch === ',') { cols.push(cur); cur = '' }
-      else cur += ch
-    }
-  }
-  cols.push(cur)
-  return cols
-}
-
-function parseCSV(filePath) {
-  const text = fs.readFileSync(filePath, 'utf8')
-  const lines = text.trim().split('\n')
-  const headers = parseLine(lines[0].replace(/\r/g, ''))
-  return lines.slice(1).map(line => {
-    const cols = parseLine(line.replace(/\r/g, ''))
-    return Object.fromEntries(headers.map((h, i) => [h, cols[i] ?? '']))
-  })
-}
-
 function cuid() {
   return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10)
-}
-
-const VALID_BELTS = ['Blanco', 'Azul', 'Morado', 'Marron', 'Negro']
-function mapBelt(v1Belt) {
-  if (!v1Belt) return 'Blanco'
-  const b = v1Belt.trim()
-  const map = { white: 'Blanco', blue: 'Azul', purple: 'Morado', brown: 'Marron', black: 'Negro' }
-  const lower = b.toLowerCase()
-  if (VALID_BELTS.includes(b)) return b
-  if (map[lower]) return map[lower]
-  return 'Blanco'
-}
-
-// V1's userdetails.select_belt column is unpopulated ("NULL") in this export — the real
-// rank lives in userdetails.belts, a JSON map of activity_id -> belt_ranks.id (e.g.
-// {"18":"327"}). belt_ranks.title encodes both color and stripe count as
-// "<Color>[ <N> Grado(s)]" (e.g. "Azul 2 Grado"). Resolve that first and only fall back
-// to select_belt/default white when no belts entry exists.
-function parseBeltRankTitle(title) {
-  if (!title) return null
-  const t = title.trim().replace(/^Nagro\b/i, 'Negro') // fixes a V1 data typo ("Nagro 4 Grados")
-  const m = t.match(/^(\p{L}+)(?:\s+(\d+)\s+Grados?)?$/u)
-  if (!m) return null
-  const belt = mapBelt(m[1])
-  const degree = m[2] ? parseInt(m[2], 10) : 0
-  return { belt, degree }
-}
-
-function resolveBeltRankId(belts) {
-  if (!belts || belts === 'NULL') return null
-  let parsed
-  try { parsed = JSON.parse(belts) } catch { return null }
-  if (Array.isArray(parsed)) return parsed.length ? String(parsed[0]) : null
-  if (parsed && typeof parsed === 'object') {
-    if (parsed['18'] != null) return String(parsed['18'])
-    const first = Object.values(parsed)[0]
-    return first != null ? String(first) : null
-  }
-  return null
-}
-
-function nullIfEmpty(v) {
-  if (!v || v === 'NULL' || v.trim() === '') return null
-  return v.trim()
 }
 
 async function main() {
@@ -176,8 +100,7 @@ async function main() {
     if (existingMemberUserIds.has(v2UserId)) { alreadyMember++; continue }
 
     const d = c.v1Details
-    const rankId = d ? resolveBeltRankId(d.belts) : null
-    const rank = rankId ? parseBeltRankTitle(beltRankById.get(rankId)) : null
+    const rank = d ? resolveBelt(d.belts, beltRankById) : null
     const belt = rank ? rank.belt : (d ? mapBelt(nullIfEmpty(d.select_belt)) : 'Blanco')
     const beltDegree = rank ? rank.degree : 0
     membersToCreate.push({
