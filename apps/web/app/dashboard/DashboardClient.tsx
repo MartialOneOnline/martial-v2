@@ -919,7 +919,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
       {/* ── Popups ──────────────────────────────────────────────────────────── */}
       {showInvite     && <InviteUserModal   onClose={() => setShowInvite(false)} />}
       {showSend       && <SendModal         onClose={() => setShowSend(false)} />}
-      {showQR         && <QRCodeModal       onClose={() => setShowQR(false)} />}
+      {showQR         && <QRCodeModal       schoolName={currentSchool?.schoolName ?? ''} schoolSlug={currentSchool?.schoolSlug ?? ''} onClose={() => setShowQR(false)} />}
       {showEditSchool && <EditSchoolModal   onClose={() => setShowEditSchool(false)} />}
       {showAIMessages && <AIMessagesModal   onClose={() => setShowAIMessages(false)} />}
       {selectedClass  && (
