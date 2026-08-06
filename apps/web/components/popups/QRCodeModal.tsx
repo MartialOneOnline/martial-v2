@@ -3,11 +3,12 @@
 import { X, Download, Share2, QrCode } from 'lucide-react'
 
 interface Props {
-  schoolName?: string
+  schoolName: string
+  schoolSlug: string
   onClose: () => void
 }
 
-export default function QRCodeModal({ schoolName = 'Roger Gracie Malaga', onClose }: Props) {
+export default function QRCodeModal({ schoolName, schoolSlug, onClose }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
       <div className="w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden" style={{ background: '#fff' }}>
@@ -63,7 +64,7 @@ export default function QRCodeModal({ schoolName = 'Roger Gracie Malaga', onClos
 
           <div className="text-center">
             <p style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{schoolName}</p>
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>martial.app/school/roger-gracie-malaga</p>
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>martial.app/school/{schoolSlug}</p>
           </div>
 
           <p style={{ fontSize: 12, color: '#6B7280', textAlign: 'center', lineHeight: 1.5, maxWidth: 260 }}>

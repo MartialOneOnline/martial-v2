@@ -54,7 +54,7 @@ function getPaginationPages(current: number, total: number): (number | '...')[] 
 }
 
 function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+  return new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Europe/Madrid' })
 }
 
 export default function RegistrationsClient() {

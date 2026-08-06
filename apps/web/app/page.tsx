@@ -6,7 +6,6 @@ import LoginModal        from '../components/LoginModal'
 import Header            from '../components/Header'
 import HeroSection       from '../components/HeroSection'
 import HomeSearch        from '../components/HomeSearch'
-import HomeThreeValues   from '../components/HomeThreeValues'
 import HomeDiscovery     from '../components/HomeDiscovery'
 import MembersAndAcademies from '../components/MembersAndAcademies'
 import HomeCamps         from '../components/HomeCamps'
@@ -44,25 +43,22 @@ function HomeContent() {
       {/* 2. Search block — overlaps hero bottom */}
       <HomeSearch />
 
-      {/* 3. Discover / Book / Grow */}
-      <HomeThreeValues />
-
-      {/* 4. Academies near you (For Students) */}
+      {/* 3. Academies near you (For Students) */}
       <HomeDiscovery />
 
-      {/* 5. For Schools */}
+      {/* 4. For Schools */}
       <MembersAndAcademies />
 
-      {/* 6. Camps & Marketplace */}
+      {/* 5. Camps & Marketplace */}
       <HomeCamps />
 
-      {/* 7. Partners */}
+      {/* 6. Partners */}
       <PartnersSection />
 
-      {/* 8. App Download */}
+      {/* 7. App Download */}
       <AppDownloadBanner />
 
-      {/* 9. Footer */}
+      {/* 8. Footer */}
       <Footer />
 
     </div>

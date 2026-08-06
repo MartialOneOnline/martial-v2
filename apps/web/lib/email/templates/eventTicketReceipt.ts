@@ -240,7 +240,7 @@ export function buildEventTicketConfirmationEmail({
     { label: t.labels.ticket,   value: ticketName },
     { label: t.labels.quantity, value: String(quantity) },
     { label: t.labels.amount,   value: fmtAmount(amount, currency) },
-    { label: t.labels.date,     value: startAt.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' }) },
+    { label: t.labels.date,     value: startAt.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Madrid' }) },
     ...(location ? [{ label: t.labels.location, value: location }] : []),
     { label: t.labels.ref,      value: bookingId.slice(-8).toUpperCase() },
   ]

@@ -47,7 +47,7 @@ export async function generateMetadata(
   const event = await getEvent(slug, eventSlug)
   if (!event) return { title: 'Event not found' }
 
-  const dateLabel = event.startAt.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+  const dateLabel = event.startAt.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Madrid' })
   const title = `${event.title} — ${event.school.name}`
   const description = event.description
     ?? `${dateLabel}${event.location ? ` · ${event.location}` : ''} — hosted by ${event.school.name}.`
@@ -99,8 +99,8 @@ export default async function EventProfile(
   }
 
   const minPrice = event.tickets.length > 0 ? Math.min(...event.tickets.map(t => t.price)) : null
-  const dateLabel = event.startAt.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
-  const timeLabel = event.startAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+  const dateLabel = event.startAt.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Madrid' })
+  const timeLabel = event.startAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' })
   const redirectPath = `/school/${slug}/events/${eventSlug}`
   const mapQuery = event.location || event.school.address || event.school.city || ''
   const remaining = event.showCapacity && event.capacity != null ? Math.max(0, event.capacity - eventForCta.booked) : null
