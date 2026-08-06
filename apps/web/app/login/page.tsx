@@ -177,6 +177,14 @@ function LoginPageInner() {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session && oauthCallback.active) {
+        // handleLogin sends this for password logins — OAuth never went
+        // through that path, so it needs its own login-event. The route
+        // dedupes server-side, so this can't double up with it either.
+        fetch('/api/auth/login-event', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${session.access_token}` },
+          keepalive: true,
+        }).catch(() => {})
         resolveRedirect()
       }
     })
