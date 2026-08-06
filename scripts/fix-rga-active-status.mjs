@@ -176,7 +176,9 @@ async function main() {
   console.log(`Skipped — notes cite a V1 id absent from this export: ${skippedV1IdMissing}`)
   console.log(`\nAlready correct — ACTIVE: ${alreadyCorrectActive} | ARCHIVED: ${alreadyCorrectArchived}`)
   console.log(`Updates queued: ${toUpdate.length} (-> ACTIVE: ${toUpdate.filter(u => u.to === 'ACTIVE').length}, -> ARCHIVED: ${toUpdate.filter(u => u.to === 'ARCHIVED').length})`)
-  console.log(`\nFinal state after this run — ACTIVE: ${willBeActive} | ARCHIVED: ${willBeArchived}`)
+  // Scoped to the matched population above — excludes the 2 non-STUDENT and
+  // the unmatched members, which keep whatever status they already had.
+  console.log(`\nFinal state among matched V1 students — ACTIVE: ${willBeActive} | ARCHIVED: ${willBeArchived}`)
 
   const noMatchAtAll = [...activeV1Ids].filter(id => !matchedV1IdsAnyRole.has(id))
   const matchedOnlyToNonStudent = [...activeV1Ids].filter(id => matchedV1IdsAnyRole.has(id) && !matchedV1IdsStudent.has(id))
