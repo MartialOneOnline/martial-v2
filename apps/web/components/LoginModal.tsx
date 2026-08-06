@@ -92,6 +92,22 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
   const [resetSent, setResetSent]     = useState(false)
   const [oauthLoading, setOauthLoading] = useState<OAuthProvider | null>(null)
 
+  // @supabase/ssr's browser client hardcodes flowType: 'pkce' (not
+  // overridable), so an OAuth round trip returns here as `?code=...` in the
+  // query string, not `#access_token=` in the hash — that's implicit flow,
+  // which never happens for these buttons. The SDK exchanges the code and
+  // strips it from the URL asynchronously as part of its own init, racing
+  // this component's effects, so the signal has to be captured synchronously
+  // on first render, before that happens.
+  const [oauthCallback] = useState(() => {
+    if (typeof window === 'undefined') return { active: false, error: null as string | null }
+    const params = new URLSearchParams(window.location.search)
+    return {
+      active: params.has('code'),
+      error: params.get('error_description') || params.get('error'),
+    }
+  })
+
   const resolveRedirect = async () => {
     try {
       // If an explicit redirect was requested (e.g. from /admin), honour it —
@@ -150,13 +166,11 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
     }
   }
 
-  // Supabase's OAuth flow returns here with the session in the URL hash
-  // (implicit flow — same pattern as app/login/page.tsx). Gated on the hash
-  // so this never double-fires alongside handleLogin's own resolveRedirect()
-  // call for password logins, which never touch the hash.
+  // Gated on oauthCallback.active (captured above) so this never double-fires
+  // alongside handleLogin's own resolveRedirect() call for password logins.
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session && window.location.hash.includes('access_token')) {
+      if (event === 'SIGNED_IN' && session && oauthCallback.active) {
         onClose()
         resolveRedirect()
       }
@@ -165,15 +179,17 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Same hash-based error surfacing as app/login/page.tsx — see that file's
-  // comment for why this is needed (OAuth round trip can succeed while
-  // sign-in itself is rejected, e.g. identity-linking conflicts).
+  // OAuth round trip can succeed while sign-in itself is rejected (e.g.
+  // identity-linking conflicts) — surface that instead of silently dumping
+  // the user back on a blank form.
   useEffect(() => {
-    if (!window.location.hash.includes('error=')) return
-    const params = new URLSearchParams(window.location.hash.slice(1))
-    const description = params.get('error_description')
-    setError(description ? description.replace(/\+/g, ' ') : 'Sign-in failed. Please try again.')
-    window.history.replaceState(null, '', window.location.pathname + window.location.search)
+    if (!oauthCallback.error) return
+    setError(oauthCallback.error.replace(/\+/g, ' '))
+    const url = new URL(window.location.href)
+    url.searchParams.delete('error')
+    url.searchParams.delete('error_description')
+    url.searchParams.delete('error_code')
+    window.history.replaceState(null, '', url.pathname + url.search)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

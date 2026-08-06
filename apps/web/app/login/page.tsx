@@ -103,6 +103,22 @@ function LoginPageInner() {
   const [resetSent, setResetSent] = useState(false)
   const [oauthLoading, setOauthLoading] = useState<OAuthProvider | null>(null)
 
+  // @supabase/ssr's browser client hardcodes flowType: 'pkce' (not
+  // overridable), so an OAuth round trip returns here as `?code=...` in the
+  // query string, not `#access_token=` in the hash — that's implicit flow,
+  // which never happens for these buttons. The SDK exchanges the code and
+  // strips it from the URL asynchronously as part of its own init, racing
+  // this component's effects, so the signal has to be captured synchronously
+  // on first render, before that happens.
+  const [oauthCallback] = useState(() => {
+    if (typeof window === 'undefined') return { active: false, error: null as string | null }
+    const params = new URLSearchParams(window.location.search)
+    return {
+      active: params.has('code'),
+      error: params.get('error_description') || params.get('error'),
+    }
+  })
+
   const resolveRedirect = async () => {
     try {
       if (redirectTo) {
@@ -156,14 +172,11 @@ function LoginPageInner() {
     }
   }
 
-  // Supabase's OAuth flow returns here with the session in the URL hash
-  // (implicit flow — same pattern as auth/set-password's Google button and
-  // auth/accept-invite). Gated on the hash so this never double-fires
-  // alongside handleLogin's own resolveRedirect() call for password logins,
-  // which never touch the hash.
+  // Gated on oauthCallback.active (captured above) so this never double-fires
+  // alongside handleLogin's own resolveRedirect() call for password logins.
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session && window.location.hash.includes('access_token')) {
+      if (event === 'SIGNED_IN' && session && oauthCallback.active) {
         resolveRedirect()
       }
     })
@@ -171,17 +184,19 @@ function LoginPageInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Supabase also returns here with `#error=...&error_description=...` when
-  // the OAuth round trip itself succeeded but sign-in was rejected (e.g. this
-  // email already has an account under a different provider and manual
-  // identity linking is off). Without this, that case silently dumps the
-  // user back on a blank login form with no explanation.
+  // Supabase can return `?error=...&error_description=...` when the OAuth
+  // round trip itself succeeded but sign-in was rejected (e.g. this email
+  // already has an account under a different provider and manual identity
+  // linking is off). Without this, that case silently dumps the user back on
+  // a blank login form with no explanation.
   useEffect(() => {
-    if (!window.location.hash.includes('error=')) return
-    const params = new URLSearchParams(window.location.hash.slice(1))
-    const description = params.get('error_description')
-    setError(description ? description.replace(/\+/g, ' ') : 'Sign-in failed. Please try again.')
-    window.history.replaceState(null, '', window.location.pathname + window.location.search)
+    if (!oauthCallback.error) return
+    setError(oauthCallback.error.replace(/\+/g, ' '))
+    const url = new URL(window.location.href)
+    url.searchParams.delete('error')
+    url.searchParams.delete('error_description')
+    url.searchParams.delete('error_code')
+    window.history.replaceState(null, '', url.pathname + url.search)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
