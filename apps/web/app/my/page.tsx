@@ -104,7 +104,9 @@ function fmtTime(iso: string) {
   return new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
 }
 function daysUntil(iso: string) {
-  return Math.ceil((new Date(iso).getTime() - Date.now()) / 86400000)
+  const today = new Date(); today.setHours(0, 0, 0, 0)
+  const day = new Date(iso); day.setHours(0, 0, 0, 0)
+  return Math.round((day.getTime() - today.getTime()) / 86400000)
 }
 function fmtDateShortFn(iso: string, todayLabel: string, tomorrowLabel: string) {
   const d = new Date(iso)
