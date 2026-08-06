@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 import {
   Menu, Search, Download, Check, Clock, XCircle, CheckCircle2, RefreshCw,
-  ChevronLeft, ChevronRight, Mail, MessageCircle, LayoutList,
+  ChevronLeft, ChevronRight, Mail, MessageCircle, LayoutList, UserPlus, X,
 } from 'lucide-react'
 import { useDashboard } from '../../../../../components/DashboardShell'
 import { adminFetch } from '../../../../../lib/api/adminFetch'
@@ -34,7 +34,8 @@ interface RegistrationRow {
 
 interface StatusCounts { PENDING: number; CONFIRMED: number; CANCELLED: number; COMPLETED: number; NO_SHOW: number }
 
-interface EventOption { id: string; title: string; startAt: string }
+interface EventTicketOption { id: string; name: string; price: number; currency: string }
+interface EventOption { id: string; title: string; startAt: string; tickets: EventTicketOption[] }
 
 const STATUS_MAP: Record<RegStatus, { bg: string; color: string; border: string; icon: React.ElementType; label: string }> = {
   PENDING:   { bg: '#FFFBEB', color: '#D97706', border: '#FDE68A', icon: Clock,        label: 'Pending'   },
@@ -72,10 +73,14 @@ export default function RegistrationsClient() {
   const [activeFilter, setActiveFilter] = useState<FilterTab>('ALL')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
+  const [showAddModal, setShowAddModal] = useState(false)
 
   useEffect(() => {
     adminFetch('/api/dashboard/events').then(r => r.json()).then(d =>
-      setEvents((d.events ?? []).map((e: { id: string; title: string; startAt: string }) => ({ id: e.id, title: e.title, startAt: e.startAt })))
+      setEvents((d.events ?? []).map((e: { id: string; title: string; startAt: string; tickets?: { id: string; name: string; price: number; currency: string }[] }) => ({
+        id: e.id, title: e.title, startAt: e.startAt,
+        tickets: (e.tickets ?? []).map(t => ({ id: t.id, name: t.name, price: t.price, currency: t.currency })),
+      })))
     )
   }, [])
 
@@ -171,6 +176,10 @@ export default function RegistrationsClient() {
             style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
         </div>
         <div className="flex-1" />
+        <button onClick={() => setShowAddModal(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
+          style={{ background: '#0870E2', border: '1px solid #0870E2', color: '#fff', fontSize: 13, fontWeight: 600 }}>
+          <UserPlus size={14} /> <span className="hidden sm:inline">Add Registration</span>
+        </button>
         <button onClick={handleExport} className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
           style={{ background: '#fff', border: '1px solid #E5E7EB', color: '#374151', fontSize: 13, fontWeight: 500 }}>
           <Download size={14} /> Export
@@ -262,7 +271,7 @@ export default function RegistrationsClient() {
               ) : registrations.map((r, idx) => {
                 const sc = STATUS_MAP[r.status] ?? STATUS_MAP.PENDING
                 const StatusIcon = sc.icon
-                const canConfirm = r.status === 'PENDING' && r.paymentMethod === 'CASH'
+                const canConfirm = r.status === 'PENDING'
                 const canCancel  = r.status === 'PENDING' || r.status === 'CONFIRMED'
                 const canDelete  = r.status === 'CANCELLED'
                 return (
@@ -380,6 +389,165 @@ export default function RegistrationsClient() {
           )}
         </div>
       </div>
+
+      {showAddModal && (
+        <AddRegistrationModal
+          events={events}
+          defaultEventId={eventId}
+          onClose={() => setShowAddModal(false)}
+          onSaved={() => { setShowAddModal(false); load() }}
+        />
+      )}
     </main>
+  )
+}
+
+// ── Add Registration Modal ──────────────────────────────────────────────────
+// Staff-only manual registration for someone who already paid outside the
+// app (in person, bank transfer, before this booking page existed, etc).
+// Creates the booking straight to CONFIRMED — there's no self-service
+// "I already paid" option, since that would let anyone claim a payment they
+// never made; only staff who actually verified it can use this.
+const AM_INP: React.CSSProperties = {
+  width: '100%', border: '1px solid #E5E7EB', borderRadius: 10, padding: '9px 12px',
+  fontSize: 13, color: '#111827', background: '#fff', outline: 'none',
+}
+const AM_LBL: React.CSSProperties = {
+  display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 5,
+}
+
+function AddRegistrationModal({ events, defaultEventId, onClose, onSaved }: {
+  events: EventOption[]
+  defaultEventId: string
+  onClose: () => void
+  onSaved: () => void
+}) {
+  const [eventId, setEventId] = useState(defaultEventId)
+  const [ticketId, setTicketId] = useState('')
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [quantity, setQuantity] = useState('1')
+  const [paymentMethod, setPaymentMethod] = useState('CASH')
+  const [notes, setNotes] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  const selectedEvent = events.find(e => e.id === eventId)
+  const tickets = selectedEvent?.tickets ?? []
+
+  useEffect(() => {
+    if (!tickets.find(t => t.id === ticketId)) setTicketId(tickets[0]?.id ?? '')
+  }, [eventId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function handleSave() {
+    if (!eventId) { setError('Select an event'); return }
+    if (!ticketId) { setError('Select a ticket'); return }
+    if (!email.trim()) { setError('Enter the attendee\'s email'); return }
+    setSaving(true); setError('')
+    const res = await adminFetch(`/api/dashboard/events/${eventId}/bookings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: email.trim(), name: name.trim() || undefined, ticketId,
+        quantity: parseInt(quantity, 10) || 1, paymentMethod, notes: notes.trim() || undefined,
+      }),
+    })
+    setSaving(false)
+    if (!res.ok) { const d = await res.json().catch(() => ({})); setError(d.error ?? 'Error'); return }
+    onSaved()
+  }
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40" style={{ background: 'rgba(0,0,0,0.35)' }} onClick={onClose} />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-md rounded-2xl flex flex-col" style={{ background: '#fff', boxShadow: '0 20px 60px rgba(0,0,0,0.18)', maxHeight: '90vh', overflow: 'hidden' }}>
+
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #F3F4F6', flexShrink: 0 }}>
+            <div>
+              <p style={{ fontSize: 17, fontWeight: 700, color: '#111827', margin: 0 }}>Add Registration</p>
+              <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>Register someone who already paid — confirmed immediately</p>
+            </div>
+            <button onClick={onClose} style={{ background: '#F3F4F6', border: 'none', borderRadius: 8, padding: 6, cursor: 'pointer', display: 'flex' }}>
+              <X size={15} style={{ color: '#6B7280' }} />
+            </button>
+          </div>
+
+          {/* Body */}
+          <div className="overflow-y-auto px-6 py-5 flex flex-col gap-4">
+
+            {/* Event */}
+            <div>
+              <label style={AM_LBL}>Event</label>
+              <select value={eventId} onChange={e => setEventId(e.target.value)} style={AM_INP}>
+                <option value="">Select event…</option>
+                {events.map(ev => <option key={ev.id} value={ev.id}>{ev.title} — {fmtDate(ev.startAt)}</option>)}
+              </select>
+            </div>
+
+            {/* Attendee */}
+            <div className="flex gap-3">
+              <div style={{ flex: 1 }}>
+                <label style={AM_LBL}>Name</label>
+                <input type="text" placeholder="Full name" value={name} onChange={e => setName(e.target.value)} style={AM_INP} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={AM_LBL}>Email</label>
+                <input type="email" placeholder="attendee@email.com" value={email} onChange={e => setEmail(e.target.value)} style={AM_INP} />
+              </div>
+            </div>
+
+            {/* Ticket + Quantity */}
+            <div className="flex gap-3">
+              <div style={{ flex: 2 }}>
+                <label style={AM_LBL}>Ticket</label>
+                <select value={ticketId} onChange={e => setTicketId(e.target.value)} style={AM_INP} disabled={tickets.length === 0}>
+                  <option value="">{tickets.length === 0 ? 'Select an event first' : 'Select ticket…'}</option>
+                  {tickets.map(t => <option key={t.id} value={t.id}>{t.name} — {fmtPrice(t.price, t.currency)}</option>)}
+                </select>
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={AM_LBL}>Quantity</label>
+                <input type="number" min="1" max="10" value={quantity} onChange={e => setQuantity(e.target.value)} style={AM_INP} />
+              </div>
+            </div>
+
+            {/* Payment method */}
+            <div>
+              <label style={AM_LBL}>Paid via</label>
+              <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} style={AM_INP}>
+                <option value="CASH">Cash</option>
+                <option value="REVOLUT">Card (Revolut)</option>
+                <option value="STRIPE">Card (Stripe)</option>
+                <option value="BANK_TRANSFER">Bank transfer</option>
+                <option value="OTHER">Other</option>
+              </select>
+            </div>
+
+            {/* Notes */}
+            <div>
+              <label style={AM_LBL}>Notes (optional)</label>
+              <input type="text" placeholder="e.g. paid in person before this page existed" value={notes}
+                onChange={e => setNotes(e.target.value)} style={AM_INP} />
+            </div>
+
+            {error && <p style={{ fontSize: 12, color: '#DC2626', fontWeight: 500 }}>{error}</p>}
+          </div>
+
+          {/* Footer */}
+          <div className="flex gap-3 px-6 py-4" style={{ borderTop: '1px solid #F3F4F6', flexShrink: 0 }}>
+            <button onClick={onClose} style={{ flex: 1, padding: '10px', borderRadius: 10, border: '1px solid #E5E7EB',
+              background: '#fff', fontSize: 13, fontWeight: 500, color: '#374151', cursor: 'pointer' }}>
+              Cancel
+            </button>
+            <button onClick={handleSave} disabled={saving} style={{ flex: 2, padding: '10px', borderRadius: 10, border: 'none',
+              background: '#0870E2', fontSize: 13, fontWeight: 600, color: '#fff', cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.7 : 1 }}>
+              {saving ? 'Saving…' : 'Confirm & Register'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
   )
 }

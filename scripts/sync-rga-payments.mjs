@@ -65,13 +65,9 @@ function mapCurrency(code) {
   return 'EUR'
 }
 
-function mapMembershipStatus(v1Status, expiresAt) {
+function mapMembershipStatus(v1Status) {
   const s = String(v1Status)
   if (s === '3' || s === '4') return 'CANCELLED'
-  // V1 bookings are per-period records; a booking whose period already ended
-  // means the student hasn't renewed, regardless of the V1 status code.
-  const end = parseDate(expiresAt)
-  if (end && new Date(end) < new Date()) return 'EXPIRED'
   return 'ACTIVE'
 }
 
@@ -173,7 +169,7 @@ async function main() {
       price: parseFloat(booking.price) || 0,
       currency: 'EUR',
       paymentMethod: mapMethod(booking.method),
-      status: mapMembershipStatus(booking.status, booking.expires_at),
+      status: mapMembershipStatus(booking.status),
       startDate,
       endDate: parseDate(booking.expires_at),
       classesUsed: 0,
