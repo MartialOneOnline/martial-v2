@@ -182,7 +182,11 @@ async function main() {
 
   const noMatchAtAll = [...activeV1Ids].filter(id => !matchedV1IdsAnyRole.has(id))
   const matchedOnlyToNonStudent = [...activeV1Ids].filter(id => matchedV1IdsAnyRole.has(id) && !matchedV1IdsStudent.has(id))
-  console.log(`V1-active students with no matching V2 account at all: ${noMatchAtAll.length}${noMatchAtAll.length ? ` (V1 ids: ${noMatchAtAll.join(', ')})` : ''}`)
+  // Note: "no unambiguous match" is not the same as "no V2 account exists" —
+  // a V2 User with the same email may well exist but be excluded from
+  // v1IdByEmail because that email is shared by more than one V1 id (see
+  // buildEmailFallbackMap), so it can't be safely attributed to this id.
+  console.log(`V1-active students with no unambiguous V2 match: ${noMatchAtAll.length}${noMatchAtAll.length ? ` (V1 ids: ${noMatchAtAll.join(', ')})` : ''}`)
   console.log(`V1-active students matched only to a non-STUDENT V2 account (correctly excluded): ${matchedOnlyToNonStudent.length}${matchedOnlyToNonStudent.length ? ` (V1 ids: ${matchedOnlyToNonStudent.join(', ')})` : ''}`)
 
   if (!LIVE) {
