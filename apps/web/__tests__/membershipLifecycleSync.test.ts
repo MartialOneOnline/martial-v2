@@ -107,6 +107,30 @@ describe('syncSchoolMemberStatusForMembership', () => {
     expect(updateMany).not.toHaveBeenCalled()
   })
 
+  it('EXPIRED -> SchoolMember INACTIVE when no other ACTIVE membership exists', async () => {
+    const membershipFindFirst = vi.fn().mockResolvedValue(null)
+    const updateMany = vi.fn().mockResolvedValue({ count: 1 })
+    const tx = fakeTx({ membershipFindFirst, schoolMemberUpdateMany: updateMany })
+
+    await syncSchoolMemberStatusForMembership(tx, {
+      userId: 'u1', schoolId: 's1', membershipStatus: MembershipStatus.EXPIRED, excludeMembershipId: 'm-1',
+    })
+
+    expect(updateMany).toHaveBeenCalledWith(expect.objectContaining({ data: { status: 'INACTIVE' } }))
+  })
+
+  it('EXPIRED does NOT set INACTIVE when another ACTIVE membership covers the same user+school', async () => {
+    const membershipFindFirst = vi.fn().mockResolvedValue({ id: 'm-2' })
+    const updateMany = vi.fn()
+    const tx = fakeTx({ membershipFindFirst, schoolMemberUpdateMany: updateMany })
+
+    await syncSchoolMemberStatusForMembership(tx, {
+      userId: 'u1', schoolId: 's1', membershipStatus: MembershipStatus.EXPIRED, excludeMembershipId: 'm-1',
+    })
+
+    expect(updateMany).not.toHaveBeenCalled()
+  })
+
   it('no-ops for statuses with no defined SchoolMember projection (e.g. PENDING)', async () => {
     const updateMany = vi.fn()
     const tx = fakeTx({ schoolMemberUpdateMany: updateMany })

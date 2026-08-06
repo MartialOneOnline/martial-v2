@@ -25,6 +25,13 @@ export interface AssignPlanInput {
   stripeSubId?:   string
   /** If this is a renewal, pass the previous membership id */
   renewedFromId?: string
+  /**
+   * Manual end-date override — only honored when paymentMethod is CASH.
+   * Stripe/Revolut-driven dates must always match the provider's billing
+   * state, so the override is silently ignored for any other method
+   * (server-side guard, independent of what the UI sends).
+   */
+  endDateOverride?: Date | null
 }
 
 export interface CancelMembershipInput {
@@ -107,13 +114,13 @@ export async function isSchoolMemberArchived(
 /**
  * Projects a Membership status onto the linked SchoolMember record,
  * conservatively:
- *   ACTIVE    -> SchoolMember ACTIVE
- *   PAUSED    -> SchoolMember FROZEN
- *   CANCELLED -> SchoolMember INACTIVE, but only if the user has no other
- *                ACTIVE membership at this school — a second plan/bono
- *                shouldn't lose the student their access because a
- *                different one ended.
- *   anything else (PENDING/EXPIRED) -> no defined projection, left as-is.
+ *   ACTIVE              -> SchoolMember ACTIVE
+ *   PAUSED               -> SchoolMember FROZEN
+ *   CANCELLED / EXPIRED -> SchoolMember INACTIVE, but only if the user has
+ *                no other ACTIVE membership at this school — a second
+ *                plan/bono shouldn't lose the student their access because
+ *                a different one ended or lapsed.
+ *   anything else (PENDING) -> no defined projection, left as-is.
  *
  * ARCHIVED is never touched or reactivated by this function — a staff
  * member archived this person for a reason, and a subscription lifecycle
@@ -133,7 +140,7 @@ export async function syncSchoolMemberStatusForMembership(
     targetStatus = 'ACTIVE'
   } else if (membershipStatus === MembershipStatus.PAUSED) {
     targetStatus = 'FROZEN'
-  } else if (membershipStatus === MembershipStatus.CANCELLED) {
+  } else if (membershipStatus === MembershipStatus.CANCELLED || membershipStatus === MembershipStatus.EXPIRED) {
     if (await hasOtherActiveMembership(tx, { userId, schoolId, excludeMembershipId })) return
     targetStatus = 'INACTIVE'
   } else {
@@ -255,7 +262,9 @@ export async function assignPlan(input: AssignPlanInput) {
   })
   if (!plan) throw new Error('Plan not found or inactive')
 
-  const endDate = computeEndDate(plan.planType, plan.billingCycle, plan.validityDays, start)
+  const endDate = (paymentMethod === PaymentMethod.CASH && input.endDateOverride)
+    ? input.endDateOverride
+    : computeEndDate(plan.planType, plan.billingCycle, plan.validityDays, start)
 
   // 3–6. All in one transaction
   const [membership] = await prisma.$transaction(async (tx) => {
@@ -418,11 +427,38 @@ export async function cancelMembership(input: CancelMembershipInput) {
 }
 
 /**
+ * Transitions one lapsed ACTIVE membership (endDate already in the past) to
+ * its terminal status and syncs the linked SchoolMember, inside a single
+ * transaction. Shared by the lazy per-membership check and the bulk cron
+ * sweep so both apply the exact same rule:
+ *   - cancelledAt set   -> CANCELLED (the "Netflix" cancel-at-period-end case)
+ *   - cancelledAt unset -> EXPIRED   (nobody renewed it in time)
+ */
+async function expireOneMembership(membership: {
+  id: string; userId: string; schoolId: string; cancelledAt: Date | null
+}) {
+  const newStatus = membership.cancelledAt ? MembershipStatus.CANCELLED : MembershipStatus.EXPIRED
+
+  await prisma.$transaction(async (tx) => {
+    await tx.membership.update({
+      where: { id: membership.id },
+      data: { status: newStatus },
+    })
+    await syncSchoolMemberStatusForMembership(tx, {
+      userId: membership.userId, schoolId: membership.schoolId, membershipStatus: newStatus, excludeMembershipId: membership.id,
+    })
+  })
+
+  return newStatus
+}
+
+/**
  * Lazy expiration check — call at any access-verification point.
  *
- * If the membership has cancelledAt set and its endDate has passed,
- * transitions it to CANCELLED and marks SchoolMember INACTIVE.
- * Returns true if the membership is expired (no longer has access).
+ * If the membership is ACTIVE and its endDate has passed, transitions it to
+ * CANCELLED (if the student had already requested cancellation) or EXPIRED
+ * (if it simply lapsed without ever being cancelled), and syncs SchoolMember
+ * accordingly. Returns true if the membership no longer grants access.
  */
 export async function checkAndExpireMembership(membershipId: string): Promise<boolean> {
   const membership = await prisma.membership.findUnique({
@@ -430,21 +466,37 @@ export async function checkAndExpireMembership(membershipId: string): Promise<bo
     select: { id: true, userId: true, schoolId: true, status: true, cancelledAt: true, endDate: true },
   })
   if (!membership) return true
-  if (membership.status === MembershipStatus.CANCELLED) return true
-  if (!membership.cancelledAt || !membership.endDate) return false
-  if (membership.endDate > new Date()) return false
+  if (membership.status === MembershipStatus.CANCELLED || membership.status === MembershipStatus.EXPIRED) return true
+  if (membership.status !== MembershipStatus.ACTIVE) return false // PENDING/PAUSED — nothing to expire here
+  if (!membership.endDate || membership.endDate > new Date()) return false
 
-  await prisma.$transaction(async (tx) => {
-    await tx.membership.update({
-      where: { id: membershipId },
-      data: { status: MembershipStatus.CANCELLED },
-    })
-    await syncSchoolMemberStatusForMembership(tx, {
-      userId: membership.userId, schoolId: membership.schoolId, membershipStatus: MembershipStatus.CANCELLED, excludeMembershipId: membershipId,
-    })
+  await expireOneMembership(membership)
+  return true
+}
+
+/**
+ * Bulk sweep for the daily cron job (see app/api/cron/expire-memberships):
+ * finds every ACTIVE membership whose endDate has passed and expires it,
+ * one at a time so each gets its own transaction and SchoolMember sync.
+ * Nothing else in the codebase runs this periodically — without it,
+ * lapsed-but-never-cancelled memberships stay ACTIVE (and inflate the
+ * "active members" KPIs) forever.
+ */
+export async function expireLapsedMemberships(): Promise<{ expiredCount: number; cancelledCount: number }> {
+  const lapsed = await prisma.membership.findMany({
+    where: { status: MembershipStatus.ACTIVE, endDate: { lt: new Date() } },
+    select: { id: true, userId: true, schoolId: true, cancelledAt: true },
   })
 
-  return true
+  let expiredCount = 0
+  let cancelledCount = 0
+  for (const membership of lapsed) {
+    const status = await expireOneMembership(membership)
+    if (status === MembershipStatus.EXPIRED) expiredCount++
+    else cancelledCount++
+  }
+
+  return { expiredCount, cancelledCount }
 }
 
 /**

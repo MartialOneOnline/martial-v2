@@ -508,6 +508,8 @@ function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
   const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [endDateOverride, setEndDateOverride] = useState('')
+  const [endDateTouched, setEndDateTouched] = useState(false)
 
   const selected = plans.find(p => p.id === planId)
   const sym = (c: string) => c === 'EUR' ? '€' : c === 'USD' ? '$' : c === 'GBP' ? '£' : c
@@ -535,6 +537,13 @@ function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
     return null
   })()
 
+  // Cash payments can override the computed end date — keep the override
+  // field following the computed default until the admin manually edits it.
+  useEffect(() => {
+    if (endDateTouched) return
+    setEndDateOverride(previewEndDate ? previewEndDate.toISOString().substring(0, 10) : '')
+  }, [planId, startDate, endDateTouched]) // eslint-disable-line react-hooks/exhaustive-deps
+
   async function save() {
     if (!planId) { setError('Select a plan'); return }
     setSaving(true); setError('')
@@ -542,7 +551,10 @@ function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
       const res = await fetch(`/api/dashboard/members/${memberId}/membership`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planId, startDate, paymentMethod, notes: notes.trim() || undefined }),
+        body: JSON.stringify({
+          planId, startDate, paymentMethod, notes: notes.trim() || undefined,
+          ...(paymentMethod === 'CASH' && endDateOverride ? { endDate: endDateOverride } : {}),
+        }),
       })
       if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? 'Error'); }
       const data = await res.json()
@@ -619,7 +631,18 @@ function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
             </div>
           </div>
 
-          {previewEndDate && (
+          {previewEndDate && paymentMethod === 'CASH' && (
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>
+                {selected?.planType === 'SUBSCRIPTION' ? 'Next renewal' : 'Expires'}
+              </label>
+              <input type="date" value={endDateOverride}
+                onChange={e => { setEndDateOverride(e.target.value); setEndDateTouched(true) }}
+                style={{ width: '100%', padding: '8px 12px', fontSize: 13, border: '1px solid #E5E7EB', borderRadius: 8, outline: 'none' }} />
+            </div>
+          )}
+
+          {previewEndDate && paymentMethod !== 'CASH' && (
             <p style={{ fontSize: 12, color: '#6B7280', background: '#F9FAFB', padding: '8px 12px', borderRadius: 8, margin: 0 }}>
               {selected?.planType === 'SUBSCRIPTION' ? 'Next renewal' : 'Expires'} on:{' '}
               <strong>{previewEndDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</strong>

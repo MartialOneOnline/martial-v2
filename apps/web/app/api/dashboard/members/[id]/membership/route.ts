@@ -32,7 +32,7 @@ export async function POST(
 
   const { id } = await params
   const body = await req.json()
-  const { planId, startDate, paymentMethod, notes } = body
+  const { planId, startDate, paymentMethod, notes, endDate } = body
 
   if (!planId) return NextResponse.json({ error: 'planId is required' }, { status: 400 })
 
@@ -44,6 +44,7 @@ export async function POST(
       startDate: startDate ? new Date(startDate) : undefined,
       paymentMethod: paymentMethod as PaymentMethod | undefined,
       notes,
+      endDateOverride: endDate ? new Date(endDate) : undefined,
     })
     return NextResponse.json(membership, { status: 201 })
   } catch (e: unknown) {
