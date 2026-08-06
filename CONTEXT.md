@@ -270,7 +270,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión 76 — 2026-08-06 ⏳ PENDIENTE DE AUDITORÍA Codex (rama `worktree-rga-belts-scope`, sin mergear)
+### Sesión 76 — 2026-08-06 ✅ `APROBADO CON PENDIENTES` por Codex Project Audit sobre `f530075` (mergeado a `main`)
 
 **Reduce el alcance del commit `463056e`** (subido directamente a `main` fuera del protocolo de este documento — hallazgo propio de esta sesión, corregido aquí) **a solo cinturones RGA**; las caducidades de membresía vuelven a ser responsabilidad exclusiva del cron `/api/cron/expire-memberships` (`d97beda`/`7e9adc0`).
 
@@ -285,7 +285,10 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 - `node scripts/fix-rga-belts.mjs --dry-run` contra la base de datos de producción (solo lectura — la rama `DRY_RUN` retorna antes de cualquier `.update`): 41 `school_members` de RGA examinados (los únicos con `notes: 'v1_student:*'`; los otros 684 alumnos de RGA vienen de un import anterior sin este bug), 0 actualizaciones necesarias (ya se habían aplicado en vivo con el script anterior antes de este lote), 0 sin `v1_details`, 22 sin rango resoluble (sin dato de cinturón en el CSV V1, se quedan en el default Blanco/0). **Confirmado: cero escrituras en producción durante este lote** — todas las llamadas a Supabase en el dry-run fueron `.select()`.
 - Los tres archivos del commit OAuth `c9e9601` (`apps/web/app/login/page.tsx`, `apps/web/components/LoginModal.tsx`, `apps/web/lib/auth/server.ts`) confirmados intactos (`git diff c9e9601 -- <esos 3 archivos>` vacío).
 - Trabajo hecho en worktree aislado (`EnterWorktree`, rama `worktree-rga-belts-scope`) sobre `main` (que ya incluye `463056e` y `c9e9601`), sin tocar el checkout principal.
-- **Pendiente:** auditoría de Codex Project Audit sobre este diff antes de mergear a `main`. La lista de activos real de V1 para reconciliar `Membership.status`/`SchoolMember.status` sigue pendiente de que el usuario la entregue (fuera de alcance de este lote).
+
+**Veredicto Codex Project Audit sobre `f530075`: `APROBADO CON PENDIENTES`.** Confirmó independientemente: reparador combinado eliminado; `fix-rga-belts.mjs` solo consulta `school_members` y únicamente puede actualizar `belt`/`beltDegree`/`updatedAt`, sin tocar membresías ni `SchoolMember.status`; `sync-rga-payments.mjs` idéntico a su versión previa a `463056e`; los 3 archivos OAuth intactos; parser, IDs numérico/string, colores, grados y typo `Nagro` cubiertos; 22/22 tests dirigidos; suite web 739 passing/1 todo; type-check, sintaxis y `git diff --check` correctos; worktree limpio y commit aislado. Indicó explícitamente que no hace falta re-ejecutar el reparador en vivo porque el dry-run ya devolvió cero actualizaciones pendientes.
+
+**Único pendiente (fuera de alcance de este lote, señalado por Codex):** `463056e` ya había modificado en producción 291 memberships y 290 `SchoolMember` a inactivos antes de esta corrección. `f530075` evita que se repita el error en futuros syncs, pero **no restaura esos registros** — esa reconciliación queda pendiente de la lista real de alumnos activos en V1 que el usuario va a exportar (ver conversación); mientras tanto el cron `/api/cron/expire-memberships` sigue gestionando únicamente caducidades futuras, sin reactivar automáticamente lo ya marcado inactivo.
 
 ### Sesión 75 — 2026-07-21 ✅ (rama `feature/getting-started-checklist`, `APROBADO CON PENDIENTES` por Codex Project Audit en `e29e496`)
 **Cierre de hallazgos verificables de la auditoría `/my` + reserva + registro.** El informe externo confirmó que la auditoría global aún no puede declararse completa: `/my` está revisado con endpoints/tests reales pero sin sesión autenticada end-to-end; el fix público de RGM funciona en desktop y móvil (viewport móvil ya verificado en el delta de `e29e496`), aunque faltan la rama trial real y la reserva autenticada; el embudo de registro no se recorrió con correo real.
