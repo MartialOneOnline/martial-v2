@@ -1,0 +1,206 @@
+/**
+ * Sync Roger Gracie Malaga payments from a fresh V1 export into V2.
+ * 1) Inserts a Transaction for every subscription_bookings row not already
+ *    imported (idempotent via notes: 'v1_booking:<id>', same marker as the
+ *    original scripts/import-v1-transactions.js).
+ * 2) Creates a Membership for any user who has none yet, from their latest
+ *    booking (same behaviour as scripts/create-missing-v1-memberships.js).
+ * Safe to re-run.
+ *
+ * Usage:
+ *   node scripts/sync-rga-payments.mjs --dry-run
+ *   node scripts/sync-rga-payments.mjs
+ */
+import { createClient } from '@supabase/supabase-js'
+import fs from 'fs'
+import path from 'path'
+
+const DRY_RUN = process.argv.includes('--dry-run')
+
+const envPath = path.resolve(process.cwd(), 'apps/web/.env.local')
+const env = Object.fromEntries(
+  fs.readFileSync(envPath, 'utf8').split('\n')
+    .filter(l => l.includes('='))
+    .map(l => { const i = l.indexOf('='); return [l.slice(0, i), l.slice(i + 1).replace(/^"|"$/g, '')] })
+)
+const db = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SECRET_KEY)
+const SCHOOL_ID = 'cmq6k2n5t0000x4o0rcvlmhmv'
+
+function parseCSV(filePath) {
+  const text = fs.readFileSync(filePath, 'utf8')
+  const lines = text.trim().split('\n')
+  const headers = lines[0].replace(/\r/g, '').split(',').map(h => h.replace(/"/g, ''))
+  return lines.slice(1).map(line => {
+    line = line.replace(/\r/g, '')
+    const cols = []; let cur = '', inQ = false
+    for (const ch of line) {
+      if (ch === '"') inQ = !inQ
+      else if (ch === ',' && !inQ) { cols.push(cur); cur = '' }
+      else cur += ch
+    }
+    cols.push(cur)
+    return Object.fromEntries(headers.map((h, i) => [h, cols[i] ?? '']))
+  })
+}
+
+function cuid() {
+  return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10)
+}
+
+function mapMethod(v1Method) {
+  if (!v1Method) return 'CASH'
+  const m = v1Method.toLowerCase()
+  if (m === 'stripe') return 'STRIPE'
+  if (m === 'cash') return 'CASH'
+  if (m === 'gocardless') return 'DIRECT_DEBIT'
+  if (m === 'bank') return 'BANK_TRANSFER'
+  return 'OTHER'
+}
+
+function mapCurrency(code) {
+  if (!code) return 'EUR'
+  if (code.includes('€') || code.toLowerCase() === 'eur') return 'EUR'
+  if (code.includes('£') || code.toLowerCase() === 'gbp') return 'GBP'
+  if (code.includes('$') || code.toLowerCase() === 'usd') return 'USD'
+  return 'EUR'
+}
+
+function mapMembershipStatus(v1Status) {
+  const s = String(v1Status)
+  if (s === '3' || s === '4') return 'CANCELLED'
+  return 'ACTIVE'
+}
+
+function parseDate(val) {
+  return val && val !== 'NULL' && val !== '' ? new Date(val).toISOString() : null
+}
+
+async function main() {
+  console.log(`Mode: ${DRY_RUN ? 'DRY RUN' : 'LIVE'}`)
+
+  const bookings = parseCSV(path.resolve(process.env.HOME, 'Downloads/subscription_bookings (4).csv'))
+  const v1Users  = parseCSV(path.resolve(process.env.HOME, 'Downloads/users (9).csv'))
+  const v1Plans  = parseCSV(path.resolve(process.env.HOME, 'Downloads/subscriptions (2).csv'))
+  console.log(`V1 subscription_bookings rows: ${bookings.length}`)
+
+  const v1UserEmail = Object.fromEntries(v1Users.map(u => [u.id, u.email?.toLowerCase()]))
+  const v1PlanTitle = Object.fromEntries(v1Plans.map(p => [p.id, p.title]))
+
+  // Fetch all V2 users by email (need the ones we just synced too)
+  const emails = [...new Set(Object.values(v1UserEmail).filter(Boolean))]
+  const emailToUserId = {}
+  const CHUNK = 150
+  for (let i = 0; i < emails.length; i += CHUNK) {
+    const { data, error } = await db.schema('public').from('users').select('id,email').in('email', emails.slice(i, i + CHUNK))
+    if (error) { console.error('users fetch error:', error); process.exit(1) }
+    for (const row of data) emailToUserId[row.email.toLowerCase()] = row.id
+  }
+
+  // Existing transactions (dedup)
+  const { data: existingTx, error: txErr } = await db.schema('public').from('transactions')
+    .select('notes').eq('schoolId', SCHOOL_ID).like('notes', 'v1_booking:%')
+  if (txErr) { console.error('tx fetch error:', txErr); process.exit(1) }
+  const importedBookingIds = new Set((existingTx ?? []).map(t => t.notes?.replace('v1_booking:', '').trim()))
+  console.log(`Already-imported V1 booking ids (transactions): ${importedBookingIds.size}`)
+
+  // Existing memberships (dedup — one per user for the gap-fill step)
+  const { data: existingMems, error: memErr } = await db.schema('public').from('memberships').select('userId').eq('schoolId', SCHOOL_ID)
+  if (memErr) { console.error('memberships fetch error:', memErr); process.exit(1) }
+  const hasMembership = new Set((existingMems ?? []).map(m => m.userId))
+  console.log(`Users with an existing membership: ${hasMembership.size}`)
+
+  // ── 1) New transactions ──────────────────────────────────────────────────
+  const txToInsert = []
+  let noUser = 0
+  for (const b of bookings) {
+    if (importedBookingIds.has(b.id)) continue
+    const email = v1UserEmail[b.user_id]
+    const userId = email ? emailToUserId[email] ?? null : null
+    if (!userId) { noUser++; continue }
+
+    const planTitle = v1PlanTitle[b.subscription_id] ?? 'Membresía'
+    const periodStart = parseDate(b.activated_at)
+    const periodEnd = parseDate(b.expires_at)
+    const date = periodStart ?? parseDate(b.created_at) ?? new Date().toISOString()
+    const now = new Date().toISOString()
+
+    txToInsert.push({
+      id: cuid(),
+      schoolId: SCHOOL_ID,
+      userId,
+      type: 'INCOME',
+      category: 'MEMBERSHIP',
+      description: planTitle,
+      amount: parseFloat(b.price) || 0,
+      currency: mapCurrency(b.currency_code),
+      date,
+      status: 'PAID',
+      paymentMethod: mapMethod(b.method),
+      notes: `v1_booking:${b.id}`,
+      periodStart,
+      periodEnd,
+      createdAt: now,
+      updatedAt: now,
+    })
+  }
+  console.log(`\nNew transactions to insert: ${txToInsert.length} | no user match: ${noUser}`)
+
+  // ── 2) Membership gap-fill ───────────────────────────────────────────────
+  const latestByUser = {}
+  for (const b of bookings) {
+    const date = b.activated_at && b.activated_at !== 'NULL' ? b.activated_at : b.created_at
+    const existing = latestByUser[b.user_id]
+    if (!existing || new Date(date) > new Date(existing._date)) latestByUser[b.user_id] = { ...b, _date: date }
+  }
+  const memToInsert = []
+  for (const [v1UserId, booking] of Object.entries(latestByUser)) {
+    const email = v1UserEmail[v1UserId]
+    const userId = email ? emailToUserId[email] ?? null : null
+    if (!userId || hasMembership.has(userId)) continue
+
+    const planTitle = v1PlanTitle[booking.subscription_id] ?? 'Membresía'
+    const startDate = parseDate(booking.activated_at) ?? parseDate(booking.created_at) ?? new Date().toISOString()
+    const now = new Date().toISOString()
+    memToInsert.push({
+      id: cuid(),
+      schoolId: SCHOOL_ID,
+      userId,
+      planName: planTitle,
+      price: parseFloat(booking.price) || 0,
+      currency: 'EUR',
+      paymentMethod: mapMethod(booking.method),
+      status: mapMembershipStatus(booking.status),
+      startDate,
+      endDate: parseDate(booking.expires_at),
+      classesUsed: 0,
+      notes: `v1_booking:${booking.id}`,
+      createdAt: now,
+      updatedAt: now,
+    })
+    hasMembership.add(userId)
+  }
+  console.log(`Memberships to create (gap-fill): ${memToInsert.length}`)
+
+  if (DRY_RUN) {
+    console.log('\nSample new transactions:', txToInsert.slice(0, 3))
+    console.log('\nSample new memberships:', memToInsert.slice(0, 3))
+    return
+  }
+
+  const CH = 100
+  for (let i = 0; i < txToInsert.length; i += CH) {
+    const { error } = await db.schema('public').from('transactions').insert(txToInsert.slice(i, i + CH))
+    if (error) { console.error('transaction insert error:', error); process.exit(1) }
+    process.stdout.write(`\rInserted transactions: ${Math.min(i + CH, txToInsert.length)}/${txToInsert.length}`)
+  }
+  console.log()
+
+  for (let i = 0; i < memToInsert.length; i += CH) {
+    const { error } = await db.schema('public').from('memberships').insert(memToInsert.slice(i, i + CH))
+    if (error) { console.error('membership insert error:', error); process.exit(1) }
+  }
+  console.log(`Inserted ${memToInsert.length} memberships.`)
+  console.log('\nDone.')
+}
+
+main().catch(e => { console.error(e); process.exit(1) })
