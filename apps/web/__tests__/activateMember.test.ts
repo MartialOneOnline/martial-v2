@@ -100,6 +100,11 @@ vi.mock('@/lib/email/sendEmails', () => ({
   sendWelcomeStudentEmail: mockSendWelcome,
 }))
 
+const mockNotifyNewMember = vi.fn()
+vi.mock('@/lib/notifications/create', () => ({
+  notifyNewMember: (...args: unknown[]) => mockNotifyNewMember(...args),
+}))
+
 const { POST } = await import('@/app/api/auth/activate-member/route')
 
 function makeReq(body: Record<string, unknown> | null) {
@@ -186,6 +191,8 @@ describe('POST /api/auth/activate-member', () => {
       const json = await res.json()
       expect(members[0]!.status).toBe('LEAD')
       expect(json.redirect).toBe('/my')
+      // Real acceptance (not the invite-send step) is what should notify the school.
+      expect(mockNotifyNewMember).toHaveBeenCalledWith('school-a', 'Alice')
     })
 
     it('two or more PENDING: 409 ambiguous_invitation, activates nothing', async () => {

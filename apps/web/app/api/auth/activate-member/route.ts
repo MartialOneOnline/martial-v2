@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser } from '@/lib/auth/server'
 import { sendWelcomeStudentEmail } from '@/lib/email/sendEmails'
+import { notifyNewMember } from '@/lib/notifications/create'
 
 // POST /api/auth/activate-member — called after invite link is clicked
 //
@@ -119,7 +120,7 @@ export async function POST(req: Request) {
     }
   }
 
-  await prisma.schoolMember.updateMany({
+  const activated = await prisma.schoolMember.updateMany({
     where: { userId: dbUser.id, schoolId: targetSchoolId, status: 'PENDING' },
     data: { status: 'LEAD' },
   })
@@ -130,12 +131,16 @@ export async function POST(req: Request) {
   })
   const isSchool = membership && ['OWNER', 'ADMIN', 'INSTRUCTOR'].includes(membership.role)
 
-  // Send welcome email to students only (not staff)
-  if (!isSchool && membership?.school) {
+  // Notify the school + send welcome email — students only (not staff), and
+  // only on an actual PENDING->LEAD transition (not an idempotent repeat visit).
+  if (activated.count > 0 && !isSchool && membership?.school) {
     const fullUser = await prisma.user.findUnique({
       where: { id: dbUser.id },
       select: { name: true, email: true },
     })
+    if (fullUser) {
+      notifyNewMember(targetSchoolId, fullUser.name ?? fullUser.email)
+    }
     if (fullUser?.email) {
       sendWelcomeStudentEmail({
         to: fullUser.email,
