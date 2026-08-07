@@ -381,11 +381,43 @@ function ContactOrganizerSheet({ school, subject, onClose }: { school: Organizer
   )
 }
 
+/* ── Cancel ticket confirm sheet ── */
+function CancelTicketModal({ booking, cancelling, onConfirm, onClose }: {
+  booking: MyBooking
+  cancelling: boolean
+  onConfirm: () => void
+  onClose: () => void
+}) {
+  const t = useT()
+  return (
+    <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-sm bg-white rounded-t-3xl sm:rounded-3xl px-6 pt-4 pb-28 sm:pb-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="flex justify-center mb-4 sm:hidden"><div className="w-10 h-1 rounded-full bg-gray-200" /></div>
+        <h2 className="text-base font-bold text-[#101828] mb-1">{t.my.cancelTicketQuestion}</h2>
+        <p className="text-sm text-gray-500 mb-1">{booking.event.title}</p>
+        <p className="text-xs text-gray-400 mb-5">{t.my.cancelTicketDesc}</p>
+        <div className="flex gap-3">
+          <button onClick={onClose} disabled={cancelling}
+            className="flex-1 py-3 rounded-2xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50">
+            {t.my.keepIt}
+          </button>
+          <button onClick={onConfirm} disabled={cancelling}
+            className="flex-1 py-3 rounded-2xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+            {cancelling ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : t.my.cancelTicketBtn}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /* ── My ticket card ── */
-function MyTicketCard({ booking, autoOpen }: { booking: MyBooking; autoOpen?: boolean }) {
+function MyTicketCard({ booking, autoOpen, onCancelled }: { booking: MyBooking; autoOpen?: boolean; onCancelled: () => void }) {
   const t = useT()
   const [showQr, setShowQr] = useState(!!autoOpen)
   const [showContact, setShowContact] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
   const isCashPending = booking.status === 'PENDING' && booking.paymentMethod === 'CASH'
   const cfg = booking.checkedIn
     ? { label: t.my.checkedInLabel, color: '#22C55E' }
@@ -393,8 +425,26 @@ function MyTicketCard({ booking, autoOpen }: { booking: MyBooking; autoOpen?: bo
     ? { label: t.my.payAtDoorBtn, color: '#EAB308' }
     : getTicketStatusConfig(t)[booking.status] ?? { label: booking.status, color: '#9CA3AF' }
   const canShowTicket = booking.qrToken && booking.status !== 'CANCELLED'
+  // Self-cancel only covers what hasn't been charged yet (a cash reservation
+  // or an online payment still confirming) — see the route's own comment for
+  // why a CONFIRMED (already paid) ticket routes to "Contact organizer" instead.
+  const canCancel = booking.status === 'PENDING' && new Date(booking.event.startAt) > new Date()
   const school = booking.event.school
   const hasContact = school.phone || school.email || school.website || school.instagram
+
+  async function handleCancel() {
+    setCancelling(true)
+    try {
+      const res = await fetch(`/api/my/events/bookings/${booking.id}`, { method: 'DELETE' })
+      if (res.ok) {
+        setShowCancelConfirm(false)
+        onCancelled()
+      }
+    } finally {
+      setCancelling(false)
+    }
+  }
+
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div className="p-4">
@@ -415,6 +465,15 @@ function MyTicketCard({ booking, autoOpen }: { booking: MyBooking; autoOpen?: bo
             {booking.ticketName} × {booking.quantity} · {booking.amountPaid ? fmtPrice(booking.amountPaid, booking.currency) : t.my.freeEntry}
           </p>
           <div className="flex items-center gap-1.5 shrink-0">
+            {canCancel && (
+              <button
+                onClick={() => setShowCancelConfirm(true)}
+                className="flex items-center text-xs font-semibold rounded-xl px-3 py-1.5"
+                style={{ background: '#FFEBEE', color: '#C62828' }}
+              >
+                {t.my.cancel}
+              </button>
+            )}
             {hasContact && (
               <button
                 onClick={() => setShowContact(true)}
@@ -437,6 +496,9 @@ function MyTicketCard({ booking, autoOpen }: { booking: MyBooking; autoOpen?: bo
       </div>
       {showQr && <TicketQrModal booking={booking} onClose={() => setShowQr(false)} />}
       {showContact && <ContactOrganizerSheet school={school} subject={booking.event.title} onClose={() => setShowContact(false)} />}
+      {showCancelConfirm && (
+        <CancelTicketModal booking={booking} cancelling={cancelling} onConfirm={handleCancel} onClose={() => setShowCancelConfirm(false)} />
+      )}
     </div>
   )
 }
@@ -587,7 +649,7 @@ function MyEventsPageInner() {
             </div>
           ) : (
             <div className="flex flex-col gap-3">
-              {myBookings.map(b => <MyTicketCard key={b.id} booking={b} autoOpen={b.id === ticketParam} />)}
+              {myBookings.map(b => <MyTicketCard key={b.id} booking={b} autoOpen={b.id === ticketParam} onCancelled={load} />)}
             </div>
           )
         )}
