@@ -118,6 +118,15 @@ function LoginPageInner() {
       error: params.get('error_description') || params.get('error'),
     }
   })
+  // While true, render a full-page spinner instead of the login form. Without
+  // this, the `?code=...` round trip re-mounts this page with fresh state
+  // (oauthLoading resets to null), so the user sees the entire idle login
+  // form — email field, social buttons, all of it — for the second or two it
+  // takes Supabase to exchange the code and resolveRedirect() to run, making
+  // the login page itself look like the loading screen. Falls back to the
+  // normal form after a timeout in case SIGNED_IN never fires (bad code,
+  // network hiccup) so the user isn't stuck looking at a spinner forever.
+  const [showOauthSpinner, setShowOauthSpinner] = useState(oauthCallback.active && !oauthCallback.error)
 
   const resolveRedirect = async () => {
     try {
@@ -189,6 +198,16 @@ function LoginPageInner() {
       }
     })
     return () => subscription.unsubscribe()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Safety net for the spinner above: if the code exchange fails in a way
+  // that never fires SIGNED_IN and never sets ?error= either, don't leave the
+  // user staring at a spinner indefinitely — drop back to the normal form.
+  useEffect(() => {
+    if (!showOauthSpinner) return
+    const timer = setTimeout(() => setShowOauthSpinner(false), 10000)
+    return () => clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -278,6 +297,14 @@ function LoginPageInner() {
         onSelect={() => router.push('/dashboard')}
         onPersonal={() => router.push('/explore')}
       />
+    )
+  }
+
+  if (showOauthSpinner) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F9FAFB' }}>
+        <div style={{ width: 32, height: 32, border: `3px solid ${BLUE}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      </div>
     )
   }
 
