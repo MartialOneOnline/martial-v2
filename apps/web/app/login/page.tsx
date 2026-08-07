@@ -233,7 +233,15 @@ function LoginPageInner() {
     const redirectQuery = redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ''
     const { error: err } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: `${window.location.origin}/login${redirectQuery}` },
+      options: {
+        redirectTo: `${window.location.origin}/login${redirectQuery}`,
+        // Supabase's Azure provider doesn't request the `email` scope by
+        // default, so accounts that don't expose it elsewhere in the token
+        // fail sign-in with "Error getting user email from external
+        // provider". Request it explicitly — harmless no-op for the other
+        // providers, which already get it by default.
+        ...(provider === 'azure' ? { scopes: 'openid profile email' } : {}),
+      },
     })
     if (err) { setError(err.message); setOauthLoading(null) }
   }
