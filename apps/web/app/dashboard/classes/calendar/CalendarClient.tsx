@@ -167,8 +167,9 @@ function ClassPopup({ slot, date, onClose, onDeleted }: {
   async function loadStudents() {
     setLoadingStudents(true)
     const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+    const timeStr = `${String(slot.startH).padStart(2, '0')}:${String(slot.startM).padStart(2, '0')}`
     try {
-      const res = await fetch(`/api/dashboard/classes/${slot.classId}/bookings?date=${dateStr}`)
+      const res = await fetch(`/api/dashboard/classes/${slot.classId}/bookings?date=${dateStr}&time=${timeStr}`)
       if (res.ok) {
         const data = await res.json()
         setStudents(data.bookings ?? [])
@@ -178,9 +179,13 @@ function ClassPopup({ slot, date, onClose, onDeleted }: {
     }
   }
 
+  // Real count for this specific occurrence, from the same booking fetch
+  // that backs the students list. slot.enrolled is the class's all-time
+  // booking total (see apiClassToSlots) — never a valid stand-in for a
+  // single session's headcount, so it must not be used as a fallback here.
   const bookedCount = students.length
-  const pct    = slot.capacity > 0 ? Math.round((bookedCount || slot.enrolled) / slot.capacity * 100) : 0
-  const isFull = slot.capacity > 0 && (bookedCount || slot.enrolled) >= slot.capacity
+  const pct    = slot.capacity > 0 ? Math.round(bookedCount / slot.capacity * 100) : 0
+  const isFull = slot.capacity > 0 && bookedCount >= slot.capacity
   const barClr = isFull ? '#DC2626' : pct >= 80 ? '#D97706' : '#16A34A'
 
   async function handleDelete() {
@@ -192,6 +197,7 @@ function ClassPopup({ slot, date, onClose, onDeleted }: {
   }
 
   async function handleDuplicate() {
+    if (!confirm(`Duplicate "${slot.name}"? This creates a new class with no schedule — you'll need to set it up separately.`)) return
     await fetch('/api/dashboard/classes', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -215,7 +221,11 @@ function ClassPopup({ slot, date, onClose, onDeleted }: {
   }
 
   if (studentsView) {
-    const dateLabel = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }).replace(',', '')
+    // Use the slot's actual scheduled start time, not date's own clock
+    // reading (date is the day the popup was opened for — its time-of-day
+    // component is meaningless and previously leaked into this label).
+    const dayLabel = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+    const dateLabel = `${dayLabel} · ${fmtTime(slot.startH, slot.startM)}`
     return (
       <>
         <div className="fixed inset-0 z-40" onClick={onClose} />
@@ -339,7 +349,7 @@ function ClassPopup({ slot, date, onClose, onDeleted }: {
             <div style={{ height: '100%', borderRadius: 99, background: barClr, width: pct + '%' }} />
           </div>
           <div className="flex items-center justify-between mt-1">
-            <p style={{ fontSize: 10, color: '#9CA3AF' }}>{bookedCount || slot.enrolled} / {slot.capacity} {t.classes.students}</p>
+            <p style={{ fontSize: 10, color: '#9CA3AF' }}>{bookedCount} / {slot.capacity} {t.classes.students}</p>
             <span style={{ fontSize: 10, fontWeight: 600, color: barClr }}>
               {isFull ? t.common.full : pct >= 80 ? t.classes.almostFull : t.common.open}
             </span>
@@ -1093,7 +1103,9 @@ export default function CalendarClient() {
                       )}
                       {slots.map(slot => {
                         const ds = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`
-                        const enr = enrollments[`${slot.classId}|${ds}`] ?? slot.enrolled
+                        // 0, not slot.enrolled (that's the class's all-time booking
+                        // total, not this occurrence's — see apiClassToSlots).
+                        const enr = enrollments[`${slot.classId}|${ds}`] ?? 0
                         return <WeekClassBlock key={slot.id} slot={slot} date={date} enrolled={enr} onSelect={(s, d) => { setSelectedSlot(s); setSelectedSlotDate(d) }} />
                       })}
                     </div>

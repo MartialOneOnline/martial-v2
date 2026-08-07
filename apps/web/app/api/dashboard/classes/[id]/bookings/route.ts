@@ -121,16 +121,33 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const { id: classId } = await params
 
-  // Optional ?date=YYYY-MM-DD param; defaults to today (server timezone)
+  // Optional ?date=YYYY-MM-DD param; defaults to today (server timezone).
+  // Optional ?time=HH:MM param — when given alongside date, scopes the
+  // result to that exact scheduled occurrence (±1min tolerance, matching
+  // lib/scheduling.ts#isValidScheduledAt) instead of the whole day. Needed
+  // for classes with more than one slot on the same day (e.g. 17:00 and
+  // 19:00 sessions) — without it, opening either session's roster from the
+  // calendar/timetable returned every booking for the day, merging both
+  // sessions into one list.
   const dateParam = req.nextUrl.searchParams.get('date')
-  const base = dateParam ? new Date(dateParam) : new Date()
-  const startOfDay = new Date(base.getFullYear(), base.getMonth(), base.getDate())
-  const endOfDay   = new Date(startOfDay.getTime() + 86_400_000)
+  const timeParam = req.nextUrl.searchParams.get('time')
+
+  let scheduledAtFilter: { gte: Date; lt: Date }
+  if (dateParam && timeParam) {
+    const [y, m, d] = dateParam.split('-').map(Number)
+    const [hh, mm]  = timeParam.split(':').map(Number)
+    const target = new Date(Date.UTC(y ?? 1970, (m ?? 1) - 1, d ?? 1, hh ?? 0, mm ?? 0, 0, 0))
+    scheduledAtFilter = { gte: new Date(target.getTime() - 60_000), lt: new Date(target.getTime() + 60_000) }
+  } else {
+    const base = dateParam ? new Date(dateParam) : new Date()
+    const startOfDay = new Date(base.getFullYear(), base.getMonth(), base.getDate())
+    scheduledAtFilter = { gte: startOfDay, lt: new Date(startOfDay.getTime() + 86_400_000) }
+  }
 
   const bookings = await prisma.booking.findMany({
     where: {
       classId,
-      scheduledAt: { gte: startOfDay, lt: endOfDay },
+      scheduledAt: scheduledAtFilter,
       class: { schoolId },
     },
     include: {
