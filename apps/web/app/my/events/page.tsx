@@ -55,12 +55,18 @@ type MyBooking = {
   event: { id: string; title: string; startAt: string; location: string | null; coverUrl: string | null; school: { name: string; slug: string; phone: string | null; email: string | null; website: string | null; instagram: string | null } }
 }
 
-/* ── Helpers ── */
+/* ── Helpers ──
+   Event.startAt is a real UTC instant (the dashboard event editor converts
+   a wall-clock date+time to true UTC on save) — timeZone is pinned to
+   Europe/Madrid explicitly, matching the dashboard's own display
+   (EventsClient.tsx), rather than left to default to the viewing device's
+   local zone, which would only happen to render correctly for a viewer
+   whose device is already set to Europe/Madrid. */
 function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+  return new Date(iso).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Europe/Madrid' })
 }
 function fmtTime(iso: string) {
-  return new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+  return new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' })
 }
 
 function priceRange(tickets: TicketOption[], t: ReturnType<typeof useT>): string {

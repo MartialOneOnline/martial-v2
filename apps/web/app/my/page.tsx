@@ -121,6 +121,19 @@ function fmtDate(iso: string) {
 function fmtTime(iso: string) {
   return new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
 }
+// Event.startAt, unlike Class.scheduledAt, is a real UTC instant (the
+// dashboard event editor converts a wall-clock date+time picked in the
+// browser to true UTC on save — see EventsClient.tsx's own submit handler).
+// Displaying it needs an explicit timeZone to convert back, same as the
+// dashboard itself does (EventsClient.tsx's fmtDate/fmtTime both hardcode
+// 'Europe/Madrid') — reusing the UTC-forced fmtDate/fmtTime above like a
+// Class would silently show the raw UTC hour instead of the real one.
+function fmtEventDate(iso: string) {
+  return new Date(iso).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Europe/Madrid' })
+}
+function fmtEventTime(iso: string) {
+  return new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' })
+}
 function daysUntil(iso: string) {
   const today = new Date(); today.setHours(0, 0, 0, 0)
   const day = new Date(iso); day.setHours(0, 0, 0, 0)
@@ -477,12 +490,12 @@ export default function MyHomePage() {
             <div className="flex items-center gap-2 mb-4 flex-wrap">
               <div className="flex items-center gap-1" style={{ color: '#6B6B70' }}>
                 <Calendar className="w-3 h-3" style={{ color: '#AEAEB2' }} />
-                <span className="text-xs">{fmtDate(nextEventBooking.event.startAt)}</span>
+                <span className="text-xs">{fmtEventDate(nextEventBooking.event.startAt)}</span>
               </div>
               <span className="text-[10px]" style={{ color: '#D1D5DB' }}>·</span>
               <div className="flex items-center gap-1" style={{ color: '#6B6B70' }}>
                 <Clock className="w-3 h-3" style={{ color: '#AEAEB2' }} />
-                <span className="text-xs">{fmtTime(nextEventBooking.event.startAt)}</span>
+                <span className="text-xs">{fmtEventTime(nextEventBooking.event.startAt)}</span>
               </div>
               <span className="text-[10px]" style={{ color: '#D1D5DB' }}>·</span>
               <span className="text-xs font-semibold" style={{ color: eventStatus.color }}>{eventStatus.label}</span>

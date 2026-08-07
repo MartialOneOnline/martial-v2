@@ -65,6 +65,17 @@ function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' })
 }
 
+// Event.startAt is a real UTC instant (unlike Class.scheduledAt, which is
+// stored as wall-clock time placed directly in the UTC slot — see
+// app/my/page.tsx's matching comment) — needs an explicit timeZone to
+// convert back for display, same as the dashboard event editor uses.
+function fmtEventDate(iso: string) {
+  return new Date(iso).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Europe/Madrid' })
+}
+function fmtEventTime(iso: string) {
+  return new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' })
+}
+
 function isSameDay(a: Date, b: Date) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
 }
@@ -785,7 +796,7 @@ export default function MyClassesPage() {
               <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">{t.my.upcomingEventLabel}</p>
               <p className="text-sm font-bold text-[#061229] truncate">{nextEventBooking.event.title}</p>
               <p className="text-xs text-gray-400 truncate">
-                {fmtDate(nextEventBooking.event.startAt)} · {fmtTime(nextEventBooking.event.startAt)} · {nextEventBooking.event.school.name}
+                {fmtEventDate(nextEventBooking.event.startAt)} · {fmtEventTime(nextEventBooking.event.startAt)} · {nextEventBooking.event.school.name}
               </p>
             </div>
             <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />
