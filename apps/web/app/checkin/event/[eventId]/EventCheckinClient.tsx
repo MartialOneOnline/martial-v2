@@ -80,13 +80,17 @@ export default function EventCheckinClient({ eventId, eventTitle }: Props) {
 
   const processQR = useCallback((raw: string) => {
     if (cooldown.current || pendingRef.current || raw === lastScan.current) return
-    const match = raw.match(/^martial:event:(.+)$/)
-    if (!match) return
-    const qrToken = match[1]!
     lastScan.current = raw
     cooldown.current = true
     setTimeout(() => { cooldown.current = false; lastScan.current = '' }, 3000)
-    doCheckin(qrToken)
+
+    const match = raw.match(/^martial:event:(.+)$/)
+    if (!match) {
+      setResult({ ok: false, error: 'Not a valid ticket QR code' })
+      setTimeout(() => setResult(null), 3000)
+      return
+    }
+    doCheckin(match[1]!)
   }, [doCheckin])
 
   async function handleAccept() {
@@ -162,7 +166,13 @@ export default function EventCheckinClient({ eventId, eventTitle }: Props) {
       const detector = new BarcodeDetector({ formats: ['qr_code'] })
       const codes = await detector.detect(img as unknown as HTMLImageElement)
       if (codes[0]) processQR(codes[0].rawValue)
-      else setResult({ ok: false, error: 'No QR code found in image' })
+      else {
+        setResult({ ok: false, error: 'No QR code found in image' })
+        setTimeout(() => setResult(null), 3000)
+      }
+    } else {
+      setResult({ ok: false, error: 'QR scanning is not supported on this device/browser' })
+      setTimeout(() => setResult(null), 3000)
     }
     URL.revokeObjectURL(img.src)
     e.target.value = ''
@@ -272,11 +282,16 @@ export default function EventCheckinClient({ eventId, eventTitle }: Props) {
 
         {/* File input fallback */}
         {camError === 'live-scan-unavailable' && (
-          <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#0870E2', border: 'none', borderRadius: 12, padding: '12px 0', cursor: 'pointer', width: '100%', marginBottom: 12 }}>
-            <Camera size={16} color="#fff" />
-            <span style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>Scan QR with camera</span>
-            <input type="file" accept="image/*" capture="environment" onChange={handleFile} style={{ display: 'none' }} />
-          </label>
+          <>
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginBottom: 10 }}>
+              Live scanning isn&apos;t supported on this browser. Take a photo of the ticket QR instead.
+            </p>
+            <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#0870E2', border: 'none', borderRadius: 12, padding: '12px 0', cursor: 'pointer', width: '100%', marginBottom: 12 }}>
+              <Camera size={16} color="#fff" />
+              <span style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>Scan QR with camera</span>
+              <input type="file" accept="image/*" capture="environment" onChange={handleFile} style={{ display: 'none' }} />
+            </label>
+          </>
         )}
 
         {/* Checked-in list */}
