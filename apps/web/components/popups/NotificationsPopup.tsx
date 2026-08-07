@@ -92,7 +92,7 @@ export default function NotificationsPopup({ onClose, onUnreadChange }: Props) {
   return (
     <div
       ref={ref}
-      className="absolute right-0 top-full mt-2 w-[360px] rounded-2xl shadow-2xl z-50 overflow-hidden"
+      className="absolute right-0 top-full mt-2 w-[360px] max-w-[calc(100vw-32px)] rounded-2xl shadow-2xl z-50 overflow-hidden"
       style={{ background: '#fff', border: '1px solid #E5E7EB' }}
     >
       {/* Header */}

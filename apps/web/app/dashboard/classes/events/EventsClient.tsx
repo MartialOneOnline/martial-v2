@@ -4,12 +4,13 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
-  Bell, Menu, X, Plus, MoreHorizontal, Search,
+  Menu, X, Plus, MoreHorizontal, Search,
   TrendingUp, Check, Upload, Clock, MapPin, Star,
   Ticket, Calendar, Pencil, Trash2, Globe, EyeOff, QrCode, AlertTriangle, RefreshCw,
 } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useDashboard } from '../../../../components/DashboardShell'
+import NotificationBell from '../../../../components/NotificationBell'
 import DashboardLanguageSelector from '../../../../components/DashboardLanguageSelector'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import { adminFetch } from '../../../../lib/api/adminFetch'
@@ -968,11 +969,7 @@ export default function EventsClient() {
             {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
           </div>
 
-          <button className="relative w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
-            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-            <Bell size={15} style={{ color: '#374151' }} />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: '#DC2626' }} />
-          </button>
+          <NotificationBell />
 
           <DashboardLanguageSelector />
 

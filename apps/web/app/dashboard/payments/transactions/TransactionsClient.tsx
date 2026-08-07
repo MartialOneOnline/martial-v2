@@ -8,6 +8,7 @@ import {
   LayoutList, Eye, MoreHorizontal, Trash2, Flag,
 } from 'lucide-react'
 import { useDashboard } from '../../../../components/DashboardShell'
+import NotificationBell from '../../../../components/NotificationBell'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../../lib/format'
 import RowMenu from '../../../../components/RowMenu'
@@ -962,6 +963,7 @@ export default function TransactionsClient() {
           style={{ background: '#0870E2', border: 'none', color: '#fff', fontSize: 13, fontWeight: 600 }}>
           <Plus size={14} /> Add Payment
         </button>
+        <NotificationBell />
       </div>
 
       <div className="px-4 md:px-8 py-6 flex flex-col gap-5">

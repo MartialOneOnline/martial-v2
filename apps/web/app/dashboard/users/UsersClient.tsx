@@ -11,6 +11,7 @@ import {
   QrCode, Pencil, MessageSquare, RefreshCw, CreditCard, Receipt, Globe,
 } from 'lucide-react'
 import { useDashboard } from '../../../components/DashboardShell'
+import NotificationBell from '../../../components/NotificationBell'
 import RowMenu from '../../../components/RowMenu'
 import DashboardLanguageSelector from '../../../components/DashboardLanguageSelector'
 import { useT } from '../../../lib/i18n/LanguageContext'
@@ -1816,11 +1817,7 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
           {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
         </div>
 
-        <button className="relative w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
-          style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-          <Bell size={15} style={{ color: '#374151' }} />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: '#DC2626' }} />
-        </button>
+        <NotificationBell />
 
         <DashboardLanguageSelector />
 

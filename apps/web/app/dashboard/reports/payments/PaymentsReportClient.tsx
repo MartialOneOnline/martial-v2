@@ -1,8 +1,9 @@
 'use client'
 
 import { useDashboard } from '../../../../components/DashboardShell'
+import NotificationBell from '../../../../components/NotificationBell'
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Menu, Bell, Search, ChevronLeft, ChevronRight, Filter, MoreVertical } from 'lucide-react'
+import { Menu, Search, ChevronLeft, ChevronRight, Filter, MoreVertical } from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import { fmtPrice as fmtAmt } from '../../../../lib/format'
 import SharedRowMenu from '../../../../components/RowMenu'
@@ -247,11 +248,7 @@ export default function PaymentsReportClient() {
             </button>
           ))}
         </div>
-        <button className="relative w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
-          style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-          <Bell size={15} style={{ color: '#374151' }} />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: '#DC2626' }} />
-        </button>
+        <NotificationBell />
       </div>
 
       <div className="px-4 md:px-8 py-6 flex flex-col gap-6">

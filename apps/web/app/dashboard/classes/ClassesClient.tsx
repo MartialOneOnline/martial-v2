@@ -3,11 +3,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import {
-  Bell, Calendar, Menu, X, Plus, MoreHorizontal, Search,
+  Calendar, Menu, X, Plus, MoreHorizontal, Search,
   ChevronLeft, ChevronRight, TrendingUp, Check, Upload, Clock, Trash2, Pencil,
   ChevronDown, Users, CheckCircle2, AlertTriangle,
 } from 'lucide-react'
 import { useDashboard } from '../../../components/DashboardShell'
+import NotificationBell from '../../../components/NotificationBell'
 import DashboardLanguageSelector from '../../../components/DashboardLanguageSelector'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { type BookingSettings, minsToHoursAndMins, hoursAndMinsToTotal } from '../../../lib/types/booking-settings'
@@ -1295,11 +1296,7 @@ export default function ClassesClient() {
             {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
           </div>
 
-          <button className="relative w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
-            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-            <Bell size={15} style={{ color: '#374151' }} />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: '#DC2626' }} />
-          </button>
+          <NotificationBell />
 
           <DashboardLanguageSelector />
 

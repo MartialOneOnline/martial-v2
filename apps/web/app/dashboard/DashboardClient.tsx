@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
-  Bell, Clock, TrendingUp, TrendingDown,
+  Clock, TrendingUp, TrendingDown,
   ChevronRight,
   Filter, Download,
   Sparkles, Send,
@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { useDashboard } from '../../components/DashboardShell'
 import { useSchoolContext } from '../../lib/auth/useSchoolContext'
-import NotificationsPopup       from '../../components/popups/NotificationsPopup'
+import NotificationBell          from '../../components/NotificationBell'
 import InviteUserModal           from '../../components/popups/InviteUserModal'
 import SendModal                 from '../../components/popups/SendModal'
 import QRCodeModal               from '../../components/popups/QRCodeModal'
@@ -273,15 +273,6 @@ export default function DashboardClient({ userName, userEmail }: Props) {
   const schoolInitials = (currentSchool?.schoolName || 'A').trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()
 
   // ── Popup state ────────────────────────────────────────────────────────────
-  const [showNotifications, setShowNotifications] = useState(false)
-  const [unreadCount, setUnreadCount] = useState(0)
-
-  useEffect(() => {
-    fetch('/api/dashboard/notifications?limit=1')
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d) setUnreadCount(d.unread ?? 0) })
-      .catch(() => {})
-  }, [])
   const [showInvite, setShowInvite]               = useState(false)
   const [showSend, setShowSend]                   = useState(false)
   const [showQR, setShowQR]                       = useState(false)
@@ -289,7 +280,6 @@ export default function DashboardClient({ userName, userEmail }: Props) {
   const [showAIMessages, setShowAIMessages]        = useState(false)
   const [selectedClass, setSelectedClass]         = useState<TodayClass | null>(null)
   const [detailClass,   setDetailClass]           = useState<TodayClass | null>(null)
-  const bellRef                                    = useRef<HTMLDivElement>(null)
 
   const firstName = userName.split(' ')[0] ?? 'there'
 
@@ -383,24 +373,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           </div>
 
           {/* Bell + Notifications popup */}
-          <div ref={bellRef} className="relative">
-            <button
-              onClick={() => setShowNotifications(v => !v)}
-              className="relative w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
-              style={{ background: showNotifications ? '#EFF6FF' : '#F9FAFB', border: '1px solid #E5E7EB' }}
-            >
-              <Bell size={15} strokeWidth={1.5} style={{ color: '#374151' }} />
-              {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 min-w-[16px] h-4 flex items-center justify-center rounded-full px-1"
-                  style={{ background: '#DC2626', fontSize: 9, fontWeight: 700, color: '#fff', lineHeight: 1 }}>
-                  {unreadCount > 99 ? '99+' : unreadCount}
-                </span>
-              )}
-            </button>
-            {showNotifications && (
-              <NotificationsPopup onClose={() => setShowNotifications(false)} onUnreadChange={setUnreadCount} />
-            )}
-          </div>
+          <NotificationBell />
 
           {/* Language */}
           <DashboardLanguageSelector />

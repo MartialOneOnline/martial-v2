@@ -2,11 +2,11 @@
 
 import { useState } from 'react'
 import {
-  Bell,
   Menu, X, Search, Check, TrendingUp,
   MoreHorizontal, Eye, Plus, Users, Award,
 } from 'lucide-react'
 import { useDashboard } from '../../../../components/DashboardShell'
+import NotificationBell from '../../../../components/NotificationBell'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import RowMenu from '../../../../components/RowMenu'
 type Filter = string
@@ -302,11 +302,7 @@ export default function StaffClient() {
                 style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
             </div>
             <div className="flex-1" />
-            <button className="relative w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
-              style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-              <Bell size={15} style={{ color: '#374151' }} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: '#DC2626' }} />
-            </button>
+            <NotificationBell />
             <button onClick={() => setDrawerOpen(true)}
               className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
               style={{ background: '#0071E3', border: 'none', color: '#fff', fontSize: 13, fontWeight: 600 }}>

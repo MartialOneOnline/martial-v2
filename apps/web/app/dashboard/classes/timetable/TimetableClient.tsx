@@ -1,6 +1,7 @@
 'use client'
 
 import { useDashboard } from '../../../../components/DashboardShell'
+import NotificationBell from '../../../../components/NotificationBell'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Users, Calendar, CreditCard, BarChart2, Settings, Bell, ChevronRight, Menu, X, Plus, ChevronLeft, Clock, Search, LayoutList, CalendarDays, MoreHorizontal, TrendingUp, Pencil, Copy, Trash2, Eye, Check, Upload, Flame, Award, School, ShoppingBag, HelpCircle, CheckCircle, XCircle, Loader2 } from 'lucide-react'
@@ -682,11 +683,7 @@ export default function TimetableClient() {
               <Clock size={12} style={{ color: '#9CA3AF' }} />
               {TODAY.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
             </div>
-            <button className="relative w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
-              style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-              <Bell size={15} style={{ color: '#374151' }} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: '#DC2626' }} />
-            </button>
+            <NotificationBell />
             <button onClick={() => setDrawerOpen(true)}
               className="flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer"
               style={{ background: '#0071E3', border: 'none', color: '#fff' }}>

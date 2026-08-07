@@ -1,9 +1,10 @@
 'use client'
 
 import { useDashboard } from '../../../components/DashboardShell'
+import NotificationBell from '../../../components/NotificationBell'
 import { useState } from 'react'
 import Link from 'next/link'
-import {Users, Calendar, CreditCard, BarChart2, Settings, Bell, ChevronRight, ChevronDown, Menu, X, Check, Download} from 'lucide-react'
+import {Users, Calendar, CreditCard, BarChart2, Settings, ChevronRight, ChevronDown, Menu, X, Check, Download} from 'lucide-react'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import type { Translations } from '../../../lib/i18n/translations'
 
@@ -67,6 +68,8 @@ export default function SubscriptionClient() {
               <Menu size={20} style={{ color: '#374151' }} />
             </button>
             <span style={{ fontWeight: 600, fontSize: 15, color: '#111827' }}>{t.subscription.title}</span>
+            <div style={{ flex: 1 }} />
+            <NotificationBell />
           </div>
 
           <div className="px-4 md:px-8 py-6 flex flex-col gap-6">

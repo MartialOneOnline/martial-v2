@@ -7,6 +7,7 @@ import {
   PauseCircle, XCircle, Plus, AlertCircle,
 } from 'lucide-react'
 import { useDashboard } from '../../../../components/DashboardShell'
+import NotificationBell from '../../../../components/NotificationBell'
 import MembershipRowActions from '../../../../components/MembershipRowActions'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../../lib/format'
@@ -628,6 +629,7 @@ export default function PaymentSubscriptionsClient() {
           style={{ background: '#0071E3', border: 'none', color: '#fff', fontSize: 13, fontWeight: 600 }}>
           <Plus size={15} /><span className="hidden sm:inline">Asignar membresía</span>
         </button>
+        <NotificationBell />
       </div>
 
       <div className="px-4 md:px-8 py-6 flex flex-col gap-6">

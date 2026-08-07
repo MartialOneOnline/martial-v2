@@ -4,13 +4,14 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import {
-  Bell, Menu, X, Check, Upload, Eye, EyeOff, Plus, Minus,
+  Menu, X, Check, Upload, Eye, EyeOff, Plus, Minus,
   Trash2, AlertTriangle,
   RefreshCw,
   ChevronDown, CreditCard, Award, ArrowRight,
   ChevronUp, Edit2,
 } from 'lucide-react'
 import { useDashboard } from '../../../components/DashboardShell'
+import NotificationBell from '../../../components/NotificationBell'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../lib/format'
 
@@ -1898,11 +1899,7 @@ export default function SettingsClient() {
           <Menu size={16} style={{ color: '#374151' }} />
         </button>
         <div className="flex-1" />
-        <button className="relative w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
-          style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-          <Bell size={15} style={{ color: '#374151' }} />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: '#DC2626' }} />
-        </button>
+        <NotificationBell />
       </div>
 
       <div className="px-4 md:px-8 py-8 flex flex-col gap-8">

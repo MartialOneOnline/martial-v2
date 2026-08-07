@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useDashboard } from '../../../components/DashboardShell'
+import NotificationBell from '../../../components/NotificationBell'
 import RowMenu from '../../../components/RowMenu'
 import MembershipRowActions from '../../../components/MembershipRowActions'
 import { useT } from '../../../lib/i18n/LanguageContext'
@@ -1258,6 +1259,7 @@ export default function MembershipsClient() {
           <Plus size={15} />
           <span className="hidden sm:inline">Add Plan</span>
         </button>
+        <NotificationBell />
       </div>
 
       {/* Content */}

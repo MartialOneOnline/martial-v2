@@ -9,6 +9,7 @@ import {
   User, Heart, FileText, Dumbbell, X, Plus, Check, CheckCircle,
 } from 'lucide-react'
 import { fmtPrice } from '../../../../lib/format'
+import NotificationBell from '../../../../components/NotificationBell'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type Booking = { id: string; className: string; date: string; status: string; attendedAt: string | null }
@@ -925,6 +926,8 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
         </button>
         <span style={{ color: '#D1D5DB' }}>/</span>
         <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{profile.name}</span>
+        <div className="flex-1" />
+        <NotificationBell />
       </div>
 
       <div className="px-4 md:px-8 py-6" style={{ maxWidth: 1100, margin: '0 auto' }}>

@@ -7,6 +7,7 @@ import {
   ChevronLeft, ChevronRight, Mail, MessageCircle, LayoutList, UserPlus, X,
 } from 'lucide-react'
 import { useDashboard } from '../../../../../components/DashboardShell'
+import NotificationBell from '../../../../../components/NotificationBell'
 import { adminFetch } from '../../../../../lib/api/adminFetch'
 import { fmtPrice } from '../../../../../lib/format'
 
@@ -184,6 +185,7 @@ export default function RegistrationsClient() {
           style={{ background: '#fff', border: '1px solid #E5E7EB', color: '#374151', fontSize: 13, fontWeight: 500 }}>
           <Download size={14} /> Export
         </button>
+        <NotificationBell />
       </div>
 
       <div className="px-4 md:px-8 py-6 flex flex-col gap-5">
