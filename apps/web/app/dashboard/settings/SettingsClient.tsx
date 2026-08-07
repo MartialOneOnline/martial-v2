@@ -866,7 +866,12 @@ function PaymentsTab() {
 
           {/* Secret key */}
           <div className="flex flex-col gap-1">
-            <label style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>Secret key</label>
+            <div className="flex items-center gap-2">
+              <label style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>Secret key</label>
+              {stripeSkMasked && (
+                <span style={{ fontSize: 10, fontWeight: 600, padding: '1px 6px', borderRadius: 999, background: '#F0FDF4', color: '#16A34A', border: '1px solid #BBF7D0' }}>✓ Configured</span>
+              )}
+            </div>
             <div className="flex items-center gap-2" style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflow: 'hidden', background: '#F9FAFB' }}>
               <input type={showSk ? 'text' : 'password'} value={stripeSk} onChange={e => setStripeSk(e.target.value)}
                 placeholder={stripeSkMasked ? `${stripeSkMasked} — leave blank to keep` : 'sk_live_···'}
@@ -879,7 +884,12 @@ function PaymentsTab() {
 
           {/* Webhook secret */}
           <div className="flex flex-col gap-1">
-            <label style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>Webhook secret</label>
+            <div className="flex items-center gap-2">
+              <label style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>Webhook secret</label>
+              {stripeWhMasked && (
+                <span style={{ fontSize: 10, fontWeight: 600, padding: '1px 6px', borderRadius: 999, background: '#F0FDF4', color: '#16A34A', border: '1px solid #BBF7D0' }}>✓ Configured</span>
+              )}
+            </div>
             <div className="flex items-center gap-2" style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflow: 'hidden', background: '#F9FAFB' }}>
               <input type={showWh ? 'text' : 'password'} value={stripeWh} onChange={e => setStripeWh(e.target.value)}
                 placeholder={stripeWhMasked ? `${stripeWhMasked} — leave blank to keep` : 'whsec_···'}
