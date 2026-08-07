@@ -382,9 +382,9 @@ function ContactOrganizerSheet({ school, subject, onClose }: { school: Organizer
 }
 
 /* ── My ticket card ── */
-function MyTicketCard({ booking }: { booking: MyBooking }) {
+function MyTicketCard({ booking, autoOpen }: { booking: MyBooking; autoOpen?: boolean }) {
   const t = useT()
-  const [showQr, setShowQr] = useState(false)
+  const [showQr, setShowQr] = useState(!!autoOpen)
   const [showContact, setShowContact] = useState(false)
   const isCashPending = booking.status === 'PENDING' && booking.paymentMethod === 'CASH'
   const cfg = booking.checkedIn
@@ -463,6 +463,9 @@ function MyEventsPageInner() {
   const [banner, setBanner] = useState<'success' | 'cancelled' | null>(null)
   const [hasSchool, setHasSchool] = useState(false)
   const tabInitialized = useRef(false)
+  // Deep link from the Home "up next" card — jumps straight to My tickets
+  // and pops the QR for this booking instead of making the student find it.
+  const ticketParam = searchParams.get('ticket')
 
   const load = useCallback(() => {
     setLoading(true)
@@ -584,7 +587,7 @@ function MyEventsPageInner() {
             </div>
           ) : (
             <div className="flex flex-col gap-3">
-              {myBookings.map(b => <MyTicketCard key={b.id} booking={b} />)}
+              {myBookings.map(b => <MyTicketCard key={b.id} booking={b} autoOpen={b.id === ticketParam} />)}
             </div>
           )
         )}

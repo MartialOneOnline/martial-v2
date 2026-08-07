@@ -25,6 +25,11 @@ type Booking = {
   }
 }
 
+type NextEventBooking = {
+  id: string
+  event: { title: string; startAt: string; location: string | null; school: { name: string } }
+}
+
 type Occurrence = {
   classId: string
   className: string
@@ -597,6 +602,7 @@ export default function MyClassesPage() {
   const [mainTab, setMainTab] = useState<'book' | 'schedule'>('book')
   const [hasSchool, setHasSchool] = useState(false)
   const [schoolCheckDone, setSchoolCheckDone] = useState(false)
+  const [nextEventBooking, setNextEventBooking] = useState<NextEventBooking | null>(null)
 
   // Book tab state
   const [occurrences, setOccurrences] = useState<Occurrence[]>([])
@@ -663,7 +669,10 @@ export default function MyClassesPage() {
       .catch(() => {})
     fetch('/api/my')
       .then(r => r.json())
-      .then(d => setHasSchool((d.user?.schoolMembers?.length ?? 0) > 0))
+      .then(d => {
+        setHasSchool((d.user?.schoolMembers?.length ?? 0) > 0)
+        setNextEventBooking(d.user?.eventBookings?.[0] ?? null)
+      })
       .catch(() => {})
       .finally(() => setSchoolCheckDone(true))
   }, [loadOccurrences])
@@ -758,6 +767,31 @@ export default function MyClassesPage() {
           </div>
         </div>
       </div>
+
+      {/* ── Upcoming event ticket banner — a student attached to a school still
+          browses Classes as their main tab, so a paid event ticket (which can
+          belong to a different organizer entirely, see /api/my/events/checkout)
+          needs a presence here too, not just on Home ── */}
+      {nextEventBooking && (
+        <div className="px-4 pt-4 max-w-2xl lg:max-w-[1180px] lg:mx-auto">
+          <Link
+            href={`/my/events?ticket=${nextEventBooking.id}`}
+            className="flex items-center gap-3 bg-white border border-gray-100 rounded-2xl shadow-sm p-3.5 hover:border-[#0870E2]/30 transition-colors"
+          >
+            <div className="w-10 h-10 rounded-xl bg-[#0870E2]/10 flex items-center justify-center shrink-0">
+              <Ticket className="w-4 h-4 text-[#0870E2]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">{t.my.upcomingEventLabel}</p>
+              <p className="text-sm font-bold text-[#061229] truncate">{nextEventBooking.event.title}</p>
+              <p className="text-xs text-gray-400 truncate">
+                {fmtDate(nextEventBooking.event.startAt)} · {fmtTime(nextEventBooking.event.startAt)} · {nextEventBooking.event.school.name}
+              </p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />
+          </Link>
+        </div>
+      )}
 
       {/* ── Book tab ── */}
       {mainTab === 'book' && (

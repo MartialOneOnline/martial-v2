@@ -25,8 +25,13 @@ export async function GET() {
 
   const buyerName = dbUser.name ?? dbUser.email
 
+  // Not scoped by schoolId: a ticket purchase has no SchoolMember requirement
+  // (see /api/my/events/checkout), so "my tickets" can legitimately include
+  // events organized by a school the student has no membership at — scoping
+  // this the same way the "available events to browse" query below is would
+  // silently hide those tickets instead of just not being their home school.
   const myBookingsRaw = await prisma.eventBooking.findMany({
-    where: { userId: dbUser.id, ...(schoolId && { event: { schoolId } }) },
+    where: { userId: dbUser.id },
     select: {
       id: true,
       quantity: true,

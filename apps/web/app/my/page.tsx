@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import {
   Calendar, Clock, CalendarCheck, QrCode, CalendarPlus,
-  CreditCard, TrendingUp, ChevronRight, CheckCircle2,
+  CreditCard, TrendingUp, ChevronRight, CheckCircle2, Ticket,
 } from 'lucide-react'
 import { fmtPrice } from '../../lib/format'
 import { getBeltImage } from '../../lib/belts'
@@ -58,6 +58,24 @@ type UserData = {
         id: string
         name: string
         duration: number | null
+        school: { name: string; slug: string }
+      }
+    }[]
+    eventBookings: {
+      id: string
+      quantity: number
+      status: string
+      amountPaid: number | null
+      currency: string
+      ticketName: string
+      paymentMethod: string
+      qrToken: string | null
+      checkedIn: boolean
+      event: {
+        id: string
+        title: string
+        startAt: string
+        location: string | null
         school: { name: string; slug: string }
       }
     }[]
@@ -269,11 +287,31 @@ export default function MyHomePage() {
   const pendingMembership = user?.memberships?.find(m => m.status === 'PENDING')
   const shownMembership   = activeMembership ?? pendingMembership
   const nextBooking       = user?.bookings?.[0]
+  const nextEventBooking  = user?.eventBookings?.[0]
   const primaryMember     = user?.schoolMembers?.[0]
   const hour              = new Date().getHours()
   const greeting          = hour < 12 ? t.my.goodMorning : hour < 18 ? t.my.goodAfternoon : t.my.goodEvening
   const days              = nextBooking ? daysUntil(nextBooking.scheduledAt) : null
   const dotCount          = Math.min(occurrences.length, 4)
+
+  // A single "up next" hero slot: whichever of the next class or the next
+  // paid event ticket happens sooner wins it, so a confirmed seminar isn't
+  // buried under a class carousel it isn't part of (or hidden entirely
+  // behind an empty "No upcoming classes" message).
+  const eventIsNext = nextEventBooking
+    ? !nextBooking || new Date(nextEventBooking.event.startAt) < new Date(nextBooking.scheduledAt)
+    : false
+  const eventDays = nextEventBooking ? daysUntil(nextEventBooking.event.startAt) : null
+  const isCashPending = nextEventBooking?.status === 'PENDING' && nextEventBooking.paymentMethod === 'CASH'
+  const eventStatus = !nextEventBooking
+    ? null
+    : nextEventBooking.checkedIn
+    ? { label: t.my.checkedInLabel, color: '#1E8734' }
+    : isCashPending
+    ? { label: t.my.payAtDoorBtn, color: '#D97706' }
+    : nextEventBooking.status === 'CONFIRMED'
+    ? { label: t.my.ticketStatusConfirmed, color: '#1E8734' }
+    : { label: t.my.ticketStatusPending, color: '#D97706' }
 
   // Cross-reference the booked class against the occurrences list (which carries
   // coverUrl) so the desktop hero can show a real photo without a second API call.
@@ -414,7 +452,64 @@ export default function MyHomePage() {
           Minimal white card with small color accents, not a full navy banner —
           keeps the app's info-card language consistent instead of one big
           promotional-looking block at the top of every visit. ──────────────── */}
-      {nextBooking ? (
+      {eventIsNext && nextEventBooking && eventStatus ? (
+        <div className="mx-4 md:mx-6 mb-5 md:mb-6 lg:mb-8 rounded-[20px] overflow-hidden" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)' }}>
+          <div style={{ padding: '18px 20px 20px' }}>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center justify-center rounded-full shrink-0" style={{ width: 26, height: 26, background: 'rgba(0,122,255,.1)' }}>
+                <Ticket className="w-3.5 h-3.5" style={{ color: '#007AFF' }} />
+              </div>
+              <span className="text-[11px] font-semibold uppercase" style={{ color: '#9CA3AF', letterSpacing: '.6px' }}>{t.my.upcomingEventLabel}</span>
+              {eventDays !== null && (
+                <span className="ml-auto text-[11px] font-semibold rounded-full" style={{ background: '#E8F4FF', color: '#007AFF', padding: '3px 10px' }}>
+                  {eventDays === 0 ? t.my.today : eventDays === 1 ? t.my.tomorrow : t.my.inDays.replace('{n}', String(eventDays))}
+                </span>
+              )}
+            </div>
+
+            <p className="text-base font-semibold mb-0.5" style={{ color: '#1C1C1E', letterSpacing: '-0.2px' }}>{nextEventBooking.event.title}</p>
+            <p className="text-xs mb-3" style={{ color: '#9CA3AF' }}>
+              {nextEventBooking.event.location
+                ? `${nextEventBooking.event.location} · ${nextEventBooking.event.school.name}`
+                : nextEventBooking.event.school.name}
+            </p>
+
+            <div className="flex items-center gap-2 mb-4 flex-wrap">
+              <div className="flex items-center gap-1" style={{ color: '#6B6B70' }}>
+                <Calendar className="w-3 h-3" style={{ color: '#AEAEB2' }} />
+                <span className="text-xs">{fmtDate(nextEventBooking.event.startAt)}</span>
+              </div>
+              <span className="text-[10px]" style={{ color: '#D1D5DB' }}>·</span>
+              <div className="flex items-center gap-1" style={{ color: '#6B6B70' }}>
+                <Clock className="w-3 h-3" style={{ color: '#AEAEB2' }} />
+                <span className="text-xs">{fmtTime(nextEventBooking.event.startAt)}</span>
+              </div>
+              <span className="text-[10px]" style={{ color: '#D1D5DB' }}>·</span>
+              <span className="text-xs font-semibold" style={{ color: eventStatus.color }}>{eventStatus.label}</span>
+            </div>
+
+            <div className="flex gap-2">
+              <Link
+                href={`/my/events?ticket=${nextEventBooking.id}`}
+                prefetch={false}
+                className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold rounded-full"
+                style={{ background: '#E8F7FF', color: '#006197', padding: '10px' }}
+              >
+                <QrCode className="w-3.5 h-3.5" />
+                {t.my.showTicketBtn}
+              </Link>
+              <Link
+                href="/my/events"
+                prefetch={false}
+                className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium rounded-full"
+                style={{ background: '#F5F5F5', color: '#374151', padding: '10px' }}
+              >
+                {t.my.details}
+              </Link>
+            </div>
+          </div>
+        </div>
+      ) : nextBooking ? (
         <div className="mx-4 md:mx-6 mb-5 md:mb-6 lg:mb-8 rounded-[20px] overflow-hidden lg:flex lg:items-stretch" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)' }}>
           {/* Photo panel — desktop/tablet only; falls back to the discipline gradient if no cover photo */}
           <div className="hidden lg:block lg:shrink-0 relative overflow-hidden" style={{ width: 160, aspectRatio: '1 / 1', background: classGradient(nextBooking.class.name) }}>

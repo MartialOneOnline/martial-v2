@@ -72,6 +72,33 @@ export async function GET() {
           },
         },
       },
+      // Upcoming paid/reserved event tickets — surfaced on Home alongside
+      // class bookings so a confirmed seminar isn't invisible until the
+      // student happens to open Classes → Events → My tickets.
+      // Deliberately NOT scoped by schoolId like memberships/bookings above:
+      // ticket purchases have no SchoolMember requirement (see
+      // /api/my/events/checkout's own comment), so a student can hold a
+      // ticket for an event organized by a school they have no membership
+      // at all. Scoping this to the active student-school context would
+      // silently hide those tickets instead of just not branding them.
+      eventBookings: {
+        where: {
+          status: { not: 'CANCELLED' },
+          event: { startAt: { gte: new Date() } },
+        },
+        orderBy: { event: { startAt: 'asc' } },
+        take: 3,
+        select: {
+          id: true, quantity: true, status: true, amountPaid: true, currency: true,
+          ticketName: true, paymentMethod: true, qrToken: true, checkedIn: true,
+          event: {
+            select: {
+              id: true, title: true, startAt: true, location: true,
+              school: { select: { name: true, slug: true } },
+            },
+          },
+        },
+      },
       // STUDENT-role only — a staff-facing SchoolMember (OWNER, ADMIN, ...)
       // exists purely to grant dashboard permissions and never represents a
       // real student profile. Mixing it in here would let a staff-only
