@@ -54,6 +54,17 @@ function mapCurrency(code) {
   return 'EUR'
 }
 
+// Same mapping as scripts/fix-v1-transaction-status.js — must stay in sync.
+// V1 status: 1=pending, 3=canceled, 4=refunded, else (2,6,7,8)=approved/paid.
+function mapTransactionStatus(v1Status) {
+  switch (String(v1Status)) {
+    case '1': return 'PENDING'
+    case '3': return 'FAILED'
+    case '4': return 'REFUNDED'
+    default:  return 'PAID'
+  }
+}
+
 // ── cuid-like ID generator (simple) ─────────────────────────────────────────
 function cuid() {
   const ts   = Date.now().toString(36)
@@ -139,7 +150,7 @@ async function main() {
       amount:        parseFloat(b.price),
       currency:      mapCurrency(b.currency_code),
       date,
-      status:        'PAID',
+      status:        mapTransactionStatus(b.status),
       paymentMethod: mapMethod(b.method),
       notes:         `v1_booking:${bookingId}`,
       periodStart,

@@ -71,6 +71,17 @@ function mapMembershipStatus(v1Status) {
   return 'ACTIVE'
 }
 
+// Same mapping as scripts/fix-v1-transaction-status.js — must stay in sync.
+// V1 status: 1=pending, 3=canceled, 4=refunded, else (2,6,7,8)=approved/paid.
+function mapTransactionStatus(v1Status) {
+  switch (String(v1Status)) {
+    case '1': return 'PENDING'
+    case '3': return 'FAILED'
+    case '4': return 'REFUNDED'
+    default:  return 'PAID'
+  }
+}
+
 function parseDate(val) {
   return val && val !== 'NULL' && val !== '' ? new Date(val).toISOString() : null
 }
@@ -140,7 +151,7 @@ async function main() {
       amount: parseFloat(b.price) || 0,
       currency: mapCurrency(b.currency_code),
       date,
-      status: 'PAID',
+      status: mapTransactionStatus(b.status),
       paymentMethod: mapMethod(b.method),
       notes: `v1_booking:${b.id}`,
       periodStart,
