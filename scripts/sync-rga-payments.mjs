@@ -96,11 +96,17 @@ async function main() {
     for (const row of data) emailToUserId[row.email.toLowerCase()] = row.id
   }
 
-  // Existing transactions (dedup)
-  const { data: existingTx, error: txErr } = await db.schema('public').from('transactions')
-    .select('notes').eq('schoolId', SCHOOL_ID).like('notes', 'v1_booking:%')
-  if (txErr) { console.error('tx fetch error:', txErr); process.exit(1) }
-  const importedBookingIds = new Set((existingTx ?? []).map(t => t.notes?.replace('v1_booking:', '').trim()))
+  // Existing transactions (dedup) — paginated, Supabase caps unpaginated selects at ~1000 rows
+  const existingTx = []
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await db.schema('public').from('transactions')
+      .select('notes').eq('schoolId', SCHOOL_ID).like('notes', 'v1_booking:%')
+      .range(from, from + 999)
+    if (error) { console.error('tx fetch error:', error); process.exit(1) }
+    existingTx.push(...data)
+    if (data.length < 1000) break
+  }
+  const importedBookingIds = new Set(existingTx.map(t => t.notes?.replace('v1_booking:', '').trim()))
   console.log(`Already-imported V1 booking ids (transactions): ${importedBookingIds.size}`)
 
   // Existing memberships (dedup — one per user for the gap-fill step)

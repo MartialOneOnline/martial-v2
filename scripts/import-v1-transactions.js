@@ -80,15 +80,23 @@ async function main() {
   if (uErr) { console.error('Error fetching users:', uErr); process.exit(1) }
   const emailToUserId = Object.fromEntries(dbUsers.map(u => [u.email?.toLowerCase(), u.id]))
 
-  // Fetch existing transaction notes to skip duplicates
+  // Fetch existing transaction notes to skip duplicates — paginated, Supabase
+  // caps unpaginated selects at ~1000 rows which previously caused re-imports
   console.log('🔍 Checking existing transactions…')
-  const { data: existing } = await db
-    .schema('public').from('transactions')
-    .select('notes')
-    .eq('schoolId', SCHOOL_ID)
-    .like('notes', 'v1_booking:%')
+  const existing = []
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await db
+      .schema('public').from('transactions')
+      .select('notes')
+      .eq('schoolId', SCHOOL_ID)
+      .like('notes', 'v1_booking:%')
+      .range(from, from + 999)
+    if (error) { console.error('Error fetching existing transactions:', error); process.exit(1) }
+    existing.push(...data)
+    if (data.length < 1000) break
+  }
   const importedIds = new Set(
-    (existing ?? []).map(t => t.notes?.replace('v1_booking:', '').trim())
+    existing.map(t => t.notes?.replace('v1_booking:', '').trim())
   )
   console.log(`   Already imported: ${importedIds.size} bookings`)
 
