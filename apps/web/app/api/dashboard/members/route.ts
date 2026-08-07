@@ -112,24 +112,34 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json()
-  const { name, email, belt, beltDegree, status, phone } = body
+  const { userId, name, email, belt, beltDegree, status, phone } = body
 
-  if (!name?.trim() || !email?.trim()) {
-    return NextResponse.json({ error: 'Name and email are required' }, { status: 400 })
+  // Either link an existing user (e.g. someone who already registered for an
+  // event, so they have a User but no SchoolMember yet) or upsert by email.
+  let newUser: { id: string; name: string | null; email: string; avatarUrl: string | null }
+  if (userId) {
+    const existingUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, name: true, email: true, avatarUrl: true },
+    })
+    if (!existingUser) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    newUser = existingUser
+  } else {
+    if (!name?.trim() || !email?.trim()) {
+      return NextResponse.json({ error: 'Name and email are required' }, { status: 400 })
+    }
+    newUser = await prisma.user.upsert({
+      where: { email: email.trim().toLowerCase() },
+      update: { name: name.trim() },
+      create: {
+        email: email.trim().toLowerCase(),
+        name: name.trim(),
+        phone: phone?.trim() || null,
+        role: 'STUDENT',
+      },
+      select: { id: true, name: true, email: true, avatarUrl: true },
+    })
   }
-
-  // Upsert user by email, then create SchoolMember
-  const newUser = await prisma.user.upsert({
-    where: { email: email.trim().toLowerCase() },
-    update: { name: name.trim() },
-    create: {
-      email: email.trim().toLowerCase(),
-      name: name.trim(),
-      phone: phone?.trim() || null,
-      role: 'STUDENT',
-    },
-    select: { id: true, name: true, email: true, avatarUrl: true },
-  })
 
   // Check if already a member
   const existing = await prisma.schoolMember.findFirst({

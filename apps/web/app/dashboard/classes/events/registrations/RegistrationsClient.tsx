@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 import {
   Menu, Search, Download, Check, Clock, XCircle, CheckCircle2, RefreshCw,
-  ChevronLeft, ChevronRight, Mail, MessageCircle, LayoutList, UserPlus, X,
+  ChevronLeft, ChevronRight, Mail, MessageCircle, LayoutList, UserPlus, X, GraduationCap, User,
 } from 'lucide-react'
 import { useDashboard } from '../../../../../components/DashboardShell'
 import NotificationBell from '../../../../../components/NotificationBell'
@@ -16,6 +16,8 @@ type FilterTab = 'ALL' | RegStatus
 
 interface RegistrationRow {
   id: string
+  userId: string
+  isMember: boolean
   userName: string
   userEmail: string | null
   userPhone: string | null
@@ -37,6 +39,7 @@ interface StatusCounts { PENDING: number; CONFIRMED: number; CANCELLED: number; 
 
 interface EventTicketOption { id: string; name: string; price: number; currency: string }
 interface EventOption { id: string; title: string; startAt: string; tickets: EventTicketOption[] }
+interface MemberOption { userId: string; name: string; email: string; avatarUrl: string | null }
 
 const STATUS_MAP: Record<RegStatus, { bg: string; color: string; border: string; icon: React.ElementType; label: string }> = {
   PENDING:   { bg: '#FFFBEB', color: '#D97706', border: '#FDE68A', icon: Clock,        label: 'Pending'   },
@@ -129,6 +132,20 @@ export default function RegistrationsClient() {
     try {
       const res = await adminFetch(`/api/dashboard/events/${reg.eventId}/bookings/${reg.id}`, { method: 'DELETE' })
       if (res.ok) { setRegistrations(prev => prev.filter(r => r.id !== reg.id)); setTotal(prev => prev - 1) }
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+
+  async function makeStudent(reg: RegistrationRow) {
+    setUpdatingId(reg.id)
+    try {
+      const res = await adminFetch('/api/dashboard/members', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: reg.userId }),
+      })
+      if (res.ok) setRegistrations(prev => prev.map(r => r.userId === reg.userId ? { ...r, isMember: true } : r))
     } finally {
       setUpdatingId(null)
     }
@@ -281,7 +298,15 @@ export default function RegistrationsClient() {
                     className="hover:bg-[#FAFAFA]">
 
                     <td className="px-5 py-3">
-                      <p style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{r.userName}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{r.userName}</p>
+                        {r.isMember && (
+                          <span className="inline-flex items-center gap-1" title="Already a student"
+                            style={{ fontSize: 10, fontWeight: 600, color: '#0870E2', background: '#E8F4FF', borderRadius: 999, padding: '2px 6px' }}>
+                            <GraduationCap size={10} /> Student
+                          </span>
+                        )}
+                      </div>
                       <div className="flex items-center gap-2 mt-0.5">
                         {r.userEmail && (
                           <a href={`mailto:${r.userEmail}`} className="flex items-center gap-1 hover:underline"
@@ -330,6 +355,13 @@ export default function RegistrationsClient() {
 
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2 justify-end">
+                        {!r.isMember && (
+                          <button onClick={() => makeStudent(r)} disabled={updatingId === r.id}
+                            className="cursor-pointer flex items-center gap-1"
+                            style={{ fontSize: 11, fontWeight: 600, color: '#0870E2', background: '#E8F4FF', border: 'none', borderRadius: 8, padding: '5px 10px' }}>
+                            <GraduationCap size={11} /> Make student
+                          </button>
+                        )}
                         {canConfirm && (
                           <button onClick={() => updateStatus(r, 'CONFIRMED')} disabled={updatingId === r.id}
                             className="cursor-pointer"
@@ -405,11 +437,10 @@ export default function RegistrationsClient() {
 }
 
 // ── Add Registration Modal ──────────────────────────────────────────────────
-// Staff-only manual registration for someone who already paid outside the
-// app (in person, bank transfer, before this booking page existed, etc).
-// Creates the booking straight to CONFIRMED — there's no self-service
-// "I already paid" option, since that would let anyone claim a payment they
-// never made; only staff who actually verified it can use this.
+// Staff-only manual registration: pick an existing school member or enter a
+// new attendee's name + email, and mark the registration as already paid
+// (CONFIRMED) or awaiting payment (PENDING, same as a self-service cash
+// booking — staff confirm it later from the table with "Mark as paid").
 const AM_INP: React.CSSProperties = {
   width: '100%', border: '1px solid #E5E7EB', borderRadius: 10, padding: '9px 12px',
   fontSize: 13, color: '#111827', background: '#fff', outline: 'none',
@@ -426,10 +457,19 @@ function AddRegistrationModal({ events, defaultEventId, onClose, onSaved }: {
 }) {
   const [eventId, setEventId] = useState(defaultEventId)
   const [ticketId, setTicketId] = useState('')
+
+  const [mode, setMode] = useState<'existing' | 'new'>('existing')
+  const [members, setMembers] = useState<MemberOption[]>([])
+  const [membersLoading, setMembersLoading] = useState(false)
+  const [memberSearch, setMemberSearch] = useState('')
+  const [selectedMember, setSelectedMember] = useState<MemberOption | null>(null)
+
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+
   const [quantity, setQuantity] = useState('1')
   const [paymentMethod, setPaymentMethod] = useState('CASH')
+  const [status, setStatus] = useState<'CONFIRMED' | 'PENDING'>('CONFIRMED')
   const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -441,17 +481,38 @@ function AddRegistrationModal({ events, defaultEventId, onClose, onSaved }: {
     if (!tickets.find(t => t.id === ticketId)) setTicketId(tickets[0]?.id ?? '')
   }, [eventId]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (mode !== 'existing' || members.length > 0 || membersLoading) return
+    setMembersLoading(true)
+    adminFetch('/api/dashboard/members')
+      .then(r => r.ok ? r.json() : [])
+      .then(d => setMembers(Array.isArray(d)
+        ? d.map((m: { userId: string; name: string; email: string; avatarUrl: string | null }) =>
+            ({ userId: m.userId, name: m.name, email: m.email, avatarUrl: m.avatarUrl }))
+        : []))
+      .finally(() => setMembersLoading(false))
+  }, [mode]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const filteredMembers = memberSearch.trim()
+    ? members.filter(m =>
+        m.name.toLowerCase().includes(memberSearch.toLowerCase()) ||
+        m.email.toLowerCase().includes(memberSearch.toLowerCase()))
+    : members
+
   async function handleSave() {
     if (!eventId) { setError('Select an event'); return }
     if (!ticketId) { setError('Select a ticket'); return }
-    if (!email.trim()) { setError('Enter the attendee\'s email'); return }
+    if (mode === 'existing' && !selectedMember) { setError('Select a member'); return }
+    if (mode === 'new' && !email.trim()) { setError('Enter the attendee\'s email'); return }
     setSaving(true); setError('')
     const res = await adminFetch(`/api/dashboard/events/${eventId}/bookings`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        email: email.trim(), name: name.trim() || undefined, ticketId,
-        quantity: parseInt(quantity, 10) || 1, paymentMethod, notes: notes.trim() || undefined,
+        ...(mode === 'existing'
+          ? { userId: selectedMember!.userId }
+          : { email: email.trim(), name: name.trim() || undefined }),
+        ticketId, quantity: parseInt(quantity, 10) || 1, paymentMethod, status, notes: notes.trim() || undefined,
       }),
     })
     setSaving(false)
@@ -469,7 +530,7 @@ function AddRegistrationModal({ events, defaultEventId, onClose, onSaved }: {
           <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #F3F4F6', flexShrink: 0 }}>
             <div>
               <p style={{ fontSize: 17, fontWeight: 700, color: '#111827', margin: 0 }}>Add Registration</p>
-              <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>Register someone who already paid — confirmed immediately</p>
+              <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>Pick an existing member or add a new attendee</p>
             </div>
             <button onClick={onClose} style={{ background: '#F3F4F6', border: 'none', borderRadius: 8, padding: 6, cursor: 'pointer', display: 'flex' }}>
               <X size={15} style={{ color: '#6B7280' }} />
@@ -489,15 +550,75 @@ function AddRegistrationModal({ events, defaultEventId, onClose, onSaved }: {
             </div>
 
             {/* Attendee */}
-            <div className="flex gap-3">
-              <div style={{ flex: 1 }}>
-                <label style={AM_LBL}>Name</label>
-                <input type="text" placeholder="Full name" value={name} onChange={e => setName(e.target.value)} style={AM_INP} />
+            <div>
+              <label style={AM_LBL}>Attendee</label>
+              <div className="flex gap-1.5 p-1 rounded-xl mb-2" style={{ background: '#F3F4F6' }}>
+                <button type="button" onClick={() => setMode('existing')}
+                  className="flex-1 flex items-center justify-center gap-1.5 cursor-pointer"
+                  style={{ padding: '7px 10px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 600,
+                    background: mode === 'existing' ? '#fff' : 'transparent', color: mode === 'existing' ? '#111827' : '#6B7280',
+                    boxShadow: mode === 'existing' ? '0 1px 2px rgba(0,0,0,0.06)' : 'none' }}>
+                  <GraduationCap size={13} /> Existing member
+                </button>
+                <button type="button" onClick={() => setMode('new')}
+                  className="flex-1 flex items-center justify-center gap-1.5 cursor-pointer"
+                  style={{ padding: '7px 10px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 600,
+                    background: mode === 'new' ? '#fff' : 'transparent', color: mode === 'new' ? '#111827' : '#6B7280',
+                    boxShadow: mode === 'new' ? '0 1px 2px rgba(0,0,0,0.06)' : 'none' }}>
+                  <User size={13} /> New attendee
+                </button>
               </div>
-              <div style={{ flex: 1 }}>
-                <label style={AM_LBL}>Email</label>
-                <input type="email" placeholder="attendee@email.com" value={email} onChange={e => setEmail(e.target.value)} style={AM_INP} />
-              </div>
+
+              {mode === 'existing' ? (
+                selectedMember ? (
+                  <div className="flex items-center justify-between gap-2 rounded-xl px-3 py-2.5" style={{ border: '1px solid #E5E7EB', background: '#F9FAFB' }}>
+                    <div>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{selectedMember.name}</p>
+                      <p style={{ fontSize: 11, color: '#9CA3AF' }}>{selectedMember.email}</p>
+                    </div>
+                    <button type="button" onClick={() => setSelectedMember(null)}
+                      style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 8, padding: 5, cursor: 'pointer', display: 'flex' }}>
+                      <X size={13} style={{ color: '#6B7280' }} />
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-xl mb-2" style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
+                      <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
+                      <input type="text" placeholder="Search name or email…" value={memberSearch}
+                        onChange={e => setMemberSearch(e.target.value)}
+                        style={{ border: 'none', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
+                    </div>
+                    <div className="rounded-xl overflow-y-auto" style={{ border: '1px solid #E5E7EB', maxHeight: 160 }}>
+                      {membersLoading ? (
+                        <p className="px-3 py-3" style={{ fontSize: 12, color: '#9CA3AF' }}>Loading members…</p>
+                      ) : filteredMembers.length === 0 ? (
+                        <p className="px-3 py-3" style={{ fontSize: 12, color: '#9CA3AF' }}>No members found</p>
+                      ) : filteredMembers.map(m => (
+                        <button type="button" key={m.userId} onClick={() => setSelectedMember(m)}
+                          className="w-full flex items-center justify-between gap-2 px-3 py-2 cursor-pointer text-left"
+                          style={{ border: 'none', borderBottom: '1px solid #F3F4F6', background: 'transparent' }}>
+                          <div>
+                            <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{m.name}</p>
+                            <p style={{ fontSize: 11, color: '#9CA3AF' }}>{m.email}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )
+              ) : (
+                <div className="flex gap-3">
+                  <div style={{ flex: 1 }}>
+                    <label style={AM_LBL}>Name</label>
+                    <input type="text" placeholder="Full name" value={name} onChange={e => setName(e.target.value)} style={AM_INP} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label style={AM_LBL}>Email</label>
+                    <input type="email" placeholder="attendee@email.com" value={email} onChange={e => setEmail(e.target.value)} style={AM_INP} />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Ticket + Quantity */}
@@ -515,16 +636,35 @@ function AddRegistrationModal({ events, defaultEventId, onClose, onSaved }: {
               </div>
             </div>
 
-            {/* Payment method */}
-            <div>
-              <label style={AM_LBL}>Paid via</label>
-              <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} style={AM_INP}>
-                <option value="CASH">Cash</option>
-                <option value="REVOLUT">Card (Revolut)</option>
-                <option value="STRIPE">Card (Stripe)</option>
-                <option value="BANK_TRANSFER">Bank transfer</option>
-                <option value="OTHER">Other</option>
-              </select>
+            {/* Payment method + status */}
+            <div className="flex gap-3">
+              <div style={{ flex: 1 }}>
+                <label style={AM_LBL}>Paid via</label>
+                <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} style={AM_INP}>
+                  <option value="CASH">Cash</option>
+                  <option value="REVOLUT">Card (Revolut)</option>
+                  <option value="STRIPE">Card (Stripe)</option>
+                  <option value="BANK_TRANSFER">Bank transfer</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={AM_LBL}>Payment</label>
+                <div className="flex gap-1.5 p-1 rounded-xl" style={{ background: '#F3F4F6' }}>
+                  <button type="button" onClick={() => setStatus('CONFIRMED')}
+                    className="flex-1 cursor-pointer"
+                    style={{ padding: '7px 8px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 600,
+                      background: status === 'CONFIRMED' ? '#F0FDF4' : 'transparent', color: status === 'CONFIRMED' ? '#16A34A' : '#6B7280' }}>
+                    Confirmed
+                  </button>
+                  <button type="button" onClick={() => setStatus('PENDING')}
+                    className="flex-1 cursor-pointer"
+                    style={{ padding: '7px 8px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 600,
+                      background: status === 'PENDING' ? '#FFFBEB' : 'transparent', color: status === 'PENDING' ? '#D97706' : '#6B7280' }}>
+                    Pending
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* Notes */}
@@ -545,7 +685,7 @@ function AddRegistrationModal({ events, defaultEventId, onClose, onSaved }: {
             </button>
             <button onClick={handleSave} disabled={saving} style={{ flex: 2, padding: '10px', borderRadius: 10, border: 'none',
               background: '#0870E2', fontSize: 13, fontWeight: 600, color: '#fff', cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.7 : 1 }}>
-              {saving ? 'Saving…' : 'Confirm & Register'}
+              {saving ? 'Saving…' : status === 'CONFIRMED' ? 'Confirm & Register' : 'Register (pending)'}
             </button>
           </div>
         </div>

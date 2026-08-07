@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
       select: {
         id: true, ticketName: true, quantity: true, status: true, paymentMethod: true,
         amountPaid: true, currency: true, createdAt: true, checkedIn: true, checkedInAt: true,
-        eventId: true,
+        eventId: true, userId: true,
         event: { select: { title: true, startAt: true } },
         user: { select: { name: true, email: true, phone: true } },
       },
@@ -67,6 +67,13 @@ export async function GET(req: NextRequest) {
     }),
   ])
 
+  const memberUserIds = new Set(
+    (await prisma.schoolMember.findMany({
+      where: { schoolId: auth.schoolId, role: 'STUDENT', userId: { in: registrations.map(r => r.userId) } },
+      select: { userId: true },
+    })).map(m => m.userId),
+  )
+
   const countMap = Object.fromEntries(statusCounts.map(s => [s.status, s._count.id]))
   const countByStatus = {
     PENDING:   countMap['PENDING']   ?? 0,
@@ -79,6 +86,8 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     registrations: registrations.map(r => ({
       id: r.id,
+      userId:    r.userId,
+      isMember:  memberUserIds.has(r.userId),
       userName:  r.user.name ?? '—',
       userEmail: r.user.email,
       userPhone: r.user.phone,

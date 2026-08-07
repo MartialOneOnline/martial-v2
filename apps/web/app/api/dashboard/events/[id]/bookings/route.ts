@@ -45,10 +45,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   return NextResponse.json({ bookings })
 }
 
-// POST /api/dashboard/events/[id]/bookings — staff manually registers someone
-// who already paid outside the app (in person, bank transfer, etc). Creates
-// the EventBooking directly as CONFIRMED — no self-declared "I already paid"
-// step, since only staff who actually verified the payment can do this.
+// POST /api/dashboard/events/[id]/bookings — staff manually registers someone,
+// either an existing school member (userId) or a new attendee (email/name).
+// Status can be CONFIRMED (already paid — records a ledger transaction right
+// away) or PENDING (awaiting payment — same as a self-service cash booking;
+// staff confirm it later from the table with "Mark as paid").
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await authorise()
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
@@ -56,14 +57,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const { id } = await params
   const body = await req.json().catch(() => ({}))
   const {
-    email, name, ticketId, quantity: rawQuantity, paymentMethod: rawMethod, notes,
-  } = body as { email?: string; name?: string; ticketId?: string; quantity?: number; paymentMethod?: string; notes?: string }
+    userId, email, name, ticketId, quantity: rawQuantity, paymentMethod: rawMethod, status: rawStatus, notes,
+  } = body as {
+    userId?: string; email?: string; name?: string; ticketId?: string
+    quantity?: number; paymentMethod?: string; status?: string; notes?: string
+  }
 
   const trimmedEmail = email?.trim().toLowerCase()
-  if (!trimmedEmail) return NextResponse.json({ error: 'Attendee email is required' }, { status: 400 })
+  if (!userId && !trimmedEmail) return NextResponse.json({ error: 'Select a member or enter an email' }, { status: 400 })
   if (!ticketId) return NextResponse.json({ error: 'ticketId is required' }, { status: 400 })
   const quantity = Math.min(10, Math.max(1, Math.round(rawQuantity ?? 1)))
   const paymentMethod = (Object.values(PaymentMethod).includes(rawMethod as PaymentMethod) ? rawMethod : 'CASH') as PaymentMethod
+  const status = rawStatus === 'PENDING' ? 'PENDING' : 'CONFIRMED'
 
   const event = await prisma.event.findFirst({
     where: { id, schoolId: auth.schoolId },
@@ -77,12 +82,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   })
   if (!ticket) return NextResponse.json({ error: 'Ticket not found' }, { status: 404 })
 
-  const attendee = await prisma.user.upsert({
-    where: { email: trimmedEmail },
-    update: name?.trim() ? { name: name.trim() } : {},
-    create: { email: trimmedEmail, name: name?.trim() || null, role: 'STUDENT' },
-    select: { id: true, email: true, name: true },
-  })
+  const attendee = userId
+    ? await prisma.user.findUnique({ where: { id: userId }, select: { id: true, email: true, name: true } })
+    : await prisma.user.upsert({
+        where: { email: trimmedEmail! },
+        update: name?.trim() ? { name: name.trim() } : {},
+        create: { email: trimmedEmail!, name: name?.trim() || null, role: 'STUDENT' },
+        select: { id: true, email: true, name: true },
+      })
+  if (!attendee) return NextResponse.json({ error: 'Member not found' }, { status: 404 })
 
   const booking = await prisma.$transaction(async (tx) => {
     const capacity = await checkEventCapacity(tx, {
@@ -97,7 +105,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         userId: attendee.id,
         ticketName: ticket.name,
         quantity,
-        status: 'CONFIRMED',
+        status,
         amountPaid: ticket.price * quantity,
         currency: ticket.currency,
         paymentMethod,
@@ -105,16 +113,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       },
     })
 
-    await recordOnlinePayment(tx, {
-      schoolId:      event.schoolId,
-      userId:        attendee.id,
-      amount:        ticket.price * quantity,
-      currency:      ticket.currency,
-      paymentMethod,
-      category:      TransactionCategory.OTHER, // no dedicated EVENT category yet
-      description:   `${event.title} — ${ticket.name} x${quantity}${notes?.trim() ? ` (${notes.trim()})` : ''}`,
-      bookingId:     created.id,
-    })
+    if (status === 'CONFIRMED') {
+      await recordOnlinePayment(tx, {
+        schoolId:      event.schoolId,
+        userId:        attendee.id,
+        amount:        ticket.price * quantity,
+        currency:      ticket.currency,
+        paymentMethod,
+        category:      TransactionCategory.OTHER, // no dedicated EVENT category yet
+        description:   `${event.title} — ${ticket.name} x${quantity}${notes?.trim() ? ` (${notes.trim()})` : ''}`,
+        bookingId:     created.id,
+      })
+    }
 
     return created
   }).catch((err: Error & { status?: number }) => {
@@ -123,7 +133,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   if (booking instanceof NextResponse) return booking
 
-  if (attendee.email) {
+  if (status === 'CONFIRMED' && attendee.email) {
     sendEventTicketConfirmationEmail({
       to:          attendee.email,
       studentName: attendee.name,
