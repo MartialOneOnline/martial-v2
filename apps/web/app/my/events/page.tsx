@@ -1,9 +1,10 @@
 'use client'
 
 import { Suspense, useEffect, useState, useCallback, useRef } from 'react'
+import type { ReactNode, CSSProperties } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { CalendarDays, Clock, MapPin, Ticket, CheckCircle2, X, Minus, Plus, AlertCircle, QrCode, MessageCircle, Mail, Globe } from 'lucide-react'
+import { CalendarDays, Clock, MapPin, Ticket, CheckCircle2, X, Minus, Plus, AlertCircle, QrCode, MessageCircle, Mail, Globe, Trash2 } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../lib/format'
@@ -79,12 +80,40 @@ function priceRange(tickets: TicketOption[], t: ReturnType<typeof useT>): string
   return min === max ? fmtPrice(min, cur) : `${fmtPrice(min, cur)} – ${fmtPrice(max, cur)}`
 }
 
-function getTicketStatusConfig(t: ReturnType<typeof useT>): Record<string, { label: string; color: string }> {
+function getTicketStatusConfig(t: ReturnType<typeof useT>): Record<string, { label: string; bg: string; color: string }> {
   return {
-    PENDING:   { label: t.my.ticketStatusPending,   color: '#EAB308' },
-    CONFIRMED: { label: t.my.ticketStatusConfirmed, color: '#22C55E' },
-    CANCELLED: { label: t.my.ticketStatusCancelled, color: '#9CA3AF' },
+    PENDING:   { label: t.my.ticketStatusPending,   bg: '#FEF3C7', color: '#B45309' },
+    CONFIRMED: { label: t.my.ticketStatusConfirmed, bg: '#DCFCE7', color: '#166534' },
+    CANCELLED: { label: t.my.ticketStatusCancelled, bg: '#F3F4F6', color: '#6B7280' },
   }
+}
+
+/* ── Action pill — icon-over-label when 2-3 sit in a row, icon+label
+   horizontal when it's the only action and has the full row to itself ── */
+function ActionPill({ icon, label, variant, onClick, wide }: {
+  icon: ReactNode
+  label: string
+  variant: 'primary' | 'neutral' | 'danger'
+  onClick: () => void
+  wide?: boolean
+}) {
+  const styles: Record<typeof variant, CSSProperties> = {
+    primary: { background: '#0870E2', color: '#fff' },
+    neutral: { background: '#F2F4F7', color: '#374151' },
+    danger:  { background: 'rgba(198,40,40,.09)', color: '#C62828' },
+  }
+  return (
+    <button
+      onClick={onClick}
+      className={wide
+        ? 'flex-1 flex items-center justify-center gap-1.5 rounded-2xl py-2.5'
+        : 'flex-1 flex flex-col items-center justify-center gap-1 rounded-2xl py-2.5'}
+      style={styles[variant]}
+    >
+      {icon}
+      <span className={wide ? 'text-xs font-semibold' : 'text-[10.5px] font-semibold'}>{label}</span>
+    </button>
+  )
 }
 
 /* ── Event card ── */
@@ -426,10 +455,10 @@ function MyTicketCard({ booking, autoOpen, onCancelled }: { booking: MyBooking; 
   const [cancelling, setCancelling] = useState(false)
   const isCashPending = booking.status === 'PENDING' && booking.paymentMethod === 'CASH'
   const cfg = booking.checkedIn
-    ? { label: t.my.checkedInLabel, color: '#22C55E' }
+    ? { label: t.my.checkedInLabel, bg: '#DCFCE7', color: '#166534' }
     : isCashPending
-    ? { label: t.my.payAtDoorBtn, color: '#EAB308' }
-    : getTicketStatusConfig(t)[booking.status] ?? { label: booking.status, color: '#9CA3AF' }
+    ? { label: t.my.payAtDoorBtn, bg: '#FEF3C7', color: '#B45309' }
+    : getTicketStatusConfig(t)[booking.status] ?? { label: booking.status, bg: '#F3F4F6', color: '#6B7280' }
   const canShowTicket = booking.qrToken && booking.status !== 'CANCELLED'
   // Self-cancel only covers what hasn't been charged yet (a cash reservation
   // or an online payment still confirming) — see the route's own comment for
@@ -451,54 +480,62 @@ function MyTicketCard({ booking, autoOpen, onCancelled }: { booking: MyBooking; 
     }
   }
 
+  const actionCount = Number(!!canShowTicket) + Number(!!hasContact) + Number(!!canCancel)
+
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div className="p-4">
-        <div className="flex items-start justify-between gap-2 mb-2">
+        <div className="flex items-start justify-between gap-2 mb-2.5">
           <h3 className="text-[15px] font-bold text-[#061229] leading-snug">{booking.event.title}</h3>
-          <div className="flex items-center gap-1.5 shrink-0">
-            <div className="w-2 h-2 rounded-full shrink-0" style={{ background: cfg.color }} />
-            <span className="text-xs font-semibold" style={{ color: cfg.color }}>{cfg.label}</span>
-          </div>
+          <span className="text-[11px] font-bold rounded-full px-2.5 py-1 shrink-0" style={{ background: cfg.bg, color: cfg.color }}>
+            {cfg.label}
+          </span>
         </div>
-        <div className="flex items-center gap-3 text-xs text-gray-500 mb-2 flex-wrap">
+        <div className="flex items-center gap-3 text-xs text-gray-500 mb-3 flex-wrap">
           <div className="flex items-center gap-1"><CalendarDays className="w-3.5 h-3.5" />{fmtDate(booking.event.startAt)}</div>
           <div className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{fmtTime(booking.event.startAt)}</div>
           {booking.event.location && <div className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{booking.event.location}</div>}
         </div>
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-gray-500">
-            {booking.ticketName} × {booking.quantity} · {booking.amountPaid ? fmtPrice(booking.amountPaid, booking.currency) : t.my.freeEntry}
-          </p>
-          <div className="flex items-center gap-1.5 shrink-0">
-            {canCancel && (
-              <button
-                onClick={() => setShowCancelConfirm(true)}
-                className="flex items-center text-xs font-semibold rounded-xl px-3 py-1.5"
-                style={{ background: '#FFEBEE', color: '#C62828' }}
-              >
-                {t.my.cancel}
-              </button>
-            )}
-            {hasContact && (
-              <button
-                onClick={() => setShowContact(true)}
-                className="flex items-center gap-1.5 text-xs font-semibold rounded-xl px-3 py-1.5 border border-gray-200 text-gray-500 hover:text-[#0870E2] hover:border-[#0870E2] transition-colors"
-              >
-                <MessageCircle className="w-3.5 h-3.5" />{t.my.contactOrganizerLabel}
-              </button>
-            )}
-            {canShowTicket && (
-              <button
-                onClick={() => setShowQr(true)}
-                className="flex items-center gap-1.5 text-xs font-semibold rounded-xl px-3 py-1.5 shrink-0"
-                style={{ background: '#E8F4FF', color: '#0870E2' }}
-              >
-                <QrCode className="w-3.5 h-3.5" />{t.my.showTicketBtn}
-              </button>
-            )}
-          </div>
-        </div>
+
+        {actionCount > 0 && (
+          <>
+            <div className="h-px bg-gray-100 mb-3" />
+            <div className="flex items-baseline justify-between mb-3">
+              <span className="text-xs text-gray-500">{booking.ticketName} × {booking.quantity}</span>
+              <span className="text-sm font-bold text-[#061229]">{booking.amountPaid ? fmtPrice(booking.amountPaid, booking.currency) : t.my.freeEntry}</span>
+            </div>
+
+            <div className="flex gap-1.5">
+              {canShowTicket && (
+                <ActionPill
+                  variant="primary"
+                  wide={actionCount === 1}
+                  icon={<QrCode className={actionCount === 1 ? 'w-4 h-4' : 'w-[18px] h-[18px]'} />}
+                  label={actionCount === 1 ? t.my.showTicketBtn : t.my.ticketPillLabel}
+                  onClick={() => setShowQr(true)}
+                />
+              )}
+              {hasContact && (
+                <ActionPill
+                  variant="neutral"
+                  wide={actionCount === 1}
+                  icon={<MessageCircle className={actionCount === 1 ? 'w-4 h-4' : 'w-[18px] h-[18px]'} />}
+                  label={actionCount === 1 ? t.my.contactOrganizerLabel : t.my.contactBtn}
+                  onClick={() => setShowContact(true)}
+                />
+              )}
+              {canCancel && (
+                <ActionPill
+                  variant="danger"
+                  wide={actionCount === 1}
+                  icon={<Trash2 className={actionCount === 1 ? 'w-4 h-4' : 'w-[18px] h-[18px]'} />}
+                  label={t.my.cancel}
+                  onClick={() => setShowCancelConfirm(true)}
+                />
+              )}
+            </div>
+          </>
+        )}
       </div>
       {showQr && <TicketQrModal booking={booking} onClose={() => setShowQr(false)} />}
       {showContact && <ContactOrganizerSheet school={school} subject={booking.event.title} onClose={() => setShowContact(false)} />}
