@@ -3,13 +3,13 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight, Star, MapPin, Calendar, Award } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Star, MapPin, Calendar, Award, Euro, PoundSterling } from 'lucide-react'
 import { useT } from '../lib/i18n/LanguageContext'
 
 const HERO_SLIDES = [
-  { image: '/hero-1.jpg',              title: 'Apex Martial Arts',    location: 'Hutton, United Kingdom', bookings: 230, students: 135, classes: 452, payments: '£2,343', rating: 4.8 },
-  { image: '/hero-2.jpg',              title: 'Shogun Dojo London',   location: 'London, United Kingdom', bookings: 384, students: 210, classes: 580, payments: '£4,912', rating: 4.9 },
-  { image: '/roger-gracie-dubai.jpg',  title: 'Roger Gracie Dubai',   location: 'Dubai, UAE',             bookings: 310, students: 172, classes: 490, payments: '€3,640', rating: 5.0 },
+  { image: '/roger-gracie-malaga.jpg', title: 'Roger Gracie Malaga',  location: 'Malaga, Spain',           bookings: 3808, students: 703, classes: 49,  payments: '31,086', currency: 'eur' as const, rating: 5.0 },
+  { image: '/hero-2.jpg',              title: 'Shogun Dojo London',   location: 'London, United Kingdom', bookings: 384,  students: 210, classes: 580, payments: '£4,912', currency: 'gbp' as const, rating: 4.9 },
+  { image: '/roger-gracie-dubai.jpg',  title: 'Roger Gracie Dubai',   location: 'Dubai, UAE',             bookings: 310,  students: 172, classes: 490, payments: '€3,640', currency: 'eur' as const, rating: 5.0 },
 ]
 
 interface HeroSectionProps {
@@ -118,7 +118,7 @@ export default function HeroSection({ onOpenLoginModal }: HeroSectionProps) {
 
               {/* Top banner */}
               <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none z-10">
-                <span className="bg-[#0870E2]/90 text-white font-extrabold text-xs tracking-wider uppercase px-4 py-1.5 rounded-full shadow-md backdrop-blur-sm">
+                <span className="bg-[#22C55E]/90 text-white font-extrabold text-xs tracking-wider uppercase px-4 py-1.5 rounded-full shadow-md backdrop-blur-sm">
                   🏆 Verified Club
                 </span>
                 <span className="w-10 h-10 bg-[#0870E2] text-white flex items-center justify-center rounded-full shadow-lg">
@@ -159,7 +159,7 @@ export default function HeroSection({ onOpenLoginModal }: HeroSectionProps) {
                     { icon: <Calendar className="w-4 h-4" />, label: t.hero.stats.bookings, value: slide.bookings },
                     { icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>, label: t.hero.stats.students, value: slide.students },
                     { icon: <Award className="w-4 h-4" />,    label: t.hero.stats.classes,  value: slide.classes  },
-                    { icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>, label: t.hero.stats.payments, value: slide.payments },
+                    { icon: slide.currency === 'gbp' ? <PoundSterling className="w-4 h-4" /> : <Euro className="w-4 h-4" />, label: t.hero.stats.payments, value: slide.payments },
                   ].map(s => (
                     <div key={s.label} className="flex items-center gap-3 p-2 bg-white/10 rounded-xl">
                       <div className="p-1.5 bg-white/10 rounded-lg text-sky-200">{s.icon}</div>
