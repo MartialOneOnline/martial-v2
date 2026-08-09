@@ -18,8 +18,8 @@ export default function CookiesPolicyPage() {
       </p>
       <p>
         Company details: Martial App Ltd, a private limited company registered in England and Wales, company
-        number 12588961. Registered office: Flat 14 Starboard Court, Brighton Marina Village, Brighton, England,
-        BN2 5UX, United Kingdom.
+        number 12588961. Registered office: C/O Mcphersons Walpole Harding, Citibase Brighton, 95 Ditchling
+        Road, Brighton, East Sussex, United Kingdom, BN1 4ST.
       </p>
       <p>
         If you have any questions about this Cookie Policy, contact us at{' '}
@@ -94,7 +94,8 @@ export default function CookiesPolicyPage() {
         <p>
           Martial App Ltd
           <br />
-          Flat 14 Starboard Court, Brighton Marina Village, Brighton, England, BN2 5UX, United Kingdom
+          C/O Mcphersons Walpole Harding, Citibase Brighton, 95 Ditchling Road, Brighton, East Sussex, United
+          Kingdom, BN1 4ST
           <br />
           Email: privacy@martialapp.com
         </p>
