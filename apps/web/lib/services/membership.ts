@@ -685,10 +685,40 @@ export interface MarkRenewalPaidInput {
 }
 
 /**
- * Resolves a pending cash renewal: flips the Transaction to PAID and pushes
- * the same Membership's endDate forward to the transaction's periodEnd,
- * keeping status ACTIVE — the "same membership, just extended" resolution,
- * as opposed to assignPlan's "cancel old, create new" resolution.
+ * Pushes the Membership linked to a just-paid Transaction forward to the
+ * transaction's periodEnd and (re)activates it — the "same membership, just
+ * extended" resolution, as opposed to assignPlan's "cancel old, create new"
+ * resolution. Shared by markRenewalPaid (the profile page's dedicated
+ * "Mark as Paid" flow) and the generic Transactions-list status change, so
+ * a renewal payment has the same effect on the membership regardless of
+ * which screen the admin marks it paid from. No-op if the transaction isn't
+ * linked to a membership. Must run inside the same transaction as the
+ * Transaction.status write so both land atomically.
+ */
+async function activateMembershipForPaidRenewal(
+  tx: Prisma.TransactionClient,
+  txn: { membershipId: string | null; periodEnd: Date | null },
+  schoolId: string,
+) {
+  if (!txn.membershipId) return null
+  const membership = await tx.membership.findFirst({ where: { id: txn.membershipId, schoolId } })
+  if (!membership) return null
+
+  const newEndDate = txn.periodEnd ?? membership.endDate
+
+  const updated = await tx.membership.update({
+    where: { id: membership.id },
+    data: { status: MembershipStatus.ACTIVE, endDate: newEndDate },
+  })
+  await syncSchoolMemberStatusForMembership(tx, {
+    userId: membership.userId, schoolId, membershipStatus: MembershipStatus.ACTIVE,
+  })
+  return updated
+}
+
+/**
+ * Resolves a pending cash renewal: flips the Transaction to PAID and extends
+ * the linked Membership via activateMembershipForPaidRenewal.
  */
 export async function markRenewalPaid(input: MarkRenewalPaidInput) {
   const { transactionId, schoolId } = input
@@ -698,24 +728,34 @@ export async function markRenewalPaid(input: MarkRenewalPaidInput) {
   if (txn.status !== TransactionStatus.PENDING) throw new Error('Transaction is not pending')
   if (!txn.membershipId) throw new Error('Transaction is not linked to a membership')
 
-  const membership = await prisma.membership.findFirst({ where: { id: txn.membershipId, schoolId } })
-  if (!membership) throw new Error('Membership not found')
-
-  const newEndDate = txn.periodEnd ?? membership.endDate
-
-  const [updated] = await prisma.$transaction(async (tx) => {
+  const updated = await prisma.$transaction(async (tx) => {
     await tx.transaction.update({ where: { id: transactionId }, data: { status: TransactionStatus.PAID, date: new Date() } })
-    const m = await tx.membership.update({
-      where: { id: membership.id },
-      data: { status: MembershipStatus.ACTIVE, endDate: newEndDate },
-    })
-    await syncSchoolMemberStatusForMembership(tx, {
-      userId: membership.userId, schoolId, membershipStatus: MembershipStatus.ACTIVE,
-    })
-    return [m]
+    return activateMembershipForPaidRenewal(tx, txn, schoolId)
   })
 
+  if (!updated) throw new Error('Membership not found')
   return updated
+}
+
+export interface ApplyPaidMembershipTransactionInput {
+  transactionId: string
+  schoolId: string
+}
+
+/**
+ * Called when a Transaction linked to a Membership transitions to PAID from
+ * the generic Transactions-list status change (as opposed to the profile
+ * page's dedicated renewal flow, which calls markRenewalPaid directly) — so
+ * both paths keep the membership's endDate/status in sync with its
+ * transactions. No-op if the transaction isn't linked to a membership.
+ */
+export async function applyPaidMembershipTransaction(input: ApplyPaidMembershipTransactionInput) {
+  const { transactionId, schoolId } = input
+  return prisma.$transaction(async (tx) => {
+    const txn = await tx.transaction.findFirst({ where: { id: transactionId, schoolId } })
+    if (!txn) return null
+    return activateMembershipForPaidRenewal(tx, txn, schoolId)
+  })
 }
 
 /**

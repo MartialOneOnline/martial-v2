@@ -812,7 +812,7 @@ function MembershipSection({
               style={{ fontSize: 12, fontWeight: 600, color: '#D97706', background: '#FFFBEB', border: 'none',
                 padding: '5px 10px', borderRadius: 8, cursor: creatingRenewal ? 'not-allowed' : 'pointer', opacity: creatingRenewal ? 0.6 : 1 }}>
               <Plus size={11} />
-              {creatingRenewal ? 'Adding…' : 'Add pending payment'}
+              {creatingRenewal ? 'Adding…' : 'Payment'}
             </button>
           )}
           {activeMembership && (

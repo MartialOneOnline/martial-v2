@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 import { notifyPaymentReceived } from '@/lib/notifications/create'
+import { applyPaidMembershipTransaction } from '@/lib/services/membership'
 import { fmtPrice } from '@/lib/format'
 
 // The Student Profile page renders the transaction list from a one-time SSR
@@ -122,6 +123,9 @@ export async function PATCH(
       fmtPrice(Number(tx.amount), tx.currency ?? 'EUR'),
       tx.description ?? 'pago',
     )
+    if (tx.membershipId) {
+      await applyPaidMembershipTransaction({ transactionId: id, schoolId: auth.schoolId })
+    }
   }
 
   await revalidateStudentProfile(auth.schoolId, tx.userId)
