@@ -76,9 +76,15 @@ export default function Footer() {
               <HelpCircle className="w-4 h-4 text-cyan-400" />{t.sidebar.support}
             </h4>
             <ul className="space-y-3.5 text-sm font-semibold">
-              {['About Us', 'Contact Us', 'FAQs', 'Terms & Conditions', 'Privacy Policy'].map(item => (
-                <li key={item}>
-                  <a href="#" className="hover:text-cyan-400 transition-colors py-0.5 block">{item}</a>
+              {[
+                { label: 'About Us', href: '#' },
+                { label: 'Contact Us', href: '#' },
+                { label: 'FAQs', href: '#' },
+                { label: 'Terms & Conditions', href: '/legal/terms' },
+                { label: 'Privacy Policy', href: '/legal/privacy' },
+              ].map(item => (
+                <li key={item.label}>
+                  <Link href={item.href} className="hover:text-cyan-400 transition-colors py-0.5 block">{item.label}</Link>
                 </li>
               ))}
             </ul>
@@ -105,8 +111,8 @@ export default function Footer() {
             <span>© MartialApp. 2026 {t.footer.rights}</span>
             <span className="hidden sm:inline text-[#101828]">|</span>
             <div className="flex items-center gap-4">
-              <a href="#" className="hover:text-slate-300 transition-colors">{t.footer.terms}</a>
-              <a href="#" className="hover:text-slate-300 transition-colors">{t.footer.privacy}</a>
+              <Link href="/legal/terms" className="hover:text-slate-300 transition-colors">{t.footer.terms}</Link>
+              <Link href="/legal/privacy" className="hover:text-slate-300 transition-colors">{t.footer.privacy}</Link>
             </div>
           </div>
           <div className="flex items-center gap-3 flex-wrap opacity-60 hover:opacity-90 transition-opacity">
