@@ -3,9 +3,10 @@
 import { useDashboard } from '../../../../components/DashboardShell'
 import NotificationBell from '../../../../components/NotificationBell'
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Menu, Search, ChevronLeft, ChevronRight, Filter, MoreVertical } from 'lucide-react'
+import { Menu, Search, ChevronLeft, ChevronRight, Filter, MoreVertical, Download } from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import { fmtPrice as fmtAmt } from '../../../../lib/format'
+import { downloadCsv } from '../../../../lib/csvExport'
 import SharedRowMenu from '../../../../components/RowMenu'
 import {
   AreaChart, Area, BarChart, Bar, Cell,
@@ -197,6 +198,25 @@ export default function PaymentsReportClient() {
   useEffect(() => { load() }, [load])
   useEffect(() => { setPage(1) }, [period, filterTab, search, filters])
 
+  async function handleExport() {
+    const params = new URLSearchParams({ period, status: filterTab, search, page: '1', pageSize: '1000' })
+    if (filters.method)    params.set('method', filters.method)
+    if (filters.dateFrom)  params.set('dateFrom', filters.dateFrom)
+    if (filters.dateTo)    params.set('dateTo', filters.dateTo)
+    if (filters.minAmount) params.set('minAmount', filters.minAmount)
+    if (filters.maxAmount) params.set('maxAmount', filters.maxAmount)
+    const res = await fetch(`/api/dashboard/reports/payments?${params}`)
+    if (!res.ok) return
+    const d: ReportData = await res.json()
+    const headers = ['Member', 'Email', 'Description', 'Method', 'Amount', 'Currency', 'Date', 'Status']
+    const rows = d.transactions.map(tx => [
+      tx.userName, tx.userEmail, tx.description, tx.method,
+      String(tx.amount), tx.currency, fmtDate(tx.date),
+      STATUS_STYLES[tx.status]?.label ?? tx.status,
+    ])
+    downloadCsv('payments-report', headers, rows)
+  }
+
   async function updateTxStatus(id: string, status: string, label: string) {
     const res = await fetch(`/api/dashboard/transactions/${id}`, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }),
@@ -248,6 +268,11 @@ export default function PaymentsReportClient() {
             </button>
           ))}
         </div>
+        <button onClick={handleExport}
+          className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
+          style={{ background: '#fff', border: '1px solid #E5E7EB', color: '#374151', fontSize: 13, fontWeight: 500 }}>
+          <Download size={14} /> Export
+        </button>
         <NotificationBell />
       </div>
 

@@ -3,9 +3,10 @@
 import { useDashboard } from '../../../../components/DashboardShell'
 import NotificationBell from '../../../../components/NotificationBell'
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Menu, Search, ChevronLeft, ChevronRight, Filter, MoreVertical } from 'lucide-react'
+import { Menu, Search, ChevronLeft, ChevronRight, Filter, MoreVertical, Download } from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import SharedRowMenu from '../../../../components/RowMenu'
+import { downloadCsv } from '../../../../lib/csvExport'
 import {
   AreaChart, Area, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -163,6 +164,22 @@ export default function BookingsReportClient() {
   useEffect(() => { load() }, [load])
   useEffect(() => { setPage(1) }, [period, filterTab, search, filters])
 
+  async function handleExport() {
+    const params = new URLSearchParams({ period, status: filterTab, search, page: '1', pageSize: '1000' })
+    if (filters.className) params.set('className', filters.className)
+    if (filters.dateFrom)  params.set('dateFrom', filters.dateFrom)
+    if (filters.dateTo)    params.set('dateTo', filters.dateTo)
+    const res = await fetch(`/api/dashboard/reports/bookings?${params}`)
+    if (!res.ok) return
+    const d: ReportData = await res.json()
+    const headers = ['Member', 'Email', 'Class', 'Scheduled at', 'Status']
+    const rows = d.bookings.map(b => [
+      b.userName, b.userEmail, b.className, fmtDateTime(b.scheduledAt),
+      STATUS_STYLES[b.status]?.label ?? b.status,
+    ])
+    downloadCsv('bookings-report', headers, rows)
+  }
+
   const totalPages = data ? Math.max(1, Math.ceil(data.total / ITEMS_PER_PAGE)) : 1
   const pages = getPaginationPages(page, totalPages)
   const stats = data?.stats
@@ -206,6 +223,11 @@ export default function BookingsReportClient() {
             </button>
           ))}
         </div>
+        <button onClick={handleExport}
+          className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
+          style={{ background: '#fff', border: '1px solid #E5E7EB', color: '#374151', fontSize: 13, fontWeight: 500 }}>
+          <Download size={14} /> Export
+        </button>
         <NotificationBell />
       </div>
 

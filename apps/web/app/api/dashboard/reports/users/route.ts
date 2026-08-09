@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
   const status   = searchParams.get('status')  ?? 'ALL'
   const search   = searchParams.get('search')  ?? ''
   const page     = Math.max(1, parseInt(searchParams.get('page') ?? '1'))
-  const pageSize = 15
+  const pageSize = Math.min(1000, parseInt(searchParams.get('pageSize') ?? '15'))
 
   const { from, points } = periodDates(period)
   const now = new Date()

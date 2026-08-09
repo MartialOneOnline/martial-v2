@@ -2,9 +2,10 @@
 
 import { useDashboard } from '../../../../components/DashboardShell'
 import { useState, useEffect, useCallback } from 'react'
-import { Menu, Search, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Menu, Search, ChevronLeft, ChevronRight, Download } from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import { fmtPrice as fmtAmt } from '../../../../lib/format'
+import { downloadCsv } from '../../../../lib/csvExport'
 import {
   AreaChart, Area, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -41,6 +42,7 @@ interface Entry {
   type: TxType
   amount: number
   currency: string
+  status: string
 }
 
 interface ChartPoint { date: string; income: number; expenses: number }
@@ -88,6 +90,23 @@ export default function BalanceReportClient() {
 
   useEffect(() => { load() }, [load])
 
+  async function handleExport() {
+    const params = new URLSearchParams({
+      page: '1', pageSize: '1000',
+      ...(filterTab !== 'ALL' ? { type: filterTab } : {}),
+      ...(search ? { search } : {}),
+    })
+    const res = await fetch(`/api/dashboard/balance?${params}`)
+    if (!res.ok) return
+    const data = await res.json()
+    const headers = ['Date', 'Description', 'Category', 'Type', 'Amount', 'Currency', 'Status']
+    const rows = (data.entries as Entry[]).map(e => [
+      fmtDate(e.date), e.description ?? '', CAT_LABELS[e.category] ?? e.category,
+      TYPE_STYLES[e.type].label, String(e.amount), e.currency, e.status,
+    ])
+    downloadCsv('balance-report', headers, rows)
+  }
+
   const totalPages = Math.max(1, Math.ceil(total / ITEMS_PER_PAGE))
   const pages = getPaginationPages(page, totalPages)
   const profitMargin = totalIncome > 0 ? Math.round((netBalance / totalIncome) * 100) : 0
@@ -114,6 +133,12 @@ export default function BalanceReportClient() {
             onChange={e => { setSearch(e.target.value); setPage(1) }}
             style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
         </div>
+        <div className="flex-1" />
+        <button onClick={handleExport}
+          className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
+          style={{ background: '#fff', border: '1px solid #E5E7EB', color: '#374151', fontSize: 13, fontWeight: 500 }}>
+          <Download size={14} /> Export
+        </button>
       </div>
 
       <div className="px-4 md:px-8 py-6 flex flex-col gap-6">

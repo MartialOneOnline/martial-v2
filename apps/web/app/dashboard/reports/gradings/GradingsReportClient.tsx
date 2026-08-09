@@ -2,8 +2,9 @@
 
 import { useDashboard } from '../../../../components/DashboardShell'
 import { useState, useEffect, useCallback } from 'react'
-import { Menu, Search, ChevronRight, ChevronLeft } from 'lucide-react'
+import { Menu, Search, ChevronRight, ChevronLeft, Download } from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
+import { downloadCsv } from '../../../../lib/csvExport'
 import {
   BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -100,6 +101,23 @@ export default function GradingsReportClient() {
 
   useEffect(() => { fetchGradings() }, [fetchGradings])
 
+  async function handleExport() {
+    const params = new URLSearchParams({
+      page: '1', pageSize: '1000',
+      ...(filterBelt !== 'All' ? { belt: filterBelt } : {}),
+    })
+    const res = await fetch(`/api/dashboard/gradings?${params}`)
+    if (!res.ok) return
+    const data = await res.json()
+    const headers = ['Member', 'From belt', 'To belt', 'Degree', 'Graded at', 'Instructor', 'Notes']
+    const rows = (data.gradings as Grading[]).map(g => [
+      g.userName, g.fromBelt ? normBelt(g.fromBelt) : '', normBelt(g.toBelt), String(g.toDegree),
+      new Date(g.gradedAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }),
+      g.instructor ?? '', g.notes ?? '',
+    ])
+    downloadCsv('gradings-report', headers, rows)
+  }
+
   const totalPages = Math.max(1, Math.ceil(total / ITEMS_PER_PAGE))
   const pages = getPaginationPages(page, totalPages)
 
@@ -149,6 +167,11 @@ export default function GradingsReportClient() {
             style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
         </div>
         <div className="flex-1" />
+        <button onClick={handleExport}
+          className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
+          style={{ background: '#fff', border: '1px solid #E5E7EB', color: '#374151', fontSize: 13, fontWeight: 500 }}>
+          <Download size={14} /> Export
+        </button>
       </div>
 
       <div className="px-4 md:px-8 py-6 flex flex-col gap-6">

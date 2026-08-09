@@ -3,9 +3,10 @@
 import { useDashboard } from '../../../../components/DashboardShell'
 import NotificationBell from '../../../../components/NotificationBell'
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Menu, Search, ChevronLeft, ChevronRight, Filter, MoreVertical } from 'lucide-react'
+import { Menu, Search, ChevronLeft, ChevronRight, Filter, MoreVertical, Download } from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import SharedRowMenu from '../../../../components/RowMenu'
+import { downloadCsv } from '../../../../lib/csvExport'
 import {
   AreaChart, Area, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -191,6 +192,22 @@ export default function UsersReportClient() {
   useEffect(() => { load() }, [load])
   useEffect(() => { setPage(1) }, [period, filterTab, search, filters])
 
+  async function handleExport() {
+    const params = new URLSearchParams({ period, status: filterTab, search, page: '1', pageSize: '1000' })
+    if (filters.belt)     params.set('belt', filters.belt)
+    if (filters.dateFrom) params.set('dateFrom', filters.dateFrom)
+    if (filters.dateTo)   params.set('dateTo', filters.dateTo)
+    const res = await fetch(`/api/dashboard/reports/users?${params}`)
+    if (!res.ok) return
+    const d: ReportData = await res.json()
+    const headers = ['Name', 'Email', 'Belt', 'Plan', 'Status', 'Joined', 'Last attended']
+    const rows = d.members.map(m => [
+      m.name, m.email, m.belt, m.plan, STATUS_STYLES[m.status]?.label ?? m.status,
+      fmtDate(m.joinedAt), m.lastAttendedAt ? fmtDate(m.lastAttendedAt) : '',
+    ])
+    downloadCsv('members-report', headers, rows)
+  }
+
   async function setMemberStatus(memberId: string, status: string) {
     await fetch(`/api/dashboard/members/${memberId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) })
     showToast(`Status updated to ${status.toLowerCase()}`)
@@ -243,6 +260,11 @@ export default function UsersReportClient() {
             </button>
           ))}
         </div>
+        <button onClick={handleExport}
+          className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
+          style={{ background: '#fff', border: '1px solid #E5E7EB', color: '#374151', fontSize: 13, fontWeight: 500 }}>
+          <Download size={14} /> Export
+        </button>
         <NotificationBell />
       </div>
 

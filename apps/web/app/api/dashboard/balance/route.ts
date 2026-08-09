@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
   const type    = searchParams.get('type')   // INCOME|EXPENSE|ALL
   const search  = searchParams.get('search') || ''
   const page     = Math.max(1, parseInt(searchParams.get('page') || '1'))
-  const pageSize = Math.min(100, parseInt(searchParams.get('pageSize') || '20'))
+  const pageSize = Math.min(1000, parseInt(searchParams.get('pageSize') || '20'))
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const where: any = {

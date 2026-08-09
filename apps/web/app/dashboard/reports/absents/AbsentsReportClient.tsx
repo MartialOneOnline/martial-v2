@@ -3,9 +3,10 @@
 import { useDashboard } from '../../../../components/DashboardShell'
 import NotificationBell from '../../../../components/NotificationBell'
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Menu, Search, ChevronLeft, ChevronRight, Filter, MoreVertical, AlertTriangle } from 'lucide-react'
+import { Menu, Search, ChevronLeft, ChevronRight, Filter, MoreVertical, AlertTriangle, Download } from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import SharedRowMenu from '../../../../components/RowMenu'
+import { downloadCsv } from '../../../../lib/csvExport'
 import {
   BarChart, Bar, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -162,6 +163,22 @@ export default function AbsentsReportClient() {
   useEffect(() => { load() }, [load])
   useEffect(() => { setPage(1) }, [period, filter, search, filters])
 
+  async function handleExport() {
+    const params = new URLSearchParams({ period, filter, search, page: '1', pageSize: '1000' })
+    if (filters.minCount) params.set('minCount', filters.minCount)
+    if (filters.dateFrom) params.set('dateFrom', filters.dateFrom)
+    if (filters.dateTo)   params.set('dateTo', filters.dateTo)
+    const res = await fetch(`/api/dashboard/reports/absents?${params}`)
+    if (!res.ok) return
+    const d: ReportData = await res.json()
+    const headers = ['Name', 'Email', 'Cancellations', 'No-shows', 'Most missed class', 'Last missed', 'Risk']
+    const rows = d.members.map(m => [
+      m.name, m.email, String(m.count), String(m.noShowCount), m.mostMissedClass,
+      fmtDate(m.lastMissedAt), m.count >= d.atRiskThreshold ? 'At risk' : 'Occasional',
+    ])
+    downloadCsv('absents-report', headers, rows)
+  }
+
   const totalPages = data ? Math.max(1, Math.ceil(data.total / ITEMS_PER_PAGE)) : 1
   const pages = getPaginationPages(page, totalPages)
   const stats = data?.stats
@@ -207,6 +224,11 @@ export default function AbsentsReportClient() {
             </button>
           ))}
         </div>
+        <button onClick={handleExport}
+          className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
+          style={{ background: '#fff', border: '1px solid #E5E7EB', color: '#374151', fontSize: 13, fontWeight: 500 }}>
+          <Download size={14} /> Export
+        </button>
         <NotificationBell />
       </div>
 
