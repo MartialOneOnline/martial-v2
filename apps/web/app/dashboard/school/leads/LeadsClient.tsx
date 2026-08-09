@@ -62,7 +62,7 @@ function initials(name: string) {
 function Avatar({ name }: { name: string }) {
   return (
     <div className="rounded-full shrink-0 flex items-center justify-center"
-      style={{ width: 32, height: 32, background: '#E0E7FF', color: '#3730A3', fontSize: 11, fontWeight: 700 }}>
+      style={{ width: 42, height: 42, background: '#E0E7FF', color: '#3730A3', fontSize: 14, fontWeight: 700 }}>
       {initials(name)}
     </div>
   )
@@ -337,19 +337,19 @@ export default function LeadsClient() {
           </div>
         </div>
 
-        <div className="rounded-2xl overflow-hidden" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+        <div className="rounded-2xl overflow-x-auto" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
                 {[
-                  { label: t.common.member,    cls: '' },
-                  { label: t.common.phone,     cls: 'hidden md:table-cell' },
-                  { label: t.school.colSource, cls: '' },
-                  { label: t.common.date,      cls: '' },
-                  { label: t.common.status,    cls: '' },
-                  { label: t.common.actions,   cls: '' },
+                  { label: t.common.member,    cls: '',                     pad: 'px-3 sm:px-5' },
+                  { label: t.common.phone,     cls: 'hidden md:table-cell', pad: 'px-5' },
+                  { label: t.school.colSource, cls: 'hidden sm:table-cell', pad: 'px-5' },
+                  { label: t.common.date,      cls: 'hidden sm:table-cell', pad: 'px-5' },
+                  { label: t.common.status,    cls: '',                     pad: 'px-2 sm:px-5' },
+                  { label: t.common.actions,   cls: '',                     pad: 'px-2 sm:px-5' },
                 ].map(h => (
-                  <th key={h.label} className={`px-5 py-3 text-left ${h.cls}`}
+                  <th key={h.label} className={`${h.pad} py-3 text-left ${h.cls}`}
                     style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                     {h.label}
                   </th>
@@ -373,35 +373,35 @@ export default function LeadsClient() {
                 return (
                   <tr key={lead.id} className="hover:bg-[#FAFAFA] transition-colors cursor-pointer"
                     style={{ borderBottom: idx < leads.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-3">
+                    <td className="px-3 sm:px-5 py-3">
+                      <div className="flex items-center gap-3 min-w-0">
                         <Avatar name={lead.name} />
                         <div className="min-w-0">
-                          <p style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{lead.name}</p>
-                          <p style={{ fontSize: 11, color: '#9CA3AF' }}>{lead.email ?? '—'}</p>
+                          <p className="truncate" style={{ fontSize: 14, fontWeight: 600, color: '#111827', maxWidth: 110 }}>{lead.name}</p>
+                          <p className="truncate" style={{ fontSize: 11, color: '#9CA3AF', maxWidth: 110 }}>{lead.email ?? '—'}</p>
                         </div>
                       </div>
                     </td>
                     <td className="hidden md:table-cell px-5 py-3">
                       <span style={{ fontSize: 13, color: '#374151' }}>{lead.phone ?? '—'}</span>
                     </td>
-                    <td className="px-5 py-3">
+                    <td className="hidden sm:table-cell px-5 py-3">
                       <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999,
                         background: src.bg, color: src.color }}>
                         {SOURCE_DISPLAY[lead.source] ?? lead.source}
                       </span>
                     </td>
-                    <td className="px-5 py-3">
+                    <td className="hidden sm:table-cell px-5 py-3">
                       <span style={{ fontSize: 13, color: '#6B7280' }}>{date}</span>
                     </td>
-                    <td className="px-5 py-3">
+                    <td className="px-2 sm:px-5 py-3">
                       <span className="inline-flex items-center gap-1.5"
                         style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999,
                           background: sc.bg, color: sc.color, border: '1px solid ' + sc.border, whiteSpace: 'nowrap' }}>
                         {STATUS_DISPLAY[lead.status] ?? lead.status}
                       </span>
                     </td>
-                    <td className="px-5 py-3">
+                    <td className="px-2 sm:px-5 py-3">
                       <div className="flex items-center gap-1">
                         <button className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
                           style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}

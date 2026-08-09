@@ -266,14 +266,21 @@ export default function StoreClient() {
               </div>
             </div>
 
-            <div className="rounded-2xl overflow-hidden" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+            <div className="rounded-2xl overflow-x-auto" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
               <table className="w-full">
                 <thead>
                   <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
-                    {['Product','Price','Stock','Sold','Status','Actions'].map(h => (
-                      <th key={h} className="px-5 py-3 text-left"
+                    {[
+                      { label: 'Product', cls: '',                     pad: 'px-3 sm:px-5' },
+                      { label: 'Price',   cls: 'hidden sm:table-cell', pad: 'px-5' },
+                      { label: 'Stock',   cls: 'hidden sm:table-cell', pad: 'px-5' },
+                      { label: 'Sold',    cls: 'hidden sm:table-cell', pad: 'px-5' },
+                      { label: 'Status',  cls: '',                     pad: 'px-2 sm:px-5' },
+                      { label: 'Actions', cls: '',                     pad: 'px-2 sm:px-5' },
+                    ].map(h => (
+                      <th key={h.label} className={`${h.pad} py-3 text-left ${h.cls}`}
                         style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                        {h}
+                        {h.label}
                       </th>
                     ))}
                   </tr>
@@ -285,14 +292,14 @@ export default function StoreClient() {
                     return (
                       <tr key={product.id} className="hover:bg-[#FAFAFA] transition-colors cursor-pointer"
                         style={{ borderBottom: idx < paginated.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
-                        <td className="px-5 py-3">
-                          <div className="flex items-center gap-3">
+                        <td className="px-3 sm:px-5 py-3">
+                          <div className="flex items-center gap-3 min-w-0">
                             <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
                               style={{ background: '#F3F4F6', border: '1px solid #E5E7EB' }}>
                               <ShoppingBag size={16} style={{ color: '#9CA3AF' }} />
                             </div>
                             <div className="min-w-0">
-                              <p style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{product.name}</p>
+                              <p className="truncate" style={{ fontSize: 14, fontWeight: 600, color: '#111827', maxWidth: 130 }}>{product.name}</p>
                               <span style={{ fontSize: 11, fontWeight: 600, padding: '1px 7px', borderRadius: 999,
                                 background: cat.bg, color: cat.color }}>
                                 {product.category}
@@ -300,25 +307,25 @@ export default function StoreClient() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-5 py-3">
+                        <td className="hidden sm:table-cell px-5 py-3">
                           <span style={{ fontSize: 15, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em' }}>{product.price}</span>
                         </td>
-                        <td className="px-5 py-3">
+                        <td className="hidden sm:table-cell px-5 py-3">
                           <span style={{ fontSize: 14, fontWeight: 600, color: product.stock < 5 ? '#DC2626' : '#111827' }}>
                             {product.stock}
                           </span>
                         </td>
-                        <td className="px-5 py-3">
+                        <td className="hidden sm:table-cell px-5 py-3">
                           <span style={{ fontSize: 14, color: '#374151' }}>{product.sold}</span>
                         </td>
-                        <td className="px-5 py-3">
+                        <td className="px-2 sm:px-5 py-3">
                           <span className="inline-flex items-center gap-1.5"
                             style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999,
                               background: sc.bg, color: sc.color, border: '1px solid ' + sc.border, whiteSpace: 'nowrap' }}>
                             {product.status}
                           </span>
                         </td>
-                        <td className="px-5 py-3">
+                        <td className="px-2 sm:px-5 py-3">
                           <div className="flex items-center gap-1">
                             <button className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
                               style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}

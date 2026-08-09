@@ -98,7 +98,7 @@ function AddWaiverDrawer({ open, onClose, onSuccess }: { open: boolean; onClose:
                 style={{ border: '1px solid #0071E3', background: '#EFF6FF' }}>
                 <div className="flex items-center gap-2.5">
                   <img src={selectedMember.avatar} alt={selectedMember.name}
-                    className="rounded-full shrink-0" style={{ width: 28, height: 28 }} />
+                    className="rounded-full shrink-0" style={{ width: 42, height: 42 }} />
                   <div>
                     <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{selectedMember.name}</p>
                     <p style={{ fontSize: 11, color: '#6B7280' }}>{selectedMember.email}</p>
@@ -134,7 +134,7 @@ function AddWaiverDrawer({ open, onClose, onSuccess }: { open: boolean; onClose:
                           style={{ background: 'transparent', border: 'none' }}
                           onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
                           onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                          <img src={m.avatar} alt={m.name} className="rounded-full shrink-0" style={{ width: 28, height: 28 }} />
+                          <img src={m.avatar} alt={m.name} className="rounded-full shrink-0" style={{ width: 42, height: 42 }} />
                           <div>
                             <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{m.name}</p>
                             <p style={{ fontSize: 11, color: '#9CA3AF' }}>{m.email}</p>
@@ -327,19 +327,19 @@ export default function WaiversClient() {
               </div>
             </div>
 
-            <div className="rounded-2xl overflow-hidden" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+            <div className="rounded-2xl overflow-x-auto" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
               <table className="w-full">
                 <thead>
                   <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
                     {[
-                      { label: 'Member',      cls: '' },
-                      { label: 'Type',        cls: '' },
-                      { label: 'Signed',      cls: 'hidden md:table-cell' },
-                      { label: 'Expires',     cls: 'hidden md:table-cell' },
-                      { label: 'Status',      cls: '' },
-                      { label: 'Actions',     cls: '' },
+                      { label: 'Member',      cls: '',                     pad: 'px-3 sm:px-5' },
+                      { label: 'Type',        cls: 'hidden sm:table-cell', pad: 'px-5' },
+                      { label: 'Signed',      cls: 'hidden md:table-cell', pad: 'px-5' },
+                      { label: 'Expires',     cls: 'hidden md:table-cell', pad: 'px-5' },
+                      { label: 'Status',      cls: '',                     pad: 'px-2 sm:px-5' },
+                      { label: 'Actions',     cls: '',                     pad: 'px-2 sm:px-5' },
                     ].map(h => (
-                      <th key={h.label} className={`px-5 py-3 text-left ${h.cls}`}
+                      <th key={h.label} className={`${h.pad} py-3 text-left ${h.cls}`}
                         style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                         {h.label}
                       </th>
@@ -353,16 +353,16 @@ export default function WaiversClient() {
                     return (
                       <tr key={waiver.id} className="hover:bg-[#FAFAFA] transition-colors cursor-pointer"
                         style={{ borderBottom: idx < paginated.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
-                        <td className="px-5 py-3">
-                          <div className="flex items-center gap-3">
-                            <img src={waiver.avatar} alt={waiver.name} className="rounded-full shrink-0" style={{ width: 32, height: 32 }} />
+                        <td className="px-3 sm:px-5 py-3">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <img src={waiver.avatar} alt={waiver.name} className="rounded-full shrink-0" style={{ width: 42, height: 42 }} />
                             <div className="min-w-0">
-                              <p style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{waiver.name}</p>
-                              <p style={{ fontSize: 11, color: '#9CA3AF' }}>{waiver.email}</p>
+                              <p className="truncate" style={{ fontSize: 14, fontWeight: 600, color: '#111827', maxWidth: 150 }}>{waiver.name}</p>
+                              <p className="truncate" style={{ fontSize: 11, color: '#9CA3AF', maxWidth: 150 }}>{waiver.email}</p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-5 py-3">
+                        <td className="hidden sm:table-cell px-5 py-3">
                           <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999,
                             background: tc.bg, color: tc.color, whiteSpace: 'nowrap' }}>
                             {waiver.type}
@@ -374,22 +374,22 @@ export default function WaiversClient() {
                         <td className="hidden md:table-cell px-5 py-3">
                           <span style={{ fontSize: 13, color: '#6B7280' }}>{waiver.expiryDate || '—'}</span>
                         </td>
-                        <td className="px-5 py-3">
+                        <td className="px-2 sm:px-5 py-3">
                           <span className="inline-flex items-center gap-1.5"
                             style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999,
                               background: sc.bg, color: sc.color, border: '1px solid ' + sc.border, whiteSpace: 'nowrap' }}>
                             {waiver.status}
                           </span>
                         </td>
-                        <td className="px-5 py-3">
+                        <td className="px-2 sm:px-5 py-3">
                           <div className="flex items-center gap-1">
-                            <button className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
+                            <button className="hidden sm:flex w-7 h-7 items-center justify-center rounded-lg cursor-pointer"
                               style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
                               onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
                               onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
                               <Eye size={14} />
                             </button>
-                            <button className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
+                            <button className="hidden sm:flex w-7 h-7 items-center justify-center rounded-lg cursor-pointer"
                               style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
                               onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
                               onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>

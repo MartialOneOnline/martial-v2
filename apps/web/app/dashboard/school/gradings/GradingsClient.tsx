@@ -773,14 +773,22 @@ export default function GradingsClient() {
         </div>
 
         {/* Table */}
-        <div className="rounded-2xl overflow-hidden" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+        <div className="rounded-2xl overflow-x-auto" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
-                {['Member', 'Promotion', 'Stripes', 'Date', 'Instructor', 'Notes', ''].map(h => (
-                  <th key={h} className={`px-5 py-3 text-left ${h === 'Instructor' ? 'hidden lg:table-cell' : h === 'Notes' ? 'hidden xl:table-cell' : ''}`}
+                {[
+                  { label: 'Member',     cls: '',                     pad: 'px-3 sm:px-5' },
+                  { label: 'Promotion',  cls: '',                     pad: 'px-2 sm:px-5' },
+                  { label: 'Stripes',    cls: 'hidden sm:table-cell', pad: 'px-5' },
+                  { label: 'Date',       cls: 'hidden sm:table-cell', pad: 'px-5' },
+                  { label: 'Instructor', cls: 'hidden lg:table-cell', pad: 'px-5' },
+                  { label: 'Notes',      cls: 'hidden xl:table-cell', pad: 'px-5' },
+                  { label: '',           cls: '',                     pad: 'px-2 sm:px-5' },
+                ].map(h => (
+                  <th key={h.label} className={`${h.pad} py-3 text-left ${h.cls}`}
                     style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    {h}
+                    {h.label}
                   </th>
                 ))}
               </tr>
@@ -803,21 +811,21 @@ export default function GradingsClient() {
                     style={{ borderBottom: idx < gradings.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
 
                     {/* Member */}
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-3">
+                    <td className="px-3 sm:px-5 py-3">
+                      <div className="flex items-center gap-3 min-w-0">
                         {g.userAvatar
-                          ? <img src={g.userAvatar} alt={g.userName} className="w-8 h-8 rounded-full shrink-0 object-cover" />
-                          : <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white"
+                          ? <img src={g.userAvatar} alt={g.userName} className="w-[42px] h-[42px] rounded-full shrink-0 object-cover" />
+                          : <div className="w-[42px] h-[42px] rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white"
                               style={{ background: 'linear-gradient(135deg,#0870E2,#7DE7EC)' }}>
                               {g.userName.slice(0, 1).toUpperCase()}
                             </div>
                         }
-                        <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{g.userName}</span>
+                        <span className="truncate" style={{ fontSize: 14, fontWeight: 600, color: '#111827', maxWidth: 90 }}>{g.userName}</span>
                       </div>
                     </td>
 
                     {/* Promotion */}
-                    <td className="px-5 py-3">
+                    <td className="px-2 sm:px-5 py-3">
                       <div className="flex items-center gap-2">
                         {g.fromBelt ? (
                           <>
@@ -836,7 +844,7 @@ export default function GradingsClient() {
                     </td>
 
                     {/* Stripes */}
-                    <td className="px-5 py-3">
+                    <td className="hidden sm:table-cell px-5 py-3">
                       <div className="flex items-center gap-2">
                         <StripeDots degree={g.toDegree} color={to.dot} />
                         {g.toDegree > 0 && (
@@ -846,7 +854,7 @@ export default function GradingsClient() {
                     </td>
 
                     {/* Date */}
-                    <td className="px-5 py-3">
+                    <td className="hidden sm:table-cell px-5 py-3">
                       <span style={{ fontSize: 13, color: '#6B7280' }}>{fmtDate(g.gradedAt)}</span>
                     </td>
 
@@ -863,7 +871,7 @@ export default function GradingsClient() {
                     </td>
 
                     {/* Actions */}
-                    <td className="px-5 py-3">
+                    <td className="px-2 sm:px-5 py-3">
                       <RowMenu onEdit={() => setEditGrading(g)} onDelete={() => handleDelete(g.id)} />
                     </td>
                   </tr>

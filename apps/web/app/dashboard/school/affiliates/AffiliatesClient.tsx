@@ -259,19 +259,19 @@ export default function AffiliatesClient() {
               </div>
             </div>
 
-            <div className="rounded-2xl overflow-hidden" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+            <div className="rounded-2xl overflow-x-auto" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
               <table className="w-full">
                 <thead>
                   <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
                     {[
-                      { label: t.school.colSchool,   cls: '' },
-                      { label: t.common.email,       cls: 'hidden md:table-cell' },
-                      { label: 'Students',           cls: '' },
-                      { label: t.common.startDate,   cls: '' },
-                      { label: t.common.status,      cls: '' },
-                      { label: t.common.actions,     cls: '' },
+                      { label: t.school.colSchool,   cls: '',                     pad: 'px-3 sm:px-5' },
+                      { label: t.common.email,       cls: 'hidden md:table-cell', pad: 'px-5' },
+                      { label: 'Students',           cls: 'hidden sm:table-cell', pad: 'px-5' },
+                      { label: t.common.startDate,   cls: 'hidden sm:table-cell', pad: 'px-5' },
+                      { label: t.common.status,      cls: '',                     pad: 'px-2 sm:px-5' },
+                      { label: t.common.actions,     cls: '',                     pad: 'px-2 sm:px-5' },
                     ].map(h => (
-                      <th key={h.label} className={`px-5 py-3 text-left ${h.cls}`}
+                      <th key={h.label} className={`${h.pad} py-3 text-left ${h.cls}`}
                         style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                         {h.label}
                       </th>
@@ -284,15 +284,15 @@ export default function AffiliatesClient() {
                     return (
                       <tr key={aff.id} className="hover:bg-[#FAFAFA] transition-colors cursor-pointer"
                         style={{ borderBottom: idx < paginated.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
-                        <td className="px-5 py-3">
-                          <div className="flex items-center gap-3">
+                        <td className="px-3 sm:px-5 py-3">
+                          <div className="flex items-center gap-3 min-w-0">
                             <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
                               style={{ background: '#EFF6FF', border: '1px solid #BFDBFE' }}>
                               <Globe size={16} style={{ color: '#2563EB' }} />
                             </div>
                             <div className="min-w-0">
-                              <p style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{aff.name}</p>
-                              <p style={{ fontSize: 11, color: '#9CA3AF' }}>{aff.city}, {aff.country}</p>
+                              <p className="truncate" style={{ fontSize: 14, fontWeight: 600, color: '#111827', maxWidth: 140 }}>{aff.name}</p>
+                              <p className="truncate" style={{ fontSize: 11, color: '#9CA3AF', maxWidth: 140 }}>{aff.city}, {aff.country}</p>
                             </div>
                           </div>
                         </td>
@@ -300,22 +300,22 @@ export default function AffiliatesClient() {
                           <p style={{ fontSize: 13, fontWeight: 500, color: '#374151' }}>{aff.contact}</p>
                           <p style={{ fontSize: 11, color: '#9CA3AF' }}>{aff.email}</p>
                         </td>
-                        <td className="px-5 py-3">
+                        <td className="hidden sm:table-cell px-5 py-3">
                           <span style={{ fontSize: 15, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em' }}>{aff.students}</span>
                         </td>
-                        <td className="px-5 py-3">
+                        <td className="hidden sm:table-cell px-5 py-3">
                           <span style={{ fontSize: 13, color: '#6B7280' }}>{aff.since}</span>
                         </td>
-                        <td className="px-5 py-3">
+                        <td className="px-2 sm:px-5 py-3">
                           <span className="inline-flex items-center gap-1.5"
                             style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999,
                               background: sc.bg, color: sc.color, border: '1px solid ' + sc.border, whiteSpace: 'nowrap' }}>
                             {aff.status}
                           </span>
                         </td>
-                        <td className="px-5 py-3">
+                        <td className="px-2 sm:px-5 py-3">
                           <div className="flex items-center gap-1">
-                            <button className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
+                            <button className="hidden sm:flex w-7 h-7 items-center justify-center rounded-lg cursor-pointer"
                               style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
                               onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
                               onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
