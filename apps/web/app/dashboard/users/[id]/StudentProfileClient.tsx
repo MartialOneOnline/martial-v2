@@ -110,6 +110,10 @@ function fmt(iso: string) {
   return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
+function fmtShort(iso: string) {
+  return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
+}
+
 function age(iso: string) {
   const d = new Date(iso)
   const now = new Date()
@@ -987,6 +991,16 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
     ? transactions.find(t => t.membershipId === activeMembership.id && t.status === 'PENDING') ?? null
     : null
   const [bookingsShown, setBookingsShown] = useState(10)
+
+  // bookings arrives sorted desc by date (see page.tsx), so filtering preserves order
+  const attendedBookings = bookings.filter(b => b.status === 'COMPLETED')
+  const totalClasses = attendedBookings.length
+  const now = new Date()
+  const attendanceThisMonth = attendedBookings.filter(b => {
+    const d = new Date(b.date)
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
+  }).length
+  const lastClassDate = attendedBookings[0]?.date ?? null
   const [txShown, setTxShown] = useState(10)
 
   const hasRanks = ranks.length > 0
@@ -1214,9 +1228,9 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
             {/* Stats row */}
             <div className="grid grid-cols-3 sm:grid-cols-3 gap-3">
               {[
-                { icon: Dumbbell, label: 'Clases totales', value: '—', sub: 'histórico' },
-                { icon: TrendingUp, label: 'Asistencia', value: '—', sub: 'este mes' },
-                { icon: Clock, label: 'Última clase', value: '—', sub: '' },
+                { icon: Dumbbell, label: 'Clases totales', value: String(totalClasses), sub: 'histórico' },
+                { icon: TrendingUp, label: 'Asistencia', value: String(attendanceThisMonth), sub: 'este mes' },
+                { icon: Clock, label: 'Última clase', value: lastClassDate ? fmtShort(lastClassDate) : '—', sub: '' },
               ].map(s => (
                 <Card key={s.label} style={{ padding: '14px 16px' }}>
                   <div className="flex items-center gap-2" style={{ marginBottom: 8 }}>
