@@ -249,7 +249,7 @@ function SuccessToast({ message, onClose }: { message: string; onClose: () => vo
 // ── Member combobox ───────────────────────────────────────────────────────────
 interface MemberOption { id: string; name: string; email: string; avatarUrl?: string | null }
 
-function MemberSelect({ members, value, onChange, placeholder = 'Search member…' }: {
+function MemberSelect({ members, value, onChange, placeholder = 'Buscar miembro…' }: {
   members: MemberOption[]; value: string; onChange: (id: string) => void; placeholder?: string
 }) {
   const [query, setQuery] = useState('')
@@ -276,7 +276,7 @@ function MemberSelect({ members, value, onChange, placeholder = 'Search member�
           </div>
           <div style={{ maxHeight: 220, overflowY: 'auto' }}>
             {filtered.length === 0 && (
-              <p style={{ fontSize: 13, color: '#9CA3AF', padding: '10px 14px' }}>No results</p>
+              <p style={{ fontSize: 13, color: '#9CA3AF', padding: '10px 14px' }}>Sin resultados</p>
             )}
             {filtered.map(m => (
               <button key={m.id} onClick={() => { onChange(m.id); setOpen(false); setQuery('') }}
@@ -368,8 +368,8 @@ function AssignMembershipModal({ onClose, onSaved }: { onClose: () => void; onSa
   }
 
   async function handleSave() {
-    if (!form.userId) { setError('Select a member'); return }
-    if (!form.planId) { setError('Select a plan'); return }
+    if (!form.userId) { setError('Selecciona un miembro'); return }
+    if (!form.planId) { setError('Selecciona un plan'); return }
     setSaving(true); setError('')
     const plan = plans.find(p => p.id === form.planId)
     const res = await fetch('/api/dashboard/memberships', {
@@ -403,8 +403,8 @@ function AssignMembershipModal({ onClose, onSaved }: { onClose: () => void; onSa
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #F3F4F6', flexShrink: 0 }}>
             <div>
-              <p style={{ fontSize: 17, fontWeight: 700, color: '#111827', margin: 0 }}>Assign Membership</p>
-              <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>Link a plan to a member</p>
+              <p style={{ fontSize: 17, fontWeight: 700, color: '#111827', margin: 0 }}>Asignar membresía</p>
+              <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>Vincula un plan a un miembro</p>
             </div>
             <button onClick={onClose} style={{ background: '#F3F4F6', border: 'none', borderRadius: 8, padding: 6, cursor: 'pointer', display: 'flex' }}>
               <X size={15} style={{ color: '#6B7280' }} />
@@ -416,7 +416,7 @@ function AssignMembershipModal({ onClose, onSaved }: { onClose: () => void; onSa
 
             {/* Member */}
             <div>
-              <label style={MEM_LBL}>Member</label>
+              <label style={MEM_LBL}>Miembro</label>
               <MemberSelect members={members} value={form.userId} onChange={id => set('userId', id)} />
             </div>
 
@@ -424,7 +424,7 @@ function AssignMembershipModal({ onClose, onSaved }: { onClose: () => void; onSa
             <div>
               <label style={MEM_LBL}>Plan</label>
               <select value={form.planId} onChange={e => pickPlan(e.target.value)} style={MEM_INP}>
-                <option value="">Select plan…</option>
+                <option value="">Selecciona un plan…</option>
                 {plans.map(p => <option key={p.id} value={p.id}>{p.name} — €{p.price} ({p.planType})</option>)}
               </select>
               {selectedPlan && (
@@ -437,11 +437,11 @@ function AssignMembershipModal({ onClose, onSaved }: { onClose: () => void; onSa
             {/* Dates */}
             <div className="flex gap-3">
               <div style={{ flex: 1 }}>
-                <label style={MEM_LBL}>Start date</label>
+                <label style={MEM_LBL}>Fecha de inicio</label>
                 <input type="date" value={form.startDate} onChange={e => set('startDate', e.target.value)} style={MEM_INP} />
               </div>
               <div style={{ flex: 1 }}>
-                <label style={MEM_LBL}>End date</label>
+                <label style={MEM_LBL}>Fecha de fin</label>
                 <input type="date" value={form.endDate} onChange={e => set('endDate', e.target.value)} style={MEM_INP} />
               </div>
             </div>
@@ -449,29 +449,29 @@ function AssignMembershipModal({ onClose, onSaved }: { onClose: () => void; onSa
             {/* Method + Status */}
             <div className="flex gap-3">
               <div style={{ flex: 1 }}>
-                <label style={MEM_LBL}>Payment method</label>
+                <label style={MEM_LBL}>Método de pago</label>
                 <select value={form.paymentMethod} onChange={e => set('paymentMethod', e.target.value)} style={MEM_INP}>
-                  <option value="CASH">Cash</option>
-                  <option value="BANK_TRANSFER">Bank Transfer</option>
+                  <option value="CASH">Efectivo</option>
+                  <option value="BANK_TRANSFER">Transferencia bancaria</option>
                   <option value="STRIPE">Stripe</option>
-                  <option value="DIRECT_DEBIT">Direct Debit</option>
-                  <option value="OTHER">Other</option>
+                  <option value="DIRECT_DEBIT">Domiciliación bancaria</option>
+                  <option value="OTHER">Otro</option>
                 </select>
               </div>
               <div style={{ flex: 1 }}>
-                <label style={MEM_LBL}>Status</label>
+                <label style={MEM_LBL}>Estado</label>
                 <select value={form.status} onChange={e => set('status', e.target.value)} style={MEM_INP}>
-                  <option value="ACTIVE">Active</option>
-                  <option value="PAUSED">Paused</option>
-                  <option value="CANCELLED">Cancelled</option>
+                  <option value="ACTIVE">Activa</option>
+                  <option value="PAUSED">Pausada</option>
+                  <option value="CANCELLED">Cancelada</option>
                 </select>
               </div>
             </div>
 
             {/* Notes */}
             <div>
-              <label style={MEM_LBL}>Notes (optional)</label>
-              <input type="text" placeholder="Internal notes…" value={form.notes}
+              <label style={MEM_LBL}>Notas (opcional)</label>
+              <input type="text" placeholder="Notas internas…" value={form.notes}
                 onChange={e => set('notes', e.target.value)} style={MEM_INP} />
             </div>
 
@@ -482,11 +482,11 @@ function AssignMembershipModal({ onClose, onSaved }: { onClose: () => void; onSa
           <div className="flex gap-3 px-6 py-4" style={{ borderTop: '1px solid #F3F4F6', flexShrink: 0 }}>
             <button onClick={onClose} style={{ flex: 1, padding: '10px', borderRadius: 10, border: '1px solid #E5E7EB',
               background: '#fff', fontSize: 13, fontWeight: 500, color: '#374151', cursor: 'pointer' }}>
-              Cancel
+              Cancelar
             </button>
             <button onClick={handleSave} disabled={saving} style={{ flex: 2, padding: '10px', borderRadius: 10, border: 'none',
               background: '#0071E3', fontSize: 13, fontWeight: 600, color: '#fff', cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.7 : 1 }}>
-              {saving ? 'Saving…' : 'Assign Membership'}
+              {saving ? 'Guardando…' : 'Asignar membresía'}
             </button>
           </div>
         </div>
