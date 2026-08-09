@@ -91,10 +91,13 @@ const STATUS_MAP: Record<string, { bg: string; color: string; label: string }> =
   LEAD:     { bg: '#EEF2FF', color: '#6366F1', label: 'Lead' },
 }
 
-const TX_STATUS: Record<string, { bg: string; color: string }> = {
-  PAID:    { bg: '#F0FDF4', color: '#16A34A' },
-  PENDING: { bg: '#FFFBEB', color: '#D97706' },
-  FAILED:  { bg: '#FEF2F2', color: '#DC2626' },
+const TX_STATUS: Record<string, { bg: string; color: string; label: string }> = {
+  PAID:      { bg: '#F0FDF4', color: '#16A34A', label: 'Pagado' },
+  PENDING:   { bg: '#FFFBEB', color: '#D97706', label: 'Pendiente' },
+  FAILED:    { bg: '#FEF2F2', color: '#DC2626', label: 'Fallido' },
+  REFUNDED:  { bg: '#EEF2FF', color: '#6366F1', label: 'Reembolsado' },
+  CANCELLED: { bg: '#F3F4F6', color: '#6B7280', label: 'Cancelado' },
+  FLAGGED:   { bg: '#FEF2F2', color: '#DC2626', label: 'Marcado' },
 }
 
 const inputStyle: React.CSSProperties = {
@@ -1316,7 +1319,7 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
                 ) : (
                   <div className="flex flex-col">
                     {transactions.slice(0, txShown).map((t, i) => {
-                      const ts = TX_STATUS[t.status] ?? { bg: '#F3F4F6', color: '#6B7280' }
+                      const ts = TX_STATUS[t.status] ?? { bg: '#F3F4F6', color: '#6B7280', label: t.status }
                       return (
                         <div key={t.id} className="flex items-center justify-between"
                           style={{ padding: '10px 0', borderBottom: i < Math.min(transactions.length, txShown) - 1 ? '1px solid #F3F4F6' : 'none' }}>
@@ -1326,7 +1329,7 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
                           </div>
                           <div className="flex flex-col items-end gap-1">
                             <span style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>{fmtPrice(t.amount, t.currency)}</span>
-                            <span style={{ fontSize: 10, fontWeight: 600, background: ts.bg, color: ts.color, padding: '1px 6px', borderRadius: 999 }}>{t.status}</span>
+                            <span style={{ fontSize: 10, fontWeight: 600, background: ts.bg, color: ts.color, padding: '1px 6px', borderRadius: 999 }}>{ts.label}</span>
                           </div>
                         </div>
                       )
