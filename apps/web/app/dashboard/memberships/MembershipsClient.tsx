@@ -750,12 +750,13 @@ function DeleteModal({ plan, onClose, onDeleted }: {
 }
 
 // ── Members modal ──────────────────────────────────────────────────────────────
-const MEMBERSHIP_STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  PENDING:  { bg: '#FFFBEB', color: '#D97706' },
-  ACTIVE:   { bg: '#F0FDF4', color: '#16A34A' },
-  INACTIVE: { bg: '#F3F4F6', color: '#6B7280' },
-  PAUSED:   { bg: '#FEF3C7', color: '#B45309' },
-  CANCELLED:{ bg: '#FFF1F2', color: '#E11D48' },
+const MEMBERSHIP_STATUS_COLORS: Record<string, { bg: string; color: string; label: string }> = {
+  PENDING:  { bg: '#FFFBEB', color: '#D97706', label: 'Pendiente' },
+  ACTIVE:   { bg: '#F0FDF4', color: '#16A34A', label: 'Activo' },
+  INACTIVE: { bg: '#F3F4F6', color: '#6B7280', label: 'Inactivo' },
+  PAUSED:   { bg: '#FEF3C7', color: '#B45309', label: 'Pausado' },
+  CANCELLED:{ bg: '#FFF1F2', color: '#E11D48', label: 'Cancelado' },
+  EXPIRED:  { bg: '#F3F4F6', color: '#9CA3AF', label: 'Expirado' },
 }
 
 // ── Members modal ──────────────────────────────────────────────────────────────
@@ -812,7 +813,7 @@ function PlanMembersModal({ plan, onClose }: { plan: PlanRow; onClose: () => voi
               <p style={{ fontSize: 14, color: '#9CA3AF', margin: 0 }}>No members on this plan yet</p>
             </div>
           ) : members.map(m => {
-            const sc = MEMBERSHIP_STATUS_COLORS[m.status] ?? { bg: '#F3F4F6', color: '#6B7280' }
+            const sc = MEMBERSHIP_STATUS_COLORS[m.status] ?? { bg: '#F3F4F6', color: '#6B7280', label: m.status }
             return (
               <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 12,
                 padding: '10px 24px', borderBottom: '1px solid #F9FAFB' }}>
@@ -850,7 +851,7 @@ function PlanMembersModal({ plan, onClose }: { plan: PlanRow; onClose: () => voi
                 {/* Status badge */}
                 <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 999,
                   background: sc.bg, color: sc.color, flexShrink: 0, whiteSpace: 'nowrap' }}>
-                  {m.status}
+                  {sc.label}
                 </span>
                 {/* Action menu */}
                 <MembershipRowActions
