@@ -540,7 +540,7 @@ function MemberSelect({ members, value, onChange, placeholder = 'Search memberâ€
           style={triggerStyle}>
           {selected ? (
             <>
-              <Avatar name={selected.name} avatarUrl={selected.avatarUrl ?? null} size={22} />
+              <Avatar name={selected.name} avatarUrl={selected.avatarUrl ?? null} size={42} />
               <span style={{ flex: 1, textAlign: 'left' }}>{selected.name}</span>
               <span style={{ fontSize: 11, color: '#9CA3AF' }}>{selected.email}</span>
               <button type="button" onClick={clear} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', color: '#9CA3AF' }}>
@@ -572,7 +572,7 @@ function MemberSelect({ members, value, onChange, placeholder = 'Search memberâ€
                   border: 'none', background: m.id === value ? '#F0F7FF' : 'transparent', cursor: 'pointer', textAlign: 'left' }}
                 onMouseEnter={e => { if (m.id !== value) (e.currentTarget as HTMLElement).style.background = '#F9FAFB' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = m.id === value ? '#F0F7FF' : 'transparent' }}>
-                <Avatar name={m.name} avatarUrl={m.avatarUrl ?? null} size={28} />
+                <Avatar name={m.name} avatarUrl={m.avatarUrl ?? null} size={42} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.name}</p>
                   <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.email}</p>
@@ -1096,7 +1096,7 @@ export default function TransactionsClient() {
 
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
-                        <Avatar name={tx.userName} avatarUrl={tx.userAvatar} />
+                        <Avatar name={tx.userName} avatarUrl={tx.userAvatar} size={42} />
                         <div className="min-w-0">
                           <p style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{tx.userName}</p>
                           <p style={{ fontSize: 11, color: '#9CA3AF' }}>{tx.userEmail ?? 'â€”'}</p>

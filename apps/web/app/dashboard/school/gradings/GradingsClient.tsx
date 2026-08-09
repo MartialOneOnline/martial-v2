@@ -243,8 +243,8 @@ function AddGradingDrawer({ open, onClose, onSuccess, ranks }: {
                 style={{ border: '1px solid #0870E2', background: '#EFF6FF' }}>
                 <div className="flex items-center gap-2.5">
                   {selectedMember.avatarUrl
-                    ? <img src={selectedMember.avatarUrl} alt={selectedMember.name} className="w-8 h-8 rounded-full shrink-0 object-cover" />
-                    : <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white"
+                    ? <img src={selectedMember.avatarUrl} alt={selectedMember.name} className="w-[42px] h-[42px] rounded-full shrink-0 object-cover" />
+                    : <div className="w-[42px] h-[42px] rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white"
                         style={{ background: 'linear-gradient(135deg,#0870E2,#7DE7EC)' }}>
                         {selectedMember.name.slice(0, 1).toUpperCase()}
                       </div>
@@ -285,8 +285,8 @@ function AddGradingDrawer({ open, onClose, onSuccess, ranks }: {
                             onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
                             onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
                             {m.avatarUrl
-                              ? <img src={m.avatarUrl} alt={m.name} className="w-8 h-8 rounded-full shrink-0 object-cover" />
-                              : <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white"
+                              ? <img src={m.avatarUrl} alt={m.name} className="w-[42px] h-[42px] rounded-full shrink-0 object-cover" />
+                              : <div className="w-[42px] h-[42px] rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white"
                                   style={{ background: 'linear-gradient(135deg,#0870E2,#7DE7EC)' }}>
                                   {m.name.slice(0, 1).toUpperCase()}
                                 </div>

@@ -661,10 +661,10 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                         <div className="flex items-center gap-3">
                           {tx.userAvatar ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={tx.userAvatar} alt={tx.userName} width={32} height={32}
-                              style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: '50%', border: '1px solid #E5E7EB' }} />
+                            <img src={tx.userAvatar} alt={tx.userName} width={42} height={42}
+                              style={{ width: 42, height: 42, objectFit: 'cover', borderRadius: '50%', border: '1px solid #E5E7EB', flexShrink: 0 }} />
                           ) : (
-                            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', color: '#fff', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                               {initials}
                             </div>
                           )}

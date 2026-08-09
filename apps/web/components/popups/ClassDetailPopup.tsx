@@ -51,7 +51,7 @@ const BOOKING_STATUS: Record<string, { label: string; color: string; bg: string 
   NO_SHOW:   { label: 'No-show',   color: '#D97706', bg: '#FFFBEB' },
 }
 
-function Avatar({ name, avatarUrl, size = 32 }: { name: string; avatarUrl: string | null; size?: number }) {
+function Avatar({ name, avatarUrl, size = 42 }: { name: string; avatarUrl: string | null; size?: number }) {
   const initials = (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
   if (avatarUrl) {
     return <img src={avatarUrl} alt={name} width={size} height={size}
@@ -358,7 +358,7 @@ export default function ClassDetailPopup({ cls, date, onClose }: Props) {
                     <div key={m.userId}
                       className="flex items-center gap-3 px-4 py-2.5"
                       style={{ borderBottom: i < filteredMembers.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
-                      <Avatar name={m.name} avatarUrl={m.avatarUrl} size={34} />
+                      <Avatar name={m.name} avatarUrl={m.avatarUrl} />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name}</p>
                         <p style={{ fontSize: 11, color: '#9CA3AF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.email}</p>

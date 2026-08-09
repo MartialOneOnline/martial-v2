@@ -46,9 +46,9 @@ const STATUS_STYLE: Record<string, { label: string; color: string; bg: string }>
 
 function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null }) {
   const initials = (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
-  if (avatarUrl) return <img src={avatarUrl} alt={name} width={32} height={32} style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: '50%' }} />
+  if (avatarUrl) return <img src={avatarUrl} alt={name} width={42} height={42} style={{ width: 42, height: 42, objectFit: 'cover', borderRadius: '50%' }} />
   return (
-    <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', color: '#fff', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', color: '#fff', fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       {initials}
     </div>
   )

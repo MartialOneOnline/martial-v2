@@ -274,8 +274,8 @@ function ClassPopup({ slot, date, onClose, onDeleted }: {
                   {/* Avatar */}
                   <div className="shrink-0 relative">
                     {s.avatarUrl
-                      ? <img src={s.avatarUrl} alt={s.name} width={36} height={36} style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }} />
-                      : <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12, fontWeight: 700 }}>
+                      ? <img src={s.avatarUrl} alt={s.name} width={42} height={42} style={{ width: 42, height: 42, borderRadius: '50%', objectFit: 'cover' }} />
+                      : <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 13, fontWeight: 700 }}>
                           {(s.name?.[0] ?? '?').toUpperCase()}
                         </div>
                     }

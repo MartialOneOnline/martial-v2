@@ -636,9 +636,9 @@ function StudentQRModal({ student, onClose }: { student: Student; onClose: () =>
           <div className="flex items-center gap-3">
             {student.avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={student.avatarUrl} alt={student.name} style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: '2px solid #E5E7EB' }} />
+              <img src={student.avatarUrl} alt={student.name} style={{ width: 42, height: 42, borderRadius: '50%', objectFit: 'cover', border: '2px solid #E5E7EB' }} />
             ) : (
-              <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', color: '#fff', fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {initials}
               </div>
             )}
@@ -1978,20 +1978,20 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
         )}
 
         {/* Table */}
-        <div className="rounded-2xl overflow-hidden" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+        <div className="rounded-2xl overflow-x-auto" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
                 {[
-                  { label: t.common.member,     cls: '' },
-                  { label: t.users.belt,        cls: 'hidden md:table-cell' },
-                  { label: t.users.membership,  cls: 'hidden lg:table-cell' },
-                  { label: t.common.classes,    cls: 'hidden lg:table-cell' },
-                  { label: t.users.lastSeen,    cls: 'hidden md:table-cell' },
-                  { label: t.common.status,     cls: '' },
-                  { label: '',                  cls: '' },
+                  { label: t.common.member,     cls: '',                     pad: 'px-3 sm:px-6' },
+                  { label: t.users.belt,        cls: 'hidden md:table-cell', pad: 'px-6' },
+                  { label: t.users.membership,  cls: 'hidden lg:table-cell', pad: 'px-6' },
+                  { label: t.common.classes,    cls: 'hidden lg:table-cell', pad: 'px-6' },
+                  { label: t.users.lastSeen,    cls: 'hidden md:table-cell', pad: 'px-6' },
+                  { label: t.common.status,     cls: '',                     pad: 'px-2 sm:px-6' },
+                  { label: '',                  cls: '',                     pad: 'px-2 sm:px-6' },
                 ].map((h, i) => (
-                  <th key={i} className={`px-6 py-3 text-left ${h.cls}`}
+                  <th key={i} className={`${h.pad} py-3 text-left ${h.cls}`}
                     style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                     {h.label}
                   </th>
@@ -2006,20 +2006,20 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
                   onClick={() => router.push(`/dashboard/users/${student.id}`)}>
 
                   {/* Member */}
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
+                  <td className="px-3 sm:px-6 py-4">
+                    <div className="flex items-center gap-3 min-w-0">
                       {student.avatarUrl ? (
                         <img src={student.avatarUrl} alt={student.name}
-                          className="w-9 h-9 rounded-full shrink-0 border border-[#E5E7EB] object-cover" />
+                          className="w-[42px] h-[42px] rounded-full shrink-0 border border-[#E5E7EB] object-cover" />
                       ) : (
-                        <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 border border-[#E5E7EB]"
-                          style={{ background: '#F3F4F6', fontSize: 13, fontWeight: 700, color: '#374151' }}>
+                        <div className="w-[42px] h-[42px] rounded-full flex items-center justify-center shrink-0 border border-[#E5E7EB]"
+                          style={{ background: '#F3F4F6', fontSize: 14, fontWeight: 700, color: '#374151' }}>
                           {student.name.charAt(0).toUpperCase()}
                         </div>
                       )}
-                      <div>
-                        <p style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{student.name}</p>
-                        <p style={{ fontSize: 12, color: '#9CA3AF' }}>{student.email}</p>
+                      <div className="min-w-0">
+                        <p className="truncate" style={{ fontSize: 14, fontWeight: 600, color: '#111827', maxWidth: 148 }}>{student.name}</p>
+                        <p className="truncate" style={{ fontSize: 12, color: '#9CA3AF', maxWidth: 148 }}>{student.email}</p>
                       </div>
                     </div>
                   </td>
@@ -2079,12 +2079,12 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
                   </td>
 
                   {/* Status */}
-                  <td className="px-6 py-4">
+                  <td className="px-2 sm:px-6 py-4">
                     <StatusBadge status={student.status} />
                   </td>
 
                   {/* Actions */}
-                  <td className="px-6 py-4" onClick={e => e.stopPropagation()}>
+                  <td className="px-2 sm:px-6 py-4" onClick={e => e.stopPropagation()}>
                     <ActionsMenu
                       student={student}
                       onStatusChange={handleStatusChange}

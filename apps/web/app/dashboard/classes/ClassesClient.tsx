@@ -1025,10 +1025,10 @@ function BookingsDrawer({ cls, open, onClose }: {
                   opacity: isCancelled ? 0.5 : 1 }}>
 
                 {/* Avatar */}
-                <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
-                  style={{ background: '#EFF6FF', fontSize: 13, fontWeight: 700, color: '#0071E3' }}>
+                <div className="w-[42px] h-[42px] rounded-full flex items-center justify-center shrink-0"
+                  style={{ background: '#EFF6FF', fontSize: 14, fontWeight: 700, color: '#0071E3' }}>
                   {b.avatarUrl
-                    ? <img src={b.avatarUrl} alt={b.name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
+                    ? <img src={b.avatarUrl} alt={b.name} style={{ width: 42, height: 42, borderRadius: '50%', objectFit: 'cover' }} />
                     : b.name[0]?.toUpperCase() ?? '?'
                   }
                 </div>

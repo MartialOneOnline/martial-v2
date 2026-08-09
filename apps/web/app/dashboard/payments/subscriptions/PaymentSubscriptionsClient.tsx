@@ -283,7 +283,7 @@ function MemberSelect({ members, value, onChange, placeholder = 'Search memberâ€
                 style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px',
                   background: m.id === value ? '#EFF6FF' : 'transparent', border: 'none', cursor: 'pointer',
                   textAlign: 'left' }}>
-                <Avatar name={m.name} avatarUrl={m.avatarUrl ?? null} size={28} />
+                <Avatar name={m.name} avatarUrl={m.avatarUrl ?? null} size={42} />
                 <div>
                   <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>{m.name}</p>
                   <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0 }}>{m.email}</p>
@@ -298,7 +298,7 @@ function MemberSelect({ members, value, onChange, placeholder = 'Search memberâ€
             border: '1px solid #E5E7EB', borderRadius: 10, background: '#fff', cursor: 'pointer', textAlign: 'left' }}>
           {selected ? (
             <>
-              <Avatar name={selected.name} avatarUrl={selected.avatarUrl ?? null} size={24} />
+              <Avatar name={selected.name} avatarUrl={selected.avatarUrl ?? null} size={42} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>{selected.name}</p>
                 <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0 }}>{selected.email}</p>
@@ -692,20 +692,20 @@ export default function PaymentSubscriptionsClient() {
         </div>
 
         {/* Table */}
-        <div className="rounded-2xl overflow-hidden" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+        <div className="rounded-2xl overflow-x-auto" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
                 {[
-                  { label: t.common.member,               cls: '' },
-                  { label: t.paymentsPage.colPlan,        cls: 'hidden md:table-cell' },
-                  { label: t.common.amount,               cls: 'hidden sm:table-cell' },
-                  { label: t.common.startDate,            cls: 'hidden lg:table-cell' },
-                  { label: 'Vencimiento',                 cls: 'hidden lg:table-cell' },
-                  { label: t.common.status,               cls: '' },
-                  { label: t.common.actions,              cls: '' },
+                  { label: t.common.member,               cls: '',                     pad: 'px-3 sm:px-5' },
+                  { label: t.paymentsPage.colPlan,        cls: 'hidden md:table-cell', pad: 'px-5' },
+                  { label: t.common.amount,               cls: 'hidden sm:table-cell', pad: 'px-5' },
+                  { label: t.common.startDate,            cls: 'hidden lg:table-cell', pad: 'px-5' },
+                  { label: 'Vencimiento',                 cls: 'hidden lg:table-cell', pad: 'px-5' },
+                  { label: t.common.status,               cls: '',                     pad: 'px-2 sm:px-5' },
+                  { label: t.common.actions,              cls: '',                     pad: 'px-2 sm:px-5' },
                 ].map(h => (
-                  <th key={h.label} className={`px-5 py-3 text-left ${h.cls}`}
+                  <th key={h.label} className={`${h.pad} py-3 text-left ${h.cls}`}
                     style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF',
                       textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                     {h.label}
@@ -737,18 +737,18 @@ export default function PaymentSubscriptionsClient() {
                     className="hover:bg-[#FAFAFA] transition-colors cursor-pointer"
                     style={{ borderBottom: idx < paginated.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
 
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-3">
-                        <Avatar name={sub.memberName} avatarUrl={sub.memberAvatar} />
+                    <td className="px-3 sm:px-5 py-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <Avatar name={sub.memberName} avatarUrl={sub.memberAvatar} size={42} />
                         <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{sub.memberName}</p>
+                          <div className="flex items-center gap-2 min-w-0">
+                            <p className="truncate" style={{ fontSize: 14, fontWeight: 600, color: '#111827', maxWidth: 110 }}>{sub.memberName}</p>
                             <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 99,
                               background: bc.bg, color: bc.color, flexShrink: 0 }}>
                               {sub.belt}
                             </span>
                           </div>
-                          <p style={{ fontSize: 11, color: '#9CA3AF' }}>{sub.memberEmail}</p>
+                          <p className="truncate" style={{ fontSize: 11, color: '#9CA3AF', maxWidth: 148 }}>{sub.memberEmail}</p>
                         </div>
                       </div>
                     </td>
@@ -782,7 +782,7 @@ export default function PaymentSubscriptionsClient() {
                       )}
                     </td>
 
-                    <td className="px-5 py-3">
+                    <td className="px-2 sm:px-5 py-3">
                       <span className="inline-flex items-center gap-1.5"
                         style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999,
                           background: sc.bg, color: sc.color, border: '1px solid ' + sc.border,
@@ -792,7 +792,7 @@ export default function PaymentSubscriptionsClient() {
                       </span>
                     </td>
 
-                    <td className="px-5 py-3">
+                    <td className="px-2 sm:px-5 py-3">
                       <div className="flex items-center justify-end">
                         <MembershipRowActions
                           membershipId={sub.id}
