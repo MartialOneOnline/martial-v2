@@ -1,6 +1,6 @@
 /**
  * Shared belt-resolution helpers for the Roger Gracie Malaga V1 import scripts
- * (scripts/sync-rga-members.mjs, scripts/fix-rga-belts.mjs).
+ * (scripts/sync-v1-members.mjs, scripts/fix-rga-belts.mjs).
  *
  * V1's userdetails.select_belt column is unpopulated ("NULL") in the export —
  * the real rank lives in userdetails.belts, a JSON map of activity_id ->

@@ -1,6 +1,6 @@
 /**
  * One-off patch for Roger Gracie Malaga SchoolMember belts already written by
- * the buggy version of sync-rga-members.mjs (fixed in this same batch): the
+ * the buggy version of sync-v1-members.mjs (fixed in this same batch): the
  * naive CSV parser didn't handle RFC4180 doubled-quote escaping, so
  * userdetails.belts (a JSON blob re-quoted as "{""18"":""332""}") came out
  * corrupted, and every imported student fell back to the Blanco/0 default.

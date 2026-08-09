@@ -1,7 +1,7 @@
 /**
  * Correct SchoolMember.status for Roger Gracie Malaga's V1-imported students.
  *
- * Background: scripts/sync-rga-members.mjs (and an earlier, untracked bulk
+ * Background: scripts/sync-v1-members.mjs (formerly sync-rga-members.mjs) (and an earlier, untracked bulk
  * import before it) set every imported SchoolMember to ACTIVE regardless of
  * V1's real member_status. V1's own "Active" list shows 121 students; this
  * script derives the equivalent definitive-active set from a fresh V1 export
@@ -23,7 +23,7 @@
  *
  * Matching V2 SchoolMember -> V1 student id:
  *   1. Preferred: SchoolMember.notes === "v1_student:<id>" (set by
- *      sync-rga-members.mjs for new imports since that script existed).
+ *      sync-v1-members.mjs (formerly sync-rga-members.mjs) for new imports since that script existed).
  *   2. Controlled fallback: User.email matched against v1 users(9).csv
  *      email column, case-insensitively, ONLY when notes carries no
  *      v1_student marker AND the email is unambiguous in the V1 export
@@ -57,7 +57,7 @@ const db = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SECRET_KEY)
 const SCHOOL_ID = 'cmq6k2n5t0000x4o0rcvlmhmv'
 const V1_USERS_CSV = path.resolve(process.env.HOME, 'Downloads/users (9).csv')
 
-// Same RFC4180-aware parser as scripts/sync-rga-members.mjs.
+// Same RFC4180-aware parser as scripts/sync-v1-members.mjs (formerly sync-rga-members.mjs).
 function parseLine(line) {
   const cols = []
   let cur = '', inQ = false

@@ -1,5 +1,5 @@
 /**
- * Sync Roger Gracie Malaga payments from a fresh V1 export into V2.
+ * Sync a school's payments from a fresh V1 export into V2.
  * 1) Inserts a Transaction for every subscription_bookings row not already
  *    imported (idempotent via notes: 'v1_booking:<id>', same marker as the
  *    original scripts/import-v1-transactions.js).
@@ -7,15 +7,39 @@
  *    booking (same behaviour as scripts/create-missing-v1-memberships.js).
  * Safe to re-run.
  *
+ * Generalized from the original RGA-only script (see scripts/sync-v1-members.mjs
+ * for the same treatment applied to member sync): school id and CSV filenames
+ * are now parameters instead of hardcoded constants.
+ *
+ * V1 export files expected in --csv-dir (default ~/Downloads), using
+ * whichever is newest per prefix:
+ *   subscription_bookings*.csv   (id, user_id, school_id, subscription_id, price, status, ...)
+ *   users*.csv                   (id, email, ...)
+ *   subscriptions*.csv           (id, title, ...) — V1's plan/subscription catalog
+ *
  * Usage:
- *   node scripts/sync-rga-payments.mjs --dry-run
- *   node scripts/sync-rga-payments.mjs
+ *   node scripts/sync-v1-payments.mjs --school-id=<v2 id> --v1-school-id=<v1 id> --dry-run
+ *   node scripts/sync-v1-payments.mjs --school-id=<v2 id> --v1-school-id=<v1 id>
+ *   node scripts/sync-v1-payments.mjs --school-id=<v2 id> --v1-school-id=<v1 id> --csv-dir=/path/to/csvs
+ *
+ * Omitting --school-id/--v1-school-id defaults to Roger Gracie Malaga (798),
+ * matching the original script's behaviour.
  */
 import { createClient } from '@supabase/supabase-js'
 import fs from 'fs'
 import path from 'path'
 
 const DRY_RUN = process.argv.includes('--dry-run')
+
+function getArg(flag, fallback) {
+  const prefix = `--${flag}=`
+  const hit = process.argv.find(a => a.startsWith(prefix))
+  return hit ? hit.slice(prefix.length) : fallback
+}
+
+const SCHOOL_ID = getArg('school-id', 'cmq6k2n5t0000x4o0rcvlmhmv')
+const V1_SCHOOL_ID = getArg('v1-school-id', '798')
+const CSV_DIR = path.resolve(getArg('csv-dir', path.join(process.env.HOME, 'Downloads')))
 
 const envPath = path.resolve(process.cwd(), 'apps/web/.env.local')
 const env = Object.fromEntries(
@@ -24,7 +48,6 @@ const env = Object.fromEntries(
     .map(l => { const i = l.indexOf('='); return [l.slice(0, i), l.slice(i + 1).replace(/^"|"$/g, '')] })
 )
 const db = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SECRET_KEY)
-const SCHOOL_ID = 'cmq6k2n5t0000x4o0rcvlmhmv'
 
 function parseCSV(filePath) {
   const text = fs.readFileSync(filePath, 'utf8')
@@ -41,6 +64,18 @@ function parseCSV(filePath) {
     cols.push(cur)
     return Object.fromEntries(headers.map((h, i) => [h, cols[i] ?? '']))
   })
+}
+
+// V1's export panel names files "<table> (N).csv" and N keeps climbing on
+// every re-export — pick whichever matching file was written most recently
+// rather than hardcoding a number.
+function findLatestCsv(prefixRegex) {
+  const matches = fs.readdirSync(CSV_DIR)
+    .filter(f => prefixRegex.test(f) && f.endsWith('.csv'))
+    .map(f => ({ f, mtime: fs.statSync(path.join(CSV_DIR, f)).mtimeMs }))
+    .sort((a, b) => b.mtime - a.mtime)
+  if (!matches.length) return null
+  return path.join(CSV_DIR, matches[0].f)
 }
 
 function cuid() {
@@ -88,10 +123,26 @@ function parseDate(val) {
 
 async function main() {
   console.log(`Mode: ${DRY_RUN ? 'DRY RUN' : 'LIVE'}`)
+  console.log(`School: ${SCHOOL_ID} (V1 id ${V1_SCHOOL_ID}) | CSV dir: ${CSV_DIR}`)
 
-  const bookings = parseCSV(path.resolve(process.env.HOME, 'Downloads/subscription_bookings (4).csv'))
-  const v1Users  = parseCSV(path.resolve(process.env.HOME, 'Downloads/users (9).csv'))
-  const v1Plans  = parseCSV(path.resolve(process.env.HOME, 'Downloads/subscriptions (2).csv'))
+  const bookingsPath = findLatestCsv(/^subscription_bookings/i)
+  const usersPath = findLatestCsv(/^users(\s|\.|$)/i)
+  const plansPath = findLatestCsv(/^subscriptions/i)
+
+  for (const [label, p] of [['subscription_bookings', bookingsPath], ['users', usersPath], ['subscriptions', plansPath]]) {
+    if (!p) { console.error(`No ${label}*.csv found in ${CSV_DIR}`); process.exit(1) }
+    console.log(`  ${label}: ${path.basename(p)}`)
+  }
+
+  const bookingsAll = parseCSV(bookingsPath)
+  const bookings = bookingsAll.some(b => 'school_id' in b)
+    ? bookingsAll.filter(b => b.school_id === V1_SCHOOL_ID)
+    : bookingsAll
+  if (bookings.length !== bookingsAll.length) {
+    console.log(`Filtered subscription_bookings to school_id=${V1_SCHOOL_ID}: ${bookings.length}/${bookingsAll.length} rows`)
+  }
+  const v1Users  = parseCSV(usersPath)
+  const v1Plans  = parseCSV(plansPath)
   console.log(`V1 subscription_bookings rows: ${bookings.length}`)
 
   const v1UserEmail = Object.fromEntries(v1Users.map(u => [u.id, u.email?.toLowerCase()]))
