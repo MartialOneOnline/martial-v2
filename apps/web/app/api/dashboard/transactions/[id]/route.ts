@@ -1,9 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 import { notifyPaymentReceived } from '@/lib/notifications/create'
 import { fmtPrice } from '@/lib/format'
+
+// The Student Profile page renders the transaction list from a one-time SSR
+// snapshot (see app/dashboard/users/[id]/page.tsx), so mutating a Transaction
+// here leaves any already-fetched/prefetched copy of that page stale until
+// its route cache is invalidated.
+async function revalidateStudentProfile(schoolId: string, userId: string | null) {
+  if (!userId) return
+  const member = await prisma.schoolMember.findFirst({
+    where: { userId, schoolId },
+    select: { id: true },
+  })
+  if (member) revalidatePath(`/dashboard/users/${member.id}`)
+}
 
 async function authorise() {
   const user = await getAuthUser()
@@ -62,6 +76,8 @@ export async function PATCH(
       include: { resolvedByUser: { select: { name: true, email: true } } },
     })
 
+    await revalidateStudentProfile(auth.schoolId, resolved.userId)
+
     return NextResponse.json({
       id: resolved.id,
       status: resolved.status,
@@ -108,6 +124,8 @@ export async function PATCH(
     )
   }
 
+  await revalidateStudentProfile(auth.schoolId, tx.userId)
+
   return NextResponse.json({ id: updated.id, status: updated.status })
 }
 
@@ -148,5 +166,6 @@ export async function DELETE(
   }
 
   await prisma.transaction.delete({ where: { id } })
+  await revalidateStudentProfile(auth.schoolId, tx.userId)
   return NextResponse.json({ ok: true })
 }
