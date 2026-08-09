@@ -284,10 +284,24 @@ export async function assignPlan(input: AssignPlanInput) {
   // 3–6. All in one transaction
   const [membership] = await prisma.$transaction(async (tx) => {
     // Cancel existing active memberships
+    const previouslyActive = await tx.membership.findMany({
+      where: { userId: schoolMember.userId, schoolId, status: MembershipStatus.ACTIVE },
+      select: { id: true },
+    })
     await tx.membership.updateMany({
       where: { userId: schoolMember.userId, schoolId, status: MembershipStatus.ACTIVE },
       data: { status: MembershipStatus.CANCELLED, cancelledAt: new Date() },
     })
+
+    // A new plan assignment (same or different) supersedes any cash renewal
+    // payment still awaiting collection on the membership(s) it replaces —
+    // otherwise it'd sit PENDING in Transactions forever.
+    if (previouslyActive.length > 0) {
+      await tx.transaction.updateMany({
+        where: { membershipId: { in: previouslyActive.map(m => m.id) }, status: TransactionStatus.PENDING },
+        data: { status: TransactionStatus.CANCELLED },
+      })
+    }
 
     // Create new membership
     const m = await tx.membership.create({
@@ -426,6 +440,13 @@ export async function cancelMembership(input: CancelMembershipInput) {
         where: { id: membershipId },
         data: { status: MembershipStatus.CANCELLED, cancelledAt: new Date(), notes: updatedNotes },
       })
+      // A cancelled membership has nothing left to renew — clear any cash
+      // renewal payment still awaiting collection, same cleanup assignPlan
+      // does when a membership is superseded.
+      await tx.transaction.updateMany({
+        where: { membershipId, status: TransactionStatus.PENDING },
+        data: { status: TransactionStatus.CANCELLED },
+      })
       await syncSchoolMemberStatusForMembership(tx, {
         userId: membership.userId, schoolId, membershipStatus: MembershipStatus.CANCELLED, excludeMembershipId: membershipId,
       })
@@ -435,6 +456,11 @@ export async function cancelMembership(input: CancelMembershipInput) {
     await prisma.membership.update({
       where: { id: membershipId },
       data: { cancelledAt: new Date(), notes: updatedNotes },
+    })
+    // They're leaving at period end — no next cycle to collect for.
+    await prisma.transaction.updateMany({
+      where: { membershipId, status: TransactionStatus.PENDING },
+      data: { status: TransactionStatus.CANCELLED },
     })
   }
 
@@ -555,6 +581,141 @@ export async function expireLapsedMemberships(
   }
 
   return { expiredCount, cancelledCount }
+}
+
+export interface CreateRenewalPaymentInput {
+  membershipId: string
+  schoolId: string
+}
+
+/**
+ * Creates a PENDING renewal Transaction for a CASH membership so staff have
+ * something to collect and mark paid — cash memberships have no auto-billing
+ * to fall back on the way Stripe/Revolut subscriptions do. Safe to call
+ * repeatedly (from the manual UI trigger or the daily cron sweep below):
+ * if a PENDING renewal already exists for this membership, it's returned
+ * as-is instead of creating a duplicate.
+ */
+export async function createRenewalPayment(input: CreateRenewalPaymentInput) {
+  const { membershipId, schoolId } = input
+
+  const membership = await prisma.membership.findFirst({
+    where: { id: membershipId, schoolId },
+    include: { plan: { select: { planType: true, billingCycle: true, validityDays: true } } },
+  })
+  if (!membership) throw new Error('Membership not found')
+  if (membership.paymentMethod !== PaymentMethod.CASH) {
+    throw new Error('Renewal payments only apply to cash-paid memberships')
+  }
+  if (membership.status !== MembershipStatus.ACTIVE) {
+    throw new Error('Membership must be active to create a renewal payment')
+  }
+  if (membership.cancelledAt) {
+    throw new Error('Membership is already set to cancel at period end — nothing to renew')
+  }
+
+  const existing = await prisma.transaction.findFirst({
+    where: { membershipId, status: TransactionStatus.PENDING, category: TransactionCategory.MEMBERSHIP },
+  })
+  if (existing) return existing
+
+  const periodStart = membership.endDate ?? membership.startDate
+  // Imported/legacy memberships often carry no planId (see prisma/seed-rgm-payments.ts),
+  // so fall back to repeating the membership's own start→end span when there's no
+  // MembershipPlan to read a billing cycle from — otherwise periodEnd would be null
+  // and marking the renewal paid would never actually push endDate forward.
+  const periodEnd = membership.plan
+    ? computeEndDate(membership.plan.planType, membership.plan.billingCycle, membership.plan.validityDays, periodStart)
+    : (membership.endDate
+        ? new Date(periodStart.getTime() + (membership.endDate.getTime() - membership.startDate.getTime()))
+        : null)
+
+  return prisma.transaction.create({
+    data: {
+      schoolId,
+      userId: membership.userId,
+      membershipId,
+      type: TransactionType.INCOME,
+      status: TransactionStatus.PENDING,
+      category: TransactionCategory.MEMBERSHIP,
+      paymentMethod: PaymentMethod.CASH,
+      amount: membership.price,
+      currency: membership.currency,
+      description: `${membership.planName} — renewal`,
+      date: new Date(),
+      periodStart,
+      periodEnd,
+    },
+  })
+}
+
+/**
+ * Daily sweep (see app/api/cron/expire-memberships): generates a PENDING
+ * renewal payment for every ACTIVE cash membership whose endDate has just
+ * passed, so staff see something to collect right at expiration — distinct
+ * from EXPIRY_GRACE_PERIOD_DAYS below, which is how long an unpaid renewal
+ * is tolerated before the membership actually lapses.
+ */
+export async function generateDueRenewalPayments(): Promise<{ createdCount: number }> {
+  const due = await prisma.membership.findMany({
+    where: {
+      status: MembershipStatus.ACTIVE, paymentMethod: PaymentMethod.CASH, endDate: { lte: new Date() },
+      cancelledAt: null, // already headed for CANCELLED at endDate — nothing to renew
+    },
+    select: { id: true, schoolId: true },
+  })
+
+  let createdCount = 0
+  for (const membership of due) {
+    const existing = await prisma.transaction.findFirst({
+      where: { membershipId: membership.id, status: TransactionStatus.PENDING, category: TransactionCategory.MEMBERSHIP },
+      select: { id: true },
+    })
+    if (existing) continue
+    await createRenewalPayment({ membershipId: membership.id, schoolId: membership.schoolId })
+    createdCount++
+  }
+
+  return { createdCount }
+}
+
+export interface MarkRenewalPaidInput {
+  transactionId: string
+  schoolId: string
+}
+
+/**
+ * Resolves a pending cash renewal: flips the Transaction to PAID and pushes
+ * the same Membership's endDate forward to the transaction's periodEnd,
+ * keeping status ACTIVE — the "same membership, just extended" resolution,
+ * as opposed to assignPlan's "cancel old, create new" resolution.
+ */
+export async function markRenewalPaid(input: MarkRenewalPaidInput) {
+  const { transactionId, schoolId } = input
+
+  const txn = await prisma.transaction.findFirst({ where: { id: transactionId, schoolId } })
+  if (!txn) throw new Error('Transaction not found')
+  if (txn.status !== TransactionStatus.PENDING) throw new Error('Transaction is not pending')
+  if (!txn.membershipId) throw new Error('Transaction is not linked to a membership')
+
+  const membership = await prisma.membership.findFirst({ where: { id: txn.membershipId, schoolId } })
+  if (!membership) throw new Error('Membership not found')
+
+  const newEndDate = txn.periodEnd ?? membership.endDate
+
+  const [updated] = await prisma.$transaction(async (tx) => {
+    await tx.transaction.update({ where: { id: transactionId }, data: { status: TransactionStatus.PAID, date: new Date() } })
+    const m = await tx.membership.update({
+      where: { id: membership.id },
+      data: { status: MembershipStatus.ACTIVE, endDate: newEndDate },
+    })
+    await syncSchoolMemberStatusForMembership(tx, {
+      userId: membership.userId, schoolId, membershipStatus: MembershipStatus.ACTIVE,
+    })
+    return [m]
+  })
+
+  return updated
 }
 
 /**

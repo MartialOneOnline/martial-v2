@@ -13,14 +13,17 @@ import NotificationBell from '../../../../components/NotificationBell'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type Booking = { id: string; className: string; date: string; status: string; attendedAt: string | null }
-type Transaction = { id: string; amount: number; currency: string; method: string; status: string; date: string; description: string }
+type Transaction = {
+  id: string; amount: number; currency: string; method: string; status: string; date: string; description: string
+  membershipId: string | null
+}
 type MembershipRecord = {
   id: string; planName: string; planType: string; billingCycle: string | null
   price: number; currency: string; status: string
   startDate: string; endDate: string | null; consumed: number
 }
 type ActiveMembership = {
-  id: string; planName: string; status: string
+  id: string; planName: string; status: string; paymentMethod: string
   startDate: string; expiresAt: string | null
   price: number; currency?: string; interval: string | null; consumed: number
 }
@@ -563,6 +566,7 @@ function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
         id: data.id,
         planName: data.plan?.name ?? data.planName,
         status: data.status,
+        paymentMethod: data.paymentMethod,
         startDate: data.startDate,
         expiresAt: data.endDate ?? null,
         price: Number(data.price),
@@ -682,18 +686,82 @@ function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
 }
 
 // ── Membership Section ─────────────────────────────────────────────────────────
-function MembershipSection({ memberId, activeMembership: initialActiveMembership, memberships: initialMemberships, availablePlans, onAssigned }: {
+function MembershipSection({
+  memberId, activeMembership: initialActiveMembership, memberships: initialMemberships, availablePlans,
+  pendingRenewal, onAssigned, onRenewalCreated, onRenewalPaid, onCancelled,
+}: {
   memberId: string
   activeMembership: ActiveMembership | null
   memberships: MembershipRecord[]
   availablePlans: AvailablePlan[]
+  pendingRenewal: Transaction | null
   onAssigned: (m: ActiveMembership) => void
+  onRenewalCreated: (t: Transaction) => void
+  onRenewalPaid: (transactionId: string, newEndDate: string | null) => void
+  onCancelled: (membershipId: string) => void
 }) {
   const [activeMembership, setActiveMembership] = useState(initialActiveMembership)
   const [memberships, setMemberships] = useState(initialMemberships)
   const [showModal, setShowModal] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
   const [cancelling, setCancelling] = useState(false)
+  const [creatingRenewal, setCreatingRenewal] = useState(false)
+  const [markingPaid, setMarkingPaid] = useState(false)
+
+  const isPastDue = !!(activeMembership?.expiresAt && new Date(activeMembership.expiresAt) < new Date())
+
+  async function handleCreateRenewalPayment() {
+    if (!activeMembership) return
+    setCreatingRenewal(true)
+    try {
+      const res = await fetch(`/api/dashboard/members/${memberId}/membership`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ membershipId: activeMembership.id, action: 'createRenewalPayment' }),
+      })
+      if (res.ok) {
+        const txn = await res.json()
+        onRenewalCreated({
+          id: txn.id,
+          amount: Number(txn.amount),
+          currency: txn.currency,
+          method: txn.paymentMethod ?? 'CASH',
+          status: txn.status,
+          date: txn.date,
+          description: txn.description ?? '',
+          membershipId: txn.membershipId,
+        })
+      } else {
+        const d = await res.json().catch(() => ({}))
+        alert(d.error ?? 'Could not create the renewal payment')
+      }
+    } finally {
+      setCreatingRenewal(false)
+    }
+  }
+
+  async function handleMarkPaid() {
+    if (!pendingRenewal) return
+    setMarkingPaid(true)
+    try {
+      const res = await fetch(`/api/dashboard/members/${memberId}/membership`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transactionId: pendingRenewal.id, action: 'markRenewalPaid' }),
+      })
+      if (res.ok) {
+        const m = await res.json()
+        const newEndDate = m.endDate ?? null
+        setActiveMembership(prev => prev ? { ...prev, expiresAt: newEndDate, status: m.status } : prev)
+        onRenewalPaid(pendingRenewal.id, newEndDate)
+      } else {
+        const d = await res.json().catch(() => ({}))
+        alert(d.error ?? 'Could not mark the payment as paid')
+      }
+    } finally {
+      setMarkingPaid(false)
+    }
+  }
 
   async function handleCancel() {
     if (!activeMembership || !confirm('Cancel this membership?')) return
@@ -719,6 +787,7 @@ function MembershipSection({ memberId, activeMembership: initialActiveMembership
         }
         setActiveMembership(null)
         setMemberships(prev => prev.map(m => m.id === activeMembership.id ? updated : m))
+        onCancelled(activeMembership.id)
       }
     } finally {
       setCancelling(false)
@@ -730,6 +799,15 @@ function MembershipSection({ memberId, activeMembership: initialActiveMembership
       <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
         <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>Membership</p>
         <div className="flex items-center gap-2">
+          {activeMembership && activeMembership.paymentMethod === 'CASH' && !pendingRenewal && (
+            <button onClick={handleCreateRenewalPayment} disabled={creatingRenewal}
+              className="flex items-center gap-1"
+              style={{ fontSize: 12, fontWeight: 600, color: '#D97706', background: '#FFFBEB', border: 'none',
+                padding: '5px 10px', borderRadius: 8, cursor: creatingRenewal ? 'not-allowed' : 'pointer', opacity: creatingRenewal ? 0.6 : 1 }}>
+              <Plus size={11} />
+              {creatingRenewal ? 'Adding…' : 'Add pending payment'}
+            </button>
+          )}
           {activeMembership && (
             <button onClick={handleCancel} disabled={cancelling}
               className="flex items-center gap-1"
@@ -752,7 +830,11 @@ function MembershipSection({ memberId, activeMembership: initialActiveMembership
       {activeMembership ? (
         <div>
           {/* Active plan card */}
-          <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 12, padding: '14px 16px', marginBottom: 12 }}>
+          <div style={{
+            background: isPastDue ? '#FFFBEB' : '#F0FDF4',
+            border: `1px solid ${isPastDue ? '#FDE68A' : '#BBF7D0'}`,
+            borderRadius: 12, padding: '14px 16px', marginBottom: 12,
+          }}>
             <div className="flex items-start justify-between">
               <div>
                 <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: '0 0 2px' }}>{activeMembership.planName}</p>
@@ -766,8 +848,11 @@ function MembershipSection({ memberId, activeMembership: initialActiveMembership
                   {activeMembership.price === 0 ? 'Free' : fmtPrice(activeMembership.price, activeMembership.currency ?? 'EUR')}
                   {activeMembership.interval && <span style={{ fontSize: 11, fontWeight: 400, color: '#9CA3AF' }}>/{activeMembership.interval}</span>}
                 </span>
-                <span style={{ fontSize: 11, fontWeight: 600, background: '#16A34A', color: '#fff', padding: '2px 10px', borderRadius: 999 }}>
-                  Active
+                <span style={{
+                  fontSize: 11, fontWeight: 600, color: '#fff', padding: '2px 10px', borderRadius: 999,
+                  background: isPastDue ? '#D97706' : '#16A34A',
+                }}>
+                  {isPastDue ? 'Renewal due' : 'Active'}
                 </span>
               </div>
             </div>
@@ -781,6 +866,30 @@ function MembershipSection({ memberId, activeMembership: initialActiveMembership
                 </div>
                 <div style={{ height: 4, background: '#D1FAE5', borderRadius: 999 }}>
                   <div style={{ height: '100%', width: '100%', background: '#16A34A', borderRadius: 999 }} />
+                </div>
+              </div>
+            )}
+
+            {/* Pending renewal payment — cash memberships only */}
+            {pendingRenewal && (
+              <div style={{
+                marginTop: 12, paddingTop: 12, borderTop: '1px solid #FDE68A',
+              }}>
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <p style={{ fontSize: 12, color: '#92400E', margin: 0 }}>
+                    Renewal payment pending — <strong>{fmtPrice(pendingRenewal.amount, pendingRenewal.currency)}</strong> to collect in cash
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => setShowModal(true)}
+                      style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', padding: '5px 6px' }}>
+                      Create new membership instead
+                    </button>
+                    <button onClick={handleMarkPaid} disabled={markingPaid}
+                      style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: '#D97706', border: 'none',
+                        padding: '6px 12px', borderRadius: 8, cursor: markingPaid ? 'not-allowed' : 'pointer', opacity: markingPaid ? 0.6 : 1 }}>
+                      {markingPaid ? 'Marking…' : 'Mark as paid'}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -870,7 +979,10 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
   const [activeMembership, setActiveMembership] = useState(initialProfile.activeMembership)
   const [memberships, setMemberships] = useState(initialProfile.memberships)
   const [bookings] = useState(initialProfile.bookings)
-  const [transactions] = useState(initialProfile.transactions)
+  const [transactions, setTransactions] = useState(initialProfile.transactions)
+  const pendingRenewal = activeMembership
+    ? transactions.find(t => t.membershipId === activeMembership.id && t.status === 'PENDING') ?? null
+    : null
   const [bookingsShown, setBookingsShown] = useState(10)
   const [txShown, setTxShown] = useState(10)
 
@@ -1120,6 +1232,7 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
               activeMembership={activeMembership}
               memberships={memberships}
               availablePlans={profile.availablePlans}
+              pendingRenewal={pendingRenewal}
               onAssigned={m => {
                 setActiveMembership(m)
                 setMemberships(prev => [{
@@ -1127,6 +1240,21 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
                   billingCycle: m.interval, price: m.price, currency: 'EUR',
                   status: m.status, startDate: m.startDate, endDate: m.expiresAt, consumed: 0,
                 } satisfies MembershipRecord, ...prev])
+                // A new plan assignment supersedes any pending renewal on the old membership.
+                setTransactions(prev => prev.map(t =>
+                  t.membershipId === activeMembership?.id && t.status === 'PENDING' ? { ...t, status: 'CANCELLED' } : t
+                ))
+              }}
+              onRenewalCreated={t => setTransactions(prev => [t, ...prev])}
+              onRenewalPaid={(transactionId, newEndDate) => {
+                setTransactions(prev => prev.map(t => t.id === transactionId ? { ...t, status: 'PAID' } : t))
+                setActiveMembership(prev => prev ? { ...prev, expiresAt: newEndDate, status: 'ACTIVE' } : prev)
+              }}
+              onCancelled={membershipId => {
+                setActiveMembership(null)
+                setTransactions(prev => prev.map(t =>
+                  t.membershipId === membershipId && t.status === 'PENDING' ? { ...t, status: 'CANCELLED' } : t
+                ))
               }}
             />
 

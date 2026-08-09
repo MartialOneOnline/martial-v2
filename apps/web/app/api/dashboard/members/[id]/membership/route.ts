@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 import { hasPermission } from '@/lib/auth/permissions'
-import { assignPlan, cancelMembership } from '@/lib/services/membership'
+import { assignPlan, cancelMembership, createRenewalPayment, markRenewalPaid } from '@/lib/services/membership'
 import { PaymentMethod } from '@/lib/prisma-client/enums'
 
 async function authorise() {
@@ -64,18 +64,28 @@ export async function PATCH(
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const body = await req.json()
-  const { membershipId, action, reason } = body
-
-  if (action !== 'cancel') return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
-  if (!membershipId) return NextResponse.json({ error: 'membershipId required' }, { status: 400 })
+  const { membershipId, action, reason, transactionId } = body
 
   try {
-    const membership = await cancelMembership({
-      membershipId,
-      schoolId: auth.schoolId,
-      reason,
-    })
-    return NextResponse.json(membership)
+    if (action === 'cancel') {
+      if (!membershipId) return NextResponse.json({ error: 'membershipId required' }, { status: 400 })
+      const membership = await cancelMembership({ membershipId, schoolId: auth.schoolId, reason })
+      return NextResponse.json(membership)
+    }
+
+    if (action === 'createRenewalPayment') {
+      if (!membershipId) return NextResponse.json({ error: 'membershipId required' }, { status: 400 })
+      const transaction = await createRenewalPayment({ membershipId, schoolId: auth.schoolId })
+      return NextResponse.json(transaction, { status: 201 })
+    }
+
+    if (action === 'markRenewalPaid') {
+      if (!transactionId) return NextResponse.json({ error: 'transactionId required' }, { status: 400 })
+      const membership = await markRenewalPaid({ transactionId, schoolId: auth.schoolId })
+      return NextResponse.json(membership)
+    }
+
+    return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'Error'
     return NextResponse.json({ error: msg }, { status: 400 })

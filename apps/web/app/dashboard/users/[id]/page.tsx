@@ -129,6 +129,7 @@ export default async function StudentProfilePage({
       status: t.status,
       date: t.date.toISOString(),
       description: t.description ?? t.category ?? '—',
+      membershipId: t.membershipId ?? null,
     })),
     memberships: memberships.map(m => ({
       id: m.id,
@@ -146,6 +147,7 @@ export default async function StudentProfilePage({
       id: activeMembership.id,
       planName: activeMembership.plan?.name ?? activeMembership.planName,
       status: activeMembership.status,
+      paymentMethod: activeMembership.paymentMethod,
       startDate: activeMembership.startDate.toISOString(),
       expiresAt: activeMembership.endDate?.toISOString() ?? null,
       price: Number(activeMembership.plan?.price ?? activeMembership.price),
