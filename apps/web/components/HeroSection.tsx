@@ -7,9 +7,9 @@ import { ChevronLeft, ChevronRight, Star, MapPin, Calendar, Award, Euro, PoundSt
 import { useT } from '../lib/i18n/LanguageContext'
 
 const HERO_SLIDES = [
-  { image: '/roger-gracie-malaga.jpg', title: 'Roger Gracie Malaga',  location: 'Malaga, Spain',           bookings: 3808, students: 703, classes: 49,  payments: '31,086', currency: 'eur' as const, rating: 5.0 },
-  { image: '/hero-2.jpg',              title: 'Shogun Dojo London',   location: 'London, United Kingdom', bookings: 384,  students: 210, classes: 580, payments: '£4,912', currency: 'gbp' as const, rating: 4.9 },
-  { image: '/roger-gracie-dubai.jpg',  title: 'Roger Gracie Dubai',   location: 'Dubai, UAE',             bookings: 310,  students: 172, classes: 490, payments: '€3,640', currency: 'eur' as const, rating: 5.0 },
+  { image: '/roger-gracie-malaga.jpg', logo: '/logo-roger-gracie.png', title: 'Roger Gracie Malaga',  location: 'Malaga, Spain',           bookings: 3808, students: 703, classes: 49,  payments: '31,086', currency: 'eur' as const, rating: 5.0 },
+  { image: '/hero-2.jpg',              logo: null,                     title: 'Shogun Dojo London',   location: 'London, United Kingdom', bookings: 384,  students: 210, classes: 580, payments: '£4,912', currency: 'gbp' as const, rating: 4.9 },
+  { image: '/roger-gracie-dubai.jpg',  logo: '/logo-roger-gracie.png', title: 'Roger Gracie Dubai',   location: 'Dubai, UAE',             bookings: 310,  students: 172, classes: 490, payments: '€3,640', currency: 'eur' as const, rating: 5.0 },
 ]
 
 interface HeroSectionProps {
@@ -135,8 +135,12 @@ export default function HeroSection({ onOpenLoginModal }: HeroSectionProps) {
                   initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }}
                   className="bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-xl flex items-center gap-4 border border-white/20"
                 >
-                  <div className="w-12 h-12 bg-sky-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Award className="w-6 h-6 text-[#0870E2]" />
+                  <div className="relative w-12 h-12 bg-sky-100 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    {slide.logo ? (
+                      <Image src={slide.logo} alt={`${slide.title} logo`} fill className="object-cover" />
+                    ) : (
+                      <Award className="w-6 h-6 text-[#0870E2]" />
+                    )}
                   </div>
                   <div>
                     <h3 className="font-bold text-[#101828] text-sm leading-tight">{slide.title}</h3>
