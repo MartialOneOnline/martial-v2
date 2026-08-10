@@ -1,6 +1,9 @@
 'use client'
 
-import { X, Download, Share2, QrCode } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { X, Download, Share2, QrCode, ScanLine, Check, Loader2 } from 'lucide-react'
+import { QRCodeSVG } from 'qrcode.react'
+import { adminFetch } from '../../lib/api/adminFetch'
 
 interface Props {
   schoolName: string
@@ -8,10 +11,90 @@ interface Props {
   onClose: () => void
 }
 
+interface UpcomingEvent {
+  id: string
+  title: string
+}
+
 export default function QRCodeModal({ schoolName, schoolSlug, onClose }: Props) {
+  const qrWrapRef = useRef<HTMLDivElement>(null)
+  const [copied, setCopied] = useState(false)
+  const [scanState, setScanState] = useState<'idle' | 'loading' | 'none'>('idle')
+  const [scanEvents, setScanEvents] = useState<UpcomingEvent[] | null>(null)
+
+  const origin = typeof window !== 'undefined' ? window.location.origin : ''
+  const profileUrl = `${origin}/school/${schoolSlug}`
+
+  function downloadQR() {
+    const svg = qrWrapRef.current?.querySelector('svg')
+    if (!svg) return
+    const svgData = new XMLSerializer().serializeToString(svg)
+    const svgUrl = URL.createObjectURL(new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' }))
+    const img = new Image()
+    img.onload = () => {
+      const scale = 4
+      const canvas = document.createElement('canvas')
+      canvas.width = 200 * scale
+      canvas.height = 200 * scale
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+      ctx.fillStyle = '#fff'
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      URL.revokeObjectURL(svgUrl)
+      canvas.toBlob(blob => {
+        if (!blob) return
+        const link = document.createElement('a')
+        link.href = URL.createObjectURL(blob)
+        link.download = `${schoolSlug || 'school'}-qr.png`
+        link.click()
+        URL.revokeObjectURL(link.href)
+      })
+    }
+    img.src = svgUrl
+  }
+
+  async function shareQR() {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: schoolName, text: `Check out ${schoolName} on Martial`, url: profileUrl })
+      } catch { /* user cancelled */ }
+      return
+    }
+    await navigator.clipboard.writeText(profileUrl)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  async function openScan() {
+    setScanState('loading')
+    try {
+      const res = await adminFetch('/api/dashboard/events')
+      const data = await res.json()
+      const now = new Date()
+      const upcoming: UpcomingEvent[] = (data.events ?? [])
+        .filter((e: { isCancelled: boolean; startAt: string }) => !e.isCancelled && new Date(e.startAt) >= now)
+        .map((e: { id: string; title: string }) => ({ id: e.id, title: e.title }))
+
+      if (upcoming.length === 0) {
+        setScanState('none')
+        return
+      }
+      if (upcoming.length === 1) {
+        window.open(`${origin}/checkin/event/${upcoming[0]!.id}`, '_blank')
+        setScanState('idle')
+        return
+      }
+      setScanEvents(upcoming)
+      setScanState('idle')
+    } catch {
+      setScanState('none')
+    }
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
-      <div className="w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden" style={{ background: '#fff' }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={onClose}>
+      <div className="w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden" style={{ background: '#fff' }} onClick={e => e.stopPropagation()}>
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid #E5E7EB' }}>
@@ -31,35 +114,8 @@ export default function QRCodeModal({ schoolName, schoolSlug, onClose }: Props) 
 
         {/* QR Body */}
         <div className="px-5 py-6 flex flex-col items-center gap-5">
-          {/* QR Code placeholder — SVG grid */}
-          <div className="relative p-4 rounded-2xl" style={{ background: '#fff', border: '2px solid #E5E7EB' }}>
-            <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-              {/* Simulated QR pattern */}
-              <rect width="200" height="200" fill="white" />
-              {/* Top-left finder */}
-              <rect x="10" y="10" width="60" height="60" rx="4" fill="#111827" />
-              <rect x="20" y="20" width="40" height="40" rx="2" fill="white" />
-              <rect x="28" y="28" width="24" height="24" rx="1" fill="#111827" />
-              {/* Top-right finder */}
-              <rect x="130" y="10" width="60" height="60" rx="4" fill="#111827" />
-              <rect x="140" y="20" width="40" height="40" rx="2" fill="white" />
-              <rect x="148" y="28" width="24" height="24" rx="1" fill="#111827" />
-              {/* Bottom-left finder */}
-              <rect x="10" y="130" width="60" height="60" rx="4" fill="#111827" />
-              <rect x="20" y="140" width="40" height="40" rx="2" fill="white" />
-              <rect x="28" y="148" width="24" height="24" rx="1" fill="#111827" />
-              {/* Data dots */}
-              {[80,88,96,104,112,120].flatMap(x =>
-                [10,18,26,34,42,50,58,66,74,82,90,98,106,114,122,130,138,146,154,162,170,178,186].map(y => {
-                  const hash = (x * 7 + y * 13) % 3
-                  return hash === 0 ? <rect key={`${x}-${y}`} x={x} y={y} width="6" height="6" fill="#111827" /> : null
-                })
-              )}
-              {/* Center logo area */}
-              <rect x="86" y="86" width="28" height="28" rx="6" fill="white" />
-              <rect x="90" y="90" width="20" height="20" rx="4" fill="#0071E3" />
-              <text x="100" y="104" textAnchor="middle" fontSize="10" fontWeight="bold" fill="white">M</text>
-            </svg>
+          <div ref={qrWrapRef} className="relative p-4 rounded-2xl" style={{ background: '#fff', border: '2px solid #E5E7EB' }}>
+            <QRCodeSVG value={profileUrl} size={200} level="M" />
           </div>
 
           <div className="text-center">
@@ -74,17 +130,56 @@ export default function QRCodeModal({ schoolName, schoolSlug, onClose }: Props) 
           {/* Actions */}
           <div className="flex gap-3 w-full">
             <button
+              onClick={downloadQR}
               className="flex-1 py-2.5 rounded-xl text-sm font-semibold cursor-pointer flex items-center justify-center gap-1.5"
               style={{ border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}
             >
               <Download size={13} /> Download
             </button>
             <button
+              onClick={shareQR}
               className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white cursor-pointer flex items-center justify-center gap-1.5"
               style={{ background: '#6366F1', border: 'none' }}
             >
-              <Share2 size={13} /> Share
+              {copied ? <Check size={13} /> : <Share2 size={13} />}
+              {copied ? 'Copied!' : 'Share'}
             </button>
+          </div>
+
+          {/* Open QR scan */}
+          <div className="w-full pt-1" style={{ borderTop: '1px solid #F3F4F6' }}>
+            {scanEvents === null ? (
+              <button
+                onClick={openScan}
+                disabled={scanState === 'loading'}
+                className="w-full mt-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer flex items-center justify-center gap-1.5"
+                style={{ border: '1px solid #E5E7EB', background: '#F9FAFB', color: '#374151', opacity: scanState === 'loading' ? 0.6 : 1 }}
+              >
+                {scanState === 'loading' ? <Loader2 size={13} className="animate-spin" /> : <ScanLine size={13} />}
+                {scanState === 'none' ? 'No upcoming events to check in' : 'Open QR scan'}
+              </button>
+            ) : (
+              <div className="mt-4 w-full">
+                <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6 }}>
+                  Select an event to scan
+                </p>
+                <div className="flex flex-col gap-1.5">
+                  {scanEvents.map(ev => (
+                    <a
+                      key={ev.id}
+                      href={`${origin}/checkin/event/${ev.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full text-left px-3 py-2 rounded-xl flex items-center gap-2"
+                      style={{ border: '1px solid #E5E7EB', background: '#F9FAFB', color: '#374151', fontSize: 13, textDecoration: 'none' }}
+                    >
+                      <ScanLine size={13} style={{ flexShrink: 0, color: '#6366F1' }} />
+                      {ev.title}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

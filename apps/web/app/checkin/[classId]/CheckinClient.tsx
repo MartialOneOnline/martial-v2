@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { CheckCircle, XCircle, Camera, RefreshCw } from 'lucide-react'
+import jsQR from 'jsqr'
 
 interface Props {
   classId: string
@@ -11,13 +12,9 @@ interface Props {
 
 type ScanResult = { ok: true; name: string; walkin: boolean; atCapacity: boolean } | { ok: false; error: string }
 
-declare class BarcodeDetector {
-  constructor(opts: { formats: string[] })
-  detect(source: HTMLVideoElement | HTMLImageElement | ImageBitmap): Promise<{ rawValue: string }[]>
-}
-
 export default function CheckinClient({ classId, className, date }: Props) {
   const videoRef   = useRef<HTMLVideoElement>(null)
+  const canvasRef  = useRef<HTMLCanvasElement>(null)
   const streamRef  = useRef<MediaStream | null>(null)
   const rafRef     = useRef<number>(0)
   const lastScan   = useRef<string>('')
@@ -75,25 +72,24 @@ export default function CheckinClient({ classId, className, date }: Props) {
         await videoRef.current.play()
       }
 
-      // BarcodeDetector (Chrome/Android/Safari 17+)
-      if ('BarcodeDetector' in window) {
-        const detector = new BarcodeDetector({ formats: ['qr_code'] })
-        setScanning(true)
-        const tick = async () => {
-          if (videoRef.current && videoRef.current.readyState === 4) {
-            try {
-              const codes = await detector.detect(videoRef.current)
-              if (codes[0]) processQR(codes[0].rawValue)
-            } catch { /* ignore frame errors */ }
+      setScanning(true)
+      const tick = () => {
+        const video = videoRef.current
+        const canvas = canvasRef.current
+        if (video && canvas && video.readyState === video.HAVE_ENOUGH_DATA) {
+          canvas.width = video.videoWidth
+          canvas.height = video.videoHeight
+          const ctx = canvas.getContext('2d')
+          if (ctx) {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+            const frame = ctx.getImageData(0, 0, canvas.width, canvas.height)
+            const code = jsQR(frame.data, frame.width, frame.height)
+            if (code) processQR(code.data)
           }
-          rafRef.current = requestAnimationFrame(tick)
         }
         rafRef.current = requestAnimationFrame(tick)
-      } else {
-        // Fallback: BarcodeDetector not available, show file input
-        setScanning(false)
-        setCamError('live-scan-unavailable')
       }
+      rafRef.current = requestAnimationFrame(tick)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : ''
       setCamError(msg.includes('Permission') || msg.includes('NotAllowed')
@@ -117,11 +113,23 @@ export default function CheckinClient({ classId, className, date }: Props) {
     const img = document.createElement('img')
     img.src = URL.createObjectURL(file)
     await new Promise(r => { img.onload = r })
-    if ('BarcodeDetector' in window) {
-      const detector = new BarcodeDetector({ formats: ['qr_code'] })
-      const codes = await detector.detect(img as unknown as HTMLImageElement)
-      if (codes[0]) await processQR(codes[0].rawValue)
-      else setResult({ ok: false, error: 'No QR code found in image' })
+
+    const canvas = document.createElement('canvas')
+    canvas.width = img.naturalWidth
+    canvas.height = img.naturalHeight
+    const ctx = canvas.getContext('2d')
+    let code = null
+    if (ctx) {
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      const frame = ctx.getImageData(0, 0, canvas.width, canvas.height)
+      code = jsQR(frame.data, frame.width, frame.height)
+    }
+
+    if (code) {
+      await processQR(code.data)
+    } else {
+      setResult({ ok: false, error: 'No QR code found in image' })
+      setTimeout(() => setResult(null), 3000)
     }
     URL.revokeObjectURL(img.src)
     e.target.value = ''
@@ -149,6 +157,7 @@ export default function CheckinClient({ classId, className, date }: Props) {
       <div className="relative flex-1 flex items-center justify-center" style={{ minHeight: 320 }}>
         <video ref={videoRef} playsInline muted
           style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />
+        <canvas ref={canvasRef} style={{ display: 'none' }} />
 
         {/* Scan frame overlay */}
         {scanning && !result && (
@@ -193,7 +202,7 @@ export default function CheckinClient({ classId, className, date }: Props) {
         )}
 
         {/* Camera error */}
-        {camError && camError !== 'live-scan-unavailable' && (
+        {camError && (
           <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, zIndex: 10, padding: 24 }}>
             <Camera size={36} color="rgba(255,255,255,0.4)" />
             <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, textAlign: 'center' }}>{camError}</p>
@@ -208,13 +217,20 @@ export default function CheckinClient({ classId, className, date }: Props) {
       {/* Bottom panel */}
       <div style={{ background: '#1A1A1A', padding: '16px 16px 32px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
 
-        {/* File input fallback */}
-        {camError === 'live-scan-unavailable' && (
-          <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#0870E2', border: 'none', borderRadius: 12, padding: '12px 0', cursor: 'pointer', width: '100%', marginBottom: 12 }}>
-            <Camera size={16} color="#fff" />
-            <span style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>Scan QR with camera</span>
-            <input type="file" accept="image/*" capture="environment" onChange={handleFile} style={{ display: 'none' }} />
-          </label>
+        {/* File input fallback — shown when live camera access fails (e.g. blocked
+            inside a WebView). The <input capture> path opens the OS camera picker
+            directly and doesn't need getUserMedia, so it still works there. */}
+        {camError && (
+          <>
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginBottom: 10 }}>
+              Live camera preview is unavailable here. Take a photo of the ticket QR instead.
+            </p>
+            <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#0870E2', border: 'none', borderRadius: 12, padding: '12px 0', cursor: 'pointer', width: '100%', marginBottom: 12 }}>
+              <Camera size={16} color="#fff" />
+              <span style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>Scan QR with camera</span>
+              <input type="file" accept="image/*" capture="environment" onChange={handleFile} style={{ display: 'none' }} />
+            </label>
+          </>
         )}
 
         {/* Checked-in list */}
