@@ -11,6 +11,7 @@ import { useDashboard } from '../../../../components/DashboardShell'
 import NotificationBell from '../../../../components/NotificationBell'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../../lib/format'
+import { downloadCsv } from '../../../../lib/csvExport'
 import RowMenu from '../../../../components/RowMenu'
 
 type TxStatus  = 'PAID' | 'PENDING' | 'FAILED' | 'REFUNDED' | 'FLAGGED'
@@ -315,7 +316,7 @@ function RowActions({ tx, onStatusChange, onDelete, onView, onResolve }: {
       <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12,
         boxShadow: '0 4px 16px rgba(0,0,0,0.10)', minWidth: 170, padding: '4px 0', overflow: 'hidden' }}>
 
-        <button onClick={e => { e.stopPropagation(); onView() }}
+        <button onClick={onView}
           style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
             fontWeight: 500, color: '#374151', background: 'transparent', border: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: 8 }}
@@ -327,7 +328,7 @@ function RowActions({ tx, onStatusChange, onDelete, onView, onResolve }: {
         <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
 
         {tx.status === 'FLAGGED' && !tx.resolvedAt && (
-          <button onClick={e => { e.stopPropagation(); onResolve() }}
+          <button onClick={onResolve}
             style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
               fontWeight: 500, color: '#16A34A', background: 'transparent', border: 'none', cursor: 'pointer',
               display: 'flex', alignItems: 'center', gap: 8 }}
@@ -338,7 +339,7 @@ function RowActions({ tx, onStatusChange, onDelete, onView, onResolve }: {
         )}
 
         {tx.status === 'PENDING' && (
-          <button onClick={e => { e.stopPropagation(); act(() => onStatusChange(tx.id, 'PAID')) }}
+          <button onClick={() => act(() => onStatusChange(tx.id, 'PAID'))}
             style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
               fontWeight: 500, color: '#16A34A', background: 'transparent', border: 'none', cursor: 'pointer',
               display: 'flex', alignItems: 'center', gap: 8 }}
@@ -352,7 +353,7 @@ function RowActions({ tx, onStatusChange, onDelete, onView, onResolve }: {
             transaction logic and membership void are implemented. */}
 
         {tx.status !== 'FAILED' && (
-          <button onClick={e => { e.stopPropagation(); act(() => onStatusChange(tx.id, 'FAILED')) }}
+          <button onClick={() => act(() => onStatusChange(tx.id, 'FAILED'))}
             style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
               fontWeight: 500, color: '#D97706', background: 'transparent', border: 'none', cursor: 'pointer',
               display: 'flex', alignItems: 'center', gap: 8 }}
@@ -364,7 +365,7 @@ function RowActions({ tx, onStatusChange, onDelete, onView, onResolve }: {
 
         <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
 
-        <button onClick={e => { e.stopPropagation(); act(() => onDelete(tx.id)) }}
+        <button onClick={() => act(() => onDelete(tx.id))}
           style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
             fontWeight: 500, color: '#DC2626', background: 'transparent', border: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: 8 }}
@@ -877,8 +878,16 @@ export default function TransactionsClient() {
       body: JSON.stringify({ status }),
     })
     if (res.ok) {
+      const prevTx = transactions.find(tx => tx.id === id)
       setTransactions(prev => prev.map(tx => tx.id === id ? { ...tx, status } : tx))
       if (selectedTx?.id === id) setSelectedTx(prev => prev ? { ...prev, status } : null)
+      if (prevTx && prevTx.status !== status) {
+        setCountByStatus(prev => ({
+          ...prev,
+          [prevTx.status]: Math.max(0, prev[prevTx.status] - 1),
+          [status]: prev[status] + 1,
+        }))
+      }
     }
   }
 
@@ -930,10 +939,7 @@ export default function TransactionsClient() {
       tx.userName, tx.userEmail ?? '', tx.description ?? '', tx.method ?? '',
       String(tx.amount), tx.currency, new Date(tx.date).toLocaleDateString('es-ES'), tx.status, tx.type,
     ])
-    const csv = [headers, ...rows].map(r => r.map(v => `"${v.replace(/"/g, '""')}"`).join(',')).join('\n')
-    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(blob); a.download = `transactions-${new Date().toISOString().slice(0, 10)}.csv`; a.click()
+    downloadCsv('transactions', headers, rows)
   }
 
   return (
