@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import {
   Clock, TrendingUp, TrendingDown,
-  ChevronRight,
+  ChevronRight, ChevronLeft,
   Filter, Download,
   Sparkles, Send,
   Calendar,
@@ -84,6 +84,109 @@ function buildDays() {
   })
 }
 const DAYS = typeof window !== 'undefined' ? buildDays() : Array.from({ length: 14 }, (_, i) => ({ long: DAY_LABELS[i % 7]!, num: i + 1 }))
+
+// `activeDay` is expressed as an offset in days from today (DAYS[i] is
+// always today+i), so these helpers work for any offset — including ones
+// picked from the calendar popover outside the 14-day strip.
+function dateForOffset(offset: number) {
+  const d = new Date()
+  d.setDate(d.getDate() + offset)
+  return d
+}
+function dateStrForOffset(offset: number) {
+  const d = dateForOffset(offset)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+function longDateForOffset(offset: number) {
+  return dateForOffset(offset).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
+}
+
+function dowMon(d: Date): number { return (d.getDay() + 6) % 7 }
+function buildMonthGrid(year: number, month: number): Date[] {
+  const first = new Date(year, month, 1)
+  const last  = new Date(year, month + 1, 0)
+  const pad   = dowMon(first)
+  const cells: Date[] = []
+  for (let i = pad; i > 0; i--) cells.push(new Date(year, month, 1 - i))
+  for (let d = 1; d <= last.getDate(); d++) cells.push(new Date(year, month, d))
+  const rem = 7 - (cells.length % 7)
+  if (rem < 7) for (let i = 1; i <= rem; i++) cells.push(new Date(year, month + 1, i))
+  return cells
+}
+function isSameDay(a: Date, b: Date) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
+}
+
+// ── Mini date-picker popover — lets the day-strip header jump to any date ──────
+function MiniDatePicker({ selected, onSelect, onClose }: { selected: Date; onSelect: (d: Date) => void; onClose: () => void }) {
+  const t = useT()
+  const monthNames = t.classes.monthNames.split(',')
+  const weekDays = t.classes.weekDays.split(',')
+  const today = new Date()
+  const [pickerYear, setPickerYear] = useState(selected.getFullYear())
+  const [pickerMonth, setPickerMonth] = useState(selected.getMonth())
+  const grid = buildMonthGrid(pickerYear, pickerMonth)
+
+  function prevMonth() { if (pickerMonth === 0) { setPickerMonth(11); setPickerYear(y => y - 1) } else setPickerMonth(m => m - 1) }
+  function nextMonth() { if (pickerMonth === 11) { setPickerMonth(0); setPickerYear(y => y + 1) } else setPickerMonth(m => m + 1) }
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40" onClick={onClose} />
+      <div className="absolute z-50 rounded-2xl overflow-hidden"
+        style={{ top: 'calc(100% + 8px)', left: 0,
+          background: '#fff', border: '1px solid #E5E7EB',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.14)', width: 264, padding: 12 }}>
+        <div className="flex items-center justify-between mb-3">
+          <button onClick={prevMonth}
+            className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
+            style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
+            <ChevronLeft size={13} style={{ color: '#374151' }} />
+          </button>
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>
+            {monthNames[pickerMonth]} {pickerYear}
+          </span>
+          <button onClick={nextMonth}
+            className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
+            style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
+            <ChevronRight size={13} style={{ color: '#374151' }} />
+          </button>
+        </div>
+        <div className="grid grid-cols-7 mb-1">
+          {weekDays.map((d, di) => (
+            <div key={di} className="flex items-center justify-center"
+              style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', padding: '3px 0', letterSpacing: '0.04em' }}>
+              {d[0]}
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7 gap-px">
+          {grid.map((date, i) => {
+            const isThisMonth = date.getMonth() === pickerMonth
+            const isToday     = isSameDay(date, today)
+            const isSelected  = isSameDay(date, selected)
+            return (
+              <button key={i} onClick={() => { onSelect(date); onClose() }}
+                className="flex items-center justify-center rounded-lg cursor-pointer"
+                style={{ height: 32, fontSize: 12, fontWeight: isSelected || isToday ? 700 : 400, border: 'none',
+                  background: isSelected ? '#0071E3' : isToday ? '#EFF6FF' : 'transparent',
+                  color: isSelected ? '#fff' : isToday ? '#0071E3' : isThisMonth ? '#374151' : '#D1D5DB' }}>
+                {date.getDate()}
+              </button>
+            )
+          })}
+        </div>
+        <div className="mt-3 pt-3" style={{ borderTop: '1px solid #F3F4F6' }}>
+          <button onClick={() => { onSelect(today); onClose() }}
+            className="w-full py-1.5 rounded-lg cursor-pointer"
+            style={{ fontSize: 12, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
+            {t.classes.goToToday}
+          </button>
+        </div>
+      </div>
+    </>
+  )
+}
 
 const ACADEMY_ACTIONS = [
   { icon: UserPlus, label: 'Invite'   },
@@ -175,6 +278,8 @@ type DashStats = {
   activeMembers: { value: number }
   openLeads: { value: number }
   gradings: { value: number }
+  avgAttendance: { value: number }
+  notifications: { value: number }
   classesToday: { value: number }
   gettingStarted?: {
     profile: boolean
@@ -201,19 +306,19 @@ export default function DashboardClient({ userName, userEmail }: Props) {
   const [gettingStartedDismissed, setGettingStartedDismissed] = useState(false)
 
   const [period, setPeriod]         = useState<Period>('12 months')
+  // Offset in days from today — 0 is today, DAYS[i] is always today+i, and
+  // the calendar popover can push this outside the 14-day strip.
   const [activeDay, setActiveDay]   = useState(0)
+  const [showDatePicker, setShowDatePicker] = useState(false)
   // Resolved after mount to avoid SSR/client hydration mismatch (#418)
+  const [mounted, setMounted]       = useState(false)
   const [dateLabel, setDateLabel]   = useState('')
-  const [longDateLabel, setLongDateLabel] = useState('')
   const [greeting, setGreeting]     = useState(t.dashboard.goodMorning)
 
   useEffect(() => {
     const now = new Date()
-    const todayNum = now.getDate()
-    const idx = DAYS.findIndex(d => d.num === todayNum)
-    setActiveDay(idx >= 0 ? idx : 0)
+    setMounted(true)
     setDateLabel(now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }))
-    setLongDateLabel(now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }))
     const hour = now.getHours()
     setGreeting(hour < 12 ? t.dashboard.goodMorning : hour < 18 ? t.dashboard.goodAfternoon : t.dashboard.goodEvening)
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -233,13 +338,21 @@ export default function DashboardClient({ userName, userEmail }: Props) {
     logoUrl: string | null; coverUrl: string | null; tagline: string | null
   } | null>(null)
 
-  const refreshTodayClasses = () => {
+  const refreshTodayClasses = (offset = activeDay) => {
     const sid = currentSchool?.schoolId
     if (!sid) return
-    fetch(`/api/dashboard/classes/today?schoolId=${sid}`)
+    fetch(`/api/dashboard/classes/today?schoolId=${sid}&date=${dateStrForOffset(offset)}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => { setTodayClasses(d?.classes ?? []); setClassesLoaded(true) })
   }
+
+  // Refetch the class list whenever the selected day (day-strip or calendar
+  // popover) or the active school changes.
+  useEffect(() => {
+    setClassesLoaded(false)
+    refreshTodayClasses(activeDay)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeDay, currentSchool?.schoolId])
 
   useEffect(() => {
     const sid = currentSchool?.schoolId
@@ -247,7 +360,6 @@ export default function DashboardClient({ userName, userEmail }: Props) {
     fetch(`/api/dashboard/stats?schoolId=${sid}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => d && setStats(d))
-    refreshTodayClasses()
     fetch('/api/dashboard/transactions?pageSize=6&page=1&type=INCOME')
       .then(r => r.ok ? r.json() : null)
       .then(d => d?.transactions && setRecentTx(d.transactions))
@@ -271,6 +383,12 @@ export default function DashboardClient({ userName, userEmail }: Props) {
   const displayClasses = todayClasses
 
   const schoolInitials = (currentSchool?.schoolName || 'A').trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()
+
+  function handlePickDate(picked: Date) {
+    const today = new Date(); today.setHours(0, 0, 0, 0)
+    const target = new Date(picked); target.setHours(0, 0, 0, 0)
+    setActiveDay(Math.round((target.getTime() - today.getTime()) / 86400000))
+  }
 
   // ── Popup state ────────────────────────────────────────────────────────────
   const [showInvite, setShowInvite]               = useState(false)
@@ -312,6 +430,14 @@ export default function DashboardClient({ userName, userEmail }: Props) {
       trendUp: true,
       sub: t.common.allTime,
     },
+  ]
+  const QUICK_STATS = [
+    { label: t.dashboard.avgAttendance, value: stats ? `${stats.avgAttendance.value}%`   : '—', color: '#0071E3' },
+    { label: t.dashboard.openLeads,     value: stats ? String(stats.openLeads.value)     : '—', color: '#D97706' },
+    { label: t.dashboard.gradings,      value: stats ? String(stats.gradings.value)      : '—', color: '#16A34A' },
+    { label: t.dashboard.notifications, value: stats ? String(stats.notifications.value) : '—', color: '#DC2626' },
+    { label: t.dashboard.activeMembers, value: stats ? String(stats.activeMembers.value) : '—', color: '#6366F1' },
+    { label: t.dashboard.classesToday,  value: stats ? String(stats.classesToday.value)  : '—', color: '#0071E3' },
   ]
   const AI_INSIGHTS = [
     { insight: t.dashboard.insight1, action: t.dashboard.action1, openAI: true  },
@@ -512,11 +638,21 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           <div className="lg:hidden rounded-2xl" style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
             <div className="px-4 pt-4 pb-3" style={{ borderBottom: '1px solid #F3F4F6' }}>
               <p style={{ fontSize: 12, color: '#9CA3AF' }}>{t.dashboard.upcomingClasses}</p>
-              <div className="flex items-center gap-1.5 mt-0.5">
+              <div className="flex items-center gap-1.5 mt-0.5" style={{ position: 'relative' }}>
                 <p style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>
-                  {longDateLabel}
+                  {mounted ? longDateForOffset(activeDay) : ''}
                 </p>
-                <Calendar size={13} strokeWidth={1.5} style={{ color: '#9CA3AF' }} />
+                <button onClick={() => setShowDatePicker(v => !v)} title="Open calendar"
+                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }}>
+                  <Calendar size={13} strokeWidth={1.5} style={{ color: '#0071E3' }} />
+                </button>
+                {showDatePicker && (
+                  <MiniDatePicker
+                    selected={dateForOffset(activeDay)}
+                    onSelect={handlePickDate}
+                    onClose={() => setShowDatePicker(false)}
+                  />
+                )}
               </div>
             </div>
             <div className="flex gap-1 px-3 py-2" style={{ borderBottom: '1px solid #F3F4F6', overflowX: 'auto', scrollbarWidth: 'none' }}>
@@ -574,14 +710,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
               <p style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>{t.dashboard.today}</p>
             </div>
             <div className="grid grid-cols-3" style={{ gap: 1, background: '#F3F4F6' }}>
-              {[
-                { label: t.dashboard.avgAttendance, value: '78%', color: '#0071E3' },
-                { label: t.dashboard.openLeads,     value: '4',   color: '#D97706' },
-                { label: t.dashboard.gradings,      value: '167', color: '#16A34A' },
-                { label: t.dashboard.notifications, value: '35',  color: '#DC2626' },
-                { label: t.dashboard.activeMembers, value: '421', color: '#6366F1' },
-                { label: t.dashboard.classesToday,  value: '12',  color: '#0071E3' },
-              ].map(s => (
+              {QUICK_STATS.map(s => (
                 <div key={s.label} className="flex flex-col items-center gap-1.5 px-3 pt-3 pb-5" style={{ background: '#fff' }}>
                   <p style={{ fontSize: 10, color: '#9CA3AF', textAlign: 'center' }}>{s.label}</p>
                   <p style={{ fontSize: 20, fontWeight: 700, color: s.color, letterSpacing: '-0.02em', lineHeight: 1 }}>{s.value}</p>
@@ -661,18 +790,18 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                         <div className="flex items-center gap-3">
                           {tx.userAvatar ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={tx.userAvatar} alt={tx.userName} width={42} height={42}
-                              style={{ width: 42, height: 42, objectFit: 'cover', borderRadius: '50%', border: '1px solid #E5E7EB', flexShrink: 0 }} />
+                            <img src={tx.userAvatar} alt={tx.userName} width={36} height={36}
+                              style={{ width: 36, height: 36, objectFit: 'cover', borderRadius: '50%', border: '1px solid #E5E7EB', flexShrink: 0 }} />
                           ) : (
-                            <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', color: '#fff', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                               {initials}
                             </div>
                           )}
-                          <span style={{ fontSize: 14, color: '#111827', whiteSpace: 'nowrap' }}>{tx.userName}</span>
+                          <span style={{ fontSize: 13, color: '#111827', whiteSpace: 'nowrap' }}>{tx.userName}</span>
                         </div>
                       </td>
                       <td className="hidden sm:table-cell px-4 md:px-7 py-4">
-                        <span style={{ fontSize: 13, color: '#374151' }}>{tx.description ?? '—'}</span>
+                        <span style={{ fontSize: 12, color: '#374151', whiteSpace: 'nowrap' }}>{tx.description ?? '—'}</span>
                       </td>
                       <td className="hidden sm:table-cell px-4 md:px-7 py-4">
                         <span style={{ fontSize: 13, color: '#6B7280' }}>{methodLabel[tx.method] ?? tx.method}</span>
@@ -798,13 +927,21 @@ export default function DashboardClient({ userName, userEmail }: Props) {
         <div className="rounded-2xl flex flex-col" style={{ flex: 1, minHeight: 280, border: '1px solid #E5E7EB', background: '#fff' }}>
           <div className="shrink-0 px-4 pt-4 pb-3" style={{ borderBottom: '1px solid #F3F4F6' }}>
             <p style={{ fontSize: 12, color: '#9CA3AF' }}>{t.dashboard.upcomingClasses}</p>
-            <div className="flex items-center gap-1.5 mt-0.5">
+            <div className="flex items-center gap-1.5 mt-0.5" style={{ position: 'relative' }}>
               <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>
-                {longDateLabel}
+                {mounted ? longDateForOffset(activeDay) : ''}
               </p>
-              <Link href="/dashboard/classes/calendar" title="Open calendar">
-                <Calendar size={13} strokeWidth={1.5} style={{ color: '#0071E3', flexShrink: 0, cursor: 'pointer' }} />
-              </Link>
+              <button onClick={() => setShowDatePicker(v => !v)} title="Open calendar"
+                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }}>
+                <Calendar size={13} strokeWidth={1.5} style={{ color: '#0071E3', flexShrink: 0 }} />
+              </button>
+              {showDatePicker && (
+                <MiniDatePicker
+                  selected={dateForOffset(activeDay)}
+                  onSelect={handlePickDate}
+                  onClose={() => setShowDatePicker(false)}
+                />
+              )}
             </div>
           </div>
           <div className="shrink-0 flex gap-1 px-3 py-2"
@@ -871,14 +1008,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
             <p style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{t.dashboard.today}</p>
           </div>
           <div className="grid grid-cols-3" style={{ gap: 1, background: '#F3F4F6' }}>
-            {[
-              { label: t.dashboard.avgAttendance, value: '—',   color: '#0071E3' },
-              { label: t.dashboard.openLeads,     value: stats ? String(stats.openLeads.value)    : '—', color: '#D97706' },
-              { label: t.dashboard.gradings,      value: stats ? String(stats.gradings.value)     : '—', color: '#16A34A' },
-              { label: t.dashboard.notifications, value: '—',   color: '#DC2626' },
-              { label: t.dashboard.activeMembers, value: stats ? String(stats.activeMembers.value): '—', color: '#6366F1' },
-              { label: t.dashboard.classesToday,  value: stats ? String(stats.classesToday.value) : '—', color: '#0071E3' },
-            ].map(s => (
+            {QUICK_STATS.map(s => (
               <div key={s.label} className="flex flex-col gap-1 px-2 py-2.5" style={{ background: '#fff' }}>
                 <p style={{ fontSize: 9, color: '#9CA3AF', lineHeight: 1.2 }}>{s.label}</p>
                 <p style={{ fontSize: 16, fontWeight: 700, color: s.color, letterSpacing: '-0.02em', lineHeight: 1 }}>{s.value}</p>
@@ -898,14 +1028,14 @@ export default function DashboardClient({ userName, userEmail }: Props) {
       {selectedClass  && (
         <ClassCapacityPopup
           cls={selectedClass}
-          date={(() => { const d = new Date(); d.setDate(d.getDate() + activeDay); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` })()}
+          date={dateStrForOffset(activeDay)}
           onClose={() => { setSelectedClass(null); refreshTodayClasses() }}
         />
       )}
       {detailClass && (
         <ClassDetailPopup
           cls={detailClass}
-          date={(() => { const d = new Date(); d.setDate(d.getDate() + activeDay); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` })()}
+          date={dateStrForOffset(activeDay)}
           onClose={() => { setDetailClass(null); refreshTodayClasses() }}
         />
       )}

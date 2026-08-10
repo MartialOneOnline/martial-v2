@@ -22,7 +22,14 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const todayDow = new Date().getDay() // 0=Sun
+  // Optional ?date=YYYY-MM-DD to look up a day other than today (e.g. the
+  // dashboard's day-strip / calendar picker). Falls back to today.
+  const dateParam = searchParams.get('date')
+  const targetDate = dateParam ? new Date(`${dateParam}T00:00:00`) : new Date()
+  const targetDow = targetDate.getDay() // 0=Sun
+
+  const dayStart = new Date(targetDate); dayStart.setHours(0, 0, 0, 0)
+  const dayEnd   = new Date(targetDate); dayEnd.setHours(23, 59, 59, 999)
 
   const classes = await prisma.class.findMany({
     where: { schoolId, isActive: true },
@@ -30,10 +37,7 @@ export async function GET(req: NextRequest) {
       instructor: { select: { name: true, photoUrl: true } },
       bookings: {
         where: {
-          scheduledAt: {
-            gte: new Date(new Date().setHours(0, 0, 0, 0)),
-            lte: new Date(new Date().setHours(23, 59, 59, 999)),
-          },
+          scheduledAt: { gte: dayStart, lte: dayEnd },
           status: { not: 'CANCELLED' },
         },
         select: { id: true },
@@ -42,16 +46,16 @@ export async function GET(req: NextRequest) {
     orderBy: { name: 'asc' },
   })
 
-  // Filter to classes that run today
+  // Filter to classes that run on the target day
   const todayClasses = classes
     .filter(cls => {
       if (!cls.schedule) return false
       const schedule = cls.schedule as { dayOfWeek: number; startTime: string }[]
-      return Array.isArray(schedule) && schedule.some(s => s.dayOfWeek === todayDow)
+      return Array.isArray(schedule) && schedule.some(s => s.dayOfWeek === targetDow)
     })
     .map(cls => {
       const schedule = cls.schedule as { dayOfWeek: number; startTime: string; endTime?: string }[]
-      const todaySlot = schedule.find(s => s.dayOfWeek === todayDow)
+      const todaySlot = schedule.find(s => s.dayOfWeek === targetDow)
       const booked = cls.bookings.length
       const cap = cls.capacity ?? 99
       return {

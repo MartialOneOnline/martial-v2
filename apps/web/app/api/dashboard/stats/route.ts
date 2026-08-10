@@ -20,6 +20,8 @@ export async function GET(req: NextRequest) {
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
   const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
   const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0)
+  const thirtyDaysAgo = new Date(now); thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+  const todayDow = now.getDay() // 0=Sun
 
   const [
     totalMembers,
@@ -32,12 +34,15 @@ export async function GET(req: NextRequest) {
     gradingsCount,
     revenueThisMonth,
     revenueLastMonth,
-    classesToday,
+    classSchedules,
     newMembersThisMonth,
     bookingsThisMonth,
     membershipPlanCount,
     studentCount,
     school,
+    attendanceTotal,
+    attendanceConfirmed,
+    unreadNotifications,
   ] = await Promise.all([
     // Total active students
     prisma.schoolMember.count({
@@ -96,13 +101,11 @@ export async function GET(req: NextRequest) {
       },
       _sum: { amount: true },
     }),
-    // Classes today (by day of week)
-    prisma.class.count({
-      where: {
-        schoolId,
-        isActive: true,
-        schedule: { not: undefined },
-      },
+    // Schedules of active classes — filtered to today's day-of-week below,
+    // since `schedule` is a JSON array Prisma can't query dayOfWeek inside.
+    prisma.class.findMany({
+      where: { schoolId, isActive: true },
+      select: { schedule: true },
     }),
     // New members this month (joined since start of month)
     prisma.schoolMember.count({
@@ -133,7 +136,30 @@ export async function GET(req: NextRequest) {
         revolutPublicKey: true, revolutSecretKey: true,
       },
     }),
+    // Attendance rate over the last 30 days (confirmed/completed vs total)
+    prisma.booking.count({
+      where: { class: { schoolId }, scheduledAt: { gte: thirtyDaysAgo, lte: now } },
+    }),
+    prisma.booking.count({
+      where: {
+        class: { schoolId },
+        scheduledAt: { gte: thirtyDaysAgo, lte: now },
+        status: { in: ['CONFIRMED', 'COMPLETED'] },
+      },
+    }),
+    // Unread notifications visible to this user (school-wide or targeted at them)
+    prisma.notification.count({
+      where: { schoolId, read: false, OR: [{ recipientUserId: null }, { recipientUserId: user.id }] },
+    }),
   ])
+
+  const classesToday = classSchedules.filter(cls => {
+    if (!cls.schedule) return false
+    const schedule = cls.schedule as { dayOfWeek: number }[]
+    return Array.isArray(schedule) && schedule.some(s => s.dayOfWeek === todayDow)
+  }).length
+
+  const avgAttendance = attendanceTotal > 0 ? Math.round((attendanceConfirmed / attendanceTotal) * 100) : 0
 
   const revenueNow = revenueThisMonth._sum.amount ?? 0
   const revenuePrev = revenueLastMonth._sum.amount ?? 0
@@ -188,6 +214,8 @@ export async function GET(req: NextRequest) {
     activeMembers: { value: activeMembers },
     openLeads: { value: openLeads },
     gradings: { value: gradingsCount },
+    avgAttendance:      { value: avgAttendance },
+    notifications:      { value: unreadNotifications },
     classesToday:       { value: classesToday },
     newMembersThisMonth:{ value: newMembersThisMonth },
     bookingsThisMonth:  { value: bookingsThisMonth },
