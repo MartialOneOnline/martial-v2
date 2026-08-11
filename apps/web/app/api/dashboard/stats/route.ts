@@ -153,11 +153,12 @@ export async function GET(req: NextRequest) {
     }),
   ])
 
-  const classesToday = classSchedules.filter(cls => {
-    if (!cls.schedule) return false
+  const classesToday = classSchedules.reduce((count, cls) => {
+    if (!cls.schedule) return count
     const schedule = cls.schedule as { dayOfWeek: number }[]
-    return Array.isArray(schedule) && schedule.some(s => s.dayOfWeek === todayDow)
-  }).length
+    if (!Array.isArray(schedule)) return count
+    return count + schedule.filter(s => s.dayOfWeek === todayDow).length
+  }, 0)
 
   const avgAttendance = attendanceTotal > 0 ? Math.round((attendanceConfirmed / attendanceTotal) * 100) : 0
 
