@@ -4,9 +4,13 @@ import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 
 // GET /api/dashboard/classes/enrollments?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
-// Returns { "classId|YYYY-MM-DD": count } for all non-cancelled bookings in range.
-// Also accepts ?date=YYYY-MM-DD as shorthand for a single day (returns { classId: count }).
+// Returns { "classId|YYYY-MM-DD|HH:MM": count } for all non-cancelled bookings in range.
+// Also accepts ?date=YYYY-MM-DD as shorthand for a single day.
 // Used by Calendar/Timetable chips to show per-session enrollment counts.
+// Keyed down to the slot's start time (not just classId|date) because a
+// class can have multiple schedule slots on the same day (e.g. a 10:00 and
+// a 20:00 NOGI session) — without the time component, both slots' cards
+// would show the combined booking count instead of their own.
 export async function GET(req: NextRequest) {
   const user = await getAuthUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -44,12 +48,15 @@ export async function GET(req: NextRequest) {
     select: { classId: true, scheduledAt: true },
   })
 
-  // Build map: "classId|YYYY-MM-DD" → count
+  // Build map: "classId|YYYY-MM-DD|HH:MM" → count
   const result: Record<string, number> = {}
   for (const b of bookings) {
     const d = b.scheduledAt
     const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-    const key = `${b.classId}|${dateStr}`
+    // scheduledAt stores wall-clock hour/minute as UTC (no tz conversion),
+    // matching how schedule.startTime is parsed — see classesToSlots().
+    const timeStr = `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`
+    const key = `${b.classId}|${dateStr}|${timeStr}`
     result[key] = (result[key] ?? 0) + 1
   }
 

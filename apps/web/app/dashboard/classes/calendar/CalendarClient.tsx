@@ -1102,7 +1102,8 @@ export default function CalendarClient() {
                         const ds = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`
                         // 0, not slot.enrolled (that's the class's all-time booking
                         // total, not this occurrence's — see apiClassToSlots).
-                        const enr = enrollments[`${slot.classId}|${ds}`] ?? 0
+                        const ts = `${String(slot.startH).padStart(2, '0')}:${String(slot.startM).padStart(2, '0')}`
+                        const enr = enrollments[`${slot.classId}|${ds}|${ts}`] ?? 0
                         return <WeekClassBlock key={slot.id} slot={slot} date={date} enrolled={enr} onSelect={(s, d) => { setSelectedSlot(s); setSelectedSlotDate(d) }} />
                       })}
                     </div>

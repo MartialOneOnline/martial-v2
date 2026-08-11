@@ -149,6 +149,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       classId,
       scheduledAt: scheduledAtFilter,
       class: { schoolId },
+      status: { notIn: ['CANCELLED'] },
     },
     include: {
       user: {

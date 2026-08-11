@@ -978,7 +978,8 @@ export default function TimetableClient() {
                         const dateStr = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`
                         // 0, not slot.enrolled (that's the class's all-time booking
                         // total, not this occurrence's — see apiClassToSlots).
-                        const enrolled = enrollments[`${slot.classId}|${dateStr}`] ?? 0
+                        const timeStr = `${String(slot.startH).padStart(2, '0')}:${String(slot.startM).padStart(2, '0')}`
+                        const enrolled = enrollments[`${slot.classId}|${dateStr}|${timeStr}`] ?? 0
                         return <ClassBlock key={slot.id} slot={slot} enrolled={enrolled} onSelect={setSelectedSlot} />
                       })}
                     </div>
