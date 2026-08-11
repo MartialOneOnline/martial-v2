@@ -106,12 +106,13 @@ export default function ClassDetailPopup({ cls, date, onClose }: Props) {
   // Load bookings
   useEffect(() => {
     if (!cls.id) { setLoading(false); return }
-    const qs = date ? `?date=${date}` : ''
+    const startTime = cls.time.split('–')[0]
+    const qs = date ? `?date=${date}&time=${startTime}` : ''
     fetch(`/api/dashboard/classes/${cls.id}/bookings${qs}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d?.bookings) setBookings(d.bookings); setLoading(false) })
       .catch(() => setLoading(false))
-  }, [cls.id, date])
+  }, [cls.id, cls.time, date])
 
   // Load members when add-booking panel opens
   useEffect(() => {

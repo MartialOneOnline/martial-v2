@@ -40,37 +40,43 @@ export async function GET(req: NextRequest) {
           scheduledAt: { gte: dayStart, lte: dayEnd },
           status: { not: 'CANCELLED' },
         },
-        select: { id: true },
+        select: { id: true, scheduledAt: true },
       },
     },
     orderBy: { name: 'asc' },
   })
 
-  // Filter to classes that run on the target day
+  // Expand to one row per schedule slot that runs on the target day — a
+  // class can have multiple slots on the same day-of-week (e.g. a 10:00 and
+  // a 20:00 NOGI session), and each must surface as its own row instead of
+  // collapsing onto a single slot.
   const todayClasses = classes
-    .filter(cls => {
-      if (!cls.schedule) return false
-      const schedule = cls.schedule as { dayOfWeek: number; startTime: string }[]
-      return Array.isArray(schedule) && schedule.some(s => s.dayOfWeek === targetDow)
-    })
-    .map(cls => {
+    .flatMap(cls => {
+      if (!cls.schedule) return []
       const schedule = cls.schedule as { dayOfWeek: number; startTime: string; endTime?: string }[]
-      const todaySlot = schedule.find(s => s.dayOfWeek === targetDow)
-      const booked = cls.bookings.length
+      if (!Array.isArray(schedule)) return []
+
       const cap = cls.capacity ?? 99
-      return {
-        id: cls.id,
-        name: cls.name,
-        time: todaySlot
-          ? `${todaySlot.startTime}${todaySlot.endTime ? `–${todaySlot.endTime}` : ''}`
-          : '',
-        enrolled: booked,
-        cap,
-        status: booked >= cap ? 'Full' : 'Open',
-        instructor: cls.instructor?.name ?? null,
-        level: cls.level ?? null,
-        image: cls.coverUrl ?? null,
-      }
+      return schedule
+        .filter(s => s.dayOfWeek === targetDow)
+        .map(slot => {
+          const [sh, sm] = slot.startTime.split(':').map(Number)
+          const booked = cls.bookings.filter(b => {
+            const at = b.scheduledAt
+            return at.getUTCHours() === (sh ?? 0) && at.getUTCMinutes() === (sm ?? 0)
+          }).length
+          return {
+            id: cls.id,
+            name: cls.name,
+            time: `${slot.startTime}${slot.endTime ? `–${slot.endTime}` : ''}`,
+            enrolled: booked,
+            cap,
+            status: booked >= cap ? 'Full' : 'Open',
+            instructor: cls.instructor?.name ?? null,
+            level: cls.level ?? null,
+            image: cls.coverUrl ?? null,
+          }
+        })
     })
     .sort((a, b) => a.time.localeCompare(b.time))
 
