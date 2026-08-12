@@ -56,13 +56,12 @@
 - ~20–25 schools active on the platform
 
 ### Reference School — Roger Gracie Málaga
-- school_id: `798`
-- Users: 664
-- Bookings: 29,810
-- Payments: 3,624
-- Gradings: 105
-- Upcoming Classes: 39
-- Active Leads: 10
+- school_id (V1): `798` · school_id (V2): `cmq6k2n5t0000x4o0rcvlmhmv`
+- Users: 727 (127 ACTIVE)
+- Bookings: 42,379
+- Payments (transactions): 3,779
+- Gradings: 339
+- **Fully synced V1 → V2 as of 2026-08-09** — see Session 2026-08-09 log entry below. Reference/pilot school for the V1 import pipeline.
 
 ---
 
@@ -219,6 +218,58 @@ Written guide for non-technical users:
 ---
 
 ## Session Log
+
+### Session 2026-08-09 — RGA V1 → V2 data sync + reusable import scripts
+
+**Trigger:** students migrated from V1 had no V2 login — investigating how to invite them
+surfaced that the V1 → V2 import for Roger Gracie Málaga (the pilot/reference school) was
+badly out of sync across four areas, not just auth.
+
+**Found & fixed (all applied live to production, RGA only):**
+- **Member status** — `sync-rga-members.mjs` set every imported student to `ACTIVE`
+  regardless of V1's real `member_status`; corrected 53 members (`fix-rga-active-status.mjs`),
+  bringing RGA's ACTIVE count from 73 to the real ~124-126.
+- **Membership renewals** — `Membership` records were created once and never refreshed on
+  renewal; 91 currently-ACTIVE students showed `EXPIRED`/`CANCELLED` despite paying and
+  training. New script `refresh-v1-memberships.mjs` refreshed 103 memberships from each
+  user's latest V1 booking.
+- **Attendance** — `sync-rga-attendance.mjs` had a backlog (1,093 + a later 144 rows);
+  re-ran and it's current.
+- **Belt/grade** — cross-checked V1's own "Gradings" report (exported directly from the V1
+  admin panel) against V2 and found **186 of 464 matched students (40%) had the wrong
+  belt/degree** — the dominant pattern (45% of mismatches) was V2 sitting exactly one
+  stripe behind V1 in the same color, consistent with an off-by-one bug in the original
+  `userdetails.belts` JSON resolution. 67 mismatches were a fully wrong belt *color*, 20 on
+  currently-ACTIVE students (e.g. two black belts showing as brown). Fixed with
+  `fix-rga-belt-grades.mjs`, using the V1 report as source of truth.
+- **Avatars** — the only prior script (`upload-avatars.{mjs,ts}`) read a static student
+  snapshot from June and an old CSV, so anyone added/reactivated since was never attempted.
+  Replaced with `sync-v1-avatars.mjs` (queries the roster live, resizes oversized V1 photo
+  exports with `sharp` before upload — V1's raw phone-camera exports routinely exceed the
+  app's 5MB avatar limit). Recovered 124 more avatars once a fuller V1 photo export
+  (`student.zip`) was provided.
+
+**Generalized for the next school migration:** `sync-rga-members.mjs` → `sync-v1-members.mjs`
+and `sync-rga-payments.mjs` → `sync-v1-payments.mjs` now take `--school-id` / `--v1-school-id`
+/ `--csv-dir` instead of hardcoded constants, and auto-detect the latest CSV per table
+(V1's export panel increments a `(N)` suffix each re-export). `sync-rga-attendance.mjs`
+is **not yet generalized** — it has a hand-built V1-class-id → V2-class-id map specific to
+RGA's 10 classes that would need redoing per school.
+
+**Commit:** `75204e6` — "fix(v1-import): generalize member/payment sync scripts, fix
+status/membership/belt import bugs for RGA" (pushed to `origin/main`).
+
+**Open / not done:**
+- Grading *history* (`promote_students` V1 log, not just current belt) is still ambiguous —
+  81% of rows have `next_belt_id = 0`, meaning unclear; theory is "reviewed, not promoted"
+  but unconfirmed. 339 `Grading` records already exist in V2 from an earlier undocumented
+  import (2026-06-22) and cover everything unambiguously resolvable; left as-is.
+  `scripts/rga-gradings-report.csv` (hand-transcribed from the V1 PDF report) is the closest
+  thing to ground truth if this gets picked up again.
+- ~125 students' V1 profile photos still aren't in any local export (filenames carry
+  2025/2026 date stamps — uploaded to V1 after every local photo folder we've been given
+  was captured); needs a fresher photo export from V1 to close.
+- Next school to run the generalized pipeline on: not yet chosen.
 
 ### Session 1 — 2026-06-12
 - Defined project closure goal
