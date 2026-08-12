@@ -475,6 +475,8 @@ export const BookingScalarFieldEnum = {
   currency: 'currency',
   stripePaymentId: 'stripePaymentId',
   notes: 'notes',
+  bookedByRole: 'bookedByRole',
+  bookedByUserId: 'bookedByUserId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

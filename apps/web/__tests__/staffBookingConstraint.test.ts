@@ -163,7 +163,7 @@ describe('POST /api/dashboard/classes/[id]/bookings — membership + capacity gu
   it('allows booking when capacity is null (unlimited)', async () => {
     mockClassFindFirst.mockResolvedValue({ id: 'class-1', name: 'BJJ', schoolId: 'school-1', capacity: null })
     mockBookingFindFirst.mockResolvedValue(null)
-    mockBookingCreate.mockResolvedValue({ id: 'booking-1', status: 'CONFIRMED', user: { name: 'Student', avatarUrl: null } })
+    mockBookingCreate.mockResolvedValue({ id: 'booking-1', status: 'CONFIRMED', createdAt: new Date(), scheduledAt: new Date(), bookedByRole: 'STAFF', user: { name: 'Student', avatarUrl: null } })
 
     const res = await addBooking('class-1', { userId: 'student-1' })
 
@@ -176,7 +176,7 @@ describe('POST /api/dashboard/classes/[id]/bookings — membership + capacity gu
     mockClassFindFirst.mockResolvedValue({ id: 'class-1', name: 'BJJ', schoolId: 'school-1', capacity: 5 })
     mockBookingFindFirst.mockResolvedValue(null)
     mockBookingCount.mockResolvedValue(3) // 3 of 5 taken
-    mockBookingCreate.mockResolvedValue({ id: 'booking-1', status: 'CONFIRMED', user: { name: 'Student', avatarUrl: null } })
+    mockBookingCreate.mockResolvedValue({ id: 'booking-1', status: 'CONFIRMED', createdAt: new Date(), scheduledAt: new Date(), bookedByRole: 'STAFF', user: { name: 'Student', avatarUrl: null } })
 
     const res = await addBooking('class-1', { userId: 'student-1' })
 
@@ -194,7 +194,7 @@ describe('POST /api/dashboard/classes/[id]/bookings — membership + capacity gu
     })
     mockBookingFindFirst.mockResolvedValue(null)
     mockBookingCount.mockResolvedValue(0)
-    mockBookingCreate.mockResolvedValue({ id: 'booking-1', status: 'CONFIRMED', user: { name: 'Student', avatarUrl: null } })
+    mockBookingCreate.mockResolvedValue({ id: 'booking-1', status: 'CONFIRMED', createdAt: new Date(), scheduledAt: new Date(), bookedByRole: 'STAFF', user: { name: 'Student', avatarUrl: null } })
 
     await addBooking('class-1', { userId: 'student-1', date: '2026-07-13' })
 
@@ -238,7 +238,7 @@ describe('POST /api/dashboard/classes/[id]/bookings — membership + capacity gu
     mockBookingCount.mockImplementation(() => Promise.resolve(bookedCount))
     mockBookingCreate.mockImplementation(() => {
       bookedCount += 1
-      return Promise.resolve({ id: `booking-${bookedCount}`, status: 'CONFIRMED', user: { name: 'Student', avatarUrl: null } })
+      return Promise.resolve({ id: `booking-${bookedCount}`, status: 'CONFIRMED', createdAt: new Date(), scheduledAt: new Date(), bookedByRole: 'STAFF', user: { name: 'Student', avatarUrl: null } })
     })
 
     const [first, second] = await Promise.all([

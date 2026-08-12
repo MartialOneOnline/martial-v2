@@ -108,6 +108,11 @@ enum BookingStatus {
   NO_SHOW
 }
 
+enum BookedByRole {
+  STUDENT // self-service booking via /api/bookings
+  STAFF // added on the student's behalf via the dashboard roster
+}
+
 enum MembershipStatus {
   PENDING
   ACTIVE
@@ -349,6 +354,7 @@ model User {
 
   // Relations
   bookings               Booking[]
+  staffBookings          Booking[]          @relation("BookingBookedBy")
   eventBookings          EventBooking[]
   memberships            Membership[]
   contentAccesses        ContentAccess[]
@@ -817,6 +823,14 @@ model Booking {
   currency        String        @default("EUR")
   stripePaymentId String?
   notes           String?
+
+  // Who made the reservation — the student themself, or a staff member
+  // adding them from the dashboard roster. bookedByUserId is only set for
+  // STAFF (the acting staff member); a student's self-booking leaves it
+  // null since userId already identifies them.
+  bookedByRole   BookedByRole @default(STUDENT)
+  bookedByUserId String?
+  bookedByUser   User?        @relation("BookingBookedBy", fields: [bookedByUserId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

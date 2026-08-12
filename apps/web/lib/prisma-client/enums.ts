@@ -134,6 +134,14 @@ export const BookingStatus = {
 export type BookingStatus = (typeof BookingStatus)[keyof typeof BookingStatus]
 
 
+export const BookedByRole = {
+  STUDENT: 'STUDENT',
+  STAFF: 'STAFF'
+} as const
+
+export type BookedByRole = (typeof BookedByRole)[keyof typeof BookedByRole]
+
+
 export const MembershipStatus = {
   PENDING: 'PENDING',
   ACTIVE: 'ACTIVE',

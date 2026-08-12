@@ -77,7 +77,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
 
     return tx.booking.create({
-      data: { classId, userId, scheduledAt, status: 'CONFIRMED' },
+      data: {
+        classId,
+        userId,
+        scheduledAt,
+        status: 'CONFIRMED',
+        bookedByRole: 'STAFF',
+        bookedByUserId: user.id,
+      },
       include: { user: { select: { name: true, avatarUrl: true } } },
     })
   }).catch((err: Error & { status?: number }) => {
@@ -96,10 +103,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   return NextResponse.json({
     booking: {
-      id:        booking.id,
-      name:      booking.user?.name ?? '—',
-      avatarUrl: booking.user?.avatarUrl ?? null,
-      status:    booking.status,
+      id:            booking.id,
+      name:          booking.user?.name ?? '—',
+      avatarUrl:     booking.user?.avatarUrl ?? null,
+      status:        booking.status,
+      createdAt:     booking.createdAt.toISOString(),
+      scheduledAt:   booking.scheduledAt.toISOString(),
+      bookedByRole:  booking.bookedByRole,
+      bookedByName:  user.name ?? null,
     },
   })
 }
@@ -169,6 +180,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
           },
         },
       },
+      bookedByUser: { select: { name: true } },
     },
     orderBy: { createdAt: 'asc' },
     take: 100,
@@ -185,6 +197,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         status:           b.status,
         attendedAt:       b.attendedAt?.toISOString() ?? null,
         scheduledAt:      b.scheduledAt.toISOString(),
+        createdAt:        b.createdAt.toISOString(),
+        bookedByRole:     b.bookedByRole,
+        bookedByName:     b.bookedByUser?.name ?? null,
         belt:             member?.belt ?? null,
         beltDegree:       member?.beltDegree ?? 0,
         memberStatus:     member?.status ?? null,

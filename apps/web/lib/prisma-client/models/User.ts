@@ -241,6 +241,7 @@ export type UserWhereInput = {
   school?: Prisma.XOR<Prisma.SchoolNullableScalarRelationFilter, Prisma.SchoolWhereInput> | null
   claimedSchools?: Prisma.SchoolListRelationFilter
   bookings?: Prisma.BookingListRelationFilter
+  staffBookings?: Prisma.BookingListRelationFilter
   eventBookings?: Prisma.EventBookingListRelationFilter
   memberships?: Prisma.MembershipListRelationFilter
   contentAccesses?: Prisma.ContentAccessListRelationFilter
@@ -279,6 +280,7 @@ export type UserOrderByWithRelationInput = {
   school?: Prisma.SchoolOrderByWithRelationInput
   claimedSchools?: Prisma.SchoolOrderByRelationAggregateInput
   bookings?: Prisma.BookingOrderByRelationAggregateInput
+  staffBookings?: Prisma.BookingOrderByRelationAggregateInput
   eventBookings?: Prisma.EventBookingOrderByRelationAggregateInput
   memberships?: Prisma.MembershipOrderByRelationAggregateInput
   contentAccesses?: Prisma.ContentAccessOrderByRelationAggregateInput
@@ -320,6 +322,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   school?: Prisma.XOR<Prisma.SchoolNullableScalarRelationFilter, Prisma.SchoolWhereInput> | null
   claimedSchools?: Prisma.SchoolListRelationFilter
   bookings?: Prisma.BookingListRelationFilter
+  staffBookings?: Prisma.BookingListRelationFilter
   eventBookings?: Prisma.EventBookingListRelationFilter
   memberships?: Prisma.MembershipListRelationFilter
   contentAccesses?: Prisma.ContentAccessListRelationFilter
@@ -393,6 +396,7 @@ export type UserCreateInput = {
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
   claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
@@ -430,6 +434,7 @@ export type UserUncheckedCreateInput = {
   updatedAt?: Date | string
   claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
@@ -467,6 +472,7 @@ export type UserUpdateInput = {
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
   claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
@@ -504,6 +510,7 @@ export type UserUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
@@ -745,12 +752,28 @@ export type UserCreateNestedOneWithoutBookingsInput = {
   connect?: Prisma.UserWhereUniqueInput
 }
 
+export type UserCreateNestedOneWithoutStaffBookingsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutStaffBookingsInput, Prisma.UserUncheckedCreateWithoutStaffBookingsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutStaffBookingsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
 export type UserUpdateOneRequiredWithoutBookingsNestedInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutBookingsInput, Prisma.UserUncheckedCreateWithoutBookingsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutBookingsInput
   upsert?: Prisma.UserUpsertWithoutBookingsInput
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutBookingsInput, Prisma.UserUpdateWithoutBookingsInput>, Prisma.UserUncheckedUpdateWithoutBookingsInput>
+}
+
+export type UserUpdateOneWithoutStaffBookingsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutStaffBookingsInput, Prisma.UserUncheckedCreateWithoutStaffBookingsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutStaffBookingsInput
+  upsert?: Prisma.UserUpsertWithoutStaffBookingsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutStaffBookingsInput, Prisma.UserUpdateWithoutStaffBookingsInput>, Prisma.UserUncheckedUpdateWithoutStaffBookingsInput>
 }
 
 export type UserCreateNestedOneWithoutMembershipsInput = {
@@ -1024,6 +1047,7 @@ export type UserCreateWithoutContentAccessesInput = {
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
   claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
   campBookings?: Prisma.CampBookingCreateNestedManyWithoutUserInput
@@ -1060,6 +1084,7 @@ export type UserUncheckedCreateWithoutContentAccessesInput = {
   updatedAt?: Date | string
   claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
   campBookings?: Prisma.CampBookingUncheckedCreateNestedManyWithoutUserInput
@@ -1112,6 +1137,7 @@ export type UserUpdateWithoutContentAccessesInput = {
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
   claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
   campBookings?: Prisma.CampBookingUpdateManyWithoutUserNestedInput
@@ -1148,6 +1174,7 @@ export type UserUncheckedUpdateWithoutContentAccessesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
   campBookings?: Prisma.CampBookingUncheckedUpdateManyWithoutUserNestedInput
@@ -1183,6 +1210,7 @@ export type UserCreateWithoutClaimedSchoolsInput = {
   updatedAt?: Date | string
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
@@ -1219,6 +1247,7 @@ export type UserUncheckedCreateWithoutClaimedSchoolsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
@@ -1260,6 +1289,7 @@ export type UserCreateWithoutSchoolInput = {
   updatedAt?: Date | string
   claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
@@ -1296,6 +1326,7 @@ export type UserUncheckedCreateWithoutSchoolInput = {
   updatedAt?: Date | string
   claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
@@ -1353,6 +1384,7 @@ export type UserUpdateWithoutClaimedSchoolsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
@@ -1389,6 +1421,7 @@ export type UserUncheckedUpdateWithoutClaimedSchoolsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
@@ -1460,6 +1493,7 @@ export type UserCreateWithoutReviewsInput = {
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
   claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
@@ -1496,6 +1530,7 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   updatedAt?: Date | string
   claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
@@ -1548,6 +1583,7 @@ export type UserUpdateWithoutReviewsInput = {
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
   claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
@@ -1584,6 +1620,7 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
@@ -1620,6 +1657,7 @@ export type UserCreateWithoutEventBookingsInput = {
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
   claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
   campBookings?: Prisma.CampBookingCreateNestedManyWithoutUserInput
@@ -1656,6 +1694,7 @@ export type UserUncheckedCreateWithoutEventBookingsInput = {
   updatedAt?: Date | string
   claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
   campBookings?: Prisma.CampBookingUncheckedCreateNestedManyWithoutUserInput
@@ -1708,6 +1747,7 @@ export type UserUpdateWithoutEventBookingsInput = {
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
   claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
   campBookings?: Prisma.CampBookingUpdateManyWithoutUserNestedInput
@@ -1744,6 +1784,7 @@ export type UserUncheckedUpdateWithoutEventBookingsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
   campBookings?: Prisma.CampBookingUncheckedUpdateManyWithoutUserNestedInput
@@ -1779,6 +1820,7 @@ export type UserCreateWithoutBookingsInput = {
   updatedAt?: Date | string
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
   claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
@@ -1815,6 +1857,7 @@ export type UserUncheckedCreateWithoutBookingsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
@@ -1842,6 +1885,85 @@ export type UserCreateOrConnectWithoutBookingsInput = {
   create: Prisma.XOR<Prisma.UserCreateWithoutBookingsInput, Prisma.UserUncheckedCreateWithoutBookingsInput>
 }
 
+export type UserCreateWithoutStaffBookingsInput = {
+  id?: string
+  email: string
+  name?: string | null
+  phone?: string | null
+  dateOfBirth?: Date | string | null
+  avatarUrl?: string | null
+  supabaseAuthId?: string | null
+  role?: $Enums.Role
+  deletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
+  claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
+  contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
+  campBookings?: Prisma.CampBookingCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
+  schoolMembers?: Prisma.SchoolMemberCreateNestedManyWithoutUserInput
+  schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
+  gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
+  leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
+  sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
+  loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
+  targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
+}
+
+export type UserUncheckedCreateWithoutStaffBookingsInput = {
+  id?: string
+  email: string
+  name?: string | null
+  phone?: string | null
+  dateOfBirth?: Date | string | null
+  avatarUrl?: string | null
+  supabaseAuthId?: string | null
+  role?: $Enums.Role
+  deletedAt?: Date | string | null
+  schoolId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
+  contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
+  campBookings?: Prisma.CampBookingUncheckedCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
+  schoolMembers?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutUserInput
+  schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
+  gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
+  leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
+  sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
+  loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
+  targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
+}
+
+export type UserCreateOrConnectWithoutStaffBookingsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutStaffBookingsInput, Prisma.UserUncheckedCreateWithoutStaffBookingsInput>
+}
+
 export type UserUpsertWithoutBookingsInput = {
   update: Prisma.XOR<Prisma.UserUpdateWithoutBookingsInput, Prisma.UserUncheckedUpdateWithoutBookingsInput>
   create: Prisma.XOR<Prisma.UserCreateWithoutBookingsInput, Prisma.UserUncheckedCreateWithoutBookingsInput>
@@ -1867,6 +1989,7 @@ export type UserUpdateWithoutBookingsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
   claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
@@ -1903,6 +2026,92 @@ export type UserUncheckedUpdateWithoutBookingsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
+  eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
+  contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
+  campBookings?: Prisma.CampBookingUncheckedUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
+  schoolMembers?: Prisma.SchoolMemberUncheckedUpdateManyWithoutUserNestedInput
+  schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
+  gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
+  leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
+  sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
+  loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
+  targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
+}
+
+export type UserUpsertWithoutStaffBookingsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutStaffBookingsInput, Prisma.UserUncheckedUpdateWithoutStaffBookingsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutStaffBookingsInput, Prisma.UserUncheckedCreateWithoutStaffBookingsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutStaffBookingsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutStaffBookingsInput, Prisma.UserUncheckedUpdateWithoutStaffBookingsInput>
+}
+
+export type UserUpdateWithoutStaffBookingsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
+  claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
+  contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
+  campBookings?: Prisma.CampBookingUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
+  schoolMembers?: Prisma.SchoolMemberUpdateManyWithoutUserNestedInput
+  schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
+  gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
+  leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
+  sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
+  loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
+  targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutStaffBookingsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
   eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
@@ -1940,6 +2149,7 @@ export type UserCreateWithoutMembershipsInput = {
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
   claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
   campBookings?: Prisma.CampBookingCreateNestedManyWithoutUserInput
@@ -1976,6 +2186,7 @@ export type UserUncheckedCreateWithoutMembershipsInput = {
   updatedAt?: Date | string
   claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
   campBookings?: Prisma.CampBookingUncheckedCreateNestedManyWithoutUserInput
@@ -2028,6 +2239,7 @@ export type UserUpdateWithoutMembershipsInput = {
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
   claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
   campBookings?: Prisma.CampBookingUpdateManyWithoutUserNestedInput
@@ -2064,6 +2276,7 @@ export type UserUncheckedUpdateWithoutMembershipsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
   campBookings?: Prisma.CampBookingUncheckedUpdateManyWithoutUserNestedInput
@@ -2100,6 +2313,7 @@ export type UserCreateWithoutCampBookingsInput = {
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
   claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
@@ -2136,6 +2350,7 @@ export type UserUncheckedCreateWithoutCampBookingsInput = {
   updatedAt?: Date | string
   claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
@@ -2188,6 +2403,7 @@ export type UserUpdateWithoutCampBookingsInput = {
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
   claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
@@ -2224,6 +2440,7 @@ export type UserUncheckedUpdateWithoutCampBookingsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
@@ -2260,6 +2477,7 @@ export type UserCreateWithoutSchoolMembersInput = {
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
   claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
@@ -2296,6 +2514,7 @@ export type UserUncheckedCreateWithoutSchoolMembersInput = {
   updatedAt?: Date | string
   claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
@@ -2348,6 +2567,7 @@ export type UserUpdateWithoutSchoolMembersInput = {
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
   claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
@@ -2384,6 +2604,7 @@ export type UserUncheckedUpdateWithoutSchoolMembersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
@@ -2420,6 +2641,7 @@ export type UserCreateWithoutSchoolClaimsInput = {
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
   claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
@@ -2456,6 +2678,7 @@ export type UserUncheckedCreateWithoutSchoolClaimsInput = {
   updatedAt?: Date | string
   claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
@@ -2508,6 +2731,7 @@ export type UserUpdateWithoutSchoolClaimsInput = {
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
   claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
@@ -2544,6 +2768,7 @@ export type UserUncheckedUpdateWithoutSchoolClaimsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
@@ -2580,6 +2805,7 @@ export type UserCreateWithoutGradingsInput = {
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
   claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
@@ -2616,6 +2842,7 @@ export type UserUncheckedCreateWithoutGradingsInput = {
   updatedAt?: Date | string
   claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
@@ -2657,6 +2884,7 @@ export type UserCreateWithoutGradingsGivenInput = {
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
   claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
@@ -2693,6 +2921,7 @@ export type UserUncheckedCreateWithoutGradingsGivenInput = {
   updatedAt?: Date | string
   claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
@@ -2745,6 +2974,7 @@ export type UserUpdateWithoutGradingsInput = {
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
   claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
@@ -2781,6 +3011,7 @@ export type UserUncheckedUpdateWithoutGradingsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
@@ -2828,6 +3059,7 @@ export type UserUpdateWithoutGradingsGivenInput = {
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
   claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
@@ -2864,6 +3096,7 @@ export type UserUncheckedUpdateWithoutGradingsGivenInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
@@ -2900,6 +3133,7 @@ export type UserCreateWithoutLeadsInput = {
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
   claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
@@ -2936,6 +3170,7 @@ export type UserUncheckedCreateWithoutLeadsInput = {
   updatedAt?: Date | string
   claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
@@ -2988,6 +3223,7 @@ export type UserUpdateWithoutLeadsInput = {
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
   claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
@@ -3024,6 +3260,7 @@ export type UserUncheckedUpdateWithoutLeadsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
@@ -3060,6 +3297,7 @@ export type UserCreateWithoutLeadNotesInput = {
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
   claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
@@ -3096,6 +3334,7 @@ export type UserUncheckedCreateWithoutLeadNotesInput = {
   updatedAt?: Date | string
   claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
@@ -3148,6 +3387,7 @@ export type UserUpdateWithoutLeadNotesInput = {
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
   claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
@@ -3184,6 +3424,7 @@ export type UserUncheckedUpdateWithoutLeadNotesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
@@ -3220,6 +3461,7 @@ export type UserCreateWithoutSentInvitationsInput = {
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
   claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
@@ -3256,6 +3498,7 @@ export type UserUncheckedCreateWithoutSentInvitationsInput = {
   updatedAt?: Date | string
   claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
@@ -3308,6 +3551,7 @@ export type UserUpdateWithoutSentInvitationsInput = {
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
   claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
@@ -3344,6 +3588,7 @@ export type UserUncheckedUpdateWithoutSentInvitationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
@@ -3380,6 +3625,7 @@ export type UserCreateWithoutUserWaiversInput = {
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
   claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
@@ -3416,6 +3662,7 @@ export type UserUncheckedCreateWithoutUserWaiversInput = {
   updatedAt?: Date | string
   claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
@@ -3468,6 +3715,7 @@ export type UserUpdateWithoutUserWaiversInput = {
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
   claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
@@ -3504,6 +3752,7 @@ export type UserUncheckedUpdateWithoutUserWaiversInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
@@ -3540,6 +3789,7 @@ export type UserCreateWithoutLoginHistoryInput = {
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
   claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
@@ -3576,6 +3826,7 @@ export type UserUncheckedCreateWithoutLoginHistoryInput = {
   updatedAt?: Date | string
   claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
@@ -3628,6 +3879,7 @@ export type UserUpdateWithoutLoginHistoryInput = {
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
   claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
@@ -3664,6 +3916,7 @@ export type UserUncheckedUpdateWithoutLoginHistoryInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
@@ -3700,6 +3953,7 @@ export type UserCreateWithoutImpersonationsAsActorInput = {
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
   claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
@@ -3736,6 +3990,7 @@ export type UserUncheckedCreateWithoutImpersonationsAsActorInput = {
   updatedAt?: Date | string
   claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
@@ -3777,6 +4032,7 @@ export type UserCreateWithoutImpersonationsAsTargetInput = {
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
   claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
@@ -3813,6 +4069,7 @@ export type UserUncheckedCreateWithoutImpersonationsAsTargetInput = {
   updatedAt?: Date | string
   claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
@@ -3865,6 +4122,7 @@ export type UserUpdateWithoutImpersonationsAsActorInput = {
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
   claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
@@ -3901,6 +4159,7 @@ export type UserUncheckedUpdateWithoutImpersonationsAsActorInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
@@ -3948,6 +4207,7 @@ export type UserUpdateWithoutImpersonationsAsTargetInput = {
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
   claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
@@ -3984,6 +4244,7 @@ export type UserUncheckedUpdateWithoutImpersonationsAsTargetInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
@@ -4020,6 +4281,7 @@ export type UserCreateWithoutTransactionsInput = {
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
   claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
@@ -4056,6 +4318,7 @@ export type UserUncheckedCreateWithoutTransactionsInput = {
   updatedAt?: Date | string
   claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
@@ -4097,6 +4360,7 @@ export type UserCreateWithoutResolvedTransactionsInput = {
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
   claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
@@ -4133,6 +4397,7 @@ export type UserUncheckedCreateWithoutResolvedTransactionsInput = {
   updatedAt?: Date | string
   claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
@@ -4185,6 +4450,7 @@ export type UserUpdateWithoutTransactionsInput = {
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
   claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
@@ -4221,6 +4487,7 @@ export type UserUncheckedUpdateWithoutTransactionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
@@ -4268,6 +4535,7 @@ export type UserUpdateWithoutResolvedTransactionsInput = {
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
   claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
@@ -4304,6 +4572,7 @@ export type UserUncheckedUpdateWithoutResolvedTransactionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
@@ -4340,6 +4609,7 @@ export type UserCreateWithoutPreferenceInput = {
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
   claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
@@ -4376,6 +4646,7 @@ export type UserUncheckedCreateWithoutPreferenceInput = {
   updatedAt?: Date | string
   claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
@@ -4428,6 +4699,7 @@ export type UserUpdateWithoutPreferenceInput = {
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
   claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
@@ -4464,6 +4736,7 @@ export type UserUncheckedUpdateWithoutPreferenceInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
@@ -4500,6 +4773,7 @@ export type UserCreateWithoutTargetedNotificationsInput = {
   school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
   claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
@@ -4536,6 +4810,7 @@ export type UserUncheckedCreateWithoutTargetedNotificationsInput = {
   updatedAt?: Date | string
   claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
   eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
   contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
@@ -4588,6 +4863,7 @@ export type UserUpdateWithoutTargetedNotificationsInput = {
   school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
   claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
@@ -4624,6 +4900,7 @@ export type UserUncheckedUpdateWithoutTargetedNotificationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
@@ -4673,6 +4950,7 @@ export type UserUpdateWithoutSchoolInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
@@ -4709,6 +4987,7 @@ export type UserUncheckedUpdateWithoutSchoolInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
   eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
   contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
@@ -4753,6 +5032,7 @@ export type UserUncheckedUpdateManyWithoutSchoolInput = {
 export type UserCountOutputType = {
   claimedSchools: number
   bookings: number
+  staffBookings: number
   eventBookings: number
   memberships: number
   contentAccesses: number
@@ -4777,6 +5057,7 @@ export type UserCountOutputType = {
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   claimedSchools?: boolean | UserCountOutputTypeCountClaimedSchoolsArgs
   bookings?: boolean | UserCountOutputTypeCountBookingsArgs
+  staffBookings?: boolean | UserCountOutputTypeCountStaffBookingsArgs
   eventBookings?: boolean | UserCountOutputTypeCountEventBookingsArgs
   memberships?: boolean | UserCountOutputTypeCountMembershipsArgs
   contentAccesses?: boolean | UserCountOutputTypeCountContentAccessesArgs
@@ -4819,6 +5100,13 @@ export type UserCountOutputTypeCountClaimedSchoolsArgs<ExtArgs extends runtime.T
  * UserCountOutputType without action
  */
 export type UserCountOutputTypeCountBookingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BookingWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountStaffBookingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.BookingWhereInput
 }
 
@@ -4972,6 +5260,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   school?: boolean | Prisma.User$schoolArgs<ExtArgs>
   claimedSchools?: boolean | Prisma.User$claimedSchoolsArgs<ExtArgs>
   bookings?: boolean | Prisma.User$bookingsArgs<ExtArgs>
+  staffBookings?: boolean | Prisma.User$staffBookingsArgs<ExtArgs>
   eventBookings?: boolean | Prisma.User$eventBookingsArgs<ExtArgs>
   memberships?: boolean | Prisma.User$membershipsArgs<ExtArgs>
   contentAccesses?: boolean | Prisma.User$contentAccessesArgs<ExtArgs>
@@ -5047,6 +5336,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   school?: boolean | Prisma.User$schoolArgs<ExtArgs>
   claimedSchools?: boolean | Prisma.User$claimedSchoolsArgs<ExtArgs>
   bookings?: boolean | Prisma.User$bookingsArgs<ExtArgs>
+  staffBookings?: boolean | Prisma.User$staffBookingsArgs<ExtArgs>
   eventBookings?: boolean | Prisma.User$eventBookingsArgs<ExtArgs>
   memberships?: boolean | Prisma.User$membershipsArgs<ExtArgs>
   contentAccesses?: boolean | Prisma.User$contentAccessesArgs<ExtArgs>
@@ -5082,6 +5372,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     school: Prisma.$SchoolPayload<ExtArgs> | null
     claimedSchools: Prisma.$SchoolPayload<ExtArgs>[]
     bookings: Prisma.$BookingPayload<ExtArgs>[]
+    staffBookings: Prisma.$BookingPayload<ExtArgs>[]
     eventBookings: Prisma.$EventBookingPayload<ExtArgs>[]
     memberships: Prisma.$MembershipPayload<ExtArgs>[]
     contentAccesses: Prisma.$ContentAccessPayload<ExtArgs>[]
@@ -5513,6 +5804,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   school<T extends Prisma.User$schoolArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$schoolArgs<ExtArgs>>): Prisma.Prisma__SchoolClient<runtime.Types.Result.GetResult<Prisma.$SchoolPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   claimedSchools<T extends Prisma.User$claimedSchoolsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$claimedSchoolsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SchoolPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   bookings<T extends Prisma.User$bookingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$bookingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  staffBookings<T extends Prisma.User$staffBookingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$staffBookingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   eventBookings<T extends Prisma.User$eventBookingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$eventBookingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventBookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   memberships<T extends Prisma.User$membershipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$membershipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MembershipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   contentAccesses<T extends Prisma.User$contentAccessesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$contentAccessesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ContentAccessPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -6021,6 +6313,30 @@ export type User$claimedSchoolsArgs<ExtArgs extends runtime.Types.Extensions.Int
  * User.bookings
  */
 export type User$bookingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Booking
+   */
+  select?: Prisma.BookingSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Booking
+   */
+  omit?: Prisma.BookingOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingInclude<ExtArgs> | null
+  where?: Prisma.BookingWhereInput
+  orderBy?: Prisma.BookingOrderByWithRelationInput | Prisma.BookingOrderByWithRelationInput[]
+  cursor?: Prisma.BookingWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BookingScalarFieldEnum | Prisma.BookingScalarFieldEnum[]
+}
+
+/**
+ * User.staffBookings
+ */
+export type User$staffBookingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
    * Select specific fields to fetch from the Booking
    */

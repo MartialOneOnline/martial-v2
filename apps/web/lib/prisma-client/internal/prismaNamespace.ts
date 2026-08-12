@@ -4178,6 +4178,8 @@ export const BookingScalarFieldEnum = {
   currency: 'currency',
   stripePaymentId: 'stripePaymentId',
   notes: 'notes',
+  bookedByRole: 'bookedByRole',
+  bookedByUserId: 'bookedByUserId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -4914,6 +4916,20 @@ export type EnumPaymentMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$Pr
  * Reference to a field of type 'PaymentMethod[]'
  */
 export type ListEnumPaymentMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentMethod[]'>
+    
+
+
+/**
+ * Reference to a field of type 'BookedByRole'
+ */
+export type EnumBookedByRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BookedByRole'>
+    
+
+
+/**
+ * Reference to a field of type 'BookedByRole[]'
+ */
+export type ListEnumBookedByRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BookedByRole[]'>
     
 
 

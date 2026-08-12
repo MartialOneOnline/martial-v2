@@ -538,6 +538,23 @@ export type EnumPaymentMethodWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumPaymentMethodFilter<$PrismaModel>
 }
 
+export type EnumBookedByRoleFilter<$PrismaModel = never> = {
+  equals?: $Enums.BookedByRole | Prisma.EnumBookedByRoleFieldRefInput<$PrismaModel>
+  in?: $Enums.BookedByRole[] | Prisma.ListEnumBookedByRoleFieldRefInput<$PrismaModel>
+  notIn?: $Enums.BookedByRole[] | Prisma.ListEnumBookedByRoleFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumBookedByRoleFilter<$PrismaModel> | $Enums.BookedByRole
+}
+
+export type EnumBookedByRoleWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.BookedByRole | Prisma.EnumBookedByRoleFieldRefInput<$PrismaModel>
+  in?: $Enums.BookedByRole[] | Prisma.ListEnumBookedByRoleFieldRefInput<$PrismaModel>
+  notIn?: $Enums.BookedByRole[] | Prisma.ListEnumBookedByRoleFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumBookedByRoleWithAggregatesFilter<$PrismaModel> | $Enums.BookedByRole
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumBookedByRoleFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumBookedByRoleFilter<$PrismaModel>
+}
+
 export type EnumMembershipStatusFilter<$PrismaModel = never> = {
   equals?: $Enums.MembershipStatus | Prisma.EnumMembershipStatusFieldRefInput<$PrismaModel>
   in?: $Enums.MembershipStatus[] | Prisma.ListEnumMembershipStatusFieldRefInput<$PrismaModel>
@@ -1267,6 +1284,23 @@ export type NestedEnumPaymentMethodWithAggregatesFilter<$PrismaModel = never> = 
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumPaymentMethodFilter<$PrismaModel>
   _max?: Prisma.NestedEnumPaymentMethodFilter<$PrismaModel>
+}
+
+export type NestedEnumBookedByRoleFilter<$PrismaModel = never> = {
+  equals?: $Enums.BookedByRole | Prisma.EnumBookedByRoleFieldRefInput<$PrismaModel>
+  in?: $Enums.BookedByRole[] | Prisma.ListEnumBookedByRoleFieldRefInput<$PrismaModel>
+  notIn?: $Enums.BookedByRole[] | Prisma.ListEnumBookedByRoleFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumBookedByRoleFilter<$PrismaModel> | $Enums.BookedByRole
+}
+
+export type NestedEnumBookedByRoleWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.BookedByRole | Prisma.EnumBookedByRoleFieldRefInput<$PrismaModel>
+  in?: $Enums.BookedByRole[] | Prisma.ListEnumBookedByRoleFieldRefInput<$PrismaModel>
+  notIn?: $Enums.BookedByRole[] | Prisma.ListEnumBookedByRoleFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumBookedByRoleWithAggregatesFilter<$PrismaModel> | $Enums.BookedByRole
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumBookedByRoleFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumBookedByRoleFilter<$PrismaModel>
 }
 
 export type NestedEnumMembershipStatusFilter<$PrismaModel = never> = {
