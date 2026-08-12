@@ -3,7 +3,8 @@ import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 import { hasPermission, type Permission } from '@/lib/auth/permissions'
-import { assignPlan } from '@/lib/services/membership'
+import { assignPlan, syncSchoolMemberStatusForMembership } from '@/lib/services/membership'
+import { MembershipStatus } from '@/lib/prisma-client/enums'
 
 async function authorise(permission: Permission) {
   const user = await getAuthUser()
@@ -129,7 +130,7 @@ export async function POST(req: NextRequest) {
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const body = await req.json()
-  const { userId, planId, paymentMethod, startDate, notes } = body
+  const { userId, planId, paymentMethod, startDate, endDate, status, notes } = body
 
   if (!userId || !planId) {
     return NextResponse.json({ error: 'userId and planId are required' }, { status: 400 })
@@ -152,7 +153,31 @@ export async function POST(req: NextRequest) {
       startDate:      startDate ? new Date(startDate) : undefined,
       paymentMethod:  paymentMethod ?? undefined,
       notes:          notes || undefined,
+      endDateOverride: endDate ? new Date(endDate) : undefined,
     })
+
+    // assignPlan always creates the row ACTIVE. This endpoint doubles as manual
+    // back-office entry (e.g. recording a membership that's already paused or
+    // over), so honor an explicit PAUSED/CANCELLED status by transitioning right
+    // after creation — no Stripe call involved, since manual entries never carry
+    // a stripeSubId.
+    if (status === 'PAUSED' || status === 'CANCELLED') {
+      const finalStatus = status === 'PAUSED' ? MembershipStatus.PAUSED : MembershipStatus.CANCELLED
+      await prisma.$transaction(async (tx) => {
+        await tx.membership.update({
+          where: { id: membership.id },
+          data: {
+            status: finalStatus,
+            ...(finalStatus === MembershipStatus.CANCELLED ? { cancelledAt: new Date() } : {}),
+          },
+        })
+        await syncSchoolMemberStatusForMembership(tx, {
+          userId: membership.userId, schoolId: auth.schoolId, membershipStatus: finalStatus, excludeMembershipId: membership.id,
+        })
+      })
+      return NextResponse.json({ ...membership, status: finalStatus }, { status: 201 })
+    }
+
     return NextResponse.json(membership, { status: 201 })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to assign plan'
