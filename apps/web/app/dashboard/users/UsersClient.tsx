@@ -18,6 +18,7 @@ import { useT } from '../../../lib/i18n/LanguageContext'
 import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { memberStatusColors } from '../../../lib/design/tokens'
 import { submitMemberStatusChange, applyOptimisticStatus } from '../../../lib/memberStatus'
+import { downloadCsv } from '../../../lib/csvExport'
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
 type ToastType = 'success' | 'error' | 'info'
@@ -74,6 +75,7 @@ type Student = {
   status: string
   role: string
   joinedAt: string | null
+  lastSeen: string | null
   avatarUrl: string | null
   activeMembership: {
     id: string
@@ -1752,14 +1754,7 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
       s.activeMembership?.endDate   ? new Date(s.activeMembership.endDate).toLocaleDateString('es-ES')   : '',
       s.joinedAt ? new Date(s.joinedAt).toLocaleDateString('es-ES') : '',
     ])
-    const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
-    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `alumnos-${new Date().toISOString().slice(0,10)}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
+    downloadCsv('alumnos', headers, rows)
     showToast(`${filtered.length} alumnos exportados`, 'success')
   }
 
@@ -2069,11 +2064,11 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
                     )}
                   </td>
 
-                  {/* Joined */}
+                  {/* Last seen */}
                   <td className="hidden md:table-cell px-6 py-4">
                     <span style={{ fontSize: 13, color: '#9CA3AF' }}>
-                      {student.joinedAt
-                        ? new Date(student.joinedAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
+                      {student.lastSeen
+                        ? new Date(student.lastSeen).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
                         : '—'}
                     </span>
                   </td>

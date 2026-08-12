@@ -4,13 +4,14 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   Menu, X, Search, Check, Clock, Filter,
   TrendingUp, TrendingDown, RefreshCw,
-  PauseCircle, XCircle, Plus, AlertCircle,
+  PauseCircle, XCircle, Plus, AlertCircle, Download,
 } from 'lucide-react'
 import { useDashboard } from '../../../../components/DashboardShell'
 import NotificationBell from '../../../../components/NotificationBell'
 import MembershipRowActions from '../../../../components/MembershipRowActions'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../../lib/format'
+import { downloadCsv } from '../../../../lib/csvExport'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type MemStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED' | 'EXPIRED' | 'PENDING'
@@ -600,6 +601,16 @@ export default function PaymentSubscriptionsClient() {
   function handleFilter(f: Filter) { setActiveFilter(f); setCurrentPage(1) }
   function handleSearch(v: string) { setSearch(v); setCurrentPage(1) }
 
+  function handleExport() {
+    const headers = ['Member', 'Email', 'Belt', 'Plan', 'Type', 'Amount', 'Currency', 'Start date', 'End date', 'Status']
+    const rows = filtered.map(s => [
+      s.memberName, s.memberEmail, s.belt, s.planName, s.planType,
+      String(s.amount), s.currency, fmtDate(s.startDate), s.endDate ? fmtDate(s.endDate) : '',
+      STATUS_MAP[s.status].label,
+    ])
+    downloadCsv('subscriptions', headers, rows)
+  }
+
   return (
     <>
     <main style={{ flex: 1, minWidth: 0, width: '100%', overflow: 'auto' }}>
@@ -624,6 +635,11 @@ export default function PaymentSubscriptionsClient() {
 
         <div className="flex-1" />
 
+        <button onClick={handleExport}
+          className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer shrink-0"
+          style={{ background: '#fff', border: '1px solid #E5E7EB', color: '#374151', fontSize: 13, fontWeight: 500 }}>
+          <Download size={14} /> Export
+        </button>
         <button onClick={() => setShowAssignModal(true)}
           className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer shrink-0"
           style={{ background: '#0071E3', border: 'none', color: '#fff', fontSize: 13, fontWeight: 600 }}>

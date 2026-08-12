@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import {
   X, Plus, Pencil, Trash2, Check, Infinity, Menu, Image as ImageIcon,
-  Users, Share2, Copy, Mail, Upload, MoreVertical, AlertTriangle,
+  Users, Share2, Copy, Mail, Upload, MoreVertical, AlertTriangle, Download,
 } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useDashboard } from '../../../components/DashboardShell'
@@ -13,6 +13,7 @@ import RowMenu from '../../../components/RowMenu'
 import MembershipRowActions from '../../../components/MembershipRowActions'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../lib/format'
+import { downloadCsv } from '../../../lib/csvExport'
 import { BOOKING_PAYMENT_OPTIONS } from '../../../lib/paymentMethods'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -1207,6 +1208,25 @@ export default function MembershipsClient() {
 
   const filtered = plans.filter(p => p.planType === TAB_PLAN_TYPE[activeTab])
 
+  function handleExport() {
+    const headers = ['Name', 'Type', 'Price', 'Currency', 'Billing/Validity', 'Classes', 'Members', 'Public', 'Popular', 'Active']
+    const rows = filtered.map(p => {
+      const cfg = p.classAccess as ClassAccessConfig
+      const included = (cfg.classRules ?? []).filter(r => r.included).length
+      const classesLabel = !included
+        ? 'No classes'
+        : included === classes.length ? 'All classes' : `${included} class${included > 1 ? 'es' : ''}`
+      const billing = p.planType === 'SUBSCRIPTION'
+        ? (BILLING_CYCLE_LABELS[p.billingCycle] ?? p.billingCycle)
+        : p.validityDays ? `${p.validityDays} days` : ''
+      return [
+        p.name, PLAN_TYPE_COLORS[p.planType].label, String(p.price), p.currency, billing,
+        classesLabel, String(p.memberCount), p.isPublic ? 'Yes' : 'No', p.isPopular ? 'Yes' : 'No', p.isActive ? 'Yes' : 'No',
+      ]
+    })
+    downloadCsv('membership-plans', headers, rows)
+  }
+
   const TAB_LABELS: Record<TabId, string> = {
     subscriptions: 'Subscriptions',
     'single-passes': 'Single Passes',
@@ -1253,6 +1273,12 @@ export default function MembershipsClient() {
           </div>
         </div>
 
+        <button onClick={handleExport}
+          className="hidden sm:flex items-center gap-2 cursor-pointer shrink-0"
+          style={{ padding: '9px 16px', borderRadius: 10, border: '1px solid #E5E7EB',
+            background: '#fff', color: '#374151', fontSize: 13, fontWeight: 500 }}>
+          <Download size={14} /> Export
+        </button>
         <button onClick={openCreate}
           className="flex items-center gap-2 cursor-pointer shrink-0"
           style={{ padding: '9px 18px', borderRadius: 10, border: 'none',
