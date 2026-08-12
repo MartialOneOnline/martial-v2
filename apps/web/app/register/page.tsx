@@ -7,6 +7,7 @@ import { Mail, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { safeConfirmRedirect } from '@/lib/authConfirmRedirect'
 import { disciplineEmoji } from '@/lib/disciplineEmoji'
+import { SocialAuthButtons } from '@/components/SocialAuthButtons'
 import { useT, useLanguage } from '@/lib/i18n/LanguageContext'
 
 const BLUE = '#0870E2'
@@ -244,6 +245,12 @@ function RegisterPageInner() {
               ? 'Book classes, track your progress and manage your membership.'
               : 'Manage your students, classes, timetable and payments.'}
         </p>
+
+        {accountType === 'student' && (
+          <div style={{ marginBottom: 16 }}>
+            <SocialAuthButtons redirectPath={redirectParam} />
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} noValidate
           style={{ background: '#fff', borderRadius: 16, border: `1px solid ${BORDER}`, boxShadow: '0 4px 24px rgba(0,0,0,0.06)', padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
