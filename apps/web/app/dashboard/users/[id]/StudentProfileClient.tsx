@@ -489,6 +489,147 @@ function EditDrawer({
   )
 }
 
+// ── Attendance card modal ────────────────────────────────────────────────────────
+const MONTHS_ES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+
+type DayStatus = 'present' | 'absent' | 'promoted' | 'not_marked'
+const DAY_STATUS_DOT: Record<DayStatus, { color: string; label: string }> = {
+  present:     { color: '#22C55E', label: 'Presente' },
+  absent:      { color: '#E11D48', label: 'Ausente' },
+  promoted:    { color: '#EAB308', label: 'Promovido' },
+  not_marked:  { color: '#9CA3AF', label: 'Sin marcar' },
+}
+
+function pad2(n: number) {
+  return String(n).padStart(2, '0')
+}
+
+function daysInMonth(year: number, monthIdx: number) {
+  return new Date(year, monthIdx + 1, 0).getDate()
+}
+
+function AttendanceCardModal({ profile, belt, onClose }: {
+  profile: Profile
+  belt: { bg: string; color: string; bar: string }
+  onClose: () => void
+}) {
+  const currentYear = new Date().getFullYear()
+  const [year, setYear] = useState(currentYear)
+  const [years, setYears] = useState<number[]>([currentYear])
+  const [days, setDays] = useState<Record<string, DayStatus>>({})
+  const [lastGradingDate, setLastGradingDate] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    fetch(`/api/dashboard/members/${profile.memberId}/attendance?year=${year}`)
+      .then(res => res.json())
+      .then(data => {
+        if (cancelled) return
+        setDays(data.days ?? {})
+        setLastGradingDate(data.lastGradingDate ?? null)
+        if (Array.isArray(data.availableYears) && data.availableYears.length) setYears(data.availableYears)
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [profile.memberId, year])
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.45)', padding: 20 }}>
+      <div style={{ background: '#fff', borderRadius: 16, width: 1120, maxWidth: '95vw', maxHeight: '90vh', overflow: 'auto', padding: 28, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+        <div className="flex items-center justify-between" style={{ marginBottom: 20 }}>
+          <div className="flex items-center gap-3">
+            {profile.avatarUrl
+              ? <img src={profile.avatarUrl} alt="" style={{ width: 44, height: 44, borderRadius: 10, objectFit: 'cover' }} />
+              : <div style={{ width: 44, height: 44, borderRadius: 10, background: belt.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <User size={20} style={{ color: belt.color }} />
+                </div>}
+            <div>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>Tarjeta de asistencia</h3>
+              <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>{profile.name}</p>
+            </div>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF' }}><X size={18} /></button>
+        </div>
+
+        {/* Year tabs */}
+        <div className="flex items-center gap-1" style={{ borderBottom: '1px solid #F3F4F6', marginBottom: 16 }}>
+          {years.map(y => (
+            <button key={y} onClick={() => setYear(y)}
+              style={{
+                padding: '8px 14px', fontSize: 13, fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer',
+                color: y === year ? '#0071E3' : '#9CA3AF',
+                borderBottom: y === year ? '2px solid #0071E3' : '2px solid transparent',
+              }}>
+              Asistencia {y}
+            </button>
+          ))}
+        </div>
+
+        {lastGradingDate && (
+          <p style={{ fontSize: 12, color: '#6B7280', margin: '0 0 14px' }}>
+            Última graduación: {fmt(lastGradingDate)}
+          </p>
+        )}
+
+        {/* Legend */}
+        <div className="flex items-center gap-5" style={{ marginBottom: 16 }}>
+          {(Object.entries(DAY_STATUS_DOT) as [DayStatus, { color: string; label: string }][]).map(([key, s]) => (
+            <div key={key} className="flex items-center gap-2">
+              <span style={{ width: 9, height: 9, borderRadius: '50%', background: s.color, display: 'inline-block' }} />
+              <span style={{ fontSize: 12, color: '#374151' }}>{s.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Calendar grid */}
+        <div style={{ overflowX: 'auto', opacity: loading ? 0.5 : 1, transition: 'opacity 0.15s' }}>
+          <table style={{ borderCollapse: 'collapse', minWidth: 1060, width: '100%' }}>
+            <thead>
+              <tr>
+                <th style={{ position: 'sticky', left: 0, background: '#6B7280', color: '#fff', fontSize: 11, fontWeight: 600,
+                  padding: '6px 10px', textAlign: 'left', minWidth: 90 }} />
+                {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
+                  <th key={d} style={{ background: '#6B7280', color: '#fff', fontSize: 11, fontWeight: 600, padding: '6px 4px', minWidth: 30 }}>
+                    {d}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {MONTHS_ES.map((monthName, monthIdx) => {
+                const dim = daysInMonth(year, monthIdx)
+                return (
+                  <tr key={monthName}>
+                    <td style={{ position: 'sticky', left: 0, background: '#F3F4F6', fontSize: 12, fontWeight: 600, color: '#374151',
+                      padding: '6px 10px', whiteSpace: 'nowrap', border: '1px solid #E5E7EB' }}>
+                      {monthName}
+                    </td>
+                    {Array.from({ length: 31 }, (_, i) => i + 1).map(day => {
+                      if (day > dim) return <td key={day} style={{ border: '1px solid #F3F4F6', background: '#FAFAFA' }} />
+                      const key = `${year}-${pad2(monthIdx + 1)}-${pad2(day)}`
+                      const status = days[key]
+                      return (
+                        <td key={day} style={{ border: '1px solid #F3F4F6', textAlign: 'center', padding: '4px 0' }}>
+                          {status && (
+                            <span style={{ width: 10, height: 10, borderRadius: '50%', display: 'inline-block', background: DAY_STATUS_DOT[status].color }} />
+                          )}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Main component ─────────────────────────────────────────────────────────────
 // ── Booking status map ─────────────────────────────────────────────────────────
 const BOOKING_STATUS: Record<string, { bg: string; color: string; label: string }> = {
@@ -983,6 +1124,7 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
   const [notesValue, setNotesValue] = useState(initialProfile.notes ?? '')
   const [savingNotes, setSavingNotes] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [attendanceModalOpen, setAttendanceModalOpen] = useState(false)
   const [activeMembership, setActiveMembership] = useState(initialProfile.activeMembership)
   const [memberships, setMemberships] = useState(initialProfile.memberships)
   const [bookings] = useState(initialProfile.bookings)
@@ -1043,6 +1185,14 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
         onSaved={handleSaved}
         ranks={ranks}
       />
+
+      {attendanceModalOpen && (
+        <AttendanceCardModal
+          profile={profile}
+          belt={belt}
+          onClose={() => setAttendanceModalOpen(false)}
+        />
+      )}
 
       {/* Topbar */}
       <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20"
@@ -1280,7 +1430,13 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
 
               {/* Bookings — full list with show more */}
               <Card>
-                <CardHeader title="Historial de clases" />
+                <CardHeader title="Historial de clases" action={
+                  <button onClick={() => setAttendanceModalOpen(true)}
+                    className="flex items-center gap-1"
+                    style={{ fontSize: 12, fontWeight: 600, color: '#0071E3', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                    <Calendar size={13} /> Ver asistencia
+                  </button>
+                } />
                 {bookings.length === 0 ? (
                   <EmptyState icon={BookOpen} text="Sin clases registradas" />
                 ) : (
