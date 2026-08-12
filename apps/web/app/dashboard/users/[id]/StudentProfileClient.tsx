@@ -1,15 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   ArrowLeft, Mail, Phone, Calendar, Shield, Edit2,
   Send, MoreHorizontal, Sparkles, CreditCard,
   BookOpen, TrendingUp, Clock, AlertCircle, ChevronRight,
   User, Heart, FileText, Dumbbell, X, Plus, Check, CheckCircle,
+  Archive, Trash2, Bell,
 } from 'lucide-react'
 import { fmtPrice } from '../../../../lib/format'
 import NotificationBell from '../../../../components/NotificationBell'
+import RowMenu from '../../../../components/RowMenu'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type Booking = { id: string; className: string; date: string; status: string; attendedAt: string | null }
@@ -98,6 +100,50 @@ const TX_STATUS: Record<string, { bg: string; color: string; label: string }> = 
   REFUNDED:  { bg: '#EEF2FF', color: '#6366F1', label: 'Reembolsado' },
   CANCELLED: { bg: '#F3F4F6', color: '#6B7280', label: 'Cancelado' },
   FLAGGED:   { bg: '#FEF2F2', color: '#DC2626', label: 'Marcado' },
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+type ToastType = 'success' | 'error' | 'info'
+type ToastMsg = { id: number; message: string; type: ToastType }
+
+function ToastContainer({ toasts, onRemove }: { toasts: ToastMsg[]; onRemove: (id: number) => void }) {
+  if (!toasts.length) return null
+  return (
+    <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 9999, display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {toasts.map(t => (
+        <div key={t.id} style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          padding: '12px 16px', borderRadius: 10, minWidth: 260, maxWidth: 380,
+          background: t.type === 'success' ? '#ECFDF5' : t.type === 'error' ? '#FEF2F2' : '#EFF6FF',
+          border: `1px solid ${t.type === 'success' ? '#A7F3D0' : t.type === 'error' ? '#FECACA' : '#BFDBFE'}`,
+          boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
+        }}>
+          {t.type === 'success' && <CheckCircle size={16} style={{ color: '#16A34A', flexShrink: 0 }} />}
+          {t.type === 'error' && <AlertCircle size={16} style={{ color: '#DC2626', flexShrink: 0 }} />}
+          {t.type === 'info' && <Bell size={16} style={{ color: '#2563EB', flexShrink: 0 }} />}
+          <span style={{ fontSize: 13, fontWeight: 500, color: '#111827', flex: 1 }}>{t.message}</span>
+          <button onClick={() => onRemove(t.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', padding: 0 }}>
+            <X size={14} />
+          </button>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function useToast() {
+  const [toasts, setToasts] = useState<ToastMsg[]>([])
+  const counter = useRef(0)
+
+  const show = (message: string, type: ToastType = 'success', duration = 3500) => {
+    const id = ++counter.current
+    setToasts(prev => [...prev, { id, message, type }])
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), duration)
+  }
+
+  const remove = (id: number) => setToasts(prev => prev.filter(t => t.id !== id))
+
+  return { toasts, show, remove }
 }
 
 const inputStyle: React.CSSProperties = {
@@ -489,6 +535,156 @@ function EditDrawer({
   )
 }
 
+// ── Medical Notes modal ──────────────────────────────────────────────────────────
+function MedicalNotesModal({ profile, onClose, onSaved, showToast }: {
+  profile: Profile
+  onClose: () => void
+  onSaved: (updates: Partial<Profile>) => void
+  showToast: (message: string, type?: ToastType) => void
+}) {
+  const [emergencyContact, setEmergencyContact] = useState(profile.emergencyContact ?? '')
+  const [medicalNotes, setMedicalNotes] = useState(profile.medicalNotes ?? '')
+  const [saving, setSaving] = useState(false)
+
+  async function save() {
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/dashboard/members/${profile.memberId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          emergencyContact: emergencyContact.trim() || null,
+          medicalNotes: medicalNotes.trim() || null,
+        }),
+      })
+      if (!res.ok) throw new Error()
+      onSaved({ emergencyContact: emergencyContact.trim() || null, medicalNotes: medicalNotes.trim() || null })
+      showToast('Notas médicas guardadas', 'success')
+      onClose()
+    } catch {
+      showToast('Error al guardar las notas médicas', 'error')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.45)' }}>
+      <div style={{ background: '#fff', borderRadius: 16, width: 460, maxWidth: '95vw', padding: 28, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+        <div className="flex items-center justify-between" style={{ marginBottom: 20 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>Notas médicas</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF' }}><X size={18} /></button>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <Field label="Contacto de emergencia">
+            <input
+              value={emergencyContact}
+              onChange={e => setEmergencyContact(e.target.value)}
+              placeholder="María García — +34 666 123 456"
+              style={inputStyle}
+            />
+          </Field>
+          <Field label="Notas médicas" hint="Lesiones, alergias, condiciones a tener en cuenta.">
+            <textarea
+              value={medicalNotes}
+              onChange={e => setMedicalNotes(e.target.value)}
+              placeholder="Ej. Lesión de rodilla derecha, alergia a la penicilina"
+              style={{ ...inputStyle, minHeight: 90, resize: 'vertical' }}
+            />
+          </Field>
+        </div>
+
+        <div className="flex gap-3 justify-end" style={{ marginTop: 20 }}>
+          <button onClick={onClose}
+            style={{ padding: '9px 20px', borderRadius: 10, border: '1px solid #E5E7EB', fontSize: 13, fontWeight: 600, color: '#374151', background: '#fff', cursor: 'pointer' }}>
+            Cancelar
+          </button>
+          <button onClick={save} disabled={saving}
+            style={{ padding: '9px 24px', borderRadius: 10, border: 'none', fontSize: 13, fontWeight: 600, color: '#fff',
+              background: saving ? '#93C5FD' : '#0071E3', cursor: saving ? 'not-allowed' : 'pointer' }}>
+            {saving ? 'Guardando…' : 'Guardar'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Email composer modal ─────────────────────────────────────────────────────────
+function EmailComposerModal({ profile, onClose, showToast }: {
+  profile: Profile
+  onClose: () => void
+  showToast: (message: string, type?: ToastType) => void
+}) {
+  const [subject, setSubject] = useState('')
+  const [message, setMessage] = useState('')
+  const [sending, setSending] = useState(false)
+
+  async function send() {
+    if (!subject.trim() || !message.trim()) return
+    setSending(true)
+    try {
+      const res = await fetch(`/api/dashboard/members/${profile.memberId}/email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject: subject.trim(), message: message.trim() }),
+      })
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error) }
+      showToast(`Email enviado a ${profile.email}`, 'success')
+      onClose()
+    } catch (e: unknown) {
+      showToast(e instanceof Error && e.message ? e.message : 'Error al enviar el email', 'error')
+    } finally {
+      setSending(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.45)' }}>
+      <div style={{ background: '#fff', borderRadius: 16, width: 520, maxWidth: '95vw', padding: 28, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+        <div className="flex items-center justify-between" style={{ marginBottom: 4 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>Enviar email</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF' }}><X size={18} /></button>
+        </div>
+        <p style={{ fontSize: 12, color: '#9CA3AF', margin: '0 0 20px' }}>Para {profile.name} · {profile.email}</p>
+
+        <div className="flex flex-col gap-4">
+          <Field label="Asunto">
+            <input
+              value={subject}
+              onChange={e => setSubject(e.target.value)}
+              placeholder="Ej. Sobre tu próxima clase"
+              style={inputStyle}
+            />
+          </Field>
+          <Field label="Mensaje">
+            <textarea
+              value={message}
+              onChange={e => setMessage(e.target.value)}
+              placeholder="Escribe tu mensaje…"
+              style={{ ...inputStyle, minHeight: 160, resize: 'vertical' }}
+            />
+          </Field>
+        </div>
+
+        <div className="flex gap-3 justify-end" style={{ marginTop: 20 }}>
+          <button onClick={onClose}
+            style={{ padding: '9px 20px', borderRadius: 10, border: '1px solid #E5E7EB', fontSize: 13, fontWeight: 600, color: '#374151', background: '#fff', cursor: 'pointer' }}>
+            Cancelar
+          </button>
+          <button onClick={send} disabled={sending || !subject.trim() || !message.trim()}
+            style={{ padding: '9px 24px', borderRadius: 10, border: 'none', fontSize: 13, fontWeight: 600, color: '#fff',
+              background: sending || !subject.trim() || !message.trim() ? '#93C5FD' : '#0071E3',
+              cursor: sending || !subject.trim() || !message.trim() ? 'not-allowed' : 'pointer' }}>
+            {sending ? 'Enviando…' : 'Enviar'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Attendance card modal ────────────────────────────────────────────────────────
 const MONTHS_ES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 
@@ -731,7 +927,7 @@ function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.45)' }}>
-      <div style={{ background: '#fff', borderRadius: 16, width: 480, maxWidth: '95vw', padding: 28, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+      <div style={{ background: '#fff', borderRadius: 16, width: 480, maxWidth: '95vw', maxHeight: '90vh', padding: 28, boxShadow: '0 20px 60px rgba(0,0,0,0.2)', overflowY: 'auto' }}>
         <div className="flex items-center justify-between" style={{ marginBottom: 20 }}>
           <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>Assign membership plan</h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF' }}><X size={18} /></button>
@@ -1124,7 +1320,14 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
   const [notesValue, setNotesValue] = useState(initialProfile.notes ?? '')
   const [savingNotes, setSavingNotes] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [medicalModalOpen, setMedicalModalOpen] = useState(false)
+  const [emailModalOpen, setEmailModalOpen] = useState(false)
   const [attendanceModalOpen, setAttendanceModalOpen] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [resending, setResending] = useState(false)
+  const [archiving, setArchiving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const { toasts, show: showToast, remove: removeToast } = useToast()
   const [activeMembership, setActiveMembership] = useState(initialProfile.activeMembership)
   const [memberships, setMemberships] = useState(initialProfile.memberships)
   const [bookings] = useState(initialProfile.bookings)
@@ -1138,10 +1341,11 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
   const attendedBookings = bookings.filter(b => b.status === 'COMPLETED')
   const totalClasses = attendedBookings.length
   const now = new Date()
-  const attendanceThisMonth = attendedBookings.filter(b => {
-    const d = new Date(b.date)
-    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
-  }).length
+  // Rolling 30-day window rather than calendar month — a calendar-month count
+  // reads as "0" (looks broken) for the first days of a new month even when
+  // the student trains regularly.
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+  const attendanceLast30Days = attendedBookings.filter(b => new Date(b.date) >= thirtyDaysAgo).length
   const lastClassDate = attendedBookings[0]?.date ?? null
   const [txShown, setTxShown] = useState(10)
 
@@ -1174,6 +1378,48 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
     setSavingNotes(false)
   }
 
+  const handleResendInvite = async () => {
+    setResending(true)
+    try {
+      const res = await fetch(`/api/dashboard/members/${profile.memberId}/resend-invite`, { method: 'POST' })
+      showToast(res.ok ? `Invitación reenviada a ${profile.email}` : 'Error al reenviar la invitación', res.ok ? 'success' : 'error')
+    } catch {
+      showToast('Error al reenviar la invitación', 'error')
+    } finally {
+      setResending(false)
+    }
+  }
+
+  const handleArchive = async () => {
+    setArchiving(true)
+    try {
+      const res = await fetch(`/api/dashboard/members/${profile.memberId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'ARCHIVED' }),
+      })
+      if (!res.ok) throw new Error()
+      setProfile(prev => ({ ...prev, status: 'ARCHIVED' }))
+      showToast('Alumno archivado', 'success')
+    } catch {
+      showToast('Error al archivar el alumno', 'error')
+    } finally {
+      setArchiving(false)
+    }
+  }
+
+  const handleDeleteUser = async () => {
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/dashboard/members/${profile.memberId}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error()
+      router.push('/dashboard/users')
+    } catch {
+      showToast('Error al eliminar el alumno', 'error')
+      setDeleting(false)
+    }
+  }
+
   return (
     <main style={{ flex: 1, minWidth: 0, background: '#F9FAFB' }}>
 
@@ -1186,6 +1432,23 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
         ranks={ranks}
       />
 
+      {medicalModalOpen && (
+        <MedicalNotesModal
+          profile={profile}
+          onClose={() => setMedicalModalOpen(false)}
+          onSaved={handleSaved}
+          showToast={showToast}
+        />
+      )}
+
+      {emailModalOpen && (
+        <EmailComposerModal
+          profile={profile}
+          onClose={() => setEmailModalOpen(false)}
+          showToast={showToast}
+        />
+      )}
+
       {attendanceModalOpen && (
         <AttendanceCardModal
           profile={profile}
@@ -1193,6 +1456,8 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
           onClose={() => setAttendanceModalOpen(false)}
         />
       )}
+
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
 
       {/* Topbar */}
       <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20"
@@ -1275,14 +1540,87 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
                   style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px', fontSize: 12, fontWeight: 500, border: '1px solid #E5E7EB', borderRadius: 8, background: '#fff', color: '#374151', cursor: 'pointer' }}>
                   <Edit2 size={12} /> Editar
                 </button>
-                {/* TODO(profile-invite): wire resend-invite API, then restore
-                <button style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px', fontSize: 12, fontWeight: 500, border: 'none', borderRadius: 8, background: '#0071E3', color: '#fff', cursor: 'pointer' }}>
-                  <Send size={12} /> Invitar
-                </button> */}
-                {/* TODO(profile-more): define actions for MoreHorizontal dropdown, then restore
-                <button style={{ width: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #E5E7EB', borderRadius: 8, background: '#fff', color: '#6B7280', cursor: 'pointer' }}>
-                  <MoreHorizontal size={14} />
-                </button> */}
+                <button
+                  onClick={() => setEmailModalOpen(true)}
+                  style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px', fontSize: 12, fontWeight: 500, border: 'none', borderRadius: 8, background: '#0071E3', color: '#fff', cursor: 'pointer' }}>
+                  <Send size={12} /> Enviar
+                </button>
+                <RowMenu trigger={({ onClick }) => (
+                  <button
+                    onClick={e => { setConfirmDelete(false); onClick(e) }}
+                    style={{ width: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #E5E7EB', borderRadius: 8, background: '#fff', color: '#6B7280', cursor: 'pointer' }}>
+                    <MoreHorizontal size={14} />
+                  </button>
+                )}>
+                  <div style={{
+                    minWidth: 200, background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10,
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.10)', padding: '4px 0',
+                  }}>
+                    {profile.status === 'PENDING' && (
+                      <button
+                        onClick={handleResendInvite}
+                        disabled={resending}
+                        className="w-full flex items-center gap-2 cursor-pointer"
+                        style={{ padding: '8px 14px', fontSize: 13, border: 'none', textAlign: 'left', color: '#374151', background: 'transparent' }}
+                        onMouseEnter={e => (e.currentTarget.style.background = '#F9FAFB')}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                        <Send size={13} style={{ color: '#6B7280', flexShrink: 0 }} />
+                        {resending ? 'Reenviando…' : 'Reenviar invitación'}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setMedicalModalOpen(true)}
+                      className="w-full flex items-center gap-2 cursor-pointer"
+                      style={{ padding: '8px 14px', fontSize: 13, border: 'none', textAlign: 'left', color: '#374151', background: 'transparent' }}
+                      onMouseEnter={e => (e.currentTarget.style.background = '#F9FAFB')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                      <Heart size={13} style={{ color: '#6B7280', flexShrink: 0 }} />
+                      Notas médicas
+                    </button>
+
+                    <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
+
+                    <button
+                      onClick={handleArchive}
+                      disabled={archiving}
+                      className="w-full flex items-center gap-2 cursor-pointer"
+                      style={{ padding: '8px 14px', fontSize: 13, border: 'none', textAlign: 'left', color: '#374151', background: 'transparent' }}
+                      onMouseEnter={e => (e.currentTarget.style.background = '#F9FAFB')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                      <Archive size={13} style={{ color: '#6B7280', flexShrink: 0 }} />
+                      {archiving ? 'Archivando…' : 'Archivar'}
+                    </button>
+
+                    {!confirmDelete ? (
+                      <button
+                        onClick={e => { e.stopPropagation(); setConfirmDelete(true) }}
+                        className="w-full flex items-center gap-2 cursor-pointer"
+                        style={{ padding: '8px 14px', fontSize: 13, border: 'none', textAlign: 'left', color: '#DC2626', background: 'transparent' }}
+                        onMouseEnter={e => (e.currentTarget.style.background = '#FEF2F2')}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                        <Trash2 size={13} style={{ flexShrink: 0 }} />
+                        Eliminar
+                      </button>
+                    ) : (
+                      <div onClick={e => e.stopPropagation()} style={{ padding: '8px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        <p style={{ margin: 0, fontSize: 12, color: '#DC2626', fontWeight: 600 }}>¿Eliminar permanentemente?</p>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <button
+                            onClick={handleDeleteUser}
+                            disabled={deleting}
+                            style={{ flex: 1, padding: '5px 0', fontSize: 12, fontWeight: 600, background: '#DC2626', color: '#fff', border: 'none', borderRadius: 6, cursor: deleting ? 'not-allowed' : 'pointer' }}>
+                            {deleting ? 'Eliminando…' : 'Sí, eliminar'}
+                          </button>
+                          <button
+                            onClick={e => { e.stopPropagation(); setConfirmDelete(false) }}
+                            style={{ flex: 1, padding: '5px 0', fontSize: 12, background: '#F3F4F6', color: '#374151', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
+                            Cancelar
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </RowMenu>
               </div>
             </Card>
 
@@ -1379,7 +1717,7 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
             <div className="grid grid-cols-3 sm:grid-cols-3 gap-3">
               {[
                 { icon: Dumbbell, label: 'Clases totales', value: String(totalClasses), sub: 'histórico' },
-                { icon: TrendingUp, label: 'Asistencia', value: String(attendanceThisMonth), sub: 'este mes' },
+                { icon: TrendingUp, label: 'Asistencia', value: String(attendanceLast30Days), sub: 'últimos 30 días' },
                 { icon: Clock, label: 'Última clase', value: lastClassDate ? fmtShort(lastClassDate) : '—', sub: '' },
               ].map(s => (
                 <Card key={s.label} style={{ padding: '14px 16px' }}>
