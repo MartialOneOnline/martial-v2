@@ -139,6 +139,7 @@ export default function ClassCapacityPopup({ cls, date, onClose }: Props) {
       } else {
         setAddedIds(prev => new Set([...prev, member.userId]))
         setStudents(prev => [...prev, data.booking])
+        setSearch('')
       }
     } catch {
       setAddError('Network error')
