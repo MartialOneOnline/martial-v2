@@ -4,7 +4,8 @@ import { useParams, useSearchParams } from 'next/navigation'
 import { useState, useEffect, useCallback, Suspense } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { CheckCircle, Loader2 } from 'lucide-react'
+import { CheckCircle, Loader2, Mail } from 'lucide-react'
+import { SocialAuthButtons } from '@/components/SocialAuthButtons'
 
 interface SchoolInfo {
   name: string
@@ -230,25 +231,32 @@ function JoinPageInner() {
           <p style={{ fontSize: 14, color: '#6B7280', margin: 0, lineHeight: 1.6 }}>
             Crea tu cuenta para unirte.
           </p>
-          <p style={{ fontSize: 13, color: '#6B7280', margin: '16px 0 0' }}>
-            ¿Ya tienes cuenta?{' '}
-            <Link href={`/login?redirect=/join/${slug}`} style={{ color: '#0870E2', fontWeight: 600, textDecoration: 'none' }}>
-              Inicia sesión
-            </Link>
-            {' · '}
-            <Link href={`/login?view=forgot&redirect=/join/${slug}`} style={{ color: '#0870E2', fontWeight: 600, textDecoration: 'none' }}>
-              ¿Olvidaste tu contraseña?
-            </Link>
-          </p>
         </div>
 
-        {/* Create account — registers + auto-joins the school in one flow */}
+        {/* Create account — registers + auto-joins the school in one flow.
+            Social buttons up front (redirect straight back here) so signup
+            doesn't need a detour through /register for the common case;
+            "Continuar con email" is the fallback into the full form there. */}
+        <SocialAuthButtons redirectPath={`/join/${slug}?welcome=1`} />
+
         <Link
           href={`/register?type=student&lock=1&redirect=${encodeURIComponent(`/join/${slug}?welcome=1`)}`}
-          style={{ display: 'block', textAlign: 'center', padding: '13px 0', borderRadius: 12, background: '#0870E2', color: '#fff', fontSize: 14, fontWeight: 700, textDecoration: 'none' }}
+          style={{
+            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+            height: 52, border: '1px solid #E5E7EB', borderRadius: 12, background: '#fff',
+            fontSize: 14, fontWeight: 600, color: '#101828', textDecoration: 'none', boxSizing: 'border-box',
+          }}
         >
-          Crear cuenta y unirme
+          <Mail size={18} />
+          Continuar con email
         </Link>
+
+        <p style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: '#6B7280' }}>
+          ¿Ya tienes cuenta?{' '}
+          <Link href={`/login?redirect=/join/${slug}`} style={{ color: '#0870E2', fontWeight: 600, textDecoration: 'none' }}>
+            Inicia sesión
+          </Link>
+        </p>
       </div>
     </div>
   )

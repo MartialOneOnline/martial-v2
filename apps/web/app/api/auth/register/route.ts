@@ -38,7 +38,6 @@ type RegisterBody = {
     name?: string
     city?: string
     country?: string
-    disciplines?: string[]
   }
 }
 
@@ -135,29 +134,14 @@ export async function POST(req: NextRequest) {
     return errorResponse('INVALID_PASSWORD', 'Password must be at least 8 characters.', 400)
   }
 
-  // School-specific validation + discipline lookup
+  // School-specific validation
   const schoolName = body.school?.name?.trim() ?? ''
   const schoolCity = body.school?.city?.trim() ?? ''
   const schoolCountry = body.school?.country?.trim() ?? ''
-  const requestedDisciplines = Array.isArray(body.school?.disciplines)
-    ? body.school!.disciplines!.filter((s): s is string => typeof s === 'string' && s.length > 0)
-    : []
 
-  let validDisciplineSlugs: string[] = []
   if (accountType === 'school') {
     if (!schoolName || !schoolCity || !schoolCountry) {
       return errorResponse('MISSING_REQUIRED_FIELDS', 'School name, city and country are required.', 400)
-    }
-    if (requestedDisciplines.length === 0) {
-      return errorResponse('MISSING_REQUIRED_FIELDS', 'Please select at least one discipline.', 400)
-    }
-    const found = await prisma.discipline.findMany({
-      where: { slug: { in: requestedDisciplines } },
-      select: { slug: true },
-    })
-    validDisciplineSlugs = found.map(d => d.slug)
-    if (validDisciplineSlugs.length === 0) {
-      return errorResponse('MISSING_REQUIRED_FIELDS', 'Please select at least one valid discipline.', 400)
     }
   }
 
@@ -273,11 +257,6 @@ export async function POST(req: NextRequest) {
           source: 'SELF_REGISTERED',
           claimedById: user.id,
           claimedAt: new Date(),
-          disciplines: {
-            create: validDisciplineSlugs.map(slug => ({
-              discipline: { connect: { slug } },
-            })),
-          },
         },
       })
 

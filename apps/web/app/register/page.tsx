@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { Mail, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { safeConfirmRedirect } from '@/lib/authConfirmRedirect'
-import { disciplineEmoji } from '@/lib/disciplineEmoji'
 import { SocialAuthButtons } from '@/components/SocialAuthButtons'
+import { COUNTRIES } from '@/lib/countries'
 import { useT, useLanguage } from '@/lib/i18n/LanguageContext'
 
 const BLUE = '#0870E2'
@@ -15,13 +15,6 @@ const NAVY = '#0E3A7A'
 const BORDER = '#E5E7EB'
 const MUTED = '#6B7280'
 const TEXT = '#101828'
-
-const COUNTRIES = [
-  ['ES', 'Spain'], ['GB', 'United Kingdom'], ['FR', 'France'], ['DE', 'Germany'], ['IT', 'Italy'],
-  ['PT', 'Portugal'], ['NL', 'Netherlands'], ['BE', 'Belgium'], ['SE', 'Sweden'], ['NO', 'Norway'],
-  ['DK', 'Denmark'], ['IE', 'Ireland'], ['CH', 'Switzerland'], ['AT', 'Austria'], ['PL', 'Poland'],
-  ['GR', 'Greece'], ['TR', 'Turkey'], ['AE', 'UAE'], ['US', 'United States'], ['AU', 'Australia'], ['BR', 'Brazil'],
-]
 
 type AccountType = 'student' | 'school'
 
@@ -45,7 +38,6 @@ function RegisterPageInner() {
   const typeLocked = searchParams.get('lock') === '1'
 
   const [accountType, setAccountType] = useState<AccountType>(initialType)
-  const [disciplineOptions, setDisciplineOptions] = useState<{ slug: string; label: string }[]>([])
 
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
@@ -56,7 +48,6 @@ function RegisterPageInner() {
   const [schoolName, setSchoolName] = useState('')
   const [city, setCity] = useState('')
   const [country, setCountry] = useState('')
-  const [disciplines, setDisciplines] = useState<string[]>([])
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [apiError, setApiError] = useState('')
@@ -67,22 +58,8 @@ function RegisterPageInner() {
   const [resending, setResending] = useState(false)
   const [resent, setResent] = useState(false)
 
-  useEffect(() => {
-    fetch('/api/disciplines')
-      .then(r => r.json())
-      .then((d: { disciplines: { name: string; slug: string }[] }) =>
-        setDisciplineOptions(d.disciplines.map(x => ({ slug: x.slug, label: x.name })))
-      )
-      .catch(() => {})
-  }, [])
-
   function clearError(f: string) {
     setErrors(p => { const n = { ...p }; delete n[f]; return n })
-  }
-
-  function toggleDiscipline(slug: string) {
-    setDisciplines(d => d.includes(slug) ? d.filter(s => s !== slug) : [...d, slug])
-    clearError('disciplines')
   }
 
   function validate(): boolean {
@@ -96,7 +73,6 @@ function RegisterPageInner() {
       if (!schoolName.trim()) e.schoolName = 'School name is required.'
       if (!city.trim()) e.city = 'City is required.'
       if (!country) e.country = 'Country is required.'
-      if (disciplines.length === 0) e.disciplines = 'Select at least one discipline.'
     }
     setErrors(e)
     return Object.keys(e).length === 0
@@ -118,7 +94,7 @@ function RegisterPageInner() {
           email,
           password,
           phone: accountType === 'student' ? phone : undefined,
-          school: accountType === 'school' ? { name: schoolName, city, country, disciplines } : undefined,
+          school: accountType === 'school' ? { name: schoolName, city, country } : undefined,
           redirect: redirectParam,
           lang: locale,
         }),
@@ -246,11 +222,9 @@ function RegisterPageInner() {
               : 'Manage your students, classes, timetable and payments.'}
         </p>
 
-        {accountType === 'student' && (
-          <div style={{ marginBottom: 16 }}>
-            <SocialAuthButtons redirectPath={redirectParam} />
-          </div>
-        )}
+        <div style={{ marginBottom: 16 }}>
+          <SocialAuthButtons redirectPath={accountType === 'school' ? '/onboarding/school' : redirectParam} />
+        </div>
 
         <form onSubmit={handleSubmit} noValidate
           style={{ background: '#fff', borderRadius: 16, border: `1px solid ${BORDER}`, boxShadow: '0 4px 24px rgba(0,0,0,0.06)', padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -289,30 +263,6 @@ function RegisterPageInner() {
                   {COUNTRIES.map(([code, name]) => <option key={code} value={code}>{name}</option>)}
                 </select>
                 {errors.country && <p style={{ margin: '6px 0 0', fontSize: 12, color: '#DC2626' }}>{errors.country}</p>}
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>Disciplines</label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                  {disciplineOptions.map(d => {
-                    const selected = disciplines.includes(d.slug)
-                    return (
-                      <button
-                        key={d.slug}
-                        type="button"
-                        onClick={() => toggleDiscipline(d.slug)}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 10, textAlign: 'left',
-                          border: `2px solid ${selected ? BLUE : BORDER}`, background: selected ? '#EFF6FF' : '#fff', cursor: 'pointer',
-                        }}
-                      >
-                        <span style={{ fontSize: 16 }}>{disciplineEmoji(d.slug)}</span>
-                        <span style={{ fontSize: 12.5, fontWeight: 600, color: selected ? BLUE : TEXT, lineHeight: 1.2 }}>{d.label}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-                {errors.disciplines && <p style={{ margin: '6px 0 0', fontSize: 12, color: '#DC2626' }}>{errors.disciplines}</p>}
               </div>
             </>
           )}

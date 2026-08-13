@@ -87,9 +87,7 @@ function LoginPageInner() {
   const justRegistered = searchParams.get('registered') === '1'
   const registeredType = searchParams.get('type')
 
-  const [view, setView] = useState<'email' | 'password' | 'forgot'>(
-    searchParams.get('view') === 'forgot' ? 'forgot' : 'email'
-  )
+  const [view, setView] = useState<'email' | 'password' | 'forgot'>('email')
   const [email, setEmail] = useState(searchParams.get('email') ?? '')
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
@@ -99,7 +97,7 @@ function LoginPageInner() {
   const [emailErr, setEmailErr] = useState('')
   const [passErr, setPassErr] = useState('')
   const [pickerSchools, setPickerSchools] = useState<SchoolContext[] | null>(null)
-  const [resetEmail, setResetEmail] = useState(searchParams.get('email') ?? '')
+  const [resetEmail, setResetEmail] = useState('')
   const [resetErr, setResetErr] = useState('')
   const [resetLoading, setResetLoading] = useState(false)
   const [resetSent, setResetSent] = useState(false)
