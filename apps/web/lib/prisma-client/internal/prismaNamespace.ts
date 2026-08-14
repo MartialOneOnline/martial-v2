@@ -399,6 +399,7 @@ export const ModelName = {
   MembershipPlan: 'MembershipPlan',
   Review: 'Review',
   Class: 'Class',
+  ClassCancellation: 'ClassCancellation',
   Event: 'Event',
   EventTicket: 'EventTicket',
   EventBooking: 'EventBooking',
@@ -444,7 +445,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "schoolClaim" | "gradingSystem" | "beltRank" | "grading" | "lead" | "leadNote" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "impersonationLog" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "partner" | "notification" | "platformSettings" | "schoolSubscription" | "stripeWebhookEvent"
+    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "classCancellation" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "schoolClaim" | "gradingSystem" | "beltRank" | "grading" | "lead" | "leadNote" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "impersonationLog" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "partner" | "notification" | "platformSettings" | "schoolSubscription" | "stripeWebhookEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1555,6 +1556,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ClassCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ClassCountAggregateOutputType> | number
+        }
+      }
+    }
+    ClassCancellation: {
+      payload: Prisma.$ClassCancellationPayload<ExtArgs>
+      fields: Prisma.ClassCancellationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ClassCancellationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCancellationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ClassCancellationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCancellationPayload>
+        }
+        findFirst: {
+          args: Prisma.ClassCancellationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCancellationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ClassCancellationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCancellationPayload>
+        }
+        findMany: {
+          args: Prisma.ClassCancellationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCancellationPayload>[]
+        }
+        create: {
+          args: Prisma.ClassCancellationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCancellationPayload>
+        }
+        createMany: {
+          args: Prisma.ClassCancellationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ClassCancellationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCancellationPayload>[]
+        }
+        delete: {
+          args: Prisma.ClassCancellationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCancellationPayload>
+        }
+        update: {
+          args: Prisma.ClassCancellationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCancellationPayload>
+        }
+        deleteMany: {
+          args: Prisma.ClassCancellationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ClassCancellationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ClassCancellationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCancellationPayload>[]
+        }
+        upsert: {
+          args: Prisma.ClassCancellationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCancellationPayload>
+        }
+        aggregate: {
+          args: Prisma.ClassCancellationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateClassCancellation>
+        }
+        groupBy: {
+          args: Prisma.ClassCancellationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClassCancellationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ClassCancellationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClassCancellationCountAggregateOutputType> | number
         }
       }
     }
@@ -4100,6 +4175,17 @@ export const ClassScalarFieldEnum = {
 export type ClassScalarFieldEnum = (typeof ClassScalarFieldEnum)[keyof typeof ClassScalarFieldEnum]
 
 
+export const ClassCancellationScalarFieldEnum = {
+  id: 'id',
+  classId: 'classId',
+  date: 'date',
+  reason: 'reason',
+  createdAt: 'createdAt'
+} as const
+
+export type ClassCancellationScalarFieldEnum = (typeof ClassCancellationScalarFieldEnum)[keyof typeof ClassCancellationScalarFieldEnum]
+
+
 export const EventScalarFieldEnum = {
   id: 'id',
   schoolId: 'schoolId',
@@ -5258,6 +5344,7 @@ export type GlobalOmitConfig = {
   membershipPlan?: Prisma.MembershipPlanOmit
   review?: Prisma.ReviewOmit
   class?: Prisma.ClassOmit
+  classCancellation?: Prisma.ClassCancellationOmit
   event?: Prisma.EventOmit
   eventTicket?: Prisma.EventTicketOmit
   eventBooking?: Prisma.EventBookingOmit

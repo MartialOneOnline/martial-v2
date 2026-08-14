@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { QRCodeSVG } from 'qrcode.react'
 import {
   X, UserPlus, Users, Clock, QrCode,
   XCircle, ChevronRight, CheckCircle, Loader2,
@@ -67,7 +66,7 @@ function Avatar({ name, avatarUrl, size = 42 }: { name: string; avatarUrl: strin
 }
 
 type Tab = 'bookings' | 'actions'
-type SubPanel = 'add-booking' | 'qr' | null
+type SubPanel = 'add-booking' | 'cancel' | null
 
 export default function ClassDetailPopup({ cls, date, onClose }: Props) {
   const ref = useRef<HTMLDivElement>(null)
@@ -92,8 +91,11 @@ export default function ClassDetailPopup({ cls, date, onClose }: Props) {
   const [markingId, setMarkingId] = useState<string | null>(null)
 
   // Cancel state
-  const [cancelling, setCancelling] = useState(false)
-  const [cancelled,  setCancelled]  = useState(false)
+  const [cancelling,   setCancelling]   = useState(false)
+  const [cancelled,    setCancelled]    = useState(false)
+  const [cancelReason, setCancelReason] = useState<string | null>(null)
+  const [reasonInput,  setReasonInput]  = useState('')
+  const [reactivating, setReactivating] = useState(false)
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -110,7 +112,11 @@ export default function ClassDetailPopup({ cls, date, onClose }: Props) {
     const qs = date ? `?date=${date}&time=${startTime}` : ''
     fetch(`/api/dashboard/classes/${cls.id}/bookings${qs}`)
       .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.bookings) setBookings(d.bookings); setLoading(false) })
+      .then(d => {
+        if (d?.bookings) setBookings(d.bookings)
+        if (d) { setCancelled(!!d.cancelled); setCancelReason(d.cancelReason ?? null) }
+        setLoading(false)
+      })
       .catch(() => setLoading(false))
   }, [cls.id, cls.time, date])
 
@@ -220,24 +226,42 @@ export default function ClassDetailPopup({ cls, date, onClose }: Props) {
   }
 
   async function handleCancelClass() {
-    if (!confirm(`Cancel "${cls.name}"? All booked students will be notified.`)) return
     setCancelling(true)
     try {
-      await fetch(`/api/dashboard/classes/${cls.id}/cancel-occurrence`, {
+      const reason = reasonInput.trim() || undefined
+      const res = await fetch(`/api/dashboard/classes/${cls.id}/cancel-occurrence`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date }),
+        body: JSON.stringify({ date, reason }),
       })
-      setCancelled(true)
-      setBookings(prev => prev.map(b => ({ ...b, status: 'CANCELLED' })))
+      if (res.ok) {
+        setCancelled(true)
+        setCancelReason(reason ?? null)
+        setBookings(prev => prev.map(b => ({ ...b, status: 'CANCELLED' })))
+        setSubPanel(null)
+        setReasonInput('')
+      }
     } finally {
       setCancelling(false)
     }
   }
 
-  const qrUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/checkin/${cls.id}${date ? `?date=${date}` : ''}`
-    : `/checkin/${cls.id}`
+  async function handleReactivate() {
+    setReactivating(true)
+    try {
+      const res = await fetch(`/api/dashboard/classes/${cls.id}/reactivate-occurrence`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date }),
+      })
+      if (res.ok) {
+        setCancelled(false)
+        setCancelReason(null)
+      }
+    } finally {
+      setReactivating(false)
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4"
@@ -253,7 +277,7 @@ export default function ClassDetailPopup({ cls, date, onClose }: Props) {
           <div className="absolute inset-0 flex items-end justify-between px-4 pb-3">
             <div>
               {subPanel && (
-                <button onClick={() => { setSubPanel(null); setAddError(null) }}
+                <button onClick={() => { setSubPanel(null); setAddError(null); setReasonInput('') }}
                   style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: 4 }}>
                   <ArrowLeft size={13} />
                   <span style={{ fontSize: 11, opacity: 0.8 }}>Back</span>
@@ -311,20 +335,6 @@ export default function ClassDetailPopup({ cls, date, onClose }: Props) {
 
         {/* Content */}
         <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none' }}>
-
-          {/* ── QR Sub-panel ── */}
-          {subPanel === 'qr' && (
-            <div className="flex flex-col items-center gap-5 p-6">
-              <p style={{ fontSize: 14, fontWeight: 700, color: '#111827', textAlign: 'center' }}>QR Check-in</p>
-              <p style={{ fontSize: 12, color: '#6B7280', textAlign: 'center', marginTop: -12 }}>
-                Students scan this to check themselves in for {cls.name}
-              </p>
-              <div className="p-4 rounded-2xl" style={{ background: '#fff', boxShadow: '0 0 0 1px #E5E7EB, 0 4px 24px rgba(0,0,0,0.08)' }}>
-                <QRCodeSVG value={qrUrl} size={200} level="H" />
-              </div>
-              <p style={{ fontSize: 10, color: '#9CA3AF', textAlign: 'center', wordBreak: 'break-all', maxWidth: 260 }}>{qrUrl}</p>
-            </div>
-          )}
 
           {/* ── Add Booking Sub-panel ── */}
           {subPanel === 'add-booking' && (
@@ -392,6 +402,50 @@ export default function ClassDetailPopup({ cls, date, onClose }: Props) {
             </div>
           )}
 
+          {/* ── Cancel Class Sub-panel ── */}
+          {subPanel === 'cancel' && (
+            <div className="p-4 flex flex-col gap-4">
+              <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl" style={{ background: '#FEF2F2', border: '1px solid #FECACA' }}>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#DC2626' }}>
+                  <XCircle size={16} style={{ color: '#fff' }} />
+                </div>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#DC2626' }}>Cancel {cls.name}?</p>
+                  <p style={{ fontSize: 11, color: '#EF4444' }}>Booked students will be notified by email.</p>
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>
+                  Reason <span style={{ fontWeight: 400, color: '#9CA3AF' }}>(optional, shared with students)</span>
+                </label>
+                <textarea
+                  autoFocus
+                  value={reasonInput}
+                  onChange={e => setReasonInput(e.target.value)}
+                  placeholder="e.g. Instructor unavailable"
+                  rows={3}
+                  style={{ width: '100%', resize: 'none', border: '1px solid #E5E7EB', borderRadius: 12,
+                    padding: '10px 12px', fontSize: 14, color: '#111827', outline: 'none', fontFamily: 'inherit' }}
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <button onClick={() => { setSubPanel(null); setReasonInput('') }}
+                  className="flex-1 py-3 rounded-2xl cursor-pointer"
+                  style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', fontSize: 13, fontWeight: 600, color: '#374151' }}>
+                  Never mind
+                </button>
+                <button onClick={handleCancelClass} disabled={cancelling}
+                  className="flex-1 py-3 rounded-2xl cursor-pointer flex items-center justify-center gap-2"
+                  style={{ background: '#DC2626', border: 'none', fontSize: 13, fontWeight: 600, color: '#fff', opacity: cancelling ? 0.7 : 1 }}>
+                  {cancelling && <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} />}
+                  Confirm cancellation
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* ── Bookings tab ── */}
           {!subPanel && tab === 'bookings' && (
             <>
@@ -453,18 +507,22 @@ export default function ClassDetailPopup({ cls, date, onClose }: Props) {
           {!subPanel && tab === 'actions' && (
             <div className="p-4 flex flex-col gap-3">
 
-              {/* Add booking */}
-              <button onClick={() => { setSubPanel('add-booking'); setSearch(''); setAddError(null) }}
-                className="flex items-center gap-3 w-full px-4 py-3.5 rounded-2xl cursor-pointer text-left"
-                style={{ background: '#EFF6FF', border: '1px solid #DBEAFE' }}>
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#0870E2' }}>
+              {/* Add booking — disabled once the occurrence is cancelled */}
+              <button onClick={() => { if (cancelled) return; setSubPanel('add-booking'); setSearch(''); setAddError(null) }}
+                disabled={cancelled}
+                className="flex items-center gap-3 w-full px-4 py-3.5 rounded-2xl text-left"
+                style={{ background: cancelled ? '#F9FAFB' : '#EFF6FF', border: `1px solid ${cancelled ? '#E5E7EB' : '#DBEAFE'}`,
+                  cursor: cancelled ? 'not-allowed' : 'pointer', opacity: cancelled ? 0.6 : 1 }}>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: cancelled ? '#9CA3AF' : '#0870E2' }}>
                   <UserPlus size={16} style={{ color: '#fff' }} />
                 </div>
                 <div>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: '#1D4ED8' }}>Add Booking</p>
-                  <p style={{ fontSize: 11, color: '#3B82F6' }}>Manually add a student to this class</p>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: cancelled ? '#6B7280' : '#1D4ED8' }}>Add Booking</p>
+                  <p style={{ fontSize: 11, color: cancelled ? '#9CA3AF' : '#3B82F6' }}>
+                    {cancelled ? 'This class is cancelled' : 'Manually add a student to this class'}
+                  </p>
                 </div>
-                <ChevronRight size={14} style={{ color: '#3B82F6', marginLeft: 'auto', flexShrink: 0 }} />
+                {!cancelled && <ChevronRight size={14} style={{ color: '#3B82F6', marginLeft: 'auto', flexShrink: 0 }} />}
               </button>
 
               {/* QR Check-in scanner */}
@@ -506,7 +564,7 @@ export default function ClassDetailPopup({ cls, date, onClose }: Props) {
               )}
 
               {/* View full class page */}
-              <Link href={`/dashboard/classes/${cls.id}`}
+              <Link href={`/dashboard/classes?edit=${cls.id}`}
                 className="flex items-center gap-3 w-full px-4 py-3.5 rounded-2xl text-left"
                 style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', textDecoration: 'none' }}>
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#374151' }}>
@@ -519,20 +577,29 @@ export default function ClassDetailPopup({ cls, date, onClose }: Props) {
                 <ChevronRight size={14} style={{ color: '#9CA3AF', marginLeft: 'auto', flexShrink: 0 }} />
               </Link>
 
-              {/* Cancel class — destructive */}
+              {/* Cancel class — destructive, reversible via Reactivate */}
               {cancelled ? (
-                <div className="flex items-center gap-2 px-4 py-3 rounded-2xl" style={{ background: '#FEF2F2', border: '1px solid #FECACA' }}>
-                  <XCircle size={15} style={{ color: '#DC2626' }} />
-                  <p style={{ fontSize: 13, fontWeight: 600, color: '#DC2626' }}>Class cancelled</p>
+                <div className="flex flex-col gap-2.5 px-4 py-3.5 rounded-2xl" style={{ background: '#FEF2F2', border: '1px solid #FECACA' }}>
+                  <div className="flex items-center gap-2">
+                    <XCircle size={15} style={{ color: '#DC2626' }} />
+                    <p style={{ fontSize: 13, fontWeight: 600, color: '#DC2626' }}>Class cancelled</p>
+                  </div>
+                  {cancelReason && (
+                    <p style={{ fontSize: 12, color: '#B91C1C', paddingLeft: 23 }}>&ldquo;{cancelReason}&rdquo;</p>
+                  )}
+                  <button onClick={handleReactivate} disabled={reactivating}
+                    className="flex items-center justify-center gap-2 py-2.5 rounded-xl cursor-pointer"
+                    style={{ background: '#fff', border: '1px solid #FECACA', fontSize: 12, fontWeight: 600, color: '#DC2626', opacity: reactivating ? 0.7 : 1 }}>
+                    {reactivating && <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />}
+                    Reactivate Class
+                  </button>
                 </div>
               ) : (
-                <button onClick={handleCancelClass} disabled={cancelling}
+                <button onClick={() => { setSubPanel('cancel'); setReasonInput('') }}
                   className="flex items-center gap-3 w-full px-4 py-3.5 rounded-2xl cursor-pointer text-left"
-                  style={{ background: '#FEF2F2', border: '1px solid #FECACA', opacity: cancelling ? 0.7 : 1 }}>
+                  style={{ background: '#FEF2F2', border: '1px solid #FECACA' }}>
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#DC2626' }}>
-                    {cancelling
-                      ? <Loader2 size={16} style={{ color: '#fff', animation: 'spin 1s linear infinite' }} />
-                      : <XCircle size={16} style={{ color: '#fff' }} />}
+                    <XCircle size={16} style={{ color: '#fff' }} />
                   </div>
                   <div>
                     <p style={{ fontSize: 13, fontWeight: 600, color: '#DC2626' }}>Cancel Class</p>

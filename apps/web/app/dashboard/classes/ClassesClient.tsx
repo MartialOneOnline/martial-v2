@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import {
   Calendar, Menu, X, Plus, MoreHorizontal, Search,
   ChevronLeft, ChevronRight, TrendingUp, Check, Upload, Clock, Trash2, Pencil,
@@ -1158,6 +1159,7 @@ type Filter = 'All' | 'Active' | 'Inactive'
 export default function ClassesClient() {
   const { menuOpen, setMenuOpen } = useDashboard()
   const t = useT()
+  const searchParams = useSearchParams()
 
   const [classes, setClasses]         = useState<ClassRow[]>([])
   const [instructors, setInstructors] = useState<Instructor[]>([])
@@ -1193,6 +1195,20 @@ export default function ClassesClient() {
   }, [])
 
   useEffect(() => { loadClasses() }, [loadClasses])
+
+  // Deep-link support for "View Class Page" from the dashboard's class
+  // popup, which has no per-class route — it links here with ?edit=<id> and
+  // we open that class's edit drawer instead. Runs once, guarded by the ref,
+  // so closing the drawer afterward doesn't reopen it.
+  const openedFromUrl = useRef(false)
+  useEffect(() => {
+    if (openedFromUrl.current || classes.length === 0) return
+    const editId = searchParams.get('edit')
+    if (!editId) return
+    const match = classes.find(c => c.id === editId)
+    if (match) openEdit(match)
+    openedFromUrl.current = true
+  }, [classes, searchParams])
 
   const filtered = classes.filter(c => {
     const matchFilter = activeFilter === 'All'

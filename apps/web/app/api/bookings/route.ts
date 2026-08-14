@@ -59,6 +59,17 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Reject booking a specific occurrence the school has cancelled — see
+  // ClassCancellation (app/api/dashboard/classes/[id]/cancel-occurrence).
+  const dateKey = scheduledDate.toISOString().slice(0, 10)
+  const cancelledOccurrence = await prisma.classCancellation.findUnique({
+    where: { classId_date: { classId, date: new Date(`${dateKey}T00:00:00.000Z`) } },
+    select: { id: true },
+  })
+  if (cancelledOccurrence) {
+    return NextResponse.json({ error: 'This class has been cancelled for this date' }, { status: 409 })
+  }
+
   // Validate user has an active membership or trial at this school
   const activeMembership = await prisma.membership.findFirst({
     where: {

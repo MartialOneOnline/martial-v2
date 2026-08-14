@@ -204,14 +204,38 @@ function StatusBadge({ status }: { status: string }) {
     Paid:    { bg: '#F0FDF4', color: '#16A34A' },
     Pending: { bg: '#FFFBEB', color: '#D97706' },
     Failed:  { bg: '#FEF2F2', color: '#DC2626' },
-    Open:    { bg: '#EFF6FF', color: '#2563EB' },
-    Full:    { bg: '#FEF2F2', color: '#DC2626' },
+    Open:      { bg: '#EFF6FF', color: '#2563EB' },
+    Full:      { bg: '#FEF2F2', color: '#DC2626' },
+    Cancelled: { bg: '#FEF2F2', color: '#DC2626' },
   }
   const { bg, color } = map[status] ?? { bg: '#F3F4F6', color: '#6B7280' }
   return (
     <span style={{ background: bg, color, fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 999, whiteSpace: 'nowrap' }}>
       {status}
     </span>
+  )
+}
+
+function QuickStatsCard({ title, subtitle, items }: {
+  title: string
+  subtitle: string
+  items: { label: string; value: string; color: string }[]
+}) {
+  return (
+    <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
+      <div className="px-4 pt-4 pb-3" style={{ borderBottom: '1px solid #F3F4F6' }}>
+        <p style={{ fontSize: 12, color: '#9CA3AF' }}>{title}</p>
+        <p style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>{subtitle}</p>
+      </div>
+      <div className="grid grid-cols-3" style={{ gap: 1, background: '#F3F4F6' }}>
+        {items.map(s => (
+          <div key={s.label} className="flex flex-col items-center justify-center gap-1.5 px-2 py-3 text-center" style={{ background: '#fff', minHeight: 72 }}>
+            <p style={{ fontSize: 10, color: '#9CA3AF', textAlign: 'center', lineHeight: 1.2 }}>{s.label}</p>
+            <p style={{ fontSize: 18, fontWeight: 700, color: s.color, letterSpacing: '-0.02em', lineHeight: 1 }}>{s.value}</p>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -704,19 +728,8 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           </div>
 
           {/* 5. Quick Stats — mobile only */}
-          <div className="lg:hidden rounded-2xl overflow-hidden" style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
-            <div className="px-4 pt-4 pb-3" style={{ borderBottom: '1px solid #F3F4F6' }}>
-              <p style={{ fontSize: 12, color: '#9CA3AF' }}>{t.dashboard.quickStats}</p>
-              <p style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>{t.dashboard.today}</p>
-            </div>
-            <div className="grid grid-cols-3" style={{ gap: 1, background: '#F3F4F6' }}>
-              {QUICK_STATS.map(s => (
-                <div key={s.label} className="flex flex-col items-center gap-1.5 px-3 pt-3 pb-5" style={{ background: '#fff' }}>
-                  <p style={{ fontSize: 10, color: '#9CA3AF', textAlign: 'center' }}>{s.label}</p>
-                  <p style={{ fontSize: 20, fontWeight: 700, color: s.color, letterSpacing: '-0.02em', lineHeight: 1 }}>{s.value}</p>
-                </div>
-              ))}
-            </div>
+          <div className="lg:hidden">
+            <QuickStatsCard title={t.dashboard.quickStats} subtitle={t.dashboard.today} items={QUICK_STATS} />
           </div>
 
           {/* 6. Bookings chart — full width */}
@@ -834,14 +847,14 @@ export default function DashboardClient({ userName, userEmail }: Props) {
 
       {/* ── Right Panel ─────────────────────────────────────────────────────── */}
       <aside
-        className="hidden lg:flex shrink-0 flex-col gap-3 p-4 overflow-y-auto"
+        className="hidden lg:flex shrink-0 flex-col gap-3 p-4"
         style={{
           width: 280,
           borderLeft: '1px solid #E5E7EB',
           background: '#F9FAFB',
           position: 'sticky',
           top: 0,
-          height: '100vh',
+          alignSelf: 'flex-start',
         }}
       >
         {/* 1. Academy card — full design, fixed height */}
@@ -923,8 +936,8 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           </div>
         </div>
 
-        {/* 3. Upcoming Classes — flex: 1, fills all remaining space */}
-        <div className="rounded-2xl flex flex-col" style={{ flex: 1, minHeight: 280, border: '1px solid #E5E7EB', background: '#fff' }}>
+        {/* 3. Upcoming Classes — fixed card, internal list scrolls if it has many classes */}
+        <div className="shrink-0 rounded-2xl flex flex-col" style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
           <div className="shrink-0 px-4 pt-4 pb-3" style={{ borderBottom: '1px solid #F3F4F6' }}>
             <p style={{ fontSize: 12, color: '#9CA3AF' }}>{t.dashboard.upcomingClasses}</p>
             <div className="flex items-center gap-1.5 mt-0.5" style={{ position: 'relative' }}>
@@ -955,8 +968,8 @@ export default function DashboardClient({ userName, userEmail }: Props) {
               </button>
             ))}
           </div>
-          {/* Class list — fills all remaining space in the card */}
-          <div className="px-4 py-3 space-y-3 overflow-y-auto" style={{ flex: 1, scrollbarWidth: 'none' }}>
+          {/* Class list — scrolls internally on days with many classes */}
+          <div className="px-4 py-3 space-y-3 overflow-y-auto" style={{ maxHeight: 320, scrollbarWidth: 'none' }}>
             {!classesLoaded ? (
               Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="flex items-center gap-3 animate-pulse" style={{ paddingBottom: i < 2 ? 12 : 0, borderBottom: i < 2 ? '1px solid #F9FAFB' : 'none' }}>
@@ -1002,19 +1015,8 @@ export default function DashboardClient({ userName, userEmail }: Props) {
         </div>
 
         {/* 4. Quick Stats — fixed, at bottom */}
-        <div className="shrink-0 rounded-2xl overflow-hidden" style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
-          <div className="px-4 pt-3 pb-2" style={{ borderBottom: '1px solid #F3F4F6' }}>
-            <p style={{ fontSize: 11, color: '#9CA3AF' }}>{t.dashboard.quickStats}</p>
-            <p style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{t.dashboard.today}</p>
-          </div>
-          <div className="grid grid-cols-3" style={{ gap: 1, background: '#F3F4F6' }}>
-            {QUICK_STATS.map(s => (
-              <div key={s.label} className="flex flex-col gap-1 px-2 py-2.5" style={{ background: '#fff' }}>
-                <p style={{ fontSize: 9, color: '#9CA3AF', lineHeight: 1.2 }}>{s.label}</p>
-                <p style={{ fontSize: 16, fontWeight: 700, color: s.color, letterSpacing: '-0.02em', lineHeight: 1 }}>{s.value}</p>
-              </div>
-            ))}
-          </div>
+        <div className="shrink-0">
+          <QuickStatsCard title={t.dashboard.quickStats} subtitle={t.dashboard.today} items={QUICK_STATS} />
         </div>
 
       </aside>

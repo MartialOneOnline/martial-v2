@@ -1,5 +1,10 @@
+import { Suspense } from 'react'
 import ClassesClient from './ClassesClient'
 
 export default function ClassesPage() {
-  return <ClassesClient />
+  return (
+    <Suspense>
+      <ClassesClient />
+    </Suspense>
+  )
 }

@@ -46,6 +46,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const dayStart = new Date(Date.UTC(scheduledAt.getUTCFullYear(), scheduledAt.getUTCMonth(), scheduledAt.getUTCDate()))
   const dayEnd   = new Date(dayStart.getTime() + 86_400_000)
 
+  const cancelled = await prisma.classCancellation.findUnique({
+    where: { classId_date: { classId, date: new Date(`${dateStr}T00:00:00.000Z`) } },
+    select: { id: true },
+  })
+  if (cancelled) return NextResponse.json({ error: 'This class has been cancelled for this date' }, { status: 409 })
+
   // Duplicate check + capacity check + create run inside a transaction
   // guarded by the same advisory lock (namespace 1, keyed by classId+scheduledAt)
   // that POST /api/bookings uses for self-service bookings on this slot — so
@@ -155,6 +161,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     scheduledAtFilter = { gte: startOfDay, lt: new Date(startOfDay.getTime() + 86_400_000) }
   }
 
+  // Occurrence-level cancellation is keyed by date only (see
+  // cancel-occurrence/route.ts), independent of the time-scoped filter above.
+  const occurrenceDate = new Date(`${dateParam ?? new Date().toISOString().slice(0, 10)}T00:00:00.000Z`)
+  const cancellation = await prisma.classCancellation.findUnique({
+    where: { classId_date: { classId, date: occurrenceDate } },
+    select: { reason: true },
+  })
+
   const bookings = await prisma.booking.findMany({
     where: {
       classId,
@@ -187,6 +201,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   })
 
   return NextResponse.json({
+    cancelled: !!cancellation,
+    cancelReason: cancellation?.reason ?? null,
     bookings: bookings.map(b => {
       const member     = b.user?.schoolMembers?.[0]
       const membership = b.user?.memberships?.[0]

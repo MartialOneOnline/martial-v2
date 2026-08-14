@@ -93,6 +93,11 @@ export type Review = Prisma.ReviewModel
  */
 export type Class = Prisma.ClassModel
 /**
+ * Model ClassCancellation
+ * 
+ */
+export type ClassCancellation = Prisma.ClassCancellationModel
+/**
  * Model Event
  * 
  */

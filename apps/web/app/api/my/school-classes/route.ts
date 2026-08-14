@@ -15,6 +15,12 @@ function hasClassAccessRules(classAccess: ClassAccessConfig | null): boolean {
   return !!classAccess && ((classAccess.classRules?.length ?? 0) > 0 || !!classAccess.globalLimit)
 }
 
+// UTC-midnight of d's calendar date — matches how ClassCancellation.date is
+// stored (see dashboard/classes/[id]/cancel-occurrence/route.ts).
+function dayKey(d: Date): Date {
+  return new Date(`${d.toISOString().slice(0, 10)}T00:00:00.000Z`)
+}
+
 // Returns upcoming class occurrences for the schools the user belongs to (any
 // SchoolMember status, so a LEAD awaiting payment approval can still see the
 // timetable). Each occurrence carries canBook computed via the same
@@ -149,6 +155,8 @@ export async function GET() {
     booked: number
     alreadyBooked: boolean
     canBook: boolean
+    cancelled: boolean
+    cancelReason: string | null
   }[] = []
 
   // Get user's existing bookings for these classes in the window
@@ -179,6 +187,19 @@ export async function GET() {
 
   const bookedSet = new Set(existingBookings.map(b => `${b.classId}:${b.scheduledAt.toISOString()}`))
 
+  // Occurrence-level cancellations (staff "Cancel Class") in the same window
+  // — keyed by classId + UTC-midnight date, same as
+  // dashboard/classes/[id]/cancel-occurrence/route.ts. Keyed by day (not
+  // exact instant) since that's the granularity staff cancel at.
+  const cancellations = await prisma.classCancellation.findMany({
+    where: { classId: { in: classes.map(c => c.id) }, date: { gte: dayKey(now), lte: dayKey(cutoff) } },
+    select: { classId: true, date: true, reason: true },
+  })
+  const cancelledByKey = new Map<string, string | null>()
+  for (const c of cancellations) {
+    cancelledByKey.set(`${c.classId}:${c.date.toISOString().slice(0, 10)}`, c.reason)
+  }
+
   for (const cls of classes) {
     const schedule = cls.schedule as ScheduleSlot[] | null
     if (!schedule || schedule.length === 0) continue
@@ -201,6 +222,9 @@ export async function GET() {
           counts,
         })
         const alreadyBooked = bookedSet.has(key)
+        const cancelKey = `${cls.id}:${cursor.toISOString().slice(0, 10)}`
+        const cancelled = cancelledByKey.has(cancelKey)
+        const cancelReason = cancelledByKey.get(cancelKey) ?? null
         occurrences.push({
           classId: cls.id,
           className: cls.name,
@@ -213,10 +237,13 @@ export async function GET() {
           instructor: cls.instructor,
           booked: bookedCount,
           alreadyBooked,
-          // Eligible AND not already booked — POST /api/bookings remains the
-          // final authority (it re-validates everything transactionally),
+          // Eligible AND not already booked AND not cancelled — POST
+          // /api/bookings remains the final authority (it re-validates
+          // everything transactionally, including the cancellation check),
           // this only drives whether the client shows a "Book" button.
-          canBook: eligibility.allowed && !alreadyBooked,
+          canBook: eligibility.allowed && !alreadyBooked && !cancelled,
+          cancelled,
+          cancelReason,
         })
         // Next week same slot
         const next = new Date(cursor)

@@ -697,12 +697,36 @@ model Class {
   instructorId String?
   instructor   Instructor? @relation(fields: [instructorId], references: [id])
 
-  bookings Booking[]
+  bookings      Booking[]
+  cancellations ClassCancellation[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("classes")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CLASS CANCELLATION
+// Marks a single scheduled occurrence (one class, one day) as cancelled —
+// distinct from Class.isActive, which deactivates the whole recurring class.
+// Existing bookings for that day are separately flipped to CANCELLED; this
+// row is what makes the cancellation stick (survives popup remounts, blocks
+// new bookings for that date, and can be undone via reactivation).
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ClassCancellation {
+  id      String @id @default(cuid())
+  classId String
+  class   Class  @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  date   DateTime // UTC midnight of the cancelled occurrence's day
+  reason String?
+
+  createdAt DateTime @default(now())
+
+  @@unique([classId, date])
+  @@map("class_cancellations")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

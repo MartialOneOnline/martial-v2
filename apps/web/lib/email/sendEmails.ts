@@ -2,6 +2,7 @@ import { getResend, FROM, APP_URL } from './resend'
 import { detectLang } from './templates/inviteStudent'
 import { buildWelcomeStudentEmail, getWelcomeStudentSubject } from './templates/welcomeStudent'
 import { buildTrialConfirmedEmail, getTrialConfirmedSubject } from './templates/trialConfirmed'
+import { buildClassCancelledEmail, getClassCancelledSubject } from './templates/classCancelled'
 import { buildMembershipReceiptEmail, getMembershipReceiptSubject } from './templates/membershipReceipt'
 import { buildMembershipRequestEmail, getMembershipRequestSubject } from './templates/membershipRequest'
 import {
@@ -83,6 +84,41 @@ export async function sendTrialConfirmedEmail({
     scheduledAt,
     location,
     bookingUrl: `${APP_URL}/my/classes`,
+    lang,
+  })
+  return send(to, subject, html)
+}
+
+// ── 2b. Class cancelled ─────────────────────────────────────────────────────────
+export async function sendClassCancelledEmail({
+  to,
+  studentName,
+  schoolName,
+  schoolCity,
+  className,
+  scheduledAt,
+  reason,
+  lang,
+}: {
+  to: string
+  studentName?: string | null
+  schoolName: string
+  schoolCity?: string | null
+  className: string
+  scheduledAt: Date
+  reason?: string | null
+  lang?: string | null
+}): Promise<SendResult> {
+  const l = detectLang(lang)
+  const subject = getClassCancelledSubject(className, l)
+  const html = buildClassCancelledEmail({
+    studentName,
+    schoolName,
+    schoolCity,
+    className,
+    scheduledAt,
+    reason,
+    classesUrl: `${APP_URL}/my/classes`,
     lang,
   })
   return send(to, subject, html)

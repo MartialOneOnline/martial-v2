@@ -66,6 +66,7 @@ export const ModelName = {
   MembershipPlan: 'MembershipPlan',
   Review: 'Review',
   Class: 'Class',
+  ClassCancellation: 'ClassCancellation',
   Event: 'Event',
   EventTicket: 'EventTicket',
   EventBooking: 'EventBooking',
@@ -395,6 +396,17 @@ export const ClassScalarFieldEnum = {
 } as const
 
 export type ClassScalarFieldEnum = (typeof ClassScalarFieldEnum)[keyof typeof ClassScalarFieldEnum]
+
+
+export const ClassCancellationScalarFieldEnum = {
+  id: 'id',
+  classId: 'classId',
+  date: 'date',
+  reason: 'reason',
+  createdAt: 'createdAt'
+} as const
+
+export type ClassCancellationScalarFieldEnum = (typeof ClassCancellationScalarFieldEnum)[keyof typeof ClassCancellationScalarFieldEnum]
 
 
 export const EventScalarFieldEnum = {

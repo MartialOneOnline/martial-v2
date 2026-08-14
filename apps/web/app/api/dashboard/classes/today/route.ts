@@ -31,6 +31,18 @@ export async function GET(req: NextRequest) {
   const dayStart = new Date(targetDate); dayStart.setHours(0, 0, 0, 0)
   const dayEnd   = new Date(targetDate); dayEnd.setHours(23, 59, 59, 999)
 
+  // Occurrence-level cancellations for this date, keyed the same
+  // UTC-midnight way as cancel-occurrence/route.ts — independent of
+  // dayStart/dayEnd above, which stay in server-local time for the booking
+  // count query.
+  const dateKey = dateParam ?? new Date().toISOString().slice(0, 10)
+  const occurrenceDate = new Date(`${dateKey}T00:00:00.000Z`)
+  const cancellations = await prisma.classCancellation.findMany({
+    where: { class: { schoolId }, date: occurrenceDate },
+    select: { classId: true },
+  })
+  const cancelledClassIds = new Set(cancellations.map(c => c.classId))
+
   const classes = await prisma.class.findMany({
     where: { schoolId, isActive: true },
     include: {
@@ -71,7 +83,7 @@ export async function GET(req: NextRequest) {
             time: `${slot.startTime}${slot.endTime ? `–${slot.endTime}` : ''}`,
             enrolled: booked,
             cap,
-            status: booked >= cap ? 'Full' : 'Open',
+            status: cancelledClassIds.has(cls.id) ? 'Cancelled' : booked >= cap ? 'Full' : 'Open',
             instructor: cls.instructor?.name ?? null,
             level: cls.level ?? null,
             image: cls.coverUrl ?? null,
