@@ -9,6 +9,7 @@ import { QRCodeSVG } from 'qrcode.react'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../lib/format'
 import { isStudentContextRequired, chooseProfileUrl } from '../../../lib/studentContext'
+import { myFetch } from '../../../lib/api/myFetch'
 
 function InstagramIcon({ className }: { className?: string }) {
   return (
@@ -181,7 +182,7 @@ function TicketDrawer({ ev, onClose }: { ev: EventItem; onClose: () => void }) {
     if (!selected) return
     setLoading('online'); setError(null)
     try {
-      const res = await fetch('/api/my/events/checkout', {
+      const res = await myFetch('/api/my/events/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ eventId: ev.id, ticketId: selected.id, quantity }),
@@ -199,7 +200,7 @@ function TicketDrawer({ ev, onClose }: { ev: EventItem; onClose: () => void }) {
     if (!selected) return
     setLoading('cash'); setError(null)
     try {
-      const res = await fetch('/api/my/events/reserve', {
+      const res = await myFetch('/api/my/events/reserve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ eventId: ev.id, ticketId: selected.id, quantity }),
@@ -470,7 +471,7 @@ function MyTicketCard({ booking, autoOpen, onCancelled }: { booking: MyBooking; 
   async function handleCancel() {
     setCancelling(true)
     try {
-      const res = await fetch(`/api/my/events/bookings/${booking.id}`, { method: 'DELETE' })
+      const res = await myFetch(`/api/my/events/bookings/${booking.id}`, { method: 'DELETE' })
       if (res.ok) {
         setShowCancelConfirm(false)
         onCancelled()
@@ -574,7 +575,7 @@ function MyEventsPageInner() {
 
   const load = useCallback(() => {
     setLoading(true)
-    fetch('/api/my/events')
+    myFetch('/api/my/events')
       .then(r => r.json())
       .then(d => {
         // A dual-school student with no resolved active context can't be
@@ -599,7 +600,7 @@ function MyEventsPageInner() {
   useEffect(() => { load() }, [load])
 
   useEffect(() => {
-    fetch('/api/my')
+    myFetch('/api/my')
       .then(r => r.json())
       .then(d => setHasSchool((d.user?.schoolMembers?.length ?? 0) > 0))
       .catch(() => {})

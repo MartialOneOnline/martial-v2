@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ChevronRight, Eye, Trash2, Download } from 'lucide-react'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { createClient } from '../../../lib/supabase/client'
+import { myFetch } from '../../../lib/api/myFetch'
 
 function Toggle({ on, onChange, disabled = false }: { on: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
   return (
@@ -44,7 +45,7 @@ export default function MyPrivacyPage() {
     setDownloading(true)
     setActionError(false)
     try {
-      const res = await fetch('/api/my/export')
+      const res = await myFetch('/api/my/export')
       if (!res.ok) throw new Error('Export failed')
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
@@ -66,7 +67,7 @@ export default function MyPrivacyPage() {
     setDeleting(true)
     setActionError(false)
     try {
-      const res = await fetch('/api/my/account', { method: 'DELETE' })
+      const res = await myFetch('/api/my/account', { method: 'DELETE' })
       if (!res.ok) throw new Error('Delete failed')
       await createClient().auth.signOut()
       window.location.href = '/login'

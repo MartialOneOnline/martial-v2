@@ -11,6 +11,7 @@ import { getBeltImage } from '../../../lib/belts'
 import { createClient } from '../../../lib/supabase/client'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { isStudentContextRequired, chooseProfileUrl } from '../../../lib/studentContext'
+import { myFetch } from '../../../lib/api/myFetch'
 
 type Profile = {
   name: string | null
@@ -63,7 +64,7 @@ export default function MyProfilePage() {
   const fileInputRef              = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    fetch('/api/my')
+    myFetch('/api/my')
       .then(r => r.json())
       .then(d => {
         // Same rationale as app/my/page.tsx: a dual-school student with no
@@ -84,7 +85,7 @@ export default function MyProfilePage() {
 
   async function handleSave() {
     setSaving(true)
-    await fetch('/api/my', {
+    await myFetch('/api/my', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, phone }),
@@ -109,7 +110,7 @@ export default function MyProfilePage() {
       if (uploadError) throw uploadError
 
       const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
-      await fetch('/api/my', {
+      await myFetch('/api/my', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ avatarUrl: publicUrl }),

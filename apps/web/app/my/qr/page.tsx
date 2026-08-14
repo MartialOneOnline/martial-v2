@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { CheckCircle } from 'lucide-react'
 import { useT } from '../../../lib/i18n/LanguageContext'
+import { myFetch } from '../../../lib/api/myFetch'
 
 export default function MyQRPage() {
   const t = useT()
@@ -12,7 +13,7 @@ export default function MyQRPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/my')
+    myFetch('/api/my')
       .then(r => r.json())
       .then(d => {
         setUserId(d.user?.id ?? null)

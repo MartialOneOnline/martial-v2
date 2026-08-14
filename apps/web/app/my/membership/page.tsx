@@ -12,6 +12,7 @@ import { fmtPrice } from '../../../lib/format'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import type { Translations } from '../../../lib/i18n/translations'
 import { isStudentContextRequired, chooseProfileUrl } from '../../../lib/studentContext'
+import { myFetch } from '../../../lib/api/myFetch'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -169,7 +170,7 @@ function ManageBillingButton({ membershipId }: { membershipId: string }) {
   async function open() {
     setLoading(true)
     try {
-      const res = await fetch('/api/my/stripe-portal', {
+      const res = await myFetch('/api/my/stripe-portal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ membershipId }),
@@ -713,8 +714,8 @@ export default function MyMembershipPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/my/memberships').then(r => r.json()),
-      fetch('/api/my/school-plans').then(r => r.json()),
+      myFetch('/api/my/memberships').then(r => r.json()),
+      myFetch('/api/my/school-plans').then(r => r.json()),
     ]).then(([mData, pData]) => {
       // A dual-school student with no resolved active context can't be
       // served membership/plan data without guessing which school it
@@ -740,12 +741,12 @@ export default function MyMembershipPage() {
   async function handleAction(id: string, action: 'pause' | 'resume' | 'cancel') {
     setActionLoading(true)
     try {
-      await fetch(`/api/my/memberships/${id}`, {
+      await myFetch(`/api/my/memberships/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action }),
       })
-      const mData = await fetch('/api/my/memberships').then(r => r.json())
+      const mData = await myFetch('/api/my/memberships').then(r => r.json())
       setMemberships(mData.memberships ?? [])
     } finally {
       setActionLoading(false)
@@ -766,7 +767,7 @@ export default function MyMembershipPage() {
     setRequestingPlanId(plan.id)
     try {
       if (method === 'STRIPE' || method === 'REVOLUT') {
-        const res = await fetch('/api/my/checkout', {
+        const res = await myFetch('/api/my/checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ planId: plan.id, provider: method }),
@@ -778,15 +779,15 @@ export default function MyMembershipPage() {
         return
       }
 
-      const res = await fetch(`/api/my/memberships/${plan.id}`, {
+      const res = await myFetch(`/api/my/memberships/${plan.id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ paymentMethod: method }),
       })
       if (res.ok) {
         const [mData, pData] = await Promise.all([
-          fetch('/api/my/memberships').then(r => r.json()),
-          fetch('/api/my/school-plans').then(r => r.json()),
+          myFetch('/api/my/memberships').then(r => r.json()),
+          myFetch('/api/my/school-plans').then(r => r.json()),
         ])
         setMemberships(mData.memberships ?? [])
         setPlans(pData.plans ?? [])

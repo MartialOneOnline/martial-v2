@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ChevronRight, User } from 'lucide-react'
 import { useT } from '../../../lib/i18n/LanguageContext'
+import { myFetch } from '../../../lib/api/myFetch'
 
 type SchoolMember = {
   id: string
@@ -177,7 +178,7 @@ export default function MyProgressPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/my')
+    myFetch('/api/my')
       .then(r => r.json())
       .then(d => {
         setMembers(d.user?.schoolMembers ?? [])

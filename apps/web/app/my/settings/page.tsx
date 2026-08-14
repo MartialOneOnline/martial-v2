@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Bell, Globe, Moon, ChevronRight } from 'lucide-react'
 import { useLanguage } from '../../../lib/i18n/LanguageContext'
 import type { Locale } from '../../../lib/i18n/translations'
+import { myFetch } from '../../../lib/api/myFetch'
 
 function Toggle({ on, onChange, disabled = false }: { on: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
   return (
@@ -50,7 +51,7 @@ export default function MySettingsPage() {
 
   // Load persisted prefs on mount
   useEffect(() => {
-    fetch('/api/my/preferences')
+    myFetch('/api/my/preferences')
       .then(res => {
         if (!res.ok) throw new Error('Preferences failed')
         return res.json()
@@ -73,7 +74,7 @@ export default function MySettingsPage() {
       setter(v)
       setPreferencesError(false)
       setPendingKeys(prev => new Set(prev).add(key))
-      const res = await fetch('/api/my/preferences', {
+      const res = await myFetch('/api/my/preferences', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ [key]: v }),

@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { useT } from '../lib/i18n/LanguageContext'
 import type { SchoolModuleKey } from '../lib/school-modules'
+import { myFetch } from '../lib/api/myFetch'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -258,7 +259,7 @@ export default function MyShell({ children }: { children: React.ReactNode }) {
   // to the school of a plain SchoolMember record (e.g. a LEAD awaiting payment
   // approval) so branding + module-gated nav still show before any membership exists.
   useEffect(() => {
-    fetch('/api/my')
+    myFetch('/api/my')
       .then(r => r.json())
       .then(d => {
         const membership = d.user?.memberships?.find((m: { status: string }) => m.status === 'ACTIVE')

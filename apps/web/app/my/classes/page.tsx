@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { Calendar, Clock, MapPin, ChevronLeft, ChevronRight, Users, CheckCircle2, X, Info, CalendarDays, Ticket, Zap } from 'lucide-react'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { isStudentContextRequired, chooseProfileUrl } from '../../../lib/studentContext'
+import { myFetch } from '../../../lib/api/myFetch'
 
 /* ── Types ── */
 type Booking = {
@@ -44,6 +45,8 @@ type Occurrence = {
   booked: number
   alreadyBooked: boolean
   canBook: boolean
+  cancelled: boolean
+  cancelReason: string | null
 }
 
 /* ── Helpers ── */
@@ -146,42 +149,55 @@ function OccurrenceCard({ occ, onBook, onDetail, onCancelBooking }: {
           with the card width instead of stretching or cropping oddly */}
       <div className="relative bg-gray-100" style={{ aspectRatio: '325 / 261' }}>
         {occ.coverUrl ? (
-          <img src={occ.coverUrl} alt={occ.className} className="absolute inset-0 w-full h-full object-cover" />
+          <img src={occ.coverUrl} alt={occ.className}
+            className={`absolute inset-0 w-full h-full object-cover transition-all ${occ.cancelled ? 'grayscale opacity-60' : ''}`} />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-[#1e3a5f] to-[#0870E2] flex items-center justify-center">
+          <div className={`absolute inset-0 flex items-center justify-center transition-all ${
+            occ.cancelled ? 'bg-gray-300' : 'bg-gradient-to-br from-[#1e3a5f] to-[#0870E2]'}`}>
             <CalendarDays className="w-12 h-12 text-white/30" />
           </div>
         )}
-        {/* Capacity badge */}
-        {occ.capacity !== null && (
-          <div className="absolute top-3 right-3 bg-black/50 backdrop-blur-sm rounded-full px-2.5 py-1">
-            <span className="text-xs font-semibold text-white">{occ.booked}/{occ.capacity}</span>
+        {occ.cancelled ? (
+          /* Cancelled — muted, editorial tag rather than an alarm; nothing
+             else competes for attention on the image once it's off. */
+          <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-gray-900/75 backdrop-blur-sm rounded-full px-2.5 py-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-white/70" />
+            <span className="text-[10px] font-semibold text-white tracking-wide">{t.my.classCancelledBadge}</span>
           </div>
-        )}
-        {/* Booked badge */}
-        {occ.alreadyBooked && (
-          <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-emerald-500/90 backdrop-blur-sm rounded-full px-2.5 py-1">
-            <CheckCircle2 className="w-3 h-3 text-white" />
-            <span className="text-[10px] font-semibold text-white">{t.my.statusBooked}</span>
-          </div>
-        )}
-        {/* Full badge */}
-        {isFull && !occ.alreadyBooked && (
-          <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-red-500/90 backdrop-blur-sm rounded-full px-2.5 py-1">
-            <span className="text-[10px] font-semibold text-white">{t.my.fullBtn}</span>
-          </div>
-        )}
-        {/* Low spots warning */}
-        {!isFull && !occ.alreadyBooked && spotsLeft !== null && spotsLeft <= 5 && (
-          <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-amber-500/90 backdrop-blur-sm rounded-full px-2.5 py-1">
-            <span className="text-[10px] font-semibold text-white">{t.my.spotsLeft.replace('{n}', String(spotsLeft))}</span>
-          </div>
+        ) : (
+          <>
+            {/* Capacity badge */}
+            {occ.capacity !== null && (
+              <div className="absolute top-3 right-3 bg-black/50 backdrop-blur-sm rounded-full px-2.5 py-1">
+                <span className="text-xs font-semibold text-white">{occ.booked}/{occ.capacity}</span>
+              </div>
+            )}
+            {/* Booked badge */}
+            {occ.alreadyBooked && (
+              <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-emerald-500/90 backdrop-blur-sm rounded-full px-2.5 py-1">
+                <CheckCircle2 className="w-3 h-3 text-white" />
+                <span className="text-[10px] font-semibold text-white">{t.my.statusBooked}</span>
+              </div>
+            )}
+            {/* Full badge */}
+            {isFull && !occ.alreadyBooked && (
+              <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-red-500/90 backdrop-blur-sm rounded-full px-2.5 py-1">
+                <span className="text-[10px] font-semibold text-white">{t.my.fullBtn}</span>
+              </div>
+            )}
+            {/* Low spots warning */}
+            {!isFull && !occ.alreadyBooked && spotsLeft !== null && spotsLeft <= 5 && (
+              <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-amber-500/90 backdrop-blur-sm rounded-full px-2.5 py-1">
+                <span className="text-[10px] font-semibold text-white">{t.my.spotsLeft.replace('{n}', String(spotsLeft))}</span>
+              </div>
+            )}
+          </>
         )}
       </div>
 
       {/* Info */}
       <div className="p-4">
-        <h3 className="text-[15px] font-bold text-[#061229] mb-1 leading-snug">{occ.className}</h3>
+        <h3 className={`text-[15px] font-bold mb-1 leading-snug ${occ.cancelled ? 'text-gray-400' : 'text-[#061229]'}`}>{occ.className}</h3>
         {occ.description && (
           <p className="text-xs text-gray-500 mb-3 line-clamp-2 leading-relaxed">{occ.description}</p>
         )}
@@ -217,7 +233,14 @@ function OccurrenceCard({ occ, onBook, onDetail, onCancelBooking }: {
           >
             {t.my.detailsBtn}
           </button>
-          {occ.alreadyBooked ? (
+          {occ.cancelled ? (
+            <div
+              className="flex-1 flex items-center justify-center text-sm font-medium rounded-xl"
+              style={{ background: '#F5F5F5', color: '#9E9E9E', padding: '8px 0' }}
+            >
+              {t.my.classCancelledBadge}
+            </div>
+          ) : occ.alreadyBooked ? (
             <button
               onClick={onCancelBooking}
               className="flex-1 flex items-center justify-center text-sm font-medium rounded-xl"
@@ -325,6 +348,16 @@ function groupByDate<T extends { scheduledAt: string }>(items: T[], todayLabel: 
   return groups
 }
 
+type Attendee = { id: string; name: string; avatarUrl: string | null; belt: string | null; beltDegree: number }
+
+const BELT_COLORS: Record<string, string> = {
+  'White Belt':  '#D1D5DB',
+  'Blue Belt':   '#3B82F6',
+  'Purple Belt': '#8B5CF6',
+  'Brown Belt':  '#92400E',
+  'Black Belt':  '#1F2937',
+}
+
 /* ── Detail drawer ── */
 function DetailDrawer({ occ, onClose, onBook }: {
   occ: Occurrence
@@ -333,6 +366,19 @@ function DetailDrawer({ occ, onClose, onBook }: {
 }) {
   const t = useT()
   const isFull = occ.capacity !== null && occ.booked >= occ.capacity
+  const [attendees, setAttendees] = useState<Attendee[]>([])
+  const [loadingAttendees, setLoadingAttendees] = useState(true)
+
+  useEffect(() => {
+    if (occ.cancelled) { setLoadingAttendees(false); return }
+    setLoadingAttendees(true)
+    myFetch(`/api/my/school-classes/${occ.classId}/attendees?scheduledAt=${encodeURIComponent(occ.scheduledAt)}`)
+      .then(res => res.ok ? res.json() : { attendees: [] })
+      .then(d => setAttendees(d.attendees ?? []))
+      .catch(() => setAttendees([]))
+      .finally(() => setLoadingAttendees(false))
+  }, [occ.classId, occ.scheduledAt, occ.cancelled])
+
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
       <div
@@ -378,13 +424,30 @@ function DetailDrawer({ occ, onClose, onBook }: {
             </div>
           </div>
 
+          {/* Cancelled notice — calm, informational rather than alarming;
+              takes the place of the description/instructor/roster below,
+              which stop being relevant once the session isn't happening. */}
+          {occ.cancelled && (
+            <div className="flex items-start gap-3 p-3.5 bg-gray-50 rounded-2xl mb-5">
+              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center shrink-0">
+                <Info className="w-4 h-4 text-gray-500" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-[#061229]">{t.my.classCancelledTitle}</p>
+                {occ.cancelReason && (
+                  <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{occ.cancelReason}</p>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Description */}
           {occ.description && (
             <p className="text-sm text-gray-600 leading-relaxed mb-5">{occ.description}</p>
           )}
 
           {/* Instructor */}
-          {occ.instructor && (
+          {!occ.cancelled && occ.instructor && (
             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl mb-5">
               {occ.instructor.photoUrl ? (
                 <img src={occ.instructor.photoUrl} alt="" className="w-10 h-10 rounded-full object-cover border border-gray-200" />
@@ -401,12 +464,67 @@ function DetailDrawer({ occ, onClose, onBook }: {
           )}
 
           {/* Level */}
-          {occ.level && (
+          {!occ.cancelled && occ.level && (
             <div className="flex items-center gap-2 mb-5">
               <span className="text-xs font-semibold uppercase tracking-wide text-[#0870E2] bg-[#E8F4FF] px-3 py-1 rounded-full">
                 {occ.level}
               </span>
             </div>
+          )}
+
+          {/* Who's coming */}
+          {!occ.cancelled && (
+          <div className="mb-5">
+            <div className="flex items-center justify-between mb-2.5">
+              <p className="text-xs font-bold text-[#101828] flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-gray-400" />
+                {t.my.whosComingLabel}
+              </p>
+              {occ.capacity !== null && (
+                <span className="text-xs font-semibold text-gray-400">{occ.booked}/{occ.capacity}</span>
+              )}
+            </div>
+            {loadingAttendees ? (
+              <div className="space-y-2">
+                {[0, 1, 2].map(i => (
+                  <div key={i} className="flex items-center gap-2.5 animate-pulse">
+                    <div className="w-8 h-8 rounded-full bg-gray-100 shrink-0" />
+                    <div className="h-3 w-24 rounded bg-gray-100" />
+                  </div>
+                ))}
+              </div>
+            ) : attendees.length === 0 ? (
+              <p className="text-xs text-gray-400 py-1">{t.my.noOneBookedYet}</p>
+            ) : (
+              <div className="space-y-2.5">
+                {attendees.map(a => {
+                  const color = a.belt ? (BELT_COLORS[a.belt] ?? '#9CA3AF') : null
+                  return (
+                    <div key={a.id} className="flex items-center gap-2.5">
+                      {a.avatarUrl ? (
+                        <img src={a.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-[#0870E2]/10 flex items-center justify-center shrink-0">
+                          <span className="text-[#0870E2] font-bold text-xs">{a.name[0]}</span>
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-[#061229] truncate">{a.name}</p>
+                        {a.belt && (
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <div className="h-1 w-16 rounded-full bg-gray-100 overflow-hidden shrink-0">
+                              <div className="h-full rounded-full" style={{ width: `${(a.beltDegree / 4) * 100}%`, background: color! }} />
+                            </div>
+                            <span className="text-[10px] text-gray-400 truncate">{a.belt}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
           )}
 
           {/* CTA */}
@@ -417,7 +535,11 @@ function DetailDrawer({ occ, onClose, onBook }: {
             >
               {t.my.closeBtn}
             </button>
-            {occ.alreadyBooked ? (
+            {occ.cancelled ? (
+              <div className="flex-1 py-3 rounded-2xl bg-gray-50 text-gray-400 text-sm font-semibold flex items-center justify-center">
+                {t.my.classCancelledBadge}
+              </div>
+            ) : occ.alreadyBooked ? (
               <div className="flex-1 py-3 rounded-2xl bg-emerald-50 text-emerald-600 text-sm font-semibold flex items-center justify-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4" />
                 {t.my.bookedCheck}
@@ -641,7 +763,7 @@ export default function MyClassesPage() {
 
   const loadBookings = useCallback(() => {
     setLoadingBookings(true)
-    fetch(`/api/my/bookings?past=${scheduleSubTab === 'past'}&page=${page}`)
+    myFetch(`/api/my/bookings?past=${scheduleSubTab === 'past'}&page=${page}`)
       .then(r => r.json())
       .then(d => {
         // A dual-school student with no resolved active context can't be
@@ -658,7 +780,7 @@ export default function MyClassesPage() {
 
   const loadOccurrences = useCallback(() => {
     setLoadingOcc(true)
-    fetch('/api/my/school-classes')
+    myFetch('/api/my/school-classes')
       .then(r => r.json())
       .then(d => {
         if (isStudentContextRequired(d)) {
@@ -674,11 +796,11 @@ export default function MyClassesPage() {
   useEffect(() => { loadBookings() }, [loadBookings])
   useEffect(() => {
     loadOccurrences()
-    fetch('/api/my/school-plans')
+    myFetch('/api/my/school-plans')
       .then(r => r.json())
       .then(d => setPassPlans((d.plans ?? []).filter((p: PassPlan) => ['SINGLE_PASS', 'TRIAL'].includes(p.planType))))
       .catch(() => {})
-    fetch('/api/my')
+    myFetch('/api/my')
       .then(r => r.json())
       .then(d => {
         setHasSchool((d.user?.schoolMembers?.length ?? 0) > 0)
@@ -691,7 +813,7 @@ export default function MyClassesPage() {
   async function handlePassRequest(plan: PassPlan) {
     setRequestingPassId(plan.id)
     try {
-      const res = await fetch(`/api/my/memberships/${plan.id}`, { method: 'POST' })
+      const res = await myFetch(`/api/my/memberships/${plan.id}`, { method: 'POST' })
       if (res.ok) {
         setPassPlans(prev => prev.map(p => p.id === plan.id ? { ...p, pending: true } : p))
         setPassSuccess(plan.name)
@@ -712,7 +834,7 @@ export default function MyClassesPage() {
     setBooking(true)
     setBookError(null)
     try {
-      const res = await fetch('/api/bookings', {
+      const res = await myFetch('/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ classId: confirmOcc.classId, scheduledAt: confirmOcc.scheduledAt }),
@@ -741,7 +863,7 @@ export default function MyClassesPage() {
     if (!cancelTarget) return
     setCancelling(true)
     try {
-      await fetch(`/api/my/bookings/${cancelTarget.id}`, { method: 'DELETE' })
+      await myFetch(`/api/my/bookings/${cancelTarget.id}`, { method: 'DELETE' })
       setBookings(prev => prev.filter(b => b.id !== cancelTarget.id))
       setCancelTarget(null)
     } catch {

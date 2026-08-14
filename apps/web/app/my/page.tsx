@@ -11,6 +11,7 @@ import { fmtPrice } from '../../lib/format'
 import { getBeltImage } from '../../lib/belts'
 import { useT } from '../../lib/i18n/LanguageContext'
 import { isStudentContextRequired, chooseProfileUrl } from '../../lib/studentContext'
+import { myFetch } from '../../lib/api/myFetch'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -197,7 +198,7 @@ export default function MyHomePage() {
   const carRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    fetch('/api/my')
+    myFetch('/api/my')
       .then(r => r.json())
       .then(d => {
         // A student in 2+ schools with no resolved active context can't be
@@ -213,7 +214,7 @@ export default function MyHomePage() {
         setData(d); setLoading(false)
       })
       .catch(() => setLoading(false))
-    fetch('/api/my/school-classes')
+    myFetch('/api/my/school-classes')
       .then(r => r.json())
       .then(d => {
         if (isStudentContextRequired(d)) return
@@ -244,7 +245,7 @@ export default function MyHomePage() {
     if (bookingId) return
     setBookingId(`${occ.classId}:${occ.scheduledAt}`)
     try {
-      const res = await fetch('/api/bookings', {
+      const res = await myFetch('/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ classId: occ.classId, scheduledAt: occ.scheduledAt }),
@@ -272,7 +273,7 @@ export default function MyHomePage() {
     if (!booking) return
     setCancelling(true)
     try {
-      const res = await fetch(`/api/my/bookings/${booking.id}`, { method: 'DELETE' })
+      const res = await myFetch(`/api/my/bookings/${booking.id}`, { method: 'DELETE' })
       if (res.ok) {
         setOccurrences(prev => prev.map(o =>
           o.classId === occ.classId && o.scheduledAt === occ.scheduledAt

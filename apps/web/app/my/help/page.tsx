@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { ChevronRight, Mail, MessageCircle } from 'lucide-react'
 import { useT } from '../../../lib/i18n/LanguageContext'
+import { myFetch } from '../../../lib/api/myFetch'
 
 type SchoolContact = { email: string | null; phone: string | null } | null
 
@@ -39,7 +40,7 @@ export default function MyHelpPage() {
   const [schoolContact, setSchoolContact] = useState<SchoolContact>(null)
 
   useEffect(() => {
-    fetch('/api/my')
+    myFetch('/api/my')
       .then(r => r.json())
       .then(d => {
         const membership = d.user?.memberships?.find((m: { status: string }) => m.status === 'ACTIVE')

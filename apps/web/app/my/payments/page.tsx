@@ -6,6 +6,7 @@ import { CreditCard, ChevronLeft, ChevronRight, ArrowUpRight, ArrowDownLeft } fr
 import { fmtPrice } from '../../../lib/format'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { isStudentContextRequired, chooseProfileUrl } from '../../../lib/studentContext'
+import { myFetch } from '../../../lib/api/myFetch'
 
 type Transaction = {
   id: string
@@ -39,7 +40,7 @@ export default function MyPaymentsPage() {
 
   const load = useCallback(() => {
     setLoading(true)
-    fetch(`/api/my/payments?page=${page}`)
+    myFetch(`/api/my/payments?page=${page}`)
       .then(r => r.json())
       .then(d => {
         // A dual-school student with no resolved active context can't be
