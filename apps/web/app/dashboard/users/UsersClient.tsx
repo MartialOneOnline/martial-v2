@@ -77,6 +77,7 @@ type Student = {
   joinedAt: string | null
   lastSeen: string | null
   avatarUrl: string | null
+  hasLogin: boolean
   activeMembership: {
     id: string
     planName: string
@@ -372,14 +373,14 @@ function ActionsMenu({
 
         <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
 
-        {/* Resend invite — only for PENDING */}
-        {student.status === 'PENDING' && menuItem(
+        {/* Resend invite — PENDING members, or any member (e.g. V1-imported) without a linked login */}
+        {(student.status === 'PENDING' || !student.hasLogin) && menuItem(
           <Send size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
-          'Reenviar invitación',
+          student.hasLogin ? 'Reenviar invitación' : 'Invitar a iniciar sesión',
           () => onResendInvite(student),
         )}
 
-        {student.status === 'PENDING' && <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />}
+        {(student.status === 'PENDING' || !student.hasLogin) && <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />}
 
         {/* Archive */}
         {menuItem(

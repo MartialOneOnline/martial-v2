@@ -37,7 +37,7 @@ export default async function UsersPage() {
 async function UsersPageWithSchool({ schoolId }: { schoolId: string }) {
   const members = await prisma.schoolMember.findMany({
     where: { schoolId, role: 'STUDENT' },
-    include: { user: { select: { id: true, name: true, email: true, avatarUrl: true } } },
+    include: { user: { select: { id: true, name: true, email: true, avatarUrl: true, supabaseAuthId: true } } },
     orderBy: { joinedAt: 'desc' },
   })
 
@@ -76,6 +76,7 @@ async function UsersPageWithSchool({ schoolId }: { schoolId: string }) {
       name: m.user.name ?? m.user.email,
       email: m.user.email,
       avatarUrl: m.user.avatarUrl ?? null,
+      hasLogin: m.user.supabaseAuthId != null,
       belt: m.belt ?? 'Blanco',
       beltDegree: m.beltDegree ?? 0,
       status: m.status,
