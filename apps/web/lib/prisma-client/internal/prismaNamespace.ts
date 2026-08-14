@@ -4397,6 +4397,11 @@ export const SchoolInvitationScalarFieldEnum = {
   sentAt: 'sentAt',
   openedAt: 'openedAt',
   registeredAt: 'registeredAt',
+  tokenHash: 'tokenHash',
+  sentToEmail: 'sentToEmail',
+  expiresAt: 'expiresAt',
+  usedAt: 'usedAt',
+  revokedAt: 'revokedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

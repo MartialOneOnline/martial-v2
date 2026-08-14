@@ -43,6 +43,11 @@ export type SchoolInvitationMinAggregateOutputType = {
   sentAt: Date | null
   openedAt: Date | null
   registeredAt: Date | null
+  tokenHash: string | null
+  sentToEmail: string | null
+  expiresAt: Date | null
+  usedAt: Date | null
+  revokedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -66,6 +71,11 @@ export type SchoolInvitationMaxAggregateOutputType = {
   sentAt: Date | null
   openedAt: Date | null
   registeredAt: Date | null
+  tokenHash: string | null
+  sentToEmail: string | null
+  expiresAt: Date | null
+  usedAt: Date | null
+  revokedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -89,6 +99,11 @@ export type SchoolInvitationCountAggregateOutputType = {
   sentAt: number
   openedAt: number
   registeredAt: number
+  tokenHash: number
+  sentToEmail: number
+  expiresAt: number
+  usedAt: number
+  revokedAt: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -114,6 +129,11 @@ export type SchoolInvitationMinAggregateInputType = {
   sentAt?: true
   openedAt?: true
   registeredAt?: true
+  tokenHash?: true
+  sentToEmail?: true
+  expiresAt?: true
+  usedAt?: true
+  revokedAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -137,6 +157,11 @@ export type SchoolInvitationMaxAggregateInputType = {
   sentAt?: true
   openedAt?: true
   registeredAt?: true
+  tokenHash?: true
+  sentToEmail?: true
+  expiresAt?: true
+  usedAt?: true
+  revokedAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -160,6 +185,11 @@ export type SchoolInvitationCountAggregateInputType = {
   sentAt?: true
   openedAt?: true
   registeredAt?: true
+  tokenHash?: true
+  sentToEmail?: true
+  expiresAt?: true
+  usedAt?: true
+  revokedAt?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -256,6 +286,11 @@ export type SchoolInvitationGroupByOutputType = {
   sentAt: Date | null
   openedAt: Date | null
   registeredAt: Date | null
+  tokenHash: string | null
+  sentToEmail: string | null
+  expiresAt: Date | null
+  usedAt: Date | null
+  revokedAt: Date | null
   createdAt: Date
   updatedAt: Date
   _count: SchoolInvitationCountAggregateOutputType | null
@@ -300,6 +335,11 @@ export type SchoolInvitationWhereInput = {
   sentAt?: Prisma.DateTimeNullableFilter<"SchoolInvitation"> | Date | string | null
   openedAt?: Prisma.DateTimeNullableFilter<"SchoolInvitation"> | Date | string | null
   registeredAt?: Prisma.DateTimeNullableFilter<"SchoolInvitation"> | Date | string | null
+  tokenHash?: Prisma.StringNullableFilter<"SchoolInvitation"> | string | null
+  sentToEmail?: Prisma.StringNullableFilter<"SchoolInvitation"> | string | null
+  expiresAt?: Prisma.DateTimeNullableFilter<"SchoolInvitation"> | Date | string | null
+  usedAt?: Prisma.DateTimeNullableFilter<"SchoolInvitation"> | Date | string | null
+  revokedAt?: Prisma.DateTimeNullableFilter<"SchoolInvitation"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"SchoolInvitation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SchoolInvitation"> | Date | string
   invitedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
@@ -325,6 +365,11 @@ export type SchoolInvitationOrderByWithRelationInput = {
   sentAt?: Prisma.SortOrderInput | Prisma.SortOrder
   openedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   registeredAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  tokenHash?: Prisma.SortOrderInput | Prisma.SortOrder
+  sentToEmail?: Prisma.SortOrderInput | Prisma.SortOrder
+  expiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  usedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  revokedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   invitedBy?: Prisma.UserOrderByWithRelationInput
@@ -334,6 +379,7 @@ export type SchoolInvitationOrderByWithRelationInput = {
 export type SchoolInvitationWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   token?: string
+  tokenHash?: string
   AND?: Prisma.SchoolInvitationWhereInput | Prisma.SchoolInvitationWhereInput[]
   OR?: Prisma.SchoolInvitationWhereInput[]
   NOT?: Prisma.SchoolInvitationWhereInput | Prisma.SchoolInvitationWhereInput[]
@@ -353,11 +399,15 @@ export type SchoolInvitationWhereUniqueInput = Prisma.AtLeast<{
   sentAt?: Prisma.DateTimeNullableFilter<"SchoolInvitation"> | Date | string | null
   openedAt?: Prisma.DateTimeNullableFilter<"SchoolInvitation"> | Date | string | null
   registeredAt?: Prisma.DateTimeNullableFilter<"SchoolInvitation"> | Date | string | null
+  sentToEmail?: Prisma.StringNullableFilter<"SchoolInvitation"> | string | null
+  expiresAt?: Prisma.DateTimeNullableFilter<"SchoolInvitation"> | Date | string | null
+  usedAt?: Prisma.DateTimeNullableFilter<"SchoolInvitation"> | Date | string | null
+  revokedAt?: Prisma.DateTimeNullableFilter<"SchoolInvitation"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"SchoolInvitation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SchoolInvitation"> | Date | string
   invitedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   school?: Prisma.XOR<Prisma.SchoolNullableScalarRelationFilter, Prisma.SchoolWhereInput> | null
-}, "id" | "token">
+}, "id" | "token" | "tokenHash">
 
 export type SchoolInvitationOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -378,6 +428,11 @@ export type SchoolInvitationOrderByWithAggregationInput = {
   sentAt?: Prisma.SortOrderInput | Prisma.SortOrder
   openedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   registeredAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  tokenHash?: Prisma.SortOrderInput | Prisma.SortOrder
+  sentToEmail?: Prisma.SortOrderInput | Prisma.SortOrder
+  expiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  usedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  revokedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.SchoolInvitationCountOrderByAggregateInput
@@ -407,6 +462,11 @@ export type SchoolInvitationScalarWhereWithAggregatesInput = {
   sentAt?: Prisma.DateTimeNullableWithAggregatesFilter<"SchoolInvitation"> | Date | string | null
   openedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"SchoolInvitation"> | Date | string | null
   registeredAt?: Prisma.DateTimeNullableWithAggregatesFilter<"SchoolInvitation"> | Date | string | null
+  tokenHash?: Prisma.StringNullableWithAggregatesFilter<"SchoolInvitation"> | string | null
+  sentToEmail?: Prisma.StringNullableWithAggregatesFilter<"SchoolInvitation"> | string | null
+  expiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"SchoolInvitation"> | Date | string | null
+  usedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"SchoolInvitation"> | Date | string | null
+  revokedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"SchoolInvitation"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"SchoolInvitation"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"SchoolInvitation"> | Date | string
 }
@@ -428,6 +488,11 @@ export type SchoolInvitationCreateInput = {
   sentAt?: Date | string | null
   openedAt?: Date | string | null
   registeredAt?: Date | string | null
+  tokenHash?: string | null
+  sentToEmail?: string | null
+  expiresAt?: Date | string | null
+  usedAt?: Date | string | null
+  revokedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   invitedBy?: Prisma.UserCreateNestedOneWithoutSentInvitationsInput
@@ -453,6 +518,11 @@ export type SchoolInvitationUncheckedCreateInput = {
   sentAt?: Date | string | null
   openedAt?: Date | string | null
   registeredAt?: Date | string | null
+  tokenHash?: string | null
+  sentToEmail?: string | null
+  expiresAt?: Date | string | null
+  usedAt?: Date | string | null
+  revokedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -474,6 +544,11 @@ export type SchoolInvitationUpdateInput = {
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   openedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registeredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentToEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  usedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  revokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   invitedBy?: Prisma.UserUpdateOneWithoutSentInvitationsNestedInput
@@ -499,6 +574,11 @@ export type SchoolInvitationUncheckedUpdateInput = {
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   openedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registeredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentToEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  usedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  revokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -522,6 +602,11 @@ export type SchoolInvitationCreateManyInput = {
   sentAt?: Date | string | null
   openedAt?: Date | string | null
   registeredAt?: Date | string | null
+  tokenHash?: string | null
+  sentToEmail?: string | null
+  expiresAt?: Date | string | null
+  usedAt?: Date | string | null
+  revokedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -543,6 +628,11 @@ export type SchoolInvitationUpdateManyMutationInput = {
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   openedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registeredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentToEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  usedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  revokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -566,6 +656,11 @@ export type SchoolInvitationUncheckedUpdateManyInput = {
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   openedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registeredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentToEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  usedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  revokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -599,6 +694,11 @@ export type SchoolInvitationCountOrderByAggregateInput = {
   sentAt?: Prisma.SortOrder
   openedAt?: Prisma.SortOrder
   registeredAt?: Prisma.SortOrder
+  tokenHash?: Prisma.SortOrder
+  sentToEmail?: Prisma.SortOrder
+  expiresAt?: Prisma.SortOrder
+  usedAt?: Prisma.SortOrder
+  revokedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -622,6 +722,11 @@ export type SchoolInvitationMaxOrderByAggregateInput = {
   sentAt?: Prisma.SortOrder
   openedAt?: Prisma.SortOrder
   registeredAt?: Prisma.SortOrder
+  tokenHash?: Prisma.SortOrder
+  sentToEmail?: Prisma.SortOrder
+  expiresAt?: Prisma.SortOrder
+  usedAt?: Prisma.SortOrder
+  revokedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -645,6 +750,11 @@ export type SchoolInvitationMinOrderByAggregateInput = {
   sentAt?: Prisma.SortOrder
   openedAt?: Prisma.SortOrder
   registeredAt?: Prisma.SortOrder
+  tokenHash?: Prisma.SortOrder
+  sentToEmail?: Prisma.SortOrder
+  expiresAt?: Prisma.SortOrder
+  usedAt?: Prisma.SortOrder
+  revokedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -758,6 +868,11 @@ export type SchoolInvitationCreateWithoutInvitedByInput = {
   sentAt?: Date | string | null
   openedAt?: Date | string | null
   registeredAt?: Date | string | null
+  tokenHash?: string | null
+  sentToEmail?: string | null
+  expiresAt?: Date | string | null
+  usedAt?: Date | string | null
+  revokedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school?: Prisma.SchoolCreateNestedOneWithoutInvitationsInput
@@ -781,6 +896,11 @@ export type SchoolInvitationUncheckedCreateWithoutInvitedByInput = {
   sentAt?: Date | string | null
   openedAt?: Date | string | null
   registeredAt?: Date | string | null
+  tokenHash?: string | null
+  sentToEmail?: string | null
+  expiresAt?: Date | string | null
+  usedAt?: Date | string | null
+  revokedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -833,6 +953,11 @@ export type SchoolInvitationScalarWhereInput = {
   sentAt?: Prisma.DateTimeNullableFilter<"SchoolInvitation"> | Date | string | null
   openedAt?: Prisma.DateTimeNullableFilter<"SchoolInvitation"> | Date | string | null
   registeredAt?: Prisma.DateTimeNullableFilter<"SchoolInvitation"> | Date | string | null
+  tokenHash?: Prisma.StringNullableFilter<"SchoolInvitation"> | string | null
+  sentToEmail?: Prisma.StringNullableFilter<"SchoolInvitation"> | string | null
+  expiresAt?: Prisma.DateTimeNullableFilter<"SchoolInvitation"> | Date | string | null
+  usedAt?: Prisma.DateTimeNullableFilter<"SchoolInvitation"> | Date | string | null
+  revokedAt?: Prisma.DateTimeNullableFilter<"SchoolInvitation"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"SchoolInvitation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SchoolInvitation"> | Date | string
 }
@@ -854,6 +979,11 @@ export type SchoolInvitationCreateWithoutSchoolInput = {
   sentAt?: Date | string | null
   openedAt?: Date | string | null
   registeredAt?: Date | string | null
+  tokenHash?: string | null
+  sentToEmail?: string | null
+  expiresAt?: Date | string | null
+  usedAt?: Date | string | null
+  revokedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   invitedBy?: Prisma.UserCreateNestedOneWithoutSentInvitationsInput
@@ -877,6 +1007,11 @@ export type SchoolInvitationUncheckedCreateWithoutSchoolInput = {
   sentAt?: Date | string | null
   openedAt?: Date | string | null
   registeredAt?: Date | string | null
+  tokenHash?: string | null
+  sentToEmail?: string | null
+  expiresAt?: Date | string | null
+  usedAt?: Date | string | null
+  revokedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -925,6 +1060,11 @@ export type SchoolInvitationCreateManyInvitedByInput = {
   sentAt?: Date | string | null
   openedAt?: Date | string | null
   registeredAt?: Date | string | null
+  tokenHash?: string | null
+  sentToEmail?: string | null
+  expiresAt?: Date | string | null
+  usedAt?: Date | string | null
+  revokedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -946,6 +1086,11 @@ export type SchoolInvitationUpdateWithoutInvitedByInput = {
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   openedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registeredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentToEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  usedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  revokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneWithoutInvitationsNestedInput
@@ -969,6 +1114,11 @@ export type SchoolInvitationUncheckedUpdateWithoutInvitedByInput = {
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   openedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registeredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentToEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  usedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  revokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -991,6 +1141,11 @@ export type SchoolInvitationUncheckedUpdateManyWithoutInvitedByInput = {
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   openedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registeredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentToEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  usedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  revokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1013,6 +1168,11 @@ export type SchoolInvitationCreateManySchoolInput = {
   sentAt?: Date | string | null
   openedAt?: Date | string | null
   registeredAt?: Date | string | null
+  tokenHash?: string | null
+  sentToEmail?: string | null
+  expiresAt?: Date | string | null
+  usedAt?: Date | string | null
+  revokedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1034,6 +1194,11 @@ export type SchoolInvitationUpdateWithoutSchoolInput = {
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   openedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registeredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentToEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  usedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  revokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   invitedBy?: Prisma.UserUpdateOneWithoutSentInvitationsNestedInput
@@ -1057,6 +1222,11 @@ export type SchoolInvitationUncheckedUpdateWithoutSchoolInput = {
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   openedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registeredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentToEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  usedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  revokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1079,6 +1249,11 @@ export type SchoolInvitationUncheckedUpdateManyWithoutSchoolInput = {
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   openedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registeredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentToEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  usedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  revokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1104,6 +1279,11 @@ export type SchoolInvitationSelect<ExtArgs extends runtime.Types.Extensions.Inte
   sentAt?: boolean
   openedAt?: boolean
   registeredAt?: boolean
+  tokenHash?: boolean
+  sentToEmail?: boolean
+  expiresAt?: boolean
+  usedAt?: boolean
+  revokedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   invitedBy?: boolean | Prisma.SchoolInvitation$invitedByArgs<ExtArgs>
@@ -1129,6 +1309,11 @@ export type SchoolInvitationSelectCreateManyAndReturn<ExtArgs extends runtime.Ty
   sentAt?: boolean
   openedAt?: boolean
   registeredAt?: boolean
+  tokenHash?: boolean
+  sentToEmail?: boolean
+  expiresAt?: boolean
+  usedAt?: boolean
+  revokedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   invitedBy?: boolean | Prisma.SchoolInvitation$invitedByArgs<ExtArgs>
@@ -1154,6 +1339,11 @@ export type SchoolInvitationSelectUpdateManyAndReturn<ExtArgs extends runtime.Ty
   sentAt?: boolean
   openedAt?: boolean
   registeredAt?: boolean
+  tokenHash?: boolean
+  sentToEmail?: boolean
+  expiresAt?: boolean
+  usedAt?: boolean
+  revokedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   invitedBy?: boolean | Prisma.SchoolInvitation$invitedByArgs<ExtArgs>
@@ -1179,11 +1369,16 @@ export type SchoolInvitationSelectScalar = {
   sentAt?: boolean
   openedAt?: boolean
   registeredAt?: boolean
+  tokenHash?: boolean
+  sentToEmail?: boolean
+  expiresAt?: boolean
+  usedAt?: boolean
+  revokedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type SchoolInvitationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "token" | "name" | "email" | "phone" | "city" | "country" | "activities" | "website" | "notes" | "status" | "source" | "invitedById" | "schoolId" | "isActive" | "sentAt" | "openedAt" | "registeredAt" | "createdAt" | "updatedAt", ExtArgs["result"]["schoolInvitation"]>
+export type SchoolInvitationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "token" | "name" | "email" | "phone" | "city" | "country" | "activities" | "website" | "notes" | "status" | "source" | "invitedById" | "schoolId" | "isActive" | "sentAt" | "openedAt" | "registeredAt" | "tokenHash" | "sentToEmail" | "expiresAt" | "usedAt" | "revokedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["schoolInvitation"]>
 export type SchoolInvitationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   invitedBy?: boolean | Prisma.SchoolInvitation$invitedByArgs<ExtArgs>
   school?: boolean | Prisma.SchoolInvitation$schoolArgs<ExtArgs>
@@ -1222,6 +1417,11 @@ export type $SchoolInvitationPayload<ExtArgs extends runtime.Types.Extensions.In
     sentAt: Date | null
     openedAt: Date | null
     registeredAt: Date | null
+    tokenHash: string | null
+    sentToEmail: string | null
+    expiresAt: Date | null
+    usedAt: Date | null
+    revokedAt: Date | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["schoolInvitation"]>
@@ -1667,6 +1867,11 @@ export interface SchoolInvitationFieldRefs {
   readonly sentAt: Prisma.FieldRef<"SchoolInvitation", 'DateTime'>
   readonly openedAt: Prisma.FieldRef<"SchoolInvitation", 'DateTime'>
   readonly registeredAt: Prisma.FieldRef<"SchoolInvitation", 'DateTime'>
+  readonly tokenHash: Prisma.FieldRef<"SchoolInvitation", 'String'>
+  readonly sentToEmail: Prisma.FieldRef<"SchoolInvitation", 'String'>
+  readonly expiresAt: Prisma.FieldRef<"SchoolInvitation", 'DateTime'>
+  readonly usedAt: Prisma.FieldRef<"SchoolInvitation", 'DateTime'>
+  readonly revokedAt: Prisma.FieldRef<"SchoolInvitation", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"SchoolInvitation", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"SchoolInvitation", 'DateTime'>
 }

@@ -1199,10 +1199,22 @@ model SchoolInvitation {
   openedAt     DateTime?
   registeredAt DateTime?
 
+  // Hashed invitation token + delivery/expiry tracking. Recovered into this
+  // schema file from DB drift on 2026-08-14 — migration
+  // 20260811120000_add_invitation_token_hash was applied to the database but
+  // its migration file never reached git, so it (and these fields) were
+  // missing here. See prisma/migrations/20260811120000_add_invitation_token_hash.
+  tokenHash   String?   @unique
+  sentToEmail String?
+  expiresAt   DateTime?
+  usedAt      DateTime?
+  revokedAt   DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([schoolId, isActive])
+  @@index([tokenHash])
   @@map("school_invitations")
 }
 
