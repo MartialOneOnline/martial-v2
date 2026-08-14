@@ -87,6 +87,20 @@ export async function GET(req: NextRequest) {
   const beltMap = Object.fromEntries(schoolMembers.map(sm => [sm.userId, sm.belt ?? null]))
   const schoolMemberIdMap = Object.fromEntries(schoolMembers.map(sm => [sm.userId, sm.id]))
 
+  // Membership.status PENDING means "not yet approved" — a separate concept from
+  // an ACTIVE membership having an unpaid Transaction (e.g. a cash renewal still
+  // owed). Surface the latter per-row so the UI can flag it independently.
+  const membershipIdsForPending = memberships.map(m => m.id)
+  const pendingTransactions = membershipIdsForPending.length
+    ? await prisma.transaction.findMany({
+        where: { schoolId: auth.schoolId, membershipId: { in: membershipIdsForPending }, status: 'PENDING' },
+        select: { id: true, membershipId: true },
+      })
+    : []
+  const pendingTxMap = Object.fromEntries(
+    pendingTransactions.filter(t => t.membershipId).map(t => [t.membershipId as string, t.id])
+  )
+
   const statMap = Object.fromEntries(stats.map(s => [s.status, { count: s._count.id, sum: s._sum.price ?? 0 }]))
   const totalRevenue = statMap['ACTIVE']?.sum ?? 0
 
@@ -108,6 +122,7 @@ export async function GET(req: NextRequest) {
       startDate:     m.startDate.toISOString(),
       endDate:       m.endDate?.toISOString() ?? null,
       classesUsed:   m.classesUsed,
+      pendingTransactionId: pendingTxMap[m.id] ?? null,
     })),
     total,
     page,

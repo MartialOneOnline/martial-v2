@@ -34,6 +34,7 @@ interface SubRow {
   status: MemStatus
   consumed: number
   totalLimit: number | null
+  pendingTransactionId: string | null
 }
 
 function Avatar({ name, avatarUrl, size = 32 }: { name: string; avatarUrl: string | null; size?: number }) {
@@ -518,6 +519,7 @@ export default function PaymentSubscriptionsClient() {
   const [loading, setLoading] = useState(true)
   const [serverCounts, setServerCounts] = useState({ ALL: 0, PENDING: 0, ACTIVE: 0, PAUSED: 0, CANCELLED: 0, EXPIRED: 0 })
   const [mrr, setMrr] = useState(0)
+  const [markingPaidId, setMarkingPaidId] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -536,7 +538,7 @@ export default function PaymentSubscriptionsClient() {
         id: string; userId?: string; schoolMemberId?: string | null; userName: string; userEmail?: string; userAvatar?: string;
         belt?: string | null; planName: string; planType?: string; paymentMethod?: string;
         price: number; currency?: string; startDate: string; endDate?: string; status: MemStatus;
-        classesUsed?: number; totalLimit?: number;
+        classesUsed?: number; totalLimit?: number; pendingTransactionId?: string | null;
       }) => ({
         id:            m.id,
         userId:        m.userId ?? m.id,
@@ -554,6 +556,7 @@ export default function PaymentSubscriptionsClient() {
         status:      m.status,
         consumed:    m.classesUsed ?? 0,
         totalLimit:  m.totalLimit ?? null,
+        pendingTransactionId: m.pendingTransactionId ?? null,
       }))
       setSubs(rows)
 
@@ -565,6 +568,23 @@ export default function PaymentSubscriptionsClient() {
   }, [search])
 
   useEffect(() => { load() }, [load])
+
+  const handleMarkPaid = async (transactionId: string) => {
+    setMarkingPaidId(transactionId)
+    try {
+      const res = await fetch(`/api/dashboard/transactions/${transactionId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'PAID' }),
+      })
+      if (!res.ok) throw new Error()
+      await load()
+    } catch {
+      alert('Could not mark the payment as paid')
+    } finally {
+      setMarkingPaidId(null)
+    }
+  }
 
   const filtered = subs.filter(s => {
     if (activeFilter !== 'ALL' && s.status !== activeFilter) return false
@@ -799,17 +819,38 @@ export default function PaymentSubscriptionsClient() {
                     </td>
 
                     <td className="px-2 sm:px-5 py-3">
-                      <span className="inline-flex items-center gap-1.5"
-                        style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999,
-                          background: sc.bg, color: sc.color, border: '1px solid ' + sc.border,
-                          whiteSpace: 'nowrap' }}>
-                        <StatusIcon size={9} strokeWidth={2.5} />
-                        {sc.label}
-                      </span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="inline-flex items-center gap-1.5"
+                          style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999,
+                            background: sc.bg, color: sc.color, border: '1px solid ' + sc.border,
+                            whiteSpace: 'nowrap' }}>
+                          <StatusIcon size={9} strokeWidth={2.5} />
+                          {sc.label}
+                        </span>
+                        {sub.pendingTransactionId && (
+                          <span className="inline-flex items-center gap-1.5"
+                            style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999,
+                              background: '#FFFBEB', color: '#D97706', border: '1px solid #FDE68A',
+                              whiteSpace: 'nowrap' }}>
+                            <AlertCircle size={9} strokeWidth={2.5} />
+                            Pago pendiente
+                          </span>
+                        )}
+                      </div>
                     </td>
 
                     <td className="px-2 sm:px-5 py-3">
-                      <div className="flex items-center justify-end">
+                      <div className="flex items-center justify-end gap-2">
+                        {sub.pendingTransactionId && (
+                          <button onClick={() => handleMarkPaid(sub.pendingTransactionId!)}
+                            disabled={markingPaidId === sub.pendingTransactionId}
+                            style={{ fontSize: 11, fontWeight: 600, color: '#fff', background: '#D97706', border: 'none',
+                              padding: '5px 10px', borderRadius: 8, whiteSpace: 'nowrap',
+                              cursor: markingPaidId === sub.pendingTransactionId ? 'not-allowed' : 'pointer',
+                              opacity: markingPaidId === sub.pendingTransactionId ? 0.6 : 1 }}>
+                            {markingPaidId === sub.pendingTransactionId ? 'Marcando…' : 'Marcar como pagado'}
+                          </button>
+                        )}
                         <MembershipRowActions
                           membershipId={sub.id}
                           status={sub.status}
