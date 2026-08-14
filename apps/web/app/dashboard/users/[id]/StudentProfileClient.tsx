@@ -1332,6 +1332,7 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
   const [memberships, setMemberships] = useState(initialProfile.memberships)
   const [bookings] = useState(initialProfile.bookings)
   const [transactions, setTransactions] = useState(initialProfile.transactions)
+  const [markingTxId, setMarkingTxId] = useState<string | null>(null)
   const pendingRenewal = activeMembership
     ? transactions.find(t => t.membershipId === activeMembership.id && t.status === 'PENDING') ?? null
     : null
@@ -1405,6 +1406,24 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
       showToast('Error al archivar el alumno', 'error')
     } finally {
       setArchiving(false)
+    }
+  }
+
+  const handleMarkTxPaid = async (txId: string) => {
+    setMarkingTxId(txId)
+    try {
+      const res = await fetch(`/api/dashboard/transactions/${txId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'PAID' }),
+      })
+      if (!res.ok) throw new Error()
+      setTransactions(prev => prev.map(t => t.id === txId ? { ...t, status: 'PAID' } : t))
+      showToast('Pago marcado como pagado', 'success')
+    } catch {
+      showToast('Error al marcar el pago como pagado', 'error')
+    } finally {
+      setMarkingTxId(null)
     }
   }
 
@@ -1837,7 +1856,16 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
                           </div>
                           <div className="flex flex-col items-end gap-1">
                             <span style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>{fmtPrice(t.amount, t.currency)}</span>
-                            <span style={{ fontSize: 10, fontWeight: 600, background: ts.bg, color: ts.color, padding: '1px 6px', borderRadius: 999 }}>{ts.label}</span>
+                            {t.status === 'PENDING' ? (
+                              <button onClick={() => handleMarkTxPaid(t.id)} disabled={markingTxId === t.id}
+                                style={{ fontSize: 10, fontWeight: 600, color: '#fff', background: '#D97706', border: 'none',
+                                  padding: '2px 8px', borderRadius: 999, cursor: markingTxId === t.id ? 'not-allowed' : 'pointer',
+                                  opacity: markingTxId === t.id ? 0.6 : 1 }}>
+                                {markingTxId === t.id ? 'Marcando…' : 'Marcar como pagado'}
+                              </button>
+                            ) : (
+                              <span style={{ fontSize: 10, fontWeight: 600, background: ts.bg, color: ts.color, padding: '1px 6px', borderRadius: 999 }}>{ts.label}</span>
+                            )}
                           </div>
                         </div>
                       )
