@@ -24,6 +24,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const body = await req.json().catch(() => ({}))
   const dateParam: string | undefined = body.date
   const reason: string | undefined = typeof body.reason === 'string' ? body.reason.trim().slice(0, 500) || undefined : undefined
+  const hidden: boolean = body.hidden === true
 
   const dateKey = dateParam ?? new Date().toISOString().slice(0, 10)
   // Canonical UTC-midnight key for the ClassCancellation row — independent
@@ -48,8 +49,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   // cancelling whatever bookings happened to exist at click time.
   await prisma.classCancellation.upsert({
     where: { classId_date: { classId, date: occurrenceDate } },
-    create: { classId, date: occurrenceDate, reason },
-    update: { reason },
+    create: { classId, date: occurrenceDate, reason, hidden },
+    update: { reason, hidden },
   })
 
   // Find the bookings this cancellation will actually affect *before*

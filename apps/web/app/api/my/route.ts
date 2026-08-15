@@ -59,7 +59,12 @@ export async function GET() {
         },
       },
       bookings: {
-        where: { scheduledAt: { gte: new Date() }, ...(schoolId && { class: { schoolId } }) },
+        // Excludes CANCELLED — this drives the "next class" widget and the
+        // "My Classes" upcoming count, both of which mean upcoming and
+        // actionable, not merely scheduled-and-once-booked. A cancelled
+        // booking (whether the student cancelled it or staff cancelled the
+        // whole occurrence) belongs in the schedule tab's history, not here.
+        where: { scheduledAt: { gte: new Date() }, status: { not: 'CANCELLED' }, ...(schoolId && { class: { schoolId } }) },
         orderBy: { scheduledAt: 'asc' },
         take: 5,
         select: {

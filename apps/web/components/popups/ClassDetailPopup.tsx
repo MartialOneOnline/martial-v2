@@ -94,8 +94,11 @@ export default function ClassDetailPopup({ cls, date, onClose }: Props) {
   const [cancelling,   setCancelling]   = useState(false)
   const [cancelled,    setCancelled]    = useState(false)
   const [cancelReason, setCancelReason] = useState<string | null>(null)
+  const [cancelHidden, setCancelHidden] = useState(false)
   const [reasonInput,  setReasonInput]  = useState('')
+  const [hideFromStudents, setHideFromStudents] = useState(false)
   const [reactivating, setReactivating] = useState(false)
+  const [togglingHidden, setTogglingHidden] = useState(false)
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -114,7 +117,7 @@ export default function ClassDetailPopup({ cls, date, onClose }: Props) {
       .then(r => r.ok ? r.json() : null)
       .then(d => {
         if (d?.bookings) setBookings(d.bookings)
-        if (d) { setCancelled(!!d.cancelled); setCancelReason(d.cancelReason ?? null) }
+        if (d) { setCancelled(!!d.cancelled); setCancelReason(d.cancelReason ?? null); setCancelHidden(!!d.cancelHidden) }
         setLoading(false)
       })
       .catch(() => setLoading(false))
@@ -232,17 +235,39 @@ export default function ClassDetailPopup({ cls, date, onClose }: Props) {
       const res = await fetch(`/api/dashboard/classes/${cls.id}/cancel-occurrence`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date, reason }),
+        body: JSON.stringify({ date, reason, hidden: hideFromStudents }),
       })
       if (res.ok) {
         setCancelled(true)
         setCancelReason(reason ?? null)
+        setCancelHidden(hideFromStudents)
         setBookings(prev => prev.map(b => ({ ...b, status: 'CANCELLED' })))
         setSubPanel(null)
         setReasonInput('')
+        setHideFromStudents(false)
       }
     } finally {
       setCancelling(false)
+    }
+  }
+
+  async function handleToggleHidden() {
+    const next = !cancelHidden
+    setTogglingHidden(true)
+    try {
+      const res = await fetch(`/api/dashboard/classes/${cls.id}/cancel-occurrence`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        // No `reason` here — omitting it (rather than sending '') leaves the
+        // existing reason untouched, since the route only overwrites fields
+        // that are present in the body. Bookings are already CANCELLED at
+        // this point, so this re-hits an idempotent no-op on that half of
+        // the route (no duplicate student emails).
+        body: JSON.stringify({ date, hidden: next }),
+      })
+      if (res.ok) setCancelHidden(next)
+    } finally {
+      setTogglingHidden(false)
     }
   }
 
@@ -257,6 +282,7 @@ export default function ClassDetailPopup({ cls, date, onClose }: Props) {
       if (res.ok) {
         setCancelled(false)
         setCancelReason(null)
+        setCancelHidden(false)
       }
     } finally {
       setReactivating(false)
@@ -277,7 +303,7 @@ export default function ClassDetailPopup({ cls, date, onClose }: Props) {
           <div className="absolute inset-0 flex items-end justify-between px-4 pb-3">
             <div>
               {subPanel && (
-                <button onClick={() => { setSubPanel(null); setAddError(null); setReasonInput('') }}
+                <button onClick={() => { setSubPanel(null); setAddError(null); setReasonInput(''); setHideFromStudents(false) }}
                   style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: 4 }}>
                   <ArrowLeft size={13} />
                   <span style={{ fontSize: 11, opacity: 0.8 }}>Back</span>
@@ -430,8 +456,25 @@ export default function ClassDetailPopup({ cls, date, onClose }: Props) {
                 />
               </div>
 
+              <button
+                onClick={() => setHideFromStudents(v => !v)}
+                className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl cursor-pointer text-left"
+                style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>Hide from students</p>
+                  <p style={{ fontSize: 11, color: '#6B7280', marginTop: 1 }}>
+                    Removes it from their schedule entirely, instead of showing as cancelled
+                  </p>
+                </div>
+                <div style={{ width: 38, height: 22, borderRadius: 999, flexShrink: 0, position: 'relative',
+                  background: hideFromStudents ? '#111827' : '#D1D5DB', transition: 'background 0.15s' }}>
+                  <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#fff', position: 'absolute',
+                    top: 2, left: hideFromStudents ? 18 : 2, transition: 'left 0.15s', boxShadow: '0 1px 2px rgba(0,0,0,0.15)' }} />
+                </div>
+              </button>
+
               <div className="flex gap-2">
-                <button onClick={() => { setSubPanel(null); setReasonInput('') }}
+                <button onClick={() => { setSubPanel(null); setReasonInput(''); setHideFromStudents(false) }}
                   className="flex-1 py-3 rounded-2xl cursor-pointer"
                   style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', fontSize: 13, fontWeight: 600, color: '#374151' }}>
                   Never mind
@@ -587,6 +630,25 @@ export default function ClassDetailPopup({ cls, date, onClose }: Props) {
                   {cancelReason && (
                     <p style={{ fontSize: 12, color: '#B91C1C', paddingLeft: 23 }}>&ldquo;{cancelReason}&rdquo;</p>
                   )}
+
+                  <button
+                    onClick={handleToggleHidden}
+                    disabled={togglingHidden}
+                    className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl cursor-pointer text-left"
+                    style={{ background: '#fff', border: '1px solid #FECACA', opacity: togglingHidden ? 0.7 : 1 }}>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontSize: 12, fontWeight: 600, color: '#111827' }}>Hide from students</p>
+                      <p style={{ fontSize: 10.5, color: '#6B7280', marginTop: 1 }}>
+                        {cancelHidden ? 'Removed from their schedule entirely' : 'Currently visible to students as cancelled'}
+                      </p>
+                    </div>
+                    <div style={{ width: 34, height: 20, borderRadius: 999, flexShrink: 0, position: 'relative',
+                      background: cancelHidden ? '#111827' : '#D1D5DB', transition: 'background 0.15s' }}>
+                      <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#fff', position: 'absolute',
+                        top: 2, left: cancelHidden ? 16 : 2, transition: 'left 0.15s', boxShadow: '0 1px 2px rgba(0,0,0,0.15)' }} />
+                    </div>
+                  </button>
+
                   <button onClick={handleReactivate} disabled={reactivating}
                     className="flex items-center justify-center gap-2 py-2.5 rounded-xl cursor-pointer"
                     style={{ background: '#fff', border: '1px solid #FECACA', fontSize: 12, fontWeight: 600, color: '#DC2626', opacity: reactivating ? 0.7 : 1 }}>

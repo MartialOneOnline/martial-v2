@@ -166,7 +166,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const occurrenceDate = new Date(`${dateParam ?? new Date().toISOString().slice(0, 10)}T00:00:00.000Z`)
   const cancellation = await prisma.classCancellation.findUnique({
     where: { classId_date: { classId, date: occurrenceDate } },
-    select: { reason: true },
+    select: { reason: true, hidden: true },
   })
 
   const bookings = await prisma.booking.findMany({
@@ -203,6 +203,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   return NextResponse.json({
     cancelled: !!cancellation,
     cancelReason: cancellation?.reason ?? null,
+    cancelHidden: cancellation?.hidden ?? false,
     bookings: bookings.map(b => {
       const member     = b.user?.schoolMembers?.[0]
       const membership = b.user?.memberships?.[0]

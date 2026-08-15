@@ -723,6 +723,14 @@ model ClassCancellation {
   date   DateTime // UTC midnight of the cancelled occurrence's day
   reason String?
 
+  // When true, the occurrence is dropped entirely from student-facing
+  // listings (/api/my/school-classes) instead of showing as a greyed-out
+  // "Cancelled" card — for occurrences that should never have been visible
+  // (a duplicate, a test slot) rather than a real session students had
+  // booked. Staff-side views (dashboard) always show the cancellation
+  // regardless of this flag.
+  hidden Boolean @default(false)
+
   createdAt DateTime @default(now())
 
   @@unique([classId, date])

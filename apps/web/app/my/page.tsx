@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import {
   Calendar, Clock, CalendarCheck, QrCode, CalendarPlus,
-  CreditCard, TrendingUp, ChevronRight, CheckCircle2, Ticket,
+  CreditCard, TrendingUp, ChevronRight, CheckCircle2, Ticket, Users, Info,
 } from 'lucide-react'
 import { fmtPrice } from '../../lib/format'
 import { getBeltImage } from '../../lib/belts'
@@ -28,7 +28,11 @@ type Occurrence = {
   booked: number
   alreadyBooked: boolean
   canBook: boolean
+  cancelled: boolean
+  cancelReason: string | null
 }
+
+type Attendee = { id: string; name: string; avatarUrl: string | null; belt: string | null; beltDegree: number }
 
 type UserData = {
   user: {
@@ -195,7 +199,19 @@ export default function MyHomePage() {
   const [cancelOcc, setCancelOcc]   = useState<Occurrence | null>(null)
   const [cancelling, setCancelling] = useState(false)
   const [bookSuccessOcc, setBookSuccessOcc] = useState<Occurrence | null>(null)
+  const [attendees, setAttendees] = useState<Attendee[]>([])
+  const [loadingAttendees, setLoadingAttendees] = useState(true)
   const carRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!detailOcc || detailOcc.cancelled) { setLoadingAttendees(false); return }
+    setLoadingAttendees(true)
+    myFetch(`/api/my/school-classes/${detailOcc.classId}/attendees?scheduledAt=${encodeURIComponent(detailOcc.scheduledAt)}`)
+      .then(res => res.ok ? res.json() : { attendees: [] })
+      .then(d => setAttendees(d.attendees ?? []))
+      .catch(() => setAttendees([]))
+      .finally(() => setLoadingAttendees(false))
+  }, [detailOcc])
 
   useEffect(() => {
     myFetch('/api/my')
@@ -659,27 +675,34 @@ export default function MyHomePage() {
                   {/* Photo — fixed aspect-ratio (not a fixed height) so it scales cleanly
                       with the card width instead of stretching or cropping oddly. 16:9 keeps
                       the card shorter overall than a taller 4:3-ish ratio would. */}
-                  <div className="relative shrink-0 overflow-hidden" style={{ aspectRatio: '16 / 9', borderRadius: '8px 8px 0 0', background: classGradient(occ.className) }}>
+                  <div className="relative shrink-0 overflow-hidden" style={{ aspectRatio: '16 / 9', borderRadius: '8px 8px 0 0', background: occ.cancelled ? '#D1D1D6' : classGradient(occ.className) }}>
                     {occ.coverUrl && (
                       <img
                         src={occ.coverUrl}
                         alt={occ.className}
-                        className="absolute inset-0 w-full h-full object-cover"
+                        className={`absolute inset-0 w-full h-full object-cover transition-all ${occ.cancelled ? 'grayscale opacity-60' : ''}`}
                         style={{ borderRadius: '8px 8px 0 0' }}
                       />
                     )}
                     {/* Overlay */}
                     <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,.04) 0%, rgba(0,0,0,.22) 100%)', zIndex: 1 }} />
                     {/* Badge */}
-                    <span className="absolute top-2 left-2 text-[10px] font-medium uppercase tracking-wide" style={{ zIndex: 2, background: 'rgba(14,0,0,.45)', border: '0.6px solid rgba(255,255,255,.2)', borderRadius: 4, padding: '3px 7px', color: 'rgba(255,255,255,.95)', letterSpacing: '.5px' }}>
-                      {classTypeBadge(occ.className)}
-                    </span>
+                    {occ.cancelled ? (
+                      <span className="absolute top-2 left-2 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide" style={{ zIndex: 2, background: 'rgba(17,17,17,.75)', borderRadius: 999, padding: '3px 8px', color: '#fff', letterSpacing: '.5px' }}>
+                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'rgba(255,255,255,.7)' }} />
+                        {t.my.classCancelledBadge}
+                      </span>
+                    ) : (
+                      <span className="absolute top-2 left-2 text-[10px] font-medium uppercase tracking-wide" style={{ zIndex: 2, background: 'rgba(14,0,0,.45)', border: '0.6px solid rgba(255,255,255,.2)', borderRadius: 4, padding: '3px 7px', color: 'rgba(255,255,255,.95)', letterSpacing: '.5px' }}>
+                        {classTypeBadge(occ.className)}
+                      </span>
+                    )}
                   </div>
 
                   {/* Body */}
                   <div className="flex flex-col flex-1" style={{ padding: '10px 12px 11px' }}>
                     <div className="flex items-start justify-between gap-1.5 mb-1">
-                      <span className="text-sm font-medium leading-tight" style={{ color: '#061229' }}>{occ.className}</span>
+                      <span className="text-sm font-medium leading-tight" style={{ color: occ.cancelled ? '#9E9E9E' : '#061229' }}>{occ.className}</span>
                       {occ.capacity !== null && (
                         <span className="text-xs font-normal shrink-0" style={{ color: '#061229' }}>{occ.booked}/{occ.capacity}</span>
                       )}
@@ -699,7 +722,14 @@ export default function MyHomePage() {
                       >
                         {t.my.details}
                       </button>
-                      {occ.alreadyBooked ? (
+                      {occ.cancelled ? (
+                        <span
+                          className="flex-1 text-center text-xs font-medium rounded-lg"
+                          style={{ background: '#F5F5F5', color: '#9E9E9E', padding: '6px 0', fontSize: 11.5 }}
+                        >
+                          {t.my.classCancelledBadge}
+                        </span>
+                      ) : occ.alreadyBooked ? (
                         <button
                           onClick={() => setCancelOcc(occ)}
                           className="flex-1 text-center text-xs font-medium rounded-lg"
@@ -881,13 +911,27 @@ export default function MyHomePage() {
                 <span>{detailOcc.school.name}</span>
               </div>
 
-              {detailOcc.level && (
+              {detailOcc.cancelled && (
+                <div className="flex items-start gap-3 p-3.5 rounded-2xl mb-4" style={{ background: '#F5F5F5' }}>
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ background: '#E5E5EA' }}>
+                    <Info className="w-4 h-4" style={{ color: '#6B6B70' }} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold" style={{ color: '#1C1C1E' }}>{t.my.classCancelledTitle}</p>
+                    {detailOcc.cancelReason && (
+                      <p className="text-xs mt-0.5 leading-relaxed" style={{ color: '#6B6B70' }}>{detailOcc.cancelReason}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {!detailOcc.cancelled && detailOcc.level && (
                 <span className="inline-block text-xs font-medium px-3 py-1 rounded-full mb-4" style={{ background: '#E8F7FF', color: '#006197' }}>
                   {detailOcc.level}
                 </span>
               )}
 
-              {detailOcc.instructor && (
+              {!detailOcc.cancelled && detailOcc.instructor && (
                 <div className="flex items-center gap-3 p-3 rounded-2xl mb-4" style={{ background: '#F5F5F5' }}>
                   {detailOcc.instructor.photoUrl ? (
                     <img src={detailOcc.instructor.photoUrl} alt="" className="w-10 h-10 rounded-full object-cover" />
@@ -903,6 +947,52 @@ export default function MyHomePage() {
                 </div>
               )}
 
+              {!detailOcc.cancelled && (
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-2.5">
+                  <p className="text-xs font-semibold flex items-center gap-1.5" style={{ color: '#1C1C1E' }}>
+                    <Users className="w-3.5 h-3.5" style={{ color: '#9E9E9E' }} />
+                    {t.my.whosComingLabel}
+                  </p>
+                  {detailOcc.capacity !== null && (
+                    <span className="text-xs font-semibold" style={{ color: '#9E9E9E' }}>{detailOcc.booked}/{detailOcc.capacity}</span>
+                  )}
+                </div>
+                {loadingAttendees ? (
+                  <div className="space-y-2">
+                    {[0, 1, 2].map(i => (
+                      <div key={i} className="flex items-center gap-2.5 animate-pulse">
+                        <div className="w-8 h-8 rounded-full shrink-0" style={{ background: '#F0F0F0' }} />
+                        <div className="h-3 w-24 rounded" style={{ background: '#F0F0F0' }} />
+                      </div>
+                    ))}
+                  </div>
+                ) : attendees.length === 0 ? (
+                  <p className="text-xs py-1" style={{ color: '#9E9E9E' }}>{t.my.noOneBookedYet}</p>
+                ) : (
+                  <div className="space-y-2.5">
+                    {attendees.map(a => (
+                      <div key={a.id} className="flex items-center gap-2.5">
+                        {a.avatarUrl ? (
+                          <img src={a.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ background: '#E8F7FF' }}>
+                            <span className="text-xs font-semibold" style={{ color: '#006197' }}>{a.name[0]}</span>
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold truncate" style={{ color: '#1C1C1E' }}>{a.name}</p>
+                          {a.belt && (
+                            <img src={getBeltImage(a.belt, a.beltDegree)} alt={a.belt} className="h-2.5 w-auto max-w-[70px] object-contain mt-1" />
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              )}
+
               <div className="flex gap-3">
                 <button
                   onClick={() => setDetailOcc(null)}
@@ -911,7 +1001,11 @@ export default function MyHomePage() {
                 >
                   {t.my.close}
                 </button>
-                {detailOcc.alreadyBooked ? (
+                {detailOcc.cancelled ? (
+                  <div className="flex-1 py-3 rounded-2xl text-sm font-medium flex items-center justify-center" style={{ background: '#F5F5F5', color: '#9E9E9E' }}>
+                    {t.my.classCancelledBadge}
+                  </div>
+                ) : detailOcc.alreadyBooked ? (
                   <div className="flex-1 py-3 rounded-2xl text-sm font-medium flex items-center justify-center gap-1" style={{ background: '#E4F7EB', color: '#1E8734' }}>
                     {t.my.bookedCheck}
                   </div>

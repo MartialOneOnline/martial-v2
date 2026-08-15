@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { Calendar, Clock, MapPin, ChevronLeft, ChevronRight, Users, CheckCircle2, X, Info, CalendarDays, Ticket, Zap } from 'lucide-react'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { isStudentContextRequired, chooseProfileUrl } from '../../../lib/studentContext'
+import { getBeltImage } from '../../../lib/belts'
 import { myFetch } from '../../../lib/api/myFetch'
 
 /* ── Types ── */
@@ -350,14 +351,6 @@ function groupByDate<T extends { scheduledAt: string }>(items: T[], todayLabel: 
 
 type Attendee = { id: string; name: string; avatarUrl: string | null; belt: string | null; beltDegree: number }
 
-const BELT_COLORS: Record<string, string> = {
-  'White Belt':  '#D1D5DB',
-  'Blue Belt':   '#3B82F6',
-  'Purple Belt': '#8B5CF6',
-  'Brown Belt':  '#92400E',
-  'Black Belt':  '#1F2937',
-}
-
 /* ── Detail drawer ── */
 function DetailDrawer({ occ, onClose, onBook }: {
   occ: Occurrence
@@ -497,31 +490,23 @@ function DetailDrawer({ occ, onClose, onBook }: {
               <p className="text-xs text-gray-400 py-1">{t.my.noOneBookedYet}</p>
             ) : (
               <div className="space-y-2.5">
-                {attendees.map(a => {
-                  const color = a.belt ? (BELT_COLORS[a.belt] ?? '#9CA3AF') : null
-                  return (
-                    <div key={a.id} className="flex items-center gap-2.5">
-                      {a.avatarUrl ? (
-                        <img src={a.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-[#0870E2]/10 flex items-center justify-center shrink-0">
-                          <span className="text-[#0870E2] font-bold text-xs">{a.name[0]}</span>
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-[#061229] truncate">{a.name}</p>
-                        {a.belt && (
-                          <div className="flex items-center gap-1.5 mt-0.5">
-                            <div className="h-1 w-16 rounded-full bg-gray-100 overflow-hidden shrink-0">
-                              <div className="h-full rounded-full" style={{ width: `${(a.beltDegree / 4) * 100}%`, background: color! }} />
-                            </div>
-                            <span className="text-[10px] text-gray-400 truncate">{a.belt}</span>
-                          </div>
-                        )}
+                {attendees.map(a => (
+                  <div key={a.id} className="flex items-center gap-2.5">
+                    {a.avatarUrl ? (
+                      <img src={a.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-[#0870E2]/10 flex items-center justify-center shrink-0">
+                        <span className="text-[#0870E2] font-bold text-xs">{a.name[0]}</span>
                       </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-[#061229] truncate">{a.name}</p>
+                      {a.belt && (
+                        <img src={getBeltImage(a.belt, a.beltDegree)} alt={a.belt} className="h-2.5 w-auto max-w-[70px] object-contain mt-1" />
+                      )}
                     </div>
-                  )
-                })}
+                  </div>
+                ))}
               </div>
             )}
           </div>

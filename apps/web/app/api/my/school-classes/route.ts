@@ -193,11 +193,11 @@ export async function GET() {
   // exact instant) since that's the granularity staff cancel at.
   const cancellations = await prisma.classCancellation.findMany({
     where: { classId: { in: classes.map(c => c.id) }, date: { gte: dayKey(now), lte: dayKey(cutoff) } },
-    select: { classId: true, date: true, reason: true },
+    select: { classId: true, date: true, reason: true, hidden: true },
   })
-  const cancelledByKey = new Map<string, string | null>()
+  const cancelledByKey = new Map<string, { reason: string | null; hidden: boolean }>()
   for (const c of cancellations) {
-    cancelledByKey.set(`${c.classId}:${c.date.toISOString().slice(0, 10)}`, c.reason)
+    cancelledByKey.set(`${c.classId}:${c.date.toISOString().slice(0, 10)}`, { reason: c.reason, hidden: c.hidden })
   }
 
   for (const cls of classes) {
@@ -223,28 +223,36 @@ export async function GET() {
         })
         const alreadyBooked = bookedSet.has(key)
         const cancelKey = `${cls.id}:${cursor.toISOString().slice(0, 10)}`
-        const cancelled = cancelledByKey.has(cancelKey)
-        const cancelReason = cancelledByKey.get(cancelKey) ?? null
-        occurrences.push({
-          classId: cls.id,
-          className: cls.name,
-          scheduledAt: cursor.toISOString(),
-          duration: cls.duration,
-          level: cls.level,
-          capacity: cls.capacity,
-          coverUrl: cls.coverUrl,
-          school: cls.school,
-          instructor: cls.instructor,
-          booked: bookedCount,
-          alreadyBooked,
-          // Eligible AND not already booked AND not cancelled — POST
-          // /api/bookings remains the final authority (it re-validates
-          // everything transactionally, including the cancellation check),
-          // this only drives whether the client shows a "Book" button.
-          canBook: eligibility.allowed && !alreadyBooked && !cancelled,
-          cancelled,
-          cancelReason,
-        })
+        const cancellation = cancelledByKey.get(cancelKey)
+        const cancelled = !!cancellation
+
+        // Hidden cancellations are dropped entirely from the student-facing
+        // list (see ClassCancellation.hidden) — never generated for a
+        // student who wasn't already booked. A student who *had* booked
+        // still sees it via their own booking history / next-class widget,
+        // since that reads Booking rows directly, not this occurrence list.
+        if (!cancellation?.hidden) {
+          occurrences.push({
+            classId: cls.id,
+            className: cls.name,
+            scheduledAt: cursor.toISOString(),
+            duration: cls.duration,
+            level: cls.level,
+            capacity: cls.capacity,
+            coverUrl: cls.coverUrl,
+            school: cls.school,
+            instructor: cls.instructor,
+            booked: bookedCount,
+            alreadyBooked,
+            // Eligible AND not already booked AND not cancelled — POST
+            // /api/bookings remains the final authority (it re-validates
+            // everything transactionally, including the cancellation check),
+            // this only drives whether the client shows a "Book" button.
+            canBook: eligibility.allowed && !alreadyBooked && !cancelled,
+            cancelled,
+            cancelReason: cancellation?.reason ?? null,
+          })
+        }
         // Next week same slot
         const next = new Date(cursor)
         next.setUTCDate(next.getUTCDate() + 7)

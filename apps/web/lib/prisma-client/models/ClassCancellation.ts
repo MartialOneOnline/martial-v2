@@ -29,6 +29,7 @@ export type ClassCancellationMinAggregateOutputType = {
   classId: string | null
   date: Date | null
   reason: string | null
+  hidden: boolean | null
   createdAt: Date | null
 }
 
@@ -37,6 +38,7 @@ export type ClassCancellationMaxAggregateOutputType = {
   classId: string | null
   date: Date | null
   reason: string | null
+  hidden: boolean | null
   createdAt: Date | null
 }
 
@@ -45,6 +47,7 @@ export type ClassCancellationCountAggregateOutputType = {
   classId: number
   date: number
   reason: number
+  hidden: number
   createdAt: number
   _all: number
 }
@@ -55,6 +58,7 @@ export type ClassCancellationMinAggregateInputType = {
   classId?: true
   date?: true
   reason?: true
+  hidden?: true
   createdAt?: true
 }
 
@@ -63,6 +67,7 @@ export type ClassCancellationMaxAggregateInputType = {
   classId?: true
   date?: true
   reason?: true
+  hidden?: true
   createdAt?: true
 }
 
@@ -71,6 +76,7 @@ export type ClassCancellationCountAggregateInputType = {
   classId?: true
   date?: true
   reason?: true
+  hidden?: true
   createdAt?: true
   _all?: true
 }
@@ -152,6 +158,7 @@ export type ClassCancellationGroupByOutputType = {
   classId: string
   date: Date
   reason: string | null
+  hidden: boolean
   createdAt: Date
   _count: ClassCancellationCountAggregateOutputType | null
   _min: ClassCancellationMinAggregateOutputType | null
@@ -181,6 +188,7 @@ export type ClassCancellationWhereInput = {
   classId?: Prisma.StringFilter<"ClassCancellation"> | string
   date?: Prisma.DateTimeFilter<"ClassCancellation"> | Date | string
   reason?: Prisma.StringNullableFilter<"ClassCancellation"> | string | null
+  hidden?: Prisma.BoolFilter<"ClassCancellation"> | boolean
   createdAt?: Prisma.DateTimeFilter<"ClassCancellation"> | Date | string
   class?: Prisma.XOR<Prisma.ClassScalarRelationFilter, Prisma.ClassWhereInput>
 }
@@ -190,6 +198,7 @@ export type ClassCancellationOrderByWithRelationInput = {
   classId?: Prisma.SortOrder
   date?: Prisma.SortOrder
   reason?: Prisma.SortOrderInput | Prisma.SortOrder
+  hidden?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   class?: Prisma.ClassOrderByWithRelationInput
 }
@@ -203,6 +212,7 @@ export type ClassCancellationWhereUniqueInput = Prisma.AtLeast<{
   classId?: Prisma.StringFilter<"ClassCancellation"> | string
   date?: Prisma.DateTimeFilter<"ClassCancellation"> | Date | string
   reason?: Prisma.StringNullableFilter<"ClassCancellation"> | string | null
+  hidden?: Prisma.BoolFilter<"ClassCancellation"> | boolean
   createdAt?: Prisma.DateTimeFilter<"ClassCancellation"> | Date | string
   class?: Prisma.XOR<Prisma.ClassScalarRelationFilter, Prisma.ClassWhereInput>
 }, "id" | "classId_date">
@@ -212,6 +222,7 @@ export type ClassCancellationOrderByWithAggregationInput = {
   classId?: Prisma.SortOrder
   date?: Prisma.SortOrder
   reason?: Prisma.SortOrderInput | Prisma.SortOrder
+  hidden?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.ClassCancellationCountOrderByAggregateInput
   _max?: Prisma.ClassCancellationMaxOrderByAggregateInput
@@ -226,6 +237,7 @@ export type ClassCancellationScalarWhereWithAggregatesInput = {
   classId?: Prisma.StringWithAggregatesFilter<"ClassCancellation"> | string
   date?: Prisma.DateTimeWithAggregatesFilter<"ClassCancellation"> | Date | string
   reason?: Prisma.StringNullableWithAggregatesFilter<"ClassCancellation"> | string | null
+  hidden?: Prisma.BoolWithAggregatesFilter<"ClassCancellation"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ClassCancellation"> | Date | string
 }
 
@@ -233,6 +245,7 @@ export type ClassCancellationCreateInput = {
   id?: string
   date: Date | string
   reason?: string | null
+  hidden?: boolean
   createdAt?: Date | string
   class: Prisma.ClassCreateNestedOneWithoutCancellationsInput
 }
@@ -242,6 +255,7 @@ export type ClassCancellationUncheckedCreateInput = {
   classId: string
   date: Date | string
   reason?: string | null
+  hidden?: boolean
   createdAt?: Date | string
 }
 
@@ -249,6 +263,7 @@ export type ClassCancellationUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   class?: Prisma.ClassUpdateOneRequiredWithoutCancellationsNestedInput
 }
@@ -258,6 +273,7 @@ export type ClassCancellationUncheckedUpdateInput = {
   classId?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -266,6 +282,7 @@ export type ClassCancellationCreateManyInput = {
   classId: string
   date: Date | string
   reason?: string | null
+  hidden?: boolean
   createdAt?: Date | string
 }
 
@@ -273,6 +290,7 @@ export type ClassCancellationUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -281,6 +299,7 @@ export type ClassCancellationUncheckedUpdateManyInput = {
   classId?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -304,6 +323,7 @@ export type ClassCancellationCountOrderByAggregateInput = {
   classId?: Prisma.SortOrder
   date?: Prisma.SortOrder
   reason?: Prisma.SortOrder
+  hidden?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -312,6 +332,7 @@ export type ClassCancellationMaxOrderByAggregateInput = {
   classId?: Prisma.SortOrder
   date?: Prisma.SortOrder
   reason?: Prisma.SortOrder
+  hidden?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -320,6 +341,7 @@ export type ClassCancellationMinOrderByAggregateInput = {
   classId?: Prisma.SortOrder
   date?: Prisma.SortOrder
   reason?: Prisma.SortOrder
+  hidden?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -369,6 +391,7 @@ export type ClassCancellationCreateWithoutClassInput = {
   id?: string
   date: Date | string
   reason?: string | null
+  hidden?: boolean
   createdAt?: Date | string
 }
 
@@ -376,6 +399,7 @@ export type ClassCancellationUncheckedCreateWithoutClassInput = {
   id?: string
   date: Date | string
   reason?: string | null
+  hidden?: boolean
   createdAt?: Date | string
 }
 
@@ -413,6 +437,7 @@ export type ClassCancellationScalarWhereInput = {
   classId?: Prisma.StringFilter<"ClassCancellation"> | string
   date?: Prisma.DateTimeFilter<"ClassCancellation"> | Date | string
   reason?: Prisma.StringNullableFilter<"ClassCancellation"> | string | null
+  hidden?: Prisma.BoolFilter<"ClassCancellation"> | boolean
   createdAt?: Prisma.DateTimeFilter<"ClassCancellation"> | Date | string
 }
 
@@ -420,6 +445,7 @@ export type ClassCancellationCreateManyClassInput = {
   id?: string
   date: Date | string
   reason?: string | null
+  hidden?: boolean
   createdAt?: Date | string
 }
 
@@ -427,6 +453,7 @@ export type ClassCancellationUpdateWithoutClassInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -434,6 +461,7 @@ export type ClassCancellationUncheckedUpdateWithoutClassInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -441,6 +469,7 @@ export type ClassCancellationUncheckedUpdateManyWithoutClassInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -451,6 +480,7 @@ export type ClassCancellationSelect<ExtArgs extends runtime.Types.Extensions.Int
   classId?: boolean
   date?: boolean
   reason?: boolean
+  hidden?: boolean
   createdAt?: boolean
   class?: boolean | Prisma.ClassDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["classCancellation"]>
@@ -460,6 +490,7 @@ export type ClassCancellationSelectCreateManyAndReturn<ExtArgs extends runtime.T
   classId?: boolean
   date?: boolean
   reason?: boolean
+  hidden?: boolean
   createdAt?: boolean
   class?: boolean | Prisma.ClassDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["classCancellation"]>
@@ -469,6 +500,7 @@ export type ClassCancellationSelectUpdateManyAndReturn<ExtArgs extends runtime.T
   classId?: boolean
   date?: boolean
   reason?: boolean
+  hidden?: boolean
   createdAt?: boolean
   class?: boolean | Prisma.ClassDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["classCancellation"]>
@@ -478,10 +510,11 @@ export type ClassCancellationSelectScalar = {
   classId?: boolean
   date?: boolean
   reason?: boolean
+  hidden?: boolean
   createdAt?: boolean
 }
 
-export type ClassCancellationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "classId" | "date" | "reason" | "createdAt", ExtArgs["result"]["classCancellation"]>
+export type ClassCancellationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "classId" | "date" | "reason" | "hidden" | "createdAt", ExtArgs["result"]["classCancellation"]>
 export type ClassCancellationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   class?: boolean | Prisma.ClassDefaultArgs<ExtArgs>
 }
@@ -502,6 +535,7 @@ export type $ClassCancellationPayload<ExtArgs extends runtime.Types.Extensions.I
     classId: string
     date: Date
     reason: string | null
+    hidden: boolean
     createdAt: Date
   }, ExtArgs["result"]["classCancellation"]>
   composites: {}
@@ -931,6 +965,7 @@ export interface ClassCancellationFieldRefs {
   readonly classId: Prisma.FieldRef<"ClassCancellation", 'String'>
   readonly date: Prisma.FieldRef<"ClassCancellation", 'DateTime'>
   readonly reason: Prisma.FieldRef<"ClassCancellation", 'String'>
+  readonly hidden: Prisma.FieldRef<"ClassCancellation", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"ClassCancellation", 'DateTime'>
 }
     

@@ -4180,6 +4180,7 @@ export const ClassCancellationScalarFieldEnum = {
   classId: 'classId',
   date: 'date',
   reason: 'reason',
+  hidden: 'hidden',
   createdAt: 'createdAt'
 } as const
 
