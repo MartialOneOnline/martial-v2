@@ -11,6 +11,7 @@ import type { SchoolContext } from '@/lib/auth/contexts'
 import { safeRedirect } from '@/lib/safeRedirect'
 import { resolveLoginRedirectAction } from '@/lib/auth/loginRedirect'
 import { fetchAvailableContexts } from '@/app/choose-profile/logic'
+import { useGoogleSignInButton } from '@/lib/useGoogleSignInButton'
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 function GoogleIcon() {
@@ -220,6 +221,24 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
     if (err) { setError(err.message); setOauthLoading(null) }
   }
 
+  // Google signs in with an ID token right here (see useGoogleSignInButton)
+  // instead of redirecting through Supabase's OAuth endpoint, so there's
+  // already a session by the time this navigates. Still hands off to /login
+  // with `?oauth=1` — same reasoning as the redirect-based providers above:
+  // this modal unmounts on navigation, so /login's onAuthStateChange effect
+  // is what actually runs the login-event ping + resolveRedirect().
+  const handleGoogleCredential = async (idToken: string) => {
+    setError('')
+    setOauthLoading('google')
+    const { error: err } = await supabase.auth.signInWithIdToken({ provider: 'google', token: idToken })
+    if (err) { setError(err.message); setOauthLoading(null); return }
+    const safeTo = safeRedirect(redirectTo)
+    const redirectQuery = safeTo ? `&redirect=${encodeURIComponent(safeTo)}` : ''
+    onClose()
+    router.push(`/login?oauth=1${redirectQuery}`)
+  }
+  const googleButtonRef = useGoogleSignInButton(handleGoogleCredential)
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setEmailErr(''); setPassErr(''); setError('')
@@ -334,9 +353,18 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
                 <p className="text-[14px] text-[#6b7280] text-center mb-7">Your martial journey starts here</p>
 
                 <div className="flex flex-col gap-3">
-                  <SSOButton icon={<GoogleIcon />} label="Continue with Google"
-                    loading={oauthLoading === 'google'} disabled={oauthLoading !== null}
-                    onClick={() => handleOAuth('google')} />
+                  <div className="relative h-[52px]">
+                    <SSOButton icon={<GoogleIcon />} label="Continue with Google"
+                      loading={oauthLoading === 'google'} disabled={oauthLoading !== null}
+                      onClick={() => {}} />
+                    {/* Google's real button, invisible and stacked on top —
+                        see app/login/page.tsx for the full "why". */}
+                    <div
+                      ref={googleButtonRef}
+                      className="absolute inset-0 flex items-center justify-center overflow-hidden opacity-0"
+                      style={{ pointerEvents: oauthLoading !== null && oauthLoading !== 'google' ? 'none' : 'auto' }}
+                    />
+                  </div>
                   <SSOButton icon={<AppleIcon />} label="Continue with Apple"
                     loading={oauthLoading === 'apple'} disabled={oauthLoading !== null}
                     onClick={() => handleOAuth('apple')} />

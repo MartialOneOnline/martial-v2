@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { useGoogleSignInButton } from '@/lib/useGoogleSignInButton'
 
 const BORDER = '#E5E7EB'
 const MUTED = '#6B7280'
@@ -47,7 +49,15 @@ const PROVIDERS: { id: OAuthProvider; label: string; icon: () => React.JSX.Eleme
 // the PKCE `?code=` exchange, the login-event ping that provisions the
 // prisma.user row for a first-time signup, and resolveRedirect(). Reusing it
 // avoids re-implementing that sequence wherever this component is dropped in.
+//
+// Google is the exception: it signs in with an ID token right here (see
+// useGoogleSignInButton) instead of redirecting through Supabase's OAuth
+// endpoint, so there's already a session by the time /login loads. It still
+// gets sent there with `?oauth=1` so the login-event ping and
+// resolveRedirect() logic isn't duplicated — see the matching branch in
+// app/login/page.tsx's onAuthStateChange effect.
 export function SocialAuthButtons({ redirectPath }: { redirectPath?: string }) {
+  const router = useRouter()
   const supabase = createClient()
   const [loading, setLoading] = useState<OAuthProvider | null>(null)
   const [error, setError] = useState('')
@@ -66,10 +76,44 @@ export function SocialAuthButtons({ redirectPath }: { redirectPath?: string }) {
     if (err) { setError(err.message); setLoading(null) }
   }
 
+  async function handleGoogleCredential(idToken: string) {
+    setError('')
+    setLoading('google')
+    const { error: err } = await supabase.auth.signInWithIdToken({ provider: 'google', token: idToken })
+    if (err) { setError(err.message); setLoading(null); return }
+    const redirectQuery = redirectPath ? `&redirect=${encodeURIComponent(redirectPath)}` : ''
+    router.push(`/login?oauth=1${redirectQuery}`)
+  }
+  const googleButtonRef = useGoogleSignInButton(handleGoogleCredential)
+
   return (
     <div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {PROVIDERS.map(({ id, label, icon: Icon }) => (
+        <div style={{ position: 'relative', height: 52 }}>
+          <button
+            type="button"
+            disabled={loading !== null}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+              height: 52, border: `1px solid ${BORDER}`, borderRadius: 12, background: '#fff',
+              fontSize: 14, fontWeight: 600, color: TEXT,
+              cursor: loading !== null ? 'not-allowed' : 'pointer', opacity: loading !== null && loading !== 'google' ? 0.6 : 1,
+            }}>
+            <GoogleIcon />
+            {loading === 'google' ? 'Redirigiendo…' : 'Continuar con Google'}
+          </button>
+          {/* Google's real button, invisible and stacked on top — see the
+              matching pattern (and the "why") in app/login/page.tsx. */}
+          <div
+            ref={googleButtonRef}
+            style={{
+              position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              overflow: 'hidden', opacity: 0,
+              pointerEvents: loading !== null && loading !== 'google' ? 'none' : 'auto',
+            }}
+          />
+        </div>
+        {PROVIDERS.filter(({ id }) => id !== 'google').map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             type="button"

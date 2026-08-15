@@ -11,6 +11,7 @@ import { safeConfirmRedirect } from '@/lib/authConfirmRedirect'
 import { resolveLoginRedirectAction } from '@/lib/auth/loginRedirect'
 import { fetchAvailableContexts } from '@/app/choose-profile/logic'
 import { useT } from '@/lib/i18n/LanguageContext'
+import { useGoogleSignInButton } from '@/lib/useGoogleSignInButton'
 
 const BLUE = '#0870E2'
 const NAVY = '#0E3A7A'
@@ -110,11 +111,17 @@ function LoginPageInner() {
   // strips it from the URL asynchronously as part of its own init, racing
   // this component's effects, so the signal has to be captured synchronously
   // on first render, before that happens.
+  //
+  // `?oauth=1` is the equivalent signal for the Google ID-token flow
+  // (SocialAuthButtons, register/join) — that flow already has a session by
+  // the time it lands here (signInWithIdToken ran client-side on the
+  // previous page), so there's no `?code=` to exchange, but it still needs
+  // the same login-event ping + resolveRedirect() sequence below.
   const [oauthCallback] = useState(() => {
     if (typeof window === 'undefined') return { active: false, error: null as string | null }
     const params = new URLSearchParams(window.location.search)
     return {
-      active: params.has('code'),
+      active: params.has('code') || params.get('oauth') === '1',
       error: params.get('error_description') || params.get('error'),
     }
   })
@@ -185,7 +192,11 @@ function LoginPageInner() {
   // alongside handleLogin's own resolveRedirect() call for password logins.
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session && oauthCallback.active) {
+      // INITIAL_SESSION covers the `?oauth=1` case: the session already
+      // exists in cookies by the time this page's client initializes (set
+      // by signInWithIdToken on the previous page), so it's never a
+      // SIGNED_IN transition here.
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session && oauthCallback.active) {
         // handleLogin sends this for password logins — OAuth never went
         // through that path, so it needs its own login-event. The route
         // dedupes server-side, so this can't double up with it either.
@@ -245,6 +256,27 @@ function LoginPageInner() {
     })
     if (err) { setError(err.message); setOauthLoading(null) }
   }
+
+  // Google specifically skips signInWithOAuth's redirect round trip — the ID
+  // token comes back straight from Google's own button (rendered by
+  // useGoogleSignInButton below) without ever leaving this page, so there's
+  // no PKCE `?code=` exchange to wait for and the session is available
+  // immediately.
+  const handleGoogleCredential = async (idToken: string) => {
+    setError('')
+    setOauthLoading('google')
+    const { data, error: err } = await supabase.auth.signInWithIdToken({ provider: 'google', token: idToken })
+    if (err) { setError(err.message); setOauthLoading(null); return }
+    if (data.session?.access_token) {
+      fetch('/api/auth/login-event', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${data.session.access_token}` },
+        keepalive: true,
+      }).catch(() => {})
+    }
+    await resolveRedirect()
+  }
+  const googleButtonRef = useGoogleSignInButton(handleGoogleCredential)
 
   const handleContinueWithEmail = (e: React.FormEvent) => {
     e.preventDefault()
@@ -482,9 +514,24 @@ function LoginPageInner() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <SocialButton provider="google" label="Continuar con Google"
-                loading={oauthLoading === 'google'} disabled={oauthLoading !== null}
-                onClick={() => handleOAuth('google')} />
+              <div style={{ position: 'relative', height: 52 }}>
+                <SocialButton provider="google" label="Continuar con Google"
+                  loading={oauthLoading === 'google'} disabled={oauthLoading !== null}
+                  onClick={() => {}} />
+                {/* Google's real button, invisible and stacked on top — its
+                    click (not a simulated one) is what's actually allowed to
+                    open the account-picker popup, per Google's ToS. The
+                    visible button above is pure decoration matching
+                    Apple/Microsoft's styling. */}
+                <div
+                  ref={googleButtonRef}
+                  style={{
+                    position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    overflow: 'hidden', opacity: 0,
+                    pointerEvents: oauthLoading && oauthLoading !== 'google' ? 'none' : 'auto',
+                  }}
+                />
+              </div>
               <SocialButton provider="apple" label="Continuar con Apple"
                 loading={oauthLoading === 'apple'} disabled={oauthLoading !== null}
                 onClick={() => handleOAuth('apple')} />

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient as getSupabase } from '@/lib/supabase/client'
+import { useGoogleSignInButton } from '@/lib/useGoogleSignInButton'
 
 const C = { primary: '#0071E3', navy: '#0E3A7A', bg: '#F4F6F9', border: '#E5E7EB', text: '#111827', muted: '#6B7280', green: '#16A34A', greenBg: '#DCFCE7' }
 
@@ -121,14 +122,22 @@ export default function SetPasswordPage() {
     }
   }
 
-  const handleGoogle = async () => {
+  // ID-token flow, same reasoning as app/login/page.tsx — signs in right
+  // here instead of redirecting through Supabase's OAuth endpoint, so
+  // there's already a session by the time /auth/accept-invite mounts. It
+  // still gets sent there (not straight to the success screen) because that
+  // page owns the "wait for the session, then hand off to this page with
+  // schoolId preserved" logic in its onAuthStateChange effect, which already
+  // matches on any session regardless of event type — no changes needed
+  // there.
+  const handleGoogleCredential = async (idToken: string) => {
+    setError('')
     setGoogleLoading(true)
-    const { error: err } = await getSupabase().auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/accept-invite` },
-    })
-    if (err) { setError(err.message); setGoogleLoading(false) }
+    const { error: err } = await getSupabase().auth.signInWithIdToken({ provider: 'google', token: idToken })
+    if (err) { setError(err.message); setGoogleLoading(false); return }
+    router.push(schoolId ? `/auth/accept-invite?schoolId=${encodeURIComponent(schoolId)}` : '/auth/accept-invite')
   }
+  const googleButtonRef = useGoogleSignInButton(handleGoogleCredential)
 
   if (done) {
     return (
@@ -156,9 +165,8 @@ export default function SetPasswordPage() {
         <div style={{ background: '#fff', borderRadius: 16, border: `1px solid ${C.border}`, boxShadow: '0 4px 24px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
 
           {/* Google */}
-          <div style={{ padding: '24px 28px 20px' }}>
+          <div style={{ padding: '24px 28px 20px', position: 'relative', height: 44 }}>
             <button
-              onClick={handleGoogle}
               disabled={googleLoading}
               style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '11px 16px', border: `1px solid ${C.border}`, borderRadius: 10, background: '#fff', fontSize: 14, fontWeight: 600, color: C.text, cursor: 'pointer', transition: 'all .15s' }}
               onMouseEnter={e => (e.currentTarget.style.background = C.bg)}
@@ -171,6 +179,17 @@ export default function SetPasswordPage() {
               </svg>
               {googleLoading ? 'Redirigiendo…' : 'Continuar con Google'}
             </button>
+            {/* Google's real button, invisible and stacked on top — see
+                app/login/page.tsx for the full "why". */}
+            <div
+              ref={googleButtonRef}
+              style={{
+                position: 'absolute', top: 24, left: 28, right: 28, bottom: 20,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                overflow: 'hidden', opacity: 0,
+                pointerEvents: googleLoading ? 'none' : 'auto',
+              }}
+            />
           </div>
 
           {/* Divider */}
