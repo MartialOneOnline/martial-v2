@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/db'
 import { cookies } from 'next/headers'
@@ -5,7 +6,15 @@ import UsersClient from './UsersClient'
 import { getAuthUser } from '@/lib/auth/server'
 import { getSchoolMembership } from '@/lib/auth/contexts'
 
-export default async function UsersPage() {
+export default function UsersPage() {
+  return (
+    <Suspense>
+      <UsersPageContent />
+    </Suspense>
+  )
+}
+
+async function UsersPageContent() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 

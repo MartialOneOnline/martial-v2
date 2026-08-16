@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
@@ -362,6 +363,46 @@ export default function DashboardClient({ userName, userEmail }: Props) {
     logoUrl: string | null; coverUrl: string | null; tagline: string | null
   } | null>(null)
 
+  // Topbar search — filters students, loaded lazily on first use
+  const router = useRouter()
+  const searchBoxRef = useRef<HTMLDivElement>(null)
+  const [studentQuery, setStudentQuery] = useState('')
+  const [studentSearchOpen, setStudentSearchOpen] = useState(false)
+  const [allStudents, setAllStudents] = useState<{
+    id: string; name: string; email: string; avatarUrl: string | null
+  }[] | null>(null)
+
+  const ensureStudentsLoaded = () => {
+    if (allStudents !== null) return
+    fetch('/api/dashboard/members')
+      .then(r => r.ok ? r.json() : [])
+      .then(d => setAllStudents(Array.isArray(d) ? d : []))
+      .catch(() => setAllStudents([]))
+  }
+
+  useEffect(() => {
+    const onClickOutside = (e: MouseEvent) => {
+      if (searchBoxRef.current && !searchBoxRef.current.contains(e.target as Node)) {
+        setStudentSearchOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [])
+
+  const studentMatches = studentQuery.trim().length > 0
+    ? (allStudents ?? []).filter(s =>
+        s.name.toLowerCase().includes(studentQuery.toLowerCase()) ||
+        s.email.toLowerCase().includes(studentQuery.toLowerCase())
+      ).slice(0, 6)
+    : []
+
+  const goToStudents = (query: string) => {
+    if (!query.trim()) return
+    setStudentSearchOpen(false)
+    router.push(`/dashboard/users?search=${encodeURIComponent(query)}`)
+  }
+
   const refreshTodayClasses = (offset = activeDay) => {
     const sid = currentSchool?.schoolId
     if (!sid) return
@@ -489,11 +530,48 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           </button>
 
           {/* Search — hidden on mobile */}
-          <div className="hidden sm:flex flex-1 max-w-xs items-center gap-2 px-3 py-2 rounded-xl"
+          <div ref={searchBoxRef} className="hidden sm:flex flex-1 max-w-xs items-center gap-2 px-3 py-2 rounded-xl relative"
             style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
             <Filter size={13} strokeWidth={1.5} style={{ color: '#9CA3AF', flexShrink: 0 }} />
             <input type="text" placeholder={t.dashboard.searchPlaceholder}
+              value={studentQuery}
+              onFocus={() => { ensureStudentsLoaded(); setStudentSearchOpen(true) }}
+              onChange={e => { setStudentQuery(e.target.value); ensureStudentsLoaded(); setStudentSearchOpen(true) }}
+              onKeyDown={e => { if (e.key === 'Enter') goToStudents(studentQuery) }}
               style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
+
+            {studentSearchOpen && studentQuery.trim().length > 0 && (
+              <div style={{
+                position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
+                background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12,
+                boxShadow: '0 8px 24px rgba(0,0,0,0.08)', zIndex: 30, overflow: 'hidden',
+              }}>
+                {studentMatches.length > 0 ? studentMatches.map(s => {
+                  const initials = s.name.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase()
+                  return (
+                    <button key={s.id} onClick={() => goToStudents(s.name)}
+                      className="w-full hover:bg-[#F9FAFB] transition-colors"
+                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}>
+                      {s.avatarUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={s.avatarUrl} alt={s.name} width={28} height={28}
+                          style={{ width: 28, height: 28, objectFit: 'cover', borderRadius: '50%', border: '1px solid #E5E7EB', flexShrink: 0 }} />
+                      ) : (
+                        <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', color: '#fff', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          {initials}
+                        </div>
+                      )}
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: 13, color: '#111827', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</div>
+                        <div style={{ fontSize: 11, color: '#9CA3AF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.email}</div>
+                      </div>
+                    </button>
+                  )
+                }) : (
+                  <div style={{ padding: '10px 12px', fontSize: 12, color: '#9CA3AF' }}>{t.common.noResults}</div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Period pills — hidden on mobile */}

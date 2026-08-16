@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import {
   Bell, Menu, Search, Plus, MoreHorizontal,
   Download, TrendingUp, Clock, Users, X,
@@ -1634,6 +1634,14 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
   const [msgStudent, setMsgStudent]       = useState<Student | null>(null)
   const [qrStudent, setQrStudent]         = useState<Student | null>(null)
   const [markPaidStudent, setMarkPaidStudent] = useState<Student | null>(null)
+
+  // Deep link from the dashboard's global search (e.g. /dashboard/users?search=Jane)
+  const searchParams = useSearchParams()
+  useEffect(() => {
+    const q = searchParams.get('search')
+    if (q) { setSearch(q); setCurrentPage(1) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     fetch('/api/dashboard/school').then(r => r.json()).then(d => {
