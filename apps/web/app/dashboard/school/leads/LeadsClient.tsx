@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   Menu, X, Search, Check, TrendingUp, TrendingDown,
-  MoreHorizontal, Eye, Plus, UserPlus,
+  MoreHorizontal, Eye, Plus, UserPlus, Trash2,
 } from 'lucide-react'
 import { useDashboard } from '../../../../components/DashboardShell'
 import { useT } from '../../../../lib/i18n/LanguageContext'
@@ -65,6 +65,70 @@ function Avatar({ name }: { name: string }) {
       style={{ width: 42, height: 42, background: '#E0E7FF', color: '#3730A3', fontSize: 14, fontWeight: 700 }}>
       {initials(name)}
     </div>
+  )
+}
+
+function Chk({ checked, onClick, forceVisible }: { checked: boolean; onClick: (e: React.MouseEvent) => void; forceVisible?: boolean }) {
+  return (
+    <div onClick={onClick}
+      className={forceVisible || checked ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
+      style={{
+        width: 19, height: 19, borderRadius: 6, cursor: 'pointer', flexShrink: 0,
+        border: checked ? '1.5px solid #0071E3' : '1.5px solid #CBD5E1',
+        background: checked ? '#0071E3' : '#fff',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        transition: 'opacity .12s ease, background-color .12s ease, border-color .12s ease',
+      }}>
+      {checked && <Check size={11} strokeWidth={3.4} style={{ color: '#fff' }} />}
+    </div>
+  )
+}
+
+function DeleteConfirmModal({ open, count, deleting, onCancel, onConfirm, t }: {
+  open: boolean; count: number; deleting: boolean; onCancel: () => void; onConfirm: () => void
+  t: ReturnType<typeof useT>
+}) {
+  return (
+    <>
+      <div className="fixed inset-0 z-[75] transition-opacity"
+        style={{ background: 'rgba(0,0,0,0.35)', opacity: open ? 1 : 0, pointerEvents: open ? 'auto' : 'none' }}
+        onClick={deleting ? undefined : onCancel} />
+      <div className="fixed inset-0 z-[76] flex items-center justify-center px-4" style={{ pointerEvents: open ? 'auto' : 'none' }}>
+        <div style={{
+          width: 'min(380px,100%)', background: '#fff', borderRadius: 18, padding: 26,
+          boxShadow: '0 24px 48px rgba(0,0,0,0.22)',
+          opacity: open ? 1 : 0,
+          transform: open ? 'scale(1) translateY(0)' : 'scale(0.96) translateY(6px)',
+          transition: 'opacity 0.18s ease, transform 0.18s ease',
+        }}>
+          <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-4" style={{ background: '#FEF2F2' }}>
+            <Trash2 size={19} style={{ color: '#DC2626' }} />
+          </div>
+          <h3 style={{ fontSize: 16.5, fontWeight: 700, color: '#111827', margin: '0 0 6px', letterSpacing: '-0.01em' }}>
+            {t.school.deleteLeadsTitle}
+          </h3>
+          <p style={{ fontSize: 13, color: '#374151', fontWeight: 600, margin: '0 0 8px' }}>
+            {count} {count === 1 ? t.school.leadWord : t.school.leadsWord}
+          </p>
+          <p style={{ fontSize: 13, color: '#6B7280', lineHeight: 1.55, margin: '0 0 22px' }}>
+            {t.school.deleteLeadsBody}
+          </p>
+          <div className="flex items-center justify-end gap-2">
+            <button onClick={onCancel} disabled={deleting}
+              className="px-4 py-2 rounded-lg cursor-pointer"
+              style={{ fontSize: 13, fontWeight: 600, border: 'none', background: 'transparent', color: '#667085' }}>
+              {t.common.cancel}
+            </button>
+            <button onClick={onConfirm} disabled={deleting}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full cursor-pointer"
+              style={{ fontSize: 13, fontWeight: 700, border: 'none', background: '#DC2626', color: '#fff',
+                opacity: deleting ? 0.7 : 1 }}>
+              <Trash2 size={13} />{t.common.delete}
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
   )
 }
 
@@ -210,8 +274,14 @@ export default function LeadsClient() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [toast, setToast]           = useState(false)
 
+  const [selected, setSelected]         = useState<Set<string>>(new Set())
+  const [pendingDeleteIds, setPendingDeleteIds] = useState<string[] | null>(null)
+  const [deleting, setDeleting]         = useState(false)
+  const [deleteToast, setDeleteToast]   = useState<number | null>(null)
+
   const fetchLeads = useCallback(async () => {
     setLoading(true)
+    setSelected(new Set())
     try {
       const params = new URLSearchParams({
         page: String(currentPage),
@@ -241,10 +311,34 @@ export default function LeadsClient() {
     fetchLeads()
   }
 
-  async function deleteLead(id: string) {
-    if (!confirm('Delete this lead permanently?')) return
-    await fetch(`/api/dashboard/leads/${id}`, { method: 'DELETE' })
-    fetchLeads()
+  function toggleLead(id: string) {
+    setSelected(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
+
+  function toggleSelectAll() {
+    setSelected(prev => (prev.size === leads.length ? new Set() : new Set(leads.map(l => l.id))))
+  }
+
+  async function confirmDelete() {
+    if (!pendingDeleteIds || pendingDeleteIds.length === 0) return
+    setDeleting(true)
+    try {
+      await fetch('/api/dashboard/leads/bulk-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: pendingDeleteIds }),
+      })
+      setDeleteToast(pendingDeleteIds.length)
+      setPendingDeleteIds(null)
+      await fetchLeads()
+      setTimeout(() => setDeleteToast(null), 3000)
+    } finally {
+      setDeleting(false)
+    }
   }
 
   const totalPages = Math.max(1, Math.ceil(total / ITEMS_PER_PAGE))
@@ -337,10 +431,37 @@ export default function LeadsClient() {
           </div>
         </div>
 
+        <div className="grid transition-[grid-template-rows] duration-200 ease-out"
+          style={{ gridTemplateRows: selected.size > 0 ? '1fr' : '0fr' }}>
+          <div className="overflow-hidden">
+            <div className="flex items-center gap-3 rounded-2xl mb-1"
+              style={{ background: '#fff', border: '1px solid #BFDBFE', padding: '11px 14px 11px 18px',
+                boxShadow: '0 4px 14px rgba(0,113,227,0.08)' }}>
+              <span style={{ fontSize: 13.5, fontWeight: 700, color: '#111827' }}>
+                <span style={{ color: '#0071E3' }}>{selected.size}</span> {selected.size === 1 ? t.school.leadWord : t.school.leadsWord} {t.school.selected}
+              </span>
+              <div className="flex-1" />
+              <button onClick={() => setSelected(new Set())}
+                className="px-2.5 py-2 rounded-lg cursor-pointer"
+                style={{ fontSize: 13, fontWeight: 600, border: 'none', background: 'transparent', color: '#667085' }}>
+                {t.common.cancel}
+              </button>
+              <button onClick={() => setPendingDeleteIds(Array.from(selected))}
+                className="flex items-center gap-2 px-4 py-2 rounded-full cursor-pointer"
+                style={{ fontSize: 13, fontWeight: 700, border: 'none', background: '#DC2626', color: '#fff' }}>
+                <Trash2 size={13} />{t.common.delete}
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div className="rounded-2xl overflow-x-auto" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
+                <th className="pl-5 pr-0 py-3 text-left" style={{ width: 40 }}>
+                  <Chk checked={leads.length > 0 && selected.size === leads.length} forceVisible onClick={toggleSelectAll} />
+                </th>
                 {[
                   { label: t.common.member,    cls: '',                     pad: 'px-3 sm:px-5' },
                   { label: t.common.phone,     cls: 'hidden md:table-cell', pad: 'px-5' },
@@ -358,10 +479,10 @@ export default function LeadsClient() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '48px 0', color: '#9CA3AF', fontSize: 14 }}>Loading…</td></tr>
+                <tr><td colSpan={7} style={{ textAlign: 'center', padding: '48px 0', color: '#9CA3AF', fontSize: 14 }}>Loading…</td></tr>
               ) : leads.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '48px 0' }}>
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '48px 0' }}>
                     <UserPlus size={28} style={{ color: '#E5E7EB', margin: '0 auto 10px' }} />
                     <p style={{ fontSize: 14, color: '#9CA3AF' }}>{t.school.noLeads}</p>
                   </td>
@@ -370,9 +491,15 @@ export default function LeadsClient() {
                 const sc  = STATUS_STYLE[lead.status]  ?? { bg: '#F3F4F6', color: '#6B7280', border: '#D1D5DB' }
                 const src = SOURCE_STYLE[lead.source]  ?? { bg: '#F3F4F6', color: '#6B7280' }
                 const date = new Date(lead.createdAt).toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' })
+                const isSelected = selected.has(lead.id)
                 return (
-                  <tr key={lead.id} className="hover:bg-[#FAFAFA] transition-colors cursor-pointer"
-                    style={{ borderBottom: idx < leads.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
+                  <tr key={lead.id} onClick={() => toggleLead(lead.id)}
+                    className="group hover:bg-[#FAFAFA] transition-colors cursor-pointer"
+                    style={{ borderBottom: idx < leads.length - 1 ? '1px solid #F9FAFB' : 'none',
+                      background: isSelected ? '#F5F9FF' : undefined }}>
+                    <td className="pl-5 pr-0 py-3">
+                      <Chk checked={isSelected} onClick={(e) => { e.stopPropagation(); toggleLead(lead.id) }} />
+                    </td>
                     <td className="px-3 sm:px-5 py-3">
                       <div className="flex items-center gap-3 min-w-0">
                         <Avatar name={lead.name} />
@@ -401,7 +528,7 @@ export default function LeadsClient() {
                         {STATUS_DISPLAY[lead.status] ?? lead.status}
                       </span>
                     </td>
-                    <td className="px-2 sm:px-5 py-3">
+                    <td className="px-2 sm:px-5 py-3" onClick={e => e.stopPropagation()}>
                       <div className="flex items-center gap-1">
                         <button className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
                           style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
@@ -427,15 +554,15 @@ export default function LeadsClient() {
                                 style={{ fontSize: 13, color: '#374151', background: 'transparent', border: 'none' }}
                                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
                                 onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                                Mark as lost
+                                {t.school.markAsLost}
                               </button>
                             )}
-                            <button onClick={() => deleteLead(lead.id)}
+                            <button onClick={() => setPendingDeleteIds([lead.id])}
                               className="w-full text-left px-4 py-2.5 cursor-pointer"
                               style={{ fontSize: 13, color: '#DC2626', background: 'transparent', border: 'none' }}
                               onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#FEF2F2'}
                               onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                              Delete lead
+                              {t.school.deleteLead}
                             </button>
                           </div>
                         </RowMenu>
@@ -491,6 +618,21 @@ export default function LeadsClient() {
       onSuccess={() => { setDrawerOpen(false); setToast(true); fetchLeads(); setTimeout(() => setToast(false), 3500) }}
     />
     {toast && <SuccessToast message={t.school.addLead} onClose={() => setToast(false)} />}
+
+    <DeleteConfirmModal
+      open={pendingDeleteIds !== null}
+      count={pendingDeleteIds?.length ?? 0}
+      deleting={deleting}
+      onCancel={() => setPendingDeleteIds(null)}
+      onConfirm={confirmDelete}
+      t={t}
+    />
+    {deleteToast !== null && (
+      <SuccessToast
+        message={`${deleteToast} ${deleteToast === 1 ? t.school.leadDeleted : t.school.leadsDeleted}`}
+        onClose={() => setDeleteToast(null)}
+      />
+    )}
     </>
   )
 }
