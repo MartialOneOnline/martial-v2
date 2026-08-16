@@ -530,7 +530,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           </button>
 
           {/* Search — hidden on mobile */}
-          <div ref={searchBoxRef} className="hidden sm:flex flex-1 max-w-xs items-center gap-2 px-3 py-2 rounded-xl relative"
+          <div ref={searchBoxRef} className="hidden sm:flex flex-1 max-w-sm items-center gap-2 px-3 py-2 rounded-xl relative"
             style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
             <Filter size={13} strokeWidth={1.5} style={{ color: '#9CA3AF', flexShrink: 0 }} />
             <input type="text" placeholder={t.dashboard.searchPlaceholder}
@@ -542,7 +542,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
 
             {studentSearchOpen && studentQuery.trim().length > 0 && (
               <div style={{
-                position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
+                position: 'absolute', top: 'calc(100% + 6px)', left: 0, width: 340,
                 background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12,
                 boxShadow: '0 8px 24px rgba(0,0,0,0.08)', zIndex: 30, overflow: 'hidden',
               }}>
