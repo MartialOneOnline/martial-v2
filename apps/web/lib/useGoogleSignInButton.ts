@@ -2,16 +2,25 @@
 
 import { useEffect, useRef } from 'react'
 import { loadGoogleIdentityScript } from './googleIdentity'
+import { isEmbeddedWebView } from './isEmbeddedWebView'
 
 // Renders Google's own "Sign in with Google" button into the returned ref.
 // Ref-only deps by design (see the similarly-shaped onAuthStateChange effect
 // in app/login/page.tsx) — this only needs to run once per mount, and
 // re-running it would re-inject the button and lose the account-picker
 // popup's association with the click gesture.
+//
+// `fallbackToRedirect` is true inside WebViews that can't open new windows
+// (confirmed: the V1 mobile app's wrapper) — google.accounts.id's button
+// click opens its popup via `window.open`, which silently no-ops there, so
+// this skips GSI entirely and tells the caller to fall back to the old
+// `signInWithOAuth('google')` redirect instead (same as Apple/Microsoft).
 export function useGoogleSignInButton(onCredential: (idToken: string) => void) {
   const containerRef = useRef<HTMLDivElement | null>(null)
+  const fallbackToRedirect = isEmbeddedWebView()
 
   useEffect(() => {
+    if (fallbackToRedirect) return
     let cancelled = false
     loadGoogleIdentityScript().then(() => {
       if (cancelled || !containerRef.current || !window.google) return
@@ -34,5 +43,5 @@ export function useGoogleSignInButton(onCredential: (idToken: string) => void) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  return containerRef
+  return { containerRef, fallbackToRedirect }
 }

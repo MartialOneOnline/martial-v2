@@ -84,7 +84,7 @@ export function SocialAuthButtons({ redirectPath }: { redirectPath?: string }) {
     const redirectQuery = redirectPath ? `&redirect=${encodeURIComponent(redirectPath)}` : ''
     router.push(`/login?oauth=1${redirectQuery}`)
   }
-  const googleButtonRef = useGoogleSignInButton(handleGoogleCredential)
+  const { containerRef: googleButtonRef, fallbackToRedirect: googleFallback } = useGoogleSignInButton(handleGoogleCredential)
 
   return (
     <div>
@@ -93,6 +93,7 @@ export function SocialAuthButtons({ redirectPath }: { redirectPath?: string }) {
           <button
             type="button"
             disabled={loading !== null}
+            onClick={googleFallback ? () => handleOAuth('google') : undefined}
             style={{
               width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
               height: 52, border: `1px solid ${BORDER}`, borderRadius: 12, background: '#fff',
@@ -103,13 +104,16 @@ export function SocialAuthButtons({ redirectPath }: { redirectPath?: string }) {
             {loading === 'google' ? 'Redirigiendo…' : 'Continuar con Google'}
           </button>
           {/* Google's real button, invisible and stacked on top — see the
-              matching pattern (and the "why") in app/login/page.tsx. */}
+              matching pattern (and the "why") in app/login/page.tsx. Skipped
+              (pointer-events off) inside WebViews that can't open popups —
+              googleFallback routes the visible button's own onClick to the
+              old redirect flow instead. */}
           <div
             ref={googleButtonRef}
             style={{
               position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
               overflow: 'hidden', opacity: 0,
-              pointerEvents: loading !== null && loading !== 'google' ? 'none' : 'auto',
+              pointerEvents: googleFallback || (loading !== null && loading !== 'google') ? 'none' : 'auto',
             }}
           />
         </div>

@@ -237,7 +237,7 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
     onClose()
     router.push(`/login?oauth=1${redirectQuery}`)
   }
-  const googleButtonRef = useGoogleSignInButton(handleGoogleCredential)
+  const { containerRef: googleButtonRef, fallbackToRedirect: googleFallback } = useGoogleSignInButton(handleGoogleCredential)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -356,13 +356,15 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
                   <div className="relative h-[52px]">
                     <SSOButton icon={<GoogleIcon />} label="Continue with Google"
                       loading={oauthLoading === 'google'} disabled={oauthLoading !== null}
-                      onClick={() => {}} />
+                      onClick={googleFallback ? () => handleOAuth('google') : () => {}} />
                     {/* Google's real button, invisible and stacked on top —
-                        see app/login/page.tsx for the full "why". */}
+                        see app/login/page.tsx for the full "why". Skipped
+                        inside WebViews that can't open popups — googleFallback
+                        routes the visible button's onClick to the old flow. */}
                     <div
                       ref={googleButtonRef}
                       className="absolute inset-0 flex items-center justify-center overflow-hidden opacity-0"
-                      style={{ pointerEvents: oauthLoading !== null && oauthLoading !== 'google' ? 'none' : 'auto' }}
+                      style={{ pointerEvents: googleFallback || (oauthLoading !== null && oauthLoading !== 'google') ? 'none' : 'auto' }}
                     />
                   </div>
                   <SSOButton icon={<AppleIcon />} label="Continue with Apple"

@@ -51,7 +51,7 @@
 | ORM | Prisma 7.8.0 | ✅ Configurado |
 | Base de datos | PostgreSQL — Supabase | ✅ Conectada |
 | Auth | Supabase Auth (email) | ✅ Funcionando |
-| Auth SSO | Google / Apple / Facebook | ⏳ Pendiente configurar |
+| Auth SSO | Google (✅ live, ID-token flow) / Apple / Microsoft — sin Facebook (decisión) | ⚠️ Google confirmado en prod; Apple/Microsoft sin reverificar |
 | Monorepo | Turborepo | ✅ Configurado |
 | Hosting web | Vercel | ✅ Desplegado |
 | Hosting API | Railway o Render | ⏳ Pendiente |
@@ -269,6 +269,37 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 ---
 
 ## Historial de sesiones
+
+> Nota: entre la Sesión 77 (2026-08-06) y esta hay commits en `main` no documentados aquí sesión a sesión (`0fe131e` i18n, `d7c2139` fix migración Prisma, `b20b1bd`/`839f3c5` cancelación de ocurrencias de clase) — no reconstruidos retroactivamente, ver `git log` para el detalle.
+
+### Sesión 78 — 2026-08-15 (rama `main`, commit `4568a77`, pusheado directo — sin PR)
+
+**Login con Google mostraba el dominio de Supabase en vez del de Martial.** El selector de cuenta de Google decía "Ir a fixipigqxebxferfxlsv.supabase.co" en vez de "Ir a Martial App" porque `supabase.auth.signInWithOAuth('google')` redirige a través del callback propio de Supabase (`https://fixipigqxebxferfxlsv.supabase.co/auth/v1/callback`) antes de volver a la app.
+
+**Opciones evaluadas:** Supabase Custom Domain (add-on de pago, Pro plan + ~$10/mes, ~$35/mes si no había Pro ya) vs. flujo client-side de Google Identity Services (gratis). Se eligió la segunda.
+
+**Migrados los 4 puntos de entrada de Google** (Apple/Microsoft sin tocar, siguen en `signInWithOAuth` redirect):
+- `apps/web/app/login/page.tsx` — página principal (incluida la WebView móvil)
+- `apps/web/components/SocialAuthButtons.tsx` — usado por `/register` y `/join/[slug]` (invitaciones públicas a unirse a una escuela)
+- `apps/web/components/LoginModal.tsx` — modal del header de la home
+- `apps/web/app/auth/set-password/page.tsx` — pantalla "Activa tu cuenta" para miembros invitados directamente por un admin
+
+**Implementación:** dos ficheros nuevos compartidos por los 4 sitios — `apps/web/lib/googleIdentity.ts` (carga el script `accounts.google.com/gsi/client`) y `apps/web/lib/useGoogleSignInButton.ts` (hook que inicializa `google.accounts.id` y renderiza el botón real de Google). El botón real se renderiza **invisible** (`opacity: 0`) y superpuesto (`position: absolute`) exactamente encima del botón decorativo ya existente — los términos de Google exigen que el clic caiga sobre su propio botón renderizado (no un clic simulado), así que esto conserva el diseño original pixel-perfect mientras el botón real invisible captura el clic. Login con `google.accounts.id` + `supabase.auth.signInWithIdToken()` en vez del redirect.
+
+`app/login/page.tsx` ganó una señal `?oauth=1` en la query, en paralelo a la existente `?code=` (PKCE): como el flujo de ID-token no navega fuera de la página, `SocialAuthButtons`/`LoginModal` establecen la sesión in-place y luego navegan a `/login?oauth=1&redirect=...`, cuyo listener `onAuthStateChange` ahora también acepta el evento `INITIAL_SESSION` (no solo `SIGNED_IN`) para no duplicar la lógica de `resolveRedirect()`/`resolveLoginRedirectAction()` en cada sitio.
+
+**Config externa necesaria (hecha hoy):**
+- Google Cloud Console (proyecto `martial-app-361115`) → el Client ID **no tenía ningún "Authorized JavaScript origin"** configurado (solo redirect URIs, para el flujo antiguo) → añadidos `http://localhost:3000` y `https://martialapp.com`.
+- Supabase → Authentication → Providers → Google → activado **"Skip nonce checks"** (necesario para `signInWithIdToken` sin nonce manual).
+- Vercel → añadida `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (Production + Preview).
+
+**Verificado en producción (martialapp.com):** selector de cuenta real de Google abre, muestra el dominio propio (`Ir a martialapp.com`) en vez de Supabase, login completa correctamente.
+
+**Pendiente, solo tiempo — verificación de marca de Google:** nombre "Martial App" + logo enviados a revisión, ambos checks automáticos ya pasados (política de privacidad, guías de marca, 2026-08-10), revisión manual del equipo de Google puede tardar 4-6 semanas. Hasta que termine, seguirá mostrando el dominio (`martialapp.com`) en vez del nombre — es cosmético, no bloquea el login.
+
+**Pendiente real:** Apple y Microsoft no se probaron en esta sesión — confirmar que siguen activados en Supabase con credenciales reales antes de asumir que funcionan (ver Sesión 77, que dejó el mismo pendiente).
+
+Ver memoria persistente `project_google_oauth_id_token.md` para el detalle técnico completo.
 
 ### Sesión 77 — 2026-08-06 (rama `main` + rama propia `fix/rga-active-status`, PR [#19](https://github.com/MartialOneOnline/martial-v2/pull/19) `APROBADO CON PENDIENTES` por Codex Project Audit, mergeado a `main`)
 

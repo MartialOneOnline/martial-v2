@@ -276,7 +276,7 @@ function LoginPageInner() {
     }
     await resolveRedirect()
   }
-  const googleButtonRef = useGoogleSignInButton(handleGoogleCredential)
+  const { containerRef: googleButtonRef, fallbackToRedirect: googleFallback } = useGoogleSignInButton(handleGoogleCredential)
 
   const handleContinueWithEmail = (e: React.FormEvent) => {
     e.preventDefault()
@@ -517,7 +517,7 @@ function LoginPageInner() {
               <div style={{ position: 'relative', height: 52 }}>
                 <SocialButton provider="google" label="Continuar con Google"
                   loading={oauthLoading === 'google'} disabled={oauthLoading !== null}
-                  onClick={() => {}} />
+                  onClick={googleFallback ? () => handleOAuth('google') : () => {}} />
                 {/* Google's real button, invisible and stacked on top — its
                     click (not a simulated one) is what's actually allowed to
                     open the account-picker popup, per Google's ToS. The
@@ -528,7 +528,7 @@ function LoginPageInner() {
                   style={{
                     position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
                     overflow: 'hidden', opacity: 0,
-                    pointerEvents: oauthLoading && oauthLoading !== 'google' ? 'none' : 'auto',
+                    pointerEvents: googleFallback || (oauthLoading !== null && oauthLoading !== 'google') ? 'none' : 'auto',
                   }}
                 />
               </div>

@@ -137,7 +137,20 @@ export default function SetPasswordPage() {
     if (err) { setError(err.message); setGoogleLoading(false); return }
     router.push(schoolId ? `/auth/accept-invite?schoolId=${encodeURIComponent(schoolId)}` : '/auth/accept-invite')
   }
-  const googleButtonRef = useGoogleSignInButton(handleGoogleCredential)
+  const { containerRef: googleButtonRef, fallbackToRedirect: googleFallback } = useGoogleSignInButton(handleGoogleCredential)
+
+  // Fallback for WebViews that can't open the ID-token flow's popup (see
+  // useGoogleSignInButton) — the old signInWithOAuth redirect, same as
+  // before this page was migrated.
+  const handleGoogleRedirectFallback = async () => {
+    setGoogleLoading(true)
+    const redirectQuery = schoolId ? `?schoolId=${encodeURIComponent(schoolId)}` : ''
+    const { error: err } = await getSupabase().auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/auth/accept-invite${redirectQuery}` },
+    })
+    if (err) { setError(err.message); setGoogleLoading(false) }
+  }
 
   if (done) {
     return (
@@ -168,6 +181,7 @@ export default function SetPasswordPage() {
           <div style={{ padding: '24px 28px 20px', position: 'relative', height: 44 }}>
             <button
               disabled={googleLoading}
+              onClick={googleFallback ? handleGoogleRedirectFallback : undefined}
               style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '11px 16px', border: `1px solid ${C.border}`, borderRadius: 10, background: '#fff', fontSize: 14, fontWeight: 600, color: C.text, cursor: 'pointer', transition: 'all .15s' }}
               onMouseEnter={e => (e.currentTarget.style.background = C.bg)}
               onMouseLeave={e => (e.currentTarget.style.background = '#fff')}>
@@ -180,14 +194,16 @@ export default function SetPasswordPage() {
               {googleLoading ? 'Redirigiendo…' : 'Continuar con Google'}
             </button>
             {/* Google's real button, invisible and stacked on top — see
-                app/login/page.tsx for the full "why". */}
+                app/login/page.tsx for the full "why". Skipped inside WebViews
+                that can't open popups — googleFallback routes the visible
+                button's onClick to the old redirect flow instead. */}
             <div
               ref={googleButtonRef}
               style={{
                 position: 'absolute', top: 24, left: 28, right: 28, bottom: 20,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 overflow: 'hidden', opacity: 0,
-                pointerEvents: googleLoading ? 'none' : 'auto',
+                pointerEvents: googleFallback || googleLoading ? 'none' : 'auto',
               }}
             />
           </div>
