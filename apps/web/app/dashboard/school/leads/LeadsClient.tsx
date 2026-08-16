@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   Menu, X, Search, Check, TrendingUp, TrendingDown,
-  MoreHorizontal, Eye, Plus, UserPlus, Trash2,
+  MoreHorizontal, Eye, Plus, UserPlus, Trash2, Mail,
 } from 'lucide-react'
 import { useDashboard } from '../../../../components/DashboardShell'
 import { useT } from '../../../../lib/i18n/LanguageContext'
@@ -124,6 +124,103 @@ function DeleteConfirmModal({ open, count, deleting, onCancel, onConfirm, t }: {
               style={{ fontSize: 13, fontWeight: 700, border: 'none', background: '#DC2626', color: '#fff',
                 opacity: deleting ? 0.7 : 1 }}>
               <Trash2 size={13} />{t.common.delete}
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
+function BulkEmailModal({ open, ids, skippedCount, onClose, onSent, t }: {
+  open: boolean; ids: string[]; skippedCount: number
+  onClose: () => void; onSent: (sent: number) => void
+  t: ReturnType<typeof useT>
+}) {
+  const [subject, setSubject] = useState('')
+  const [message, setMessage] = useState('')
+  const [sending, setSending] = useState(false)
+  const [error, setError] = useState('')
+
+  function reset() { setSubject(''); setMessage(''); setError('') }
+  function handleClose() { if (sending) return; reset(); onClose() }
+
+  async function handleSend() {
+    if (!subject.trim() || !message.trim() || ids.length === 0) return
+    setSending(true)
+    setError('')
+    try {
+      const res = await fetch('/api/dashboard/leads/bulk-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids, subject: subject.trim(), message: message.trim() }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Failed to send')
+      reset()
+      onSent(data.sent ?? 0)
+    } catch (e: unknown) {
+      setError(e instanceof Error && e.message ? e.message : 'Error')
+    } finally {
+      setSending(false)
+    }
+  }
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%', border: '1px solid #E5E7EB', borderRadius: 10,
+    padding: '9px 12px', fontSize: 13, color: '#111827', background: '#fff', outline: 'none',
+  }
+  const labelStyle: React.CSSProperties = {
+    display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 5,
+  }
+  const canSend = !!subject.trim() && !!message.trim() && !sending
+
+  return (
+    <>
+      <div className="fixed inset-0 z-[75] transition-opacity"
+        style={{ background: 'rgba(0,0,0,0.35)', opacity: open ? 1 : 0, pointerEvents: open ? 'auto' : 'none' }}
+        onClick={handleClose} />
+      <div className="fixed inset-0 z-[76] flex items-center justify-center px-4" style={{ pointerEvents: open ? 'auto' : 'none' }}>
+        <div style={{
+          width: 'min(480px,100%)', background: '#fff', borderRadius: 18, padding: 26,
+          boxShadow: '0 24px 48px rgba(0,0,0,0.22)',
+          opacity: open ? 1 : 0,
+          transform: open ? 'scale(1) translateY(0)' : 'scale(0.96) translateY(6px)',
+          transition: 'opacity 0.18s ease, transform 0.18s ease',
+        }}>
+          <div className="flex items-center justify-between" style={{ marginBottom: 4 }}>
+            <h3 style={{ fontSize: 16.5, fontWeight: 700, color: '#111827', margin: 0, letterSpacing: '-0.01em' }}>{t.school.sendEmail}</h3>
+            <button onClick={handleClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF' }}><X size={18} /></button>
+          </div>
+          <p style={{ fontSize: 12, color: '#9CA3AF', margin: '0 0 20px' }}>
+            {ids.length} {ids.length === 1 ? t.school.leadWord : t.school.leadsWord}
+            {skippedCount > 0 ? ` · ${skippedCount} ${t.school.noEmailWarning}` : ''}
+          </p>
+
+          <div className="flex flex-col gap-4">
+            <div>
+              <label style={labelStyle}>{t.school.emailSubject}</label>
+              <input value={subject} onChange={e => setSubject(e.target.value)} placeholder={t.school.emailSubjectPh} style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>{t.school.emailMessage}</label>
+              <textarea rows={5} value={message} onChange={e => setMessage(e.target.value)} placeholder={t.school.emailMessagePh}
+                style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }} />
+            </div>
+            {error && <p style={{ fontSize: 12, color: '#DC2626', margin: 0 }}>{error}</p>}
+          </div>
+
+          <div className="flex gap-3 justify-end" style={{ marginTop: 20 }}>
+            <button onClick={handleClose} disabled={sending}
+              className="px-4 py-2 rounded-lg cursor-pointer"
+              style={{ fontSize: 13, fontWeight: 600, border: 'none', background: 'transparent', color: '#667085' }}>
+              {t.common.cancel}
+            </button>
+            <button onClick={handleSend} disabled={!canSend}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full cursor-pointer"
+              style={{ fontSize: 13, fontWeight: 700, border: 'none', color: '#fff',
+                background: canSend ? '#0071E3' : '#93C5FD', cursor: canSend ? 'pointer' : 'not-allowed' }}>
+              <Mail size={13} />{sending ? t.school.sending : t.common.send}
             </button>
           </div>
         </div>
@@ -278,6 +375,8 @@ export default function LeadsClient() {
   const [pendingDeleteIds, setPendingDeleteIds] = useState<string[] | null>(null)
   const [deleting, setDeleting]         = useState(false)
   const [deleteToast, setDeleteToast]   = useState<number | null>(null)
+  const [emailModalOpen, setEmailModalOpen] = useState(false)
+  const [emailToast, setEmailToast]     = useState<number | null>(null)
 
   const fetchLeads = useCallback(async () => {
     setLoading(true)
@@ -343,6 +442,9 @@ export default function LeadsClient() {
 
   const totalPages = Math.max(1, Math.ceil(total / ITEMS_PER_PAGE))
   const pages = getPaginationPages(currentPage, totalPages)
+
+  const selectedEmailIds = leads.filter(l => selected.has(l.id) && !!l.email).map(l => l.id)
+  const selectedEmailCount = selectedEmailIds.length
 
   const STAT_CARDS = [
     { label: t.school.totalLeads,  value: String(stats.totalAll),        icon: UserPlus,   color: '#0071E3', bg: '#EFF6FF' },
@@ -445,6 +547,13 @@ export default function LeadsClient() {
                 className="px-2.5 py-2 rounded-lg cursor-pointer"
                 style={{ fontSize: 13, fontWeight: 600, border: 'none', background: 'transparent', color: '#667085' }}>
                 {t.common.cancel}
+              </button>
+              <button onClick={() => setEmailModalOpen(true)} disabled={selectedEmailCount === 0}
+                className="flex items-center gap-2 px-4 py-2 rounded-full cursor-pointer"
+                style={{ fontSize: 13, fontWeight: 700, border: '1px solid #BFDBFE', background: '#EFF6FF',
+                  color: '#0071E3', opacity: selectedEmailCount === 0 ? 0.5 : 1,
+                  cursor: selectedEmailCount === 0 ? 'not-allowed' : 'pointer' }}>
+                <Mail size={13} />{t.school.sendEmail}
               </button>
               <button onClick={() => setPendingDeleteIds(Array.from(selected))}
                 className="flex items-center gap-2 px-4 py-2 rounded-full cursor-pointer"
@@ -631,6 +740,21 @@ export default function LeadsClient() {
       <SuccessToast
         message={`${deleteToast} ${deleteToast === 1 ? t.school.leadDeleted : t.school.leadsDeleted}`}
         onClose={() => setDeleteToast(null)}
+      />
+    )}
+
+    <BulkEmailModal
+      open={emailModalOpen}
+      ids={selectedEmailIds}
+      skippedCount={selected.size - selectedEmailCount}
+      onClose={() => setEmailModalOpen(false)}
+      onSent={(sent) => { setEmailModalOpen(false); setSelected(new Set()); setEmailToast(sent); fetchLeads(); setTimeout(() => setEmailToast(null), 3500) }}
+      t={t}
+    />
+    {emailToast !== null && (
+      <SuccessToast
+        message={`${emailToast} ${emailToast === 1 ? t.school.emailSent : t.school.emailsSent}`}
+        onClose={() => setEmailToast(null)}
       />
     )}
     </>
