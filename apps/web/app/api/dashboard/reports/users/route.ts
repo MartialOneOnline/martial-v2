@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId, requireDashboardAccess } from '@/lib/auth/server'
+import { periodBounds } from '@/lib/reportPeriods'
 
 // requireDashboardAccess() bypasses this for SUPERADMIN and otherwise
 // requires an ACTIVE SchoolMember with a staff-facing role — a STUDENT must
@@ -15,43 +16,6 @@ async function authorise() {
   return { schoolId }
 }
 
-function periodDates(period: string) {
-  const now = new Date()
-  const points: { label: string; from: Date; to: Date }[] = []
-
-  if (period === '7d') {
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(now); d.setDate(d.getDate() - i)
-      const from = new Date(d); from.setHours(0, 0, 0, 0)
-      const to   = new Date(d); to.setHours(23, 59, 59, 999)
-      points.push({ label: d.toLocaleDateString('en-US', { weekday: 'short' }), from, to })
-    }
-  } else if (period === '30d') {
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(now); d.setDate(d.getDate() - i * 5)
-      const from = new Date(d); from.setHours(0, 0, 0, 0)
-      const to   = new Date(d); to.setHours(23, 59, 59, 999)
-      points.push({ label: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), from, to })
-    }
-  } else if (period === '90d') {
-    for (let i = 2; i >= 0; i--) {
-      const d = new Date(now); d.setMonth(d.getMonth() - i)
-      const from = new Date(d.getFullYear(), d.getMonth(), 1)
-      const to   = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999)
-      points.push({ label: d.toLocaleDateString('en-US', { month: 'short' }), from, to })
-    }
-  } else {
-    for (let i = 11; i >= 0; i--) {
-      const d = new Date(now); d.setMonth(d.getMonth() - i)
-      const from = new Date(d.getFullYear(), d.getMonth(), 1)
-      const to   = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999)
-      points.push({ label: d.toLocaleDateString('en-US', { month: 'short' }), from, to })
-    }
-  }
-
-  return { from: points[0]?.from ?? new Date(), points }
-}
-
 export async function GET(req: NextRequest) {
   const auth = await authorise()
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
@@ -63,16 +27,23 @@ export async function GET(req: NextRequest) {
   const page     = Math.max(1, parseInt(searchParams.get('page') ?? '1'))
   const pageSize = Math.min(1000, parseInt(searchParams.get('pageSize') ?? '15'))
 
-  const { from, points } = periodDates(period)
+  const dateFrom = searchParams.get('dateFrom')
+  const dateTo   = searchParams.get('dateTo')
+
+  // Single time window shared by the growth chart and the "new in period"
+  // stat — a 'custom' period (with dateFrom/dateTo) or a preset both flow
+  // through here. Unlike the other reports, the member list itself is a
+  // roster (not a per-period event log), so the 7d/30d/90d/12m presets don't
+  // narrow it — only an explicit 'custom' range does, replacing what used to
+  // be a separate, disconnected "Joined date range" filter.
+  const { from, to, points } = periodBounds(period, dateFrom, dateTo)
   const now = new Date()
   const newThreshold = new Date(now); newThreshold.setDate(now.getDate() - 30)
 
   // ── Member list ──────────────────────────────────────────────────────────────
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const belt     = searchParams.get('belt')     ?? ''
-  const dateFrom = searchParams.get('dateFrom') ?? ''
-  const dateTo   = searchParams.get('dateTo')   ?? ''
+  const belt = searchParams.get('belt') ?? ''
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const where: any = {
     schoolId: auth.schoolId,
     role: 'STUDENT',
@@ -83,12 +54,7 @@ export async function GET(req: NextRequest) {
       ]},
     } : {}),
     ...(belt ? { belt } : {}),
-    ...(dateFrom || dateTo ? {
-      createdAt: {
-        ...(dateFrom ? { gte: new Date(dateFrom) } : {}),
-        ...(dateTo   ? { lte: new Date(dateTo + 'T23:59:59') } : {}),
-      },
-    } : {}),
+    ...(period === 'custom' ? { createdAt: { gte: from, lte: to } } : {}),
     ...(status === 'ACTIVE'   ? { status: 'ACTIVE' } : {}),
     ...(status === 'INACTIVE' ? { status: { in: ['INACTIVE', 'FROZEN', 'LEAD'] } } : {}),
     ...(status === 'NEW'      ? { status: 'ACTIVE', createdAt: { gte: newThreshold } } : {}),
@@ -160,7 +126,7 @@ export async function GET(req: NextRequest) {
   // ── Stats ─────────────────────────────────────────────────────────────────────
   const [totalActive, newInPeriod, totalInactive] = await Promise.all([
     prisma.schoolMember.count({ where: { schoolId: auth.schoolId, role: 'STUDENT', status: 'ACTIVE' } }),
-    prisma.schoolMember.count({ where: { schoolId: auth.schoolId, role: 'STUDENT', status: 'ACTIVE', createdAt: { gte: from } } }),
+    prisma.schoolMember.count({ where: { schoolId: auth.schoolId, role: 'STUDENT', status: 'ACTIVE', createdAt: { gte: from, lte: to } } }),
     prisma.schoolMember.count({ where: { schoolId: auth.schoolId, role: 'STUDENT', status: { in: ['INACTIVE', 'FROZEN'] } } }),
   ])
   const totalAll = totalActive + totalInactive

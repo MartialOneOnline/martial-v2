@@ -62,16 +62,15 @@ function fmtDate(iso: string) {
 }
 
 // ── Shared UI helpers ─────────────────────────────────────────────────────────
-const INP: React.CSSProperties = { width: '100%', border: '1px solid #E5E7EB', borderRadius: 8, padding: '7px 10px', fontSize: 12, color: '#111827', background: '#fff', outline: 'none' }
 const SEC: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8, display: 'block' }
 
-interface FiltersState { belt: string; dateFrom: string; dateTo: string }
-const EMPTY_FILTERS: FiltersState = { belt: '', dateFrom: '', dateTo: '' }
+interface FiltersState { belt: string }
+const EMPTY_FILTERS: FiltersState = { belt: '' }
 
 function FiltersPanel({ filters, onChange }: { filters: FiltersState; onChange: (f: FiltersState) => void }) {
   const [local, setLocal] = useState<FiltersState>(filters)
   useEffect(() => { setLocal(filters) }, [filters])
-  const activeCount = [!!filters.belt, !!filters.dateFrom || !!filters.dateTo].filter(Boolean).length
+  const activeCount = [!!filters.belt].filter(Boolean).length
   return (
     <SharedRowMenu align="right" closeOnItemClick={false} trigger={({ onClick }) => (
       <button onClick={onClick}
@@ -98,19 +97,6 @@ function FiltersPanel({ filters, onChange }: { filters: FiltersState; onChange: 
                       background: local.belt === b ? '#EFF6FF' : '#F9FAFB',
                       color: local.belt === b ? '#0870E2' : '#6B7280' }}>{b}</button>
                 ))}
-              </div>
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              <span style={SEC}>Joined date range</span>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 }}>From</label>
-                  <input type="date" value={local.dateFrom} onChange={e => setLocal(p => ({ ...p, dateFrom: e.target.value }))} style={INP} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 }}>To</label>
-                  <input type="date" value={local.dateTo} onChange={e => setLocal(p => ({ ...p, dateTo: e.target.value }))} style={INP} />
-                </div>
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8, paddingTop: 12, borderTop: '1px solid #F3F4F6' }}>
@@ -163,7 +149,9 @@ export default function UsersReportClient() {
   const { setMenuOpen } = useDashboard()
   const t = useT()
 
-  const [period,    setPeriod]    = useState<'7d' | '30d' | '90d' | '12m'>('30d')
+  const [period,     setPeriod]     = useState<'7d' | '30d' | '90d' | '12m' | 'custom'>('30d')
+  const [customFrom, setCustomFrom] = useState('')
+  const [customTo,   setCustomTo]   = useState('')
   const [filterTab, setFilterTab] = useState<'ALL' | 'ACTIVE' | 'INACTIVE' | 'NEW'>('ALL')
   const [search,    setSearch]    = useState('')
   const [page,      setPage]      = useState(1)
@@ -178,21 +166,21 @@ export default function UsersReportClient() {
     setLoading(true)
     const params = new URLSearchParams({ period, status: filterTab, search, page: String(page) })
     if (filters.belt)     params.set('belt', filters.belt)
-    if (filters.dateFrom) params.set('dateFrom', filters.dateFrom)
-    if (filters.dateTo)   params.set('dateTo', filters.dateTo)
+    if (period === 'custom' && customFrom) params.set('dateFrom', customFrom)
+    if (period === 'custom' && customTo)   params.set('dateTo', customTo)
     const res = await fetch(`/api/dashboard/reports/users?${params}`)
     if (res.ok) setData(await res.json())
     setLoading(false)
-  }, [period, filterTab, search, page, filters])
+  }, [period, filterTab, search, page, filters, customFrom, customTo])
 
   useEffect(() => { load() }, [load])
-  useEffect(() => { setPage(1) }, [period, filterTab, search, filters])
+  useEffect(() => { setPage(1) }, [period, filterTab, search, filters, customFrom, customTo])
 
   async function handleExport() {
     const params = new URLSearchParams({ period, status: filterTab, search, page: '1', pageSize: '1000' })
     if (filters.belt)     params.set('belt', filters.belt)
-    if (filters.dateFrom) params.set('dateFrom', filters.dateFrom)
-    if (filters.dateTo)   params.set('dateTo', filters.dateTo)
+    if (period === 'custom' && customFrom) params.set('dateFrom', customFrom)
+    if (period === 'custom' && customTo)   params.set('dateTo', customTo)
     const res = await fetch(`/api/dashboard/reports/users?${params}`)
     if (!res.ok) return
     const d: ReportData = await res.json()
@@ -247,15 +235,24 @@ export default function UsersReportClient() {
         </div>
         <div className="flex-1" />
         <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: '#F3F4F6' }}>
-          {(['7d', '30d', '90d', '12m'] as const).map(p => (
+          {(['7d', '30d', '90d', '12m', 'custom'] as const).map(p => (
             <button key={p} onClick={() => setPeriod(p)} className="cursor-pointer"
               style={{ fontSize: 12, fontWeight: period === p ? 600 : 400, padding: '5px 12px', borderRadius: 8, border: 'none',
                 background: period === p ? '#fff' : 'transparent', color: period === p ? '#111827' : '#6B7280',
                 boxShadow: period === p ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}>
-              {p.toUpperCase()}
+              {p === 'custom' ? 'Custom' : p.toUpperCase()}
             </button>
           ))}
         </div>
+        {period === 'custom' && (
+          <div className="flex items-center gap-1.5">
+            <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)}
+              style={{ height: 30, padding: '0 8px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, color: '#111827', outline: 'none' }} />
+            <span style={{ fontSize: 12, color: '#9CA3AF' }}>–</span>
+            <input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)}
+              style={{ height: 30, padding: '0 8px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, color: '#111827', outline: 'none' }} />
+          </div>
+        )}
         <button onClick={handleExport}
           className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
           style={{ background: '#fff', border: '1px solid #E5E7EB', color: '#374151', fontSize: 13, fontWeight: 500 }}>

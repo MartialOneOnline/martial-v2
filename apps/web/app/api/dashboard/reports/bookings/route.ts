@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId, requireDashboardAccess } from '@/lib/auth/server'
+import { periodBounds } from '@/lib/reportPeriods'
 
 // requireDashboardAccess() bypasses this for SUPERADMIN and otherwise
 // requires an ACTIVE SchoolMember with a staff-facing role — a STUDENT must
@@ -15,42 +16,6 @@ async function authorise() {
   return { schoolId }
 }
 
-function periodBounds(period: string): { from: Date; points: { label: string; from: Date; to: Date }[] } {
-  const now = new Date()
-  const points: { label: string; from: Date; to: Date }[] = []
-
-  if (period === '7d') {
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(now); d.setDate(d.getDate() - i)
-      const from = new Date(d); from.setHours(0, 0, 0, 0)
-      const to   = new Date(d); to.setHours(23, 59, 59, 999)
-      points.push({ label: d.toLocaleDateString('en-US', { weekday: 'short' }), from, to })
-    }
-  } else if (period === '30d') {
-    for (let i = 9; i >= 0; i--) {
-      const d = new Date(now); d.setDate(d.getDate() - i * 3)
-      const from = new Date(d); from.setHours(0, 0, 0, 0)
-      const to   = new Date(d); to.setHours(23, 59, 59, 999)
-      points.push({ label: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), from, to })
-    }
-  } else if (period === '90d') {
-    for (let i = 2; i >= 0; i--) {
-      const d = new Date(now); d.setMonth(d.getMonth() - i)
-      const from = new Date(d.getFullYear(), d.getMonth(), 1)
-      const to   = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999)
-      points.push({ label: d.toLocaleDateString('en-US', { month: 'short' }), from, to })
-    }
-  } else {
-    for (let i = 11; i >= 0; i--) {
-      const d = new Date(now); d.setMonth(d.getMonth() - i)
-      const from = new Date(d.getFullYear(), d.getMonth(), 1)
-      const to   = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999)
-      points.push({ label: d.toLocaleDateString('en-US', { month: 'short' }), from, to })
-    }
-  }
-  return { from: points[0]?.from ?? new Date(), points }
-}
-
 export async function GET(req: NextRequest) {
   const auth = await authorise()
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
@@ -62,20 +27,19 @@ export async function GET(req: NextRequest) {
   const page      = Math.max(1, parseInt(searchParams.get('page') ?? '1'))
   const pageSize  = Math.min(1000, parseInt(searchParams.get('pageSize') ?? '15'))
   const className = searchParams.get('className') ?? ''
-  const dateFrom  = searchParams.get('dateFrom')  ?? ''
-  const dateTo    = searchParams.get('dateTo')    ?? ''
+  const dateFrom  = searchParams.get('dateFrom')
+  const dateTo    = searchParams.get('dateTo')
 
-  const { from, points } = periodBounds(period)
-
-  // If dateFrom/dateTo provided, use them for the table query; otherwise use period-derived from
-  const tableFrom = dateFrom ? new Date(dateFrom) : from
-  const tableTo   = dateTo   ? new Date(dateTo + 'T23:59:59') : undefined
+  // Single time window shared by the table, the trend chart and the stat
+  // cards — a 'custom' period (with dateFrom/dateTo) or a preset both flow
+  // through here so every widget on the page reflects the same range.
+  const { from, to, points } = periodBounds(period, dateFrom, dateTo)
 
   // ── Booking list ─────────────────────────────────────────────────────────────
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const where: any = {
     class: { schoolId: auth.schoolId, ...(className ? { name: { contains: className, mode: 'insensitive' } } : {}) },
-    scheduledAt: { gte: tableFrom, ...(tableTo ? { lte: tableTo } : {}) },
+    scheduledAt: { gte: from, lte: to },
     ...(status !== 'ALL' ? { status } : {}),
     ...(search ? {
       OR: [
@@ -114,7 +78,7 @@ export async function GET(req: NextRequest) {
   // ── By class breakdown ───────────────────────────────────────────────────────
   const byClass = await prisma.booking.groupBy({
     by: ['classId'],
-    where: { class: { schoolId: auth.schoolId }, scheduledAt: { gte: from }, status: { in: ['CONFIRMED', 'COMPLETED'] } },
+    where: { class: { schoolId: auth.schoolId }, scheduledAt: { gte: from, lte: to }, status: { in: ['CONFIRMED', 'COMPLETED'] } },
     _count: { id: true },
     orderBy: { _count: { id: 'desc' } },
     take: 6,
@@ -132,9 +96,9 @@ export async function GET(req: NextRequest) {
 
   // ── Stats ─────────────────────────────────────────────────────────────────────
   const [totalPeriod, confirmedPeriod, cancelledPeriod] = await Promise.all([
-    prisma.booking.count({ where: { class: { schoolId: auth.schoolId }, scheduledAt: { gte: from } } }),
-    prisma.booking.count({ where: { class: { schoolId: auth.schoolId }, scheduledAt: { gte: from }, status: { in: ['CONFIRMED', 'COMPLETED'] } } }),
-    prisma.booking.count({ where: { class: { schoolId: auth.schoolId }, scheduledAt: { gte: from }, status: 'CANCELLED' } }),
+    prisma.booking.count({ where: { class: { schoolId: auth.schoolId }, scheduledAt: { gte: from, lte: to } } }),
+    prisma.booking.count({ where: { class: { schoolId: auth.schoolId }, scheduledAt: { gte: from, lte: to }, status: { in: ['CONFIRMED', 'COMPLETED'] } } }),
+    prisma.booking.count({ where: { class: { schoolId: auth.schoolId }, scheduledAt: { gte: from, lte: to }, status: 'CANCELLED' } }),
   ])
   const attendanceRate = totalPeriod > 0 ? Math.round((confirmedPeriod / totalPeriod) * 100) : 0
 
