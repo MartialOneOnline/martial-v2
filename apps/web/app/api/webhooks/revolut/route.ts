@@ -6,6 +6,7 @@ import { sendMembershipReceiptEmail, sendEventTicketConfirmationEmail, sendEvent
 import { checkEventCapacity } from '@/lib/services/eventCapacity'
 import { recordOnlinePayment, recordFlaggedPayment } from '@/lib/services/transactions'
 import { isSchoolMemberArchived } from '@/lib/services/membership'
+import { convertLeadOnMembershipActivation } from '@/lib/leads'
 import { PaymentMethod, TransactionCategory } from '@/lib/prisma-client/enums'
 import { notifyPaymentReceived } from '@/lib/notifications/create'
 import { fmtPrice } from '@/lib/format'
@@ -153,6 +154,9 @@ export async function POST(req: NextRequest) {
         console.error(`[revolut webhook] payment captured for ARCHIVED member — userId=${membership.userId} schoolId=${membership.schoolId} membershipId=${membership.id} orderId=${payload.order_id}. Flagged for manual review (see Transactions).`)
       }
       if (!outcome.claimed) return NextResponse.json({ received: true })
+
+      convertLeadOnMembershipActivation(membership.schoolId, membership.userId).catch(err =>
+        console.error('[revolut webhook] lead conversion failed:', err))
 
       // Notify + send receipt email (fire-and-forget)
       prisma.membership.findUnique({

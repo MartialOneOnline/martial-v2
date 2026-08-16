@@ -11,6 +11,7 @@ import type { Prisma } from '@/lib/prisma-client/client'
 import { PaymentMethod, MembershipStatus, TransactionType, TransactionCategory, TransactionStatus } from '@/lib/prisma-client/enums'
 import { sendMembershipReceiptEmail } from '@/lib/email/sendEmails'
 import { getStripe } from '@/lib/stripe'
+import { convertLeadOnMembershipActivation } from '@/lib/leads'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -355,6 +356,11 @@ export async function assignPlan(input: AssignPlanInput) {
 
     return [m]
   })
+
+  // A newly-ACTIVE membership is the actual conversion event for the CRM —
+  // fire-and-forget, must never fail the assignment itself.
+  convertLeadOnMembershipActivation(schoolId, schoolMember.userId).catch(err =>
+    console.error('[assignPlan] lead conversion failed:', err))
 
   // Send receipt email for paid plans
   if (plan.price > 0) {

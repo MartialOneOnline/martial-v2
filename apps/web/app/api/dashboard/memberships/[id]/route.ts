@@ -4,6 +4,7 @@ import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 import { hasPermission } from '@/lib/auth/permissions'
 import { cancelMembership, computeEndDate, syncSchoolMemberStatusForMembership } from '@/lib/services/membership'
+import { convertLeadOnMembershipActivation } from '@/lib/leads'
 import { MembershipStatus, TransactionType, TransactionStatus, TransactionCategory } from '@/lib/prisma-client/enums'
 
 async function authorise() {
@@ -117,6 +118,9 @@ export async function PATCH(
         data: { status: 'ACTIVE' },
       })
     })
+
+    convertLeadOnMembershipActivation(auth.schoolId, membership.userId).catch(err =>
+      console.error('[memberships PATCH activate] lead conversion failed:', err))
 
     return NextResponse.json({ status: 'ACTIVE', id })
   }
