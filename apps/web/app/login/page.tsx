@@ -548,6 +548,14 @@ function LoginPageInner() {
           Don&apos;t have an account?{' '}
           <a href="/register" style={{ color: NAVY, fontWeight: 600, textDecoration: 'underline' }}>Register</a>
         </p>
+
+        {/* TEMP debug — remove once the V1 app's WebView user-agent is
+            captured and isEmbeddedWebView() is tuned to match it. */}
+        {typeof navigator !== 'undefined' && (
+          <p style={{ textAlign: 'center', marginTop: 24, fontSize: 9, color: '#D1D5DB', wordBreak: 'break-all', padding: '0 16px' }}>
+            UA: {navigator.userAgent}
+          </p>
+        )}
       </div>
     </div>
   )
