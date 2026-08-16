@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 import { hasPermission } from '@/lib/auth/permissions'
+import { LeadStatus, LeadSource } from '@/lib/prisma-client/enums'
 
 async function authorise() {
   const user = await getAuthUser()
@@ -20,23 +21,59 @@ async function authorise() {
   return { schoolId }
 }
 
-const VALID_STATUSES = ['NEW', 'CONTACTED', 'TRIAL_BOOKED', 'CONVERTED', 'LOST']
+const VALID_STATUSES: string[] = Object.values(LeadStatus)
+const VALID_SOURCES: string[] = Object.values(LeadSource)
 
-// PATCH /api/dashboard/leads/[id] — update status
+// GET /api/dashboard/leads/[id] — full detail for the drawer, including notes
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await authorise()
+  if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
+
+  const { id } = await params
+  const lead = await prisma.lead.findFirst({
+    where: { id, schoolId: auth.schoolId },
+    include: {
+      notes: { orderBy: { createdAt: 'desc' }, include: { author: { select: { name: true } } } },
+      convertedUser: { select: { id: true, name: true } },
+    },
+  })
+  if (!lead) return NextResponse.json({ error: 'Lead not found' }, { status: 404 })
+  return NextResponse.json({ lead })
+}
+
+// PATCH /api/dashboard/leads/[id] — update status and/or profile fields
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await authorise()
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const { id } = await params
-  const { status } = await req.json()
-  if (!VALID_STATUSES.includes(status)) {
-    return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
-  }
+  const body = await req.json().catch(() => ({}))
 
-  const existing = await prisma.lead.findFirst({ where: { id, schoolId: auth.schoolId }, select: { id: true } })
+  const existing = await prisma.lead.findFirst({ where: { id, schoolId: auth.schoolId }, select: { id: true, convertedAt: true } })
   if (!existing) return NextResponse.json({ error: 'Lead not found' }, { status: 404 })
 
-  const lead = await prisma.lead.update({ where: { id }, data: { status } })
+  const data: Record<string, unknown> = {}
+
+  if ('status' in body) {
+    if (!VALID_STATUSES.includes(body.status)) return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
+    data.status = body.status
+    // A manual convert (no linked membership) still deserves a timestamp for the timeline.
+    if (body.status === LeadStatus.CONVERTED && !existing.convertedAt) data.convertedAt = new Date()
+  }
+  if ('name' in body) {
+    if (typeof body.name !== 'string' || !body.name.trim()) return NextResponse.json({ error: 'Name cannot be empty' }, { status: 400 })
+    data.name = body.name.trim()
+  }
+  if ('email' in body) data.email = typeof body.email === 'string' && body.email.trim() ? body.email.trim() : null
+  if ('phone' in body) data.phone = typeof body.phone === 'string' && body.phone.trim() ? body.phone.trim() : null
+  if ('source' in body) {
+    if (!VALID_SOURCES.includes(body.source)) return NextResponse.json({ error: 'Invalid source' }, { status: 400 })
+    data.source = body.source
+  }
+
+  if (Object.keys(data).length === 0) return NextResponse.json({ error: 'Nothing to update' }, { status: 400 })
+
+  const lead = await prisma.lead.update({ where: { id }, data })
   return NextResponse.json({ lead })
 }
 

@@ -229,6 +229,302 @@ function BulkEmailModal({ open, ids, skippedCount, onClose, onSent, t }: {
   )
 }
 
+interface LeadDetail {
+  id: string
+  name: string
+  email: string | null
+  phone: string | null
+  source: string
+  status: string
+  message: string | null
+  interestedIn: string | null
+  createdAt: string
+  convertedAt: string | null
+  convertedUser: { id: string; name: string | null } | null
+  notes: { id: string; text: string; createdAt: string; author: { name: string | null } }[]
+}
+
+function LeadDetailDrawer({ leadId, onClose, onChanged, onRequestDelete, onRequestEmail, t }: {
+  leadId: string | null
+  onClose: () => void
+  onChanged: () => void
+  onRequestDelete: (id: string) => void
+  onRequestEmail: (id: string) => void
+  t: ReturnType<typeof useT>
+}) {
+  const open = leadId !== null
+  const [lead, setLead] = useState<LeadDetail | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [form, setForm] = useState({ name: '', email: '', phone: '', source: 'OTHER' })
+  const [saving, setSaving] = useState(false)
+  const [noteText, setNoteText] = useState('')
+  const [addingNote, setAddingNote] = useState(false)
+  const [busyAction, setBusyAction] = useState(false)
+
+  useEffect(() => {
+    if (!leadId) { setLead(null); setEditing(false); return }
+    setLoading(true)
+    fetch(`/api/dashboard/leads/${leadId}`)
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => { if (data?.lead) setLead(data.lead) })
+      .finally(() => setLoading(false))
+  }, [leadId])
+
+  function startEdit() {
+    if (!lead) return
+    setForm({ name: lead.name, email: lead.email ?? '', phone: lead.phone ?? '', source: lead.source })
+    setEditing(true)
+  }
+
+  async function saveEdit() {
+    if (!lead || !form.name.trim()) return
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/dashboard/leads/${lead.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: form.name.trim(), email: form.email.trim() || null, phone: form.phone.trim() || null, source: form.source }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (res.ok && data.lead) {
+        setLead(prev => (prev ? { ...prev, ...data.lead } : prev))
+        setEditing(false)
+        onChanged()
+      }
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function updateStatus(status: string) {
+    if (!lead) return
+    setBusyAction(true)
+    try {
+      const res = await fetch(`/api/dashboard/leads/${lead.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (res.ok && data.lead) { setLead(prev => (prev ? { ...prev, ...data.lead } : prev)); onChanged() }
+    } finally {
+      setBusyAction(false)
+    }
+  }
+
+  async function addNote() {
+    if (!lead || !noteText.trim()) return
+    setAddingNote(true)
+    try {
+      const res = await fetch(`/api/dashboard/leads/${lead.id}/notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: noteText.trim() }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (res.ok && data.note) {
+        setLead(prev => (prev ? { ...prev, notes: [data.note, ...prev.notes] } : prev))
+        setNoteText('')
+      }
+    } finally {
+      setAddingNote(false)
+    }
+  }
+
+  const sc = lead ? (STATUS_STYLE[lead.status] ?? { bg: '#F3F4F6', color: '#6B7280', border: '#E5E7EB' }) : null
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%', border: '1px solid #E5E7EB', borderRadius: 10,
+    padding: '9px 12px', fontSize: 13, color: '#111827', background: '#fff', outline: 'none',
+  }
+  const labelStyle: React.CSSProperties = {
+    display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 5,
+  }
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 transition-opacity"
+        style={{ background: 'rgba(0,0,0,0.35)', opacity: open ? 1 : 0, pointerEvents: open ? 'auto' : 'none' }}
+        onClick={onClose} />
+      <div className="fixed top-0 right-0 h-full z-50 flex flex-col overflow-hidden"
+        style={{ width: 'min(560px,96vw)', background: '#F9FAFB',
+          boxShadow: '-4px 0 32px rgba(0,0,0,0.12)',
+          transform: open ? 'translateX(0)' : 'translateX(100%)',
+          transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)' }}>
+        <div className="flex items-center justify-between px-6 py-5 shrink-0"
+          style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
+          <h2 style={{ fontSize: 17, fontWeight: 700, color: '#111827', margin: 0, letterSpacing: '-0.02em' }}>{t.school.leadDetails}</h2>
+          <button onClick={onClose} className="w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
+            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
+            <X size={15} style={{ color: '#6B7280' }} />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-6">
+          {loading || !lead ? (
+            <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: '40px 0' }}>…</p>
+          ) : (
+            <>
+              <div className="flex items-center gap-3">
+                <Avatar name={lead.name} />
+                <div className="min-w-0 flex-1">
+                  <p style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>{lead.name}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    {sc && (
+                      <span className="inline-flex items-center rounded-full"
+                        style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', background: sc.bg, color: sc.color, border: '1px solid ' + sc.border }}>
+                        {STATUS_DISPLAY[lead.status] ?? lead.status}
+                      </span>
+                    )}
+                    <span style={{ fontSize: 12, color: '#9CA3AF' }}>
+                      {new Date(lead.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </span>
+                  </div>
+                </div>
+                {!editing && (
+                  <button onClick={startEdit} className="px-3 py-1.5 rounded-lg cursor-pointer"
+                    style={{ fontSize: 12, fontWeight: 600, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
+                    {t.common.edit}
+                  </button>
+                )}
+              </div>
+
+              {lead.convertedAt && (
+                <p style={{ fontSize: 12, color: '#16A34A', margin: 0 }}>
+                  ✓ {t.school.convertedOn} {new Date(lead.convertedAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                  {lead.convertedUser?.name ? ` — ${lead.convertedUser.name}` : ''}
+                </p>
+              )}
+
+              {editing ? (
+                <div className="rounded-2xl flex flex-col gap-4" style={{ background: '#fff', border: '1px solid #E5E7EB', padding: 18 }}>
+                  <div>
+                    <label style={labelStyle}>{t.common.name}</label>
+                    <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} style={inputStyle} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label style={labelStyle}>{t.common.email}</label>
+                      <input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} style={inputStyle} />
+                    </div>
+                    <div>
+                      <label style={labelStyle}>{t.common.phone}</label>
+                      <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} style={inputStyle} />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={labelStyle}>{t.school.colSource}</label>
+                    <select value={form.source} onChange={e => setForm(f => ({ ...f, source: e.target.value }))} style={inputStyle}>
+                      {Object.entries(SOURCE_DISPLAY).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2 justify-end">
+                    <button onClick={() => setEditing(false)} className="px-4 py-2 rounded-lg cursor-pointer"
+                      style={{ fontSize: 13, fontWeight: 600, border: 'none', background: 'transparent', color: '#667085' }}>
+                      {t.common.cancel}
+                    </button>
+                    <button onClick={saveEdit} disabled={saving || !form.name.trim()} className="px-5 py-2 rounded-lg cursor-pointer"
+                      style={{ fontSize: 13, fontWeight: 700, border: 'none', color: '#fff',
+                        background: saving || !form.name.trim() ? '#93C5FD' : '#0071E3' }}>
+                      {saving ? t.school.saving : t.common.save}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-2xl flex flex-col gap-3" style={{ background: '#fff', border: '1px solid #E5E7EB', padding: 18 }}>
+                  <div className="flex items-center justify-between">
+                    <span style={{ fontSize: 12, color: '#9CA3AF' }}>{t.common.email}</span>
+                    <span style={{ fontSize: 13, color: '#111827', fontWeight: 500 }}>{lead.email ?? '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span style={{ fontSize: 12, color: '#9CA3AF' }}>{t.common.phone}</span>
+                    <span style={{ fontSize: 13, color: '#111827', fontWeight: 500 }}>{lead.phone ?? '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span style={{ fontSize: 12, color: '#9CA3AF' }}>{t.school.colSource}</span>
+                    <span style={{ fontSize: 13, color: '#111827', fontWeight: 500 }}>{SOURCE_DISPLAY[lead.source] ?? lead.source}</span>
+                  </div>
+                </div>
+              )}
+
+              {(lead.message || lead.interestedIn) && (
+                <div className="rounded-2xl flex flex-col gap-2" style={{ background: '#fff', border: '1px solid #E5E7EB', padding: 18 }}>
+                  {lead.interestedIn && (
+                    <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>
+                      {t.school.interestedInLabel}: <span style={{ color: '#111827', fontWeight: 500 }}>{lead.interestedIn}</span>
+                    </p>
+                  )}
+                  {lead.message && (
+                    <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, margin: 0 }}>{lead.message}</p>
+                  )}
+                </div>
+              )}
+
+              <div className="flex items-center gap-2 flex-wrap">
+                {lead.email && (
+                  <button onClick={() => onRequestEmail(lead.id)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg cursor-pointer"
+                    style={{ fontSize: 12.5, fontWeight: 600, border: '1px solid #BFDBFE', background: '#EFF6FF', color: '#0071E3' }}>
+                    <Mail size={12} />{t.school.sendEmail}
+                  </button>
+                )}
+                {lead.status !== 'CONVERTED' && (
+                  <button onClick={() => updateStatus('CONVERTED')} disabled={busyAction} className="flex items-center gap-1.5 px-3 py-2 rounded-lg cursor-pointer"
+                    style={{ fontSize: 12.5, fontWeight: 600, border: '1px solid #BBF7D0', background: '#F0FDF4', color: '#16A34A' }}>
+                    <Check size={12} />{t.school.convertLead}
+                  </button>
+                )}
+                {lead.status !== 'LOST' && (
+                  <button onClick={() => updateStatus('LOST')} disabled={busyAction} className="px-3 py-2 rounded-lg cursor-pointer"
+                    style={{ fontSize: 12.5, fontWeight: 600, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
+                    {t.school.markAsLost}
+                  </button>
+                )}
+                <button onClick={() => onRequestDelete(lead.id)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg cursor-pointer"
+                  style={{ fontSize: 12.5, fontWeight: 600, border: '1px solid #FECDD3', background: '#FFF1F2', color: '#DC2626' }}>
+                  <Trash2 size={12} />{t.common.delete}
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', margin: 0 }}>{t.school.notesTitle}</p>
+                <div className="rounded-2xl" style={{ background: '#fff', border: '1px solid #E5E7EB', padding: 14 }}>
+                  <textarea rows={2} value={noteText} onChange={e => setNoteText(e.target.value)} placeholder={t.school.addNotePh}
+                    style={{ ...inputStyle, border: 'none', padding: 0, resize: 'vertical' }} />
+                  <div className="flex justify-end" style={{ marginTop: 8 }}>
+                    <button onClick={addNote} disabled={addingNote || !noteText.trim()} className="px-4 py-1.5 rounded-lg cursor-pointer"
+                      style={{ fontSize: 12.5, fontWeight: 600, border: 'none', color: '#fff',
+                        background: addingNote || !noteText.trim() ? '#93C5FD' : '#0071E3' }}>
+                      {t.school.addNote}
+                    </button>
+                  </div>
+                </div>
+                {lead.notes.length === 0 ? (
+                  <p style={{ fontSize: 12.5, color: '#9CA3AF' }}>{t.school.noNotes}</p>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    {lead.notes.map(n => (
+                      <div key={n.id} className="rounded-xl" style={{ background: '#fff', border: '1px solid #F3F4F6', padding: '10px 14px' }}>
+                        <div className="flex items-center justify-between" style={{ marginBottom: 4 }}>
+                          <span style={{ fontSize: 11.5, fontWeight: 600, color: '#374151' }}>{n.author.name ?? '—'}</span>
+                          <span style={{ fontSize: 11, color: '#9CA3AF' }}>
+                            {new Date(n.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.5, margin: 0 }}>{n.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </>
+  )
+}
+
 function AddLeadDrawer({ open, onClose, onSuccess }: { open: boolean; onClose: () => void; onSuccess: () => void }) {
   const t = useT()
   const [name, setName]     = useState('')
@@ -375,8 +671,9 @@ export default function LeadsClient() {
   const [pendingDeleteIds, setPendingDeleteIds] = useState<string[] | null>(null)
   const [deleting, setDeleting]         = useState(false)
   const [deleteToast, setDeleteToast]   = useState<number | null>(null)
-  const [emailModalOpen, setEmailModalOpen] = useState(false)
+  const [emailTarget, setEmailTarget]   = useState<{ ids: string[]; skipped: number } | null>(null)
   const [emailToast, setEmailToast]     = useState<number | null>(null)
+  const [detailLeadId, setDetailLeadId] = useState<string | null>(null)
 
   const fetchLeads = useCallback(async () => {
     setLoading(true)
@@ -406,6 +703,15 @@ export default function LeadsClient() {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'LOST' }),
+    })
+    fetchLeads()
+  }
+
+  async function convertLead(id: string) {
+    await fetch(`/api/dashboard/leads/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'CONVERTED' }),
     })
     fetchLeads()
   }
@@ -548,7 +854,7 @@ export default function LeadsClient() {
                 style={{ fontSize: 13, fontWeight: 600, border: 'none', background: 'transparent', color: '#667085' }}>
                 {t.common.cancel}
               </button>
-              <button onClick={() => setEmailModalOpen(true)} disabled={selectedEmailCount === 0}
+              <button onClick={() => setEmailTarget({ ids: selectedEmailIds, skipped: selected.size - selectedEmailCount })} disabled={selectedEmailCount === 0}
                 className="flex items-center gap-2 px-4 py-2 rounded-full cursor-pointer"
                 style={{ fontSize: 13, fontWeight: 700, border: '1px solid #BFDBFE', background: '#EFF6FF',
                   color: '#0071E3', opacity: selectedEmailCount === 0 ? 0.5 : 1,
@@ -639,7 +945,8 @@ export default function LeadsClient() {
                     </td>
                     <td className="px-2 sm:px-5 py-3" onClick={e => e.stopPropagation()}>
                       <div className="flex items-center gap-1">
-                        <button className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
+                        <button onClick={() => setDetailLeadId(lead.id)}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
                           style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
                           onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
                           onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
@@ -657,6 +964,24 @@ export default function LeadsClient() {
                           <div className="rounded-xl py-1 overflow-hidden"
                             style={{ background: '#fff', border: '1px solid #E5E7EB',
                               boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 160 }}>
+                            {lead.email && (
+                              <button onClick={() => setEmailTarget({ ids: [lead.id], skipped: 0 })}
+                                className="w-full text-left px-4 py-2.5 cursor-pointer"
+                                style={{ fontSize: 13, color: '#374151', background: 'transparent', border: 'none' }}
+                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
+                                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+                                {t.school.sendEmail}
+                              </button>
+                            )}
+                            {lead.status !== 'CONVERTED' && (
+                              <button onClick={() => convertLead(lead.id)}
+                                className="w-full text-left px-4 py-2.5 cursor-pointer"
+                                style={{ fontSize: 13, color: '#374151', background: 'transparent', border: 'none' }}
+                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
+                                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+                                {t.school.convertLead}
+                              </button>
+                            )}
                             {lead.status !== 'LOST' && (
                               <button onClick={() => markAsLost(lead.id)}
                                 className="w-full text-left px-4 py-2.5 cursor-pointer"
@@ -744,11 +1069,11 @@ export default function LeadsClient() {
     )}
 
     <BulkEmailModal
-      open={emailModalOpen}
-      ids={selectedEmailIds}
-      skippedCount={selected.size - selectedEmailCount}
-      onClose={() => setEmailModalOpen(false)}
-      onSent={(sent) => { setEmailModalOpen(false); setSelected(new Set()); setEmailToast(sent); fetchLeads(); setTimeout(() => setEmailToast(null), 3500) }}
+      open={emailTarget !== null}
+      ids={emailTarget?.ids ?? []}
+      skippedCount={emailTarget?.skipped ?? 0}
+      onClose={() => setEmailTarget(null)}
+      onSent={(sent) => { setEmailTarget(null); setSelected(new Set()); setEmailToast(sent); fetchLeads(); setTimeout(() => setEmailToast(null), 3500) }}
       t={t}
     />
     {emailToast !== null && (
@@ -757,6 +1082,15 @@ export default function LeadsClient() {
         onClose={() => setEmailToast(null)}
       />
     )}
+
+    <LeadDetailDrawer
+      leadId={detailLeadId}
+      onClose={() => setDetailLeadId(null)}
+      onChanged={fetchLeads}
+      onRequestDelete={(id) => { setDetailLeadId(null); setPendingDeleteIds([id]) }}
+      onRequestEmail={(id) => setEmailTarget({ ids: [id], skipped: 0 })}
+      t={t}
+    />
     </>
   )
 }
