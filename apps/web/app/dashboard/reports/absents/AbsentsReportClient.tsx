@@ -2,7 +2,7 @@
 
 import { useDashboard } from '../../../../components/DashboardShell'
 import NotificationBell from '../../../../components/NotificationBell'
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Menu, Search, ChevronLeft, ChevronRight, Filter, MoreVertical, AlertTriangle, Download } from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import SharedRowMenu from '../../../../components/RowMenu'
@@ -45,54 +45,50 @@ interface FiltersState { minCount: string; dateFrom: string; dateTo: string }
 const EMPTY_FILTERS: FiltersState = { minCount: '', dateFrom: '', dateTo: '' }
 
 function FiltersPanel({ filters, onChange }: { filters: FiltersState; onChange: (f: FiltersState) => void }) {
-  const [open, setOpen] = useState(false)
   const [local, setLocal] = useState<FiltersState>(filters)
-  const ref = useRef<HTMLDivElement>(null)
   useEffect(() => { setLocal(filters) }, [filters])
-  useEffect(() => {
-    function h(e: MouseEvent) { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
-    document.addEventListener('mousedown', h)
-    return () => document.removeEventListener('mousedown', h)
-  }, [])
   const activeCount = [!!filters.minCount, !!filters.dateFrom || !!filters.dateTo].filter(Boolean).length
-  function apply() { onChange(local); setOpen(false) }
-  function clear() { setLocal(EMPTY_FILTERS); onChange(EMPTY_FILTERS); setOpen(false) }
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <button onClick={() => setOpen(o => !o)}
+    <SharedRowMenu align="right" closeOnItemClick={false} trigger={({ onClick }) => (
+      <button onClick={onClick}
         style={{ display: 'flex', alignItems: 'center', gap: 5, height: 34, padding: '0 12px', borderRadius: 8, cursor: 'pointer',
           border: activeCount ? '1.5px solid #0870E2' : '1px solid #E5E7EB', background: activeCount ? '#EFF6FF' : '#fff' }}>
         <Filter size={13} style={{ color: activeCount ? '#0870E2' : '#6B7280' }} />
         <span style={{ fontSize: 12, fontWeight: 500, color: activeCount ? '#0870E2' : '#6B7280' }}>Filters</span>
         {activeCount > 0 && <span style={{ background: '#0870E2', color: '#fff', borderRadius: 999, fontSize: 10, fontWeight: 700, padding: '1px 6px' }}>{activeCount}</span>}
       </button>
-      {open && (
-        <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: 6, zIndex: 40, background: '#fff', border: '1px solid #E5E7EB', borderRadius: 14, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', width: 280, padding: 16 }}>
-          <div style={{ marginBottom: 16 }}>
-            <span style={SEC}>Min. cancellations</span>
-            <input type="number" min={1} placeholder="e.g. 3" value={local.minCount} onChange={e => setLocal(p => ({ ...p, minCount: e.target.value }))} style={INP} />
-            <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>Show only members with ≥ this many cancellations</p>
-          </div>
-          <div style={{ marginBottom: 16 }}>
-            <span style={SEC}>Date range</span>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 }}>From</label>
-                <input type="date" value={local.dateFrom} onChange={e => setLocal(p => ({ ...p, dateFrom: e.target.value }))} style={INP} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 }}>To</label>
-                <input type="date" value={local.dateTo} onChange={e => setLocal(p => ({ ...p, dateTo: e.target.value }))} style={INP} />
+    )}>
+      {({ close }) => {
+        function apply() { onChange(local); close() }
+        function clear() { setLocal(EMPTY_FILTERS); onChange(EMPTY_FILTERS); close() }
+        return (
+          <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 14, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', width: 280, padding: 16 }}>
+            <div style={{ marginBottom: 16 }}>
+              <span style={SEC}>Min. cancellations</span>
+              <input type="number" min={1} placeholder="e.g. 3" value={local.minCount} onChange={e => setLocal(p => ({ ...p, minCount: e.target.value }))} style={INP} />
+              <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>Show only members with ≥ this many cancellations</p>
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <span style={SEC}>Date range</span>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 }}>From</label>
+                  <input type="date" value={local.dateFrom} onChange={e => setLocal(p => ({ ...p, dateFrom: e.target.value }))} style={INP} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 }}>To</label>
+                  <input type="date" value={local.dateTo} onChange={e => setLocal(p => ({ ...p, dateTo: e.target.value }))} style={INP} />
+                </div>
               </div>
             </div>
+            <div style={{ display: 'flex', gap: 8, paddingTop: 12, borderTop: '1px solid #F3F4F6' }}>
+              <button onClick={clear} style={{ flex: 1, padding: 8, borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, fontWeight: 500, color: '#6B7280', cursor: 'pointer' }}>Clear</button>
+              <button onClick={apply} style={{ flex: 1, padding: 8, borderRadius: 8, border: 'none', background: '#111827', fontSize: 12, fontWeight: 600, color: '#fff', cursor: 'pointer' }}>Apply</button>
+            </div>
           </div>
-          <div style={{ display: 'flex', gap: 8, paddingTop: 12, borderTop: '1px solid #F3F4F6' }}>
-            <button onClick={clear} style={{ flex: 1, padding: 8, borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, fontWeight: 500, color: '#6B7280', cursor: 'pointer' }}>Clear</button>
-            <button onClick={apply} style={{ flex: 1, padding: 8, borderRadius: 8, border: 'none', background: '#111827', fontSize: 12, fontWeight: 600, color: '#fff', cursor: 'pointer' }}>Apply</button>
-          </div>
-        </div>
-      )}
-    </div>
+        )
+      }}
+    </SharedRowMenu>
   )
 }
 

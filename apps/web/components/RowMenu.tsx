@@ -12,10 +12,14 @@ const MARGIN = 8
 // escapes that ancestor clipping entirely. Position is then flipped/clamped to
 // the viewport so the menu never renders partly or fully off-screen (e.g. rows
 // near the bottom of the page, or nested submenus that grow the menu's height).
-export default function RowMenu({ trigger, children, align = 'right' }: {
+export default function RowMenu({ trigger, children, align = 'right', closeOnItemClick = true }: {
   trigger: (props: { onClick: (e: React.MouseEvent) => void }) => ReactNode
-  children: ReactNode
+  children: ReactNode | ((props: { close: () => void }) => ReactNode)
   align?: 'left' | 'right'
+  // Row-action menus close as soon as any item is clicked. Filter/form panels
+  // need clicks on their inputs to stay open — set false and close explicitly
+  // (via the `close` passed to function-form children) from Apply/Clear instead.
+  closeOnItemClick?: boolean
 }) {
   const [open, setOpen] = useState(false)
   const [pos, setPos] = useState<{ top: number; left?: number; right?: number; ready: boolean }>({ top: 0, ready: false })
@@ -96,9 +100,9 @@ export default function RowMenu({ trigger, children, align = 'right' }: {
             ref={menuRef}
             className="fixed z-50"
             style={{ top: pos.top, left: pos.left, right: pos.right, visibility: pos.ready ? 'visible' : 'hidden' }}
-            onClick={() => setOpen(false)}
+            onClick={closeOnItemClick ? () => setOpen(false) : undefined}
           >
-            {children}
+            {typeof children === 'function' ? children({ close: () => setOpen(false) }) : children}
           </div>
         </>,
         document.body,

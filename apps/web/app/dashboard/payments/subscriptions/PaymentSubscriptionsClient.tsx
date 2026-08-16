@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   Menu, X, Search, Check, Clock, Filter,
   TrendingUp, TrendingDown, RefreshCw,
@@ -9,6 +9,7 @@ import {
 import { useDashboard } from '../../../../components/DashboardShell'
 import NotificationBell from '../../../../components/NotificationBell'
 import MembershipRowActions from '../../../../components/MembershipRowActions'
+import RowMenu from '../../../../components/RowMenu'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../../lib/format'
 import { downloadCsv } from '../../../../lib/csvExport'
@@ -113,23 +114,11 @@ function SubFiltersPanel({ filters, onChange }: {
   filters: SubFilters
   onChange: (f: SubFilters) => void
 }) {
-  const [open, setOpen]   = useState(false)
   const [local, setLocal] = useState<SubFilters>(filters)
-  const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => { setLocal(filters) }, [filters])
-  useEffect(() => {
-    function handler(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
 
   const activeCount = [!!filters.belt, !!filters.plan, !!filters.dateFrom || !!filters.dateTo].filter(Boolean).length
-
-  function apply() { onChange(local); setOpen(false) }
-  function clear() { setLocal(EMPTY_SUB_FILTERS); onChange(EMPTY_SUB_FILTERS); setOpen(false) }
 
   const inp: React.CSSProperties = {
     width: '100%', border: '1.5px solid #E5E7EB', borderRadius: 8, padding: '7px 10px',
@@ -142,8 +131,8 @@ function SubFiltersPanel({ filters, onChange }: {
   }
 
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <button onClick={() => setOpen(o => !o)}
+    <RowMenu align="right" closeOnItemClick={false} trigger={({ onClick }) => (
+      <button onClick={onClick}
         style={{ display: 'flex', alignItems: 'center', gap: 5, height: 34, padding: '0 12px',
           borderRadius: 8, border: activeCount ? '1.5px solid #0071E3' : '1px solid #E5E7EB',
           background: activeCount ? '#EFF6FF' : '#fff', cursor: 'pointer' }}>
@@ -154,81 +143,84 @@ function SubFiltersPanel({ filters, onChange }: {
             fontWeight: 700, padding: '1px 6px', lineHeight: 1.4 }}>{activeCount}</span>
         )}
       </button>
+    )}>
+      {({ close }) => {
+        function apply() { onChange(local); close() }
+        function clear() { setLocal(EMPTY_SUB_FILTERS); onChange(EMPTY_SUB_FILTERS); close() }
+        return (
+          <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 16,
+            boxShadow: '0 12px 32px rgba(0,0,0,0.12)', width: 300, padding: '16px 16px 14px' }}>
 
-      {open && (
-        <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 6, zIndex: 30,
-          background: '#fff', border: '1px solid #E5E7EB', borderRadius: 16,
-          boxShadow: '0 12px 32px rgba(0,0,0,0.12)', width: 300, padding: '16px 16px 14px' }}>
-
-          {/* Date range */}
-          <div style={{ marginBottom: 16 }}>
-            <span style={sectionLabel}>Date range</span>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 }}>From</label>
-                <input type="date" value={local.dateFrom}
-                  onChange={e => setLocal(p => ({ ...p, dateFrom: e.target.value }))} style={inp} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 }}>To</label>
-                <input type="date" value={local.dateTo}
-                  onChange={e => setLocal(p => ({ ...p, dateTo: e.target.value }))} style={inp} />
+            {/* Date range */}
+            <div style={{ marginBottom: 16 }}>
+              <span style={sectionLabel}>Date range</span>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 }}>From</label>
+                  <input type="date" value={local.dateFrom}
+                    onChange={e => setLocal(p => ({ ...p, dateFrom: e.target.value }))} style={inp} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 }}>To</label>
+                  <input type="date" value={local.dateTo}
+                    onChange={e => setLocal(p => ({ ...p, dateTo: e.target.value }))} style={inp} />
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Plan name */}
-          <div style={{ marginBottom: 16 }}>
-            <span style={sectionLabel}>Plan / Membership</span>
-            <input type="text" placeholder="e.g. Jiu Jitsu Mensual"
-              value={local.plan}
-              onChange={e => setLocal(p => ({ ...p, plan: e.target.value }))}
-              style={inp} />
-          </div>
+            {/* Plan name */}
+            <div style={{ marginBottom: 16 }}>
+              <span style={sectionLabel}>Plan / Membership</span>
+              <input type="text" placeholder="e.g. Jiu Jitsu Mensual"
+                value={local.plan}
+                onChange={e => setLocal(p => ({ ...p, plan: e.target.value }))}
+                style={inp} />
+            </div>
 
-          {/* Belt */}
-          <div style={{ marginBottom: 16 }}>
-            <span style={sectionLabel}>Belt</span>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              <button onClick={() => setLocal(p => ({ ...p, belt: '' }))}
-                style={{ fontSize: 11, fontWeight: 500, padding: '4px 11px', borderRadius: 999, cursor: 'pointer',
-                  border: !local.belt ? '1.5px solid #0071E3' : '1px solid #E5E7EB',
-                  background: !local.belt ? '#EFF6FF' : '#F9FAFB',
-                  color: !local.belt ? '#0071E3' : '#6B7280' }}>
-                All
+            {/* Belt */}
+            <div style={{ marginBottom: 16 }}>
+              <span style={sectionLabel}>Belt</span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                <button onClick={() => setLocal(p => ({ ...p, belt: '' }))}
+                  style={{ fontSize: 11, fontWeight: 500, padding: '4px 11px', borderRadius: 999, cursor: 'pointer',
+                    border: !local.belt ? '1.5px solid #0071E3' : '1px solid #E5E7EB',
+                    background: !local.belt ? '#EFF6FF' : '#F9FAFB',
+                    color: !local.belt ? '#0071E3' : '#6B7280' }}>
+                  All
+                </button>
+                {SUB_BELT_OPTIONS.map(b => {
+                  const bs = SUB_BELT_STYLES[b]!
+                  const isOn = local.belt === b
+                  return (
+                    <button key={b} onClick={() => setLocal(p => ({ ...p, belt: isOn ? '' : b }))}
+                      style={{ fontSize: 11, fontWeight: 600, padding: '4px 11px', borderRadius: 999, cursor: 'pointer',
+                        border: isOn ? `1.5px solid ${bs.border}` : '1px solid #E5E7EB',
+                        background: isOn ? bs.bg : '#F9FAFB',
+                        color: isOn ? bs.color : '#6B7280' }}>
+                      {b}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: 'flex', gap: 8, paddingTop: 12, borderTop: '1px solid #F3F4F6' }}>
+              <button onClick={clear}
+                style={{ flex: 1, padding: '8px', borderRadius: 8, border: '1px solid #E5E7EB',
+                  background: '#fff', fontSize: 12, fontWeight: 500, color: '#6B7280', cursor: 'pointer' }}>
+                Clear all
               </button>
-              {SUB_BELT_OPTIONS.map(b => {
-                const bs = SUB_BELT_STYLES[b]!
-                const isOn = local.belt === b
-                return (
-                  <button key={b} onClick={() => setLocal(p => ({ ...p, belt: isOn ? '' : b }))}
-                    style={{ fontSize: 11, fontWeight: 600, padding: '4px 11px', borderRadius: 999, cursor: 'pointer',
-                      border: isOn ? `1.5px solid ${bs.border}` : '1px solid #E5E7EB',
-                      background: isOn ? bs.bg : '#F9FAFB',
-                      color: isOn ? bs.color : '#6B7280' }}>
-                    {b}
-                  </button>
-                )
-              })}
+              <button onClick={apply}
+                style={{ flex: 1, padding: '8px', borderRadius: 8, border: 'none',
+                  background: '#0071E3', fontSize: 12, fontWeight: 600, color: '#fff', cursor: 'pointer' }}>
+                Apply
+              </button>
             </div>
           </div>
-
-          {/* Actions */}
-          <div style={{ display: 'flex', gap: 8, paddingTop: 12, borderTop: '1px solid #F3F4F6' }}>
-            <button onClick={clear}
-              style={{ flex: 1, padding: '8px', borderRadius: 8, border: '1px solid #E5E7EB',
-                background: '#fff', fontSize: 12, fontWeight: 500, color: '#6B7280', cursor: 'pointer' }}>
-              Clear all
-            </button>
-            <button onClick={apply}
-              style={{ flex: 1, padding: '8px', borderRadius: 8, border: 'none',
-                background: '#0071E3', fontSize: 12, fontWeight: 600, color: '#fff', cursor: 'pointer' }}>
-              Apply
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+        )
+      }}
+    </RowMenu>
   )
 }
 

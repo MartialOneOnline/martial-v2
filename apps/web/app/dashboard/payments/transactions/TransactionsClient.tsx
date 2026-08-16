@@ -144,19 +144,9 @@ function FiltersPanel({ filters, onChange }: {
   filters: FiltersState
   onChange: (f: FiltersState) => void
 }) {
-  const [open, setOpen] = useState(false)
   const [local, setLocal] = useState<FiltersState>(filters)
-  const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => { setLocal(filters) }, [filters])
-
-  useEffect(() => {
-    function handler(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
 
   const activeCount = [
     filters.method !== 'ALL',
@@ -164,9 +154,6 @@ function FiltersPanel({ filters, onChange }: {
     !!filters.membership,
     !!filters.belt,
   ].filter(Boolean).length
-
-  function apply() { onChange(local); setOpen(false) }
-  function clear()  { setLocal(EMPTY_FILTERS); onChange(EMPTY_FILTERS); setOpen(false) }
 
   const inp: React.CSSProperties = {
     width: '100%', border: '1.5px solid #E5E7EB', borderRadius: 8, padding: '7px 10px',
@@ -179,8 +166,8 @@ function FiltersPanel({ filters, onChange }: {
   }
 
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <button onClick={() => setOpen(o => !o)}
+    <RowMenu align="right" closeOnItemClick={false} trigger={({ onClick }) => (
+      <button onClick={onClick}
         style={{ display: 'flex', alignItems: 'center', gap: 5, height: 34, padding: '0 12px',
           borderRadius: 8, border: activeCount ? '1.5px solid #0870E2' : '1px solid #E5E7EB',
           background: activeCount ? '#EFF6FF' : '#fff', cursor: 'pointer' }}>
@@ -191,99 +178,102 @@ function FiltersPanel({ filters, onChange }: {
             fontWeight: 700, padding: '1px 6px', lineHeight: 1.4 }}>{activeCount}</span>
         )}
       </button>
+    )}>
+      {({ close }) => {
+        function apply() { onChange(local); close() }
+        function clear()  { setLocal(EMPTY_FILTERS); onChange(EMPTY_FILTERS); close() }
+        return (
+          <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 16,
+            boxShadow: '0 12px 32px rgba(0,0,0,0.12)', width: 320, padding: '16px 16px 14px' }}>
 
-      {open && (
-        <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 6, zIndex: 30,
-          background: '#fff', border: '1px solid #E5E7EB', borderRadius: 16,
-          boxShadow: '0 12px 32px rgba(0,0,0,0.12)', width: 320, padding: '16px 16px 14px' }}>
-
-          {/* Date range */}
-          <div style={{ marginBottom: 16 }}>
-            <span style={sectionLabel}>Date range</span>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 }}>From</label>
-                <input type="date" value={local.dateFrom}
-                  onChange={e => setLocal(p => ({ ...p, dateFrom: e.target.value }))}
-                  style={inp} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 }}>To</label>
-                <input type="date" value={local.dateTo}
-                  onChange={e => setLocal(p => ({ ...p, dateTo: e.target.value }))}
-                  style={inp} />
+            {/* Date range */}
+            <div style={{ marginBottom: 16 }}>
+              <span style={sectionLabel}>Date range</span>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 }}>From</label>
+                  <input type="date" value={local.dateFrom}
+                    onChange={e => setLocal(p => ({ ...p, dateFrom: e.target.value }))}
+                    style={inp} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 }}>To</label>
+                  <input type="date" value={local.dateTo}
+                    onChange={e => setLocal(p => ({ ...p, dateTo: e.target.value }))}
+                    style={inp} />
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Activity / plan */}
-          <div style={{ marginBottom: 16 }}>
-            <span style={sectionLabel}>Activity / Plan</span>
-            <input type="text" placeholder="e.g. Jiu Jitsu Mensual"
-              value={local.membership}
-              onChange={e => setLocal(p => ({ ...p, membership: e.target.value }))}
-              style={inp} />
-          </div>
-
-          {/* Belt */}
-          <div style={{ marginBottom: 16 }}>
-            <span style={sectionLabel}>Belt</span>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              <button onClick={() => setLocal(p => ({ ...p, belt: '' }))}
-                style={{ fontSize: 11, fontWeight: 500, padding: '4px 11px', borderRadius: 999, cursor: 'pointer',
-                  border: !local.belt ? '1.5px solid #0870E2' : '1px solid #E5E7EB',
-                  background: !local.belt ? '#EFF6FF' : '#F9FAFB',
-                  color: !local.belt ? '#0870E2' : '#6B7280' }}>
-                All
-              </button>
-              {BELT_OPTIONS.map(b => {
-                const bs = BELT_STYLES[b]!
-                const isOn = local.belt === b
-                return (
-                  <button key={b} onClick={() => setLocal(p => ({ ...p, belt: isOn ? '' : b }))}
-                    style={{ fontSize: 11, fontWeight: 600, padding: '4px 11px', borderRadius: 999, cursor: 'pointer',
-                      border: isOn ? `1.5px solid ${bs.border}` : '1px solid #E5E7EB',
-                      background: isOn ? bs.bg : '#F9FAFB',
-                      color: isOn ? bs.color : '#6B7280' }}>
-                    {b}
-                  </button>
-                )
-              })}
+            {/* Activity / plan */}
+            <div style={{ marginBottom: 16 }}>
+              <span style={sectionLabel}>Activity / Plan</span>
+              <input type="text" placeholder="e.g. Jiu Jitsu Mensual"
+                value={local.membership}
+                onChange={e => setLocal(p => ({ ...p, membership: e.target.value }))}
+                style={inp} />
             </div>
-          </div>
 
-          {/* Method */}
-          <div style={{ marginBottom: 16 }}>
-            <span style={sectionLabel}>Method</span>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              {ALL_METHODS.map(m => (
-                <button key={m.id} onClick={() => setLocal(p => ({ ...p, method: m.id }))}
-                  style={{ fontSize: 11, fontWeight: 500, padding: '4px 10px', borderRadius: 999, cursor: 'pointer',
-                    border: local.method === m.id ? '1.5px solid #0870E2' : '1px solid #E5E7EB',
-                    background: local.method === m.id ? '#EFF6FF' : '#F9FAFB',
-                    color: local.method === m.id ? '#0870E2' : '#6B7280' }}>
-                  {m.label}
+            {/* Belt */}
+            <div style={{ marginBottom: 16 }}>
+              <span style={sectionLabel}>Belt</span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                <button onClick={() => setLocal(p => ({ ...p, belt: '' }))}
+                  style={{ fontSize: 11, fontWeight: 500, padding: '4px 11px', borderRadius: 999, cursor: 'pointer',
+                    border: !local.belt ? '1.5px solid #0870E2' : '1px solid #E5E7EB',
+                    background: !local.belt ? '#EFF6FF' : '#F9FAFB',
+                    color: !local.belt ? '#0870E2' : '#6B7280' }}>
+                  All
                 </button>
-              ))}
+                {BELT_OPTIONS.map(b => {
+                  const bs = BELT_STYLES[b]!
+                  const isOn = local.belt === b
+                  return (
+                    <button key={b} onClick={() => setLocal(p => ({ ...p, belt: isOn ? '' : b }))}
+                      style={{ fontSize: 11, fontWeight: 600, padding: '4px 11px', borderRadius: 999, cursor: 'pointer',
+                        border: isOn ? `1.5px solid ${bs.border}` : '1px solid #E5E7EB',
+                        background: isOn ? bs.bg : '#F9FAFB',
+                        color: isOn ? bs.color : '#6B7280' }}>
+                      {b}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Method */}
+            <div style={{ marginBottom: 16 }}>
+              <span style={sectionLabel}>Method</span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {ALL_METHODS.map(m => (
+                  <button key={m.id} onClick={() => setLocal(p => ({ ...p, method: m.id }))}
+                    style={{ fontSize: 11, fontWeight: 500, padding: '4px 10px', borderRadius: 999, cursor: 'pointer',
+                      border: local.method === m.id ? '1.5px solid #0870E2' : '1px solid #E5E7EB',
+                      background: local.method === m.id ? '#EFF6FF' : '#F9FAFB',
+                      color: local.method === m.id ? '#0870E2' : '#6B7280' }}>
+                    {m.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: 'flex', gap: 8, paddingTop: 12, borderTop: '1px solid #F3F4F6' }}>
+              <button onClick={clear}
+                style={{ flex: 1, padding: '8px', borderRadius: 8, border: '1px solid #E5E7EB',
+                  background: '#fff', fontSize: 12, fontWeight: 500, color: '#6B7280', cursor: 'pointer' }}>
+                Clear all
+              </button>
+              <button onClick={apply}
+                style={{ flex: 1, padding: '8px', borderRadius: 8, border: 'none',
+                  background: '#0870E2', fontSize: 12, fontWeight: 600, color: '#fff', cursor: 'pointer' }}>
+                Apply
+              </button>
             </div>
           </div>
-
-          {/* Actions */}
-          <div style={{ display: 'flex', gap: 8, paddingTop: 12, borderTop: '1px solid #F3F4F6' }}>
-            <button onClick={clear}
-              style={{ flex: 1, padding: '8px', borderRadius: 8, border: '1px solid #E5E7EB',
-                background: '#fff', fontSize: 12, fontWeight: 500, color: '#6B7280', cursor: 'pointer' }}>
-              Clear all
-            </button>
-            <button onClick={apply}
-              style={{ flex: 1, padding: '8px', borderRadius: 8, border: 'none',
-                background: '#0870E2', fontSize: 12, fontWeight: 600, color: '#fff', cursor: 'pointer' }}>
-              Apply
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+        )
+      }}
+    </RowMenu>
   )
 }
 
