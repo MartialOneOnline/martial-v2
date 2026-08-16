@@ -138,6 +138,16 @@ export type CampBooking = Prisma.CampBookingModel
  */
 export type SchoolMember = Prisma.SchoolMemberModel
 /**
+ * Model Campaign
+ * 
+ */
+export type Campaign = Prisma.CampaignModel
+/**
+ * Model CampaignRecipient
+ * 
+ */
+export type CampaignRecipient = Prisma.CampaignRecipientModel
+/**
  * Model SchoolClaim
  * 
  */

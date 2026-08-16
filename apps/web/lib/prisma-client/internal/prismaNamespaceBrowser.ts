@@ -75,6 +75,8 @@ export const ModelName = {
   Camp: 'Camp',
   CampBooking: 'CampBooking',
   SchoolMember: 'SchoolMember',
+  Campaign: 'Campaign',
+  CampaignRecipient: 'CampaignRecipient',
   SchoolClaim: 'SchoolClaim',
   GradingSystem: 'GradingSystem',
   BeltRank: 'BeltRank',
@@ -580,6 +582,47 @@ export const SchoolMemberScalarFieldEnum = {
 } as const
 
 export type SchoolMemberScalarFieldEnum = (typeof SchoolMemberScalarFieldEnum)[keyof typeof SchoolMemberScalarFieldEnum]
+
+
+export const CampaignScalarFieldEnum = {
+  id: 'id',
+  schoolId: 'schoolId',
+  name: 'name',
+  type: 'type',
+  status: 'status',
+  subject: 'subject',
+  bodyHtml: 'bodyHtml',
+  language: 'language',
+  audienceFilter: 'audienceFilter',
+  createdByUserId: 'createdByUserId',
+  totalRecipients: 'totalRecipients',
+  sentCount: 'sentCount',
+  failedCount: 'failedCount',
+  convertedCount: 'convertedCount',
+  conversionWindowDays: 'conversionWindowDays',
+  sentAt: 'sentAt',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CampaignScalarFieldEnum = (typeof CampaignScalarFieldEnum)[keyof typeof CampaignScalarFieldEnum]
+
+
+export const CampaignRecipientScalarFieldEnum = {
+  id: 'id',
+  campaignId: 'campaignId',
+  schoolMemberId: 'schoolMemberId',
+  statusAtSend: 'statusAtSend',
+  status: 'status',
+  sentAt: 'sentAt',
+  failedReason: 'failedReason',
+  resendEmailId: 'resendEmailId',
+  convertedAt: 'convertedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type CampaignRecipientScalarFieldEnum = (typeof CampaignRecipientScalarFieldEnum)[keyof typeof CampaignRecipientScalarFieldEnum]
 
 
 export const SchoolClaimScalarFieldEnum = {

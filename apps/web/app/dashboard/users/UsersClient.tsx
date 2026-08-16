@@ -9,6 +9,7 @@ import {
   Mail, Upload, FileText, CheckCircle, AlertCircle,
   SlidersHorizontal, Eye, Send, Trash2,
   QrCode, Pencil, MessageSquare, RefreshCw, CreditCard, Receipt, Globe,
+  Megaphone,
 } from 'lucide-react'
 import { useDashboard } from '../../../components/DashboardShell'
 import NotificationBell from '../../../components/NotificationBell'
@@ -19,6 +20,7 @@ import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { memberStatusColors } from '../../../lib/design/tokens'
 import { submitMemberStatusChange, applyOptimisticStatus } from '../../../lib/memberStatus'
 import { downloadCsv } from '../../../lib/csvExport'
+import CampaignComposerModal from './CampaignComposerModal'
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
 type ToastType = 'success' | 'error' | 'info'
@@ -1623,6 +1625,9 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
 
   const [students, setStudents]       = useState<Student[]>(initialStudents)
   const [schoolSlug, setSchoolSlug]   = useState<string | undefined>()
+  const [schoolName, setSchoolName]   = useState<string>('')
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [showComposer, setShowComposer] = useState(false)
   const [newThisMonth, setNewThisMonth] = useState<number | null>(null)
   const [bookingsThisMonth, setBookingsThisMonth] = useState<number | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
@@ -1646,6 +1651,7 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
   useEffect(() => {
     fetch('/api/dashboard/school').then(r => r.json()).then(d => {
       if (d.school?.slug) setSchoolSlug(d.school.slug)
+      if (d.school?.name) setSchoolName(d.school.name)
     }).catch(() => {})
     fetch('/api/dashboard/stats').then(r => r.json()).then(d => {
       if (d.newMembersThisMonth?.value !== undefined) setNewThisMonth(d.newMembersThisMonth.value)
@@ -1684,6 +1690,26 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
 
   const handleFilter = (f: FilterType) => { setActiveFilter(f); setCurrentPage(1) }
   const handleSearch = (v: string) => { setSearch(v); setCurrentPage(1) }
+
+  const toggleSelected = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
+  const pageAllSelected = paginated.length > 0 && paginated.every(s => selectedIds.has(s.id))
+  const togglePageSelected = () => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (pageAllSelected) paginated.forEach(s => next.delete(s.id))
+      else paginated.forEach(s => next.add(s.id))
+      return next
+    })
+  }
+  const selectAllFiltered = () => setSelectedIds(new Set(filtered.map(s => s.id)))
+  const clearSelection = () => setSelectedIds(new Set())
+  const selectedStudents = students.filter(s => selectedIds.has(s.id))
 
   const handleStatusChange = async (memberId: string, newStatus: string) => {
     // Optimistic update
@@ -1795,6 +1821,14 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
       )}
       {qrStudent && (
         <StudentQRModal student={qrStudent} onClose={() => setQrStudent(null)} />
+      )}
+      {showComposer && (
+        <CampaignComposerModal
+          students={selectedStudents.map(s => ({ id: s.id, name: s.name, email: s.email, belt: s.belt, status: s.status }))}
+          schoolName={schoolName || 'Your school'}
+          onClose={() => setShowComposer(false)}
+          onSent={() => { clearSelection(); showToast(t.campaigns.summaryHeading, 'success') }}
+        />
       )}
 
       {/* Topbar */}
@@ -1981,11 +2015,39 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
           </div>
         )}
 
+        {/* Bulk selection bar */}
+        {selectedIds.size > 0 && (
+          <div className="flex items-center gap-3 flex-wrap" style={{
+            padding: '10px 16px', borderRadius: 12, background: '#EFF6FF', border: '1px solid #BFDBFE',
+          }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>
+              {selectedIds.size} {t.campaigns.selectedLabel}
+            </span>
+            {selectedIds.size < filtered.length && (
+              <button onClick={selectAllFiltered} style={{ fontSize: 12, color: '#0071E3', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 500 }}>
+                {t.campaigns.selectAllPrefix} {filtered.length} {t.campaigns.selectAllSuffix}
+              </button>
+            )}
+            <div style={{ flex: 1 }} />
+            <button onClick={clearSelection} style={{ fontSize: 12, color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px' }}>
+              {t.campaigns.clearSelection}
+            </button>
+            <button onClick={() => setShowComposer(true)}
+              className="flex items-center gap-2" style={{ fontSize: 13, fontWeight: 600, color: '#fff', background: '#0071E3', border: 'none', borderRadius: 999, padding: '7px 16px', cursor: 'pointer' }}>
+              <Megaphone size={14} />{t.campaigns.sendCampaignBtn}
+            </button>
+          </div>
+        )}
+
         {/* Table */}
         <div className="rounded-2xl overflow-x-auto" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
+                <th className="px-3 sm:px-6 py-3 text-left" style={{ width: 32 }}>
+                  <input type="checkbox" checked={pageAllSelected} onChange={togglePageSelected}
+                    style={{ width: 15, height: 15, cursor: 'pointer' }} />
+                </th>
                 {[
                   { label: t.common.member,     cls: '',                     pad: 'px-3 sm:px-6' },
                   { label: t.users.belt,        cls: 'hidden md:table-cell', pad: 'px-6' },
@@ -2008,6 +2070,12 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
                   className="hover:bg-[#FAFAFA] transition-colors cursor-pointer"
                   style={{ borderBottom: idx < paginated.length - 1 ? '1px solid #F9FAFB' : 'none' }}
                   onClick={() => router.push(`/dashboard/users/${student.id}`)}>
+
+                  {/* Select */}
+                  <td className="px-3 sm:px-6 py-4" onClick={e => e.stopPropagation()}>
+                    <input type="checkbox" checked={selectedIds.has(student.id)} onChange={() => toggleSelected(student.id)}
+                      style={{ width: 15, height: 15, cursor: 'pointer' }} />
+                  </td>
 
                   {/* Member */}
                   <td className="px-3 sm:px-6 py-4">

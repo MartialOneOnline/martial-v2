@@ -248,6 +248,40 @@ export const StripeWebhookEventStatus = {
 export type StripeWebhookEventStatus = (typeof StripeWebhookEventStatus)[keyof typeof StripeWebhookEventStatus]
 
 
+export const CampaignType = {
+  REMINDER: 'REMINDER',
+  DISCOUNT_OFFER: 'DISCOUNT_OFFER',
+  BELT_PROGRESS: 'BELT_PROGRESS',
+  SEASONAL: 'SEASONAL',
+  ANNIVERSARY: 'ANNIVERSARY',
+  CUSTOM: 'CUSTOM'
+} as const
+
+export type CampaignType = (typeof CampaignType)[keyof typeof CampaignType]
+
+
+export const CampaignStatus = {
+  DRAFT: 'DRAFT',
+  QUEUED: 'QUEUED',
+  SENDING: 'SENDING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED'
+} as const
+
+export type CampaignStatus = (typeof CampaignStatus)[keyof typeof CampaignStatus]
+
+
+export const CampaignRecipientStatus = {
+  PENDING: 'PENDING',
+  SENT: 'SENT',
+  FAILED: 'FAILED',
+  SKIPPED: 'SKIPPED'
+} as const
+
+export type CampaignRecipientStatus = (typeof CampaignRecipientStatus)[keyof typeof CampaignRecipientStatus]
+
+
 export const InvitationStatus = {
   PENDING: 'PENDING',
   SENT: 'SENT',

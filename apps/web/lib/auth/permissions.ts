@@ -35,6 +35,8 @@ export type Permission =
   | 'school.events.manage'
   | 'school.communications.manage'
   | 'school.notifications.view'
+  | 'school.campaigns.view'
+  | 'school.campaigns.manage'
 
 const ALL: Permission[] = [
   'school.profile.view', 'school.profile.edit',
@@ -52,6 +54,7 @@ const ALL: Permission[] = [
   'school.events.view', 'school.events.manage',
   'school.communications.manage',
   'school.notifications.view',
+  'school.campaigns.view', 'school.campaigns.manage',
 ]
 
 // Permissions that stay OWNER/ADMIN-only even for MANAGER. Two distinct
@@ -72,6 +75,7 @@ const OWNER_ADMIN_ONLY: Permission[] = [
   'school.events.view',
   'school.events.manage',
   'school.communications.manage',
+  'school.campaigns.manage',
 ]
 
 // Role → permission preset. Authorization always verified against SchoolMember.

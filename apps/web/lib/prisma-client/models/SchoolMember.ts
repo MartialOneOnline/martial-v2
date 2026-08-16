@@ -299,6 +299,7 @@ export type SchoolMemberWhereInput = {
   school?: Prisma.XOR<Prisma.SchoolScalarRelationFilter, Prisma.SchoolWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   beltRank?: Prisma.XOR<Prisma.BeltRankNullableScalarRelationFilter, Prisma.BeltRankWhereInput> | null
+  campaignRecipients?: Prisma.CampaignRecipientListRelationFilter
 }
 
 export type SchoolMemberOrderByWithRelationInput = {
@@ -320,6 +321,7 @@ export type SchoolMemberOrderByWithRelationInput = {
   school?: Prisma.SchoolOrderByWithRelationInput
   user?: Prisma.UserOrderByWithRelationInput
   beltRank?: Prisma.BeltRankOrderByWithRelationInput
+  campaignRecipients?: Prisma.CampaignRecipientOrderByRelationAggregateInput
 }
 
 export type SchoolMemberWhereUniqueInput = Prisma.AtLeast<{
@@ -345,6 +347,7 @@ export type SchoolMemberWhereUniqueInput = Prisma.AtLeast<{
   school?: Prisma.XOR<Prisma.SchoolScalarRelationFilter, Prisma.SchoolWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   beltRank?: Prisma.XOR<Prisma.BeltRankNullableScalarRelationFilter, Prisma.BeltRankWhereInput> | null
+  campaignRecipients?: Prisma.CampaignRecipientListRelationFilter
 }, "id" | "schoolId_userId">
 
 export type SchoolMemberOrderByWithAggregationInput = {
@@ -407,6 +410,7 @@ export type SchoolMemberCreateInput = {
   school: Prisma.SchoolCreateNestedOneWithoutMembersInput
   user: Prisma.UserCreateNestedOneWithoutSchoolMembersInput
   beltRank?: Prisma.BeltRankCreateNestedOneWithoutMembersInput
+  campaignRecipients?: Prisma.CampaignRecipientCreateNestedManyWithoutSchoolMemberInput
 }
 
 export type SchoolMemberUncheckedCreateInput = {
@@ -425,6 +429,7 @@ export type SchoolMemberUncheckedCreateInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  campaignRecipients?: Prisma.CampaignRecipientUncheckedCreateNestedManyWithoutSchoolMemberInput
 }
 
 export type SchoolMemberUpdateInput = {
@@ -443,6 +448,7 @@ export type SchoolMemberUpdateInput = {
   school?: Prisma.SchoolUpdateOneRequiredWithoutMembersNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutSchoolMembersNestedInput
   beltRank?: Prisma.BeltRankUpdateOneWithoutMembersNestedInput
+  campaignRecipients?: Prisma.CampaignRecipientUpdateManyWithoutSchoolMemberNestedInput
 }
 
 export type SchoolMemberUncheckedUpdateInput = {
@@ -461,6 +467,7 @@ export type SchoolMemberUncheckedUpdateInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  campaignRecipients?: Prisma.CampaignRecipientUncheckedUpdateManyWithoutSchoolMemberNestedInput
 }
 
 export type SchoolMemberCreateManyInput = {
@@ -591,6 +598,11 @@ export type SchoolMemberSumOrderByAggregateInput = {
   beltDegree?: Prisma.SortOrder
 }
 
+export type SchoolMemberScalarRelationFilter = {
+  is?: Prisma.SchoolMemberWhereInput
+  isNot?: Prisma.SchoolMemberWhereInput
+}
+
 export type SchoolMemberCreateNestedManyWithoutUserInput = {
   create?: Prisma.XOR<Prisma.SchoolMemberCreateWithoutUserInput, Prisma.SchoolMemberUncheckedCreateWithoutUserInput> | Prisma.SchoolMemberCreateWithoutUserInput[] | Prisma.SchoolMemberUncheckedCreateWithoutUserInput[]
   connectOrCreate?: Prisma.SchoolMemberCreateOrConnectWithoutUserInput | Prisma.SchoolMemberCreateOrConnectWithoutUserInput[]
@@ -683,6 +695,20 @@ export type EnumSchoolMemberStatusFieldUpdateOperationsInput = {
   set?: $Enums.SchoolMemberStatus
 }
 
+export type SchoolMemberCreateNestedOneWithoutCampaignRecipientsInput = {
+  create?: Prisma.XOR<Prisma.SchoolMemberCreateWithoutCampaignRecipientsInput, Prisma.SchoolMemberUncheckedCreateWithoutCampaignRecipientsInput>
+  connectOrCreate?: Prisma.SchoolMemberCreateOrConnectWithoutCampaignRecipientsInput
+  connect?: Prisma.SchoolMemberWhereUniqueInput
+}
+
+export type SchoolMemberUpdateOneRequiredWithoutCampaignRecipientsNestedInput = {
+  create?: Prisma.XOR<Prisma.SchoolMemberCreateWithoutCampaignRecipientsInput, Prisma.SchoolMemberUncheckedCreateWithoutCampaignRecipientsInput>
+  connectOrCreate?: Prisma.SchoolMemberCreateOrConnectWithoutCampaignRecipientsInput
+  upsert?: Prisma.SchoolMemberUpsertWithoutCampaignRecipientsInput
+  connect?: Prisma.SchoolMemberWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SchoolMemberUpdateToOneWithWhereWithoutCampaignRecipientsInput, Prisma.SchoolMemberUpdateWithoutCampaignRecipientsInput>, Prisma.SchoolMemberUncheckedUpdateWithoutCampaignRecipientsInput>
+}
+
 export type SchoolMemberCreateNestedManyWithoutBeltRankInput = {
   create?: Prisma.XOR<Prisma.SchoolMemberCreateWithoutBeltRankInput, Prisma.SchoolMemberUncheckedCreateWithoutBeltRankInput> | Prisma.SchoolMemberCreateWithoutBeltRankInput[] | Prisma.SchoolMemberUncheckedCreateWithoutBeltRankInput[]
   connectOrCreate?: Prisma.SchoolMemberCreateOrConnectWithoutBeltRankInput | Prisma.SchoolMemberCreateOrConnectWithoutBeltRankInput[]
@@ -740,6 +766,7 @@ export type SchoolMemberCreateWithoutUserInput = {
   updatedAt?: Date | string
   school: Prisma.SchoolCreateNestedOneWithoutMembersInput
   beltRank?: Prisma.BeltRankCreateNestedOneWithoutMembersInput
+  campaignRecipients?: Prisma.CampaignRecipientCreateNestedManyWithoutSchoolMemberInput
 }
 
 export type SchoolMemberUncheckedCreateWithoutUserInput = {
@@ -757,6 +784,7 @@ export type SchoolMemberUncheckedCreateWithoutUserInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  campaignRecipients?: Prisma.CampaignRecipientUncheckedCreateNestedManyWithoutSchoolMemberInput
 }
 
 export type SchoolMemberCreateOrConnectWithoutUserInput = {
@@ -821,6 +849,7 @@ export type SchoolMemberCreateWithoutSchoolInput = {
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutSchoolMembersInput
   beltRank?: Prisma.BeltRankCreateNestedOneWithoutMembersInput
+  campaignRecipients?: Prisma.CampaignRecipientCreateNestedManyWithoutSchoolMemberInput
 }
 
 export type SchoolMemberUncheckedCreateWithoutSchoolInput = {
@@ -838,6 +867,7 @@ export type SchoolMemberUncheckedCreateWithoutSchoolInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  campaignRecipients?: Prisma.CampaignRecipientUncheckedCreateNestedManyWithoutSchoolMemberInput
 }
 
 export type SchoolMemberCreateOrConnectWithoutSchoolInput = {
@@ -866,6 +896,94 @@ export type SchoolMemberUpdateManyWithWhereWithoutSchoolInput = {
   data: Prisma.XOR<Prisma.SchoolMemberUpdateManyMutationInput, Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolInput>
 }
 
+export type SchoolMemberCreateWithoutCampaignRecipientsInput = {
+  id?: string
+  role?: $Enums.SchoolMemberRole
+  status?: $Enums.SchoolMemberStatus
+  joinedAt?: Date | string | null
+  belt?: string | null
+  beltDegree?: number | null
+  beltDate?: Date | string | null
+  emergencyContact?: string | null
+  medicalNotes?: string | null
+  notes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  school: Prisma.SchoolCreateNestedOneWithoutMembersInput
+  user: Prisma.UserCreateNestedOneWithoutSchoolMembersInput
+  beltRank?: Prisma.BeltRankCreateNestedOneWithoutMembersInput
+}
+
+export type SchoolMemberUncheckedCreateWithoutCampaignRecipientsInput = {
+  id?: string
+  schoolId: string
+  userId: string
+  role?: $Enums.SchoolMemberRole
+  status?: $Enums.SchoolMemberStatus
+  joinedAt?: Date | string | null
+  belt?: string | null
+  beltRankId?: string | null
+  beltDegree?: number | null
+  beltDate?: Date | string | null
+  emergencyContact?: string | null
+  medicalNotes?: string | null
+  notes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type SchoolMemberCreateOrConnectWithoutCampaignRecipientsInput = {
+  where: Prisma.SchoolMemberWhereUniqueInput
+  create: Prisma.XOR<Prisma.SchoolMemberCreateWithoutCampaignRecipientsInput, Prisma.SchoolMemberUncheckedCreateWithoutCampaignRecipientsInput>
+}
+
+export type SchoolMemberUpsertWithoutCampaignRecipientsInput = {
+  update: Prisma.XOR<Prisma.SchoolMemberUpdateWithoutCampaignRecipientsInput, Prisma.SchoolMemberUncheckedUpdateWithoutCampaignRecipientsInput>
+  create: Prisma.XOR<Prisma.SchoolMemberCreateWithoutCampaignRecipientsInput, Prisma.SchoolMemberUncheckedCreateWithoutCampaignRecipientsInput>
+  where?: Prisma.SchoolMemberWhereInput
+}
+
+export type SchoolMemberUpdateToOneWithWhereWithoutCampaignRecipientsInput = {
+  where?: Prisma.SchoolMemberWhereInput
+  data: Prisma.XOR<Prisma.SchoolMemberUpdateWithoutCampaignRecipientsInput, Prisma.SchoolMemberUncheckedUpdateWithoutCampaignRecipientsInput>
+}
+
+export type SchoolMemberUpdateWithoutCampaignRecipientsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumSchoolMemberRoleFieldUpdateOperationsInput | $Enums.SchoolMemberRole
+  status?: Prisma.EnumSchoolMemberStatusFieldUpdateOperationsInput | $Enums.SchoolMemberStatus
+  joinedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  belt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  beltDegree?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  beltDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emergencyContact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  medicalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  school?: Prisma.SchoolUpdateOneRequiredWithoutMembersNestedInput
+  user?: Prisma.UserUpdateOneRequiredWithoutSchoolMembersNestedInput
+  beltRank?: Prisma.BeltRankUpdateOneWithoutMembersNestedInput
+}
+
+export type SchoolMemberUncheckedUpdateWithoutCampaignRecipientsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  schoolId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumSchoolMemberRoleFieldUpdateOperationsInput | $Enums.SchoolMemberRole
+  status?: Prisma.EnumSchoolMemberStatusFieldUpdateOperationsInput | $Enums.SchoolMemberStatus
+  joinedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  belt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  beltRankId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  beltDegree?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  beltDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emergencyContact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  medicalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
 export type SchoolMemberCreateWithoutBeltRankInput = {
   id?: string
   role?: $Enums.SchoolMemberRole
@@ -881,6 +999,7 @@ export type SchoolMemberCreateWithoutBeltRankInput = {
   updatedAt?: Date | string
   school: Prisma.SchoolCreateNestedOneWithoutMembersInput
   user: Prisma.UserCreateNestedOneWithoutSchoolMembersInput
+  campaignRecipients?: Prisma.CampaignRecipientCreateNestedManyWithoutSchoolMemberInput
 }
 
 export type SchoolMemberUncheckedCreateWithoutBeltRankInput = {
@@ -898,6 +1017,7 @@ export type SchoolMemberUncheckedCreateWithoutBeltRankInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  campaignRecipients?: Prisma.CampaignRecipientUncheckedCreateNestedManyWithoutSchoolMemberInput
 }
 
 export type SchoolMemberCreateOrConnectWithoutBeltRankInput = {
@@ -958,6 +1078,7 @@ export type SchoolMemberUpdateWithoutUserInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneRequiredWithoutMembersNestedInput
   beltRank?: Prisma.BeltRankUpdateOneWithoutMembersNestedInput
+  campaignRecipients?: Prisma.CampaignRecipientUpdateManyWithoutSchoolMemberNestedInput
 }
 
 export type SchoolMemberUncheckedUpdateWithoutUserInput = {
@@ -975,6 +1096,7 @@ export type SchoolMemberUncheckedUpdateWithoutUserInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  campaignRecipients?: Prisma.CampaignRecipientUncheckedUpdateManyWithoutSchoolMemberNestedInput
 }
 
 export type SchoolMemberUncheckedUpdateManyWithoutUserInput = {
@@ -1026,6 +1148,7 @@ export type SchoolMemberUpdateWithoutSchoolInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutSchoolMembersNestedInput
   beltRank?: Prisma.BeltRankUpdateOneWithoutMembersNestedInput
+  campaignRecipients?: Prisma.CampaignRecipientUpdateManyWithoutSchoolMemberNestedInput
 }
 
 export type SchoolMemberUncheckedUpdateWithoutSchoolInput = {
@@ -1043,6 +1166,7 @@ export type SchoolMemberUncheckedUpdateWithoutSchoolInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  campaignRecipients?: Prisma.CampaignRecipientUncheckedUpdateManyWithoutSchoolMemberNestedInput
 }
 
 export type SchoolMemberUncheckedUpdateManyWithoutSchoolInput = {
@@ -1094,6 +1218,7 @@ export type SchoolMemberUpdateWithoutBeltRankInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneRequiredWithoutMembersNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutSchoolMembersNestedInput
+  campaignRecipients?: Prisma.CampaignRecipientUpdateManyWithoutSchoolMemberNestedInput
 }
 
 export type SchoolMemberUncheckedUpdateWithoutBeltRankInput = {
@@ -1111,6 +1236,7 @@ export type SchoolMemberUncheckedUpdateWithoutBeltRankInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  campaignRecipients?: Prisma.CampaignRecipientUncheckedUpdateManyWithoutSchoolMemberNestedInput
 }
 
 export type SchoolMemberUncheckedUpdateManyWithoutBeltRankInput = {
@@ -1130,6 +1256,35 @@ export type SchoolMemberUncheckedUpdateManyWithoutBeltRankInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
+
+/**
+ * Count Type SchoolMemberCountOutputType
+ */
+
+export type SchoolMemberCountOutputType = {
+  campaignRecipients: number
+}
+
+export type SchoolMemberCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  campaignRecipients?: boolean | SchoolMemberCountOutputTypeCountCampaignRecipientsArgs
+}
+
+/**
+ * SchoolMemberCountOutputType without action
+ */
+export type SchoolMemberCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SchoolMemberCountOutputType
+   */
+  select?: Prisma.SchoolMemberCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * SchoolMemberCountOutputType without action
+ */
+export type SchoolMemberCountOutputTypeCountCampaignRecipientsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CampaignRecipientWhereInput
+}
 
 
 export type SchoolMemberSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1151,6 +1306,8 @@ export type SchoolMemberSelect<ExtArgs extends runtime.Types.Extensions.Internal
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   beltRank?: boolean | Prisma.SchoolMember$beltRankArgs<ExtArgs>
+  campaignRecipients?: boolean | Prisma.SchoolMember$campaignRecipientsArgs<ExtArgs>
+  _count?: boolean | Prisma.SchoolMemberCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["schoolMember"]>
 
 export type SchoolMemberSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1218,6 +1375,8 @@ export type SchoolMemberInclude<ExtArgs extends runtime.Types.Extensions.Interna
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   beltRank?: boolean | Prisma.SchoolMember$beltRankArgs<ExtArgs>
+  campaignRecipients?: boolean | Prisma.SchoolMember$campaignRecipientsArgs<ExtArgs>
+  _count?: boolean | Prisma.SchoolMemberCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type SchoolMemberIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
@@ -1236,6 +1395,7 @@ export type $SchoolMemberPayload<ExtArgs extends runtime.Types.Extensions.Intern
     school: Prisma.$SchoolPayload<ExtArgs>
     user: Prisma.$UserPayload<ExtArgs>
     beltRank: Prisma.$BeltRankPayload<ExtArgs> | null
+    campaignRecipients: Prisma.$CampaignRecipientPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1650,6 +1810,7 @@ export interface Prisma__SchoolMemberClient<T, Null = never, ExtArgs extends run
   school<T extends Prisma.SchoolDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SchoolDefaultArgs<ExtArgs>>): Prisma.Prisma__SchoolClient<runtime.Types.Result.GetResult<Prisma.$SchoolPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   beltRank<T extends Prisma.SchoolMember$beltRankArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SchoolMember$beltRankArgs<ExtArgs>>): Prisma.Prisma__BeltRankClient<runtime.Types.Result.GetResult<Prisma.$BeltRankPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  campaignRecipients<T extends Prisma.SchoolMember$campaignRecipientsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SchoolMember$campaignRecipientsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CampaignRecipientPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2111,6 +2272,30 @@ export type SchoolMember$beltRankArgs<ExtArgs extends runtime.Types.Extensions.I
    */
   include?: Prisma.BeltRankInclude<ExtArgs> | null
   where?: Prisma.BeltRankWhereInput
+}
+
+/**
+ * SchoolMember.campaignRecipients
+ */
+export type SchoolMember$campaignRecipientsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CampaignRecipient
+   */
+  select?: Prisma.CampaignRecipientSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CampaignRecipient
+   */
+  omit?: Prisma.CampaignRecipientOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CampaignRecipientInclude<ExtArgs> | null
+  where?: Prisma.CampaignRecipientWhereInput
+  orderBy?: Prisma.CampaignRecipientOrderByWithRelationInput | Prisma.CampaignRecipientOrderByWithRelationInput[]
+  cursor?: Prisma.CampaignRecipientWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CampaignRecipientScalarFieldEnum | Prisma.CampaignRecipientScalarFieldEnum[]
 }
 
 /**

@@ -375,6 +375,7 @@ model User {
   impersonationsAsActor  ImpersonationLog[] @relation("ImpersonationActor")
   impersonationsAsTarget ImpersonationLog[] @relation("ImpersonationTarget")
   targetedNotifications  Notification[]
+  createdCampaigns       Campaign[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -549,6 +550,7 @@ model School {
   transactions      Transaction[]
   invitations       SchoolInvitation[]
   notifications     Notification[]
+  campaigns         Campaign[]
 
   // Martial SaaS billing — school paying the platform (separate from the
   // school's own Stripe keys above, which they use to charge their members)
@@ -1012,11 +1014,103 @@ model SchoolMember {
 
   notes String? // Internal school notes
 
+  campaignRecipients CampaignRecipient[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([schoolId, userId])
   @@map("school_members")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CAMPAIGN  (bulk reactivation/marketing emails sent to a set of school members)
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum CampaignType {
+  REMINDER
+  DISCOUNT_OFFER
+  BELT_PROGRESS
+  SEASONAL
+  ANNIVERSARY
+  CUSTOM
+}
+
+enum CampaignStatus {
+  DRAFT
+  QUEUED
+  SENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum CampaignRecipientStatus {
+  PENDING
+  SENT
+  FAILED
+  SKIPPED // no email on file for this member
+}
+
+model Campaign {
+  id       String @id @default(cuid())
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  name   String // internal label, e.g. "Reactivación agosto"
+  type   CampaignType
+  status CampaignStatus @default(DRAFT)
+
+  subject  String
+  bodyHtml String // author-written, {{nombre}}/{{escuela}}/{{cinturon}} tokens, rendered per-recipient at send time
+  language String // snapshot of School.language at creation, editable
+
+  audienceFilter Json // snapshot of the filter used to build the recipient list — audit/reproducibility only, not re-evaluated
+
+  createdByUserId String?
+  createdBy       User?   @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  totalRecipients      Int @default(0)
+  sentCount            Int @default(0)
+  failedCount          Int @default(0)
+  convertedCount       Int @default(0)
+  conversionWindowDays Int @default(30)
+
+  sentAt      DateTime?
+  completedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  recipients CampaignRecipient[]
+
+  @@index([schoolId, status])
+  @@index([schoolId, createdAt])
+  @@map("campaigns")
+}
+
+model CampaignRecipient {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  schoolMemberId String
+  schoolMember   SchoolMember @relation(fields: [schoolMemberId], references: [id], onDelete: Cascade)
+
+  statusAtSend SchoolMemberStatus // snapshot at send time, needed to detect conversion later
+  status       CampaignRecipientStatus @default(PENDING)
+
+  sentAt        DateTime?
+  failedReason  String?
+  resendEmailId String? // correlation id, unused today but cheap to capture for future open/click tracking
+  convertedAt   DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@unique([campaignId, schoolMemberId])
+  @@index([campaignId, status])
+  @@index([schoolMemberId])
+  @@map("campaign_recipients")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
