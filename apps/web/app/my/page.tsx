@@ -401,8 +401,8 @@ export default function MyHomePage() {
               {primaryMember.belt}
               {(primaryMember.beltDegree ?? 0) > 0 && ` · ${primaryMember.beltDegree} ${t.my.stripesLabel}`}
             </p>
-            <Link href="/my/progress" prefetch={false} className="flex items-center gap-0.5 text-sm font-medium mt-1" style={{ color: '#007AFF' }}>
-              {t.my.viewProgress}<ChevronRight className="w-3.5 h-3.5" />
+            <Link href="/my/progress" prefetch={false} className="flex items-center gap-0.5 text-sm font-medium mt-1 whitespace-nowrap" style={{ color: '#007AFF' }}>
+              {t.my.viewProgress}<ChevronRight className="w-3.5 h-3.5 shrink-0" />
             </Link>
           </div>
         </div>
@@ -414,18 +414,18 @@ export default function MyHomePage() {
     if (!shownMembership) return null
     return (
       <div className="rounded-[20px]" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)', padding: 20 }}>
-        <div className="flex items-start justify-between mb-3">
-          <div>
-            <p className="text-[10px] font-normal uppercase tracking-widest mb-0.5" style={{ color: '#6B6B70', letterSpacing: '.8px' }}>{t.my.activePlan}</p>
-            <p className="text-sm font-medium" style={{ color: '#1C1C1E' }}>{shownMembership.planName}</p>
+        <div className="flex items-start justify-between gap-2 mb-3">
+          <div className="min-w-0">
+            <p className="text-[10px] font-normal uppercase tracking-widest mb-0.5 truncate" style={{ color: '#6B6B70', letterSpacing: '.8px' }}>{t.my.activePlan}</p>
+            <p className="text-sm font-medium truncate" style={{ color: '#1C1C1E' }}>{shownMembership.planName}</p>
           </div>
           {activeMembership ? (
-            <span className="text-xs font-medium rounded-full px-2.5 py-1" style={{ background: '#E4F7EB', color: '#1E8734' }}>{t.my.active}</span>
+            <span className="text-xs font-medium rounded-full px-2.5 py-1 shrink-0 whitespace-nowrap" style={{ background: '#E4F7EB', color: '#1E8734' }}>{t.my.active}</span>
           ) : (
-            <span className="text-xs font-medium rounded-full px-2.5 py-1" style={{ background: '#FFFBEB', color: '#D97706' }}>{t.my.statusPending}</span>
+            <span className="text-xs font-medium rounded-full px-2.5 py-1 shrink-0 whitespace-nowrap" style={{ background: '#FFFBEB', color: '#D97706' }}>{t.my.statusPending}</span>
           )}
         </div>
-        <p className="text-[22px] font-medium mb-0.5" style={{ color: '#1C1C1E', letterSpacing: '-0.4px' }}>
+        <p className="text-[22px] font-medium mb-0.5 whitespace-nowrap" style={{ color: '#1C1C1E', letterSpacing: '-0.4px' }}>
           {fmtPrice(shownMembership.price, shownMembership.currency)}
           <span className="text-sm font-normal" style={{ color: '#6B6B70' }}> {t.my.perMonth}</span>
         </p>
@@ -444,9 +444,9 @@ export default function MyHomePage() {
           </div>
         )}
         <div style={{ height: 0.5, background: 'rgba(60,60,67,.1)', margin: '14px 0' }} />
-        <Link href="/my/membership" prefetch={false} className="flex items-center justify-between">
-          <span className="text-sm font-medium" style={{ color: '#007AFF' }}>{t.my.manageMembership}</span>
-          <ChevronRight className="w-3.5 h-3.5" style={{ color: '#AEAEB2' }} />
+        <Link href="/my/membership" prefetch={false} className="flex items-center justify-between gap-2">
+          <span className="text-sm font-medium truncate" style={{ color: '#007AFF' }}>{t.my.manageMembership}</span>
+          <ChevronRight className="w-3.5 h-3.5 shrink-0" style={{ color: '#AEAEB2' }} />
         </Link>
       </div>
     )
@@ -489,9 +489,9 @@ export default function MyHomePage() {
               <div className="flex items-center justify-center rounded-full shrink-0" style={{ width: 26, height: 26, background: 'rgba(0,122,255,.1)' }}>
                 <Ticket className="w-3.5 h-3.5" style={{ color: '#007AFF' }} />
               </div>
-              <span className="text-[11px] font-semibold uppercase" style={{ color: '#9CA3AF', letterSpacing: '.6px' }}>{t.my.upcomingEventLabel}</span>
+              <span className="text-[11px] font-semibold uppercase truncate min-w-0" style={{ color: '#9CA3AF', letterSpacing: '.6px' }}>{t.my.upcomingEventLabel}</span>
               {eventDays !== null && (
-                <span className="ml-auto text-[11px] font-semibold rounded-full" style={{ background: '#E8F4FF', color: '#007AFF', padding: '3px 10px' }}>
+                <span className="ml-auto text-[11px] font-semibold rounded-full shrink-0 whitespace-nowrap" style={{ background: '#E8F4FF', color: '#007AFF', padding: '3px 10px' }}>
                   {eventDays === 0 ? t.my.today : eventDays === 1 ? t.my.tomorrow : t.my.inDays.replace('{n}', String(eventDays))}
                 </span>
               )}
@@ -525,7 +525,7 @@ export default function MyHomePage() {
                 className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold rounded-full"
                 style={{ background: '#E8F7FF', color: '#006197', padding: '10px' }}
               >
-                <QrCode className="w-3.5 h-3.5" />
+                <QrCode className="w-3.5 h-3.5 shrink-0" />
                 {t.my.showTicketBtn}
               </Link>
               <Link
@@ -553,9 +553,9 @@ export default function MyHomePage() {
               <div className="flex items-center justify-center rounded-full shrink-0" style={{ width: 26, height: 26, background: 'rgba(0,122,255,.1)' }}>
                 <Clock className="w-3.5 h-3.5" style={{ color: '#007AFF' }} />
               </div>
-              <span className="text-[11px] font-semibold uppercase" style={{ color: '#9CA3AF', letterSpacing: '.6px' }}>{t.my.nextClass}</span>
+              <span className="text-[11px] font-semibold uppercase truncate min-w-0" style={{ color: '#9CA3AF', letterSpacing: '.6px' }}>{t.my.nextClass}</span>
               {days !== null && (
-                <span className="ml-auto text-[11px] font-semibold rounded-full" style={{ background: '#E8F4FF', color: '#007AFF', padding: '3px 10px' }}>
+                <span className="ml-auto text-[11px] font-semibold rounded-full shrink-0 whitespace-nowrap" style={{ background: '#E8F4FF', color: '#007AFF', padding: '3px 10px' }}>
                   {days === 0 ? t.my.today : days === 1 ? t.my.tomorrow : t.my.inDays.replace('{n}', String(days))}
                 </span>
               )}
@@ -586,7 +586,7 @@ export default function MyHomePage() {
                 className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold rounded-full"
                 style={{ background: '#E8F7FF', color: '#006197', padding: '10px' }}
               >
-                <CalendarCheck className="w-3.5 h-3.5" />
+                <CalendarCheck className="w-3.5 h-3.5 shrink-0" />
                 {t.my.viewBooking}
               </Link>
               <Link
@@ -595,7 +595,7 @@ export default function MyHomePage() {
                 className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium rounded-full"
                 style={{ background: '#F5F5F5', color: '#374151', padding: '10px' }}
               >
-                <QrCode className="w-3.5 h-3.5" style={{ opacity: 0.7 }} />
+                <QrCode className="w-3.5 h-3.5 shrink-0" style={{ opacity: 0.7 }} />
                 {t.my.qrCheckIn}
               </Link>
             </div>
@@ -617,7 +617,7 @@ export default function MyHomePage() {
             className="inline-flex items-center gap-1.5 text-xs font-semibold rounded-full"
             style={{ background: '#E8F7FF', color: '#006197', padding: '10px 16px' }}
           >
-            <CalendarPlus className="w-3.5 h-3.5" />
+            <CalendarPlus className="w-3.5 h-3.5 shrink-0" />
             {t.my.bookAClass}
           </Link>
         </div>
@@ -707,10 +707,10 @@ export default function MyHomePage() {
                         <span className="text-xs font-normal shrink-0" style={{ color: '#061229' }}>{occ.booked}/{occ.capacity}</span>
                       )}
                     </div>
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-[10.5px] font-medium" style={{ color: '#4f4f4f' }}>{classTypeBadge(occ.className)}</span>
-                      <span className="text-[10.5px] font-normal" style={{ color: '#4f4f4f' }}>{fmtDateShortFn(occ.scheduledAt, t.my.today, t.my.tomorrow)}</span>
-                      <span className="text-[10.5px] font-normal text-right" style={{ color: '#4f4f4f' }}>
+                    <div className="flex items-center justify-between gap-1.5 mb-3">
+                      <span className="text-[10.5px] font-medium shrink-0 whitespace-nowrap" style={{ color: '#4f4f4f' }}>{classTypeBadge(occ.className)}</span>
+                      <span className="text-[10.5px] font-normal shrink-0 whitespace-nowrap" style={{ color: '#4f4f4f' }}>{fmtDateShortFn(occ.scheduledAt, t.my.today, t.my.tomorrow)}</span>
+                      <span className="text-[10.5px] font-normal text-right shrink-0 whitespace-nowrap" style={{ color: '#4f4f4f' }}>
                         {fmtTime(occ.scheduledAt)}{endTime ? `–${endTime}` : ''}
                       </span>
                     </div>
