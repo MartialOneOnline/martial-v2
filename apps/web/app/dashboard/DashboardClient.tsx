@@ -26,6 +26,7 @@ import { TransactionActionsButton } from '../../components/popups/TransactionAct
 import { useT }                  from '../../lib/i18n/LanguageContext'
 import DashboardLanguageSelector  from '../../components/DashboardLanguageSelector'
 import GettingStartedChecklist    from './GettingStartedChecklist'
+import DashboardOnboarding        from './DashboardOnboarding'
 import { fmtPrice } from '../../lib/format'
 
 // ── Design tokens ──────────────────────────────────────────────────────────────
@@ -425,9 +426,11 @@ export default function DashboardClient({ userName, userEmail }: Props) {
     fetch(`/api/dashboard/stats?schoolId=${sid}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => d && setStats(d))
+      .catch(() => {})
     fetch('/api/dashboard/transactions?pageSize=6&page=1&type=INCOME')
       .then(r => r.ok ? r.json() : null)
       .then(d => d?.transactions && setRecentTx(d.transactions))
+      .catch(() => {})
     fetch(`/api/dashboard/school?schoolId=${sid}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => d?.school && setSchoolProfile({
@@ -435,6 +438,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
         coverUrl: d.school.coverUrl ?? null,
         tagline: d.school.tagline ?? null,
       }))
+      .catch(() => {})
   }, [currentSchool?.schoolId])
   useEffect(() => {
     if (authUser?.gettingStartedDismissedAt) setGettingStartedDismissed(true)
@@ -509,6 +513,10 @@ export default function DashboardClient({ userName, userEmail }: Props) {
     { insight: t.dashboard.insight2, action: t.dashboard.action2, openAI: false },
     { insight: t.dashboard.insight3, action: t.dashboard.action3, openAI: false },
   ]
+
+  if (!ctxLoading && !currentSchool) {
+    return <DashboardOnboarding />
+  }
 
   return (
     <>
