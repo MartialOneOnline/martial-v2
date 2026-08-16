@@ -1159,6 +1159,9 @@ model Lead {
   convertedUser   User?     @relation("LeadConvertedUser", fields: [convertedUserId], references: [id])
   convertedAt     DateTime?
 
+  // Follow-up reminder — cleared once the daily cron fires a notification for it
+  reminderAt DateTime?
+
   notes LeadNote[]
 
   createdAt DateTime @default(now())
@@ -1566,6 +1569,7 @@ enum NotificationType {
   GRADING_COMPLETED
   STUDENT_INACTIVE
   MESSAGE
+  LEAD_REMINDER
 }
 
 model Notification {

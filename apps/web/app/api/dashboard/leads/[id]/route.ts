@@ -70,6 +70,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (!VALID_SOURCES.includes(body.source)) return NextResponse.json({ error: 'Invalid source' }, { status: 400 })
     data.source = body.source
   }
+  if ('reminderAt' in body) {
+    if (body.reminderAt === null) {
+      data.reminderAt = null
+    } else {
+      const date = new Date(body.reminderAt)
+      if (isNaN(date.getTime())) return NextResponse.json({ error: 'Invalid reminderAt' }, { status: 400 })
+      data.reminderAt = date
+    }
+  }
 
   if (Object.keys(data).length === 0) return NextResponse.json({ error: 'Nothing to update' }, { status: 400 })
 

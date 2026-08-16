@@ -4447,6 +4447,7 @@ export const LeadScalarFieldEnum = {
   interestedIn: 'interestedIn',
   convertedUserId: 'convertedUserId',
   convertedAt: 'convertedAt',
+  reminderAt: 'reminderAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

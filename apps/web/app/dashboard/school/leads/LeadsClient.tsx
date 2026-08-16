@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   Menu, X, Search, Check, TrendingUp, TrendingDown,
-  MoreHorizontal, Eye, Plus, UserPlus, Trash2, Mail,
+  MoreHorizontal, Eye, Plus, UserPlus, Trash2, Mail, Bell,
 } from 'lucide-react'
 import { useDashboard } from '../../../../components/DashboardShell'
 import { useT } from '../../../../lib/i18n/LanguageContext'
@@ -241,6 +241,7 @@ interface LeadDetail {
   createdAt: string
   convertedAt: string | null
   convertedUser: { id: string; name: string | null } | null
+  reminderAt: string | null
   notes: { id: string; text: string; createdAt: string; author: { name: string | null } }[]
 }
 
@@ -261,15 +262,38 @@ function LeadDetailDrawer({ leadId, onClose, onChanged, onRequestDelete, onReque
   const [noteText, setNoteText] = useState('')
   const [addingNote, setAddingNote] = useState(false)
   const [busyAction, setBusyAction] = useState(false)
+  const [reminderDraft, setReminderDraft] = useState('')
+  const [savingReminder, setSavingReminder] = useState(false)
 
   useEffect(() => {
     if (!leadId) { setLead(null); setEditing(false); return }
     setLoading(true)
     fetch(`/api/dashboard/leads/${leadId}`)
       .then(res => (res.ok ? res.json() : null))
-      .then(data => { if (data?.lead) setLead(data.lead) })
+      .then(data => {
+        if (data?.lead) {
+          setLead(data.lead)
+          setReminderDraft(data.lead.reminderAt ? data.lead.reminderAt.slice(0, 10) : '')
+        }
+      })
       .finally(() => setLoading(false))
   }, [leadId])
+
+  async function saveReminder(value: string) {
+    if (!lead) return
+    setSavingReminder(true)
+    try {
+      const res = await fetch(`/api/dashboard/leads/${lead.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reminderAt: value ? new Date(value).toISOString() : null }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (res.ok && data.lead) { setLead(prev => (prev ? { ...prev, reminderAt: data.lead.reminderAt } : prev)); onChanged() }
+    } finally {
+      setSavingReminder(false)
+    }
+  }
 
   function startEdit() {
     if (!lead) return
@@ -484,6 +508,28 @@ function LeadDetailDrawer({ leadId, onClose, onChanged, onRequestDelete, onReque
                   style={{ fontSize: 12.5, fontWeight: 600, border: '1px solid #FECDD3', background: '#FFF1F2', color: '#DC2626' }}>
                   <Trash2 size={12} />{t.common.delete}
                 </button>
+              </div>
+
+              <div className="rounded-2xl flex items-center gap-3" style={{ background: '#fff', border: '1px solid #E5E7EB', padding: '14px 18px' }}>
+                <Bell size={15} style={{ color: '#9CA3AF', flexShrink: 0 }} />
+                <div className="flex-1 min-w-0">
+                  <p style={{ fontSize: 12, fontWeight: 600, color: '#374151', margin: '0 0 2px' }}>{t.school.reminderLabel}</p>
+                  <p style={{ fontSize: 11.5, color: '#9CA3AF', margin: 0 }}>
+                    {lead.reminderAt
+                      ? `${t.school.reminderSetFor} ${new Date(lead.reminderAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}`
+                      : t.school.noReminder}
+                  </p>
+                </div>
+                <input type="date" value={reminderDraft} disabled={savingReminder}
+                  onChange={e => { setReminderDraft(e.target.value); saveReminder(e.target.value) }}
+                  style={{ border: '1px solid #E5E7EB', borderRadius: 8, padding: '6px 8px', fontSize: 12.5, color: '#111827', background: '#fff' }} />
+                {lead.reminderAt && (
+                  <button onClick={() => { setReminderDraft(''); saveReminder('') }} disabled={savingReminder}
+                    className="px-2 py-1 rounded-lg cursor-pointer"
+                    style={{ fontSize: 12, fontWeight: 600, border: 'none', background: 'transparent', color: '#9CA3AF' }}>
+                    {t.common.remove}
+                  </button>
+                )}
               </div>
 
               <div className="flex flex-col gap-3">

@@ -36,6 +36,7 @@ export type LeadMinAggregateOutputType = {
   interestedIn: string | null
   convertedUserId: string | null
   convertedAt: Date | null
+  reminderAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -52,6 +53,7 @@ export type LeadMaxAggregateOutputType = {
   interestedIn: string | null
   convertedUserId: string | null
   convertedAt: Date | null
+  reminderAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -68,6 +70,7 @@ export type LeadCountAggregateOutputType = {
   interestedIn: number
   convertedUserId: number
   convertedAt: number
+  reminderAt: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -86,6 +89,7 @@ export type LeadMinAggregateInputType = {
   interestedIn?: true
   convertedUserId?: true
   convertedAt?: true
+  reminderAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -102,6 +106,7 @@ export type LeadMaxAggregateInputType = {
   interestedIn?: true
   convertedUserId?: true
   convertedAt?: true
+  reminderAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -118,6 +123,7 @@ export type LeadCountAggregateInputType = {
   interestedIn?: true
   convertedUserId?: true
   convertedAt?: true
+  reminderAt?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -207,6 +213,7 @@ export type LeadGroupByOutputType = {
   interestedIn: string | null
   convertedUserId: string | null
   convertedAt: Date | null
+  reminderAt: Date | null
   createdAt: Date
   updatedAt: Date
   _count: LeadCountAggregateOutputType | null
@@ -244,6 +251,7 @@ export type LeadWhereInput = {
   interestedIn?: Prisma.StringNullableFilter<"Lead"> | string | null
   convertedUserId?: Prisma.StringNullableFilter<"Lead"> | string | null
   convertedAt?: Prisma.DateTimeNullableFilter<"Lead"> | Date | string | null
+  reminderAt?: Prisma.DateTimeNullableFilter<"Lead"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Lead"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Lead"> | Date | string
   school?: Prisma.XOR<Prisma.SchoolScalarRelationFilter, Prisma.SchoolWhereInput>
@@ -263,6 +271,7 @@ export type LeadOrderByWithRelationInput = {
   interestedIn?: Prisma.SortOrderInput | Prisma.SortOrder
   convertedUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   convertedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  reminderAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   school?: Prisma.SchoolOrderByWithRelationInput
@@ -285,6 +294,7 @@ export type LeadWhereUniqueInput = Prisma.AtLeast<{
   interestedIn?: Prisma.StringNullableFilter<"Lead"> | string | null
   convertedUserId?: Prisma.StringNullableFilter<"Lead"> | string | null
   convertedAt?: Prisma.DateTimeNullableFilter<"Lead"> | Date | string | null
+  reminderAt?: Prisma.DateTimeNullableFilter<"Lead"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Lead"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Lead"> | Date | string
   school?: Prisma.XOR<Prisma.SchoolScalarRelationFilter, Prisma.SchoolWhereInput>
@@ -304,6 +314,7 @@ export type LeadOrderByWithAggregationInput = {
   interestedIn?: Prisma.SortOrderInput | Prisma.SortOrder
   convertedUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   convertedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  reminderAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.LeadCountOrderByAggregateInput
@@ -326,6 +337,7 @@ export type LeadScalarWhereWithAggregatesInput = {
   interestedIn?: Prisma.StringNullableWithAggregatesFilter<"Lead"> | string | null
   convertedUserId?: Prisma.StringNullableWithAggregatesFilter<"Lead"> | string | null
   convertedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Lead"> | Date | string | null
+  reminderAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Lead"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Lead"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Lead"> | Date | string
 }
@@ -340,6 +352,7 @@ export type LeadCreateInput = {
   message?: string | null
   interestedIn?: string | null
   convertedAt?: Date | string | null
+  reminderAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school: Prisma.SchoolCreateNestedOneWithoutLeadsInput
@@ -359,6 +372,7 @@ export type LeadUncheckedCreateInput = {
   interestedIn?: string | null
   convertedUserId?: string | null
   convertedAt?: Date | string | null
+  reminderAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   notes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutLeadInput
@@ -374,6 +388,7 @@ export type LeadUpdateInput = {
   message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   interestedIn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reminderAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneRequiredWithoutLeadsNestedInput
@@ -393,6 +408,7 @@ export type LeadUncheckedUpdateInput = {
   interestedIn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   convertedUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reminderAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.LeadNoteUncheckedUpdateManyWithoutLeadNestedInput
@@ -410,6 +426,7 @@ export type LeadCreateManyInput = {
   interestedIn?: string | null
   convertedUserId?: string | null
   convertedAt?: Date | string | null
+  reminderAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -424,6 +441,7 @@ export type LeadUpdateManyMutationInput = {
   message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   interestedIn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reminderAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -440,6 +458,7 @@ export type LeadUncheckedUpdateManyInput = {
   interestedIn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   convertedUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reminderAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -466,6 +485,7 @@ export type LeadCountOrderByAggregateInput = {
   interestedIn?: Prisma.SortOrder
   convertedUserId?: Prisma.SortOrder
   convertedAt?: Prisma.SortOrder
+  reminderAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -482,6 +502,7 @@ export type LeadMaxOrderByAggregateInput = {
   interestedIn?: Prisma.SortOrder
   convertedUserId?: Prisma.SortOrder
   convertedAt?: Prisma.SortOrder
+  reminderAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -498,6 +519,7 @@ export type LeadMinOrderByAggregateInput = {
   interestedIn?: Prisma.SortOrder
   convertedUserId?: Prisma.SortOrder
   convertedAt?: Prisma.SortOrder
+  reminderAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -623,6 +645,7 @@ export type LeadCreateWithoutConvertedUserInput = {
   message?: string | null
   interestedIn?: string | null
   convertedAt?: Date | string | null
+  reminderAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school: Prisma.SchoolCreateNestedOneWithoutLeadsInput
@@ -640,6 +663,7 @@ export type LeadUncheckedCreateWithoutConvertedUserInput = {
   message?: string | null
   interestedIn?: string | null
   convertedAt?: Date | string | null
+  reminderAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   notes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutLeadInput
@@ -686,6 +710,7 @@ export type LeadScalarWhereInput = {
   interestedIn?: Prisma.StringNullableFilter<"Lead"> | string | null
   convertedUserId?: Prisma.StringNullableFilter<"Lead"> | string | null
   convertedAt?: Prisma.DateTimeNullableFilter<"Lead"> | Date | string | null
+  reminderAt?: Prisma.DateTimeNullableFilter<"Lead"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Lead"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Lead"> | Date | string
 }
@@ -700,6 +725,7 @@ export type LeadCreateWithoutSchoolInput = {
   message?: string | null
   interestedIn?: string | null
   convertedAt?: Date | string | null
+  reminderAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   convertedUser?: Prisma.UserCreateNestedOneWithoutLeadsInput
@@ -717,6 +743,7 @@ export type LeadUncheckedCreateWithoutSchoolInput = {
   interestedIn?: string | null
   convertedUserId?: string | null
   convertedAt?: Date | string | null
+  reminderAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   notes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutLeadInput
@@ -758,6 +785,7 @@ export type LeadCreateWithoutNotesInput = {
   message?: string | null
   interestedIn?: string | null
   convertedAt?: Date | string | null
+  reminderAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school: Prisma.SchoolCreateNestedOneWithoutLeadsInput
@@ -776,6 +804,7 @@ export type LeadUncheckedCreateWithoutNotesInput = {
   interestedIn?: string | null
   convertedUserId?: string | null
   convertedAt?: Date | string | null
+  reminderAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -806,6 +835,7 @@ export type LeadUpdateWithoutNotesInput = {
   message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   interestedIn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reminderAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneRequiredWithoutLeadsNestedInput
@@ -824,6 +854,7 @@ export type LeadUncheckedUpdateWithoutNotesInput = {
   interestedIn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   convertedUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reminderAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -839,6 +870,7 @@ export type LeadCreateManyConvertedUserInput = {
   message?: string | null
   interestedIn?: string | null
   convertedAt?: Date | string | null
+  reminderAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -853,6 +885,7 @@ export type LeadUpdateWithoutConvertedUserInput = {
   message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   interestedIn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reminderAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneRequiredWithoutLeadsNestedInput
@@ -870,6 +903,7 @@ export type LeadUncheckedUpdateWithoutConvertedUserInput = {
   message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   interestedIn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reminderAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.LeadNoteUncheckedUpdateManyWithoutLeadNestedInput
@@ -886,6 +920,7 @@ export type LeadUncheckedUpdateManyWithoutConvertedUserInput = {
   message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   interestedIn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reminderAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -901,6 +936,7 @@ export type LeadCreateManySchoolInput = {
   interestedIn?: string | null
   convertedUserId?: string | null
   convertedAt?: Date | string | null
+  reminderAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -915,6 +951,7 @@ export type LeadUpdateWithoutSchoolInput = {
   message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   interestedIn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reminderAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   convertedUser?: Prisma.UserUpdateOneWithoutLeadsNestedInput
@@ -932,6 +969,7 @@ export type LeadUncheckedUpdateWithoutSchoolInput = {
   interestedIn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   convertedUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reminderAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.LeadNoteUncheckedUpdateManyWithoutLeadNestedInput
@@ -948,6 +986,7 @@ export type LeadUncheckedUpdateManyWithoutSchoolInput = {
   interestedIn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   convertedUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reminderAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -995,6 +1034,7 @@ export type LeadSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   interestedIn?: boolean
   convertedUserId?: boolean
   convertedAt?: boolean
+  reminderAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
@@ -1015,6 +1055,7 @@ export type LeadSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   interestedIn?: boolean
   convertedUserId?: boolean
   convertedAt?: boolean
+  reminderAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
@@ -1033,6 +1074,7 @@ export type LeadSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   interestedIn?: boolean
   convertedUserId?: boolean
   convertedAt?: boolean
+  reminderAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
@@ -1051,11 +1093,12 @@ export type LeadSelectScalar = {
   interestedIn?: boolean
   convertedUserId?: boolean
   convertedAt?: boolean
+  reminderAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type LeadOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "name" | "email" | "phone" | "source" | "status" | "message" | "interestedIn" | "convertedUserId" | "convertedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["lead"]>
+export type LeadOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "name" | "email" | "phone" | "source" | "status" | "message" | "interestedIn" | "convertedUserId" | "convertedAt" | "reminderAt" | "createdAt" | "updatedAt", ExtArgs["result"]["lead"]>
 export type LeadInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   convertedUser?: boolean | Prisma.Lead$convertedUserArgs<ExtArgs>
@@ -1090,6 +1133,7 @@ export type $LeadPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     interestedIn: string | null
     convertedUserId: string | null
     convertedAt: Date | null
+    reminderAt: Date | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["lead"]>
@@ -1529,6 +1573,7 @@ export interface LeadFieldRefs {
   readonly interestedIn: Prisma.FieldRef<"Lead", 'String'>
   readonly convertedUserId: Prisma.FieldRef<"Lead", 'String'>
   readonly convertedAt: Prisma.FieldRef<"Lead", 'DateTime'>
+  readonly reminderAt: Prisma.FieldRef<"Lead", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Lead", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Lead", 'DateTime'>
 }

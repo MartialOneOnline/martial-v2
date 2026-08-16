@@ -57,6 +57,16 @@ export function notifyNewLead(schoolId: string, leadName: string) {
   })
 }
 
+export function notifyLeadReminder(schoolId: string, leadId: string, leadName: string) {
+  createNotification({
+    schoolId,
+    type: 'LEAD_REMINDER',
+    title: 'Recordatorio de seguimiento',
+    body: `Toca hacer seguimiento a ${leadName}`,
+    href: `/dashboard/school/leads?leadId=${leadId}`,
+  })
+}
+
 // A logged-in user confirmed "Join this school" — a SchoolMember (status LEAD)
 // was created directly, not a Lead record, so this points at the members list.
 export function notifySelfJoinRequest(schoolId: string, name: string) {

@@ -1,5 +1,6 @@
 {
   "crons": [
-    { "path": "/api/cron/expire-memberships", "schedule": "0 3 * * *" }
+    { "path": "/api/cron/expire-memberships", "schedule": "0 3 * * *" },
+    { "path": "/api/cron/lead-reminders", "schedule": "0 8 * * *" }
   ]
 }
