@@ -15,19 +15,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
 
-const mockDisciplineFindMany = vi.fn()
 const mockUserFindFirst = vi.fn()
 const mockUserCreate = vi.fn()
-const mockTransaction = vi.fn()
-const mockSchoolFindUnique = vi.fn()
-const mockSchoolCreate = vi.fn()
-const mockSchoolMemberCreate = vi.fn()
 
 vi.mock('@/lib/db', () => ({
   prisma: {
-    discipline: { findMany: mockDisciplineFindMany },
     user: { findFirst: mockUserFindFirst, create: mockUserCreate },
-    $transaction: mockTransaction,
   },
 }))
 
@@ -74,7 +67,6 @@ const schoolBody = {
   fullName: 'Jane Owner',
   email: 'owner@example.com',
   password: 'password123',
-  school: { name: 'Alpha BJJ', city: 'Madrid', country: 'ES', disciplines: ['bjj'] },
 }
 
 beforeEach(() => {
@@ -84,16 +76,7 @@ beforeEach(() => {
   mockGenerateLink.mockResolvedValue({ data: { properties: { action_link: 'https://supabase.example/verify?token=abc&type=magiclink' } }, error: null })
   mockSendConfirmEmail.mockResolvedValue({ success: true, emailId: 'email-1' })
   mockUserFindFirst.mockResolvedValue(null)
-  mockDisciplineFindMany.mockResolvedValue([{ slug: 'bjj' }])
   mockUserCreate.mockResolvedValue({ id: 'user-1' })
-  mockSchoolFindUnique.mockResolvedValue(null)
-  mockSchoolCreate.mockResolvedValue({ id: 'school-1' })
-  mockSchoolMemberCreate.mockResolvedValue({})
-  mockTransaction.mockImplementation(async (fn: any) => fn({
-    user: { create: mockUserCreate },
-    school: { findUnique: mockSchoolFindUnique, create: mockSchoolCreate },
-    schoolMember: { create: mockSchoolMemberCreate },
-  }))
 })
 
 describe('POST /api/auth/register — unconfirmed by default, no auto-login', () => {
@@ -106,12 +89,23 @@ describe('POST /api/auth/register — unconfirmed by default, no auto-login', ()
     expect(json).toEqual({ ok: true, requiresEmailConfirmation: true, emailSent: true, accountType: 'student' })
   })
 
-  it('school: same, plus schoolId in the response', async () => {
+  it('school: same response shape as student — no School is created here, just the Prisma user', async () => {
     const res = await POST(postRequest(schoolBody))
     const json = await res.json()
 
     expect(mockCreateUser).toHaveBeenCalledWith(expect.objectContaining({ email_confirm: false }))
-    expect(json).toEqual({ ok: true, requiresEmailConfirmation: true, emailSent: true, accountType: 'school', schoolId: 'school-1' })
+    expect(json).toEqual({ ok: true, requiresEmailConfirmation: true, emailSent: true, accountType: 'school' })
+    expect(mockUserCreate).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ role: 'STUDENT' }),
+    }))
+  })
+
+  it('school: confirmation link always points at /onboarding/school, ignoring any client redirect', async () => {
+    await POST(postRequest({ ...schoolBody, redirect: '/my/events' }))
+
+    const call = mockGenerateLink.mock.calls[0]![0]
+    expect(call.options.redirectTo).toContain(encodeURIComponent('/onboarding/school'))
+    expect(call.options.redirectTo).not.toContain(encodeURIComponent('/my/events'))
   })
 
   it('propagates lang through to sendConfirmEmail', async () => {

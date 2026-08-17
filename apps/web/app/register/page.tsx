@@ -3,11 +3,10 @@
 import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
-import { Mail, Loader2 } from 'lucide-react'
+import { ArrowLeft, Mail, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { safeConfirmRedirect } from '@/lib/authConfirmRedirect'
 import { SocialAuthButtons } from '@/components/SocialAuthButtons'
-import { COUNTRIES } from '@/lib/countries'
 import { useT, useLanguage } from '@/lib/i18n/LanguageContext'
 
 const BLUE = '#0870E2'
@@ -38,16 +37,12 @@ function RegisterPageInner() {
   const typeLocked = searchParams.get('lock') === '1'
 
   const [accountType, setAccountType] = useState<AccountType>(initialType)
+  const [step, setStep] = useState<'method' | 'details'>('method')
 
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
-  const [phone, setPhone] = useState('')
-
-  const [schoolName, setSchoolName] = useState('')
-  const [city, setCity] = useState('')
-  const [country, setCountry] = useState('')
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [apiError, setApiError] = useState('')
@@ -69,11 +64,6 @@ function RegisterPageInner() {
     if (!email || !emailRe.test(email)) e.email = 'Please provide a valid email address.'
     if (password.length < 8) e.password = 'Password must be at least 8 characters.'
     if (confirm !== password) e.confirm = "Passwords don't match."
-    if (accountType === 'school') {
-      if (!schoolName.trim()) e.schoolName = 'School name is required.'
-      if (!city.trim()) e.city = 'City is required.'
-      if (!country) e.country = 'Country is required.'
-    }
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -93,8 +83,6 @@ function RegisterPageInner() {
           fullName,
           email,
           password,
-          phone: accountType === 'student' ? phone : undefined,
-          school: accountType === 'school' ? { name: schoolName, city, country } : undefined,
           redirect: redirectParam,
           lang: locale,
         }),
@@ -186,109 +174,119 @@ function RegisterPageInner() {
     <div style={{ minHeight: '100vh', background: '#F9FAFB', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
       <div style={{ width: '100%', maxWidth: 440 }}>
 
-        {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 56, height: 56, borderRadius: 16, overflow: 'hidden', marginBottom: 16 }}>
-            <Image src="/martial-logo.png" alt="Martial" width={56} height={56} style={{ objectFit: 'contain' }} />
-          </div>
-          <h1 style={{ margin: '0 0 6px', fontSize: 22, fontWeight: 700, color: TEXT }}>Create your account</h1>
-          <p style={{ margin: 0, fontSize: 14, color: MUTED }}>Join Martial as a student or register your academy</p>
-        </div>
-
-        {/* Account type toggle */}
-        {!typeLocked && (
-          <div style={{ display: 'flex', borderRadius: 12, border: `1px solid ${BORDER}`, overflow: 'hidden', marginBottom: 10, background: '#fff' }}>
-            {(['student', 'school'] as AccountType[]).map(t => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => { setAccountType(t); setErrors({}); setApiError('') }}
-                style={{
-                  flex: 1, padding: '12px 8px', fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer',
-                  background: accountType === t ? BLUE : '#fff', color: accountType === t ? '#fff' : MUTED,
-                  transition: 'all .15s',
-                }}
-              >
-                {t === 'student' ? '🥋 Student' : '🏛️ School / Academy'}
-              </button>
-            ))}
-          </div>
-        )}
-        <p style={{ margin: '0 0 20px', fontSize: 12.5, color: MUTED, textAlign: 'center', lineHeight: 1.5 }}>
-          {typeLocked
-            ? 'Create your free student account to get your ticket.'
-            : accountType === 'student'
-              ? 'Book classes, track your progress and manage your membership.'
-              : 'Manage your students, classes, timetable and payments.'}
-        </p>
-
-        <div style={{ marginBottom: 16 }}>
-          <SocialAuthButtons redirectPath={accountType === 'school' ? '/onboarding/school' : redirectParam} />
-        </div>
-
-        <form onSubmit={handleSubmit} noValidate
-          style={{ background: '#fff', borderRadius: 16, border: `1px solid ${BORDER}`, boxShadow: '0 4px 24px rgba(0,0,0,0.06)', padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
-
-          <TextField label={accountType === 'school' ? 'Owner full name' : 'Full name'} value={fullName}
-            onChange={v => { setFullName(v); clearError('fullName') }} error={errors.fullName} placeholder="Jane Doe" />
-
-          <TextField label={accountType === 'school' ? 'Owner email' : 'Email'} type="email" value={email}
-            onChange={v => { setEmail(v); clearError('email') }} error={errors.email} placeholder="you@email.com" />
-
-          {accountType === 'student' && (
-            <TextField label="Phone" optional type="tel" value={phone} onChange={setPhone} placeholder="+34 600 000 000" />
-          )}
-
-          <PasswordField label="Password" value={password}
-            onChange={v => { setPassword(v); clearError('password') }} error={errors.password} placeholder="Min 8 characters" />
-          <PasswordField label="Confirm password" value={confirm}
-            onChange={v => { setConfirm(v); clearError('confirm') }} error={errors.confirm} placeholder="Repeat password" />
-
-          {accountType === 'school' && (
-            <>
-              <div style={{ height: 1, background: BORDER, margin: '4px 0' }} />
-              <TextField label="School / academy name" value={schoolName}
-                onChange={v => { setSchoolName(v); clearError('schoolName') }} error={errors.schoolName} placeholder="Roger Gracie Málaga" />
-              <TextField label="City" value={city}
-                onChange={v => { setCity(v); clearError('city') }} error={errors.city} placeholder="Málaga" />
-
-              <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>Country</label>
-                <select
-                  value={country}
-                  onChange={e => { setCountry(e.target.value); clearError('country') }}
-                  style={{ width: '100%', padding: '11px 14px', fontSize: 15, border: `1px solid ${errors.country ? '#DC2626' : BORDER}`, borderRadius: 10, outline: 'none', boxSizing: 'border-box', color: TEXT, background: '#fff' }}
-                >
-                  <option value="">Select country…</option>
-                  {COUNTRIES.map(([code, name]) => <option key={code} value={code}>{name}</option>)}
-                </select>
-                {errors.country && <p style={{ margin: '6px 0 0', fontSize: 12, color: '#DC2626' }}>{errors.country}</p>}
+        {step === 'method' ? (
+          <>
+            {/* Logo */}
+            <div style={{ textAlign: 'center', marginBottom: 24 }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 56, height: 56, borderRadius: 16, overflow: 'hidden', marginBottom: 16 }}>
+                <Image src="/martial-logo.png" alt="Martial" width={56} height={56} style={{ objectFit: 'contain' }} />
               </div>
-            </>
-          )}
+              <h1 style={{ margin: '0 0 6px', fontSize: 22, fontWeight: 700, color: TEXT }}>Create your account</h1>
+              <p style={{ margin: 0, fontSize: 14, color: MUTED }}>Join Martial as a student or register your academy</p>
+            </div>
 
-          {apiError && (
-            <p style={{ margin: 0, fontSize: 13, color: '#DC2626', background: '#FEF2F2', padding: '8px 12px', borderRadius: 8 }}>
-              {apiError}{' '}
-              {apiError.includes('already exists') && (
-                <a href={`/login?email=${encodeURIComponent(email)}`} style={{ color: '#DC2626', fontWeight: 700, textDecoration: 'underline' }}>Log in instead.</a>
-              )}
+            {/* Account type toggle */}
+            {!typeLocked && (
+              <div style={{ display: 'flex', borderRadius: 12, border: `1px solid ${BORDER}`, overflow: 'hidden', marginBottom: 10, background: '#fff' }}>
+                {(['student', 'school'] as AccountType[]).map(t => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => { setAccountType(t); setErrors({}); setApiError('') }}
+                    style={{
+                      flex: 1, padding: '12px 8px', fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer',
+                      background: accountType === t ? BLUE : '#fff', color: accountType === t ? '#fff' : MUTED,
+                      transition: 'all .15s',
+                    }}
+                  >
+                    {t === 'student' ? '🥋 Student' : '🏛️ School / Academy'}
+                  </button>
+                ))}
+              </div>
+            )}
+            <p style={{ margin: '0 0 20px', fontSize: 12.5, color: MUTED, textAlign: 'center', lineHeight: 1.5 }}>
+              {typeLocked
+                ? 'Create your free student account to get your ticket.'
+                : accountType === 'student'
+                  ? 'Book classes, track your progress and manage your membership.'
+                  : 'Manage your students, classes, timetable and payments.'}
             </p>
-          )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            style={{ width: '100%', padding: '13px', fontSize: 15, fontWeight: 700, background: loading ? '#93C5FD' : BLUE, color: '#fff', border: 'none', borderRadius: 12, cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-            {loading && <Loader2 size={16} className="animate-spin" />}
-            {signingIn ? 'Signing you in…' : loading ? 'Creating account…' : accountType === 'school' ? 'Create academy account' : 'Create account'}
-          </button>
-        </form>
+            <div style={{ background: '#fff', borderRadius: 16, border: `1px solid ${BORDER}`, boxShadow: '0 4px 24px rgba(0,0,0,0.06)', padding: 24 }}>
+              <SocialAuthButtons redirectPath={accountType === 'school' ? '/onboarding/school' : redirectParam} />
 
-        <p style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: MUTED }}>
-          Already have an account?{' '}
-          <a href="/login" style={{ color: NAVY, fontWeight: 600, textDecoration: 'underline' }}>Log in</a>
-        </p>
+              <button
+                type="button"
+                onClick={() => { setApiError(''); setStep('details') }}
+                style={{ width: '100%', padding: '13px', fontSize: 14.5, fontWeight: 700, background: BLUE, color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                <Mail size={17} />
+                Continue with email
+              </button>
+            </div>
+
+            <p style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: MUTED }}>
+              Already have an account?{' '}
+              <a href="/login" style={{ color: NAVY, fontWeight: 600, textDecoration: 'underline' }}>Log in</a>
+            </p>
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={() => setStep('method')}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', color: MUTED, fontSize: 13, fontWeight: 600, cursor: 'pointer', padding: '6px 0', marginBottom: 4 }}>
+              <ArrowLeft size={15} />
+              Back
+            </button>
+
+            <div style={{ textAlign: 'center', marginBottom: 24 }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 52, height: 52, borderRadius: 14, background: '#EFF6FF', color: BLUE, marginBottom: 16 }}>
+                <Mail size={22} />
+              </div>
+              <h1 style={{ margin: '0 0 6px', fontSize: 21, fontWeight: 700, color: TEXT }}>Set up your login</h1>
+              <p style={{ margin: 0, fontSize: 13.5, color: MUTED, lineHeight: 1.5 }}>
+                Just the essentials for now — you'll fill in the rest of your profile after you sign in.
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} noValidate
+              style={{ background: '#fff', borderRadius: 16, border: `1px solid ${BORDER}`, boxShadow: '0 4px 24px rgba(0,0,0,0.06)', padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+              <TextField label={accountType === 'school' ? 'Owner full name' : 'Full name'} value={fullName}
+                onChange={v => { setFullName(v); clearError('fullName') }} error={errors.fullName} placeholder="Jane Doe" />
+
+              <TextField label={accountType === 'school' ? 'Owner email' : 'Email'} type="email" value={email}
+                onChange={v => { setEmail(v); clearError('email') }} error={errors.email} placeholder="you@email.com" />
+
+              <PasswordField label="Password" value={password}
+                onChange={v => { setPassword(v); clearError('password') }} error={errors.password} placeholder="Create a password" />
+              <PasswordField label="Confirm password" value={confirm}
+                onChange={v => { setConfirm(v); clearError('confirm') }} error={errors.confirm} placeholder="Re-enter your password" />
+
+              {apiError && (
+                <p style={{ margin: 0, fontSize: 13, color: '#DC2626', background: '#FEF2F2', padding: '8px 12px', borderRadius: 8 }}>
+                  {apiError}{' '}
+                  {apiError.includes('already exists') && (
+                    <a href={`/login?email=${encodeURIComponent(email)}`} style={{ color: '#DC2626', fontWeight: 700, textDecoration: 'underline' }}>Log in instead.</a>
+                  )}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                style={{ width: '100%', padding: '13px', fontSize: 15, fontWeight: 700, background: loading ? '#93C5FD' : BLUE, color: '#fff', border: 'none', borderRadius: 12, cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                {loading && <Loader2 size={16} className="animate-spin" />}
+                {signingIn ? 'Signing you in…' : loading ? 'Creating account…' : accountType === 'school' ? 'Create academy account' : 'Create account'}
+              </button>
+            </form>
+
+            <p style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: MUTED }}>
+              Already have an account?{' '}
+              <a href="/login" style={{ color: NAVY, fontWeight: 600, textDecoration: 'underline' }}>Log in</a>
+            </p>
+          </>
+        )}
       </div>
     </div>
   )

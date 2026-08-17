@@ -20,6 +20,15 @@ import { safeConfirmRedirect } from '@/lib/authConfirmRedirect'
 // emailed via Resend (same generateLink+custom-template pattern as the
 // member-invite flow) — the client never auto-signs-in here. See
 // /auth/confirm for the redemption page and proxy.ts for the access gate.
+//
+// Registration itself only ever collects name + email + password, for both
+// account types — a School/Academy signup gets the same STUDENT-role Prisma
+// row a fresh OAuth sign-up gets (see resolveDbUser in lib/auth/server.ts)
+// and is routed to /onboarding/school to create the actual School record
+// and flip its own role to SCHOOL_OWNER, exactly like the OAuth path
+// already does via SocialAuthButtons' redirectPath. That keeps this route
+// as the single place a Prisma User gets provisioned for password signups,
+// without also making it responsible for School creation.
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const MIN_PASSWORD_LENGTH = 8
@@ -31,14 +40,8 @@ type RegisterBody = {
   fullName?: string
   email?: string
   password?: string
-  phone?: string
   redirect?: string
   lang?: string
-  school?: {
-    name?: string
-    city?: string
-    country?: string
-  }
 }
 
 type ErrorCode =
@@ -46,22 +49,12 @@ type ErrorCode =
   | 'INVALID_PASSWORD'
   | 'INVALID_EMAIL'
   | 'MISSING_REQUIRED_FIELDS'
-  | 'SCHOOL_SLUG_CONFLICT'
   | 'SUPABASE_CREATE_FAILED'
   | 'PRISMA_CREATE_FAILED'
   | 'UNKNOWN_ERROR'
 
 function errorResponse(code: ErrorCode, message: string, status: number) {
   return NextResponse.json({ ok: false, code, message }, { status })
-}
-
-function slugify(input: string): string {
-  return input
-    .toLowerCase()
-    .normalize('NFD').replace(/[̀-ͯ]/g, '')
-    .replace(/[^a-z0-9\s-]/g, '').trim()
-    .replace(/\s+/g, '-').replace(/-+/g, '-')
-    .substring(0, 80)
 }
 
 // Generates a one-time confirmation link (verifying it also flips
@@ -119,9 +112,11 @@ export async function POST(req: NextRequest) {
   const fullName = body.fullName?.trim() ?? ''
   const email = body.email?.trim().toLowerCase() ?? ''
   const password = body.password ?? ''
-  const phone = body.phone?.trim() || null
   // Never trust the client's own safeRedirect() call — re-sanitize server-side.
-  const redirect = safeConfirmRedirect(body.redirect)
+  // A School/Academy signup always lands on /onboarding/school to create its
+  // School record next, regardless of whatever redirect the caller passed —
+  // same rule SocialAuthButtons applies for the OAuth equivalent of this flow.
+  const redirect = accountType === 'school' ? '/onboarding/school' : safeConfirmRedirect(body.redirect)
   const lang = body.lang
 
   if (!fullName || !email || !password) {
@@ -132,17 +127,6 @@ export async function POST(req: NextRequest) {
   }
   if (password.length < MIN_PASSWORD_LENGTH) {
     return errorResponse('INVALID_PASSWORD', 'Password must be at least 8 characters.', 400)
-  }
-
-  // School-specific validation
-  const schoolName = body.school?.name?.trim() ?? ''
-  const schoolCity = body.school?.city?.trim() ?? ''
-  const schoolCountry = body.school?.country?.trim() ?? ''
-
-  if (accountType === 'school') {
-    if (!schoolName || !schoolCity || !schoolCountry) {
-      return errorResponse('MISSING_REQUIRED_FIELDS', 'School name, city and country are required.', 400)
-    }
   }
 
   // Reject known emails up front — the real uniqueness guard is still the
@@ -203,74 +187,20 @@ export async function POST(req: NextRequest) {
     isNewSupabaseUser = true
   }
 
-  // 2. Create the Prisma domain record(s). Roll back the Supabase user if
-  //    this fails and it was newly created this request — never leave an
-  //    orphan behind.
+  // 2. Create the Prisma domain record. Both account types get the same
+  //    STUDENT-role row here — a School/Academy signup only becomes
+  //    SCHOOL_OWNER once /onboarding/school creates the actual School (see
+  //    POST /api/onboarding/create-school), exactly like a fresh OAuth
+  //    sign-up. Roll back the Supabase user if this fails and it was newly
+  //    created this request — never leave an orphan behind.
   try {
-    if (accountType === 'student') {
-      await prisma.user.create({
-        data: {
-          email,
-          name: fullName,
-          phone,
-          role: 'STUDENT',
-          supabaseAuthId: authId,
-        },
-      })
-
-      const { sent } = await sendConfirmationLink(admin, email, fullName, redirect, lang)
-
-      return NextResponse.json({
-        ok: true,
-        requiresEmailConfirmation: true,
-        emailSent: sent,
-        accountType,
-      })
-    }
-
-    // School registration — user, school, membership all-or-nothing.
-    const { school } = await prisma.$transaction(async tx => {
-      const user = await tx.user.create({
-        data: {
-          email,
-          name: fullName,
-          phone,
-          role: 'SCHOOL_OWNER',
-          supabaseAuthId: authId,
-        },
-      })
-
-      const baseSlug = slugify(`${schoolName} ${schoolCity}`) || slugify(schoolName) || 'school'
-      let slug = baseSlug
-      let i = 2
-      while (await tx.school.findUnique({ where: { slug }, select: { id: true } })) {
-        slug = `${baseSlug}-${i++}`
-      }
-
-      const school = await tx.school.create({
-        data: {
-          name: schoolName,
-          slug,
-          city: schoolCity,
-          country: schoolCountry,
-          status: 'CLAIMED',
-          source: 'SELF_REGISTERED',
-          claimedById: user.id,
-          claimedAt: new Date(),
-        },
-      })
-
-      await tx.schoolMember.create({
-        data: {
-          userId: user.id,
-          schoolId: school.id,
-          role: 'OWNER',
-          status: 'ACTIVE',
-          joinedAt: new Date(),
-        },
-      })
-
-      return { user, school }
+    await prisma.user.create({
+      data: {
+        email,
+        name: fullName,
+        role: 'STUDENT',
+        supabaseAuthId: authId,
+      },
     })
 
     const { sent } = await sendConfirmationLink(admin, email, fullName, redirect, lang)
@@ -280,7 +210,6 @@ export async function POST(req: NextRequest) {
       requiresEmailConfirmation: true,
       emailSent: sent,
       accountType,
-      schoolId: school.id,
     })
   } catch (err: any) {
     if (isNewSupabaseUser) {
@@ -294,9 +223,6 @@ export async function POST(req: NextRequest) {
       const target = String(err.meta?.target ?? '')
       if (target.includes('email')) {
         return errorResponse('EMAIL_ALREADY_EXISTS', 'An account with this email already exists. Log in instead.', 409)
-      }
-      if (target.includes('slug')) {
-        return errorResponse('SCHOOL_SLUG_CONFLICT', 'A school with a very similar name was just registered. Please try again.', 409)
       }
     }
 
