@@ -710,11 +710,11 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                 style={{ background: '#fff', border: '1px solid #E5E7EB', padding: '14px 14px 12px' }}
               >
                 {/* Label + trend */}
-                <div className="flex items-start justify-between gap-2 mb-3">
+                <div className="flex items-start justify-between gap-2 mb-3" style={{ height: 20 }}>
                   <span style={{ fontSize: 11, color: '#9CA3AF', lineHeight: 1.3 }}>{stat.label}</span>
                   <span style={{
                     display: 'inline-flex', alignItems: 'center', gap: 2, flexShrink: 0,
-                    fontSize: 11, fontWeight: 600,
+                    fontSize: 11, fontWeight: 600, lineHeight: 1,
                     background: stat.trendUp ? '#F0FDF4' : '#FEF2F2',
                     color: stat.trendUp ? '#16A34A' : '#DC2626',
                     padding: '2px 7px', borderRadius: 999,
