@@ -341,6 +341,17 @@ model User {
   phone          String?
   dateOfBirth    DateTime?
   avatarUrl      String?
+
+  // Required only for users under the platform's minimum consent age (16 —
+  // the strictest common GDPR "digital consent age" among the countries
+  // this platform operates in, used as a single global threshold rather
+  // than a per-country lookup — see app/complete-profile/page.tsx). Free
+  // text, not a User FK: a guardian may never have their own Martial
+  // account. guardianConsentAt doubles as the "consent given" flag.
+  guardianName      String?
+  guardianContact   String?
+  guardianConsentAt DateTime?
+
   supabaseAuthId String?   @unique @db.Uuid
   role           Role      @default(STUDENT)
   deletedAt      DateTime?

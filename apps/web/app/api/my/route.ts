@@ -41,6 +41,7 @@ export async function GET() {
     select: {
       id: true, name: true, email: true, phone: true,
       avatarUrl: true, dateOfBirth: true, role: true, deletedAt: true,
+      guardianName: true, guardianContact: true, guardianConsentAt: true,
       memberships: {
         where: { status: { in: ['ACTIVE', 'PENDING', 'PAUSED'] }, ...(schoolId && { schoolId }) },
         orderBy: { startDate: 'desc' },
@@ -190,7 +191,7 @@ export async function PATCH(req: Request) {
   }
 
   const body = await req.json()
-  const { name, phone, dateOfBirth, avatarUrl } = body
+  const { name, phone, dateOfBirth, avatarUrl, guardianName, guardianContact, guardianConsent } = body
 
   const updated = await prisma.user.update({
     where: { supabaseAuthId: authUser.id },
@@ -199,8 +200,17 @@ export async function PATCH(req: Request) {
       ...(phone     !== undefined && { phone: phone || null }),
       ...(dateOfBirth !== undefined && { dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null }),
       ...(avatarUrl !== undefined && { avatarUrl: avatarUrl || null }),
+      ...(guardianName    !== undefined && { guardianName: guardianName || null }),
+      ...(guardianContact !== undefined && { guardianContact: guardianContact || null }),
+      // Consent timestamp is always server-set (never trust a client-supplied
+      // date for this) — recorded the moment the caller confirms, never
+      // cleared once given.
+      ...(guardianConsent === true && { guardianConsentAt: new Date() }),
     },
-    select: { id: true, name: true, phone: true, dateOfBirth: true, avatarUrl: true },
+    select: {
+      id: true, name: true, phone: true, dateOfBirth: true, avatarUrl: true,
+      guardianName: true, guardianContact: true, guardianConsentAt: true,
+    },
   })
 
   return NextResponse.json({ user: updated })

@@ -8,7 +8,6 @@ import {
   Camera, LogOut, Medal, Settings, HelpCircle, Shield, QrCode,
 } from 'lucide-react'
 import { getBeltImage } from '../../../lib/belts'
-import { createClient } from '../../../lib/supabase/client'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { isStudentContextRequired, chooseProfileUrl } from '../../../lib/studentContext'
 import { myFetch } from '../../../lib/api/myFetch'
@@ -101,24 +100,18 @@ export default function MyProfilePage() {
   async function handleAvatarUpload(file: File) {
     setUploading(true)
     try {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      const form = new FormData()
+      form.append('file', file)
+      const res = await myFetch('/api/my/upload', { method: 'POST', body: form })
+      const data = await res.json()
+      if (!res.ok) { console.error('[avatar upload]', data.error); return }
 
-      const ext = file.name.split('.').pop()
-      const path = `avatars/${user.id}.${ext}`
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(path, file, { upsert: true, contentType: file.type })
-      if (uploadError) throw uploadError
-
-      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
       await myFetch('/api/my', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ avatarUrl: publicUrl }),
+        body: JSON.stringify({ avatarUrl: data.url }),
       })
-      setProfile(p => p ? { ...p, avatarUrl: publicUrl } : p)
+      setProfile(p => p ? { ...p, avatarUrl: data.url } : p)
     } catch (err) {
       console.error('[avatar upload]', err)
     } finally {

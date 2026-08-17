@@ -163,4 +163,44 @@ describe('MyLayout (app/my/layout.tsx)', () => {
     expect(mockRedirect).not.toHaveBeenCalled()
     expect(result).toBeTruthy()
   })
+
+  // ── minor guardian-consent gate ─────────────────────────────────────────
+  it('redirects a student under 16 with no guardian consent to /complete-profile', async () => {
+    mockGetAuthUser.mockResolvedValue({ id: 'minor-1', role: 'STUDENT' })
+    mockHasDashboardAccess.mockResolvedValue(false)
+    mockHasStudentAccess.mockResolvedValue(true)
+    const tenYearsAgo = new Date()
+    tenYearsAgo.setFullYear(tenYearsAgo.getFullYear() - 10)
+    mockUserFindUnique.mockResolvedValue({ phone: '+34600000000', dateOfBirth: tenYearsAgo, avatarUrl: 'https://x/y.png', guardianConsentAt: null })
+
+    await expect(callLayout()).rejects.toThrow('NEXT_REDIRECT:/complete-profile')
+  })
+
+  it('allows a student under 16 through once a guardian has consented', async () => {
+    mockGetAuthUser.mockResolvedValue({ id: 'minor-2', role: 'STUDENT' })
+    mockHasDashboardAccess.mockResolvedValue(false)
+    mockHasStudentAccess.mockResolvedValue(true)
+    const tenYearsAgo = new Date()
+    tenYearsAgo.setFullYear(tenYearsAgo.getFullYear() - 10)
+    mockUserFindUnique.mockResolvedValue({ phone: '+34600000000', dateOfBirth: tenYearsAgo, avatarUrl: 'https://x/y.png', guardianConsentAt: new Date() })
+
+    const result = await callLayout()
+
+    expect(mockRedirect).not.toHaveBeenCalled()
+    expect(result).toBeTruthy()
+  })
+
+  it('does not require guardian consent for a student 16 or older', async () => {
+    mockGetAuthUser.mockResolvedValue({ id: 'teen-1', role: 'STUDENT' })
+    mockHasDashboardAccess.mockResolvedValue(false)
+    mockHasStudentAccess.mockResolvedValue(true)
+    const sixteenYearsAgo = new Date()
+    sixteenYearsAgo.setFullYear(sixteenYearsAgo.getFullYear() - 16)
+    mockUserFindUnique.mockResolvedValue({ phone: '+34600000000', dateOfBirth: sixteenYearsAgo, avatarUrl: 'https://x/y.png', guardianConsentAt: null })
+
+    const result = await callLayout()
+
+    expect(mockRedirect).not.toHaveBeenCalled()
+    expect(result).toBeTruthy()
+  })
 })

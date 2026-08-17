@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { getAuthUser } from '@/lib/auth/server'
 import { hasDashboardAccess, hasStudentAccess } from '@/lib/auth/contexts'
 import { prisma } from '@/lib/db'
+import { calculateAge, MIN_CONSENT_AGE } from '@/lib/age'
 import MyShell from '../../components/MyShell'
 
 export default async function MyLayout({ children }: { children: React.ReactNode }) {
@@ -31,13 +32,16 @@ export default async function MyLayout({ children }: { children: React.ReactNode
   // app/api/auth/register/route.ts) — photo, phone and date of birth get
   // filled in here instead. Checked on every /my request (not just once at
   // signup) so a user who closes the tab mid-way is sent right back until
-  // all three are set. /complete-profile itself lives outside this layout,
-  // so no loop.
+  // all three are set (and, for a student under MIN_CONSENT_AGE, until a
+  // parent/guardian has also confirmed — see /complete-profile). /complete-profile
+  // itself lives outside this layout, so no loop.
   const profile = await prisma.user.findUnique({
     where: { id: user.id },
-    select: { phone: true, dateOfBirth: true, avatarUrl: true },
+    select: { phone: true, dateOfBirth: true, avatarUrl: true, guardianConsentAt: true },
   })
-  if (profile && (!profile.phone || !profile.dateOfBirth || !profile.avatarUrl)) {
+  const isMinor = profile?.dateOfBirth != null && calculateAge(profile.dateOfBirth) < MIN_CONSENT_AGE
+  const guardianDone = !isMinor || profile?.guardianConsentAt != null
+  if (profile && (!profile.phone || !profile.dateOfBirth || !profile.avatarUrl || !guardianDone)) {
     redirect('/complete-profile')
   }
 

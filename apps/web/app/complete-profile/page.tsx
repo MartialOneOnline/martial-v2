@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Camera, Loader2 } from 'lucide-react'
 import { isValidPhoneNumber } from 'libphonenumber-js'
-import { createClient } from '@/lib/supabase/client'
 import { myFetch } from '@/lib/api/myFetch'
 import { PhoneField } from '@/components/PhoneField'
+import { calculateAge, MIN_CONSENT_AGE } from '@/lib/age'
 
 const BLUE = '#0870E2'
 const BORDER = '#E5E7EB'
@@ -28,6 +28,9 @@ export default function CompleteProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState('')
   const [phone, setPhone] = useState('')
   const [dateOfBirth, setDateOfBirth] = useState('')
+  const [guardianName, setGuardianName] = useState('')
+  const [guardianContact, setGuardianContact] = useState('')
+  const [guardianConsent, setGuardianConsent] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [apiError, setApiError] = useState('')
@@ -39,12 +42,17 @@ export default function CompleteProfilePage() {
       .then(r => (r.ok ? r.json() : Promise.reject()))
       .then(d => {
         const u = d.user
-        if (u.phone && u.dateOfBirth && u.avatarUrl) { router.replace('/my'); return }
+        const isMinor = u.dateOfBirth && calculateAge(u.dateOfBirth) < MIN_CONSENT_AGE
+        const guardianDone = !isMinor || (u.guardianName && u.guardianContact && u.guardianConsentAt)
+        if (u.phone && u.dateOfBirth && u.avatarUrl && guardianDone) { router.replace('/my'); return }
         setName(u.name ?? '')
         setEmail(u.email ?? '')
         setAvatarUrl(u.avatarUrl ?? '')
         setPhone(u.phone ?? '')
         setDateOfBirth(u.dateOfBirth ? String(u.dateOfBirth).slice(0, 10) : '')
+        setGuardianName(u.guardianName ?? '')
+        setGuardianContact(u.guardianContact ?? '')
+        setGuardianConsent(Boolean(u.guardianConsentAt))
         setChecking(false)
       })
       .catch(() => router.replace('/login?redirect=/complete-profile'))
@@ -57,24 +65,18 @@ export default function CompleteProfilePage() {
   async function handleAvatarUpload(file: File) {
     setUploading(true)
     try {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      const form = new FormData()
+      form.append('file', file)
+      const res = await myFetch('/api/my/upload', { method: 'POST', body: form })
+      const data = await res.json()
+      if (!res.ok) { setApiError(data.error ?? 'Something went wrong uploading your photo. Please try again.'); return }
 
-      const ext = file.name.split('.').pop()
-      const path = `avatars/${user.id}.${ext}`
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(path, file, { upsert: true, contentType: file.type })
-      if (uploadError) throw uploadError
-
-      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
       await myFetch('/api/my', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ avatarUrl: publicUrl }),
+        body: JSON.stringify({ avatarUrl: data.url }),
       })
-      setAvatarUrl(publicUrl)
+      setAvatarUrl(data.url)
       clearError('avatarUrl')
     } catch (err) {
       console.error('[avatar upload]', err)
@@ -84,6 +86,9 @@ export default function CompleteProfilePage() {
     }
   }
 
+  const age = dateOfBirth ? calculateAge(dateOfBirth) : null
+  const isMinor = age !== null && age < MIN_CONSENT_AGE
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setApiError('')
@@ -92,7 +97,16 @@ export default function CompleteProfilePage() {
     if (!phone.trim()) e2.phone = 'Phone number is required.'
     else if (!isValidPhoneNumber(phone)) e2.phone = 'Enter a valid phone number.'
     if (!dateOfBirth) e2.dateOfBirth = 'Date of birth is required.'
-    else if (new Date(dateOfBirth) > new Date()) e2.dateOfBirth = 'Date of birth can\'t be in the future.'
+    else {
+      const dob = new Date(dateOfBirth)
+      if (dob > new Date()) e2.dateOfBirth = "Date of birth can't be in the future."
+      else if (calculateAge(dob) > 120) e2.dateOfBirth = 'Enter a valid date of birth.'
+    }
+    if (isMinor) {
+      if (!guardianName.trim()) e2.guardianName = "A parent or guardian's name is required."
+      if (!guardianContact.trim()) e2.guardianContact = "A parent or guardian's phone or email is required."
+      if (!guardianConsent) e2.guardianConsent = 'A parent or guardian must confirm this before continuing.'
+    }
     setErrors(e2)
     if (Object.keys(e2).length > 0) return
 
@@ -101,7 +115,10 @@ export default function CompleteProfilePage() {
       const res = await myFetch('/api/my', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, dateOfBirth }),
+        body: JSON.stringify({
+          phone, dateOfBirth,
+          ...(isMinor && { guardianName, guardianContact, guardianConsent: true }),
+        }),
       })
       if (!res.ok) { setApiError('Something went wrong. Please try again.'); return }
       router.push('/my')
@@ -178,6 +195,47 @@ export default function CompleteProfilePage() {
             />
             {errors.dateOfBirth && <p style={{ margin: '6px 0 0', fontSize: 12, color: '#DC2626' }}>{errors.dateOfBirth}</p>}
           </div>
+
+          {isMinor && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: 14, borderRadius: 12, background: '#F9FAFB', border: `1px solid ${BORDER}` }}>
+              <p style={{ margin: 0, fontSize: 12.5, color: MUTED, lineHeight: 1.5 }}>
+                Since you're under {MIN_CONSENT_AGE}, we need a parent or guardian's details and confirmation before you can continue.
+              </p>
+
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>Parent or guardian's name</label>
+                <input
+                  value={guardianName}
+                  onChange={e => { setGuardianName(e.target.value); clearError('guardianName') }}
+                  placeholder="Jane Doe"
+                  style={{ width: '100%', padding: '11px 14px', fontSize: 15, border: `1px solid ${errors.guardianName ? '#DC2626' : BORDER}`, borderRadius: 10, outline: 'none', boxSizing: 'border-box', color: TEXT, background: '#fff' }}
+                />
+                {errors.guardianName && <p style={{ margin: '6px 0 0', fontSize: 12, color: '#DC2626' }}>{errors.guardianName}</p>}
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>Parent or guardian's phone or email</label>
+                <input
+                  value={guardianContact}
+                  onChange={e => { setGuardianContact(e.target.value); clearError('guardianContact') }}
+                  placeholder="+34 600 000 000 or jane@email.com"
+                  style={{ width: '100%', padding: '11px 14px', fontSize: 15, border: `1px solid ${errors.guardianContact ? '#DC2626' : BORDER}`, borderRadius: 10, outline: 'none', boxSizing: 'border-box', color: TEXT, background: '#fff' }}
+                />
+                {errors.guardianContact && <p style={{ margin: '6px 0 0', fontSize: 12, color: '#DC2626' }}>{errors.guardianContact}</p>}
+              </div>
+
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12.5, color: TEXT, cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={guardianConsent}
+                  onChange={e => { setGuardianConsent(e.target.checked); clearError('guardianConsent') }}
+                  style={{ marginTop: 2 }}
+                />
+                <span>I confirm I'm this student's parent or legal guardian, and I consent to them using Martial.</span>
+              </label>
+              {errors.guardianConsent && <p style={{ margin: 0, fontSize: 12, color: '#DC2626' }}>{errors.guardianConsent}</p>}
+            </div>
+          )}
 
           {apiError && (
             <p style={{ margin: 0, fontSize: 13, color: '#DC2626', background: '#FEF2F2', padding: '8px 12px', borderRadius: 8 }}>{apiError}</p>

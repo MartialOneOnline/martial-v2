@@ -10,9 +10,11 @@
  * Hardened to: require a staff SchoolMember of the current school (same
  * DASHBOARD_ROLES set that gates /dashboard entry — everyone except
  * STUDENT), reject any bucket not on a fixed allow-list before ever calling
- * Supabase, and derive the stored file extension from the validated
- * File.type instead of the client-supplied filename (no path-traversal
- * surface via File.name).
+ * Supabase, and derive the stored file extension from the file's real byte
+ * signature (see validateImageUpload.ts) rather than the client-declared
+ * File.type or filename — neither of which is trustworthy, both are just
+ * strings the caller sets. No path-traversal surface via File.name either
+ * way, since the path was already server-derived before this.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
@@ -37,12 +39,26 @@ vi.mock('@/lib/auth/contexts', async () => {
 
 const { POST } = await import('@/app/api/dashboard/upload/route')
 
-function uploadRequest(qs: string, file?: { name: string; type: string; size: number }) {
+// Real magic-byte prefixes so fixtures pass the route's byte-sniffing —
+// a fixture whose type/name claims an image but whose bytes don't match one
+// of these is exactly the "spoofed upload" case the route now rejects.
+const SIGNATURES: Record<string, number[]> = {
+  'image/jpeg': [0xff, 0xd8, 0xff],
+  'image/png':  [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
+  'image/webp': [0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50],
+}
+
+function uploadRequest(qs: string, file?: { name: string; type: string; size: number; realBytes?: boolean }) {
   const form = new FormData()
   if (file) {
     // Actually allocate `size` bytes — File.size (which the route checks)
     // reflects real content length, not a metadata field we can fake.
-    const blob = new Blob([new Uint8Array(file.size)], { type: file.type })
+    const bytes = new Uint8Array(file.size)
+    if (file.realBytes !== false) {
+      const sig = SIGNATURES[file.type] ?? []
+      bytes.set(sig.slice(0, file.size))
+    }
+    const blob = new Blob([bytes], { type: file.type })
     form.append('file', new File([blob], file.name, { type: file.type }))
   }
   return new NextRequest(`http://localhost/api/dashboard/upload${qs}`, { method: 'POST', body: form })
@@ -161,9 +177,9 @@ describe('POST /api/dashboard/upload — file validation', () => {
     expect(fetch).not.toHaveBeenCalled()
   })
 
-  it('derives the storage path extension from File.type, not the client filename', async () => {
+  it('derives the storage path extension from the real file bytes, not the client filename or declared type', async () => {
     // A weird/hostile filename must not influence the storage path — only
-    // the validated MIME type does.
+    // the sniffed content does.
     await POST(uploadRequest('?bucket=avatars', { name: '../../../etc/passwd', type: 'image/png', size: 1024 }))
 
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>
@@ -171,6 +187,12 @@ describe('POST /api/dashboard/upload — file validation', () => {
     expect(calledUrl).toMatch(/\/object\/avatars\/user-1-\d+\.png$/)
     expect(calledUrl).not.toContain('..')
     expect(calledUrl).not.toContain('passwd')
+  })
+
+  it('rejects a file that claims to be a JPEG but whose bytes are not one', async () => {
+    const res = await POST(uploadRequest('?bucket=avatars', { name: 'photo.jpg', type: 'image/jpeg', size: 1024, realBytes: false }))
+    expect(res.status).toBe(400)
+    expect(fetch).not.toHaveBeenCalled()
   })
 
   it('accepts png and webp, mapping to the right extension', async () => {
