@@ -40,7 +40,10 @@ export async function GET(req: NextRequest) {
   const where: any = {
     class: { schoolId: auth.schoolId, ...(className ? { name: { contains: className, mode: 'insensitive' } } : {}) },
     scheduledAt: { gte: from, lte: to },
-    ...(status !== 'ALL' ? { status } : {}),
+    // 'ALL' still excludes CANCELLED, matching totalPeriod above — a
+    // cancelled slot isn't a real booking; the dedicated Cancelled tab
+    // below is the way to see those rows.
+    ...(status !== 'ALL' ? { status } : { status: { not: 'CANCELLED' } }),
     ...(search ? {
       OR: [
         { user: { name:  { contains: search, mode: 'insensitive' } } },
@@ -95,8 +98,11 @@ export async function GET(req: NextRequest) {
   }))
 
   // ── Stats ─────────────────────────────────────────────────────────────────────
+  // Total excludes CANCELLED — a cancelled booking isn't a real reservation
+  // of a class slot, so counting it alongside confirmed/completed ones
+  // inflates the headline number and skews attendanceRate below.
   const [totalPeriod, confirmedPeriod, cancelledPeriod] = await Promise.all([
-    prisma.booking.count({ where: { class: { schoolId: auth.schoolId }, scheduledAt: { gte: from, lte: to } } }),
+    prisma.booking.count({ where: { class: { schoolId: auth.schoolId }, scheduledAt: { gte: from, lte: to }, status: { not: 'CANCELLED' } } }),
     prisma.booking.count({ where: { class: { schoolId: auth.schoolId }, scheduledAt: { gte: from, lte: to }, status: { in: ['CONFIRMED', 'COMPLETED'] } } }),
     prisma.booking.count({ where: { class: { schoolId: auth.schoolId }, scheduledAt: { gte: from, lte: to }, status: 'CANCELLED' } }),
   ])

@@ -29,6 +29,7 @@ export async function GET(req: NextRequest) {
     activeClasses,
     totalBookings,
     bookingsLastMonth,
+    bookingsThisMonthCreated,
     activeMembers,
     openLeads,
     gradingsCount,
@@ -66,6 +67,13 @@ export async function GET(req: NextRequest) {
       where: {
         class: { schoolId },
         createdAt: { gte: startOfLastMonth, lte: endOfLastMonth },
+      },
+    }),
+    // Bookings this month, same createdAt basis as bookingsLastMonth above
+    prisma.booking.count({
+      where: {
+        class: { schoolId },
+        createdAt: { gte: startOfMonth },
       },
     }),
     // Active memberships
@@ -172,6 +180,10 @@ export async function GET(req: NextRequest) {
     ? `+${totalMembers - membersLastMonth}`
     : null
 
+  const bookingsTrend = bookingsLastMonth > 0
+    ? `${bookingsThisMonthCreated >= bookingsLastMonth ? '+' : ''}${Math.round(((bookingsThisMonthCreated - bookingsLastMonth) / bookingsLastMonth) * 100)}%`
+    : null
+
   // Getting Started checklist — each real step derives from data that already
   // exists, not a manually-checked flag (see project plan). "settings" has no
   // independent signal (the tab covers language/notifications/etc.) so it's
@@ -211,7 +223,7 @@ export async function GET(req: NextRequest) {
       formatted: `€${revenueNow.toLocaleString('en-EU', { minimumFractionDigits: 0 })}`,
       trend: revenueTrend,
     },
-    bookings: { value: totalBookings },
+    bookings: { value: totalBookings, trend: bookingsTrend },
     activeMembers: { value: activeMembers },
     openLeads: { value: openLeads },
     gradings: { value: gradingsCount },
