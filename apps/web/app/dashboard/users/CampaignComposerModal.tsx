@@ -7,7 +7,31 @@ import { useT, useLanguage } from '../../../lib/i18n/LanguageContext'
 import { CAMPAIGN_PRESETS } from '../../../lib/email/campaignPresets'
 import type { CampaignType } from '../../../lib/prisma-client/enums'
 
-export type ComposerStudent = { id: string; name: string; email: string; belt: string; status: string }
+export type ComposerStudent = { id: string; name: string; email: string; belt: string; status: string; avatarUrl?: string | null }
+
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  const first = parts[0]?.[0] ?? ''
+  const second = parts[1]?.[0] ?? ''
+  return (first + second).toUpperCase() || '?'
+}
+
+function Avatar({ name, avatarUrl, size = 28 }: { name: string; avatarUrl?: string | null; size?: number }) {
+  if (avatarUrl) {
+    return <img src={avatarUrl} alt={name} width={size} height={size}
+      style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+  }
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: '50%', flexShrink: 0,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'linear-gradient(135deg, #60A5FA 0%, #2563EB 100%)',
+      color: '#fff', fontSize: size * 0.4, fontWeight: 700,
+    }}>
+      {initials(name)}
+    </div>
+  )
+}
 
 type Step = 'audience' | 'content' | 'review' | 'sending' | 'summary'
 
@@ -69,8 +93,8 @@ export default function CampaignComposerModal({ preselectedStudents, campaignId,
 
   useEffect(() => {
     if (!isPicker) return
-    fetch('/api/dashboard/members').then(r => r.json()).then((list: Array<{ id: string; name: string; email: string; belt: string; status: string }>) => {
-      setAllMembers(list.map(m => ({ id: m.id, name: m.name, email: m.email, belt: m.belt, status: m.status })))
+    fetch('/api/dashboard/members').then(r => r.json()).then((list: Array<{ id: string; name: string; email: string; belt: string; status: string; avatarUrl: string | null }>) => {
+      setAllMembers(list.map(m => ({ id: m.id, name: m.name, email: m.email, belt: m.belt, status: m.status, avatarUrl: m.avatarUrl })))
     }).finally(() => setLoadingMembers(false))
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -245,9 +269,12 @@ export default function CampaignComposerModal({ preselectedStudents, campaignId,
                   <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 10 }}>{t.campaigns.audienceHeading}</p>
                   <div style={{ border: '1px solid #E5E7EB', borderRadius: 10, maxHeight: 220, overflowY: 'auto' }}>
                     {students.slice(0, 30).map(s => (
-                      <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', borderBottom: '1px solid #F3F4F6', fontSize: 13 }}>
-                        <span style={{ color: '#111827' }}>{s.name}</span>
-                        <span style={{ color: s.email ? '#9CA3AF' : '#DC2626' }}>{s.email || t.campaigns.noEmailWarning}</span>
+                      <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'space-between', padding: '8px 12px', borderBottom: '1px solid #F3F4F6', fontSize: 13 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                          <Avatar name={s.name} avatarUrl={s.avatarUrl} />
+                          <span style={{ color: '#111827' }}>{s.name}</span>
+                        </div>
+                        <span style={{ color: s.email ? '#9CA3AF' : '#DC2626', flexShrink: 0 }}>{s.email || t.campaigns.noEmailWarning}</span>
                       </div>
                     ))}
                     {students.length > 30 && (
@@ -281,10 +308,11 @@ export default function CampaignComposerModal({ preselectedStudents, campaignId,
                   </div>
                   <div style={{ border: '1px solid #E5E7EB', borderRadius: 10, maxHeight: 220, overflowY: 'auto' }}>
                     {visibleMembers.map(m => (
-                      <label key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderBottom: '1px solid #F3F4F6', fontSize: 13, cursor: 'pointer' }}>
-                        <input type="checkbox" checked={pickerSelectedIds.has(m.id)} onChange={() => togglePicker(m.id)} style={{ cursor: 'pointer' }} />
-                        <span style={{ flex: 1, color: '#111827' }}>{m.name}</span>
-                        <span style={{ color: m.email ? '#9CA3AF' : '#DC2626', fontSize: 12 }}>{m.email || t.campaigns.noEmailWarning}</span>
+                      <label key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderBottom: '1px solid #F3F4F6', fontSize: 13, cursor: 'pointer' }}>
+                        <input type="checkbox" checked={pickerSelectedIds.has(m.id)} onChange={() => togglePicker(m.id)} style={{ cursor: 'pointer', flexShrink: 0 }} />
+                        <Avatar name={m.name} avatarUrl={m.avatarUrl} />
+                        <span style={{ flex: 1, color: '#111827', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name}</span>
+                        <span style={{ color: m.email ? '#9CA3AF' : '#DC2626', fontSize: 12, flexShrink: 0 }}>{m.email || t.campaigns.noEmailWarning}</span>
                       </label>
                     ))}
                     {visibleMembers.length === 0 && (
