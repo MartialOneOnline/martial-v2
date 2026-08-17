@@ -12,6 +12,7 @@ import { createClient } from '../../../lib/supabase/client'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { isStudentContextRequired, chooseProfileUrl } from '../../../lib/studentContext'
 import { myFetch } from '../../../lib/api/myFetch'
+import { usePhoneField, DIAL_CODES, flagEmoji } from '../../../lib/usePhoneField'
 
 type Profile = {
   name: string | null
@@ -212,14 +213,7 @@ export default function MyProfilePage() {
               )}
               {editing && (
                 <>
-                  <input
-                    value={phone}
-                    onChange={e => setPhone(e.target.value)}
-                    placeholder="Phone number"
-                    type="tel"
-                    className="w-full rounded-xl px-3 py-2 mt-1 focus:outline-none text-sm"
-                    style={{ border: '1px solid #E5E5EA', color: '#1C1C1E' }}
-                  />
+                  <PhoneRow phone={phone} onChange={setPhone} />
                   <input
                     value={dateOfBirth}
                     onChange={e => setDateOfBirth(e.target.value)}
@@ -309,6 +303,38 @@ export default function MyProfilePage() {
         </div>
 
       </div>
+    </div>
+  )
+}
+
+// Country/dial-code select + formatted national number, styled to match this
+// page's own iOS-ish inputs. A separate component (not inlined in
+// MyProfilePage) so usePhoneField's initial-value memo only runs once this
+// actually mounts — i.e. after the profile has loaded and edit mode opens —
+// instead of racing the fetch and locking in a blank phone.
+function PhoneRow({ phone, onChange }: { phone: string; onChange: (e164: string) => void }) {
+  const { country, national, setCountryCode, setNationalInput } = usePhoneField(phone, onChange)
+  return (
+    <div className="flex mt-1 rounded-xl overflow-hidden" style={{ border: '1px solid #E5E5EA' }}>
+      <select
+        value={country}
+        onChange={e => setCountryCode(e.target.value as typeof country)}
+        aria-label="Country code"
+        className="px-2 text-sm focus:outline-none"
+        style={{ border: 'none', borderRight: '1px solid #E5E5EA', color: '#1C1C1E', background: '#fff' }}
+      >
+        {DIAL_CODES.map(c => (
+          <option key={c.code} value={c.code}>{flagEmoji(c.code)} +{c.dial}</option>
+        ))}
+      </select>
+      <input
+        value={national}
+        onChange={e => setNationalInput(e.target.value)}
+        placeholder="Phone number"
+        type="tel"
+        className="flex-1 min-w-0 px-3 py-2 focus:outline-none text-sm"
+        style={{ border: 'none', color: '#1C1C1E' }}
+      />
     </div>
   )
 }

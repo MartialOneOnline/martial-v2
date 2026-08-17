@@ -4,8 +4,10 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Camera, Loader2 } from 'lucide-react'
+import { isValidPhoneNumber } from 'libphonenumber-js'
 import { createClient } from '@/lib/supabase/client'
 import { myFetch } from '@/lib/api/myFetch'
+import { PhoneField } from '@/components/PhoneField'
 
 const BLUE = '#0870E2'
 const BORDER = '#E5E7EB'
@@ -88,6 +90,7 @@ export default function CompleteProfilePage() {
     const e2: Record<string, string> = {}
     if (!avatarUrl) e2.avatarUrl = 'Add a profile photo to continue.'
     if (!phone.trim()) e2.phone = 'Phone number is required.'
+    else if (!isValidPhoneNumber(phone)) e2.phone = 'Enter a valid phone number.'
     if (!dateOfBirth) e2.dateOfBirth = 'Date of birth is required.'
     else if (new Date(dateOfBirth) > new Date()) e2.dateOfBirth = 'Date of birth can\'t be in the future.'
     setErrors(e2)
@@ -161,17 +164,8 @@ export default function CompleteProfilePage() {
             </p>
           </div>
 
-          <div>
-            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>Phone</label>
-            <input
-              type="tel"
-              value={phone}
-              onChange={e => { setPhone(e.target.value); clearError('phone') }}
-              placeholder="+34 600 000 000"
-              style={{ width: '100%', padding: '11px 14px', fontSize: 15, border: `1px solid ${errors.phone ? '#DC2626' : BORDER}`, borderRadius: 10, outline: 'none', boxSizing: 'border-box', color: TEXT }}
-            />
-            {errors.phone && <p style={{ margin: '6px 0 0', fontSize: 12, color: '#DC2626' }}>{errors.phone}</p>}
-          </div>
+          <PhoneField label="Phone" value={phone}
+            onChange={v => { setPhone(v); clearError('phone') }} error={errors.phone} placeholder="600 000 000" />
 
           <div>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>Date of birth</label>
