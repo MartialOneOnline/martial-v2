@@ -62,25 +62,28 @@ describe('isSchoolMemberArchived', () => {
 })
 
 describe('syncSchoolMemberStatusForMembership', () => {
-  it('ACTIVE -> SchoolMember ACTIVE, filtered to exclude ARCHIVED', async () => {
+  it('ACTIVE -> SchoolMember ACTIVE, including ARCHIVED (an active membership is a reactivation signal)', async () => {
     const updateMany = vi.fn().mockResolvedValue({ count: 1 })
     const tx = fakeTx({ schoolMemberUpdateMany: updateMany })
 
     await syncSchoolMemberStatusForMembership(tx, { userId: 'u1', schoolId: 's1', membershipStatus: MembershipStatus.ACTIVE })
 
     expect(updateMany).toHaveBeenCalledWith({
-      where: { userId: 'u1', schoolId: 's1', status: { not: 'ARCHIVED' } },
+      where: { userId: 'u1', schoolId: 's1' },
       data: { status: 'ACTIVE' },
     })
   })
 
-  it('PAUSED -> SchoolMember FROZEN', async () => {
+  it('PAUSED -> SchoolMember FROZEN, filtered to exclude ARCHIVED', async () => {
     const updateMany = vi.fn().mockResolvedValue({ count: 1 })
     const tx = fakeTx({ schoolMemberUpdateMany: updateMany })
 
     await syncSchoolMemberStatusForMembership(tx, { userId: 'u1', schoolId: 's1', membershipStatus: MembershipStatus.PAUSED })
 
-    expect(updateMany).toHaveBeenCalledWith(expect.objectContaining({ data: { status: 'FROZEN' } }))
+    expect(updateMany).toHaveBeenCalledWith({
+      where: { userId: 'u1', schoolId: 's1', status: { not: 'ARCHIVED' } },
+      data: { status: 'FROZEN' },
+    })
   })
 
   it('CANCELLED -> SchoolMember INACTIVE when no other ACTIVE membership exists', async () => {

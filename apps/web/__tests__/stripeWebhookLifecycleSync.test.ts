@@ -250,7 +250,7 @@ describe('invoice.payment_succeeded (renewal)', () => {
     expect(schoolMembers[smKey('school-1', 'user-1')]!.status).toBe('ACTIVE')
   })
 
-  it('does not reactivate an ARCHIVED SchoolMember', async () => {
+  it('reactivates an ARCHIVED SchoolMember on renewal — a paid subscription is itself a reactivation signal', async () => {
     seedMembership({ id: 'membership-1', stripeSubId: 'sub_1', status: 'PAUSED', stripeInvoiceId: null })
     seedSchoolMember('school-1', 'user-1', 'ARCHIVED')
 
@@ -259,7 +259,7 @@ describe('invoice.payment_succeeded (renewal)', () => {
       data: { object: { subscription: 'sub_1', id: 'in_2', billing_reason: 'subscription_cycle', amount_paid: 5000, metadata: { schoolId: 'school-1' } } },
     }))
 
-    expect(schoolMembers[smKey('school-1', 'user-1')]!.status).toBe('ARCHIVED')
+    expect(schoolMembers[smKey('school-1', 'user-1')]!.status).toBe('ACTIVE')
   })
 })
 

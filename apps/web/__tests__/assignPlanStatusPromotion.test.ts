@@ -9,9 +9,9 @@
  * they had a paying, active membership but no access (blocked from /my,
  * invisible in class rosters). See Juanjo Rios / Roger Gracie Malaga.
  *
- * Fix: reactivate on any non-ARCHIVED, non-ACTIVE status. ARCHIVED is a
- * staff moderation decision and must never be silently overwritten by a
- * subscription lifecycle event (mirrors syncSchoolMemberStatusForMembership).
+ * Fix: reactivate on any non-ACTIVE status, ARCHIVED included — an active
+ * plan being assigned is itself a deliberate reactivation signal (mirrors
+ * syncSchoolMemberStatusForMembership).
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
@@ -24,9 +24,11 @@ const schoolMemberUpdate = vi.fn(async ({ data }: any) => {
   schoolMember = { ...schoolMember, status: data.status }
   return schoolMember
 })
+const membershipFindMany = vi.fn(async () => [])
 const membershipUpdateMany = vi.fn(async () => ({ count: 0 }))
 const membershipCreate = vi.fn(async ({ data }: any) => ({ id: 'mem-1', ...data }))
 const transactionCreate = vi.fn(async () => ({}))
+const transactionUpdateMany = vi.fn(async () => ({ count: 0 }))
 
 const FREE_PLAN = {
   id: 'plan-1', schoolId: 'school-1', isActive: true, name: 'Free Trial',
@@ -40,8 +42,8 @@ vi.mock('@/lib/db', () => ({
     user: { findUnique: vi.fn(async () => null) },
     school: { findUnique: vi.fn(async () => null) },
     $transaction: vi.fn(async (cb: any) => cb({
-      membership: { updateMany: membershipUpdateMany, create: membershipCreate },
-      transaction: { create: transactionCreate },
+      membership: { findMany: membershipFindMany, updateMany: membershipUpdateMany, create: membershipCreate },
+      transaction: { create: transactionCreate, updateMany: transactionUpdateMany },
       schoolMember: { update: schoolMemberUpdate },
     })),
   },
@@ -60,7 +62,7 @@ describe('assignPlan() — SchoolMember status promotion', () => {
     vi.clearAllMocks()
   })
 
-  it.each(['INACTIVE', 'PENDING', 'LEAD', 'FROZEN'])('%s -> ACTIVE', async (status) => {
+  it.each(['INACTIVE', 'PENDING', 'LEAD', 'FROZEN', 'ARCHIVED'])('%s -> ACTIVE', async (status) => {
     schoolMember = { id: 'sm-1', userId: 'user-1', status }
     await assignPlan(baseInput())
     expect(schoolMemberUpdate).toHaveBeenCalledTimes(1)
@@ -72,12 +74,5 @@ describe('assignPlan() — SchoolMember status promotion', () => {
     schoolMember = { id: 'sm-1', userId: 'user-1', status: 'ACTIVE' }
     await assignPlan(baseInput())
     expect(schoolMemberUpdate).not.toHaveBeenCalled()
-  })
-
-  it('ARCHIVED: left untouched — never silently reactivated', async () => {
-    schoolMember = { id: 'sm-1', userId: 'user-1', status: 'ARCHIVED' }
-    await assignPlan(baseInput())
-    expect(schoolMemberUpdate).not.toHaveBeenCalled()
-    expect(schoolMember.status).toBe('ARCHIVED')
   })
 })
