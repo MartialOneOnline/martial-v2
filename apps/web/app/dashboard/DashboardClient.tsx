@@ -473,28 +473,28 @@ export default function DashboardClient({ userName, userEmail }: Props) {
   const STATS = [
     {
       label: t.dashboard.students,
-      value: stats ? stats.members.value.toLocaleString() : '—',
+      value: stats ? stats.members.value.toLocaleString() : null,
       trend: stats?.members.trend ?? null,
       trendUp: true,
       sub: t.common.vsLastMonth,
     },
     {
       label: t.dashboard.activeClasses,
-      value: stats ? stats.activeClasses.value.toLocaleString() : '—',
+      value: stats ? stats.activeClasses.value.toLocaleString() : null,
       trend: null,
       trendUp: true,
       sub: t.common.thisWeek,
     },
     {
       label: t.dashboard.revenue,
-      value: stats ? stats.revenue.formatted : '—',
+      value: stats ? stats.revenue.formatted : null,
       trend: stats?.revenue.trend ?? null,
       trendUp: true,
       sub: t.common.vsLastMonth,
     },
     {
       label: t.dashboard.bookings,
-      value: stats ? stats.bookings.value.toLocaleString() : '—',
+      value: stats ? stats.bookings.value.toLocaleString() : null,
       trend: null,
       trendUp: true,
       sub: t.common.allTime,
@@ -712,22 +712,28 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                 {/* Label + trend */}
                 <div className="flex items-start justify-between gap-2 mb-3" style={{ height: 20 }}>
                   <span style={{ fontSize: 11, color: '#9CA3AF', lineHeight: 1.3 }}>{stat.label}</span>
-                  <span style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 2, flexShrink: 0,
-                    fontSize: 11, fontWeight: 600, lineHeight: 1,
-                    background: stat.trendUp ? '#F0FDF4' : '#FEF2F2',
-                    color: stat.trendUp ? '#16A34A' : '#DC2626',
-                    padding: '2px 7px', borderRadius: 999,
-                  }}>
-                    {stat.trendUp ? <TrendingUp size={9} /> : <TrendingDown size={9} />}
-                    {stat.trend}
-                  </span>
+                  {stat.value !== null && (
+                    <span style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 2, flexShrink: 0,
+                      fontSize: 11, fontWeight: 600, lineHeight: 1,
+                      background: stat.trendUp ? '#F0FDF4' : '#FEF2F2',
+                      color: stat.trendUp ? '#16A34A' : '#DC2626',
+                      padding: '2px 7px', borderRadius: 999,
+                    }}>
+                      {stat.trendUp ? <TrendingUp size={9} /> : <TrendingDown size={9} />}
+                      {stat.trend}
+                    </span>
+                  )}
                 </div>
 
                 {/* Value */}
-                <p className="text-3xl lg:text-4xl" style={{ fontWeight: 700, color: '#111827', letterSpacing: '-0.03em', lineHeight: 1 }}>
-                  {stat.value}
-                </p>
+                {stat.value !== null ? (
+                  <p className="text-3xl lg:text-4xl" style={{ fontWeight: 700, color: '#111827', letterSpacing: '-0.03em', lineHeight: 1 }}>
+                    {stat.value}
+                  </p>
+                ) : (
+                  <div className="animate-pulse" style={{ height: 30, width: '55%', borderRadius: 6, background: '#F3F4F6' }} />
+                )}
 
                 {/* Sub-text */}
                 <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 8 }}>{stat.sub}</p>

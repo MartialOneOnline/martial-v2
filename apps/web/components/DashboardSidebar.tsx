@@ -336,18 +336,6 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen, collapsed, set
           {NAV_BOTTOM.map(item => (
             <NavGroup key={item.label} item={item} setMenuOpen={setMenuOpen} collapsed={collapsed} onRequestExpand={() => setCollapsed(false)} />
           ))}
-          <button
-            onClick={handleSignOut}
-            title={collapsed ? t.sidebar.signOut : undefined}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors text-left cursor-pointer"
-            style={{ color: '#374151', fontSize: 14, background: 'transparent', border: 'none', justifyContent: collapsed ? 'center' : 'flex-start' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#F9FAFB' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
-          >
-            <LogOut size={16} strokeWidth={1.5} style={{ color: '#9CA3AF' }} />
-            {!collapsed && t.sidebar.signOut}
-          </button>
-
           {/* Collapse/expand toggle — tablet & desktop only */}
           <button
             onClick={() => setCollapsed(!collapsed)}
@@ -362,6 +350,18 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen, collapsed, set
               : <PanelLeftClose size={16} strokeWidth={1.5} />
             }
             {!collapsed && <span>{t.sidebar.collapse}</span>}
+          </button>
+
+          <button
+            onClick={handleSignOut}
+            title={collapsed ? t.sidebar.signOut : undefined}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors text-left cursor-pointer"
+            style={{ color: '#374151', fontSize: 14, background: 'transparent', border: 'none', justifyContent: collapsed ? 'center' : 'flex-start' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#F9FAFB' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+          >
+            <LogOut size={16} strokeWidth={1.5} style={{ color: '#9CA3AF' }} />
+            {!collapsed && t.sidebar.signOut}
           </button>
         </div>
       </aside>
