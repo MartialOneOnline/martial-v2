@@ -110,7 +110,7 @@ async function UsersPageWithSchool({ schoolId }: { schoolId: string }) {
   // stuck INACTIVE) — surfaced as an OWNER/ADMIN-only banner below. Computed
   // from data already fetched above, no extra query needed.
   const driftedMembers = students
-    .filter(s => s.activeMembership && !['ACTIVE', 'ARCHIVED'].includes(s.status))
+    .filter(s => s.activeMembership && s.status !== 'ACTIVE')
     .map(s => ({ id: s.id, name: s.name, status: s.status }))
 
   let canViewDrift = false

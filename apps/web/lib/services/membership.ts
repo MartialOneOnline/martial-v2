@@ -138,9 +138,11 @@ export async function isSchoolMemberArchived(
  *                a different one ended or lapsed.
  *   anything else (PENDING) -> no defined projection, left as-is.
  *
- * ARCHIVED is never touched or reactivated by this function — a staff
- * member archived this person for a reason, and a subscription lifecycle
- * event must not silently undo that moderation decision.
+ * A membership going ACTIVE always reactivates the SchoolMember, ARCHIVED
+ * included — an active plan (assigned by staff or renewed by Stripe/Revolut)
+ * is a deliberate reactivation signal on its own. FROZEN/INACTIVE targets
+ * still leave ARCHIVED alone, since pausing or lapsing a membership isn't a
+ * reactivation event and shouldn't touch a member a staffer already archived.
  *
  * Must be called inside the same transaction as the Membership status
  * write it's reacting to, so the two updates land atomically.
@@ -164,7 +166,7 @@ export async function syncSchoolMemberStatusForMembership(
   }
 
   await tx.schoolMember.updateMany({
-    where: { userId, schoolId, status: { not: 'ARCHIVED' } },
+    where: { userId, schoolId, ...(targetStatus !== 'ACTIVE' && { status: { not: 'ARCHIVED' } }) },
     data: { status: targetStatus },
   })
 }
@@ -193,7 +195,7 @@ export interface DriftedSchoolMember {
  */
 export async function findMembershipStatusDrift(schoolId?: string): Promise<DriftedSchoolMember[]> {
   const candidates = await prisma.schoolMember.findMany({
-    where: { status: { in: ['INACTIVE', 'PENDING', 'LEAD', 'FROZEN'] }, ...(schoolId && { schoolId }) },
+    where: { status: { in: ['INACTIVE', 'PENDING', 'LEAD', 'FROZEN', 'ARCHIVED'] }, ...(schoolId && { schoolId }) },
     select: {
       id: true, status: true, userId: true, schoolId: true,
       user: { select: { name: true, email: true } },
@@ -257,7 +259,7 @@ export async function cancelStripeSubscription(
  *  3. Cancels any currently ACTIVE membership for that user+school
  *  4. Creates the new Membership row
  *  5. Creates a Transaction record (income entry)
- *  6. Reactivates SchoolMember.status (PENDING/LEAD/INACTIVE → ACTIVE), unless ARCHIVED
+ *  6. Reactivates SchoolMember.status (PENDING/LEAD/INACTIVE/ARCHIVED → ACTIVE)
  *
  * Returns the created membership with plan included.
  */
@@ -344,10 +346,10 @@ export async function assignPlan(input: AssignPlanInput) {
       })
     }
 
-    // Reactivate the member unless a staff member archived them — assigning
-    // a fresh active plan should always restore access (PENDING/LEAD/INACTIVE
-    // → ACTIVE), same exception ARCHIVED gets in syncSchoolMemberStatusForMembership.
-    if (schoolMember.status !== 'ARCHIVED' && schoolMember.status !== 'ACTIVE') {
+    // Assigning a fresh active plan always restores access, ARCHIVED
+    // included — staff (or a renewal) confirming an active plan for this
+    // person is itself the reactivation decision.
+    if (schoolMember.status !== 'ACTIVE') {
       await tx.schoolMember.update({
         where: { id: schoolMemberId },
         data: { status: 'ACTIVE' },
