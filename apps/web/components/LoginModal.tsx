@@ -379,7 +379,7 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
 
                 <div className="flex items-center gap-3 my-5">
                   <div className="flex-1 h-px bg-[#E5E7EB]" />
-                  <span className="text-[12px] font-bold text-[#6b7280] uppercase tracking-wider">or</span>
+                  <span className="text-[12px] font-semibold text-[#6b7280] uppercase">or</span>
                   <div className="flex-1 h-px bg-[#E5E7EB]" />
                 </div>
 

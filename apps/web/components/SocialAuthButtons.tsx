@@ -137,9 +137,9 @@ export function SocialAuthButtons({ redirectPath }: { redirectPath?: string }) {
 
       {error && <p style={{ margin: '16px 0 0', fontSize: 13, color: '#DC2626', background: '#FEF2F2', padding: '8px 12px', borderRadius: 8 }}>{error}</p>}
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0 0' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' }}>
         <div style={{ flex: 1, height: 1, background: BORDER }} />
-        <span style={{ fontSize: 12, fontWeight: 600, color: MUTED }}>Or</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: MUTED }}>OR</span>
         <div style={{ flex: 1, height: 1, background: BORDER }} />
       </div>
     </div>
