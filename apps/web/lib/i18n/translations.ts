@@ -692,6 +692,8 @@ export const translations = {
       support:      'Support',
       signOut:      'Sign out',
       campaigns:    'Campaigns',
+      collapse:     'Collapse',
+      expand:       'Expand',
     },
 
     campaigns: {
@@ -1373,6 +1375,8 @@ export const translations = {
       support:      'Soporte',
       signOut:      'Cerrar sesión',
       campaigns:    'Campañas',
+      collapse:     'Contraer',
+      expand:       'Expandir',
     },
 
     campaigns: {
@@ -2054,6 +2058,8 @@ export const translations = {
       support:      'Suporte',
       signOut:      'Sair',
       campaigns:    'Campanhas',
+      collapse:     'Recolher',
+      expand:       'Expandir',
     },
 
     campaigns: {
@@ -2735,6 +2741,8 @@ export const translations = {
       support:      'Support',
       signOut:      'Se déconnecter',
       campaigns:    'Campagnes',
+      collapse:     'Réduire',
+      expand:       'Agrandir',
     },
 
     campaigns: {

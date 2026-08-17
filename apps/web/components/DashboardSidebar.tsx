@@ -9,7 +9,7 @@ import {
   LayoutDashboard, Users, Calendar, CreditCard, Award,
   BarChart2, Settings, Bell, HelpCircle, LogOut,
   ShoppingBag, School, Flame, X, ChevronRight, ChevronDown, ChevronsUpDown,
-  Megaphone,
+  Megaphone, PanelLeftClose, PanelLeftOpen,
 } from 'lucide-react'
 import { useT } from '../lib/i18n/LanguageContext'
 import { useSchoolContext } from '../lib/auth/useSchoolContext'
@@ -22,7 +22,14 @@ type NavItem = {
   children?: { label: string; href: string }[]
 }
 
-function NavGroup({ item, setMenuOpen }: { item: NavItem; setMenuOpen: (v: boolean) => void }) {
+function NavGroup({
+  item, setMenuOpen, collapsed, onRequestExpand,
+}: {
+  item: NavItem
+  setMenuOpen: (v: boolean) => void
+  collapsed: boolean
+  onRequestExpand: () => void
+}) {
   const pathname = usePathname()
 
   const isActive = item.href
@@ -37,32 +44,43 @@ function NavGroup({ item, setMenuOpen }: { item: NavItem; setMenuOpen: (v: boole
         href={item.href ?? '#'}
         prefetch={false}
         onClick={() => setMenuOpen(false)}
-        className="flex items-center gap-3 px-3 py-2.5 rounded-xl no-underline transition-colors"
+        title={collapsed ? item.label : undefined}
+        className="flex items-center gap-3 px-3 py-2.5 rounded-xl no-underline transition-colors relative"
         style={{
           color: '#374151',
           fontSize: 14,
           fontWeight: isActive ? 600 : 400,
           background: isActive ? '#EFF6FF' : 'transparent',
+          justifyContent: collapsed ? 'center' : 'flex-start',
+          paddingLeft: collapsed ? 0 : undefined,
+          paddingRight: collapsed ? 0 : undefined,
         }}
         onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = '#F9FAFB' }}
         onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
       >
         <item.icon size={16} strokeWidth={1.5} style={{ color: isActive ? '#0071E3' : '#9CA3AF', flexShrink: 0 }} />
-        <span className="flex-1">{item.label}</span>
+        {!collapsed && <span className="flex-1">{item.label}</span>}
         {!!item.badge && item.badge > 0 && (
-          <span style={{
-            background: '#EF4444',
-            color: '#fff',
-            fontSize: 10,
-            fontWeight: 700,
-            lineHeight: 1,
-            padding: '2px 5px',
-            borderRadius: 999,
-            minWidth: 16,
-            textAlign: 'center',
-          }}>
-            {item.badge > 99 ? '99+' : item.badge}
-          </span>
+          collapsed ? (
+            <span style={{
+              position: 'absolute', top: 4, right: 10,
+              width: 7, height: 7, borderRadius: 999, background: '#EF4444',
+            }} />
+          ) : (
+            <span style={{
+              background: '#EF4444',
+              color: '#fff',
+              fontSize: 10,
+              fontWeight: 700,
+              lineHeight: 1,
+              padding: '2px 5px',
+              borderRadius: 999,
+              minWidth: 16,
+              textAlign: 'center',
+            }}>
+              {item.badge > 99 ? '99+' : item.badge}
+            </span>
+          )
         )}
       </Link>
     )
@@ -71,7 +89,11 @@ function NavGroup({ item, setMenuOpen }: { item: NavItem; setMenuOpen: (v: boole
   return (
     <div>
       <button
-        onClick={() => setOpen(v => !v)}
+        onClick={() => {
+          if (collapsed) { onRequestExpand(); setOpen(true); return }
+          setOpen(v => !v)
+        }}
+        title={collapsed ? item.label : undefined}
         className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors cursor-pointer text-left"
         style={{
           color: '#374151',
@@ -79,18 +101,19 @@ function NavGroup({ item, setMenuOpen }: { item: NavItem; setMenuOpen: (v: boole
           fontWeight: isActive ? 600 : 400,
           background: isActive && !open ? '#EFF6FF' : 'transparent',
           border: 'none',
+          justifyContent: collapsed ? 'center' : 'flex-start',
         }}
         onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#F9FAFB' }}
         onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = isActive && !open ? '#EFF6FF' : 'transparent' }}
       >
         <item.icon size={16} strokeWidth={1.5} style={{ color: isActive ? '#0071E3' : '#9CA3AF', flexShrink: 0 }} />
-        <span className="flex-1">{item.label}</span>
-        {open
+        {!collapsed && <span className="flex-1">{item.label}</span>}
+        {!collapsed && (open
           ? <ChevronDown size={13} strokeWidth={1.5} style={{ color: '#9CA3AF' }} />
           : <ChevronRight size={13} strokeWidth={1.5} style={{ color: '#9CA3AF' }} />
-        }
+        )}
       </button>
-      {open && (
+      {open && !collapsed && (
         <div className="ml-7 mt-0.5 space-y-0.5">
           {item.children.map(child => {
             const childActive = pathname === child.href
@@ -123,9 +146,11 @@ function NavGroup({ item, setMenuOpen }: { item: NavItem; setMenuOpen: (v: boole
 interface Props {
   menuOpen: boolean
   setMenuOpen: (v: boolean) => void
+  collapsed: boolean
+  setCollapsed: (v: boolean) => void
 }
 
-export default function DashboardSidebar({ menuOpen, setMenuOpen }: Props) {
+export default function DashboardSidebar({ menuOpen, setMenuOpen, collapsed, setCollapsed }: Props) {
   const router = useRouter()
   const { currentSchool, schools, switchSchool, loading: ctxLoading } = useSchoolContext()
   const [switcherOpen, setSwitcherOpen] = useState(false)
@@ -213,109 +238,130 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen }: Props) {
       <aside
         className="dashboard-sidebar fixed top-0 left-0 h-full flex flex-col z-50"
         style={{
-          width: 232,
+          width: collapsed ? 72 : 232,
           background: '#fff',
           borderRight: '1px solid #E5E7EB',
-          transform: menuOpen ? 'translateX(0)' : 'translateX(-232px)',
-          transition: 'transform 0.28s cubic-bezier(0.4,0,0.2,1)',
+          transform: menuOpen ? 'translateX(0)' : 'translateX(-100%)',
+          transition: 'transform 0.28s cubic-bezier(0.4,0,0.2,1), width 0.2s ease',
         }}
       >
         {/* School header + switcher */}
         <div className="px-4 py-4" style={{ borderBottom: '1px solid #E5E7EB' }}>
-          <div className="flex items-center justify-between">
+          <div className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
             {/* School identity */}
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="w-7 h-7 rounded-lg overflow-hidden shrink-0 bg-[#0870E2]/10 flex items-center justify-center">
                 <Image src="/martial-logo.png" alt="Martial" width={28} height={28} className="object-contain" />
               </div>
-              <div className="min-w-0">
-                {ctxLoading ? (
-                  <>
-                    <div style={{ height: 13, width: 100, borderRadius: 4, background: '#F3F4F6', marginBottom: 4 }} />
-                    <div style={{ height: 10, width: 50, borderRadius: 4, background: '#F3F4F6' }} />
-                  </>
-                ) : (
-                  <>
-                    <p className="truncate" style={{ fontSize: 13, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>
-                      {currentSchool?.schoolName}
-                    </p>
-                    <p style={{ fontSize: 10, fontWeight: 500, color: '#9CA3AF', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                      {currentSchool?.role}
-                    </p>
-                  </>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center gap-1">
-              {/* School switcher — only shown when user has multiple schools */}
-              {schools.length > 1 && (
-                <div className="relative">
-                  <button
-                    onClick={() => setSwitcherOpen(v => !v)}
-                    className="flex items-center justify-center w-6 h-6 rounded-md hover:bg-gray-100 transition-colors cursor-pointer"
-                    title="Switch school"
-                  >
-                    <ChevronsUpDown size={13} strokeWidth={1.5} style={{ color: '#9CA3AF' }} />
-                  </button>
-                  {switcherOpen && (
+              {!collapsed && (
+                <div className="min-w-0">
+                  {ctxLoading ? (
                     <>
-                      <div className="fixed inset-0 z-40" onClick={() => setSwitcherOpen(false)} />
-                      <div className="absolute left-0 top-8 z-50 bg-white border border-gray-100 rounded-xl shadow-lg py-1 min-w-[180px]">
-                        {schools.map(s => (
-                          <button
-                            key={s.schoolId}
-                            onClick={async () => {
-                              await switchSchool(s.schoolId)
-                              setSwitcherOpen(false)
-                              router.refresh()
-                            }}
-                            className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-left transition-colors"
-                          >
-                            <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: s.schoolId === currentSchool?.schoolId ? '#0870E2' : '#E5E7EB' }} />
-                            <div className="min-w-0">
-                              <p className="truncate text-xs font-semibold text-gray-800">{s.schoolName}</p>
-                              <p className="text-[10px] text-gray-400">{s.role}</p>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
+                      <div style={{ height: 13, width: 100, borderRadius: 4, background: '#F3F4F6', marginBottom: 4 }} />
+                      <div style={{ height: 10, width: 50, borderRadius: 4, background: '#F3F4F6' }} />
+                    </>
+                  ) : (
+                    <>
+                      <p className="truncate" style={{ fontSize: 13, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>
+                        {currentSchool?.schoolName}
+                      </p>
+                      <p style={{ fontSize: 10, fontWeight: 500, color: '#9CA3AF', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                        {currentSchool?.role}
+                      </p>
                     </>
                   )}
                 </div>
               )}
-              {/* Mobile close */}
-              <button
-                className="md:hidden flex items-center justify-center w-6 h-6 rounded-md cursor-pointer hover:bg-gray-100"
-                onClick={() => setMenuOpen(false)}
-                aria-label="Close menu"
-              >
-                <X size={14} strokeWidth={1.5} style={{ color: '#6B7280' }} />
-              </button>
             </div>
+            {!collapsed && (
+              <div className="flex items-center gap-1">
+                {/* School switcher — only shown when user has multiple schools */}
+                {schools.length > 1 && (
+                  <div className="relative">
+                    <button
+                      onClick={() => setSwitcherOpen(v => !v)}
+                      className="flex items-center justify-center w-6 h-6 rounded-md hover:bg-gray-100 transition-colors cursor-pointer"
+                      title="Switch school"
+                    >
+                      <ChevronsUpDown size={13} strokeWidth={1.5} style={{ color: '#9CA3AF' }} />
+                    </button>
+                    {switcherOpen && (
+                      <>
+                        <div className="fixed inset-0 z-40" onClick={() => setSwitcherOpen(false)} />
+                        <div className="absolute left-0 top-8 z-50 bg-white border border-gray-100 rounded-xl shadow-lg py-1 min-w-[180px]">
+                          {schools.map(s => (
+                            <button
+                              key={s.schoolId}
+                              onClick={async () => {
+                                await switchSchool(s.schoolId)
+                                setSwitcherOpen(false)
+                                router.refresh()
+                              }}
+                              className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-left transition-colors"
+                            >
+                              <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: s.schoolId === currentSchool?.schoolId ? '#0870E2' : '#E5E7EB' }} />
+                              <div className="min-w-0">
+                                <p className="truncate text-xs font-semibold text-gray-800">{s.schoolName}</p>
+                                <p className="text-[10px] text-gray-400">{s.role}</p>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+                {/* Mobile close */}
+                <button
+                  className="md:hidden flex items-center justify-center w-6 h-6 rounded-md cursor-pointer hover:bg-gray-100"
+                  onClick={() => setMenuOpen(false)}
+                  aria-label="Close menu"
+                >
+                  <X size={14} strokeWidth={1.5} style={{ color: '#6B7280' }} />
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-0.5">
           {NAV_MAIN.map(item => (
-            <NavGroup key={item.label} item={item} setMenuOpen={setMenuOpen} />
+            <NavGroup key={item.label} item={item} setMenuOpen={setMenuOpen} collapsed={collapsed} onRequestExpand={() => setCollapsed(false)} />
           ))}
         </nav>
 
         {/* Bottom nav + Sign out */}
         <div style={{ borderTop: '1px solid #E5E7EB' }} className="px-3 py-3 space-y-0.5">
           {NAV_BOTTOM.map(item => (
-            <NavGroup key={item.label} item={item} setMenuOpen={setMenuOpen} />
+            <NavGroup key={item.label} item={item} setMenuOpen={setMenuOpen} collapsed={collapsed} onRequestExpand={() => setCollapsed(false)} />
           ))}
           <button
             onClick={handleSignOut}
+            title={collapsed ? t.sidebar.signOut : undefined}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors text-left cursor-pointer"
-            style={{ color: '#374151', fontSize: 14, background: 'transparent', border: 'none' }}
+            style={{ color: '#374151', fontSize: 14, background: 'transparent', border: 'none', justifyContent: collapsed ? 'center' : 'flex-start' }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#F9FAFB' }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
           >
             <LogOut size={16} strokeWidth={1.5} style={{ color: '#9CA3AF' }} />
-            {t.sidebar.signOut}
+            {!collapsed && t.sidebar.signOut}
+          </button>
+
+          {/* Collapse/expand toggle — tablet & desktop only */}
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            title={collapsed ? t.sidebar.expand : t.sidebar.collapse}
+            className="hidden md:flex w-full items-center gap-3 px-3 py-2.5 rounded-xl transition-colors text-left cursor-pointer"
+            style={{ color: '#9CA3AF', fontSize: 13, background: 'transparent', border: 'none', justifyContent: collapsed ? 'center' : 'flex-start' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#F9FAFB' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+          >
+            {collapsed
+              ? <PanelLeftOpen size={16} strokeWidth={1.5} />
+              : <PanelLeftClose size={16} strokeWidth={1.5} />
+            }
+            {!collapsed && <span>{t.sidebar.collapse}</span>}
           </button>
         </div>
       </aside>
