@@ -25,10 +25,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 // ── hasStudentAccess() unit tests ───────────────────────────────────────────
 
 const mockCount = vi.fn()
+const mockUserFindUnique = vi.fn()
 
 vi.mock('@/lib/db', () => ({
   prisma: {
     schoolMember: { count: mockCount },
+    user: { findUnique: mockUserFindUnique },
   },
 }))
 
@@ -86,6 +88,11 @@ describe('MyLayout (app/my/layout.tsx)', () => {
     mockHasDashboardAccess.mockReset()
     mockHasStudentAccess.mockReset()
     mockRedirect.mockClear()
+    mockUserFindUnique.mockReset()
+    // Complete by default — the completeness gate is covered by its own
+    // tests below; every other test here is about the staff/student split
+    // and shouldn't also have to think about it.
+    mockUserFindUnique.mockResolvedValue({ phone: '+34600000000', dateOfBirth: new Date('1990-01-01'), avatarUrl: 'https://x/y.png' })
   })
 
   it('redirects to /login when there is no authenticated user', async () => {
@@ -128,6 +135,28 @@ describe('MyLayout (app/my/layout.tsx)', () => {
     mockGetAuthUser.mockResolvedValue({ id: 'fresh-1', role: 'STUDENT' })
     mockHasDashboardAccess.mockResolvedValue(false)
     mockHasStudentAccess.mockResolvedValue(false)
+
+    const result = await callLayout()
+
+    expect(mockRedirect).not.toHaveBeenCalled()
+    expect(result).toBeTruthy()
+  })
+
+  // ── profile-completeness gate ──────────────────────────────────────────
+  it('redirects to /complete-profile when phone, dateOfBirth or avatarUrl is missing', async () => {
+    mockGetAuthUser.mockResolvedValue({ id: 'student-2', role: 'STUDENT' })
+    mockHasDashboardAccess.mockResolvedValue(false)
+    mockHasStudentAccess.mockResolvedValue(true)
+    mockUserFindUnique.mockResolvedValue({ phone: null, dateOfBirth: new Date('1990-01-01'), avatarUrl: 'https://x/y.png' })
+
+    await expect(callLayout()).rejects.toThrow('NEXT_REDIRECT:/complete-profile')
+  })
+
+  it('does not redirect to /complete-profile once phone, dateOfBirth and avatarUrl are all set', async () => {
+    mockGetAuthUser.mockResolvedValue({ id: 'student-3', role: 'STUDENT' })
+    mockHasDashboardAccess.mockResolvedValue(false)
+    mockHasStudentAccess.mockResolvedValue(true)
+    mockUserFindUnique.mockResolvedValue({ phone: '+34600000000', dateOfBirth: new Date('1990-01-01'), avatarUrl: 'https://x/y.png' })
 
     const result = await callLayout()
 

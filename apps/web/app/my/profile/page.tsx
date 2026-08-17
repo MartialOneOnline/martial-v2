@@ -60,6 +60,7 @@ export default function MyProfilePage() {
   const [saving, setSaving]       = useState(false)
   const [name, setName]           = useState('')
   const [phone, setPhone]         = useState('')
+  const [dateOfBirth, setDateOfBirth] = useState('')
   const [uploading, setUploading] = useState(false)
   const fileInputRef              = useRef<HTMLInputElement>(null)
 
@@ -78,6 +79,7 @@ export default function MyProfilePage() {
         setProfile(u)
         setName(u?.name ?? '')
         setPhone(u?.phone ?? '')
+        setDateOfBirth(u?.dateOfBirth ? String(u.dateOfBirth).slice(0, 10) : '')
         setLoading(false)
       })
       .catch(() => setLoading(false))
@@ -88,9 +90,9 @@ export default function MyProfilePage() {
     await myFetch('/api/my', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, phone }),
+      body: JSON.stringify({ name, phone, dateOfBirth }),
     }).catch(() => {})
-    setProfile(p => p ? { ...p, name, phone } : p)
+    setProfile(p => p ? { ...p, name, phone, dateOfBirth } : p)
     setSaving(false)
     setEditing(false)
   }
@@ -203,18 +205,30 @@ export default function MyProfilePage() {
                 <p className="text-base font-semibold truncate mb-0.5" style={{ color: '#1C1C1E' }}>{profile?.name || 'Add your name'}</p>
               )}
               <p className="text-xs truncate" style={{ color: '#6B6B70' }}>{profile?.email}</p>
-              {!editing && profile?.phone && (
-                <p className="text-xs mt-0.5" style={{ color: '#6B6B70' }}>{profile.phone}</p>
+              {!editing && (profile?.phone || profile?.dateOfBirth) && (
+                <p className="text-xs mt-0.5" style={{ color: '#6B6B70' }}>
+                  {[profile?.phone, profile?.dateOfBirth && new Date(profile.dateOfBirth).toLocaleDateString()].filter(Boolean).join(' · ')}
+                </p>
               )}
               {editing && (
-                <input
-                  value={phone}
-                  onChange={e => setPhone(e.target.value)}
-                  placeholder="Phone number"
-                  type="tel"
-                  className="w-full rounded-xl px-3 py-2 mt-1 focus:outline-none text-sm"
-                  style={{ border: '1px solid #E5E5EA', color: '#1C1C1E' }}
-                />
+                <>
+                  <input
+                    value={phone}
+                    onChange={e => setPhone(e.target.value)}
+                    placeholder="Phone number"
+                    type="tel"
+                    className="w-full rounded-xl px-3 py-2 mt-1 focus:outline-none text-sm"
+                    style={{ border: '1px solid #E5E5EA', color: '#1C1C1E' }}
+                  />
+                  <input
+                    value={dateOfBirth}
+                    onChange={e => setDateOfBirth(e.target.value)}
+                    type="date"
+                    max={new Date().toISOString().slice(0, 10)}
+                    className="w-full rounded-xl px-3 py-2 mt-1.5 focus:outline-none text-sm"
+                    style={{ border: '1px solid #E5E5EA', color: '#1C1C1E' }}
+                  />
+                </>
               )}
             </div>
           </div>

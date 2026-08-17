@@ -69,6 +69,7 @@ export async function GET(req: NextRequest) {
     revolutPublicKey: true,
     modules: true,
     hasFreeTrialCls: true,
+    _count: { select: { disciplines: true } },
   } as const
 
   const school = await prisma.school.findUnique({
@@ -85,13 +86,14 @@ export async function GET(req: NextRequest) {
   // Never send these four fields to the browser in full — a school owner's own
   // settings page loads this on every visit, so anyone with devtools access to a
   // dashboard session would otherwise see live payment-provider credentials.
-  const { stripeSecretKey, stripeWebhookSecret, revolutSecretKey, revolutWebhookSecret, ...publicSchool } = school as
-    Record<string, unknown> & { stripeSecretKey?: string | null; stripeWebhookSecret?: string | null; revolutSecretKey?: string | null; revolutWebhookSecret?: string | null }
+  const { stripeSecretKey, stripeWebhookSecret, revolutSecretKey, revolutWebhookSecret, _count, ...publicSchool } = school as
+    Record<string, unknown> & { stripeSecretKey?: string | null; stripeWebhookSecret?: string | null; revolutSecretKey?: string | null; revolutWebhookSecret?: string | null; _count?: { disciplines: number } }
 
   return NextResponse.json({
     school: {
       ...publicSchool,
       modules: getSchoolModules(publicSchool.modules as string | null),
+      disciplineCount: _count?.disciplines ?? 0,
       ...(canViewPaymentSecrets && {
         stripeSecretKeyConfigured:     !!stripeSecretKey,
         stripeSecretKeyMasked:         maskSecret(stripeSecretKey),

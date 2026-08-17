@@ -65,15 +65,6 @@ const TRANSACTIONS = [
   { id: 6, avatar: 'https://i.pravatar.cc/32?u=rg', name: 'Rafael Gonzalez',  method: 'Stripe', price: '€ 65.00', date: relDate(6),  status: 'Paid'    },
 ]
 
-const CHART_DATA = [
-  { month: 'JAN', value: 28 },
-  { month: 'FEB', value: 42 },
-  { month: 'MAR', value: 35 },
-  { month: 'APR', value: 58 },
-  { month: 'MAY', value: 72 },
-  { month: 'JUN', value: 65 },
-]
-
 const DAY_LABELS = ['MON','TUE','WED','THU','FRI','SAT','SUN']
 // Generate 14 days starting from today — computed once at module load time (client-side)
 // This is mock data for the preview/demo dashboard only; the real dashboard uses API data.
@@ -243,13 +234,16 @@ function QuickStatsCard({ title, subtitle, items }: {
 
 // ── SVG Area Chart ─────────────────────────────────────────────────────────────
 
-function AreaChart() {
+function AreaChart({ data }: { data: { label: string; value: number }[] }) {
   const W = 560; const H = 160; const PAD = { t: 16, r: 16, b: 32, l: 40 }
+  if (data.length === 0) {
+    return <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="xMidYMid meet" />
+  }
   const innerW = W - PAD.l - PAD.r
   const innerH = H - PAD.t - PAD.b
-  const max = Math.max(...CHART_DATA.map(d => d.value))
-  const points = CHART_DATA.map((d, i) => ({
-    x: PAD.l + (i / (CHART_DATA.length - 1)) * innerW,
+  const max = Math.max(1, ...data.map(d => d.value))
+  const points = data.map((d, i) => ({
+    x: PAD.l + (data.length > 1 ? i / (data.length - 1) : 0.5) * innerW,
     y: PAD.t + (1 - d.value / max) * innerH,
   }))
 
@@ -283,12 +277,12 @@ function AreaChart() {
       {points.map((p, i) => (
         <circle key={i} cx={p.x} cy={p.y} r="3.5" fill="#fff" stroke="#0071E3" strokeWidth="2" />
       ))}
-      {CHART_DATA.map((d, i) => (
+      {data.map((d, i) => (
         <text key={i} x={points[i]!.x} y={H - 8} textAnchor="middle"
           fontSize="10" fontWeight="500" fill="#6B7280"
           style={{ fontFamily: '-apple-system, BlinkMacSystemFont, Inter, sans-serif' }}
         >
-          {d.month}
+          {d.label}
         </text>
       ))}
     </svg>
@@ -300,7 +294,7 @@ type DashStats = {
   members: { value: number; trend: string | null }
   activeClasses: { value: number }
   revenue: { value: number; formatted: string; trend: string | null }
-  bookings: { value: number }
+  bookings: { value: number; trend: string | null }
   activeMembers: { value: number }
   openLeads: { value: number }
   gradings: { value: number }
@@ -363,6 +357,9 @@ export default function DashboardClient({ userName, userEmail }: Props) {
   const [schoolProfile, setSchoolProfile] = useState<{
     logoUrl: string | null; coverUrl: string | null; tagline: string | null
   } | null>(null)
+  // null = not loaded yet (never redirect on this), 0 = confirmed empty.
+  const [disciplineCount, setDisciplineCount] = useState<number | null>(null)
+  const [bookingsChart, setBookingsChart] = useState<{ date: string; confirmed: number; cancelled: number }[] | null>(null)
 
   // Topbar search — filters students, loaded lazily on first use
   const router = useRouter()
@@ -433,13 +430,37 @@ export default function DashboardClient({ userName, userEmail }: Props) {
       .catch(() => {})
     fetch(`/api/dashboard/school?schoolId=${sid}`)
       .then(r => r.ok ? r.json() : null)
-      .then(d => d?.school && setSchoolProfile({
-        logoUrl: d.school.logoUrl ?? null,
-        coverUrl: d.school.coverUrl ?? null,
-        tagline: d.school.tagline ?? null,
-      }))
+      .then(d => {
+        if (!d?.school) return
+        setSchoolProfile({
+          logoUrl: d.school.logoUrl ?? null,
+          coverUrl: d.school.coverUrl ?? null,
+          tagline: d.school.tagline ?? null,
+        })
+        setDisciplineCount(typeof d.school.disciplineCount === 'number' ? d.school.disciplineCount : null)
+      })
       .catch(() => {})
   }, [currentSchool?.schoolId])
+  // Registration/onboarding only ever required name/city/country for a
+  // school — disciplines were added as a requirement later (see
+  // /onboarding/school). An OWNER whose school still has zero is sent back
+  // there on every dashboard load until they pick at least one; other staff
+  // roles aren't blocked by something only the owner can fix.
+  useEffect(() => {
+    if (disciplineCount === 0 && currentSchool?.role === 'OWNER') {
+      router.replace('/onboarding/school')
+    }
+  }, [disciplineCount, currentSchool?.role, router])
+  useEffect(() => {
+    if (!currentSchool?.schoolId) return
+    // 'All time' has no dedicated bucket in periodBounds() — it falls back to
+    // the same 12-month window as '12 months' rather than an unbounded range.
+    const reportPeriod = period === '7 days' ? '7d' : period === '30 days' ? '30d' : '12m'
+    fetch(`/api/dashboard/reports/bookings?period=${reportPeriod}&pageSize=1`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => d?.chartData && setBookingsChart(d.chartData))
+      .catch(() => {})
+  }, [period, currentSchool?.schoolId])
   useEffect(() => {
     if (authUser?.gettingStartedDismissedAt) setGettingStartedDismissed(true)
   }, [authUser?.gettingStartedDismissedAt])
@@ -831,14 +852,20 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           >
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
-                <p style={{ fontSize: 16, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>Jan – Jun 2026</p>
-                <span style={{ fontSize: 11, fontWeight: 600, color: '#0071E3', background: '#EFF6FF', padding: '2px 8px', borderRadius: 999 }}>
-                  +18% vs last period
-                </span>
+                <p style={{ fontSize: 16, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>
+                  {bookingsChart && bookingsChart.length > 0
+                    ? `${bookingsChart[0]!.date} – ${bookingsChart[bookingsChart.length - 1]!.date}`
+                    : '—'}
+                </p>
+                {stats?.bookings.trend && (
+                  <span style={{ fontSize: 11, fontWeight: 600, color: '#0071E3', background: '#EFF6FF', padding: '2px 8px', borderRadius: 999 }}>
+                    {stats.bookings.trend} {t.common.vsLastMonth}
+                  </span>
+                )}
               </div>
               <p style={{ fontSize: 12, color: '#6B7280' }}>{t.dashboard.bookingsOverview}</p>
             </div>
-            <AreaChart />
+            <AreaChart data={(bookingsChart ?? []).map(d => ({ label: d.date, value: d.confirmed }))} />
           </div>
 
           {/* 7. Transactions */}
