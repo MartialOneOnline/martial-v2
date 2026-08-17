@@ -187,30 +187,8 @@ function RegisterPageInner() {
 
             {/* Account type toggle */}
             {!typeLocked && (
-              <div style={{ display: 'flex', gap: 4, padding: 4, borderRadius: 16, background: '#F3F4F6', marginBottom: 10 }}>
-                {(['student', 'school'] as AccountType[]).map(t => {
-                  const active = accountType === t
-                  const Icon = t === 'student' ? GraduationCap : Building2
-                  return (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => { setAccountType(t); setErrors({}); setApiError('') }}
-                      style={{
-                        flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                        padding: '11px 8px', fontSize: 13.5, fontWeight: 700, border: 'none', borderRadius: 12, cursor: 'pointer',
-                        background: active ? '#fff' : 'transparent',
-                        color: active ? TEXT : MUTED,
-                        boxShadow: active ? '0 1px 3px rgba(16,24,40,0.08), 0 1px 2px rgba(16,24,40,0.04)' : 'none',
-                        transition: 'all .15s',
-                      }}
-                    >
-                      <Icon size={16} color={active ? BLUE : MUTED} />
-                      {t === 'student' ? 'Student' : 'School / Academy'}
-                    </button>
-                  )
-                })}
-              </div>
+              <AccountTypeToggle accountType={accountType}
+                onChange={t => { setAccountType(t); setErrors({}); setApiError('') }} style={{ marginBottom: 10 }} />
             )}
             <p style={{ margin: '0 0 20px', fontSize: 12.5, color: MUTED, textAlign: 'center', lineHeight: 1.5 }}>
               {typeLocked
@@ -257,6 +235,11 @@ function RegisterPageInner() {
               </p>
             </div>
 
+            {!typeLocked && (
+              <AccountTypeToggle accountType={accountType}
+                onChange={t => { setAccountType(t); setErrors({}); setApiError('') }} style={{ marginBottom: 16 }} />
+            )}
+
             <form onSubmit={handleSubmit} noValidate
               style={{ background: '#fff', borderRadius: 16, border: `1px solid ${BORDER}`, boxShadow: '0 4px 24px rgba(0,0,0,0.06)', padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
 
@@ -296,6 +279,37 @@ function RegisterPageInner() {
           </>
         )}
       </div>
+    </div>
+  )
+}
+
+function AccountTypeToggle({ accountType, onChange, style }: {
+  accountType: AccountType; onChange: (t: AccountType) => void; style?: React.CSSProperties
+}) {
+  return (
+    <div style={{ display: 'flex', gap: 4, padding: 4, borderRadius: 16, background: '#F3F4F6', ...style }}>
+      {(['student', 'school'] as AccountType[]).map(t => {
+        const active = accountType === t
+        const Icon = t === 'student' ? GraduationCap : Building2
+        return (
+          <button
+            key={t}
+            type="button"
+            onClick={() => onChange(t)}
+            style={{
+              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              padding: '11px 8px', fontSize: 13.5, fontWeight: 700, border: 'none', borderRadius: 12, cursor: 'pointer',
+              background: active ? '#fff' : 'transparent',
+              color: active ? TEXT : MUTED,
+              boxShadow: active ? '0 1px 3px rgba(16,24,40,0.08), 0 1px 2px rgba(16,24,40,0.04)' : 'none',
+              transition: 'all .15s',
+            }}
+          >
+            <Icon size={16} color={active ? BLUE : MUTED} />
+            {t === 'student' ? 'Student' : 'School / Academy'}
+          </button>
+        )
+      })}
     </div>
   )
 }
