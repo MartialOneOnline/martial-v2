@@ -66,7 +66,7 @@ function SocialButton({ provider, label, loading, disabled, onClick }: {
         cursor: disabled ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1,
       }}>
       {provider === 'google' ? <GoogleIcon /> : provider === 'apple' ? <AppleIcon /> : <MicrosoftIcon />}
-      {loading ? 'Redirigiendo…' : label}
+      {loading ? 'Redirecting…' : label}
     </button>
   )
 }
@@ -515,7 +515,7 @@ function LoginPageInner() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div style={{ position: 'relative', height: 52 }}>
-                <SocialButton provider="google" label="Continuar con Google"
+                <SocialButton provider="google" label="Continue with Google"
                   loading={oauthLoading === 'google'} disabled={oauthLoading !== null}
                   onClick={googleFallback ? () => handleOAuth('google') : () => {}} />
                 {/* Google's real button, invisible and stacked on top — its
@@ -532,10 +532,10 @@ function LoginPageInner() {
                   }}
                 />
               </div>
-              <SocialButton provider="apple" label="Continuar con Apple"
+              <SocialButton provider="apple" label="Continue with Apple"
                 loading={oauthLoading === 'apple'} disabled={oauthLoading !== null}
                 onClick={() => handleOAuth('apple')} />
-              <SocialButton provider="azure" label="Continuar con Microsoft"
+              <SocialButton provider="azure" label="Continue with Microsoft"
                 loading={oauthLoading === 'azure'} disabled={oauthLoading !== null}
                 onClick={() => handleOAuth('azure')} />
             </div>

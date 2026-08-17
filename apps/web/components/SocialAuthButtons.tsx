@@ -40,9 +40,9 @@ function MicrosoftIcon() {
 }
 
 const PROVIDERS: { id: OAuthProvider; label: string; icon: () => React.JSX.Element }[] = [
-  { id: 'google', label: 'Continuar con Google', icon: GoogleIcon },
-  { id: 'apple', label: 'Continuar con Apple', icon: AppleIcon },
-  { id: 'azure', label: 'Continuar con Microsoft', icon: MicrosoftIcon },
+  { id: 'google', label: 'Continue with Google', icon: GoogleIcon },
+  { id: 'apple', label: 'Continue with Apple', icon: AppleIcon },
+  { id: 'azure', label: 'Continue with Microsoft', icon: MicrosoftIcon },
 ]
 
 // Lands the OAuth round trip on /login (not here) — that page already owns
@@ -101,7 +101,7 @@ export function SocialAuthButtons({ redirectPath }: { redirectPath?: string }) {
               cursor: loading !== null ? 'not-allowed' : 'pointer', opacity: loading !== null && loading !== 'google' ? 0.6 : 1,
             }}>
             <GoogleIcon />
-            {loading === 'google' ? 'Redirigiendo…' : 'Continuar con Google'}
+            {loading === 'google' ? 'Redirecting…' : 'Continue with Google'}
           </button>
           {/* Google's real button, invisible and stacked on top — see the
               matching pattern (and the "why") in app/login/page.tsx. Skipped
@@ -130,7 +130,7 @@ export function SocialAuthButtons({ redirectPath }: { redirectPath?: string }) {
               cursor: loading !== null ? 'not-allowed' : 'pointer', opacity: loading !== null && loading !== id ? 0.6 : 1,
             }}>
             <Icon />
-            {loading === id ? 'Redirigiendo…' : label}
+            {loading === id ? 'Redirecting…' : label}
           </button>
         ))}
       </div>

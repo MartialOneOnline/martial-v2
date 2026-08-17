@@ -3,7 +3,7 @@
 import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
-import { ArrowLeft, Mail, Loader2 } from 'lucide-react'
+import { ArrowLeft, Building2, GraduationCap, Mail, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { safeConfirmRedirect } from '@/lib/authConfirmRedirect'
 import { SocialAuthButtons } from '@/components/SocialAuthButtons'
@@ -187,21 +187,29 @@ function RegisterPageInner() {
 
             {/* Account type toggle */}
             {!typeLocked && (
-              <div style={{ display: 'flex', borderRadius: 12, border: `1px solid ${BORDER}`, overflow: 'hidden', marginBottom: 10, background: '#fff' }}>
-                {(['student', 'school'] as AccountType[]).map(t => (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => { setAccountType(t); setErrors({}); setApiError('') }}
-                    style={{
-                      flex: 1, padding: '12px 8px', fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer',
-                      background: accountType === t ? BLUE : '#fff', color: accountType === t ? '#fff' : MUTED,
-                      transition: 'all .15s',
-                    }}
-                  >
-                    {t === 'student' ? '🥋 Student' : '🏛️ School / Academy'}
-                  </button>
-                ))}
+              <div style={{ display: 'flex', gap: 4, padding: 4, borderRadius: 16, background: '#F3F4F6', marginBottom: 10 }}>
+                {(['student', 'school'] as AccountType[]).map(t => {
+                  const active = accountType === t
+                  const Icon = t === 'student' ? GraduationCap : Building2
+                  return (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => { setAccountType(t); setErrors({}); setApiError('') }}
+                      style={{
+                        flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                        padding: '11px 8px', fontSize: 13.5, fontWeight: 700, border: 'none', borderRadius: 12, cursor: 'pointer',
+                        background: active ? '#fff' : 'transparent',
+                        color: active ? TEXT : MUTED,
+                        boxShadow: active ? '0 1px 3px rgba(16,24,40,0.08), 0 1px 2px rgba(16,24,40,0.04)' : 'none',
+                        transition: 'all .15s',
+                      }}
+                    >
+                      <Icon size={16} color={active ? BLUE : MUTED} />
+                      {t === 'student' ? 'Student' : 'School / Academy'}
+                    </button>
+                  )
+                })}
               </div>
             )}
             <p style={{ margin: '0 0 20px', fontSize: 12.5, color: MUTED, textAlign: 'center', lineHeight: 1.5 }}>

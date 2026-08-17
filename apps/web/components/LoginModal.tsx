@@ -50,16 +50,16 @@ function EmailIcon() {
   )
 }
 function EyeIcon({ open }: { open: boolean }) {
-  if (open) return <svg viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-  return <svg viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+  if (open) return <svg viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+  return <svg viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
 }
 
 function SSOButton({ icon, label, onClick, loading, disabled }: { icon: React.ReactNode; label: string; onClick: () => void; loading?: boolean; disabled?: boolean }) {
   return (
     <button type="button" onClick={onClick} disabled={disabled}
-      className="w-full h-[52px] flex items-center gap-4 px-5 border border-[#e8e8e8] rounded-[12px] bg-white hover:bg-[#fafafa] hover:border-[#d0d0d0] text-[14px] font-semibold text-[#1a1a1a] cursor-pointer transition-all disabled:opacity-60 disabled:cursor-not-allowed">
+      className="w-full h-[52px] flex items-center justify-center gap-2.5 px-5 border border-[#E5E7EB] rounded-[12px] bg-white hover:bg-[#F9FAFB] text-[14px] font-semibold text-[#101828] cursor-pointer transition-all disabled:opacity-60 disabled:cursor-not-allowed">
       {icon}
-      <span className="flex-1 text-center pr-5">{loading ? 'Redirecting…' : label}</span>
+      <span>{loading ? 'Redirecting…' : label}</span>
     </button>
   )
 }
@@ -349,7 +349,7 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
                 initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
 
-                <h2 className="text-[22px] font-bold text-[#061229] text-center mb-1">Welcome to Martial</h2>
+                <h2 className="text-[22px] font-bold text-[#101828] text-center mb-1">Welcome to Martial</h2>
                 <p className="text-[14px] text-[#6b7280] text-center mb-7">Your martial journey starts here</p>
 
                 <div className="flex flex-col gap-3">
@@ -375,12 +375,12 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
                     onClick={() => handleOAuth('azure')} />
                 </div>
 
-                {error && <p className="text-[#e43535] text-[13px] text-center mt-4">{error}</p>}
+                {error && <p className="text-[#DC2626] text-[13px] text-center mt-4">{error}</p>}
 
                 <div className="flex items-center gap-3 my-5">
-                  <div className="flex-1 h-px bg-[#e8e8e8]" />
-                  <span className="text-[12px] font-bold text-[#9ca3af] uppercase tracking-wider">or</span>
-                  <div className="flex-1 h-px bg-[#e8e8e8]" />
+                  <div className="flex-1 h-px bg-[#E5E7EB]" />
+                  <span className="text-[12px] font-bold text-[#6b7280] uppercase tracking-wider">or</span>
+                  <div className="flex-1 h-px bg-[#E5E7EB]" />
                 </div>
 
                 <SSOButton icon={<EmailIcon />} label="Continue with Email" onClick={() => setView('email')} />
@@ -388,7 +388,7 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
                 <p className="text-[13px] text-[#6b7280] text-center mt-6">
                   Don&apos;t have an account?{' '}
                   <span onClick={() => router.push('/register')}
-                    className="text-[#0870E2] font-semibold underline cursor-pointer hover:text-[#004e7c] transition-colors">
+                    className="text-[#0E3A7A] font-semibold underline cursor-pointer hover:opacity-80 transition-colors">
                     Register
                   </span>
                 </p>
@@ -401,32 +401,32 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
                 initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.2 }}>
 
-                <h2 className="text-[22px] font-bold text-[#061229] text-center mb-1">Welcome Back</h2>
+                <h2 className="text-[22px] font-bold text-[#101828] text-center mb-1">Welcome Back</h2>
                 <p className="text-[14px] text-[#6b7280] text-center mb-6">Login to continue your martial journey</p>
 
                 <form onSubmit={handleLogin} noValidate className="space-y-4">
                   {/* Email */}
                   <div>
-                    <label className="block text-[14px] font-semibold text-[#061229] mb-1.5">Email</label>
+                    <label className="block text-[14px] font-semibold text-[#101828] mb-1.5">Email</label>
                     <input type="email" value={email} onChange={e => setEmail(e.target.value)}
                       placeholder="Enter Email"
-                      className={`w-full h-[52px] px-4 rounded-[10px] border text-[16px] text-[#4f4f4f] outline-none focus:border-[#3d86af] transition-colors ${emailErr ? 'border-[#e43535]' : 'border-[#e0e0e0]'}`} />
-                    {emailErr && <p className="text-[#e43535] text-[13px] mt-1">{emailErr}</p>}
+                      className={`w-full h-[52px] px-4 rounded-[10px] border text-[16px] text-[#101828] outline-none focus:border-[#0870E2] transition-colors ${emailErr ? 'border-[#DC2626]' : 'border-[#E5E7EB]'}`} />
+                    {emailErr && <p className="text-[#DC2626] text-[13px] mt-1">{emailErr}</p>}
                   </div>
 
                   {/* Password */}
                   <div>
-                    <label className="block text-[14px] font-semibold text-[#061229] mb-1.5">Password</label>
+                    <label className="block text-[14px] font-semibold text-[#101828] mb-1.5">Password</label>
                     <div className="relative">
                       <input type={showPass ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
                         placeholder="Enter Password"
-                        className={`w-full h-[52px] px-4 pr-12 rounded-[10px] border text-[16px] text-[#4f4f4f] outline-none focus:border-[#3d86af] transition-colors ${passErr ? 'border-[#e43535]' : 'border-[#e0e0e0]'}`} />
+                        className={`w-full h-[52px] px-4 pr-12 rounded-[10px] border text-[16px] text-[#101828] outline-none focus:border-[#0870E2] transition-colors ${passErr ? 'border-[#DC2626]' : 'border-[#E5E7EB]'}`} />
                       <button type="button" onClick={() => setShowPass(!showPass)}
                         className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer">
                         <EyeIcon open={showPass} />
                       </button>
                     </div>
-                    {passErr && <p className="text-[#e43535] text-[13px] mt-1">{passErr}</p>}
+                    {passErr && <p className="text-[#DC2626] text-[13px] mt-1">{passErr}</p>}
                   </div>
 
                   {/* Forgot password */}
@@ -437,10 +437,10 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
                     </span>
                   </div>
 
-                  {error && <p className="text-[#e43535] text-[13px] text-center">{error}</p>}
+                  {error && <p className="text-[#DC2626] text-[13px] text-center">{error}</p>}
 
                   <button type="submit" disabled={loading}
-                    className="w-full h-[52px] bg-[#c1eafa] hover:bg-[#a8dff7] rounded-[10px] text-[16px] font-semibold text-[#061229] transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer mt-1">
+                    className="w-full h-[52px] bg-[#0870E2] hover:bg-[#065FC4] rounded-[10px] text-[16px] font-semibold text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer mt-1">
                     {loading ? 'Logging in...' : 'Login'}
                   </button>
                 </form>
@@ -448,7 +448,7 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
                 <p className="text-[13px] text-[#6b7280] text-center mt-5">
                   Don&apos;t have an account?{' '}
                   <span onClick={() => router.push('/register')}
-                    className="text-[#0870E2] font-semibold underline cursor-pointer hover:text-[#004e7c] transition-colors">
+                    className="text-[#0E3A7A] font-semibold underline cursor-pointer hover:opacity-80 transition-colors">
                     Register
                   </span>
                 </p>
@@ -463,31 +463,31 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
 
                 {resetSent ? (
                   <>
-                    <h2 className="text-[22px] font-bold text-[#061229] text-center mb-1">Check your email</h2>
+                    <h2 className="text-[22px] font-bold text-[#101828] text-center mb-1">Check your email</h2>
                     <p className="text-[14px] text-[#6b7280] text-center mb-6">
-                      We&apos;ve sent a password reset link to <span className="font-semibold text-[#061229]">{resetEmail}</span>.
+                      We&apos;ve sent a password reset link to <span className="font-semibold text-[#101828]">{resetEmail}</span>.
                     </p>
                     <button type="button" onClick={() => { setView('email'); setResetSent(false) }}
-                      className="w-full h-[52px] bg-[#c1eafa] hover:bg-[#a8dff7] rounded-[10px] text-[16px] font-semibold text-[#061229] transition-colors cursor-pointer">
+                      className="w-full h-[52px] bg-[#0870E2] hover:bg-[#065FC4] rounded-[10px] text-[16px] font-semibold text-white transition-colors cursor-pointer">
                       Back to login
                     </button>
                   </>
                 ) : (
                   <>
-                    <h2 className="text-[22px] font-bold text-[#061229] text-center mb-1">Forgot Password?</h2>
+                    <h2 className="text-[22px] font-bold text-[#101828] text-center mb-1">Forgot Password?</h2>
                     <p className="text-[14px] text-[#6b7280] text-center mb-6">Enter your email and we&apos;ll send you a reset link</p>
 
                     <form onSubmit={handleForgotPassword} noValidate className="space-y-4">
                       <div>
-                        <label className="block text-[14px] font-semibold text-[#061229] mb-1.5">Email</label>
+                        <label className="block text-[14px] font-semibold text-[#101828] mb-1.5">Email</label>
                         <input type="email" value={resetEmail} onChange={e => setResetEmail(e.target.value)}
                           placeholder="Enter Email"
-                          className={`w-full h-[52px] px-4 rounded-[10px] border text-[16px] text-[#4f4f4f] outline-none focus:border-[#3d86af] transition-colors ${resetErr ? 'border-[#e43535]' : 'border-[#e0e0e0]'}`} />
-                        {resetErr && <p className="text-[#e43535] text-[13px] mt-1">{resetErr}</p>}
+                          className={`w-full h-[52px] px-4 rounded-[10px] border text-[16px] text-[#101828] outline-none focus:border-[#0870E2] transition-colors ${resetErr ? 'border-[#DC2626]' : 'border-[#E5E7EB]'}`} />
+                        {resetErr && <p className="text-[#DC2626] text-[13px] mt-1">{resetErr}</p>}
                       </div>
 
                       <button type="submit" disabled={resetLoading}
-                        className="w-full h-[52px] bg-[#c1eafa] hover:bg-[#a8dff7] rounded-[10px] text-[16px] font-semibold text-[#061229] transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer mt-1">
+                        className="w-full h-[52px] bg-[#0870E2] hover:bg-[#065FC4] rounded-[10px] text-[16px] font-semibold text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer mt-1">
                         {resetLoading ? 'Sending...' : 'Send Reset Link'}
                       </button>
                     </form>
