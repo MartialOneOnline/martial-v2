@@ -37,6 +37,7 @@ export async function POST(req: NextRequest) {
   const language = typeof body.language === 'string' ? body.language : 'en'
   const memberIds = body.memberIds
   const conversionWindowDays = Number.isInteger(body.conversionWindowDays) ? body.conversionWindowDays : 30
+  const saveAsDraft = body.saveAsDraft === true
 
   if (!name || !type) return NextResponse.json({ error: 'name and a valid type are required' }, { status: 400 })
   if (!subject || !message) return NextResponse.json({ error: 'Subject and message are required' }, { status: 400 })
@@ -55,7 +56,7 @@ export async function POST(req: NextRequest) {
       schoolId: auth.schoolId,
       name,
       type,
-      status: 'QUEUED',
+      status: saveAsDraft ? 'DRAFT' : 'QUEUED',
       subject,
       bodyHtml: message,
       language,

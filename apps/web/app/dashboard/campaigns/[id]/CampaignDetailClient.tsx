@@ -1,13 +1,14 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Menu, ChevronLeft } from 'lucide-react'
+import { Menu, ChevronLeft, Pencil, Send, Trash2 } from 'lucide-react'
 import { useDashboard } from '../../../../components/DashboardShell'
 import NotificationBell from '../../../../components/NotificationBell'
 import DashboardLanguageSelector from '../../../../components/DashboardLanguageSelector'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import type { CampaignType, CampaignStatus, CampaignRecipientStatus, SchoolMemberStatus } from '../../../../lib/prisma-client/enums'
+import CampaignComposerModal from '../../users/CampaignComposerModal'
 
 type CampaignDetail = {
   id: string
@@ -40,13 +41,46 @@ export default function CampaignDetailClient({ campaignId }: { campaignId: strin
   const [campaign, setCampaign] = useState<CampaignDetail | null>(null)
   const [recipients, setRecipients] = useState<Recipient[]>([])
   const [loading, setLoading] = useState(true)
+  const [schoolName, setSchoolName] = useState('')
+  const [showEdit, setShowEdit] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
-  useEffect(() => {
+  const fetchDetail = useCallback(() => {
     fetch(`/api/dashboard/campaigns/${campaignId}`)
       .then(r => r.json())
       .then(d => { setCampaign(d.campaign ?? null); setRecipients(d.recipients ?? []) })
       .finally(() => setLoading(false))
   }, [campaignId])
+
+  useEffect(() => { fetchDetail() }, [fetchDetail])
+  useEffect(() => {
+    fetch('/api/dashboard/school').then(r => r.json()).then(d => {
+      if (d.school?.name) setSchoolName(d.school.name)
+    }).catch(() => {})
+  }, [])
+
+  async function handleSend() {
+    setSending(true)
+    try {
+      const qRes = await fetch(`/api/dashboard/campaigns/${campaignId}/queue`, { method: 'POST' })
+      if (!qRes.ok) return
+      for (;;) {
+        const res = await fetch(`/api/dashboard/campaigns/${campaignId}/process`, { method: 'POST' })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok || data.remaining === 0) break
+        await new Promise(r => setTimeout(r, 250))
+      }
+    } finally {
+      setSending(false)
+      fetchDetail()
+    }
+  }
+
+  async function handleDelete() {
+    await fetch(`/api/dashboard/campaigns/${campaignId}`, { method: 'DELETE' })
+    router.push('/dashboard/campaigns')
+  }
 
   const RECIPIENT_STATUS_LABELS: Record<CampaignRecipientStatus, string> = {
     PENDING: t.common.pending,
@@ -54,6 +88,9 @@ export default function CampaignDetailClient({ campaignId }: { campaignId: strin
     FAILED: t.common.failed,
     SKIPPED: t.campaigns.noEmailWarning,
   }
+
+  const isDraft = campaign?.status === 'DRAFT'
+  const canDelete = campaign?.status !== 'SENDING'
 
   return (
     <main style={{ flex: 1, minWidth: 0, width: '100%', overflow: 'auto' }}>
@@ -80,9 +117,37 @@ export default function CampaignDetailClient({ campaignId }: { campaignId: strin
 
       {campaign && (
         <div className="px-4 md:px-8 py-6 flex flex-col gap-6">
-          <div>
-            <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>{campaign.name}</h1>
-            <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>{campaign.subject}</p>
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>{campaign.name}</h1>
+              <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>{campaign.subject}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              {isDraft && (
+                <button onClick={() => setShowEdit(true)}
+                  className="flex items-center gap-2" style={{ fontSize: 13, fontWeight: 600, color: '#374151', background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, padding: '8px 14px', cursor: 'pointer' }}>
+                  <Pencil size={13} />{t.common.edit}
+                </button>
+              )}
+              {isDraft && (
+                <button onClick={handleSend} disabled={sending}
+                  className="flex items-center gap-2" style={{ fontSize: 13, fontWeight: 600, color: '#fff', background: '#0071E3', border: 'none', borderRadius: 10, padding: '8px 14px', cursor: sending ? 'default' : 'pointer', opacity: sending ? 0.7 : 1 }}>
+                  <Send size={13} />{sending ? t.campaigns.sendingLabel : t.campaigns.sendAction}
+                </button>
+              )}
+              {!confirmDelete ? (
+                <button onClick={() => setConfirmDelete(true)} disabled={!canDelete}
+                  className="flex items-center gap-2" style={{ fontSize: 13, fontWeight: 600, color: canDelete ? '#DC2626' : '#D1D5DB', background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, padding: '8px 14px', cursor: canDelete ? 'pointer' : 'not-allowed' }}>
+                  <Trash2 size={13} />{t.common.delete}
+                </button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span style={{ fontSize: 12, color: '#DC2626', fontWeight: 600 }}>¿Eliminar?</span>
+                  <button onClick={handleDelete} style={{ fontSize: 12, fontWeight: 600, background: '#DC2626', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 12px', cursor: 'pointer' }}>Sí</button>
+                  <button onClick={() => setConfirmDelete(false)} style={{ fontSize: 12, background: '#F3F4F6', color: '#374151', border: 'none', borderRadius: 8, padding: '6px 12px', cursor: 'pointer' }}>Cancelar</button>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -127,6 +192,15 @@ export default function CampaignDetailClient({ campaignId }: { campaignId: strin
             </div>
           </div>
         </div>
+      )}
+
+      {showEdit && (
+        <CampaignComposerModal
+          campaignId={campaignId}
+          schoolName={schoolName || 'Your school'}
+          onClose={() => setShowEdit(false)}
+          onSaved={fetchDetail}
+        />
       )}
     </main>
   )

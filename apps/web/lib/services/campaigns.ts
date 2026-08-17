@@ -23,7 +23,9 @@ export async function processPendingCampaignRecipients(campaignId: string, limit
     where: { id: campaignId },
     select: { id: true, status: true, subject: true, bodyHtml: true, school: { select: { name: true } } },
   })
-  if (!campaign || campaign.status === 'COMPLETED' || campaign.status === 'CANCELLED') {
+  // DRAFT must go through /queue first — never sent implicitly just because
+  // a recipient row happens to be PENDING (e.g. right after an edit).
+  if (!campaign || campaign.status === 'COMPLETED' || campaign.status === 'CANCELLED' || campaign.status === 'DRAFT') {
     return { processed: 0, sent: 0, failed: 0, remaining: 0 }
   }
 
@@ -92,4 +94,61 @@ export async function processPendingCampaignRecipients(campaignId: string, limit
   }
 
   return { processed: recipients.length, sent, failed, remaining }
+}
+
+const CHURNED_STATUSES = ['ARCHIVED', 'INACTIVE', 'LEAD', 'FROZEN'] as const
+const CONVERTED_STATUSES = new Set(['ACTIVE', 'PENDING'])
+const MAX_LOOKBACK_MS = 120 * 24 * 60 * 60 * 1000 // bounds the scan regardless of any campaign's window
+
+export type ConversionResult = { checked: number; converted: number }
+
+// A recipient "converts" if they were churned (Archived/Inactive/Lead/Frozen)
+// when the campaign was sent and their SchoolMember.status is now
+// Active/Pending, detected within that campaign's conversionWindowDays.
+// convertedAt is set once and never cleared, even if the member churns again
+// later — it records that the campaign worked at the moment it was noticed,
+// not a live "is this person still active" flag. There's no member-status
+// audit log, so this is detection time, not the exact moment the status
+// flipped — good enough for a directional "did this campaign work" signal.
+export async function computeCampaignConversions({ dryRun = false }: { dryRun?: boolean } = {}): Promise<ConversionResult> {
+  const cutoff = new Date(Date.now() - MAX_LOOKBACK_MS)
+
+  const candidates = await prisma.campaignRecipient.findMany({
+    where: {
+      status: 'SENT',
+      convertedAt: null,
+      statusAtSend: { in: [...CHURNED_STATUSES] },
+      sentAt: { gte: cutoff },
+    },
+    select: {
+      id: true, campaignId: true, sentAt: true,
+      campaign: { select: { conversionWindowDays: true } },
+      schoolMember: { select: { status: true } },
+    },
+  })
+
+  const now = Date.now()
+  const convertedByCampaign: Record<string, number> = {}
+  let converted = 0
+
+  for (const r of candidates) {
+    if (!r.sentAt) continue
+    const deadline = r.sentAt.getTime() + r.campaign.conversionWindowDays * 24 * 60 * 60 * 1000
+    if (now > deadline) continue // window elapsed — stop checking this one
+    if (!CONVERTED_STATUSES.has(r.schoolMember.status)) continue
+
+    converted++
+    convertedByCampaign[r.campaignId] = (convertedByCampaign[r.campaignId] ?? 0) + 1
+    if (!dryRun) {
+      await prisma.campaignRecipient.update({ where: { id: r.id }, data: { convertedAt: new Date() } })
+    }
+  }
+
+  if (!dryRun) {
+    for (const [campaignId, count] of Object.entries(convertedByCampaign)) {
+      await prisma.campaign.update({ where: { id: campaignId }, data: { convertedCount: { increment: count } } })
+    }
+  }
+
+  return { checked: candidates.length, converted }
 }

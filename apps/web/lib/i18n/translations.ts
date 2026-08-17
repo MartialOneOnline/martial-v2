@@ -720,6 +720,8 @@ export const translations = {
       statusDraft: 'Draft', statusQueued: 'Queued', statusSending: 'Sending',
       backToList: 'Back to campaigns', recipientsTitle: 'Recipients',
       recipientSentAt: 'Sent at', recipientConverted: 'Converted',
+      editCampaignTitle: 'Edit campaign', newCampaignTitle: 'New campaign', newCampaignBtn: 'New campaign',
+      saveDraftBtn: 'Save draft', saveChangesBtn: 'Save changes', sendAction: 'Send',
     },
 
     chooseProfile: {
@@ -1399,6 +1401,8 @@ export const translations = {
       statusDraft: 'Borrador', statusQueued: 'En cola', statusSending: 'Enviando',
       backToList: 'Volver a Campañas', recipientsTitle: 'Destinatarios',
       recipientSentAt: 'Enviado el', recipientConverted: 'Convertido',
+      editCampaignTitle: 'Editar campaña', newCampaignTitle: 'Nueva campaña', newCampaignBtn: 'Nueva campaña',
+      saveDraftBtn: 'Guardar borrador', saveChangesBtn: 'Guardar cambios', sendAction: 'Enviar',
     },
 
     chooseProfile: {
@@ -2078,6 +2082,8 @@ export const translations = {
       statusDraft: 'Rascunho', statusQueued: 'Na fila', statusSending: 'Enviando',
       backToList: 'Voltar às campanhas', recipientsTitle: 'Destinatários',
       recipientSentAt: 'Enviado em', recipientConverted: 'Convertido',
+      editCampaignTitle: 'Editar campanha', newCampaignTitle: 'Nova campanha', newCampaignBtn: 'Nova campanha',
+      saveDraftBtn: 'Salvar rascunho', saveChangesBtn: 'Salvar alterações', sendAction: 'Enviar',
     },
 
     chooseProfile: {
@@ -2757,6 +2763,8 @@ export const translations = {
       statusDraft: 'Brouillon', statusQueued: "En file d'attente", statusSending: 'Envoi en cours',
       backToList: 'Retour aux campagnes', recipientsTitle: 'Destinataires',
       recipientSentAt: 'Envoyé le', recipientConverted: 'Converti',
+      editCampaignTitle: 'Modifier la campagne', newCampaignTitle: 'Nouvelle campagne', newCampaignBtn: 'Nouvelle campagne',
+      saveDraftBtn: 'Enregistrer le brouillon', saveChangesBtn: 'Enregistrer les modifications', sendAction: 'Envoyer',
     },
 
     chooseProfile: {

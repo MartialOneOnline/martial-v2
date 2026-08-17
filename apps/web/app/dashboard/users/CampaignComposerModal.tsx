@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { X, Bell, Percent, Award, Sun, Gift, Pencil, ChevronLeft, Send, CheckCircle } from 'lucide-react'
 import { useT, useLanguage } from '../../../lib/i18n/LanguageContext'
@@ -20,22 +20,36 @@ const TYPE_ICONS: Record<CampaignType, React.ComponentType<{ size?: number }>> =
   CUSTOM: Pencil,
 }
 
+const STATUS_DISPLAY: Record<string, string> = { ACTIVE: 'Active', INACTIVE: 'Inactive', PENDING: 'Pending', ARCHIVED: 'Archived', LEAD: 'Lead' }
+const PICKER_FILTERS = ['All', 'Active', 'Pending', 'Lead', 'Inactive', 'Archived'] as const
+type PickerFilter = typeof PICKER_FILTERS[number]
+
 const inputStyle: React.CSSProperties = {
   width: '100%', border: '1px solid #E5E7EB', borderRadius: 10,
   padding: '9px 12px', fontSize: 13, color: '#111827', background: '#fff', outline: 'none', boxSizing: 'border-box',
 }
 const labelStyle: React.CSSProperties = { display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 5 }
 
-export default function CampaignComposerModal({ students, schoolName, onClose, onSent }: {
-  students: ComposerStudent[]
+// Three ways to open this modal:
+//  - preselectedStudents set (from the Usuarios bulk bar): audience is fixed, read-only.
+//  - neither set (from the Campañas page "Nueva campaña"): audience picker, fetches
+//    every member and lets staff filter/search/select.
+//  - campaignId set (editing a DRAFT from the Campañas list/detail): same picker,
+//    prefilled from the campaign's current recipients + content.
+export default function CampaignComposerModal({ preselectedStudents, campaignId, schoolName, onClose, onSaved }: {
+  preselectedStudents?: ComposerStudent[]
+  campaignId?: string
   schoolName: string
   onClose: () => void
-  onSent: () => void
+  onSaved: () => void
 }) {
   const t = useT()
   const { locale } = useLanguage()
   const router = useRouter()
   const ref = useRef<HTMLDivElement>(null)
+
+  const isEditing = !!campaignId
+  const isPicker = !preselectedStudents
 
   const [step, setStep] = useState<Step>('audience')
   const [type, setType] = useState<CampaignType | null>(null)
@@ -43,11 +57,51 @@ export default function CampaignComposerModal({ students, schoolName, onClose, o
   const [subject, setSubject] = useState('')
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
-  const [progress, setProgress] = useState({ sent: 0, failed: 0, total: students.length })
+  const [progress, setProgress] = useState({ sent: 0, failed: 0, total: 0 })
   const [summary, setSummary] = useState<{ sent: number; failed: number; skipped: number; campaignId: string } | null>(null)
 
+  const [allMembers, setAllMembers] = useState<ComposerStudent[]>([])
+  const [loadingMembers, setLoadingMembers] = useState(isPicker)
+  const [loadingCampaign, setLoadingCampaign] = useState(isEditing)
+  const [pickerSelectedIds, setPickerSelectedIds] = useState<Set<string>>(new Set())
+  const [pickerFilter, setPickerFilter] = useState<PickerFilter>('All')
+  const [pickerSearch, setPickerSearch] = useState('')
+
+  useEffect(() => {
+    if (!isPicker) return
+    fetch('/api/dashboard/members').then(r => r.json()).then((list: Array<{ id: string; name: string; email: string; belt: string; status: string }>) => {
+      setAllMembers(list.map(m => ({ id: m.id, name: m.name, email: m.email, belt: m.belt, status: m.status })))
+    }).finally(() => setLoadingMembers(false))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    if (!campaignId) return
+    fetch(`/api/dashboard/campaigns/${campaignId}`).then(r => r.json()).then(d => {
+      const c = d.campaign
+      if (c) { setType(c.type); setName(c.name); setSubject(c.subject); setMessage(c.bodyHtml) }
+      const ids: string[] = d.recipientMemberIds ?? []
+      setPickerSelectedIds(new Set(ids))
+    }).finally(() => setLoadingCampaign(false))
+  }, [campaignId])
+
+  const students = preselectedStudents ?? allMembers.filter(m => pickerSelectedIds.has(m.id))
   const withEmail = students.filter(s => !!s.email)
   const skippedCount = students.length - withEmail.length
+
+  const visibleMembers = useMemo(() => {
+    const q = pickerSearch.toLowerCase()
+    return allMembers.filter(m => {
+      const matchFilter = pickerFilter === 'All' || (STATUS_DISPLAY[m.status] ?? m.status) === pickerFilter
+      const matchSearch = !q || m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q)
+      return matchFilter && matchSearch
+    })
+  }, [allMembers, pickerFilter, pickerSearch])
+
+  const FILTER_LABELS: Record<PickerFilter, string> = {
+    All: t.common.all, Active: t.common.active, Pending: t.common.pending,
+    Lead: t.common.lead, Inactive: t.common.inactive, Archived: t.common.archived,
+  }
 
   const TYPE_LABELS: Record<CampaignType, string> = {
     REMINDER: t.campaigns.typeReminder,
@@ -58,74 +112,121 @@ export default function CampaignComposerModal({ students, schoolName, onClose, o
     CUSTOM: t.campaigns.typeCustom,
   }
 
+  function togglePicker(id: string) {
+    setPickerSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
+  function selectAllVisible() {
+    setPickerSelectedIds(prev => new Set([...prev, ...visibleMembers.map(m => m.id)]))
+  }
+
   function selectType(newType: CampaignType) {
     setType(newType)
-    const presetLang = (['en', 'es', 'pt', 'fr'] as const).includes(locale) ? locale : 'en'
-    const preset = CAMPAIGN_PRESETS[newType][presetLang]
-    setSubject(preset.subject)
-    setMessage(preset.body)
-    setName(`${TYPE_LABELS[newType]} — ${new Date().toLocaleDateString()}`)
+    if (!isEditing) {
+      const presetLang = (['en', 'es', 'pt', 'fr'] as const).includes(locale) ? locale : 'en'
+      const preset = CAMPAIGN_PRESETS[newType][presetLang]
+      setSubject(preset.subject)
+      setMessage(preset.body)
+      setName(`${TYPE_LABELS[newType]} — ${new Date().toLocaleDateString()}`)
+    }
   }
 
   function insertToken(token: string) {
     setMessage(m => `${m}${m.endsWith(' ') || m === '' ? '' : ' '}{{${token}}}`)
   }
 
-  async function handleClose() {
+  function handleClose() {
     if (step === 'sending') return
     onClose()
   }
 
-  async function handleSend() {
-    if (!type || !name.trim() || !subject.trim() || !message.trim()) return
+  async function submit(action: 'draft' | 'send') {
+    if (!type || !name.trim() || !subject.trim() || !message.trim() || students.length === 0) return
     setError('')
-    setStep('sending')
+    if (action === 'send') setStep('sending')
     try {
-      const createRes = await fetch('/api/dashboard/campaigns', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: name.trim(), type, subject: subject.trim(), message: message.trim(),
-          language: locale, memberIds: students.map(s => s.id),
-        }),
-      })
-      const created = await createRes.json().catch(() => ({}))
-      if (!createRes.ok) throw new Error(created.error || 'Failed to create campaign')
+      const payload = {
+        name: name.trim(), type, subject: subject.trim(), message: message.trim(),
+        language: locale, memberIds: students.map(s => s.id),
+      }
 
-      const campaignId: string = created.campaignId
-      const total: number = created.totalRecipients
+      let finalCampaignId: string
+      let totalRecipients: number
+      let skipped: number
+
+      if (isEditing && campaignId) {
+        const res = await fetch(`/api/dashboard/campaigns/${campaignId}`, {
+          method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok) throw new Error(data.error || 'Failed to save')
+        finalCampaignId = campaignId
+        totalRecipients = data.totalRecipients
+        skipped = data.skipped ?? 0
+        if (action === 'send') {
+          const qRes = await fetch(`/api/dashboard/campaigns/${campaignId}/queue`, { method: 'POST' })
+          const qData = await qRes.json().catch(() => ({}))
+          if (!qRes.ok) throw new Error(qData.error || 'Failed to queue')
+        }
+      } else {
+        const res = await fetch('/api/dashboard/campaigns', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...payload, saveAsDraft: action === 'draft' }),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok) throw new Error(data.error || 'Failed to create campaign')
+        finalCampaignId = data.campaignId
+        totalRecipients = data.totalRecipients
+        skipped = data.skipped ?? 0
+      }
+
+      if (action === 'draft') {
+        onSaved()
+        onClose()
+        return
+      }
+
+      const totalToSend = totalRecipients - skipped
       let totalSent = 0
       let totalFailed = 0
-      setProgress({ sent: 0, failed: 0, total })
+      setProgress({ sent: 0, failed: 0, total: totalToSend })
 
       // Poll /process until every PENDING recipient has been handled — this is
       // the interactive send path, independent of the daily safety-net cron.
       for (;;) {
-        const res = await fetch(`/api/dashboard/campaigns/${campaignId}/process`, { method: 'POST' })
+        const res = await fetch(`/api/dashboard/campaigns/${finalCampaignId}/process`, { method: 'POST' })
         const data = await res.json().catch(() => ({}))
         if (!res.ok) throw new Error(data.error || 'Failed to send')
         totalSent += data.sent
         totalFailed += data.failed
-        setProgress({ sent: totalSent, failed: totalFailed, total })
+        setProgress({ sent: totalSent, failed: totalFailed, total: totalToSend })
         if (data.remaining === 0) break
         await new Promise(r => setTimeout(r, 250))
       }
 
-      setSummary({ sent: totalSent, failed: totalFailed, skipped: created.skipped ?? skippedCount, campaignId })
+      setSummary({ sent: totalSent, failed: totalFailed, skipped, campaignId: finalCampaignId })
       setStep('summary')
-      onSent()
+      onSaved()
     } catch (e: unknown) {
       setError(e instanceof Error && e.message ? e.message : 'Error')
       setStep('review')
     }
   }
 
+  const audienceReady = isPicker ? !loadingMembers && !loadingCampaign : true
+  const nextFromAudienceEnabled = isPicker ? (audienceReady && withEmail.length > 0) : withEmail.length > 0
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
       <div ref={ref} className="w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden" style={{ background: '#fff', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
         <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid #E5E7EB', flexShrink: 0 }}>
           <div>
-            <p style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>{t.campaigns.sendCampaignBtn}</p>
+            <p style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>
+              {isEditing ? t.campaigns.editCampaignTitle : t.campaigns.newCampaignTitle}
+            </p>
             <p style={{ fontSize: 12, color: '#9CA3AF' }}>
               {students.length} {students.length === 1 ? t.campaigns.studentWord : t.campaigns.studentsWord}
               {skippedCount > 0 ? ` · ${skippedCount} ${t.campaigns.noEmailWarning}` : ''}
@@ -139,18 +240,59 @@ export default function CampaignComposerModal({ students, schoolName, onClose, o
         <div className="px-5 py-4" style={{ overflowY: 'auto', flex: 1 }}>
           {step === 'audience' && (
             <div>
-              <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 10 }}>{t.campaigns.audienceHeading}</p>
-              <div style={{ border: '1px solid #E5E7EB', borderRadius: 10, maxHeight: 220, overflowY: 'auto' }}>
-                {students.slice(0, 30).map(s => (
-                  <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', borderBottom: '1px solid #F3F4F6', fontSize: 13 }}>
-                    <span style={{ color: '#111827' }}>{s.name}</span>
-                    <span style={{ color: s.email ? '#9CA3AF' : '#DC2626' }}>{s.email || t.campaigns.noEmailWarning}</span>
+              {!isPicker ? (
+                <>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 10 }}>{t.campaigns.audienceHeading}</p>
+                  <div style={{ border: '1px solid #E5E7EB', borderRadius: 10, maxHeight: 220, overflowY: 'auto' }}>
+                    {students.slice(0, 30).map(s => (
+                      <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', borderBottom: '1px solid #F3F4F6', fontSize: 13 }}>
+                        <span style={{ color: '#111827' }}>{s.name}</span>
+                        <span style={{ color: s.email ? '#9CA3AF' : '#DC2626' }}>{s.email || t.campaigns.noEmailWarning}</span>
+                      </div>
+                    ))}
+                    {students.length > 30 && (
+                      <div style={{ padding: '8px 12px', fontSize: 12, color: '#9CA3AF' }}>+{students.length - 30}</div>
+                    )}
                   </div>
-                ))}
-                {students.length > 30 && (
-                  <div style={{ padding: '8px 12px', fontSize: 12, color: '#9CA3AF' }}>+{students.length - 30}</div>
-                )}
-              </div>
+                </>
+              ) : !audienceReady ? (
+                <p style={{ fontSize: 13, color: '#9CA3AF' }}>{t.common.loading}…</p>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2 flex-wrap" style={{ marginBottom: 10 }}>
+                    {PICKER_FILTERS.map(f => (
+                      <button key={f} onClick={() => setPickerFilter(f)}
+                        style={{
+                          fontSize: 12, fontWeight: 500, border: 'none', borderRadius: 8, padding: '5px 10px', cursor: 'pointer',
+                          color: pickerFilter === f ? '#111827' : '#6B7280',
+                          background: pickerFilter === f ? '#F3F4F6' : 'transparent',
+                        }}>
+                        {FILTER_LABELS[f]}
+                      </button>
+                    ))}
+                  </div>
+                  <input value={pickerSearch} onChange={e => setPickerSearch(e.target.value)} placeholder={t.common.search}
+                    style={{ ...inputStyle, marginBottom: 8 }} />
+                  <div className="flex items-center justify-between" style={{ marginBottom: 6 }}>
+                    <span style={{ fontSize: 12, color: '#6B7280' }}>{pickerSelectedIds.size} {t.campaigns.selectedLabel}</span>
+                    <button onClick={selectAllVisible} style={{ fontSize: 12, color: '#0071E3', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}>
+                      {t.campaigns.selectAllPrefix} {visibleMembers.length}
+                    </button>
+                  </div>
+                  <div style={{ border: '1px solid #E5E7EB', borderRadius: 10, maxHeight: 220, overflowY: 'auto' }}>
+                    {visibleMembers.map(m => (
+                      <label key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderBottom: '1px solid #F3F4F6', fontSize: 13, cursor: 'pointer' }}>
+                        <input type="checkbox" checked={pickerSelectedIds.has(m.id)} onChange={() => togglePicker(m.id)} style={{ cursor: 'pointer' }} />
+                        <span style={{ flex: 1, color: '#111827' }}>{m.name}</span>
+                        <span style={{ color: m.email ? '#9CA3AF' : '#DC2626', fontSize: 12 }}>{m.email || t.campaigns.noEmailWarning}</span>
+                      </label>
+                    ))}
+                    {visibleMembers.length === 0 && (
+                      <p style={{ padding: 12, fontSize: 12, color: '#9CA3AF' }}>{t.common.noResults}</p>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           )}
 
@@ -256,8 +398,8 @@ export default function CampaignComposerModal({ students, schoolName, onClose, o
 
         <div className="flex gap-2 px-5 py-4" style={{ borderTop: '1px solid #F3F4F6', flexShrink: 0 }}>
           {step === 'audience' && (
-            <button onClick={() => setStep('content')} disabled={withEmail.length === 0}
-              className="flex items-center justify-center gap-2" style={{ flex: 1, padding: '9px 0', borderRadius: 10, fontSize: 13, fontWeight: 600, border: 'none', background: withEmail.length ? '#0071E3' : '#93C5FD', color: '#fff', cursor: withEmail.length ? 'pointer' : 'not-allowed' }}>
+            <button onClick={() => setStep('content')} disabled={!nextFromAudienceEnabled}
+              className="flex items-center justify-center gap-2" style={{ flex: 1, padding: '9px 0', borderRadius: 10, fontSize: 13, fontWeight: 600, border: 'none', background: nextFromAudienceEnabled ? '#0071E3' : '#93C5FD', color: '#fff', cursor: nextFromAudienceEnabled ? 'pointer' : 'not-allowed' }}>
               {t.campaigns.nextBtn}
             </button>
           )}
@@ -277,7 +419,10 @@ export default function CampaignComposerModal({ students, schoolName, onClose, o
               <button onClick={() => setStep('content')} className="flex items-center gap-1" style={{ padding: '9px 14px', borderRadius: 10, fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151', cursor: 'pointer' }}>
                 <ChevronLeft size={14} />{t.campaigns.backBtn}
               </button>
-              <button onClick={handleSend} className="flex items-center justify-center gap-2" style={{ flex: 1, padding: '9px 0', borderRadius: 10, fontSize: 13, fontWeight: 600, border: 'none', background: '#0071E3', color: '#fff', cursor: 'pointer' }}>
+              <button onClick={() => submit('draft')} style={{ padding: '9px 14px', borderRadius: 10, fontSize: 13, fontWeight: 600, border: '1px solid #E5E7EB', background: '#fff', color: '#374151', cursor: 'pointer' }}>
+                {isEditing ? t.campaigns.saveChangesBtn : t.campaigns.saveDraftBtn}
+              </button>
+              <button onClick={() => submit('send')} className="flex items-center justify-center gap-2" style={{ flex: 1, padding: '9px 0', borderRadius: 10, fontSize: 13, fontWeight: 600, border: 'none', background: '#0071E3', color: '#fff', cursor: 'pointer' }}>
                 <Send size={13} />{t.campaigns.sendCampaignBtn}
               </button>
             </>

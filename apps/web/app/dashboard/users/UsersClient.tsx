@@ -1824,10 +1824,10 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
       )}
       {showComposer && (
         <CampaignComposerModal
-          students={selectedStudents.map(s => ({ id: s.id, name: s.name, email: s.email, belt: s.belt, status: s.status }))}
+          preselectedStudents={selectedStudents.map(s => ({ id: s.id, name: s.name, email: s.email, belt: s.belt, status: s.status }))}
           schoolName={schoolName || 'Your school'}
           onClose={() => setShowComposer(false)}
-          onSent={() => { clearSelection(); showToast(t.campaigns.summaryHeading, 'success') }}
+          onSaved={() => { clearSelection(); showToast(t.campaigns.summaryHeading, 'success') }}
         />
       )}
 
