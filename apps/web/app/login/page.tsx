@@ -48,6 +48,14 @@ function MicrosoftIcon() {
     </svg>
   )
 }
+function EmailIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width={20} height={20} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+      <polyline points="22,6 12,13 2,6"/>
+    </svg>
+  )
+}
 
 type OAuthProvider = 'google' | 'apple' | 'azure'
 
@@ -88,7 +96,7 @@ function LoginPageInner() {
   const justRegistered = searchParams.get('registered') === '1'
   const registeredType = searchParams.get('type')
 
-  const [view, setView] = useState<'email' | 'password' | 'forgot'>('email')
+  const [view, setView] = useState<'sso' | 'email' | 'password' | 'forgot'>('sso')
   const [email, setEmail] = useState(searchParams.get('email') ?? '')
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
@@ -484,8 +492,13 @@ function LoginPageInner() {
               </button>
             </form>
           </div>
-        ) : (
+        ) : view === 'email' ? (
           <div style={{ background: '#fff', borderRadius: 16, border: `1px solid ${BORDER}`, boxShadow: '0 4px 24px rgba(0,0,0,0.06)', padding: 28 }}>
+            <button type="button" onClick={() => { setView('sso'); setEmailErr(''); setError('') }}
+              style={{ display: 'block', marginBottom: 16, padding: '4px 0', fontSize: 13, fontWeight: 600, background: 'none', border: 'none', color: MUTED, cursor: 'pointer' }}>
+              ← Back
+            </button>
+
             <form onSubmit={handleContinueWithEmail} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>Email</label>
@@ -503,16 +516,12 @@ function LoginPageInner() {
               <button
                 type="submit"
                 style={{ width: '100%', padding: '13px', fontSize: 15, fontWeight: 700, background: BLUE, color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer' }}>
-                Continue with email
+                Continue
               </button>
             </form>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' }}>
-              <div style={{ flex: 1, height: 1, background: BORDER }} />
-              <span style={{ fontSize: 12, fontWeight: 600, color: MUTED }}>OR</span>
-              <div style={{ flex: 1, height: 1, background: BORDER }} />
-            </div>
-
+          </div>
+        ) : (
+          <div style={{ background: '#fff', borderRadius: 16, border: `1px solid ${BORDER}`, boxShadow: '0 4px 24px rgba(0,0,0,0.06)', padding: 28 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div style={{ position: 'relative', height: 52 }}>
                 <SocialButton provider="google" label="Continue with Google"
@@ -541,6 +550,24 @@ function LoginPageInner() {
             </div>
 
             {error && <p style={{ margin: '16px 0 0', fontSize: 13, color: '#DC2626', background: '#FEF2F2', padding: '8px 12px', borderRadius: 8 }}>{error}</p>}
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' }}>
+              <div style={{ flex: 1, height: 1, background: BORDER }} />
+              <span style={{ fontSize: 12, fontWeight: 600, color: MUTED }}>OR</span>
+              <div style={{ flex: 1, height: 1, background: BORDER }} />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => { setView('email'); setError('') }}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                height: 52, border: `1px solid ${BORDER}`, borderRadius: 12, background: '#fff',
+                fontSize: 14, fontWeight: 600, color: TEXT, cursor: 'pointer',
+              }}>
+              <EmailIcon />
+              Continue with Email
+            </button>
           </div>
         )}
 
