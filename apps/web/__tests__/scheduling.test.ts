@@ -158,4 +158,31 @@ describe('scheduledAtForDate()', () => {
     const viaNextOcc = nextOccurrence(new Date('2026-07-12T00:00:00Z'), 1, '18:00')
     expect(viaDate.toISOString()).toBe(viaNextOcc.toISOString())
   })
+
+  it('without a time, collapses onto the first same-day slot when a class runs more than once that day-of-week', () => {
+    // e.g. NOGI: Tuesday 10:00 AND Tuesday 20:00 on the same Class row.
+    const schedule: ScheduleSlot[] = [
+      { dayOfWeek: 2, startTime: '10:00', endTime: '11:30' },
+      { dayOfWeek: 2, startTime: '20:00', endTime: '21:30' },
+    ]
+    const result = scheduledAtForDate('2026-07-14', schedule) // a Tuesday
+    expect(result.toISOString()).toBe('2026-07-14T10:00:00.000Z')
+  })
+
+  it('with a time, picks the matching same-day slot instead of always the first', () => {
+    const schedule: ScheduleSlot[] = [
+      { dayOfWeek: 2, startTime: '10:00', endTime: '11:30' },
+      { dayOfWeek: 2, startTime: '20:00', endTime: '21:30' },
+    ]
+    const morning = scheduledAtForDate('2026-07-14', schedule, '10:00')
+    const evening = scheduledAtForDate('2026-07-14', schedule, '20:00')
+    expect(morning.toISOString()).toBe('2026-07-14T10:00:00.000Z')
+    expect(evening.toISOString()).toBe('2026-07-14T20:00:00.000Z')
+  })
+
+  it('falls back to noon UTC when the given time matches no slot on that day-of-week', () => {
+    const schedule: ScheduleSlot[] = [{ dayOfWeek: 2, startTime: '10:00', endTime: '11:30' }]
+    const result = scheduledAtForDate('2026-07-14', schedule, '20:00')
+    expect(result.toISOString()).toBe('2026-07-14T12:00:00.000Z')
+  })
 })

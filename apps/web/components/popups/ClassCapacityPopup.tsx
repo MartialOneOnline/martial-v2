@@ -131,7 +131,7 @@ export default function ClassCapacityPopup({ cls, date, onClose }: Props) {
       const res = await fetch(`/api/dashboard/classes/${cls.id}/bookings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: member.userId, date }),
+        body: JSON.stringify({ userId: member.userId, date, time: cls.time.split('–')[0] }),
       })
       const data = await res.json()
       if (!res.ok) {

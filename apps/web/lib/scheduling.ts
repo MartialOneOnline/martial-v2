@@ -77,15 +77,24 @@ export function nextScheduledAt(schedule: ScheduleSlot[], from: Date = new Date(
  * exact same instant a self-booking would use for that class+day, so
  * capacity counts, advisory locks and the partial unique index all see the
  * same rows regardless of which flow created them.
+ *
+ * Some classes run more than once on the same day-of-week (e.g. NOGI at
+ * 10:00 and again at 20:00 on Tuesdays) — all sharing one Class row with
+ * several schedule slots. Pass `time` (the specific slot's "HH:MM" start,
+ * as shown in the UI) to disambiguate which occurrence is meant; without
+ * it, the first slot matching that day-of-week wins, which silently
+ * collapses every same-day occurrence onto one instant.
  */
-export function scheduledAtForDate(dateStr: string, schedule: ScheduleSlot[] | null): Date {
+export function scheduledAtForDate(dateStr: string, schedule: ScheduleSlot[] | null, time?: string): Date {
   const [y, m, d] = dateStr.split('-').map(Number)
   const year  = y ?? 1970
   const month = (m ?? 1) - 1
   const day   = d ?? 1
   const dow = new Date(Date.UTC(year, month, day)).getUTCDay()
 
-  const slot = schedule?.find(s => s.dayOfWeek === dow)
+  const slot = time
+    ? schedule?.find(s => s.dayOfWeek === dow && s.startTime === time)
+    : schedule?.find(s => s.dayOfWeek === dow)
   if (slot) {
     const [hh, mm] = slot.startTime.split(':').map(Number)
     return new Date(Date.UTC(year, month, day, hh ?? 0, mm ?? 0, 0, 0))

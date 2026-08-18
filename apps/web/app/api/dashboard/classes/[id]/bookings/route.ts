@@ -22,7 +22,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const { id: classId } = await params
   const body = await req.json().catch(() => ({}))
-  const { userId, date } = body as { userId?: string; date?: string }
+  const { userId, date, time } = body as { userId?: string; date?: string; time?: string }
   if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 })
 
   // Verify class belongs to school
@@ -41,10 +41,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   // same occurrence" land on different scheduledAt values, and the capacity
   // count/advisory lock/unique index below would silently only ever see
   // rows from this endpoint, never self-bookings on the real slot time.
+  // `time` disambiguates when a class runs more than once on the same
+  // day-of-week (e.g. NOGI at 10:00 and 20:00 on Tuesdays, one Class row) —
+  // without it the first same-day slot always wins.
   const dateStr = date ?? new Date().toISOString().slice(0, 10)
-  const scheduledAt = scheduledAtForDate(dateStr, cls.schedule as ScheduleSlot[] | null)
-  const dayStart = new Date(Date.UTC(scheduledAt.getUTCFullYear(), scheduledAt.getUTCMonth(), scheduledAt.getUTCDate()))
-  const dayEnd   = new Date(dayStart.getTime() + 86_400_000)
+  const scheduledAt = scheduledAtForDate(dateStr, cls.schedule as ScheduleSlot[] | null, time)
+  // ±1min tolerance, matching isValidScheduledAt/GET's occurrence window —
+  // scopes the duplicate check to this specific occurrence rather than the
+  // whole day, so another same-day slot of the same class isn't mistaken
+  // for a duplicate of this one.
+  const occurrenceStart = new Date(scheduledAt.getTime() - 60_000)
+  const occurrenceEnd   = new Date(scheduledAt.getTime() + 60_000)
 
   const cancelled = await prisma.classCancellation.findUnique({
     where: { classId_date: { classId, date: new Date(`${dateStr}T00:00:00.000Z`) } },
@@ -65,7 +72,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       where: {
         classId,
         userId,
-        scheduledAt: { gte: dayStart, lt: dayEnd },
+        scheduledAt: { gte: occurrenceStart, lt: occurrenceEnd },
         status: { notIn: ['CANCELLED'] },
       },
     })
