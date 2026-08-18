@@ -371,8 +371,15 @@ function LoginPageInner() {
         <style>{`
           .login-sso-wrap { min-height: 100vh; position: relative; background: #F9FAFB; }
           .login-sso-photo {
-            position: absolute; top: 0; left: 0; right: 0; height: min(34vh, 300px);
-            background-image: linear-gradient(180deg, rgba(8,10,14,0.5) 0%, rgba(8,10,14,0.08) 38%, rgba(8,10,14,0) 65%), url(/explore-hero.jpg);
+            /* Full-bleed behind everything (not a fixed height fading to the
+               page background) — no seam to blend away in the first place,
+               since the card's rounded corners always sit directly on the
+               photo itself, never on a color transition. The gradient here
+               is only a top-down contrast overlay for mood/legibility, fully
+               transparent by 320px so the rest of the photo shows at full
+               brightness. */
+            position: absolute; inset: 0;
+            background-image: linear-gradient(180deg, rgba(8,10,14,0.55) 0px, rgba(8,10,14,0.12) 200px, rgba(8,10,14,0) 320px), url(/explore-hero.jpg);
             background-size: cover; background-position: 50% 30%;
           }
           .login-sso-inner { position: relative; min-height: 100vh; display: flex; flex-direction: column; justify-content: flex-end; }
