@@ -43,6 +43,29 @@ export async function GET(req: NextRequest) {
   // ── Member list ──────────────────────────────────────────────────────────────
   const belt = searchParams.get('belt') ?? ''
 
+  // Many members still have a null joinedAt (no real join date recovered
+  // yet — see backfill-joined-at-from-v1.mjs / -from-activity.mjs) and fall
+  // back to createdAt for display, same as the per-member "Joined" column
+  // below. Date-range filters need the same fallback — `joinedAt: { gte }`
+  // alone would just silently drop every still-null row from the filter
+  // entirely — so this expresses "joinedAt if set, else createdAt, within
+  // range" as an OR (Prisma has no coalesce() in a where clause).
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const dateRangeFilter = (gte: Date, lte?: Date): any => ({
+    OR: [
+      { joinedAt: lte ? { gte, lte } : { gte } },
+      { joinedAt: null, createdAt: lte ? { gte, lte } : { gte } },
+    ],
+  })
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const andConditions: any[] = []
+  if (period === 'custom') andConditions.push(dateRangeFilter(from, to))
+  if (status === 'NEW') {
+    andConditions.push({ status: 'ACTIVE' })
+    andConditions.push(dateRangeFilter(newThreshold))
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const where: any = {
     schoolId: auth.schoolId,
@@ -54,10 +77,9 @@ export async function GET(req: NextRequest) {
       ]},
     } : {}),
     ...(belt ? { belt } : {}),
-    ...(period === 'custom' ? { joinedAt: { gte: from, lte: to } } : {}),
     ...(status === 'ACTIVE'   ? { status: 'ACTIVE' } : {}),
     ...(status === 'INACTIVE' ? { status: { in: ['INACTIVE', 'FROZEN', 'LEAD'] } } : {}),
-    ...(status === 'NEW'      ? { status: 'ACTIVE', joinedAt: { gte: newThreshold } } : {}),
+    ...(andConditions.length ? { AND: andConditions } : {}),
   }
 
   const [members, total] = await Promise.all([
@@ -113,22 +135,30 @@ export async function GET(req: NextRequest) {
     })
     .map(([name, value]) => ({ name, value }))
 
-  // ── Growth chart ─────────────────────────────────────────────────────────────
-  const growthData = await Promise.all(
-    points.map(async pt => {
-      const count = await prisma.schoolMember.count({
-        where: { schoolId: auth.schoolId, role: 'STUDENT', joinedAt: { lte: pt.to } },
-      })
-      return { date: pt.label, members: count }
-    })
-  )
+  // ── Growth chart + "new in period" ───────────────────────────────────────────
+  // Computed in memory from a single fetch (rather than one `joinedAt: {
+  // lte }` count per chart point) so the same joinedAt-else-createdAt
+  // fallback applies here too — a plain DB-side `lte` filter would never
+  // match a null joinedAt, so members with no recovered join date would
+  // never appear at any point on the chart and the final point would never
+  // reach the true student count.
+  const dateRows = await prisma.schoolMember.findMany({
+    where: { schoolId: auth.schoolId, role: 'STUDENT' },
+    select: { status: true, joinedAt: true, createdAt: true },
+  })
+  const effectiveJoinedAt = (r: { joinedAt: Date | null; createdAt: Date }) => r.joinedAt ?? r.createdAt
+
+  const growthData = points.map(pt => ({
+    date: pt.label,
+    members: dateRows.filter(r => effectiveJoinedAt(r) <= pt.to).length,
+  }))
 
   // ── Stats ─────────────────────────────────────────────────────────────────────
-  const [totalActive, newInPeriod, totalInactive] = await Promise.all([
+  const [totalActive, totalInactive] = await Promise.all([
     prisma.schoolMember.count({ where: { schoolId: auth.schoolId, role: 'STUDENT', status: 'ACTIVE' } }),
-    prisma.schoolMember.count({ where: { schoolId: auth.schoolId, role: 'STUDENT', status: 'ACTIVE', joinedAt: { gte: from, lte: to } } }),
     prisma.schoolMember.count({ where: { schoolId: auth.schoolId, role: 'STUDENT', status: { in: ['INACTIVE', 'FROZEN'] } } }),
   ])
+  const newInPeriod = dateRows.filter(r => r.status === 'ACTIVE' && effectiveJoinedAt(r) >= from && effectiveJoinedAt(r) <= to).length
   const totalAll = totalActive + totalInactive
   const retentionRate = totalAll > 0 ? Math.round((totalActive / totalAll) * 100) : 0
 
