@@ -20,6 +20,17 @@ export async function GET(req: NextRequest) {
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
   const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
   const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0)
+  // "This month" totals below are necessarily month-to-date (today isn't
+  // over yet), so comparing them against all of last month always makes the
+  // current month look like a steep decline until the last day or two — a
+  // 5-days-in vs 31-days total comparison, not an actual trend. Cap last
+  // month's comparison window to the same number of days elapsed so far,
+  // clamped to that month's own length (e.g. day 30/31 comparing against Feb).
+  const comparableEndOfLastMonth = new Date(
+    now.getFullYear(), now.getMonth() - 1,
+    Math.min(now.getDate(), endOfLastMonth.getDate()),
+    23, 59, 59, 999
+  )
   const thirtyDaysAgo = new Date(now); thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
   const todayDow = now.getDay() // 0=Sun
 
@@ -62,11 +73,12 @@ export async function GET(req: NextRequest) {
     prisma.booking.count({
       where: { class: { schoolId } },
     }),
-    // Bookings last month (for trend)
+    // Bookings in the same day-count window last month (for trend) — see
+    // comparableEndOfLastMonth above for why this isn't the full month.
     prisma.booking.count({
       where: {
         class: { schoolId },
-        createdAt: { gte: startOfLastMonth, lte: endOfLastMonth },
+        createdAt: { gte: startOfLastMonth, lte: comparableEndOfLastMonth },
       },
     }),
     // Bookings this month, same createdAt basis as bookingsLastMonth above
@@ -100,12 +112,13 @@ export async function GET(req: NextRequest) {
       },
       _sum: { amount: true },
     }),
-    // Revenue last month
+    // Revenue in the same day-count window last month (for trend) — same
+    // partial-vs-full-month fix as bookingsLastMonth above.
     prisma.transaction.aggregate({
       where: {
         schoolId,
         type: 'INCOME',
-        date: { gte: startOfLastMonth, lte: endOfLastMonth },
+        date: { gte: startOfLastMonth, lte: comparableEndOfLastMonth },
       },
       _sum: { amount: true },
     }),
