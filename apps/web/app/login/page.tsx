@@ -372,8 +372,8 @@ function LoginPageInner() {
           .login-sso-wrap { min-height: 100vh; position: relative; background: #F9FAFB; }
           .login-sso-photo {
             position: absolute; top: 0; left: 0; right: 0; height: min(34vh, 300px);
-            background-image: linear-gradient(180deg, rgba(8,10,14,0.55) 0%, rgba(8,10,14,0.08) 32%, rgba(249,250,251,0) 58%, #F9FAFB 100%), url(/hero-2.jpg);
-            background-size: cover; background-position: 50% 22%;
+            background-image: linear-gradient(180deg, rgba(8,10,14,0.5) 0%, rgba(8,10,14,0.08) 38%, rgba(8,10,14,0) 65%), url(/explore-hero.jpg);
+            background-size: cover; background-position: 50% 30%;
           }
           .login-sso-inner { position: relative; min-height: 100vh; display: flex; flex-direction: column; justify-content: flex-end; }
           .login-sso-card {
