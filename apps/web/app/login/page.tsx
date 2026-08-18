@@ -356,6 +356,96 @@ function LoginPageInner() {
     )
   }
 
+  // Landing step only — the photo backdrop + bottom sheet gives the entry
+  // screen some visual weight. Once the user commits to a path (email,
+  // password, forgot) it drops back to the plain centered card below, same
+  // as martialapp.com's other auth steps.
+  if (view === 'sso') {
+    return (
+      <div style={{ minHeight: '100vh', position: 'relative', background: '#F9FAFB', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: 'min(50vh, 440px)',
+          backgroundImage: `linear-gradient(180deg, rgba(8,10,14,0.55) 0%, rgba(8,10,14,0.08) 32%, rgba(249,250,251,0) 58%, #F9FAFB 100%), url(/hero-2.jpg)`,
+          backgroundSize: 'cover', backgroundPosition: '50% 22%',
+        }} />
+
+        <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+          <div style={{ width: '100%', maxWidth: 460, margin: '0 auto', background: '#fff', borderRadius: '28px 28px 0 0', boxShadow: '0 -20px 50px rgba(0,0,0,0.12)', padding: '28px 24px calc(28px + env(safe-area-inset-bottom))' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 14 }}>
+              <div style={{ width: 36, height: 4, borderRadius: 4, background: '#D8DBE0' }} />
+            </div>
+
+            <div style={{ textAlign: 'center', marginBottom: 24 }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 52, height: 52, borderRadius: 15, overflow: 'hidden', marginBottom: 14 }}>
+                <Image src="/martial-logo.png" alt="Martial" width={52} height={52} style={{ objectFit: 'contain' }} />
+              </div>
+              <h1 style={{ margin: '0 0 6px', fontSize: 22, fontWeight: 700, color: TEXT }}>Welcome back</h1>
+              <p style={{ margin: 0, fontSize: 14, color: MUTED }}>Log in to continue your martial journey</p>
+            </div>
+
+            {justRegistered && (
+              <p style={{ margin: '0 0 16px', fontSize: 13, fontWeight: 600, color: '#15803D', background: '#F0FDF4', border: '1px solid #BBF7D0', padding: '10px 14px', borderRadius: 10, textAlign: 'center' }}>
+                Account created{registeredType === 'school' ? ' for your academy' : ''} — log in to continue.
+              </p>
+            )}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ position: 'relative', height: 52 }}>
+                <SocialButton provider="google" label="Continue with Google"
+                  loading={oauthLoading === 'google'} disabled={oauthLoading !== null}
+                  onClick={googleFallback ? () => handleOAuth('google') : () => {}} />
+                {/* Google's real button, invisible and stacked on top — its
+                    click (not a simulated one) is what's actually allowed to
+                    open the account-picker popup, per Google's ToS. The
+                    visible button above is pure decoration matching
+                    Apple/Microsoft's styling. */}
+                <div
+                  ref={googleButtonRef}
+                  style={{
+                    position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    overflow: 'hidden', opacity: 0,
+                    pointerEvents: googleFallback || (oauthLoading !== null && oauthLoading !== 'google') ? 'none' : 'auto',
+                  }}
+                />
+              </div>
+              <SocialButton provider="apple" label="Continue with Apple"
+                loading={oauthLoading === 'apple'} disabled={oauthLoading !== null}
+                onClick={() => handleOAuth('apple')} />
+              <SocialButton provider="azure" label="Continue with Microsoft"
+                loading={oauthLoading === 'azure'} disabled={oauthLoading !== null}
+                onClick={() => handleOAuth('azure')} />
+            </div>
+
+            {error && <p style={{ margin: '16px 0 0', fontSize: 13, color: '#DC2626', background: '#FEF2F2', padding: '8px 12px', borderRadius: 8 }}>{error}</p>}
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' }}>
+              <div style={{ flex: 1, height: 1, background: BORDER }} />
+              <span style={{ fontSize: 12, fontWeight: 600, color: MUTED }}>OR</span>
+              <div style={{ flex: 1, height: 1, background: BORDER }} />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => { setView('email'); setError('') }}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                height: 52, border: `1px solid ${BORDER}`, borderRadius: 12, background: '#fff',
+                fontSize: 14, fontWeight: 600, color: TEXT, cursor: 'pointer',
+              }}>
+              <EmailIcon />
+              Continue with Email
+            </button>
+
+            <p style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: MUTED }}>
+              Don&apos;t have an account?{' '}
+              <a href="/register" style={{ color: NAVY, fontWeight: 600, textDecoration: 'underline' }}>Register</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div style={{ minHeight: '100vh', background: '#F9FAFB', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
       <div style={{ width: '100%', maxWidth: 400 }}>
@@ -520,56 +610,7 @@ function LoginPageInner() {
               </button>
             </form>
           </div>
-        ) : (
-          <div style={{ background: '#fff', borderRadius: 16, border: `1px solid ${BORDER}`, boxShadow: '0 4px 24px rgba(0,0,0,0.06)', padding: 28 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div style={{ position: 'relative', height: 52 }}>
-                <SocialButton provider="google" label="Continue with Google"
-                  loading={oauthLoading === 'google'} disabled={oauthLoading !== null}
-                  onClick={googleFallback ? () => handleOAuth('google') : () => {}} />
-                {/* Google's real button, invisible and stacked on top — its
-                    click (not a simulated one) is what's actually allowed to
-                    open the account-picker popup, per Google's ToS. The
-                    visible button above is pure decoration matching
-                    Apple/Microsoft's styling. */}
-                <div
-                  ref={googleButtonRef}
-                  style={{
-                    position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    overflow: 'hidden', opacity: 0,
-                    pointerEvents: googleFallback || (oauthLoading !== null && oauthLoading !== 'google') ? 'none' : 'auto',
-                  }}
-                />
-              </div>
-              <SocialButton provider="apple" label="Continue with Apple"
-                loading={oauthLoading === 'apple'} disabled={oauthLoading !== null}
-                onClick={() => handleOAuth('apple')} />
-              <SocialButton provider="azure" label="Continue with Microsoft"
-                loading={oauthLoading === 'azure'} disabled={oauthLoading !== null}
-                onClick={() => handleOAuth('azure')} />
-            </div>
-
-            {error && <p style={{ margin: '16px 0 0', fontSize: 13, color: '#DC2626', background: '#FEF2F2', padding: '8px 12px', borderRadius: 8 }}>{error}</p>}
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' }}>
-              <div style={{ flex: 1, height: 1, background: BORDER }} />
-              <span style={{ fontSize: 12, fontWeight: 600, color: MUTED }}>OR</span>
-              <div style={{ flex: 1, height: 1, background: BORDER }} />
-            </div>
-
-            <button
-              type="button"
-              onClick={() => { setView('email'); setError('') }}
-              style={{
-                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-                height: 52, border: `1px solid ${BORDER}`, borderRadius: 12, background: '#fff',
-                fontSize: 14, fontWeight: 600, color: TEXT, cursor: 'pointer',
-              }}>
-              <EmailIcon />
-              Continue with Email
-            </button>
-          </div>
-        )}
+        ) : null}
 
         <p style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: MUTED }}>
           Don&apos;t have an account?{' '}
