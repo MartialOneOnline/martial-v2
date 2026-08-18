@@ -235,6 +235,7 @@ function QuickStatsCard({ title, subtitle, items }: {
 // ── SVG Area Chart ─────────────────────────────────────────────────────────────
 
 function AreaChart({ data }: { data: { label: string; value: number }[] }) {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null)
   const W = 560; const H = 160; const PAD = { t: 16, r: 16, b: 32, l: 40 }
   if (data.length === 0) {
     return <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="xMidYMid meet" />
@@ -259,8 +260,16 @@ function AreaChart({ data }: { data: { label: string; value: number }[] }) {
   const areaPath = `${linePath} L ${lastPt.x} ${H - PAD.b} L ${firstPt.x} ${H - PAD.b} Z`
   const gridLines = [0.25, 0.5, 0.75].map(t => PAD.t + t * innerH)
 
+  const active = activeIndex !== null ? { pt: points[activeIndex]!, d: data[activeIndex]! } : null
+  const tooltipLabel = active ? `${active.d.label}: ${active.d.value}` : ''
+  const tooltipW = Math.max(50, tooltipLabel.length * 6 + 16)
+  const tooltipH = 22
+  const tooltipX = active ? Math.min(Math.max(active.pt.x - tooltipW / 2, PAD.l - 4), W - PAD.r - tooltipW + 4) : 0
+  const tooltipY = active ? Math.max(active.pt.y - tooltipH - 10, 2) : 0
+
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="xMidYMid meet">
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="xMidYMid meet"
+      onMouseLeave={() => setActiveIndex(null)}>
       <defs>
         <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%"   stopColor="#0071E3" stopOpacity="0.1" />
@@ -274,17 +283,38 @@ function AreaChart({ data }: { data: { label: string; value: number }[] }) {
       <path d={areaPath} fill="url(#areaGrad)" />
       <path d={linePath} fill="none" stroke="#0071E3" strokeWidth="2"
         strokeLinecap="round" strokeLinejoin="round" />
+      {active && (
+        <line x1={active.pt.x} y1={PAD.t} x2={active.pt.x} y2={H - PAD.b}
+          stroke="#0071E3" strokeWidth="1" strokeDasharray="3 3" opacity={0.35} />
+      )}
       {points.map((p, i) => (
-        <circle key={i} cx={p.x} cy={p.y} r="3.5" fill="#fff" stroke="#0071E3" strokeWidth="2" />
+        <g key={i}>
+          <circle cx={p.x} cy={p.y} r={activeIndex === i ? 5 : 3.5} fill="#fff" stroke="#0071E3" strokeWidth="2" />
+          <circle cx={p.x} cy={p.y} r="14" fill="transparent" style={{ cursor: 'pointer' }}
+            onMouseEnter={() => setActiveIndex(i)}
+            onClick={() => setActiveIndex(activeIndex === i ? null : i)}
+          />
+        </g>
       ))}
       {data.map((d, i) => (
         <text key={i} x={points[i]!.x} y={H - 8} textAnchor="middle"
-          fontSize="10" fontWeight="500" fill="#6B7280"
+          fontSize="10" fontWeight={activeIndex === i ? 700 : 500} fill={activeIndex === i ? '#0071E3' : '#6B7280'}
           style={{ fontFamily: '-apple-system, BlinkMacSystemFont, Inter, sans-serif' }}
         >
           {d.label}
         </text>
       ))}
+      {active && (
+        <g pointerEvents="none">
+          <rect x={tooltipX} y={tooltipY} width={tooltipW} height={tooltipH} rx={6} fill="#111827" />
+          <text x={tooltipX + tooltipW / 2} y={tooltipY + tooltipH / 2 + 4} textAnchor="middle"
+            fontSize="11" fontWeight="600" fill="#fff"
+            style={{ fontFamily: '-apple-system, BlinkMacSystemFont, Inter, sans-serif' }}
+          >
+            {tooltipLabel}
+          </text>
+        </g>
+      )}
     </svg>
   )
 }
