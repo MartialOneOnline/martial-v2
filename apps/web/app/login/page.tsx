@@ -378,7 +378,7 @@ function LoginPageInner() {
           .login-sso-inner { position: relative; min-height: 100vh; display: flex; flex-direction: column; justify-content: flex-end; }
           .login-sso-card {
             width: 100%; max-width: 460px; margin: 0 auto; background: #fff;
-            border-radius: 28px 28px 0 0; box-shadow: 0 -20px 50px rgba(0,0,0,0.12);
+            border-radius: 28px 28px 0 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.06);
             padding: 28px 24px calc(28px + env(safe-area-inset-bottom));
           }
           .login-sso-grabber { display: flex; justify-content: center; margin-bottom: 14px; }
