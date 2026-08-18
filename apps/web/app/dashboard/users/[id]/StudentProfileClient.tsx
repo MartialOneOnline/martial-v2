@@ -167,12 +167,6 @@ function age(iso: string) {
     (now < new Date(now.getFullYear(), d.getMonth(), d.getDate()) ? 1 : 0)
 }
 
-function monthsSince(iso: string) {
-  const d = new Date(iso)
-  const now = new Date()
-  return (now.getFullYear() - d.getFullYear()) * 12 + (now.getMonth() - d.getMonth())
-}
-
 // ── Sub-components ─────────────────────────────────────────────────────────────
 function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   return (
@@ -1363,8 +1357,6 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
   const nextRankName = hasRanks
     ? (ranks.find(r => r.order === beltIdx + 1)?.name ?? '— (último cinturón)')
     : (BELT_ORDER[beltIdx + 1] ?? '— (Cinturón negro)')
-  const memberMonths = profile.joinedAt ? monthsSince(profile.joinedAt) : null
-
   const handleSaved = (updates: Partial<Profile>) => {
     setProfile(prev => ({ ...prev, ...updates }))
   }
@@ -1545,9 +1537,6 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
                   <Calendar size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
                   <span style={{ fontSize: 13, color: '#374151' }}>
                     Desde {profile.joinedAt ? fmt(profile.joinedAt) : fmt(profile.userCreatedAt)}
-                    {memberMonths !== null && memberMonths > 0 && (
-                      <span style={{ color: '#9CA3AF' }}> · {memberMonths}m</span>
-                    )}
                   </span>
                 </div>
               </div>
