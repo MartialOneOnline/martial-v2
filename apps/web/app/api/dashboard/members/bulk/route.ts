@@ -84,6 +84,7 @@ export async function POST(req: NextRequest) {
           belt,
           beltDegree: row.beltDegree ?? 0,
           status: (['ACTIVE','INACTIVE','PENDING','FROZEN','ARCHIVED'].includes(row.status ?? '') ? row.status : 'ACTIVE') as 'ACTIVE' | 'INACTIVE' | 'PENDING' | 'FROZEN' | 'ARCHIVED',
+          joinedAt: new Date(),
         },
       })
 

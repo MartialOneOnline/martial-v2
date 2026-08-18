@@ -157,6 +157,7 @@ export async function POST(req: NextRequest) {
       belt: belt || 'Blanco',
       beltDegree: beltDegree ?? 0,
       status: status || 'ACTIVE',
+      joinedAt: new Date(),
     },
     select: {
       id: true, belt: true, beltDegree: true, status: true, role: true, joinedAt: true,

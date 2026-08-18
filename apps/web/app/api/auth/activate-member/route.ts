@@ -122,7 +122,7 @@ export async function POST(req: Request) {
 
   const activated = await prisma.schoolMember.updateMany({
     where: { userId: dbUser.id, schoolId: targetSchoolId, status: 'PENDING' },
-    data: { status: 'LEAD' },
+    data: { status: 'LEAD', joinedAt: new Date() },
   })
 
   const membership = await prisma.schoolMember.findFirst({

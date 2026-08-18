@@ -62,6 +62,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
         userId: dbUser.id,
         role: 'STUDENT',
         status: 'LEAD',
+        joinedAt: new Date(),
         notes: 'Self-requested via "Join this school" (SELF_REQUEST)',
       },
     })
