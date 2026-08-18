@@ -371,15 +371,19 @@ function LoginPageInner() {
         <style>{`
           .login-sso-wrap { min-height: 100vh; position: relative; background: #F9FAFB; }
           .login-sso-photo {
-            /* Full-bleed behind everything (not a fixed height fading to the
-               page background) — no seam to blend away in the first place,
-               since the card's rounded corners always sit directly on the
-               photo itself, never on a color transition. The gradient here
-               is only a top-down contrast overlay for mood/legibility, fully
-               transparent by 320px so the rest of the photo shows at full
-               brightness. */
-            position: absolute; inset: 0;
-            background-image: linear-gradient(180deg, rgba(8,10,14,0.55) 0px, rgba(8,10,14,0.12) 200px, rgba(8,10,14,0) 320px), url(/explore-hero.jpg);
+            /* Bounded height, not full-bleed — background-size:cover has to
+               zoom in proportionally more as this box gets taller, and a
+               full-viewport height (~800px+) forced a much tighter crop than
+               this photo was framed for. 400px keeps the crop close to the
+               original framing while still comfortably reaching past where
+               the card's rounded top corners sit on any realistic phone
+               height, so the (opaque) card simply overlaps its lower part —
+               no gap, and no fade needed since nothing but photo is ever
+               behind those corners. The gradient here is only a top-down
+               contrast overlay for mood/legibility, transparent well before
+               the card. */
+            position: absolute; top: 0; left: 0; right: 0; height: min(48vh, 400px);
+            background-image: linear-gradient(180deg, rgba(8,10,14,0.55) 0px, rgba(8,10,14,0.12) 150px, rgba(8,10,14,0) 260px), url(/explore-hero.jpg);
             background-size: cover; background-position: 50% 30%;
           }
           .login-sso-inner { position: relative; min-height: 100vh; display: flex; flex-direction: column; justify-content: flex-end; }
