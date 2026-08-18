@@ -362,16 +362,42 @@ function LoginPageInner() {
   // as martialapp.com's other auth steps.
   if (view === 'sso') {
     return (
-      <div style={{ minHeight: '100vh', position: 'relative', background: '#F9FAFB', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
-        <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, height: 'min(50vh, 440px)',
-          backgroundImage: `linear-gradient(180deg, rgba(8,10,14,0.55) 0%, rgba(8,10,14,0.08) 32%, rgba(249,250,251,0) 58%, #F9FAFB 100%), url(/hero-2.jpg)`,
-          backgroundSize: 'cover', backgroundPosition: '50% 22%',
-        }} />
+      <div className="login-sso-wrap" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
+        {/* The photo backdrop + bottom sheet only makes sense at phone
+            proportions — the mobile WebView is this page's real audience.
+            On tablet/desktop (>=768px) it collapses back to the plain
+            centered card via the media query below, same single DOM tree
+            so the Google button ref (mounted once) never has to move. */}
+        <style>{`
+          .login-sso-wrap { min-height: 100vh; position: relative; background: #F9FAFB; }
+          .login-sso-photo {
+            position: absolute; top: 0; left: 0; right: 0; height: min(34vh, 300px);
+            background-image: linear-gradient(180deg, rgba(8,10,14,0.55) 0%, rgba(8,10,14,0.08) 32%, rgba(249,250,251,0) 58%, #F9FAFB 100%), url(/hero-2.jpg);
+            background-size: cover; background-position: 50% 22%;
+          }
+          .login-sso-inner { position: relative; min-height: 100vh; display: flex; flex-direction: column; justify-content: flex-end; }
+          .login-sso-card {
+            width: 100%; max-width: 460px; margin: 0 auto; background: #fff;
+            border-radius: 28px 28px 0 0; box-shadow: 0 -20px 50px rgba(0,0,0,0.12);
+            padding: 28px 24px calc(28px + env(safe-area-inset-bottom));
+          }
+          .login-sso-grabber { display: flex; justify-content: center; margin-bottom: 14px; }
+          @media (min-width: 768px) {
+            .login-sso-photo { display: none; }
+            .login-sso-inner { justify-content: center; align-items: center; padding: 24px 16px; }
+            .login-sso-card {
+              max-width: 400px; border-radius: 16px; border: 1px solid ${BORDER};
+              box-shadow: 0 4px 24px rgba(0,0,0,0.06); padding: 28px;
+            }
+            .login-sso-grabber { display: none; }
+          }
+        `}</style>
 
-        <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-          <div style={{ width: '100%', maxWidth: 460, margin: '0 auto', background: '#fff', borderRadius: '28px 28px 0 0', boxShadow: '0 -20px 50px rgba(0,0,0,0.12)', padding: '28px 24px calc(28px + env(safe-area-inset-bottom))' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 14 }}>
+        <div className="login-sso-photo" />
+
+        <div className="login-sso-inner">
+          <div className="login-sso-card">
+            <div className="login-sso-grabber">
               <div style={{ width: 36, height: 4, borderRadius: 4, background: '#D8DBE0' }} />
             </div>
 
