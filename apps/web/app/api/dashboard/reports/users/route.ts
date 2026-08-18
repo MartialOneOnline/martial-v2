@@ -54,17 +54,17 @@ export async function GET(req: NextRequest) {
       ]},
     } : {}),
     ...(belt ? { belt } : {}),
-    ...(period === 'custom' ? { createdAt: { gte: from, lte: to } } : {}),
+    ...(period === 'custom' ? { joinedAt: { gte: from, lte: to } } : {}),
     ...(status === 'ACTIVE'   ? { status: 'ACTIVE' } : {}),
     ...(status === 'INACTIVE' ? { status: { in: ['INACTIVE', 'FROZEN', 'LEAD'] } } : {}),
-    ...(status === 'NEW'      ? { status: 'ACTIVE', createdAt: { gte: newThreshold } } : {}),
+    ...(status === 'NEW'      ? { status: 'ACTIVE', joinedAt: { gte: newThreshold } } : {}),
   }
 
   const [members, total] = await Promise.all([
     prisma.schoolMember.findMany({
       where,
       include: { user: { select: { name: true, email: true, avatarUrl: true } } },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { joinedAt: { sort: 'desc', nulls: 'last' } },
       skip: (page - 1) * pageSize,
       take: pageSize,
     }),
@@ -117,7 +117,7 @@ export async function GET(req: NextRequest) {
   const growthData = await Promise.all(
     points.map(async pt => {
       const count = await prisma.schoolMember.count({
-        where: { schoolId: auth.schoolId, role: 'STUDENT', createdAt: { lte: pt.to } },
+        where: { schoolId: auth.schoolId, role: 'STUDENT', joinedAt: { lte: pt.to } },
       })
       return { date: pt.label, members: count }
     })
@@ -126,7 +126,7 @@ export async function GET(req: NextRequest) {
   // ── Stats ─────────────────────────────────────────────────────────────────────
   const [totalActive, newInPeriod, totalInactive] = await Promise.all([
     prisma.schoolMember.count({ where: { schoolId: auth.schoolId, role: 'STUDENT', status: 'ACTIVE' } }),
-    prisma.schoolMember.count({ where: { schoolId: auth.schoolId, role: 'STUDENT', status: 'ACTIVE', createdAt: { gte: from, lte: to } } }),
+    prisma.schoolMember.count({ where: { schoolId: auth.schoolId, role: 'STUDENT', status: 'ACTIVE', joinedAt: { gte: from, lte: to } } }),
     prisma.schoolMember.count({ where: { schoolId: auth.schoolId, role: 'STUDENT', status: { in: ['INACTIVE', 'FROZEN'] } } }),
   ])
   const totalAll = totalActive + totalInactive
@@ -144,8 +144,8 @@ export async function GET(req: NextRequest) {
       belt:      m.belt           ?? '—',
       plan:      planByUser[m.userId] ?? '—',
       status:        m.status,
-      joinedAt:      m.createdAt.toISOString(),
-      isNew:         m.createdAt >= newThreshold,
+      joinedAt:      (m.joinedAt ?? m.createdAt).toISOString(),
+      isNew:         (m.joinedAt ?? m.createdAt) >= newThreshold,
       lastAttendedAt: lastAttendedByUser[m.userId] ?? null,
     })),
     total,
