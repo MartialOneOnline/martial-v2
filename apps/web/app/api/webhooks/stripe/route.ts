@@ -456,7 +456,7 @@ async function handleStripeEvent(event: Stripe.Event) {
         billing_reason?: string
         amount_paid?: number
         payment_intent?: string
-        lines?: { data?: { period?: { end?: number } }[] }
+        lines?: { data?: { period?: { start?: number; end?: number } }[] }
       }
       if (!invoice.subscription) break
       // Skip the initial invoice (already handled by checkout.session.completed)
@@ -475,12 +475,16 @@ async function handleStripeEvent(event: Stripe.Event) {
       const renewalAmount = invoice.amount_paid != null ? invoice.amount_paid / 100 : 0
 
       // The invoice's own line-item period is the authoritative "paid through"
-      // date for *this* renewal — set endDate from it directly rather than
-      // waiting on a separate customer.subscription.updated delivery, which
-      // Stripe doesn't reliably send for every renewal (e.g. send_invoice
-      // subscriptions can advance a billing cycle without ever emitting one).
-      const periodEndUnix = invoice.lines?.data?.[0]?.period?.end
-      const periodEndDate = periodEndUnix ? new Date(periodEndUnix * 1000) : undefined
+      // window for *this* renewal — set both startDate and endDate from it
+      // directly rather than waiting on a separate customer.subscription.updated
+      // delivery, which Stripe doesn't reliably send for every renewal (e.g.
+      // send_invoice subscriptions can advance a billing cycle without ever
+      // emitting one). Advancing startDate too (not just endDate) keeps the
+      // membership's displayed period a rolling one-cycle window instead of
+      // growing every renewal.
+      const period = invoice.lines?.data?.[0]?.period
+      const periodStartDate = period?.start ? new Date(period.start * 1000) : undefined
+      const periodEndDate = period?.end ? new Date(period.end * 1000) : undefined
 
       // Idempotency: Stripe redelivers this event on retry (e.g. if our response
       // times out even though we already processed it). Guard with a conditional
@@ -501,6 +505,7 @@ async function handleStripeEvent(event: Stripe.Event) {
           data: {
             status:          MembershipStatus.ACTIVE,
             stripeInvoiceId: invoice.id ?? null,
+            ...(periodStartDate && { startDate: periodStartDate }),
             ...(periodEndDate && { endDate: periodEndDate }),
           },
         })
