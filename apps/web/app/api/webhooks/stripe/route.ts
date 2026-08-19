@@ -80,22 +80,43 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ received: true })
   }
 
-  // Extract schoolId from metadata (present on checkout.session and subscription_data)
+  // Extract schoolId from metadata (present on checkout.session and subscription_data,
+  // both stamped by our own V2 checkout flow).
   const obj = unverified.data.object as Record<string, unknown>
-  const metadata = (obj.metadata ?? obj.subscription_details ?? {}) as Record<string, string>
+  const metadata = (obj.metadata ?? {}) as Record<string, string>
   const subscriptionMeta = (obj.subscription_data as Record<string, unknown> | undefined)?.metadata as Record<string, string> | undefined
+  const schoolId = metadata.schoolId ?? subscriptionMeta?.schoolId
 
-  const schoolId = metadata?.schoolId ?? subscriptionMeta?.schoolId
-  if (!schoolId)
-    return NextResponse.json({ error: 'Missing schoolId in metadata' }, { status: 400 })
+  let school = schoolId
+    ? await prisma.school.findUnique({
+        where: { id: schoolId },
+        select: { stripeSecretKey: true, stripeWebhookSecret: true },
+      })
+    : null
 
-  // Load school's stripe config to verify signature
-  const school = await prisma.school.findUnique({
-    where: { id: schoolId },
-    select: { stripeSecretKey: true, stripeWebhookSecret: true },
-  })
+  // Renewal/subscription events on a Stripe subscription that predates our own
+  // metadata (e.g. imported from V1, which stamps its own incompatible ids —
+  // wrong shape, wrong casing, and a V1 numeric id rather than our school's
+  // real id) won't resolve a school above. Fall back to the subscription id
+  // already on file on our own Membership record instead of trusting
+  // Stripe-side metadata — safe because the school picked here still only
+  // determines which secret we *attempt* verification with next; a wrong
+  // guess just fails signature verification rather than being trusted.
+  if (!school) {
+    const subId = (obj.subscription as string | undefined) ?? (obj.object === 'subscription' ? (obj.id as string | undefined) : undefined)
+    if (subId) {
+      const membership = await prisma.membership.findFirst({ where: { stripeSubId: subId }, select: { schoolId: true } })
+      if (membership) {
+        school = await prisma.school.findUnique({
+          where: { id: membership.schoolId },
+          select: { stripeSecretKey: true, stripeWebhookSecret: true },
+        })
+      }
+    }
+  }
+
   if (!school?.stripeSecretKey || !school?.stripeWebhookSecret)
-    return NextResponse.json({ error: 'School Stripe not configured' }, { status: 400 })
+    return NextResponse.json({ error: 'Unable to resolve school for Stripe event' }, { status: 400 })
 
   // Verify Stripe signature
   const stripe = getStripe(school.stripeSecretKey)
