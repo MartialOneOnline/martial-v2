@@ -204,7 +204,7 @@ function RegisterPageInner() {
               <button
                 type="button"
                 onClick={() => { setApiError(''); setStep('details') }}
-                style={{ width: '100%', padding: '13px', fontSize: 14.5, fontWeight: 700, background: BLUE, color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                style={{ width: '100%', padding: '13px', fontSize: 14.5, fontWeight: 700, background: '#fff', color: TEXT, border: `1px solid ${BORDER}`, borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                 <Mail size={17} />
                 Continue with email
               </button>
