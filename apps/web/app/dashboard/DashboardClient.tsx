@@ -28,6 +28,7 @@ import DashboardLanguageSelector  from '../../components/DashboardLanguageSelect
 import GettingStartedChecklist    from './GettingStartedChecklist'
 import DashboardOnboarding        from './DashboardOnboarding'
 import { fmtPrice } from '../../lib/format'
+import { matchesSearch } from '../../lib/search'
 
 // ── Design tokens ──────────────────────────────────────────────────────────────
 // bg:       #F9FAFB
@@ -390,6 +391,8 @@ export default function DashboardClient({ userName, userEmail }: Props) {
   // null = not loaded yet (never redirect on this), 0 = confirmed empty.
   const [disciplineCount, setDisciplineCount] = useState<number | null>(null)
   const [bookingsChart, setBookingsChart] = useState<{ date: string; confirmed: number; cancelled: number }[] | null>(null)
+  const [revenueChart, setRevenueChart] = useState<{ date: string; revenue: number }[] | null>(null)
+  const [overviewMode, setOverviewMode] = useState<'bookings' | 'payments'>('bookings')
 
   // Topbar search — filters students, loaded lazily on first use
   const router = useRouter()
@@ -420,8 +423,8 @@ export default function DashboardClient({ userName, userEmail }: Props) {
 
   const studentMatches = studentQuery.trim().length > 0
     ? (allStudents ?? []).filter(s =>
-        s.name.toLowerCase().includes(studentQuery.toLowerCase()) ||
-        s.email.toLowerCase().includes(studentQuery.toLowerCase())
+        matchesSearch(s.name, studentQuery) ||
+        matchesSearch(s.email, studentQuery)
       ).slice(0, 6)
     : []
 
@@ -489,6 +492,10 @@ export default function DashboardClient({ userName, userEmail }: Props) {
     fetch(`/api/dashboard/reports/bookings?period=${reportPeriod}&pageSize=1`)
       .then(r => r.ok ? r.json() : null)
       .then(d => d?.chartData && setBookingsChart(d.chartData))
+      .catch(() => {})
+    fetch(`/api/dashboard/reports/payments?period=${reportPeriod}&pageSize=1`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => d?.revenueData && setRevenueChart(d.revenueData))
       .catch(() => {})
   }, [period, currentSchool?.schoolId])
   useEffect(() => {
@@ -875,7 +882,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
             <QuickStatsCard title={t.dashboard.quickStats} subtitle={t.dashboard.today} items={QUICK_STATS} />
           </div>
 
-          {/* 6. Bookings chart — full width */}
+          {/* 6. Bookings / Payments chart — full width */}
           <div
             className="rounded-2xl"
             style={{ background: '#fff', border: '1px solid #E5E7EB', padding: '22px 26px' }}
@@ -883,19 +890,48 @@ export default function DashboardClient({ userName, userEmail }: Props) {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
                 <p style={{ fontSize: 16, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>
-                  {bookingsChart && bookingsChart.length > 0
-                    ? `${bookingsChart[0]!.date} – ${bookingsChart[bookingsChart.length - 1]!.date}`
-                    : '—'}
+                  {overviewMode === 'bookings'
+                    ? (bookingsChart && bookingsChart.length > 0
+                        ? `${bookingsChart[0]!.date} – ${bookingsChart[bookingsChart.length - 1]!.date}`
+                        : '—')
+                    : (revenueChart && revenueChart.length > 0
+                        ? `${revenueChart[0]!.date} – ${revenueChart[revenueChart.length - 1]!.date}`
+                        : '—')}
                 </p>
-                {stats?.bookings.trend && (
+                {overviewMode === 'bookings' && stats?.bookings.trend && (
                   <span style={{ fontSize: 11, fontWeight: 600, color: '#0071E3', background: '#EFF6FF', padding: '2px 8px', borderRadius: 999 }}>
                     {stats.bookings.trend} {t.common.vsLastMonth}
                   </span>
                 )}
+                {overviewMode === 'payments' && stats?.revenue.trend && (
+                  <span style={{ fontSize: 11, fontWeight: 600, color: '#0071E3', background: '#EFF6FF', padding: '2px 8px', borderRadius: 999 }}>
+                    {stats.revenue.trend} {t.common.vsLastMonth}
+                  </span>
+                )}
               </div>
-              <p style={{ fontSize: 12, color: '#6B7280' }}>{t.dashboard.bookingsOverview}</p>
+              <div className="flex items-center gap-1 rounded-lg p-0.5" style={{ background: '#F3F4F6' }}>
+                {(['bookings', 'payments'] as const).map(mode => (
+                  <button
+                    key={mode}
+                    onClick={() => setOverviewMode(mode)}
+                    style={{
+                      fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                      color: overviewMode === mode ? '#111827' : '#6B7280',
+                      background: overviewMode === mode ? '#fff' : 'transparent',
+                      boxShadow: overviewMode === mode ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                      border: 'none', borderRadius: 7, padding: '5px 10px',
+                    }}
+                  >
+                    {mode === 'bookings' ? t.dashboard.bookingsOverview : t.dashboard.paymentsOverview}
+                  </button>
+                ))}
+              </div>
             </div>
-            <AreaChart data={(bookingsChart ?? []).map(d => ({ label: d.date, value: d.confirmed }))} />
+            <AreaChart data={
+              overviewMode === 'bookings'
+                ? (bookingsChart ?? []).map(d => ({ label: d.date, value: d.confirmed }))
+                : (revenueChart ?? []).map(d => ({ label: d.date, value: d.revenue }))
+            } />
           </div>
 
           {/* 7. Transactions */}
