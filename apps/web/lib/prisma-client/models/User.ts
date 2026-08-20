@@ -279,6 +279,7 @@ export type UserWhereInput = {
   leadNotes?: Prisma.LeadNoteListRelationFilter
   transactions?: Prisma.TransactionListRelationFilter
   resolvedTransactions?: Prisma.TransactionListRelationFilter
+  deletedTransactions?: Prisma.TransactionListRelationFilter
   userWaivers?: Prisma.UserWaiverListRelationFilter
   sentInvitations?: Prisma.SchoolInvitationListRelationFilter
   preference?: Prisma.XOR<Prisma.UserPreferenceNullableScalarRelationFilter, Prisma.UserPreferenceWhereInput> | null
@@ -325,6 +326,7 @@ export type UserOrderByWithRelationInput = {
   leadNotes?: Prisma.LeadNoteOrderByRelationAggregateInput
   transactions?: Prisma.TransactionOrderByRelationAggregateInput
   resolvedTransactions?: Prisma.TransactionOrderByRelationAggregateInput
+  deletedTransactions?: Prisma.TransactionOrderByRelationAggregateInput
   userWaivers?: Prisma.UserWaiverOrderByRelationAggregateInput
   sentInvitations?: Prisma.SchoolInvitationOrderByRelationAggregateInput
   preference?: Prisma.UserPreferenceOrderByWithRelationInput
@@ -374,6 +376,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   leadNotes?: Prisma.LeadNoteListRelationFilter
   transactions?: Prisma.TransactionListRelationFilter
   resolvedTransactions?: Prisma.TransactionListRelationFilter
+  deletedTransactions?: Prisma.TransactionListRelationFilter
   userWaivers?: Prisma.UserWaiverListRelationFilter
   sentInvitations?: Prisma.SchoolInvitationListRelationFilter
   preference?: Prisma.XOR<Prisma.UserPreferenceNullableScalarRelationFilter, Prisma.UserPreferenceWhereInput> | null
@@ -461,6 +464,7 @@ export type UserCreateInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -506,6 +510,7 @@ export type UserUncheckedCreateInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -551,6 +556,7 @@ export type UserUpdateInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -596,6 +602,7 @@ export type UserUncheckedUpdateInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -1092,6 +1099,12 @@ export type UserCreateNestedOneWithoutResolvedTransactionsInput = {
   connect?: Prisma.UserWhereUniqueInput
 }
 
+export type UserCreateNestedOneWithoutDeletedTransactionsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDeletedTransactionsInput, Prisma.UserUncheckedCreateWithoutDeletedTransactionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDeletedTransactionsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
 export type UserUpdateOneWithoutTransactionsNestedInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutTransactionsInput, Prisma.UserUncheckedCreateWithoutTransactionsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutTransactionsInput
@@ -1110,6 +1123,16 @@ export type UserUpdateOneWithoutResolvedTransactionsNestedInput = {
   delete?: Prisma.UserWhereInput | boolean
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutResolvedTransactionsInput, Prisma.UserUpdateWithoutResolvedTransactionsInput>, Prisma.UserUncheckedUpdateWithoutResolvedTransactionsInput>
+}
+
+export type UserUpdateOneWithoutDeletedTransactionsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDeletedTransactionsInput, Prisma.UserUncheckedCreateWithoutDeletedTransactionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDeletedTransactionsInput
+  upsert?: Prisma.UserUpsertWithoutDeletedTransactionsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutDeletedTransactionsInput, Prisma.UserUpdateWithoutDeletedTransactionsInput>, Prisma.UserUncheckedUpdateWithoutDeletedTransactionsInput>
 }
 
 export type UserCreateNestedOneWithoutPreferenceInput = {
@@ -1217,6 +1240,7 @@ export type UserCreateWithoutContentAccessesInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -1261,6 +1285,7 @@ export type UserUncheckedCreateWithoutContentAccessesInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -1321,6 +1346,7 @@ export type UserUpdateWithoutContentAccessesInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -1365,6 +1391,7 @@ export type UserUncheckedUpdateWithoutContentAccessesInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -1409,6 +1436,7 @@ export type UserCreateWithoutClaimedSchoolsInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -1453,6 +1481,7 @@ export type UserUncheckedCreateWithoutClaimedSchoolsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -1502,6 +1531,7 @@ export type UserCreateWithoutSchoolInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -1546,6 +1576,7 @@ export type UserUncheckedCreateWithoutSchoolInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -1611,6 +1642,7 @@ export type UserUpdateWithoutClaimedSchoolsInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -1655,6 +1687,7 @@ export type UserUncheckedUpdateWithoutClaimedSchoolsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -1736,6 +1769,7 @@ export type UserCreateWithoutReviewsInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -1780,6 +1814,7 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -1840,6 +1875,7 @@ export type UserUpdateWithoutReviewsInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -1884,6 +1920,7 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -1928,6 +1965,7 @@ export type UserCreateWithoutEventBookingsInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -1972,6 +2010,7 @@ export type UserUncheckedCreateWithoutEventBookingsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -2032,6 +2071,7 @@ export type UserUpdateWithoutEventBookingsInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -2076,6 +2116,7 @@ export type UserUncheckedUpdateWithoutEventBookingsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -2120,6 +2161,7 @@ export type UserCreateWithoutBookingsInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -2164,6 +2206,7 @@ export type UserUncheckedCreateWithoutBookingsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -2213,6 +2256,7 @@ export type UserCreateWithoutStaffBookingsInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -2257,6 +2301,7 @@ export type UserUncheckedCreateWithoutStaffBookingsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -2317,6 +2362,7 @@ export type UserUpdateWithoutBookingsInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -2361,6 +2407,7 @@ export type UserUncheckedUpdateWithoutBookingsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -2416,6 +2463,7 @@ export type UserUpdateWithoutStaffBookingsInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -2460,6 +2508,7 @@ export type UserUncheckedUpdateWithoutStaffBookingsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -2504,6 +2553,7 @@ export type UserCreateWithoutMembershipsInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -2548,6 +2598,7 @@ export type UserUncheckedCreateWithoutMembershipsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -2608,6 +2659,7 @@ export type UserUpdateWithoutMembershipsInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -2652,6 +2704,7 @@ export type UserUncheckedUpdateWithoutMembershipsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -2696,6 +2749,7 @@ export type UserCreateWithoutCampBookingsInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -2740,6 +2794,7 @@ export type UserUncheckedCreateWithoutCampBookingsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -2800,6 +2855,7 @@ export type UserUpdateWithoutCampBookingsInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -2844,6 +2900,7 @@ export type UserUncheckedUpdateWithoutCampBookingsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -2888,6 +2945,7 @@ export type UserCreateWithoutSchoolMembersInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -2932,6 +2990,7 @@ export type UserUncheckedCreateWithoutSchoolMembersInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -2992,6 +3051,7 @@ export type UserUpdateWithoutSchoolMembersInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -3036,6 +3096,7 @@ export type UserUncheckedUpdateWithoutSchoolMembersInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -3081,6 +3142,7 @@ export type UserCreateWithoutCreatedCampaignsInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -3125,6 +3187,7 @@ export type UserUncheckedCreateWithoutCreatedCampaignsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -3185,6 +3248,7 @@ export type UserUpdateWithoutCreatedCampaignsInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -3229,6 +3293,7 @@ export type UserUncheckedUpdateWithoutCreatedCampaignsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -3272,6 +3337,7 @@ export type UserCreateWithoutSchoolClaimsInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -3316,6 +3382,7 @@ export type UserUncheckedCreateWithoutSchoolClaimsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -3376,6 +3443,7 @@ export type UserUpdateWithoutSchoolClaimsInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -3420,6 +3488,7 @@ export type UserUncheckedUpdateWithoutSchoolClaimsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -3464,6 +3533,7 @@ export type UserCreateWithoutGradingsInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -3508,6 +3578,7 @@ export type UserUncheckedCreateWithoutGradingsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -3557,6 +3628,7 @@ export type UserCreateWithoutGradingsGivenInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -3601,6 +3673,7 @@ export type UserUncheckedCreateWithoutGradingsGivenInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -3661,6 +3734,7 @@ export type UserUpdateWithoutGradingsInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -3705,6 +3779,7 @@ export type UserUncheckedUpdateWithoutGradingsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -3760,6 +3835,7 @@ export type UserUpdateWithoutGradingsGivenInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -3804,6 +3880,7 @@ export type UserUncheckedUpdateWithoutGradingsGivenInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -3848,6 +3925,7 @@ export type UserCreateWithoutLeadsInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -3892,6 +3970,7 @@ export type UserUncheckedCreateWithoutLeadsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -3952,6 +4031,7 @@ export type UserUpdateWithoutLeadsInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -3996,6 +4076,7 @@ export type UserUncheckedUpdateWithoutLeadsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -4040,6 +4121,7 @@ export type UserCreateWithoutLeadNotesInput = {
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -4084,6 +4166,7 @@ export type UserUncheckedCreateWithoutLeadNotesInput = {
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -4144,6 +4227,7 @@ export type UserUpdateWithoutLeadNotesInput = {
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -4188,6 +4272,7 @@ export type UserUncheckedUpdateWithoutLeadNotesInput = {
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -4233,6 +4318,7 @@ export type UserCreateWithoutSentInvitationsInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
@@ -4277,6 +4363,7 @@ export type UserUncheckedCreateWithoutSentInvitationsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
@@ -4337,6 +4424,7 @@ export type UserUpdateWithoutSentInvitationsInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
@@ -4381,6 +4469,7 @@ export type UserUncheckedUpdateWithoutSentInvitationsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
@@ -4425,6 +4514,7 @@ export type UserCreateWithoutUserWaiversInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
@@ -4469,6 +4559,7 @@ export type UserUncheckedCreateWithoutUserWaiversInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
@@ -4529,6 +4620,7 @@ export type UserUpdateWithoutUserWaiversInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
@@ -4573,6 +4665,7 @@ export type UserUncheckedUpdateWithoutUserWaiversInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
@@ -4617,6 +4710,7 @@ export type UserCreateWithoutLoginHistoryInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -4661,6 +4755,7 @@ export type UserUncheckedCreateWithoutLoginHistoryInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -4721,6 +4816,7 @@ export type UserUpdateWithoutLoginHistoryInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -4765,6 +4861,7 @@ export type UserUncheckedUpdateWithoutLoginHistoryInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -4809,6 +4906,7 @@ export type UserCreateWithoutImpersonationsAsActorInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -4853,6 +4951,7 @@ export type UserUncheckedCreateWithoutImpersonationsAsActorInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -4902,6 +5001,7 @@ export type UserCreateWithoutImpersonationsAsTargetInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -4946,6 +5046,7 @@ export type UserUncheckedCreateWithoutImpersonationsAsTargetInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -5006,6 +5107,7 @@ export type UserUpdateWithoutImpersonationsAsActorInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -5050,6 +5152,7 @@ export type UserUncheckedUpdateWithoutImpersonationsAsActorInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -5105,6 +5208,7 @@ export type UserUpdateWithoutImpersonationsAsTargetInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -5149,6 +5253,7 @@ export type UserUncheckedUpdateWithoutImpersonationsAsTargetInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -5192,6 +5297,7 @@ export type UserCreateWithoutTransactionsInput = {
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -5236,6 +5342,7 @@ export type UserUncheckedCreateWithoutTransactionsInput = {
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -5285,6 +5392,7 @@ export type UserCreateWithoutResolvedTransactionsInput = {
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -5329,6 +5437,7 @@ export type UserUncheckedCreateWithoutResolvedTransactionsInput = {
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -5345,6 +5454,101 @@ export type UserUncheckedCreateWithoutResolvedTransactionsInput = {
 export type UserCreateOrConnectWithoutResolvedTransactionsInput = {
   where: Prisma.UserWhereUniqueInput
   create: Prisma.XOR<Prisma.UserCreateWithoutResolvedTransactionsInput, Prisma.UserUncheckedCreateWithoutResolvedTransactionsInput>
+}
+
+export type UserCreateWithoutDeletedTransactionsInput = {
+  id?: string
+  email: string
+  name?: string | null
+  phone?: string | null
+  dateOfBirth?: Date | string | null
+  avatarUrl?: string | null
+  guardianName?: string | null
+  guardianContact?: string | null
+  guardianConsentAt?: Date | string | null
+  supabaseAuthId?: string | null
+  role?: $Enums.Role
+  deletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
+  claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
+  eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
+  contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
+  campBookings?: Prisma.CampBookingCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
+  schoolMembers?: Prisma.SchoolMemberCreateNestedManyWithoutUserInput
+  schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
+  gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
+  leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
+  sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
+  loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
+  targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
+  createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
+}
+
+export type UserUncheckedCreateWithoutDeletedTransactionsInput = {
+  id?: string
+  email: string
+  name?: string | null
+  phone?: string | null
+  dateOfBirth?: Date | string | null
+  avatarUrl?: string | null
+  guardianName?: string | null
+  guardianContact?: string | null
+  guardianConsentAt?: Date | string | null
+  supabaseAuthId?: string | null
+  role?: $Enums.Role
+  deletedAt?: Date | string | null
+  schoolId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
+  eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
+  contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
+  campBookings?: Prisma.CampBookingUncheckedCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
+  schoolMembers?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutUserInput
+  schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
+  gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
+  leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
+  sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
+  loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
+  targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
+  createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
+}
+
+export type UserCreateOrConnectWithoutDeletedTransactionsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutDeletedTransactionsInput, Prisma.UserUncheckedCreateWithoutDeletedTransactionsInput>
 }
 
 export type UserUpsertWithoutTransactionsInput = {
@@ -5389,6 +5593,7 @@ export type UserUpdateWithoutTransactionsInput = {
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -5433,6 +5638,7 @@ export type UserUncheckedUpdateWithoutTransactionsInput = {
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -5488,6 +5694,7 @@ export type UserUpdateWithoutResolvedTransactionsInput = {
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -5532,6 +5739,108 @@ export type UserUncheckedUpdateWithoutResolvedTransactionsInput = {
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
+  userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
+  sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
+  loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
+  targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
+  createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
+}
+
+export type UserUpsertWithoutDeletedTransactionsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutDeletedTransactionsInput, Prisma.UserUncheckedUpdateWithoutDeletedTransactionsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutDeletedTransactionsInput, Prisma.UserUncheckedCreateWithoutDeletedTransactionsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutDeletedTransactionsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutDeletedTransactionsInput, Prisma.UserUncheckedUpdateWithoutDeletedTransactionsInput>
+}
+
+export type UserUpdateWithoutDeletedTransactionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianContact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
+  claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
+  eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
+  contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
+  campBookings?: Prisma.CampBookingUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
+  schoolMembers?: Prisma.SchoolMemberUpdateManyWithoutUserNestedInput
+  schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
+  gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
+  leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
+  sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
+  loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
+  targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
+  createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
+}
+
+export type UserUncheckedUpdateWithoutDeletedTransactionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianContact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
+  eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
+  contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
+  campBookings?: Prisma.CampBookingUncheckedUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
+  schoolMembers?: Prisma.SchoolMemberUncheckedUpdateManyWithoutUserNestedInput
+  schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
+  gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
+  leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -5577,6 +5886,7 @@ export type UserCreateWithoutPreferenceInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
@@ -5621,6 +5931,7 @@ export type UserUncheckedCreateWithoutPreferenceInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
@@ -5681,6 +5992,7 @@ export type UserUpdateWithoutPreferenceInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
@@ -5725,6 +6037,7 @@ export type UserUncheckedUpdateWithoutPreferenceInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
@@ -5769,6 +6082,7 @@ export type UserCreateWithoutOrdersInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -5813,6 +6127,7 @@ export type UserUncheckedCreateWithoutOrdersInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -5873,6 +6188,7 @@ export type UserUpdateWithoutOrdersInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -5917,6 +6233,7 @@ export type UserUncheckedUpdateWithoutOrdersInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -5961,6 +6278,7 @@ export type UserCreateWithoutCollectibleUnitsOwnedInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -6005,6 +6323,7 @@ export type UserUncheckedCreateWithoutCollectibleUnitsOwnedInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -6065,6 +6384,7 @@ export type UserUpdateWithoutCollectibleUnitsOwnedInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -6109,6 +6429,7 @@ export type UserUncheckedUpdateWithoutCollectibleUnitsOwnedInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -6153,6 +6474,7 @@ export type UserCreateWithoutCollectibleOwnershipsInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -6197,6 +6519,7 @@ export type UserUncheckedCreateWithoutCollectibleOwnershipsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -6257,6 +6580,7 @@ export type UserUpdateWithoutCollectibleOwnershipsInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -6301,6 +6625,7 @@ export type UserUncheckedUpdateWithoutCollectibleOwnershipsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -6345,6 +6670,7 @@ export type UserCreateWithoutTargetedNotificationsInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -6389,6 +6715,7 @@ export type UserUncheckedCreateWithoutTargetedNotificationsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -6449,6 +6776,7 @@ export type UserUpdateWithoutTargetedNotificationsInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -6493,6 +6821,7 @@ export type UserUncheckedUpdateWithoutTargetedNotificationsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -6553,6 +6882,7 @@ export type UserUpdateWithoutSchoolInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -6597,6 +6927,7 @@ export type UserUncheckedUpdateWithoutSchoolInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -6649,6 +6980,7 @@ export type UserCountOutputType = {
   leadNotes: number
   transactions: number
   resolvedTransactions: number
+  deletedTransactions: number
   userWaivers: number
   sentInvitations: number
   loginHistory: number
@@ -6678,6 +7010,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   leadNotes?: boolean | UserCountOutputTypeCountLeadNotesArgs
   transactions?: boolean | UserCountOutputTypeCountTransactionsArgs
   resolvedTransactions?: boolean | UserCountOutputTypeCountResolvedTransactionsArgs
+  deletedTransactions?: boolean | UserCountOutputTypeCountDeletedTransactionsArgs
   userWaivers?: boolean | UserCountOutputTypeCountUserWaiversArgs
   sentInvitations?: boolean | UserCountOutputTypeCountSentInvitationsArgs
   loginHistory?: boolean | UserCountOutputTypeCountLoginHistoryArgs
@@ -6815,6 +7148,13 @@ export type UserCountOutputTypeCountResolvedTransactionsArgs<ExtArgs extends run
 /**
  * UserCountOutputType without action
  */
+export type UserCountOutputTypeCountDeletedTransactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TransactionWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
 export type UserCountOutputTypeCountUserWaiversArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.UserWaiverWhereInput
 }
@@ -6916,6 +7256,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   leadNotes?: boolean | Prisma.User$leadNotesArgs<ExtArgs>
   transactions?: boolean | Prisma.User$transactionsArgs<ExtArgs>
   resolvedTransactions?: boolean | Prisma.User$resolvedTransactionsArgs<ExtArgs>
+  deletedTransactions?: boolean | Prisma.User$deletedTransactionsArgs<ExtArgs>
   userWaivers?: boolean | Prisma.User$userWaiversArgs<ExtArgs>
   sentInvitations?: boolean | Prisma.User$sentInvitationsArgs<ExtArgs>
   preference?: boolean | Prisma.User$preferenceArgs<ExtArgs>
@@ -7005,6 +7346,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   leadNotes?: boolean | Prisma.User$leadNotesArgs<ExtArgs>
   transactions?: boolean | Prisma.User$transactionsArgs<ExtArgs>
   resolvedTransactions?: boolean | Prisma.User$resolvedTransactionsArgs<ExtArgs>
+  deletedTransactions?: boolean | Prisma.User$deletedTransactionsArgs<ExtArgs>
   userWaivers?: boolean | Prisma.User$userWaiversArgs<ExtArgs>
   sentInvitations?: boolean | Prisma.User$sentInvitationsArgs<ExtArgs>
   preference?: boolean | Prisma.User$preferenceArgs<ExtArgs>
@@ -7045,6 +7387,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     leadNotes: Prisma.$LeadNotePayload<ExtArgs>[]
     transactions: Prisma.$TransactionPayload<ExtArgs>[]
     resolvedTransactions: Prisma.$TransactionPayload<ExtArgs>[]
+    deletedTransactions: Prisma.$TransactionPayload<ExtArgs>[]
     userWaivers: Prisma.$UserWaiverPayload<ExtArgs>[]
     sentInvitations: Prisma.$SchoolInvitationPayload<ExtArgs>[]
     preference: Prisma.$UserPreferencePayload<ExtArgs> | null
@@ -7484,6 +7827,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   leadNotes<T extends Prisma.User$leadNotesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$leadNotesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LeadNotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   transactions<T extends Prisma.User$transactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   resolvedTransactions<T extends Prisma.User$resolvedTransactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$resolvedTransactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  deletedTransactions<T extends Prisma.User$deletedTransactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$deletedTransactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   userWaivers<T extends Prisma.User$userWaiversArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$userWaiversArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserWaiverPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   sentInvitations<T extends Prisma.User$sentInvitationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$sentInvitationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SchoolInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   preference<T extends Prisma.User$preferenceArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$preferenceArgs<ExtArgs>>): Prisma.Prisma__UserPreferenceClient<runtime.Types.Result.GetResult<Prisma.$UserPreferencePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
@@ -8322,6 +8666,30 @@ export type User$transactionsArgs<ExtArgs extends runtime.Types.Extensions.Inter
  * User.resolvedTransactions
  */
 export type User$resolvedTransactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Transaction
+   */
+  select?: Prisma.TransactionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Transaction
+   */
+  omit?: Prisma.TransactionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TransactionInclude<ExtArgs> | null
+  where?: Prisma.TransactionWhereInput
+  orderBy?: Prisma.TransactionOrderByWithRelationInput | Prisma.TransactionOrderByWithRelationInput[]
+  cursor?: Prisma.TransactionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TransactionScalarFieldEnum | Prisma.TransactionScalarFieldEnum[]
+}
+
+/**
+ * User.deletedTransactions
+ */
+export type User$deletedTransactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
    * Select specific fields to fetch from the Transaction
    */

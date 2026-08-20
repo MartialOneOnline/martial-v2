@@ -5,13 +5,14 @@ import {
   Menu, Search, Download, Plus, Check, Clock, Filter,
   AlertCircle, XCircle, RefreshCw, ChevronLeft, ChevronRight, X,
   CreditCard, Banknote, Building2, Landmark, TrendingUp, TrendingDown,
-  LayoutList, Eye, MoreHorizontal, Trash2, Flag,
+  LayoutList, Eye, MoreHorizontal, Trash2, Flag, Pencil,
 } from 'lucide-react'
 import { useDashboard } from '../../../../components/DashboardShell'
 import NotificationBell from '../../../../components/NotificationBell'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../../lib/format'
 import { downloadCsv } from '../../../../lib/csvExport'
+import { matchesSearch } from '../../../../lib/search'
 import RowMenu from '../../../../components/RowMenu'
 
 type TxStatus  = 'PAID' | 'PENDING' | 'FAILED' | 'REFUNDED' | 'FLAGGED'
@@ -278,12 +279,13 @@ function FiltersPanel({ filters, onChange }: {
 }
 
 // ── Row Actions Menu ──────────────────────────────────────────────────────────
-function RowActions({ tx, onStatusChange, onDelete, onView, onResolve }: {
+function RowActions({ tx, onStatusChange, onDelete, onView, onResolve, onEdit }: {
   tx: TxRow
   onStatusChange: (id: string, status: TxStatus) => Promise<void>
   onDelete: (id: string) => Promise<void>
   onView: () => void
   onResolve: () => void
+  onEdit: () => void
 }) {
   const [busy, setBusy] = useState(false)
 
@@ -314,6 +316,17 @@ function RowActions({ tx, onStatusChange, onDelete, onView, onResolve }: {
           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
           <Eye size={13} /> View Details
         </button>
+
+        {tx.status !== 'REFUNDED' && (
+          <button onClick={onEdit}
+            style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
+              fontWeight: 500, color: '#374151', background: 'transparent', border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 8 }}
+            onMouseEnter={e => (e.currentTarget.style.background = '#F9FAFB')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+            <Pencil size={13} /> Edit
+          </button>
+        )}
 
         <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
 
@@ -492,8 +505,8 @@ function MemberSelect({ members, value, onChange, placeholder = 'Search member�
 
   const filtered = query.length < 1 ? members.slice(0, 50) :
     members.filter(m =>
-      m.name.toLowerCase().includes(query.toLowerCase()) ||
-      m.email.toLowerCase().includes(query.toLowerCase())
+      matchesSearch(m.name, query) ||
+      matchesSearch(m.email, query)
     ).slice(0, 50)
 
   useEffect(() => {
@@ -747,6 +760,91 @@ function AddPaymentModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
   )
 }
 
+// ── Edit Payment Modal ────────────────────────────────────────────────────────
+// Corrects a manually-entered mistake (wrong date/amount/method) on an
+// existing transaction — including PAID ones. Doesn't touch status;
+// see PATCH /api/dashboard/transactions/[id] action:'edit'.
+function EditPaymentModal({ tx, onClose, onSaved }: {
+  tx: TxRow
+  onClose: () => void
+  onSaved: (updated: { date: string; amount: number; method: string | null }) => void
+}) {
+  const [date, setDate] = useState(tx.date.slice(0, 10))
+  const [amount, setAmount] = useState(String(tx.amount))
+  const [method, setMethod] = useState(tx.method ?? 'CASH')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  async function handleSave() {
+    if (!amount || parseFloat(amount) <= 0) { setError('Enter a valid amount'); return }
+    if (!date) { setError('Enter a date'); return }
+    setSaving(true); setError('')
+    const res = await fetch(`/api/dashboard/transactions/${tx.id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'edit', date, amount: parseFloat(amount), paymentMethod: method }),
+    })
+    setSaving(false)
+    if (!res.ok) { const d = await res.json().catch(() => ({})); setError(d.error ?? 'Error'); return }
+    onSaved({ date, amount: parseFloat(amount), method })
+  }
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40" style={{ background: 'rgba(0,0,0,0.35)' }} onClick={onClose} />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-md rounded-2xl flex flex-col" style={{ background: '#fff', boxShadow: '0 20px 60px rgba(0,0,0,0.18)', maxHeight: '90vh', overflow: 'hidden' }}>
+
+          <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #F3F4F6', flexShrink: 0 }}>
+            <div>
+              <p style={{ fontSize: 17, fontWeight: 700, color: '#111827', margin: 0 }}>Edit Payment</p>
+              <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{tx.userName} — {tx.description ?? 'Transaction'}</p>
+            </div>
+            <button onClick={onClose} style={{ background: '#F3F4F6', border: 'none', borderRadius: 8, padding: 6, cursor: 'pointer', display: 'flex' }}>
+              <X size={15} style={{ color: '#6B7280' }} />
+            </button>
+          </div>
+
+          <div className="overflow-y-auto px-6 py-5 flex flex-col gap-4">
+            <div className="flex gap-3">
+              <div style={{ flex: 1 }}>
+                <label style={MODAL_LBL}>Amount ({tx.currency})</label>
+                <input type="number" min="0" step="0.01" value={amount}
+                  onChange={e => setAmount(e.target.value)} style={MODAL_INP} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={MODAL_LBL}>Date</label>
+                <input type="date" value={date} onChange={e => setDate(e.target.value)} style={MODAL_INP} />
+              </div>
+            </div>
+            <div>
+              <label style={MODAL_LBL}>Method</label>
+              <select value={method} onChange={e => setMethod(e.target.value)} style={MODAL_INP}>
+                <option value="CASH">Cash</option>
+                <option value="BANK_TRANSFER">Bank Transfer</option>
+                <option value="STRIPE">Stripe</option>
+                <option value="DIRECT_DEBIT">Direct Debit</option>
+                <option value="OTHER">Other</option>
+              </select>
+            </div>
+            {error && <p style={{ fontSize: 12, color: '#DC2626', fontWeight: 500 }}>{error}</p>}
+          </div>
+
+          <div className="flex gap-3 px-6 py-4" style={{ borderTop: '1px solid #F3F4F6', flexShrink: 0 }}>
+            <button onClick={onClose} style={{ flex: 1, padding: '10px', borderRadius: 10, border: '1px solid #E5E7EB',
+              background: '#fff', fontSize: 13, fontWeight: 500, color: '#374151', cursor: 'pointer' }}>
+              Cancel
+            </button>
+            <button onClick={handleSave} disabled={saving} style={{ flex: 2, padding: '10px', borderRadius: 10, border: 'none',
+              background: '#0870E2', fontSize: 13, fontWeight: 600, color: '#fff', cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.7 : 1 }}>
+              {saving ? 'Saving…' : 'Save Changes'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
 // ── Resolve Modal ──────────────────────────────────────────────────────────────
 function ResolveModal({ tx, onClose, onResolved }: {
   tx: TxRow
@@ -826,6 +924,7 @@ export default function TransactionsClient() {
   const [selectedTx,     setSelectedTx]   = useState<TxRow | null>(null)
   const [showAddPayment, setShowAddPayment] = useState(false)
   const [resolvingTx,    setResolvingTx]  = useState<TxRow | null>(null)
+  const [editingTx,      setEditingTx]    = useState<TxRow | null>(null)
   const [showResolved,   setShowResolved] = useState(false)
 
   const [activeFilter,  setActiveFilter]  = useState<FilterTab>('ALL')
@@ -892,6 +991,12 @@ export default function TransactionsClient() {
       const data = await res.json().catch(() => ({}))
       alert(data.error ?? 'Could not delete transaction.')
     }
+  }
+
+  function handleEditSaved(id: string, updated: { date: string; amount: number; method: string | null }) {
+    setEditingTx(null)
+    setTransactions(prev => prev.map(tx => tx.id === id ? { ...tx, ...updated } : tx))
+    if (selectedTx?.id === id) setSelectedTx(prev => prev ? { ...prev, ...updated } : null)
   }
 
   function handleResolved(id: string, resolvedAt: string, resolvedByName: string | null, resolutionNote: string | null) {
@@ -1148,6 +1253,7 @@ export default function TransactionsClient() {
                         onDelete={handleDelete}
                         onView={() => setSelectedTx(isSelected ? null : tx)}
                         onResolve={() => setResolvingTx(tx)}
+                        onEdit={() => setEditingTx(tx)}
                       />
                     </td>
                   </tr>
@@ -1191,6 +1297,13 @@ export default function TransactionsClient() {
     </main>
 
     {selectedTx && <TxDetailDrawer tx={selectedTx} onClose={() => setSelectedTx(null)} />}
+    {editingTx && (
+      <EditPaymentModal
+        tx={editingTx}
+        onClose={() => setEditingTx(null)}
+        onSaved={updated => handleEditSaved(editingTx.id, updated)}
+      />
+    )}
     {showAddPayment && (
       <AddPaymentModal
         onClose={() => setShowAddPayment(false)}

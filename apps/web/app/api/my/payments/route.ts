@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
   const page = parseInt(new URL(req.url).searchParams.get('page') || '1')
   const limit = 20
 
-  const where = { userId: dbUser.id, ...(schoolId && { schoolId }) }
+  const where = { userId: dbUser.id, deletedAt: null, ...(schoolId && { schoolId }) }
   const [transactions, total] = await Promise.all([
     prisma.transaction.findMany({
       where,

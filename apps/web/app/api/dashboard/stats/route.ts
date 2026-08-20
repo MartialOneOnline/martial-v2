@@ -108,6 +108,7 @@ export async function GET(req: NextRequest) {
       where: {
         schoolId,
         type: 'INCOME',
+        deletedAt: null,
         date: { gte: startOfMonth },
       },
       _sum: { amount: true },
@@ -118,6 +119,7 @@ export async function GET(req: NextRequest) {
       where: {
         schoolId,
         type: 'INCOME',
+        deletedAt: null,
         date: { gte: startOfLastMonth, lte: comparableEndOfLastMonth },
       },
       _sum: { amount: true },

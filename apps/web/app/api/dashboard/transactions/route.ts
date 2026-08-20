@@ -45,6 +45,7 @@ export async function GET(req: NextRequest) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const where: any = {
     schoolId: auth.schoolId,
+    deletedAt: null,
     ...(status     && status !== 'ALL'  ? { status }                          : {}),
     ...(status === 'FLAGGED' && resolved !== 'all'
       ? { resolvedAt: resolved === 'true' ? { not: null } : null }
@@ -83,7 +84,7 @@ export async function GET(req: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     prisma.transaction.groupBy({
       by: ['status'],
-      where: { schoolId: auth.schoolId, ...(type && type !== 'ALL' ? { type: type as any } : {}) } as any,
+      where: { schoolId: auth.schoolId, deletedAt: null, ...(type && type !== 'ALL' ? { type: type as any } : {}) } as any,
       _count: { id: true },
       _sum: { amount: true },
     }) as any,
@@ -91,7 +92,7 @@ export async function GET(req: NextRequest) {
     // ever flagged — resolved ones shouldn't inflate the "needs attention"
     // badge. Can't get this split from the groupBy above (it only groups by
     // status, not resolvedAt), so it's a dedicated count.
-    prisma.transaction.count({ where: { schoolId: auth.schoolId, status: 'FLAGGED', resolvedAt: null } }),
+    prisma.transaction.count({ where: { schoolId: auth.schoolId, deletedAt: null, status: 'FLAGGED', resolvedAt: null } }),
   ])
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

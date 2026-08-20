@@ -26,12 +26,15 @@ async function authorise() {
 
 /**
  * PATCH /api/dashboard/memberships/[id]
- * Actions: activate | pause | resume | cancel
+ * Actions: activate | pause | resume | cancel | updateDates
  *
- * activate — PENDING → ACTIVE (re-runs assignPlan to set dates + create transaction)
- * pause    — ACTIVE  → PAUSED  + SchoolMember FROZEN
- * resume   — PAUSED  → ACTIVE  + SchoolMember ACTIVE
- * cancel   — any     → CANCELLED (respects school cancelPolicy via cancelMembership service)
+ * activate    — PENDING → ACTIVE (re-runs assignPlan to set dates + create transaction)
+ * pause       — ACTIVE  → PAUSED  + SchoolMember FROZEN
+ * resume      — PAUSED  → ACTIVE  + SchoolMember ACTIVE
+ * cancel      — any     → CANCELLED (respects school cancelPolicy via cancelMembership service)
+ * updateDates — corrects startDate/endDate on an existing membership directly
+ *               (e.g. a manual renewal was entered with the wrong date) —
+ *               no status/transaction side effects, just the two date fields.
  */
 export async function PATCH(
   req: NextRequest,
@@ -46,12 +49,57 @@ export async function PATCH(
     select: {
       id: true, userId: true, schoolId: true, status: true,
       planId: true, planName: true, paymentMethod: true, notes: true,
-      price: true, currency: true,
+      price: true, currency: true, startDate: true, endDate: true,
     },
   })
   if (!membership) return NextResponse.json({ error: 'Membership not found' }, { status: 404 })
 
-  const { action } = await req.json() as { action: 'activate' | 'pause' | 'resume' | 'cancel' }
+  const body = await req.json() as { action: 'activate' | 'pause' | 'resume' | 'cancel' | 'updateDates', startDate?: string, endDate?: string | null }
+  const { action } = body
+
+  // ── updateDates: correct startDate/endDate directly ──────────────────────
+  // CASH-only for now — Stripe/Revolut memberships have their dates driven
+  // by the subscription/webhook, so a manual override here would silently
+  // desync from the provider. Revisit once there's a reconciliation path.
+  if (action === 'updateDates') {
+    if (membership.paymentMethod !== 'CASH') {
+      return NextResponse.json({ error: 'Dates can only be edited on cash memberships' }, { status: 403 })
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data: any = {}
+
+    if (body.startDate !== undefined) {
+      const startDate = new Date(body.startDate)
+      if (isNaN(startDate.getTime())) return NextResponse.json({ error: 'Invalid start date' }, { status: 400 })
+      data.startDate = startDate
+    }
+    if (body.endDate !== undefined) {
+      if (body.endDate === null) {
+        data.endDate = null
+      } else {
+        const endDate = new Date(body.endDate)
+        if (isNaN(endDate.getTime())) return NextResponse.json({ error: 'Invalid end date' }, { status: 400 })
+        data.endDate = endDate
+      }
+    }
+    if (Object.keys(data).length === 0) {
+      return NextResponse.json({ error: 'Nothing to update' }, { status: 400 })
+    }
+
+    const start = data.startDate ?? membership.startDate
+    const end = data.endDate !== undefined ? data.endDate : membership.endDate
+    if (end && end < start) {
+      return NextResponse.json({ error: 'End date cannot be before start date' }, { status: 400 })
+    }
+
+    const updated = await prisma.membership.update({ where: { id }, data })
+    return NextResponse.json({
+      id: updated.id,
+      startDate: updated.startDate.toISOString(),
+      endDate: updated.endDate ? updated.endDate.toISOString() : null,
+    })
+  }
 
   // ── activate: PENDING → ACTIVE ────────────────────────────────────────────────
   //

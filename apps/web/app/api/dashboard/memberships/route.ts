@@ -93,7 +93,7 @@ export async function GET(req: NextRequest) {
   const membershipIdsForPending = memberships.map(m => m.id)
   const pendingTransactions = membershipIdsForPending.length
     ? await prisma.transaction.findMany({
-        where: { schoolId: auth.schoolId, membershipId: { in: membershipIdsForPending }, status: 'PENDING' },
+        where: { schoolId: auth.schoolId, membershipId: { in: membershipIdsForPending }, status: 'PENDING', deletedAt: null },
         select: { id: true, membershipId: true },
       })
     : []

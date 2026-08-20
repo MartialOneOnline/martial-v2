@@ -34,6 +34,7 @@ export async function GET(req: NextRequest) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const where: any = {
     schoolId: auth.schoolId,
+    deletedAt: null,
     ...(type && type !== 'ALL' ? { type } : {}),
     ...(search ? {
       OR: [
@@ -57,7 +58,7 @@ export async function GET(req: NextRequest) {
   // never PENDING/FAILED/REFUNDED/CANCELLED, so income/expenses/balance reflect
   // actual cash rather than attempted or reversed charges.
   const allTx = await prisma.transaction.findMany({
-    where: { schoolId: auth.schoolId, status: TransactionStatus.PAID },
+    where: { schoolId: auth.schoolId, status: TransactionStatus.PAID, deletedAt: null },
     select: { type: true, amount: true, date: true },
   })
 

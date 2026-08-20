@@ -1045,6 +1045,11 @@ function MembershipSection({
   const [cancelling, setCancelling] = useState(false)
   const [creatingRenewal, setCreatingRenewal] = useState(false)
   const [markingPaid, setMarkingPaid] = useState(false)
+  const [editingDates, setEditingDates] = useState(false)
+  const [editStart, setEditStart] = useState('')
+  const [editEnd, setEditEnd] = useState('')
+  const [savingDates, setSavingDates] = useState(false)
+  const [dateError, setDateError] = useState<string | null>(null)
 
   const isPastDue = !!(activeMembership?.expiresAt && new Date(activeMembership.expiresAt) < new Date())
 
@@ -1098,6 +1103,42 @@ function MembershipSection({
       }
     } finally {
       setMarkingPaid(false)
+    }
+  }
+
+  function openDateEdit() {
+    if (!activeMembership) return
+    setEditStart(activeMembership.startDate.slice(0, 10))
+    setEditEnd(activeMembership.expiresAt ? activeMembership.expiresAt.slice(0, 10) : '')
+    setDateError(null)
+    setEditingDates(true)
+  }
+
+  async function handleSaveDates() {
+    if (!activeMembership) return
+    setDateError(null)
+    setSavingDates(true)
+    try {
+      const res = await fetch(`/api/dashboard/memberships/${activeMembership.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'updateDates',
+          startDate: editStart,
+          endDate: editEnd || null,
+        }),
+      })
+      if (res.ok) {
+        const m = await res.json()
+        setActiveMembership(prev => prev ? { ...prev, startDate: m.startDate, expiresAt: m.endDate } : prev)
+        setMemberships(prev => prev.map(mem => mem.id === activeMembership.id ? { ...mem, startDate: m.startDate, endDate: m.endDate } : mem))
+        setEditingDates(false)
+      } else {
+        const d = await res.json().catch(() => ({}))
+        setDateError(d.error ?? 'Could not update dates')
+      }
+    } finally {
+      setSavingDates(false)
     }
   }
 
@@ -1176,10 +1217,43 @@ function MembershipSection({
             <div className="flex items-start justify-between">
               <div>
                 <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: '0 0 2px' }}>{activeMembership.planName}</p>
-                <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>
-                  Started {new Date(activeMembership.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                  {activeMembership.expiresAt && ` · Expires ${new Date(activeMembership.expiresAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`}
-                </p>
+                {editingDates ? (
+                  <div style={{ marginTop: 4 }}>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <label className="flex items-center gap-1" style={{ fontSize: 11, color: '#6B7280' }}>
+                        Start
+                        <input type="date" value={editStart} onChange={e => setEditStart(e.target.value)}
+                          style={{ fontSize: 12, padding: '3px 6px', borderRadius: 6, border: '1px solid #D1D5DB' }} />
+                      </label>
+                      <label className="flex items-center gap-1" style={{ fontSize: 11, color: '#6B7280' }}>
+                        Expires
+                        <input type="date" value={editEnd} onChange={e => setEditEnd(e.target.value)}
+                          style={{ fontSize: 12, padding: '3px 6px', borderRadius: 6, border: '1px solid #D1D5DB' }} />
+                      </label>
+                      <button onClick={handleSaveDates} disabled={savingDates}
+                        style={{ fontSize: 11, fontWeight: 600, color: '#fff', background: '#16A34A', border: 'none',
+                          padding: '4px 10px', borderRadius: 6, cursor: savingDates ? 'not-allowed' : 'pointer', opacity: savingDates ? 0.6 : 1 }}>
+                        {savingDates ? 'Saving…' : 'Save'}
+                      </button>
+                      <button onClick={() => setEditingDates(false)} disabled={savingDates}
+                        style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px' }}>
+                        Cancel
+                      </button>
+                    </div>
+                    {dateError && <p style={{ fontSize: 11, color: '#EF4444', margin: '4px 0 0' }}>{dateError}</p>}
+                  </div>
+                ) : (
+                  <p className="flex items-center gap-1.5" style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>
+                    Started {new Date(activeMembership.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    {activeMembership.expiresAt && ` · Expires ${new Date(activeMembership.expiresAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`}
+                    {activeMembership.paymentMethod === 'CASH' && (
+                      <button onClick={openDateEdit} title="Edit dates"
+                        style={{ display: 'inline-flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: '#9CA3AF' }}>
+                        <Edit2 size={11} />
+                      </button>
+                    )}
+                  </p>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <span style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>

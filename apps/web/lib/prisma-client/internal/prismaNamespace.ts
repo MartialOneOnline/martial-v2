@@ -5152,6 +5152,8 @@ export const TransactionScalarFieldEnum = {
   resolvedAt: 'resolvedAt',
   resolvedBy: 'resolvedBy',
   resolutionNote: 'resolutionNote',
+  deletedAt: 'deletedAt',
+  deletedBy: 'deletedBy',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

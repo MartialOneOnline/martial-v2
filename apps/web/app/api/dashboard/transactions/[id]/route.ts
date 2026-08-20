@@ -89,6 +89,56 @@ export async function PATCH(
     })
   }
 
+  // ── Edit a manually-entered mistake (wrong date/amount/method) ──────────
+  // Deliberately separate from the status-transition branch below: this
+  // never touches status, so it can't accidentally trigger the PAID
+  // side-effects (notification, applyPaidMembershipTransaction) further
+  // down. Blocked once the row is soft-deleted or REFUNDED — those stay
+  // the frozen record.
+  if (body.action === 'edit') {
+    const tx = await prisma.transaction.findFirst({ where: { id, schoolId: auth.schoolId } })
+    if (!tx) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    if (tx.deletedAt) return NextResponse.json({ error: 'Cannot edit a deleted transaction' }, { status: 400 })
+    if (tx.status === 'REFUNDED') {
+      return NextResponse.json({ error: 'Refunded transactions cannot be edited' }, { status: 403 })
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data: any = {}
+
+    if (body.date !== undefined) {
+      const date = new Date(body.date)
+      if (isNaN(date.getTime())) return NextResponse.json({ error: 'Invalid date' }, { status: 400 })
+      data.date = date
+    }
+    if (body.amount !== undefined) {
+      const amount = parseFloat(body.amount)
+      if (!isFinite(amount) || amount <= 0) return NextResponse.json({ error: 'Invalid amount' }, { status: 400 })
+      data.amount = amount
+    }
+    if (body.paymentMethod !== undefined) {
+      const allowedMethods = ['STRIPE', 'CASH', 'BANK_TRANSFER', 'DIRECT_DEBIT', 'OTHER']
+      if (body.paymentMethod !== null && !allowedMethods.includes(body.paymentMethod)) {
+        return NextResponse.json({ error: 'Invalid payment method' }, { status: 400 })
+      }
+      data.paymentMethod = body.paymentMethod
+    }
+
+    if (Object.keys(data).length === 0) {
+      return NextResponse.json({ error: 'Nothing to update' }, { status: 400 })
+    }
+
+    const updated = await prisma.transaction.update({ where: { id }, data })
+    await revalidateStudentProfile(auth.schoolId, tx.userId)
+
+    return NextResponse.json({
+      id: updated.id,
+      date: updated.date.toISOString(),
+      amount: Number(updated.amount),
+      paymentMethod: updated.paymentMethod,
+    })
+  }
+
   const { status } = body
 
   const allowed = ['PAID', 'PENDING', 'FAILED']
@@ -110,6 +160,7 @@ export async function PATCH(
     include: { user: { select: { name: true } } },
   })
   if (!tx) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (tx.deletedAt) return NextResponse.json({ error: 'Cannot change status of a deleted transaction' }, { status: 400 })
 
   const updated = await prisma.transaction.update({
     where: { id },
@@ -147,12 +198,12 @@ export async function DELETE(
     where: { id, schoolId: auth.schoolId },
   })
   if (!tx) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (tx.deletedAt) return NextResponse.json({ error: 'Already deleted' }, { status: 400 })
 
-  // TODO(phase-5-audit-trail): replace hard delete with soft delete (deletedAt/deletedBy)
-  // and restrict deletion to PENDING/FAILED only once audit trail is implemented.
-  if (['PAID', 'REFUNDED'].includes(tx.status)) {
+  // REFUNDED rows go through their own accounting workflow and stay put.
+  if (tx.status === 'REFUNDED') {
     return NextResponse.json(
-      { error: 'Paid transactions cannot be deleted. Use Phase 5 refund workflow.' },
+      { error: 'Refunded transactions cannot be deleted. Use the refund workflow instead.' },
       { status: 403 },
     )
   }
@@ -169,7 +220,13 @@ export async function DELETE(
     )
   }
 
-  await prisma.transaction.delete({ where: { id } })
+  // Soft delete: keeps the row (and the audit stamp of who removed it) for
+  // history while taking it out of every list/stat query, which all filter
+  // on deletedAt: null (see GET /api/dashboard/transactions).
+  await prisma.transaction.update({
+    where: { id },
+    data: { deletedAt: new Date(), deletedBy: auth.userId },
+  })
   await revalidateStudentProfile(auth.schoolId, tx.userId)
   return NextResponse.json({ ok: true })
 }
