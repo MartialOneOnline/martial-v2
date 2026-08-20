@@ -20,6 +20,7 @@ import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { memberStatusColors } from '../../../lib/design/tokens'
 import { submitMemberStatusChange, applyOptimisticStatus } from '../../../lib/memberStatus'
 import { downloadCsv } from '../../../lib/csvExport'
+import { matchesSearch } from '../../../lib/search'
 import CampaignComposerModal from './CampaignComposerModal'
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
@@ -1674,9 +1675,12 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
 
   const filtered = students.filter(s => {
     const displayStatus = STATUS_DISPLAY[s.status] ?? s.status
+    // Lead tab also surfaces PENDING invites (sent but not yet accepted) so
+    // admins can find them without hunting through the Pending tab — the
+    // underlying status stays PENDING, this only affects what's shown here.
     const matchStatusTab = activeFilter === 'All' || displayStatus === activeFilter
-    const matchSearch = s.name.toLowerCase().includes(search.toLowerCase()) ||
-                        s.email.toLowerCase().includes(search.toLowerCase())
+      || (activeFilter === 'Lead' && s.status === 'PENDING')
+    const matchSearch = matchesSearch(s.name, search) || matchesSearch(s.email, search)
     const matchBelt   = advFilters.belts.length === 0    || advFilters.belts.includes(s.belt)
     const matchStatus = advFilters.statuses.length === 0 || advFilters.statuses.includes(s.status)
     const matchRole   = advFilters.roles.length === 0    || advFilters.roles.includes(s.role)
@@ -1968,6 +1972,7 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
                   {filterLabels[f]}
                   <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 600, color: activeFilter === f ? '#0071E3' : '#9CA3AF' }}>
                     {f === 'All' ? students.length
+                      : f === 'Lead' ? students.filter(s => s.status === 'LEAD' || s.status === 'PENDING').length
                       : students.filter(s => (STATUS_DISPLAY[s.status] ?? s.status) === f).length}
                   </span>
                 </button>
