@@ -473,11 +473,6 @@ function SchoolQuickView({
         className="relative w-full md:w-[680px] md:max-w-[92vw] bg-white rounded-t-3xl md:rounded-3xl shadow-2xl max-h-[88dvh] md:max-h-[90dvh] overflow-y-auto"
         style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" }}
       >
-        {/* Drag handle (mobile) */}
-        <div className="md:hidden sticky top-0 z-20 flex justify-center pt-3 pb-1 bg-white rounded-t-3xl">
-          <div className="w-10 h-1.5 rounded-full bg-[#E5E7EB]" />
-        </div>
-
         {/* Close */}
         <button
           onClick={onClose}
@@ -487,7 +482,9 @@ function SchoolQuickView({
         </button>
 
         {/* Cover */}
-        <div className="relative w-full h-52 md:h-64 bg-gradient-to-br from-[#0E3A7A] to-[#0870E2] overflow-hidden md:rounded-t-3xl">
+        <div className="relative w-full h-52 md:h-64 bg-gradient-to-br from-[#0E3A7A] to-[#0870E2] overflow-hidden">
+          {/* Drag handle (mobile) */}
+          <div className="md:hidden absolute top-2 left-1/2 -translate-x-1/2 z-20 w-10 h-1.5 rounded-full bg-white/70" />
           {imgs[idx] && <Image src={imgs[idx]} alt={school.name} fill className="object-cover" />}
           {imgs.length > 1 && (
             <>
@@ -562,14 +559,14 @@ function SchoolQuickView({
           <div className="flex flex-col-reverse sm:flex-row gap-3">
             <Link
               href={`/school/${school.slug}`}
-              className="flex-1 h-12 rounded-xl border border-[#E5E7EB] text-[#111827] font-semibold text-sm flex items-center justify-center hover:bg-[#F9FAFB] transition-colors"
+              className="w-full sm:flex-1 h-12 rounded-xl border border-[#E5E7EB] text-[#111827] font-semibold text-sm flex items-center justify-center hover:bg-[#F9FAFB] transition-colors"
             >
               Ver perfil completo
             </Link>
             {hasClasses ? (
               <button
                 onClick={onBookClass}
-                className="flex-1 h-12 rounded-xl text-white font-semibold text-sm flex items-center justify-center hover:opacity-90 transition-opacity gap-2"
+                className="w-full sm:flex-1 h-12 rounded-xl text-white font-semibold text-sm flex items-center justify-center hover:opacity-90 transition-opacity gap-2"
                 style={{ background: BLUE }}
               >
                 <Dumbbell className="w-4 h-4" />
@@ -578,7 +575,7 @@ function SchoolQuickView({
             ) : hasPlans ? (
               <Link
                 href={`/join/${school.slug}`}
-                className="flex-1 h-12 rounded-xl text-white font-semibold text-sm flex items-center justify-center hover:opacity-90 transition-opacity gap-2"
+                className="w-full sm:flex-1 h-12 rounded-xl text-white font-semibold text-sm flex items-center justify-center hover:opacity-90 transition-opacity gap-2"
                 style={{ background: BLUE }}
               >
                 <UserPlus className="w-4 h-4" />
@@ -587,7 +584,7 @@ function SchoolQuickView({
             ) : (
               <Link
                 href={`/school/${school.slug}#contact`}
-                className="flex-1 h-12 rounded-xl text-white font-semibold text-sm flex items-center justify-center hover:opacity-90 transition-opacity gap-2"
+                className="w-full sm:flex-1 h-12 rounded-xl text-white font-semibold text-sm flex items-center justify-center hover:opacity-90 transition-opacity gap-2"
                 style={{ background: BLUE }}
               >
                 <Mail className="w-4 h-4" />
