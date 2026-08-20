@@ -16,6 +16,7 @@ import { useT } from '../../../../lib/i18n/LanguageContext'
 import { adminFetch } from '../../../../lib/api/adminFetch'
 import { BOOKING_PAYMENT_OPTIONS, type BookingPaymentMethod } from '../../../../lib/paymentMethods'
 import RowMenu from '../../../../components/RowMenu'
+import { matchesSearch } from '../../../../lib/search'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -875,12 +876,10 @@ export default function EventsClient() {
 
   const filtered = eventsWithStatus.filter(ev => {
     const matchFilter = activeFilter === 'All' || ev._status === activeFilter
-    const q = search.toLowerCase()
-    const matchSearch = !q ||
-      ev.title.toLowerCase().includes(q) ||
-      (ev.instructor?.name ?? '').toLowerCase().includes(q) ||
-      TYPE_LABELS[ev.type].toLowerCase().includes(q) ||
-      (ev.location ?? '').toLowerCase().includes(q)
+    const matchSearch = matchesSearch(ev.title, search) ||
+      matchesSearch(ev.instructor?.name ?? '', search) ||
+      matchesSearch(TYPE_LABELS[ev.type], search) ||
+      matchesSearch(ev.location ?? '', search)
     return matchFilter && matchSearch
   })
 

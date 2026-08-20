@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { X, UserPlus, Users, Clock, Search, Check, Loader2, ArrowLeft, User, ShieldCheck, ChevronRight } from 'lucide-react'
+import { matchesSearch } from '../../lib/search'
 
 interface Student {
   id: string
@@ -118,10 +119,7 @@ export default function ClassCapacityPopup({ cls, date, onClose }: Props) {
   const barColor = pct >= 1 ? '#DC2626' : pct > 0.7 ? '#D97706' : '#16A34A'
 
   const filteredMembers = search.trim()
-    ? members.filter(m =>
-        m.name.toLowerCase().includes(search.toLowerCase()) ||
-        m.email.toLowerCase().includes(search.toLowerCase())
-      )
+    ? members.filter(m => matchesSearch(m.name, search) || matchesSearch(m.email, search))
     : members
 
   async function handleAddBooking(member: Member) {

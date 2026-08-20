@@ -6,6 +6,7 @@ import { X, Bell, Percent, Award, Sun, Gift, Pencil, ChevronLeft, Send, CheckCir
 import { useT, useLanguage } from '../../../lib/i18n/LanguageContext'
 import { CAMPAIGN_PRESETS } from '../../../lib/email/campaignPresets'
 import type { CampaignType } from '../../../lib/prisma-client/enums'
+import { matchesSearch } from '../../../lib/search'
 
 export type ComposerStudent = { id: string; name: string; email: string; belt: string; status: string; avatarUrl?: string | null }
 
@@ -114,10 +115,9 @@ export default function CampaignComposerModal({ preselectedStudents, campaignId,
   const skippedCount = students.length - withEmail.length
 
   const visibleMembers = useMemo(() => {
-    const q = pickerSearch.toLowerCase()
     return allMembers.filter(m => {
       const matchFilter = pickerFilter === 'All' || (STATUS_DISPLAY[m.status] ?? m.status) === pickerFilter
-      const matchSearch = !q || m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q)
+      const matchSearch = matchesSearch(m.name, pickerSearch) || matchesSearch(m.email, pickerSearch)
       return matchFilter && matchSearch
     })
   }, [allMembers, pickerFilter, pickerSearch])

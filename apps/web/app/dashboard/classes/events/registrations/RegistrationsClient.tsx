@@ -10,6 +10,7 @@ import { useDashboard } from '../../../../../components/DashboardShell'
 import NotificationBell from '../../../../../components/NotificationBell'
 import { adminFetch } from '../../../../../lib/api/adminFetch'
 import { fmtPrice } from '../../../../../lib/format'
+import { matchesSearch } from '../../../../../lib/search'
 
 type RegStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' | 'NO_SHOW'
 type FilterTab = 'ALL' | RegStatus
@@ -494,9 +495,7 @@ function AddRegistrationModal({ events, defaultEventId, onClose, onSaved }: {
   }, [mode]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const filteredMembers = memberSearch.trim()
-    ? members.filter(m =>
-        m.name.toLowerCase().includes(memberSearch.toLowerCase()) ||
-        m.email.toLowerCase().includes(memberSearch.toLowerCase()))
+    ? members.filter(m => matchesSearch(m.name, memberSearch) || matchesSearch(m.email, memberSearch))
     : members
 
   async function handleSave() {

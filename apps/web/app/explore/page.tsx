@@ -16,6 +16,7 @@ import LoginModal from '../../components/LoginModal'
 import { useT } from '../../lib/i18n/LanguageContext'
 import ClassBookingModal from '../school/[slug]/ClassBookingModal'
 import { fmtPrice } from '../../lib/format'
+import { matchesSearch, normalizeForSearch } from '../../lib/search'
 
 // Leaflet map — dynamic import (no SSR, needs browser APIs)
 const ExploreMap = dynamic(() => import('../../components/ExploreMap'), { ssr: false, loading: () => (
@@ -307,7 +308,7 @@ function SchoolCard({ school, onClick }: { school: DbSchool; onClick: () => void
         </p>
 
         <p className="text-xs text-[#6B7280] leading-relaxed line-clamp-2 mb-3 min-h-[2rem]">
-          {school.description || ' '}
+          {school.description || ' '}
         </p>
 
         <div className="flex items-center justify-between mt-auto pt-1">
@@ -733,15 +734,15 @@ export default function ExplorePage() {
 
   // Filter + sort schools
   const filteredSchools = useMemo(() => {
-    const q = search.toLowerCase()
-    const l = location.toLowerCase()
+    const q = normalizeForSearch(search)
+    const l = normalizeForSearch(location)
     return schools
       .filter(s => {
         const tags = s.disciplines.map(d => d.discipline.name.toLowerCase())
         const matchType = s.type === 'SCHOOL'
         const matchDiscipline = discipline === 'All' || tags.some(tag => tag.includes(discipline.toLowerCase()))
-        const matchSearch = !q || s.name.toLowerCase().includes(q) || tags.some(t => t.includes(q)) || (s.description ?? '').toLowerCase().includes(q)
-        const matchLocation = !l || (s.city ?? '').toLowerCase().includes(l) || (s.address ?? '').toLowerCase().includes(l)
+        const matchSearch = !q || matchesSearch(s.name, search) || tags.some(t => normalizeForSearch(t).includes(q)) || matchesSearch(s.description ?? '', search)
+        const matchLocation = !l || normalizeForSearch(s.city ?? '').includes(l) || normalizeForSearch(s.address ?? '').includes(l)
         return matchType && matchDiscipline && matchSearch && matchLocation
       })
       .sort((a, b) => {
@@ -777,12 +778,12 @@ export default function ExplorePage() {
 
   // Filter classes
   const filteredClasses = useMemo(() => {
-    const q = search.toLowerCase()
-    const l = location.toLowerCase()
+    const q = normalizeForSearch(search)
+    const l = normalizeForSearch(location)
     return classes.filter(c => {
       const matchDiscipline = discipline === 'All' || c.name.toLowerCase().includes(discipline.toLowerCase()) || c.school.name.toLowerCase().includes(discipline.toLowerCase())
-      const matchSearch = !q || c.name.toLowerCase().includes(q) || c.school.name.toLowerCase().includes(q)
-      const matchLocation = !l || c.school.city.toLowerCase().includes(l)
+      const matchSearch = !q || matchesSearch(c.name, search) || matchesSearch(c.school.name, search)
+      const matchLocation = !l || normalizeForSearch(c.school.city).includes(l)
       const matchDay = (c.schedule ?? []).some(s => s.dayOfWeek === selectedDay)
       return matchDiscipline && matchSearch && matchLocation && matchDay
     }).sort((a, b) => {
@@ -794,14 +795,14 @@ export default function ExplorePage() {
 
   // Filter + sort events
   const filteredEvents = useMemo(() => {
-    const q = search.toLowerCase()
-    const l = location.toLowerCase()
+    const q = normalizeForSearch(search)
+    const l = normalizeForSearch(location)
     const minPrice = (ev: DbEvent) => ev.tickets.length > 0 ? Math.min(...ev.tickets.map(t => t.price)) : Infinity
     return events
       .filter(ev => {
         const matchDiscipline = discipline === 'All' || ev.title.toLowerCase().includes(discipline.toLowerCase())
-        const matchSearch = !q || ev.title.toLowerCase().includes(q) || ev.school.name.toLowerCase().includes(q)
-        const matchLocation = !l || ev.school.city.toLowerCase().includes(l) || (ev.location ?? '').toLowerCase().includes(l)
+        const matchSearch = !q || matchesSearch(ev.title, search) || matchesSearch(ev.school.name, search)
+        const matchLocation = !l || normalizeForSearch(ev.school.city).includes(l) || normalizeForSearch(ev.location ?? '').includes(l)
         return matchDiscipline && matchSearch && matchLocation
       })
       .sort((a, b) => {

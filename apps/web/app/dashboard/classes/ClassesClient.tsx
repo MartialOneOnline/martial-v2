@@ -16,6 +16,7 @@ import { type BookingSettings, minsToHoursAndMins, hoursAndMinsToTotal } from '.
 import { fmtPrice as _fmtP } from '../../../lib/format'
 import { BOOKING_PAYMENT_OPTIONS, type BookingPaymentMethod } from '../../../lib/paymentMethods'
 import RowMenu from '../../../components/RowMenu'
+import { matchesSearch } from '../../../lib/search'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -1214,11 +1215,9 @@ export default function ClassesClient() {
     const matchFilter = activeFilter === 'All'
       || (activeFilter === 'Active' && c.isActive)
       || (activeFilter === 'Inactive' && !c.isActive)
-    const q = search.toLowerCase()
-    const matchSearch = !q
-      || c.name.toLowerCase().includes(q)
-      || (c.instructor?.name ?? '').toLowerCase().includes(q)
-      || (c.discipline?.name ?? '').toLowerCase().includes(q)
+    const matchSearch = matchesSearch(c.name, search)
+      || matchesSearch(c.instructor?.name ?? '', search)
+      || matchesSearch(c.discipline?.name ?? '', search)
     return matchFilter && matchSearch
   })
 

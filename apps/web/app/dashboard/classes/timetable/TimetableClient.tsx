@@ -8,6 +8,7 @@ import { Users, Calendar, CreditCard, BarChart2, Settings, Bell, ChevronRight, M
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import type { Translations } from '../../../../lib/i18n/translations'
 import RowMenu from '../../../../components/RowMenu'
+import { matchesSearch } from '../../../../lib/search'
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 const HOUR_HEIGHT = 64
@@ -593,9 +594,8 @@ export default function TimetableClient() {
   // List filtering
   const activityOptions = ['All', ...Array.from(new Set(listRows.map(r => r.activity)))]
   const filteredList = listRows.filter(r => {
-    const q = listSearch.toLowerCase()
     return (listActivity === 'All' || r.activity === listActivity) &&
-      (listSearch === '' || r.title.toLowerCase().includes(q) || r.instructor.toLowerCase().includes(q))
+      (matchesSearch(r.title, listSearch) || matchesSearch(r.instructor, listSearch))
   })
   const totalPages = Math.max(1, Math.ceil(filteredList.length / ITEMS_PER_PAGE))
   const safePage   = Math.min(currentPage, totalPages)

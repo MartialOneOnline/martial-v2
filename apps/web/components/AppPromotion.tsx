@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle2, Search, Bell, Map, ListFilter, Star, Grid } from 'lucide-react'
+import { matchesSearch } from '../lib/search'
 
 const BULLETS = [
   'Track student progress to see who is up for stripe promotion.',
@@ -26,7 +27,7 @@ export default function AppPromotion() {
   const [activeCategory, setActiveCategory] = useState('All')
 
   const filtered = CLUBS.filter(c => {
-    const match = c.name.toLowerCase().includes(search.toLowerCase()) || c.arts.toLowerCase().includes(search.toLowerCase())
+    const match = matchesSearch(c.name, search) || matchesSearch(c.arts, search)
     if (activeCategory === 'All') return match
     return match && c.arts.toLowerCase().includes(activeCategory.toLowerCase())
   })

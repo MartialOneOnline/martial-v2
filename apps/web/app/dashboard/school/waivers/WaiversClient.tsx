@@ -6,6 +6,7 @@ import { useState } from 'react'
 import {Users, Calendar, CreditCard, BarChart2, Settings, ChevronRight, ChevronDown, Menu, X, Search, Check, TrendingDown, MoreHorizontal, Eye, Plus, FileText, Download, Send} from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import RowMenu from '../../../../components/RowMenu'
+import { matchesSearch } from '../../../../lib/search'
 
 type WaiverType = 'Liability' | 'Medical' | 'Photo Release' | 'Minor'
 type WaiverStatus = 'Signed' | 'Pending' | 'Expired'
@@ -47,9 +48,7 @@ function AddWaiverDrawer({ open, onClose, onSuccess }: { open: boolean; onClose:
   const [notes, setNotes]                   = useState('')
 
   const filteredMembers = MEMBERS.filter(m =>
-    memberQuery === '' ||
-    m.name.toLowerCase().includes(memberQuery.toLowerCase()) ||
-    m.email.toLowerCase().includes(memberQuery.toLowerCase())
+    matchesSearch(m.name, memberQuery) || matchesSearch(m.email, memberQuery)
   )
 
   function reset() {
@@ -226,8 +225,7 @@ export default function WaiversClient() {
 
   const filtered = WAIVERS.filter(w => {
     const matchFilter = activeFilter === 'All' || w.status === activeFilter
-    const q = search.toLowerCase()
-    const matchSearch = search === '' || w.name.toLowerCase().includes(q) || w.email.toLowerCase().includes(q) || w.type.toLowerCase().includes(q)
+    const matchSearch = matchesSearch(w.name, search) || matchesSearch(w.email, search) || matchesSearch(w.type, search)
     return matchFilter && matchSearch
   })
 

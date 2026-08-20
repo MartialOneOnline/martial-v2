@@ -12,6 +12,7 @@ import Header from '../../components/Header'
 import Footer from '../../components/Footer'
 import LoginModal from '../../components/LoginModal'
 import { useT } from '../../lib/i18n/LanguageContext'
+import { matchesSearch } from '../../lib/search'
 
 // ── Types & Data ──────────────────────────────────────────────────────────────
 
@@ -141,7 +142,7 @@ export default function AcademyPage() {
 
   const filteredCourses = useMemo(() => COURSES.filter(c => {
     const matchCat = category === 'All' || c.category === category
-    const matchQ = !searchQuery || c.title.toLowerCase().includes(searchQuery.toLowerCase()) || c.instructor.name.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchQ = matchesSearch(c.title, searchQuery) || matchesSearch(c.instructor.name, searchQuery)
     return matchCat && matchQ
   }), [category, searchQuery])
 

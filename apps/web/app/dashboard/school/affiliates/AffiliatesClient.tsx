@@ -6,6 +6,7 @@ import { useState } from 'react'
 import {Users, Calendar, CreditCard, BarChart2, Settings, ChevronRight, ChevronDown, Menu, X, Search, Check, TrendingDown, MoreHorizontal, Eye, Plus, Globe} from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import RowMenu from '../../../../components/RowMenu'
+import { matchesSearch } from '../../../../lib/search'
 
 type AffiliateStatus = 'Active' | 'Inactive' | 'Pending'
 
@@ -158,8 +159,7 @@ export default function AffiliatesClient() {
 
   const filtered = AFFILIATES.filter(a => {
     const matchFilter = activeFilter === 'All' || a.status === activeFilter
-    const q = search.toLowerCase()
-    const matchSearch = search === '' || a.name.toLowerCase().includes(q) || a.city.toLowerCase().includes(q) || a.country.toLowerCase().includes(q)
+    const matchSearch = matchesSearch(a.name, search) || matchesSearch(a.city, search) || matchesSearch(a.country, search)
     return matchFilter && matchSearch
   })
 

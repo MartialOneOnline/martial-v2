@@ -9,6 +9,7 @@ import { useDashboard } from '../../../../components/DashboardShell'
 import NotificationBell from '../../../../components/NotificationBell'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import RowMenu from '../../../../components/RowMenu'
+import { matchesSearch } from '../../../../lib/search'
 type Filter = string
 
 type StaffRole = 'Head Instructor' | 'Instructor' | 'Assistant' | 'Admin' | 'Receptionist'
@@ -64,9 +65,7 @@ function AddStaffDrawer({ open, onClose, onSuccess }: { open: boolean; onClose: 
   const [notes, setNotes]                   = useState('')
 
   const filteredMembers = MEMBERS.filter(m =>
-    memberQuery === '' ||
-    m.name.toLowerCase().includes(memberQuery.toLowerCase()) ||
-    m.email.toLowerCase().includes(memberQuery.toLowerCase())
+    matchesSearch(m.name, memberQuery) || matchesSearch(m.email, memberQuery)
   )
 
   function reset() {
@@ -256,8 +255,7 @@ export default function StaffClient() {
       : activeFilter === 'Instructors'
         ? ['Head Instructor','Instructor','Assistant'].includes(s.role)
         : ['Admin','Receptionist'].includes(s.role)
-    const q = search.toLowerCase()
-    const matchSearch = search === '' || s.name.toLowerCase().includes(q) || s.email.toLowerCase().includes(q) || s.role.toLowerCase().includes(q)
+    const matchSearch = matchesSearch(s.name, search) || matchesSearch(s.email, search) || matchesSearch(s.role, search)
     return matchFilter && matchSearch
   })
 

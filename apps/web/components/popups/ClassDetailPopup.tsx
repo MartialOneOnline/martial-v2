@@ -8,6 +8,7 @@ import {
   XCircle, ChevronRight, CheckCircle, Loader2,
   Search, ArrowLeft, Check,
 } from 'lucide-react'
+import { matchesSearch } from '../../lib/search'
 
 interface Booking {
   id: string
@@ -138,10 +139,7 @@ export default function ClassDetailPopup({ cls, date, onClose }: Props) {
   const isFull = pct >= 1
 
   const filteredMembers = search.trim()
-    ? members.filter(m =>
-        m.name.toLowerCase().includes(search.toLowerCase()) ||
-        m.email.toLowerCase().includes(search.toLowerCase())
-      )
+    ? members.filter(m => matchesSearch(m.name, search) || matchesSearch(m.email, search))
     : members
 
   async function handleAddBooking(member: Member) {
