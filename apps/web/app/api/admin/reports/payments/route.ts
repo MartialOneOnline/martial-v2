@@ -20,42 +20,44 @@ export async function GET(req: NextRequest) {
     byCategory, byStatus, monthlyTrend, bySchool,
   ] = await Promise.all([
     prisma.transaction.aggregate({
-      where: { date: { gte: from }, status: 'PAID', currency: 'EUR', type: 'INCOME' },
+      where: { date: { gte: from }, status: 'PAID', currency: 'EUR', type: 'INCOME', deletedAt: null },
       _sum: { amount: true },
     }),
     prisma.transaction.aggregate({
-      where: { date: { gte: from }, status: 'PAID', currency: 'EUR', type: 'EXPENSE' },
+      where: { date: { gte: from }, status: 'PAID', currency: 'EUR', type: 'EXPENSE', deletedAt: null },
       _sum: { amount: true },
     }),
-    prisma.transaction.count({ where: { date: { gte: from }, status: 'PAID', currency: { not: 'EUR' } } }),
+    prisma.transaction.count({ where: { date: { gte: from }, status: 'PAID', currency: { not: 'EUR' }, deletedAt: null } }),
     prisma.transaction.groupBy({
       by: ['category'],
-      where: { date: { gte: from }, status: 'PAID', currency: 'EUR' },
+      where: { date: { gte: from }, status: 'PAID', currency: 'EUR', deletedAt: null },
       _sum: { amount: true },
       _count: { id: true },
     }),
     prisma.transaction.groupBy({
       by: ['status'],
-      where: { date: { gte: from } },
+      where: { date: { gte: from }, deletedAt: null },
       _count: { id: true },
     }),
     prisma.$queryRaw<{ month: string; type: string; total: number }[]>`
       SELECT TO_CHAR("date", 'Mon YY') as month, type, SUM(amount) as total
       FROM transactions
-      WHERE "date" >= NOW() - INTERVAL '12 months' AND status = 'PAID' AND currency = 'EUR'
+      WHERE "date" >= NOW() - INTERVAL '12 months' AND status = 'PAID' AND currency = 'EUR' AND "deletedAt" IS NULL
       GROUP BY TO_CHAR("date", 'Mon YY'), DATE_TRUNC('month', "date"), type
       ORDER BY DATE_TRUNC('month', "date")
     `.catch(() => []),
     prisma.transaction.groupBy({
       by: ['schoolId'],
-      where: { date: { gte: from }, status: 'PAID', currency: 'EUR', type: 'INCOME' },
+      where: { date: { gte: from }, status: 'PAID', currency: 'EUR', type: 'INCOME', deletedAt: null },
       _sum: { amount: true },
       orderBy: { _sum: { amount: 'desc' } },
       take: 20,
     }),
   ])
 
-  const schoolIds = bySchool.map(s => s.schoolId)
+  // schoolId is null for Martial-sold marketplace products (no school
+  // involved) — excluded from the school lookup, labelled directly below.
+  const schoolIds = bySchool.map(s => s.schoolId).filter((id): id is string => id != null)
   const schools = await prisma.school.findMany({ where: { id: { in: schoolIds } }, select: { id: true, name: true } })
   const schoolMap = Object.fromEntries(schools.map(s => [s.id, s.name]))
 
@@ -81,7 +83,7 @@ export async function GET(req: NextRequest) {
     monthlyTrend: Array.from(monthMap.entries()).map(([month, v]) => ({ month, ...v })),
     bySchool: bySchool.map(s => ({
       schoolId: s.schoolId,
-      schoolName: schoolMap[s.schoolId] ?? s.schoolId,
+      schoolName: s.schoolId ? (schoolMap[s.schoolId] ?? s.schoolId) : 'Martial',
       income: s._sum.amount ?? 0,
     })),
   })

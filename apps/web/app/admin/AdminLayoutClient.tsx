@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Building2, Users, Settings,
   ChevronDown, ChevronRight, Target, GraduationCap,
-  TrendingUp, LogOut, ShieldAlert, X,
+  TrendingUp, LogOut, ShieldAlert, X, ShoppingBag,
   PanelLeftClose, PanelLeftOpen,
 } from 'lucide-react'
 
@@ -67,6 +67,13 @@ const NAV = [
     children: [
       { label: 'Overview', href: '/admin/reports' },
       { label: 'Growth',   href: '/admin/reports/growth' },
+    ],
+  },
+  {
+    label: 'Marketplace', icon: ShoppingBag,
+    children: [
+      { label: 'Products',           href: '/admin/marketplace' },
+      { label: 'Limited Collections', href: '/admin/marketplace/collections' },
     ],
   },
   {

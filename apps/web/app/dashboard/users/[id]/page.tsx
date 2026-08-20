@@ -55,7 +55,7 @@ export default async function StudentProfilePage({
       include: { class: { select: { name: true } } },
     }).catch(() => []),
     prisma.transaction.findMany({
-      where: { userId: member.userId },
+      where: { userId: member.userId, deletedAt: null },
       orderBy: { date: 'desc' },
       take: 50,
     }).catch(() => []),

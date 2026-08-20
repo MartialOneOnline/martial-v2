@@ -279,6 +279,7 @@ export type UserWhereInput = {
   leadNotes?: Prisma.LeadNoteListRelationFilter
   transactions?: Prisma.TransactionListRelationFilter
   resolvedTransactions?: Prisma.TransactionListRelationFilter
+  deletedTransactions?: Prisma.TransactionListRelationFilter
   userWaivers?: Prisma.UserWaiverListRelationFilter
   sentInvitations?: Prisma.SchoolInvitationListRelationFilter
   preference?: Prisma.XOR<Prisma.UserPreferenceNullableScalarRelationFilter, Prisma.UserPreferenceWhereInput> | null
@@ -287,6 +288,9 @@ export type UserWhereInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogListRelationFilter
   targetedNotifications?: Prisma.NotificationListRelationFilter
   createdCampaigns?: Prisma.CampaignListRelationFilter
+  orders?: Prisma.OrderListRelationFilter
+  collectibleUnitsOwned?: Prisma.CollectibleUnitListRelationFilter
+  collectibleOwnerships?: Prisma.CollectibleOwnershipListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -322,6 +326,7 @@ export type UserOrderByWithRelationInput = {
   leadNotes?: Prisma.LeadNoteOrderByRelationAggregateInput
   transactions?: Prisma.TransactionOrderByRelationAggregateInput
   resolvedTransactions?: Prisma.TransactionOrderByRelationAggregateInput
+  deletedTransactions?: Prisma.TransactionOrderByRelationAggregateInput
   userWaivers?: Prisma.UserWaiverOrderByRelationAggregateInput
   sentInvitations?: Prisma.SchoolInvitationOrderByRelationAggregateInput
   preference?: Prisma.UserPreferenceOrderByWithRelationInput
@@ -330,6 +335,9 @@ export type UserOrderByWithRelationInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogOrderByRelationAggregateInput
   targetedNotifications?: Prisma.NotificationOrderByRelationAggregateInput
   createdCampaigns?: Prisma.CampaignOrderByRelationAggregateInput
+  orders?: Prisma.OrderOrderByRelationAggregateInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitOrderByRelationAggregateInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -368,6 +376,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   leadNotes?: Prisma.LeadNoteListRelationFilter
   transactions?: Prisma.TransactionListRelationFilter
   resolvedTransactions?: Prisma.TransactionListRelationFilter
+  deletedTransactions?: Prisma.TransactionListRelationFilter
   userWaivers?: Prisma.UserWaiverListRelationFilter
   sentInvitations?: Prisma.SchoolInvitationListRelationFilter
   preference?: Prisma.XOR<Prisma.UserPreferenceNullableScalarRelationFilter, Prisma.UserPreferenceWhereInput> | null
@@ -376,6 +385,9 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   impersonationsAsTarget?: Prisma.ImpersonationLogListRelationFilter
   targetedNotifications?: Prisma.NotificationListRelationFilter
   createdCampaigns?: Prisma.CampaignListRelationFilter
+  orders?: Prisma.OrderListRelationFilter
+  collectibleUnitsOwned?: Prisma.CollectibleUnitListRelationFilter
+  collectibleOwnerships?: Prisma.CollectibleOwnershipListRelationFilter
 }, "id" | "email" | "supabaseAuthId">
 
 export type UserOrderByWithAggregationInput = {
@@ -452,6 +464,7 @@ export type UserCreateInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -460,6 +473,9 @@ export type UserCreateInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -494,6 +510,7 @@ export type UserUncheckedCreateInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -502,6 +519,9 @@ export type UserUncheckedCreateInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUpdateInput = {
@@ -536,6 +556,7 @@ export type UserUpdateInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -544,6 +565,9 @@ export type UserUpdateInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -578,6 +602,7 @@ export type UserUncheckedUpdateInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -586,6 +611,9 @@ export type UserUncheckedUpdateInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -1071,6 +1099,12 @@ export type UserCreateNestedOneWithoutResolvedTransactionsInput = {
   connect?: Prisma.UserWhereUniqueInput
 }
 
+export type UserCreateNestedOneWithoutDeletedTransactionsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDeletedTransactionsInput, Prisma.UserUncheckedCreateWithoutDeletedTransactionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDeletedTransactionsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
 export type UserUpdateOneWithoutTransactionsNestedInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutTransactionsInput, Prisma.UserUncheckedCreateWithoutTransactionsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutTransactionsInput
@@ -1091,6 +1125,16 @@ export type UserUpdateOneWithoutResolvedTransactionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutResolvedTransactionsInput, Prisma.UserUpdateWithoutResolvedTransactionsInput>, Prisma.UserUncheckedUpdateWithoutResolvedTransactionsInput>
 }
 
+export type UserUpdateOneWithoutDeletedTransactionsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDeletedTransactionsInput, Prisma.UserUncheckedCreateWithoutDeletedTransactionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDeletedTransactionsInput
+  upsert?: Prisma.UserUpsertWithoutDeletedTransactionsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutDeletedTransactionsInput, Prisma.UserUpdateWithoutDeletedTransactionsInput>, Prisma.UserUncheckedUpdateWithoutDeletedTransactionsInput>
+}
+
 export type UserCreateNestedOneWithoutPreferenceInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutPreferenceInput, Prisma.UserUncheckedCreateWithoutPreferenceInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutPreferenceInput
@@ -1103,6 +1147,50 @@ export type UserUpdateOneRequiredWithoutPreferenceNestedInput = {
   upsert?: Prisma.UserUpsertWithoutPreferenceInput
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPreferenceInput, Prisma.UserUpdateWithoutPreferenceInput>, Prisma.UserUncheckedUpdateWithoutPreferenceInput>
+}
+
+export type UserCreateNestedOneWithoutOrdersInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutOrdersInput, Prisma.UserUncheckedCreateWithoutOrdersInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOrdersInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutOrdersNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutOrdersInput, Prisma.UserUncheckedCreateWithoutOrdersInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOrdersInput
+  upsert?: Prisma.UserUpsertWithoutOrdersInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutOrdersInput, Prisma.UserUpdateWithoutOrdersInput>, Prisma.UserUncheckedUpdateWithoutOrdersInput>
+}
+
+export type UserCreateNestedOneWithoutCollectibleUnitsOwnedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCollectibleUnitsOwnedInput, Prisma.UserUncheckedCreateWithoutCollectibleUnitsOwnedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCollectibleUnitsOwnedInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutCollectibleUnitsOwnedNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCollectibleUnitsOwnedInput, Prisma.UserUncheckedCreateWithoutCollectibleUnitsOwnedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCollectibleUnitsOwnedInput
+  upsert?: Prisma.UserUpsertWithoutCollectibleUnitsOwnedInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCollectibleUnitsOwnedInput, Prisma.UserUpdateWithoutCollectibleUnitsOwnedInput>, Prisma.UserUncheckedUpdateWithoutCollectibleUnitsOwnedInput>
+}
+
+export type UserCreateNestedOneWithoutCollectibleOwnershipsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCollectibleOwnershipsInput, Prisma.UserUncheckedCreateWithoutCollectibleOwnershipsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCollectibleOwnershipsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutCollectibleOwnershipsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCollectibleOwnershipsInput, Prisma.UserUncheckedCreateWithoutCollectibleOwnershipsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCollectibleOwnershipsInput
+  upsert?: Prisma.UserUpsertWithoutCollectibleOwnershipsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCollectibleOwnershipsInput, Prisma.UserUpdateWithoutCollectibleOwnershipsInput>, Prisma.UserUncheckedUpdateWithoutCollectibleOwnershipsInput>
 }
 
 export type UserCreateNestedOneWithoutTargetedNotificationsInput = {
@@ -1152,6 +1240,7 @@ export type UserCreateWithoutContentAccessesInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -1160,6 +1249,9 @@ export type UserCreateWithoutContentAccessesInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutContentAccessesInput = {
@@ -1193,6 +1285,7 @@ export type UserUncheckedCreateWithoutContentAccessesInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -1201,6 +1294,9 @@ export type UserUncheckedCreateWithoutContentAccessesInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutContentAccessesInput = {
@@ -1250,6 +1346,7 @@ export type UserUpdateWithoutContentAccessesInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -1258,6 +1355,9 @@ export type UserUpdateWithoutContentAccessesInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContentAccessesInput = {
@@ -1291,6 +1391,7 @@ export type UserUncheckedUpdateWithoutContentAccessesInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -1299,6 +1400,9 @@ export type UserUncheckedUpdateWithoutContentAccessesInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutClaimedSchoolsInput = {
@@ -1332,6 +1436,7 @@ export type UserCreateWithoutClaimedSchoolsInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -1340,6 +1445,9 @@ export type UserCreateWithoutClaimedSchoolsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutClaimedSchoolsInput = {
@@ -1373,6 +1481,7 @@ export type UserUncheckedCreateWithoutClaimedSchoolsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -1381,6 +1490,9 @@ export type UserUncheckedCreateWithoutClaimedSchoolsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutClaimedSchoolsInput = {
@@ -1419,6 +1531,7 @@ export type UserCreateWithoutSchoolInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -1427,6 +1540,9 @@ export type UserCreateWithoutSchoolInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutSchoolInput = {
@@ -1460,6 +1576,7 @@ export type UserUncheckedCreateWithoutSchoolInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -1468,6 +1585,9 @@ export type UserUncheckedCreateWithoutSchoolInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutSchoolInput = {
@@ -1522,6 +1642,7 @@ export type UserUpdateWithoutClaimedSchoolsInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -1530,6 +1651,9 @@ export type UserUpdateWithoutClaimedSchoolsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutClaimedSchoolsInput = {
@@ -1563,6 +1687,7 @@ export type UserUncheckedUpdateWithoutClaimedSchoolsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -1571,6 +1696,9 @@ export type UserUncheckedUpdateWithoutClaimedSchoolsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUpsertWithWhereUniqueWithoutSchoolInput = {
@@ -1641,6 +1769,7 @@ export type UserCreateWithoutReviewsInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -1649,6 +1778,9 @@ export type UserCreateWithoutReviewsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutReviewsInput = {
@@ -1682,6 +1814,7 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -1690,6 +1823,9 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutReviewsInput = {
@@ -1739,6 +1875,7 @@ export type UserUpdateWithoutReviewsInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -1747,6 +1884,9 @@ export type UserUpdateWithoutReviewsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReviewsInput = {
@@ -1780,6 +1920,7 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -1788,6 +1929,9 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutEventBookingsInput = {
@@ -1821,6 +1965,7 @@ export type UserCreateWithoutEventBookingsInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -1829,6 +1974,9 @@ export type UserCreateWithoutEventBookingsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutEventBookingsInput = {
@@ -1862,6 +2010,7 @@ export type UserUncheckedCreateWithoutEventBookingsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -1870,6 +2019,9 @@ export type UserUncheckedCreateWithoutEventBookingsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutEventBookingsInput = {
@@ -1919,6 +2071,7 @@ export type UserUpdateWithoutEventBookingsInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -1927,6 +2080,9 @@ export type UserUpdateWithoutEventBookingsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutEventBookingsInput = {
@@ -1960,6 +2116,7 @@ export type UserUncheckedUpdateWithoutEventBookingsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -1968,6 +2125,9 @@ export type UserUncheckedUpdateWithoutEventBookingsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutBookingsInput = {
@@ -2001,6 +2161,7 @@ export type UserCreateWithoutBookingsInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -2009,6 +2170,9 @@ export type UserCreateWithoutBookingsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutBookingsInput = {
@@ -2042,6 +2206,7 @@ export type UserUncheckedCreateWithoutBookingsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -2050,6 +2215,9 @@ export type UserUncheckedCreateWithoutBookingsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutBookingsInput = {
@@ -2088,6 +2256,7 @@ export type UserCreateWithoutStaffBookingsInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -2096,6 +2265,9 @@ export type UserCreateWithoutStaffBookingsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutStaffBookingsInput = {
@@ -2129,6 +2301,7 @@ export type UserUncheckedCreateWithoutStaffBookingsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -2137,6 +2310,9 @@ export type UserUncheckedCreateWithoutStaffBookingsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutStaffBookingsInput = {
@@ -2186,6 +2362,7 @@ export type UserUpdateWithoutBookingsInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -2194,6 +2371,9 @@ export type UserUpdateWithoutBookingsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutBookingsInput = {
@@ -2227,6 +2407,7 @@ export type UserUncheckedUpdateWithoutBookingsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -2235,6 +2416,9 @@ export type UserUncheckedUpdateWithoutBookingsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUpsertWithoutStaffBookingsInput = {
@@ -2279,6 +2463,7 @@ export type UserUpdateWithoutStaffBookingsInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -2287,6 +2472,9 @@ export type UserUpdateWithoutStaffBookingsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutStaffBookingsInput = {
@@ -2320,6 +2508,7 @@ export type UserUncheckedUpdateWithoutStaffBookingsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -2328,6 +2517,9 @@ export type UserUncheckedUpdateWithoutStaffBookingsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutMembershipsInput = {
@@ -2361,6 +2553,7 @@ export type UserCreateWithoutMembershipsInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -2369,6 +2562,9 @@ export type UserCreateWithoutMembershipsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutMembershipsInput = {
@@ -2402,6 +2598,7 @@ export type UserUncheckedCreateWithoutMembershipsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -2410,6 +2607,9 @@ export type UserUncheckedCreateWithoutMembershipsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutMembershipsInput = {
@@ -2459,6 +2659,7 @@ export type UserUpdateWithoutMembershipsInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -2467,6 +2668,9 @@ export type UserUpdateWithoutMembershipsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMembershipsInput = {
@@ -2500,6 +2704,7 @@ export type UserUncheckedUpdateWithoutMembershipsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -2508,6 +2713,9 @@ export type UserUncheckedUpdateWithoutMembershipsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutCampBookingsInput = {
@@ -2541,6 +2749,7 @@ export type UserCreateWithoutCampBookingsInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -2549,6 +2758,9 @@ export type UserCreateWithoutCampBookingsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutCampBookingsInput = {
@@ -2582,6 +2794,7 @@ export type UserUncheckedCreateWithoutCampBookingsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -2590,6 +2803,9 @@ export type UserUncheckedCreateWithoutCampBookingsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutCampBookingsInput = {
@@ -2639,6 +2855,7 @@ export type UserUpdateWithoutCampBookingsInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -2647,6 +2864,9 @@ export type UserUpdateWithoutCampBookingsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCampBookingsInput = {
@@ -2680,6 +2900,7 @@ export type UserUncheckedUpdateWithoutCampBookingsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -2688,6 +2909,9 @@ export type UserUncheckedUpdateWithoutCampBookingsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutSchoolMembersInput = {
@@ -2721,6 +2945,7 @@ export type UserCreateWithoutSchoolMembersInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -2729,6 +2954,9 @@ export type UserCreateWithoutSchoolMembersInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutSchoolMembersInput = {
@@ -2762,6 +2990,7 @@ export type UserUncheckedCreateWithoutSchoolMembersInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -2770,6 +2999,9 @@ export type UserUncheckedCreateWithoutSchoolMembersInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutSchoolMembersInput = {
@@ -2819,6 +3051,7 @@ export type UserUpdateWithoutSchoolMembersInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -2827,6 +3060,9 @@ export type UserUpdateWithoutSchoolMembersInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSchoolMembersInput = {
@@ -2860,6 +3096,7 @@ export type UserUncheckedUpdateWithoutSchoolMembersInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -2868,6 +3105,9 @@ export type UserUncheckedUpdateWithoutSchoolMembersInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutCreatedCampaignsInput = {
@@ -2902,6 +3142,7 @@ export type UserCreateWithoutCreatedCampaignsInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -2909,6 +3150,9 @@ export type UserCreateWithoutCreatedCampaignsInput = {
   impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
   impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutCreatedCampaignsInput = {
@@ -2943,6 +3187,7 @@ export type UserUncheckedCreateWithoutCreatedCampaignsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -2950,6 +3195,9 @@ export type UserUncheckedCreateWithoutCreatedCampaignsInput = {
   impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutCreatedCampaignsInput = {
@@ -3000,6 +3248,7 @@ export type UserUpdateWithoutCreatedCampaignsInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -3007,6 +3256,9 @@ export type UserUpdateWithoutCreatedCampaignsInput = {
   impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
   impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCreatedCampaignsInput = {
@@ -3041,6 +3293,7 @@ export type UserUncheckedUpdateWithoutCreatedCampaignsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -3048,6 +3301,9 @@ export type UserUncheckedUpdateWithoutCreatedCampaignsInput = {
   impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutSchoolClaimsInput = {
@@ -3081,6 +3337,7 @@ export type UserCreateWithoutSchoolClaimsInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -3089,6 +3346,9 @@ export type UserCreateWithoutSchoolClaimsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutSchoolClaimsInput = {
@@ -3122,6 +3382,7 @@ export type UserUncheckedCreateWithoutSchoolClaimsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -3130,6 +3391,9 @@ export type UserUncheckedCreateWithoutSchoolClaimsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutSchoolClaimsInput = {
@@ -3179,6 +3443,7 @@ export type UserUpdateWithoutSchoolClaimsInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -3187,6 +3452,9 @@ export type UserUpdateWithoutSchoolClaimsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSchoolClaimsInput = {
@@ -3220,6 +3488,7 @@ export type UserUncheckedUpdateWithoutSchoolClaimsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -3228,6 +3497,9 @@ export type UserUncheckedUpdateWithoutSchoolClaimsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutGradingsInput = {
@@ -3261,6 +3533,7 @@ export type UserCreateWithoutGradingsInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -3269,6 +3542,9 @@ export type UserCreateWithoutGradingsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutGradingsInput = {
@@ -3302,6 +3578,7 @@ export type UserUncheckedCreateWithoutGradingsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -3310,6 +3587,9 @@ export type UserUncheckedCreateWithoutGradingsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutGradingsInput = {
@@ -3348,6 +3628,7 @@ export type UserCreateWithoutGradingsGivenInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -3356,6 +3637,9 @@ export type UserCreateWithoutGradingsGivenInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutGradingsGivenInput = {
@@ -3389,6 +3673,7 @@ export type UserUncheckedCreateWithoutGradingsGivenInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -3397,6 +3682,9 @@ export type UserUncheckedCreateWithoutGradingsGivenInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutGradingsGivenInput = {
@@ -3446,6 +3734,7 @@ export type UserUpdateWithoutGradingsInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -3454,6 +3743,9 @@ export type UserUpdateWithoutGradingsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutGradingsInput = {
@@ -3487,6 +3779,7 @@ export type UserUncheckedUpdateWithoutGradingsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -3495,6 +3788,9 @@ export type UserUncheckedUpdateWithoutGradingsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUpsertWithoutGradingsGivenInput = {
@@ -3539,6 +3835,7 @@ export type UserUpdateWithoutGradingsGivenInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -3547,6 +3844,9 @@ export type UserUpdateWithoutGradingsGivenInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutGradingsGivenInput = {
@@ -3580,6 +3880,7 @@ export type UserUncheckedUpdateWithoutGradingsGivenInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -3588,6 +3889,9 @@ export type UserUncheckedUpdateWithoutGradingsGivenInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutLeadsInput = {
@@ -3621,6 +3925,7 @@ export type UserCreateWithoutLeadsInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -3629,6 +3934,9 @@ export type UserCreateWithoutLeadsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutLeadsInput = {
@@ -3662,6 +3970,7 @@ export type UserUncheckedCreateWithoutLeadsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -3670,6 +3979,9 @@ export type UserUncheckedCreateWithoutLeadsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutLeadsInput = {
@@ -3719,6 +4031,7 @@ export type UserUpdateWithoutLeadsInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -3727,6 +4040,9 @@ export type UserUpdateWithoutLeadsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLeadsInput = {
@@ -3760,6 +4076,7 @@ export type UserUncheckedUpdateWithoutLeadsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -3768,6 +4085,9 @@ export type UserUncheckedUpdateWithoutLeadsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutLeadNotesInput = {
@@ -3801,6 +4121,7 @@ export type UserCreateWithoutLeadNotesInput = {
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -3809,6 +4130,9 @@ export type UserCreateWithoutLeadNotesInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutLeadNotesInput = {
@@ -3842,6 +4166,7 @@ export type UserUncheckedCreateWithoutLeadNotesInput = {
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -3850,6 +4175,9 @@ export type UserUncheckedCreateWithoutLeadNotesInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutLeadNotesInput = {
@@ -3899,6 +4227,7 @@ export type UserUpdateWithoutLeadNotesInput = {
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -3907,6 +4236,9 @@ export type UserUpdateWithoutLeadNotesInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLeadNotesInput = {
@@ -3940,6 +4272,7 @@ export type UserUncheckedUpdateWithoutLeadNotesInput = {
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -3948,6 +4281,9 @@ export type UserUncheckedUpdateWithoutLeadNotesInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutSentInvitationsInput = {
@@ -3982,6 +4318,7 @@ export type UserCreateWithoutSentInvitationsInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
@@ -3989,6 +4326,9 @@ export type UserCreateWithoutSentInvitationsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutSentInvitationsInput = {
@@ -4023,6 +4363,7 @@ export type UserUncheckedCreateWithoutSentInvitationsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
@@ -4030,6 +4371,9 @@ export type UserUncheckedCreateWithoutSentInvitationsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutSentInvitationsInput = {
@@ -4080,6 +4424,7 @@ export type UserUpdateWithoutSentInvitationsInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
@@ -4087,6 +4432,9 @@ export type UserUpdateWithoutSentInvitationsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSentInvitationsInput = {
@@ -4121,6 +4469,7 @@ export type UserUncheckedUpdateWithoutSentInvitationsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
@@ -4128,6 +4477,9 @@ export type UserUncheckedUpdateWithoutSentInvitationsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutUserWaiversInput = {
@@ -4162,6 +4514,7 @@ export type UserCreateWithoutUserWaiversInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
@@ -4169,6 +4522,9 @@ export type UserCreateWithoutUserWaiversInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutUserWaiversInput = {
@@ -4203,6 +4559,7 @@ export type UserUncheckedCreateWithoutUserWaiversInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
@@ -4210,6 +4567,9 @@ export type UserUncheckedCreateWithoutUserWaiversInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutUserWaiversInput = {
@@ -4260,6 +4620,7 @@ export type UserUpdateWithoutUserWaiversInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
@@ -4267,6 +4628,9 @@ export type UserUpdateWithoutUserWaiversInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutUserWaiversInput = {
@@ -4301,6 +4665,7 @@ export type UserUncheckedUpdateWithoutUserWaiversInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
@@ -4308,6 +4673,9 @@ export type UserUncheckedUpdateWithoutUserWaiversInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutLoginHistoryInput = {
@@ -4342,6 +4710,7 @@ export type UserCreateWithoutLoginHistoryInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -4349,6 +4718,9 @@ export type UserCreateWithoutLoginHistoryInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutLoginHistoryInput = {
@@ -4383,6 +4755,7 @@ export type UserUncheckedCreateWithoutLoginHistoryInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -4390,6 +4763,9 @@ export type UserUncheckedCreateWithoutLoginHistoryInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutLoginHistoryInput = {
@@ -4440,6 +4816,7 @@ export type UserUpdateWithoutLoginHistoryInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -4447,6 +4824,9 @@ export type UserUpdateWithoutLoginHistoryInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLoginHistoryInput = {
@@ -4481,6 +4861,7 @@ export type UserUncheckedUpdateWithoutLoginHistoryInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -4488,6 +4869,9 @@ export type UserUncheckedUpdateWithoutLoginHistoryInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutImpersonationsAsActorInput = {
@@ -4522,6 +4906,7 @@ export type UserCreateWithoutImpersonationsAsActorInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -4529,6 +4914,9 @@ export type UserCreateWithoutImpersonationsAsActorInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutImpersonationsAsActorInput = {
@@ -4563,6 +4951,7 @@ export type UserUncheckedCreateWithoutImpersonationsAsActorInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -4570,6 +4959,9 @@ export type UserUncheckedCreateWithoutImpersonationsAsActorInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutImpersonationsAsActorInput = {
@@ -4609,6 +5001,7 @@ export type UserCreateWithoutImpersonationsAsTargetInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -4616,6 +5009,9 @@ export type UserCreateWithoutImpersonationsAsTargetInput = {
   impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
   targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutImpersonationsAsTargetInput = {
@@ -4650,6 +5046,7 @@ export type UserUncheckedCreateWithoutImpersonationsAsTargetInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -4657,6 +5054,9 @@ export type UserUncheckedCreateWithoutImpersonationsAsTargetInput = {
   impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
   targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutImpersonationsAsTargetInput = {
@@ -4707,6 +5107,7 @@ export type UserUpdateWithoutImpersonationsAsActorInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -4714,6 +5115,9 @@ export type UserUpdateWithoutImpersonationsAsActorInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutImpersonationsAsActorInput = {
@@ -4748,6 +5152,7 @@ export type UserUncheckedUpdateWithoutImpersonationsAsActorInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -4755,6 +5160,9 @@ export type UserUncheckedUpdateWithoutImpersonationsAsActorInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUpsertWithoutImpersonationsAsTargetInput = {
@@ -4800,6 +5208,7 @@ export type UserUpdateWithoutImpersonationsAsTargetInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -4807,6 +5216,9 @@ export type UserUpdateWithoutImpersonationsAsTargetInput = {
   impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
   targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutImpersonationsAsTargetInput = {
@@ -4841,6 +5253,7 @@ export type UserUncheckedUpdateWithoutImpersonationsAsTargetInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -4848,6 +5261,9 @@ export type UserUncheckedUpdateWithoutImpersonationsAsTargetInput = {
   impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
   targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutTransactionsInput = {
@@ -4881,6 +5297,7 @@ export type UserCreateWithoutTransactionsInput = {
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -4889,6 +5306,9 @@ export type UserCreateWithoutTransactionsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutTransactionsInput = {
@@ -4922,6 +5342,7 @@ export type UserUncheckedCreateWithoutTransactionsInput = {
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -4930,6 +5351,9 @@ export type UserUncheckedCreateWithoutTransactionsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutTransactionsInput = {
@@ -4968,6 +5392,7 @@ export type UserCreateWithoutResolvedTransactionsInput = {
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -4976,6 +5401,9 @@ export type UserCreateWithoutResolvedTransactionsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutResolvedTransactionsInput = {
@@ -5009,6 +5437,7 @@ export type UserUncheckedCreateWithoutResolvedTransactionsInput = {
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -5017,11 +5446,109 @@ export type UserUncheckedCreateWithoutResolvedTransactionsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutResolvedTransactionsInput = {
   where: Prisma.UserWhereUniqueInput
   create: Prisma.XOR<Prisma.UserCreateWithoutResolvedTransactionsInput, Prisma.UserUncheckedCreateWithoutResolvedTransactionsInput>
+}
+
+export type UserCreateWithoutDeletedTransactionsInput = {
+  id?: string
+  email: string
+  name?: string | null
+  phone?: string | null
+  dateOfBirth?: Date | string | null
+  avatarUrl?: string | null
+  guardianName?: string | null
+  guardianContact?: string | null
+  guardianConsentAt?: Date | string | null
+  supabaseAuthId?: string | null
+  role?: $Enums.Role
+  deletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
+  claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
+  eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
+  contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
+  campBookings?: Prisma.CampBookingCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
+  schoolMembers?: Prisma.SchoolMemberCreateNestedManyWithoutUserInput
+  schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
+  gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
+  leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
+  sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
+  loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
+  targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
+  createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
+}
+
+export type UserUncheckedCreateWithoutDeletedTransactionsInput = {
+  id?: string
+  email: string
+  name?: string | null
+  phone?: string | null
+  dateOfBirth?: Date | string | null
+  avatarUrl?: string | null
+  guardianName?: string | null
+  guardianContact?: string | null
+  guardianConsentAt?: Date | string | null
+  supabaseAuthId?: string | null
+  role?: $Enums.Role
+  deletedAt?: Date | string | null
+  schoolId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
+  eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
+  contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
+  campBookings?: Prisma.CampBookingUncheckedCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
+  schoolMembers?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutUserInput
+  schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
+  gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
+  leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
+  sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
+  loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
+  targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
+  createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
+}
+
+export type UserCreateOrConnectWithoutDeletedTransactionsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutDeletedTransactionsInput, Prisma.UserUncheckedCreateWithoutDeletedTransactionsInput>
 }
 
 export type UserUpsertWithoutTransactionsInput = {
@@ -5066,6 +5593,7 @@ export type UserUpdateWithoutTransactionsInput = {
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -5074,6 +5602,9 @@ export type UserUpdateWithoutTransactionsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTransactionsInput = {
@@ -5107,6 +5638,7 @@ export type UserUncheckedUpdateWithoutTransactionsInput = {
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -5115,6 +5647,9 @@ export type UserUncheckedUpdateWithoutTransactionsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUpsertWithoutResolvedTransactionsInput = {
@@ -5159,6 +5694,7 @@ export type UserUpdateWithoutResolvedTransactionsInput = {
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -5167,6 +5703,9 @@ export type UserUpdateWithoutResolvedTransactionsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutResolvedTransactionsInput = {
@@ -5200,6 +5739,7 @@ export type UserUncheckedUpdateWithoutResolvedTransactionsInput = {
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -5208,6 +5748,110 @@ export type UserUncheckedUpdateWithoutResolvedTransactionsInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
+}
+
+export type UserUpsertWithoutDeletedTransactionsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutDeletedTransactionsInput, Prisma.UserUncheckedUpdateWithoutDeletedTransactionsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutDeletedTransactionsInput, Prisma.UserUncheckedCreateWithoutDeletedTransactionsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutDeletedTransactionsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutDeletedTransactionsInput, Prisma.UserUncheckedUpdateWithoutDeletedTransactionsInput>
+}
+
+export type UserUpdateWithoutDeletedTransactionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianContact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
+  claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
+  eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
+  contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
+  campBookings?: Prisma.CampBookingUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
+  schoolMembers?: Prisma.SchoolMemberUpdateManyWithoutUserNestedInput
+  schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
+  gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
+  leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
+  sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
+  loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
+  targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
+  createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
+}
+
+export type UserUncheckedUpdateWithoutDeletedTransactionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianContact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
+  eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
+  contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
+  campBookings?: Prisma.CampBookingUncheckedUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
+  schoolMembers?: Prisma.SchoolMemberUncheckedUpdateManyWithoutUserNestedInput
+  schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
+  gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
+  leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
+  sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
+  loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
+  targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
+  createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutPreferenceInput = {
@@ -5242,6 +5886,7 @@ export type UserCreateWithoutPreferenceInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
@@ -5249,6 +5894,9 @@ export type UserCreateWithoutPreferenceInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutPreferenceInput = {
@@ -5283,6 +5931,7 @@ export type UserUncheckedCreateWithoutPreferenceInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
@@ -5290,6 +5939,9 @@ export type UserUncheckedCreateWithoutPreferenceInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
   targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
   createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutPreferenceInput = {
@@ -5340,6 +5992,7 @@ export type UserUpdateWithoutPreferenceInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
@@ -5347,6 +6000,9 @@ export type UserUpdateWithoutPreferenceInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPreferenceInput = {
@@ -5381,6 +6037,7 @@ export type UserUncheckedUpdateWithoutPreferenceInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
@@ -5388,6 +6045,597 @@ export type UserUncheckedUpdateWithoutPreferenceInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
+}
+
+export type UserCreateWithoutOrdersInput = {
+  id?: string
+  email: string
+  name?: string | null
+  phone?: string | null
+  dateOfBirth?: Date | string | null
+  avatarUrl?: string | null
+  guardianName?: string | null
+  guardianContact?: string | null
+  guardianConsentAt?: Date | string | null
+  supabaseAuthId?: string | null
+  role?: $Enums.Role
+  deletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
+  claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
+  eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
+  contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
+  campBookings?: Prisma.CampBookingCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
+  schoolMembers?: Prisma.SchoolMemberCreateNestedManyWithoutUserInput
+  schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
+  gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
+  leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
+  userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
+  sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
+  loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
+  targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
+  createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
+}
+
+export type UserUncheckedCreateWithoutOrdersInput = {
+  id?: string
+  email: string
+  name?: string | null
+  phone?: string | null
+  dateOfBirth?: Date | string | null
+  avatarUrl?: string | null
+  guardianName?: string | null
+  guardianContact?: string | null
+  guardianConsentAt?: Date | string | null
+  supabaseAuthId?: string | null
+  role?: $Enums.Role
+  deletedAt?: Date | string | null
+  schoolId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
+  eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
+  contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
+  campBookings?: Prisma.CampBookingUncheckedCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
+  schoolMembers?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutUserInput
+  schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
+  gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
+  leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
+  userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
+  sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
+  loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
+  targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
+  createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
+}
+
+export type UserCreateOrConnectWithoutOrdersInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutOrdersInput, Prisma.UserUncheckedCreateWithoutOrdersInput>
+}
+
+export type UserUpsertWithoutOrdersInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutOrdersInput, Prisma.UserUncheckedUpdateWithoutOrdersInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutOrdersInput, Prisma.UserUncheckedCreateWithoutOrdersInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutOrdersInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutOrdersInput, Prisma.UserUncheckedUpdateWithoutOrdersInput>
+}
+
+export type UserUpdateWithoutOrdersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianContact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
+  claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
+  eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
+  contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
+  campBookings?: Prisma.CampBookingUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
+  schoolMembers?: Prisma.SchoolMemberUpdateManyWithoutUserNestedInput
+  schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
+  gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
+  leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
+  userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
+  sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
+  loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
+  targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
+  createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
+}
+
+export type UserUncheckedUpdateWithoutOrdersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianContact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
+  eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
+  contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
+  campBookings?: Prisma.CampBookingUncheckedUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
+  schoolMembers?: Prisma.SchoolMemberUncheckedUpdateManyWithoutUserNestedInput
+  schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
+  gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
+  leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
+  userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
+  sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
+  loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
+  targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
+  createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
+}
+
+export type UserCreateWithoutCollectibleUnitsOwnedInput = {
+  id?: string
+  email: string
+  name?: string | null
+  phone?: string | null
+  dateOfBirth?: Date | string | null
+  avatarUrl?: string | null
+  guardianName?: string | null
+  guardianContact?: string | null
+  guardianConsentAt?: Date | string | null
+  supabaseAuthId?: string | null
+  role?: $Enums.Role
+  deletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
+  claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
+  eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
+  contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
+  campBookings?: Prisma.CampBookingCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
+  schoolMembers?: Prisma.SchoolMemberCreateNestedManyWithoutUserInput
+  schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
+  gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
+  leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
+  userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
+  sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
+  loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
+  targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
+  createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
+}
+
+export type UserUncheckedCreateWithoutCollectibleUnitsOwnedInput = {
+  id?: string
+  email: string
+  name?: string | null
+  phone?: string | null
+  dateOfBirth?: Date | string | null
+  avatarUrl?: string | null
+  guardianName?: string | null
+  guardianContact?: string | null
+  guardianConsentAt?: Date | string | null
+  supabaseAuthId?: string | null
+  role?: $Enums.Role
+  deletedAt?: Date | string | null
+  schoolId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
+  eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
+  contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
+  campBookings?: Prisma.CampBookingUncheckedCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
+  schoolMembers?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutUserInput
+  schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
+  gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
+  leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
+  userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
+  sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
+  loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
+  targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
+  createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
+}
+
+export type UserCreateOrConnectWithoutCollectibleUnitsOwnedInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutCollectibleUnitsOwnedInput, Prisma.UserUncheckedCreateWithoutCollectibleUnitsOwnedInput>
+}
+
+export type UserUpsertWithoutCollectibleUnitsOwnedInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutCollectibleUnitsOwnedInput, Prisma.UserUncheckedUpdateWithoutCollectibleUnitsOwnedInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutCollectibleUnitsOwnedInput, Prisma.UserUncheckedCreateWithoutCollectibleUnitsOwnedInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutCollectibleUnitsOwnedInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutCollectibleUnitsOwnedInput, Prisma.UserUncheckedUpdateWithoutCollectibleUnitsOwnedInput>
+}
+
+export type UserUpdateWithoutCollectibleUnitsOwnedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianContact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
+  claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
+  eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
+  contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
+  campBookings?: Prisma.CampBookingUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
+  schoolMembers?: Prisma.SchoolMemberUpdateManyWithoutUserNestedInput
+  schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
+  gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
+  leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
+  userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
+  sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
+  loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
+  targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
+  createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
+}
+
+export type UserUncheckedUpdateWithoutCollectibleUnitsOwnedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianContact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
+  eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
+  contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
+  campBookings?: Prisma.CampBookingUncheckedUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
+  schoolMembers?: Prisma.SchoolMemberUncheckedUpdateManyWithoutUserNestedInput
+  schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
+  gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
+  leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
+  userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
+  sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
+  loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
+  targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
+  createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
+}
+
+export type UserCreateWithoutCollectibleOwnershipsInput = {
+  id?: string
+  email: string
+  name?: string | null
+  phone?: string | null
+  dateOfBirth?: Date | string | null
+  avatarUrl?: string | null
+  guardianName?: string | null
+  guardianContact?: string | null
+  guardianConsentAt?: Date | string | null
+  supabaseAuthId?: string | null
+  role?: $Enums.Role
+  deletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
+  claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
+  eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
+  contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
+  campBookings?: Prisma.CampBookingCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
+  schoolMembers?: Prisma.SchoolMemberCreateNestedManyWithoutUserInput
+  schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
+  gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
+  leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
+  userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
+  sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
+  loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
+  targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
+  createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+}
+
+export type UserUncheckedCreateWithoutCollectibleOwnershipsInput = {
+  id?: string
+  email: string
+  name?: string | null
+  phone?: string | null
+  dateOfBirth?: Date | string | null
+  avatarUrl?: string | null
+  guardianName?: string | null
+  guardianContact?: string | null
+  guardianConsentAt?: Date | string | null
+  supabaseAuthId?: string | null
+  role?: $Enums.Role
+  deletedAt?: Date | string | null
+  schoolId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
+  eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
+  contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
+  campBookings?: Prisma.CampBookingUncheckedCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
+  schoolMembers?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutUserInput
+  schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
+  gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
+  leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
+  userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
+  sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
+  loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
+  targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
+  createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+}
+
+export type UserCreateOrConnectWithoutCollectibleOwnershipsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutCollectibleOwnershipsInput, Prisma.UserUncheckedCreateWithoutCollectibleOwnershipsInput>
+}
+
+export type UserUpsertWithoutCollectibleOwnershipsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutCollectibleOwnershipsInput, Prisma.UserUncheckedUpdateWithoutCollectibleOwnershipsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutCollectibleOwnershipsInput, Prisma.UserUncheckedCreateWithoutCollectibleOwnershipsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutCollectibleOwnershipsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutCollectibleOwnershipsInput, Prisma.UserUncheckedUpdateWithoutCollectibleOwnershipsInput>
+}
+
+export type UserUpdateWithoutCollectibleOwnershipsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianContact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
+  claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
+  eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
+  contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
+  campBookings?: Prisma.CampBookingUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
+  schoolMembers?: Prisma.SchoolMemberUpdateManyWithoutUserNestedInput
+  schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
+  gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
+  leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
+  userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
+  sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
+  loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
+  targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
+  createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+}
+
+export type UserUncheckedUpdateWithoutCollectibleOwnershipsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianContact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
+  eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
+  contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
+  campBookings?: Prisma.CampBookingUncheckedUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
+  schoolMembers?: Prisma.SchoolMemberUncheckedUpdateManyWithoutUserNestedInput
+  schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
+  gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
+  leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
+  userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
+  sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
+  loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
+  targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
+  createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutTargetedNotificationsInput = {
@@ -5422,6 +6670,7 @@ export type UserCreateWithoutTargetedNotificationsInput = {
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
@@ -5429,6 +6678,9 @@ export type UserCreateWithoutTargetedNotificationsInput = {
   impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
   impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
   createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutTargetedNotificationsInput = {
@@ -5463,6 +6715,7 @@ export type UserUncheckedCreateWithoutTargetedNotificationsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
   userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
@@ -5470,6 +6723,9 @@ export type UserUncheckedCreateWithoutTargetedNotificationsInput = {
   impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
   createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutTargetedNotificationsInput = {
@@ -5520,6 +6776,7 @@ export type UserUpdateWithoutTargetedNotificationsInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -5527,6 +6784,9 @@ export type UserUpdateWithoutTargetedNotificationsInput = {
   impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
   impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
   createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTargetedNotificationsInput = {
@@ -5561,6 +6821,7 @@ export type UserUncheckedUpdateWithoutTargetedNotificationsInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -5568,6 +6829,9 @@ export type UserUncheckedUpdateWithoutTargetedNotificationsInput = {
   impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
   createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateManySchoolInput = {
@@ -5618,6 +6882,7 @@ export type UserUpdateWithoutSchoolInput = {
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
@@ -5626,6 +6891,9 @@ export type UserUpdateWithoutSchoolInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSchoolInput = {
@@ -5659,6 +6927,7 @@ export type UserUncheckedUpdateWithoutSchoolInput = {
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
   userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
@@ -5667,6 +6936,9 @@ export type UserUncheckedUpdateWithoutSchoolInput = {
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
   targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutSchoolInput = {
@@ -5708,6 +6980,7 @@ export type UserCountOutputType = {
   leadNotes: number
   transactions: number
   resolvedTransactions: number
+  deletedTransactions: number
   userWaivers: number
   sentInvitations: number
   loginHistory: number
@@ -5715,6 +6988,9 @@ export type UserCountOutputType = {
   impersonationsAsTarget: number
   targetedNotifications: number
   createdCampaigns: number
+  orders: number
+  collectibleUnitsOwned: number
+  collectibleOwnerships: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -5734,6 +7010,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   leadNotes?: boolean | UserCountOutputTypeCountLeadNotesArgs
   transactions?: boolean | UserCountOutputTypeCountTransactionsArgs
   resolvedTransactions?: boolean | UserCountOutputTypeCountResolvedTransactionsArgs
+  deletedTransactions?: boolean | UserCountOutputTypeCountDeletedTransactionsArgs
   userWaivers?: boolean | UserCountOutputTypeCountUserWaiversArgs
   sentInvitations?: boolean | UserCountOutputTypeCountSentInvitationsArgs
   loginHistory?: boolean | UserCountOutputTypeCountLoginHistoryArgs
@@ -5741,6 +7018,9 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   impersonationsAsTarget?: boolean | UserCountOutputTypeCountImpersonationsAsTargetArgs
   targetedNotifications?: boolean | UserCountOutputTypeCountTargetedNotificationsArgs
   createdCampaigns?: boolean | UserCountOutputTypeCountCreatedCampaignsArgs
+  orders?: boolean | UserCountOutputTypeCountOrdersArgs
+  collectibleUnitsOwned?: boolean | UserCountOutputTypeCountCollectibleUnitsOwnedArgs
+  collectibleOwnerships?: boolean | UserCountOutputTypeCountCollectibleOwnershipsArgs
 }
 
 /**
@@ -5868,6 +7148,13 @@ export type UserCountOutputTypeCountResolvedTransactionsArgs<ExtArgs extends run
 /**
  * UserCountOutputType without action
  */
+export type UserCountOutputTypeCountDeletedTransactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TransactionWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
 export type UserCountOutputTypeCountUserWaiversArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.UserWaiverWhereInput
 }
@@ -5914,6 +7201,27 @@ export type UserCountOutputTypeCountCreatedCampaignsArgs<ExtArgs extends runtime
   where?: Prisma.CampaignWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountOrdersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OrderWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountCollectibleUnitsOwnedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CollectibleUnitWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountCollectibleOwnershipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CollectibleOwnershipWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -5948,6 +7256,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   leadNotes?: boolean | Prisma.User$leadNotesArgs<ExtArgs>
   transactions?: boolean | Prisma.User$transactionsArgs<ExtArgs>
   resolvedTransactions?: boolean | Prisma.User$resolvedTransactionsArgs<ExtArgs>
+  deletedTransactions?: boolean | Prisma.User$deletedTransactionsArgs<ExtArgs>
   userWaivers?: boolean | Prisma.User$userWaiversArgs<ExtArgs>
   sentInvitations?: boolean | Prisma.User$sentInvitationsArgs<ExtArgs>
   preference?: boolean | Prisma.User$preferenceArgs<ExtArgs>
@@ -5956,6 +7265,9 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   impersonationsAsTarget?: boolean | Prisma.User$impersonationsAsTargetArgs<ExtArgs>
   targetedNotifications?: boolean | Prisma.User$targetedNotificationsArgs<ExtArgs>
   createdCampaigns?: boolean | Prisma.User$createdCampaignsArgs<ExtArgs>
+  orders?: boolean | Prisma.User$ordersArgs<ExtArgs>
+  collectibleUnitsOwned?: boolean | Prisma.User$collectibleUnitsOwnedArgs<ExtArgs>
+  collectibleOwnerships?: boolean | Prisma.User$collectibleOwnershipsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -6034,6 +7346,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   leadNotes?: boolean | Prisma.User$leadNotesArgs<ExtArgs>
   transactions?: boolean | Prisma.User$transactionsArgs<ExtArgs>
   resolvedTransactions?: boolean | Prisma.User$resolvedTransactionsArgs<ExtArgs>
+  deletedTransactions?: boolean | Prisma.User$deletedTransactionsArgs<ExtArgs>
   userWaivers?: boolean | Prisma.User$userWaiversArgs<ExtArgs>
   sentInvitations?: boolean | Prisma.User$sentInvitationsArgs<ExtArgs>
   preference?: boolean | Prisma.User$preferenceArgs<ExtArgs>
@@ -6042,6 +7355,9 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   impersonationsAsTarget?: boolean | Prisma.User$impersonationsAsTargetArgs<ExtArgs>
   targetedNotifications?: boolean | Prisma.User$targetedNotificationsArgs<ExtArgs>
   createdCampaigns?: boolean | Prisma.User$createdCampaignsArgs<ExtArgs>
+  orders?: boolean | Prisma.User$ordersArgs<ExtArgs>
+  collectibleUnitsOwned?: boolean | Prisma.User$collectibleUnitsOwnedArgs<ExtArgs>
+  collectibleOwnerships?: boolean | Prisma.User$collectibleOwnershipsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -6071,6 +7387,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     leadNotes: Prisma.$LeadNotePayload<ExtArgs>[]
     transactions: Prisma.$TransactionPayload<ExtArgs>[]
     resolvedTransactions: Prisma.$TransactionPayload<ExtArgs>[]
+    deletedTransactions: Prisma.$TransactionPayload<ExtArgs>[]
     userWaivers: Prisma.$UserWaiverPayload<ExtArgs>[]
     sentInvitations: Prisma.$SchoolInvitationPayload<ExtArgs>[]
     preference: Prisma.$UserPreferencePayload<ExtArgs> | null
@@ -6079,6 +7396,9 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     impersonationsAsTarget: Prisma.$ImpersonationLogPayload<ExtArgs>[]
     targetedNotifications: Prisma.$NotificationPayload<ExtArgs>[]
     createdCampaigns: Prisma.$CampaignPayload<ExtArgs>[]
+    orders: Prisma.$OrderPayload<ExtArgs>[]
+    collectibleUnitsOwned: Prisma.$CollectibleUnitPayload<ExtArgs>[]
+    collectibleOwnerships: Prisma.$CollectibleOwnershipPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -6507,6 +7827,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   leadNotes<T extends Prisma.User$leadNotesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$leadNotesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LeadNotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   transactions<T extends Prisma.User$transactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   resolvedTransactions<T extends Prisma.User$resolvedTransactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$resolvedTransactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  deletedTransactions<T extends Prisma.User$deletedTransactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$deletedTransactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   userWaivers<T extends Prisma.User$userWaiversArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$userWaiversArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserWaiverPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   sentInvitations<T extends Prisma.User$sentInvitationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$sentInvitationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SchoolInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   preference<T extends Prisma.User$preferenceArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$preferenceArgs<ExtArgs>>): Prisma.Prisma__UserPreferenceClient<runtime.Types.Result.GetResult<Prisma.$UserPreferencePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
@@ -6515,6 +7836,9 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   impersonationsAsTarget<T extends Prisma.User$impersonationsAsTargetArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$impersonationsAsTargetArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ImpersonationLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   targetedNotifications<T extends Prisma.User$targetedNotificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$targetedNotificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdCampaigns<T extends Prisma.User$createdCampaignsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdCampaignsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CampaignPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  orders<T extends Prisma.User$ordersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  collectibleUnitsOwned<T extends Prisma.User$collectibleUnitsOwnedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$collectibleUnitsOwnedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CollectibleUnitPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  collectibleOwnerships<T extends Prisma.User$collectibleOwnershipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$collectibleOwnershipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CollectibleOwnershipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -7363,6 +8687,30 @@ export type User$resolvedTransactionsArgs<ExtArgs extends runtime.Types.Extensio
 }
 
 /**
+ * User.deletedTransactions
+ */
+export type User$deletedTransactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Transaction
+   */
+  select?: Prisma.TransactionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Transaction
+   */
+  omit?: Prisma.TransactionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TransactionInclude<ExtArgs> | null
+  where?: Prisma.TransactionWhereInput
+  orderBy?: Prisma.TransactionOrderByWithRelationInput | Prisma.TransactionOrderByWithRelationInput[]
+  cursor?: Prisma.TransactionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TransactionScalarFieldEnum | Prisma.TransactionScalarFieldEnum[]
+}
+
+/**
  * User.userWaivers
  */
 export type User$userWaiversArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -7547,6 +8895,78 @@ export type User$createdCampaignsArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.CampaignScalarFieldEnum | Prisma.CampaignScalarFieldEnum[]
+}
+
+/**
+ * User.orders
+ */
+export type User$ordersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Order
+   */
+  select?: Prisma.OrderSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Order
+   */
+  omit?: Prisma.OrderOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrderInclude<ExtArgs> | null
+  where?: Prisma.OrderWhereInput
+  orderBy?: Prisma.OrderOrderByWithRelationInput | Prisma.OrderOrderByWithRelationInput[]
+  cursor?: Prisma.OrderWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OrderScalarFieldEnum | Prisma.OrderScalarFieldEnum[]
+}
+
+/**
+ * User.collectibleUnitsOwned
+ */
+export type User$collectibleUnitsOwnedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CollectibleUnit
+   */
+  select?: Prisma.CollectibleUnitSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CollectibleUnit
+   */
+  omit?: Prisma.CollectibleUnitOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CollectibleUnitInclude<ExtArgs> | null
+  where?: Prisma.CollectibleUnitWhereInput
+  orderBy?: Prisma.CollectibleUnitOrderByWithRelationInput | Prisma.CollectibleUnitOrderByWithRelationInput[]
+  cursor?: Prisma.CollectibleUnitWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CollectibleUnitScalarFieldEnum | Prisma.CollectibleUnitScalarFieldEnum[]
+}
+
+/**
+ * User.collectibleOwnerships
+ */
+export type User$collectibleOwnershipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CollectibleOwnership
+   */
+  select?: Prisma.CollectibleOwnershipSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CollectibleOwnership
+   */
+  omit?: Prisma.CollectibleOwnershipOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CollectibleOwnershipInclude<ExtArgs> | null
+  where?: Prisma.CollectibleOwnershipWhereInput
+  orderBy?: Prisma.CollectibleOwnershipOrderByWithRelationInput | Prisma.CollectibleOwnershipOrderByWithRelationInput[]
+  cursor?: Prisma.CollectibleOwnershipWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CollectibleOwnershipScalarFieldEnum | Prisma.CollectibleOwnershipScalarFieldEnum[]
 }
 
 /**

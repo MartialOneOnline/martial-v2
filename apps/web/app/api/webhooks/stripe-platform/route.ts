@@ -3,6 +3,7 @@ import type Stripe from 'stripe'
 import { prisma } from '@/lib/db'
 import { getPlatformStripe } from '@/lib/stripe'
 import { SchoolSubscriptionStatus } from '@/lib/prisma-client/enums'
+import { fulfillCollectibleCheckout } from '@/lib/services/collectibles/checkoutFulfillment'
 
 // POST /api/webhooks/stripe-platform
 // Martial's own Stripe account — schools paying Martial's SaaS subscription.
@@ -133,6 +134,25 @@ async function handleEvent(event: Stripe.Event, stripe: Stripe) {
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session
+
+      // Martial-sold marketplace product (e.g. Buchecha's collection) — a
+      // one-time 'payment' mode session, not a subscription, and has no
+      // schoolId at all (Product.schoolId is null for sellerType MARTIAL).
+      // Checked first because it never falls through to the SaaS-billing
+      // logic below, which requires schoolId + a subscription.
+      const collectibleUnitId = session.metadata?.collectibleUnitId
+      if (collectibleUnitId) {
+        if (session.payment_status !== 'paid') break
+        await fulfillCollectibleCheckout({
+          collectibleUnitId,
+          userId: session.metadata!.userId!,
+          amountTotalCents: session.amount_total ?? null,
+          currency: session.currency ?? null,
+          stripePaymentIntentId: typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id ?? null,
+        })
+        break
+      }
+
       const schoolId = session.metadata?.schoolId
       if (!schoolId) {
         throw new Error(`checkout.session.completed missing metadata.schoolId (session ${session.id})`)

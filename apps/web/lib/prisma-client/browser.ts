@@ -233,6 +233,26 @@ export type Order = Prisma.OrderModel
  */
 export type OrderItem = Prisma.OrderItemModel
 /**
+ * Model LimitedCollection
+ * 
+ */
+export type LimitedCollection = Prisma.LimitedCollectionModel
+/**
+ * Model LimitedCollectionTier
+ * 
+ */
+export type LimitedCollectionTier = Prisma.LimitedCollectionTierModel
+/**
+ * Model CollectibleUnit
+ * 
+ */
+export type CollectibleUnit = Prisma.CollectibleUnitModel
+/**
+ * Model CollectibleOwnership
+ * 
+ */
+export type CollectibleOwnership = Prisma.CollectibleOwnershipModel
+/**
  * Model Partner
  * 
  */

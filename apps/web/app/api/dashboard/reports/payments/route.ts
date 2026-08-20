@@ -50,6 +50,7 @@ export async function GET(req: NextRequest) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const where: any = {
     schoolId: auth.schoolId,
+    deletedAt: null,
     type: 'INCOME',
     date: { gte: from, lte: to },
     ...(status !== 'ALL' ? { status } : {}),
@@ -79,7 +80,7 @@ export async function GET(req: NextRequest) {
   const revenueData = await Promise.all(
     points.map(async pt => {
       const agg = await prisma.transaction.aggregate({
-        where: { schoolId: auth.schoolId, type: 'INCOME', status: 'PAID', date: { gte: pt.from, lte: pt.to } },
+        where: { schoolId: auth.schoolId, type: 'INCOME', status: 'PAID', deletedAt: null, date: { gte: pt.from, lte: pt.to } },
         _sum: { amount: true },
       })
       return { date: pt.label, revenue: Math.round(agg._sum.amount ?? 0) }
@@ -89,7 +90,7 @@ export async function GET(req: NextRequest) {
   // ── By payment method ─────────────────────────────────────────────────────
   const methodAgg = await prisma.transaction.groupBy({
     by: ['paymentMethod'],
-    where: { schoolId: auth.schoolId, type: 'INCOME', status: 'PAID', date: { gte: from, lte: to } },
+    where: { schoolId: auth.schoolId, type: 'INCOME', status: 'PAID', deletedAt: null, date: { gte: from, lte: to } },
     _sum: { amount: true },
   })
   const methodData = methodAgg
@@ -104,12 +105,12 @@ export async function GET(req: NextRequest) {
   // ── Stats ─────────────────────────────────────────────────────────────────
   const [totalRevenueAgg, pendingCountAgg, failedCountAgg, totalCountAgg] = await Promise.all([
     prisma.transaction.aggregate({
-      where: { schoolId: auth.schoolId, type: 'INCOME', status: 'PAID', date: { gte: from, lte: to } },
+      where: { schoolId: auth.schoolId, type: 'INCOME', status: 'PAID', deletedAt: null, date: { gte: from, lte: to } },
       _sum: { amount: true },
     }),
-    prisma.transaction.count({ where: { schoolId: auth.schoolId, type: 'INCOME', status: 'PENDING', date: { gte: from, lte: to } } }),
-    prisma.transaction.count({ where: { schoolId: auth.schoolId, type: 'INCOME', status: 'FAILED',  date: { gte: from, lte: to } } }),
-    prisma.transaction.count({ where: { schoolId: auth.schoolId, type: 'INCOME', date: { gte: from, lte: to } } }),
+    prisma.transaction.count({ where: { schoolId: auth.schoolId, type: 'INCOME', status: 'PENDING', deletedAt: null, date: { gte: from, lte: to } } }),
+    prisma.transaction.count({ where: { schoolId: auth.schoolId, type: 'INCOME', status: 'FAILED',  deletedAt: null, date: { gte: from, lte: to } } }),
+    prisma.transaction.count({ where: { schoolId: auth.schoolId, type: 'INCOME', deletedAt: null, date: { gte: from, lte: to } } }),
   ])
 
   const totalRevenue = Math.round(totalRevenueAgg._sum.amount ?? 0)
@@ -118,7 +119,7 @@ export async function GET(req: NextRequest) {
   // MRR: paid income in current month
   const mrrFrom = new Date(); mrrFrom.setDate(1); mrrFrom.setHours(0, 0, 0, 0)
   const mrrAgg = await prisma.transaction.aggregate({
-    where: { schoolId: auth.schoolId, type: 'INCOME', status: 'PAID', date: { gte: mrrFrom } },
+    where: { schoolId: auth.schoolId, type: 'INCOME', status: 'PAID', deletedAt: null, date: { gte: mrrFrom } },
     _sum: { amount: true },
   })
   const mrr = Math.round(mrrAgg._sum.amount ?? 0)

@@ -11,6 +11,7 @@ import { convertLeadOnMembershipActivation } from '@/lib/leads'
 import { PaymentMethod, TransactionCategory, StripeWebhookEventStatus } from '@/lib/prisma-client/enums'
 import { notifyPaymentReceived } from '@/lib/notifications/create'
 import { fmtPrice } from '@/lib/format'
+import { fulfillCollectibleCheckout } from '@/lib/services/collectibles/checkoutFulfillment'
 
 // A row still PROCESSING past this long was orphaned by a request that
 // crashed before ever reaching the PROCESSED/FAILED update at the bottom of
@@ -165,18 +166,31 @@ async function handleStripeEvent(event: Stripe.Event) {
         subscription?: string
         customer?: string
         payment_intent?: string
+        amount_total?: number
+        currency?: string
       }
       const meta = (session.metadata ?? {}) as Record<string, string>
-      const { planId, planType, validityDays, eventBookingId } = meta
+      const { planId, planType, validityDays, eventBookingId, collectibleUnitId } = meta
       // Non-null: these always accompany planId, set together by /api/my/checkout.
       const schoolId = meta.schoolId!
       const userId = meta.userId!
       const planName = meta.planName!
       const price = meta.price!
       const currency = meta.currency!
-      if (!planId && !eventBookingId) break
+      if (!planId && !eventBookingId && !collectibleUnitId) break
 
       if (session.payment_status !== 'paid') break
+
+      if (collectibleUnitId) {
+        await fulfillCollectibleCheckout({
+          collectibleUnitId,
+          userId: meta.userId!,
+          amountTotalCents: session.amount_total ?? null,
+          currency: session.currency ?? null,
+          stripePaymentIntentId: session.payment_intent ?? null,
+        })
+        break
+      }
 
       if (eventBookingId) {
         let blockedByArchivedMember = false

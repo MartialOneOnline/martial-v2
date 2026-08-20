@@ -21,7 +21,7 @@ export async function GET() {
   }
 
   const pending = await prisma.transaction.count({
-    where: { schoolId, status: 'PENDING' },
+    where: { schoolId, status: 'PENDING', deletedAt: null },
   })
 
   return NextResponse.json({ pending })

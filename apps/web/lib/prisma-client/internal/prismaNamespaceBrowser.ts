@@ -94,6 +94,10 @@ export const ModelName = {
   Product: 'Product',
   Order: 'Order',
   OrderItem: 'OrderItem',
+  LimitedCollection: 'LimitedCollection',
+  LimitedCollectionTier: 'LimitedCollectionTier',
+  CollectibleUnit: 'CollectibleUnit',
+  CollectibleOwnership: 'CollectibleOwnership',
   Partner: 'Partner',
   Notification: 'Notification',
   PlatformSettings: 'PlatformSettings',
@@ -853,6 +857,8 @@ export const TransactionScalarFieldEnum = {
   resolvedAt: 'resolvedAt',
   resolvedBy: 'resolvedBy',
   resolutionNote: 'resolutionNote',
+  deletedAt: 'deletedAt',
+  deletedBy: 'deletedBy',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -889,6 +895,7 @@ export type ProductCategoryScalarFieldEnum = (typeof ProductCategoryScalarFieldE
 
 export const ProductScalarFieldEnum = {
   id: 'id',
+  sellerType: 'sellerType',
   schoolId: 'schoolId',
   categoryId: 'categoryId',
   name: 'name',
@@ -898,6 +905,7 @@ export const ProductScalarFieldEnum = {
   stock: 'stock',
   imageUrl: 'imageUrl',
   isActive: 'isActive',
+  isLimitedEdition: 'isLimitedEdition',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -930,6 +938,109 @@ export const OrderItemScalarFieldEnum = {
 } as const
 
 export type OrderItemScalarFieldEnum = (typeof OrderItemScalarFieldEnum)[keyof typeof OrderItemScalarFieldEnum]
+
+
+export const LimitedCollectionScalarFieldEnum = {
+  id: 'id',
+  productId: 'productId',
+  sellerType: 'sellerType',
+  schoolId: 'schoolId',
+  name: 'name',
+  slug: 'slug',
+  status: 'status',
+  athleteName: 'athleteName',
+  athleteUserId: 'athleteUserId',
+  brandName: 'brandName',
+  collectionYear: 'collectionYear',
+  totalUnits: 'totalUnits',
+  launchDate: 'launchDate',
+  endDate: 'endDate',
+  numberSelectionEnabled: 'numberSelectionEnabled',
+  automaticAssignmentEnabled: 'automaticAssignmentEnabled',
+  sizeSelectionEnabled: 'sizeSelectionEnabled',
+  authenticityEnabled: 'authenticityEnabled',
+  publicRegistryEnabled: 'publicRegistryEnabled',
+  authenticationStatement: 'authenticationStatement',
+  skuPrefix: 'skuPrefix',
+  cardTemplateConfig: 'cardTemplateConfig',
+  heroImageUrl: 'heroImageUrl',
+  story: 'story',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type LimitedCollectionScalarFieldEnum = (typeof LimitedCollectionScalarFieldEnum)[keyof typeof LimitedCollectionScalarFieldEnum]
+
+
+export const LimitedCollectionTierScalarFieldEnum = {
+  id: 'id',
+  collectionId: 'collectionId',
+  name: 'name',
+  code: 'code',
+  description: 'description',
+  startNumber: 'startNumber',
+  endNumber: 'endNumber',
+  price: 'price',
+  currency: 'currency',
+  primaryColor: 'primaryColor',
+  secondaryColor: 'secondaryColor',
+  visualStyle: 'visualStyle',
+  benefits: 'benefits',
+  packagingDescription: 'packagingDescription',
+  displayOrder: 'displayOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type LimitedCollectionTierScalarFieldEnum = (typeof LimitedCollectionTierScalarFieldEnum)[keyof typeof LimitedCollectionTierScalarFieldEnum]
+
+
+export const CollectibleUnitScalarFieldEnum = {
+  id: 'id',
+  collectionId: 'collectionId',
+  tierId: 'tierId',
+  editionNumber: 'editionNumber',
+  sku: 'sku',
+  size: 'size',
+  specificPrice: 'specificPrice',
+  currency: 'currency',
+  status: 'status',
+  signed: 'signed',
+  signedAt: 'signedAt',
+  signedLocation: 'signedLocation',
+  videoUrl: 'videoUrl',
+  certificateUrl: 'certificateUrl',
+  orderId: 'orderId',
+  ownerUserId: 'ownerUserId',
+  publicVerificationCode: 'publicVerificationCode',
+  reservedAt: 'reservedAt',
+  reservationExpiresAt: 'reservationExpiresAt',
+  soldAt: 'soldAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CollectibleUnitScalarFieldEnum = (typeof CollectibleUnitScalarFieldEnum)[keyof typeof CollectibleUnitScalarFieldEnum]
+
+
+export const CollectibleOwnershipScalarFieldEnum = {
+  id: 'id',
+  collectibleUnitId: 'collectibleUnitId',
+  ownerUserId: 'ownerUserId',
+  orderId: 'orderId',
+  acquisitionType: 'acquisitionType',
+  acquiredAt: 'acquiredAt',
+  endedAt: 'endedAt',
+  isCurrent: 'isCurrent',
+  ownerDisplayName: 'ownerDisplayName',
+  showOwnerPublicly: 'showOwnerPublicly',
+  createdBy: 'createdBy',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CollectibleOwnershipScalarFieldEnum = (typeof CollectibleOwnershipScalarFieldEnum)[keyof typeof CollectibleOwnershipScalarFieldEnum]
 
 
 export const PartnerScalarFieldEnum = {

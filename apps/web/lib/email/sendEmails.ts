@@ -10,6 +10,7 @@ import {
   buildEventTicketRefundEmail, getEventTicketRefundSubject,
 } from './templates/eventTicketReceipt'
 import { generateEventQrDataUri } from './qr'
+import { buildCollectibleReceiptEmail, getCollectibleReceiptSubject } from './templates/collectibleReceipt'
 
 type SendResult = { success: true; emailId?: string } | { success: false; error: string }
 
@@ -302,6 +303,50 @@ export async function sendEventTicketRefundedEmail({
     currency,
     bookingId,
     dashboardUrl: `${APP_URL}/my/events`,
+    lang,
+  })
+  return send(to, subject, html)
+}
+
+// ── 7. Limited collection unit purchase confirmation ────────────────────────────
+export async function sendCollectibleReceiptEmail({
+  to,
+  ownerName,
+  sellerLabel,
+  collectionName,
+  tierName,
+  displayNumber,
+  amount,
+  currency,
+  unitId,
+  verificationCode,
+  lang,
+}: {
+  to: string
+  ownerName?: string | null
+  sellerLabel: string
+  collectionName: string
+  tierName: string
+  displayNumber: string
+  amount: number
+  currency: string
+  unitId: string
+  verificationCode: string
+  lang?: string | null
+}): Promise<SendResult> {
+  const l = detectLang(lang)
+  const subject = getCollectibleReceiptSubject(collectionName, l)
+  const html = await buildCollectibleReceiptEmail({
+    ownerName,
+    sellerLabel,
+    collectionName,
+    tierName,
+    displayNumber,
+    amount,
+    currency,
+    unitId,
+    verificationUrl: `${APP_URL}/collectibles/verify/${verificationCode}`,
+    dashboardUrl: `${APP_URL}/my/collectibles`,
     lang,
   })
   return send(to, subject, html)
