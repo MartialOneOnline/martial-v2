@@ -235,7 +235,7 @@ function QuickStatsCard({ title, subtitle, items }: {
 
 // ── SVG Area Chart ─────────────────────────────────────────────────────────────
 
-function AreaChart({ data }: { data: { label: string; value: number }[] }) {
+function AreaChart({ data, formatValue }: { data: { label: string; value: number }[]; formatValue?: (v: number) => string }) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
   const W = 560; const H = 160; const PAD = { t: 16, r: 16, b: 32, l: 40 }
   if (data.length === 0) {
@@ -262,7 +262,7 @@ function AreaChart({ data }: { data: { label: string; value: number }[] }) {
   const gridLines = [0.25, 0.5, 0.75].map(t => PAD.t + t * innerH)
 
   const active = activeIndex !== null ? { pt: points[activeIndex]!, d: data[activeIndex]! } : null
-  const tooltipLabel = active ? `${active.d.label}: ${active.d.value}` : ''
+  const tooltipLabel = active ? `${active.d.label}: ${formatValue ? formatValue(active.d.value) : active.d.value}` : ''
   const tooltipW = Math.max(50, tooltipLabel.length * 6 + 16)
   const tooltipH = 22
   const tooltipX = active ? Math.min(Math.max(active.pt.x - tooltipW / 2, PAD.l - 4), W - PAD.r - tooltipW + 4) : 0
@@ -535,13 +535,15 @@ export default function DashboardClient({ userName, userEmail }: Props) {
       trend: stats?.members.trend ?? null,
       trendUp: true,
       sub: t.common.vsLastMonth,
+      href: '/dashboard/users',
     },
     {
-      label: t.dashboard.activeClasses,
-      value: stats ? stats.activeClasses.value.toLocaleString() : null,
+      label: t.dashboard.leads,
+      value: stats ? stats.openLeads.value.toLocaleString() : null,
       trend: null,
       trendUp: true,
-      sub: t.common.thisWeek,
+      sub: t.common.rightNow,
+      href: '/dashboard/school/leads',
     },
     {
       label: t.dashboard.revenue,
@@ -549,6 +551,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
       trend: stats?.revenue.trend ?? null,
       trendUp: true,
       sub: t.common.vsLastMonth,
+      href: '/dashboard/reports/payments',
     },
     {
       label: t.dashboard.bookings,
@@ -556,6 +559,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
       trend: null,
       trendUp: true,
       sub: t.common.allTime,
+      href: '/dashboard/reports/bookings',
     },
   ]
   const QUICK_STATS = [
@@ -762,9 +766,10 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           {/* 3. Stat cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {STATS.map(stat => (
-              <div
+              <button
                 key={stat.label}
-                className="rounded-2xl"
+                onClick={() => router.push(stat.href)}
+                className="rounded-2xl text-left transition-colors hover:border-[#0071E3] cursor-pointer w-full"
                 style={{ background: '#fff', border: '1px solid #E5E7EB', padding: '14px 14px 12px' }}
               >
                 {/* Label + trend */}
@@ -795,7 +800,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
 
                 {/* Sub-text */}
                 <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 8 }}>{stat.sub}</p>
-              </div>
+              </button>
             ))}
           </div>
 
@@ -927,11 +932,14 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                 ))}
               </div>
             </div>
-            <AreaChart data={
-              overviewMode === 'bookings'
-                ? (bookingsChart ?? []).map(d => ({ label: d.date, value: d.confirmed }))
-                : (revenueChart ?? []).map(d => ({ label: d.date, value: d.revenue }))
-            } />
+            <AreaChart
+              data={
+                overviewMode === 'bookings'
+                  ? (bookingsChart ?? []).map(d => ({ label: d.date, value: d.confirmed }))
+                  : (revenueChart ?? []).map(d => ({ label: d.date, value: d.revenue }))
+              }
+              formatValue={overviewMode === 'payments' ? (v) => fmtPrice(v) : undefined}
+            />
           </div>
 
           {/* 7. Transactions */}
