@@ -27,6 +27,7 @@ type School = {
   createdAt: string
   _count: { members: number }
   subscription: { status: string } | null
+  setup: { classes: boolean; memberships: boolean; payments: boolean; staff: boolean; waivers: boolean }
 }
 
 const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
@@ -72,6 +73,42 @@ const label = 'block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracki
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+const SETUP_STEPS: { key: keyof School['setup']; label: string }[] = [
+  { key: 'classes',     label: 'Classes' },
+  { key: 'memberships', label: 'Memberships' },
+  { key: 'payments',    label: 'Payments' },
+  { key: 'staff',       label: 'Staff' },
+  { key: 'waivers',     label: 'Waivers' },
+]
+
+// Setup completeness at a glance: a done/total pill plus one dot per step, so
+// an admin can spot an unfinished school without opening it. The tooltip
+// spells out exactly what's missing.
+function SetupProgress({ setup }: { setup: School['setup'] }) {
+  const done = SETUP_STEPS.filter(s => setup[s.key]).length
+  const total = SETUP_STEPS.length
+  const missing = SETUP_STEPS.filter(s => !setup[s.key]).map(s => s.label)
+  const cls = done === total
+    ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+    : done === 0
+    ? 'bg-gray-100 text-gray-400 border border-gray-200'
+    : 'bg-amber-50 text-amber-700 border border-amber-100'
+  const title = done === total ? 'Setup complete' : `Missing: ${missing.join(', ')}`
+  return (
+    <div className="flex items-center gap-1.5" title={title}>
+      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${cls}`}>{done}/{total}</span>
+      <div className="flex items-center gap-0.5">
+        {SETUP_STEPS.map(s => (
+          <span
+            key={s.key}
+            className={`w-1.5 h-1.5 rounded-full ${setup[s.key] ? 'bg-emerald-400' : 'bg-gray-200'}`}
+          />
+        ))}
+      </div>
+    </div>
+  )
 }
 
 // ── Create School Modal ───────────────────────────────────────────────────────
@@ -897,6 +934,7 @@ export default function AllSchoolsClient() {
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Status</th>
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Billing</th>
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Members</th>
+                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Setup</th>
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Added</th>
                   <th className="px-4 py-3" />
                 </tr>
@@ -945,6 +983,9 @@ export default function AllSchoolsClient() {
                         <Users className="w-3 h-3 text-gray-300" />
                         {school._count.members}
                       </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <SetupProgress setup={school.setup} />
                     </td>
                     <td className="px-4 py-3 text-xs text-gray-400">{fmtDate(school.createdAt)}</td>
                     <td className="px-4 py-3">

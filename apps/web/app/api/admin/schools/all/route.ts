@@ -35,7 +35,17 @@ export async function GET(req: NextRequest) {
         id: true, name: true, slug: true, status: true, type: true, source: true,
         city: true, country: true, email: true, phone: true, claimedById: true,
         createdAt: true, updatedAt: true,
-        _count: { select: { members: true } },
+        stripePublishableKey: true, stripeSecretKey: true,
+        revolutPublicKey: true, revolutSecretKey: true,
+        defaultBookingSettings: true,
+        _count: {
+          select: {
+            members: true,
+            classes: { where: { isActive: true } },
+            membershipPlans: true,
+            waivers: true,
+          },
+        },
         subscription: { select: { status: true } },
       },
     }),
@@ -49,8 +59,47 @@ export async function GET(req: NextRequest) {
     orderBy: { country: 'asc' },
   })
 
+  // "Staff" excludes STUDENT and the OWNER row every claimed school already
+  // has — it only counts once someone has actually invited help. Grouped
+  // separately since Prisma can't alias the same `members` relation twice
+  // with different filters inside one `_count.select`.
+  const staffCounts = await prisma.schoolMember.groupBy({
+    by: ['schoolId'],
+    where: {
+      schoolId: { in: schools.map(s => s.id) },
+      role: { in: ['ADMIN', 'MANAGER', 'INSTRUCTOR', 'ASSISTANT_INSTRUCTOR', 'RECEPTIONIST'] },
+    },
+    _count: true,
+  })
+  const staffCountBySchool = new Map(staffCounts.map(c => [c.schoolId, c._count]))
+
+  // Setup completeness — mirrors the school-facing Getting Started checklist
+  // (see /api/dashboard/stats) but adds staff + waivers, which that checklist
+  // doesn't track, for a super-admin-facing view of what's still missing.
+  const schoolsWithSetup = schools.map(s => {
+    const acceptedMethods = (s.defaultBookingSettings as { acceptedMethods?: string[] } | null)?.acceptedMethods
+    const setup = {
+      classes: s._count.classes > 0,
+      memberships: s._count.membershipPlans > 0,
+      payments: Boolean(
+        (s.stripePublishableKey && s.stripeSecretKey) ||
+        (s.revolutPublicKey && s.revolutSecretKey) ||
+        (acceptedMethods && acceptedMethods.length > 0)
+      ),
+      staff: (staffCountBySchool.get(s.id) ?? 0) > 0,
+      waivers: s._count.waivers > 0,
+    }
+    const {
+      stripePublishableKey: _sp, stripeSecretKey: _ss,
+      revolutPublicKey: _rp, revolutSecretKey: _rs,
+      defaultBookingSettings: _dbs,
+      ...rest
+    } = s
+    return { ...rest, setup }
+  })
+
   return NextResponse.json({
-    schools,
+    schools: schoolsWithSetup,
     total,
     pages: Math.ceil(total / limit),
     countries: countries.map(c => c.country).filter(Boolean),
