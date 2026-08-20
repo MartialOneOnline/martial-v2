@@ -301,6 +301,45 @@ export const InvitationSource = {
 export type InvitationSource = (typeof InvitationSource)[keyof typeof InvitationSource]
 
 
+export const MarketplaceSellerType = {
+  SCHOOL: 'SCHOOL',
+  MARTIAL: 'MARTIAL'
+} as const
+
+export type MarketplaceSellerType = (typeof MarketplaceSellerType)[keyof typeof MarketplaceSellerType]
+
+
+export const CollectionStatus = {
+  DRAFT: 'DRAFT',
+  SCHEDULED: 'SCHEDULED',
+  LIVE: 'LIVE',
+  SOLD_OUT: 'SOLD_OUT',
+  ENDED: 'ENDED',
+  ARCHIVED: 'ARCHIVED'
+} as const
+
+export type CollectionStatus = (typeof CollectionStatus)[keyof typeof CollectionStatus]
+
+
+export const CollectibleUnitStatus = {
+  DRAFT: 'DRAFT',
+  AVAILABLE: 'AVAILABLE',
+  RESERVED: 'RESERVED',
+  SOLD: 'SOLD',
+  AUTHENTICATED: 'AUTHENTICATED',
+  ARCHIVED: 'ARCHIVED'
+} as const
+
+export type CollectibleUnitStatus = (typeof CollectibleUnitStatus)[keyof typeof CollectibleUnitStatus]
+
+
+export const OwnershipAcquisitionType = {
+  PURCHASE: 'PURCHASE'
+} as const
+
+export type OwnershipAcquisitionType = (typeof OwnershipAcquisitionType)[keyof typeof OwnershipAcquisitionType]
+
+
 export const NotificationType = {
   NEW_LEAD: 'NEW_LEAD',
   NEW_MEMBER: 'NEW_MEMBER',

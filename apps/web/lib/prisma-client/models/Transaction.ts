@@ -295,7 +295,7 @@ export type TransactionGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inte
 
 export type TransactionGroupByOutputType = {
   id: string
-  schoolId: string
+  schoolId: string | null
   type: $Enums.TransactionType
   status: $Enums.TransactionStatus
   category: $Enums.TransactionCategory
@@ -345,7 +345,7 @@ export type TransactionWhereInput = {
   OR?: Prisma.TransactionWhereInput[]
   NOT?: Prisma.TransactionWhereInput | Prisma.TransactionWhereInput[]
   id?: Prisma.StringFilter<"Transaction"> | string
-  schoolId?: Prisma.StringFilter<"Transaction"> | string
+  schoolId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   type?: Prisma.EnumTransactionTypeFilter<"Transaction"> | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFilter<"Transaction"> | $Enums.TransactionStatus
   category?: Prisma.EnumTransactionCategoryFilter<"Transaction"> | $Enums.TransactionCategory
@@ -368,7 +368,7 @@ export type TransactionWhereInput = {
   resolutionNote?: Prisma.StringNullableFilter<"Transaction"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
-  school?: Prisma.XOR<Prisma.SchoolScalarRelationFilter, Prisma.SchoolWhereInput>
+  school?: Prisma.XOR<Prisma.SchoolNullableScalarRelationFilter, Prisma.SchoolWhereInput> | null
   membership?: Prisma.XOR<Prisma.MembershipNullableScalarRelationFilter, Prisma.MembershipWhereInput> | null
   user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   resolvedByUser?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
@@ -376,7 +376,7 @@ export type TransactionWhereInput = {
 
 export type TransactionOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  schoolId?: Prisma.SortOrder
+  schoolId?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
   status?: Prisma.SortOrder
   category?: Prisma.SortOrder
@@ -412,7 +412,7 @@ export type TransactionWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.TransactionWhereInput | Prisma.TransactionWhereInput[]
   OR?: Prisma.TransactionWhereInput[]
   NOT?: Prisma.TransactionWhereInput | Prisma.TransactionWhereInput[]
-  schoolId?: Prisma.StringFilter<"Transaction"> | string
+  schoolId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   type?: Prisma.EnumTransactionTypeFilter<"Transaction"> | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFilter<"Transaction"> | $Enums.TransactionStatus
   category?: Prisma.EnumTransactionCategoryFilter<"Transaction"> | $Enums.TransactionCategory
@@ -433,7 +433,7 @@ export type TransactionWhereUniqueInput = Prisma.AtLeast<{
   resolutionNote?: Prisma.StringNullableFilter<"Transaction"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
-  school?: Prisma.XOR<Prisma.SchoolScalarRelationFilter, Prisma.SchoolWhereInput>
+  school?: Prisma.XOR<Prisma.SchoolNullableScalarRelationFilter, Prisma.SchoolWhereInput> | null
   membership?: Prisma.XOR<Prisma.MembershipNullableScalarRelationFilter, Prisma.MembershipWhereInput> | null
   user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   resolvedByUser?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
@@ -441,7 +441,7 @@ export type TransactionWhereUniqueInput = Prisma.AtLeast<{
 
 export type TransactionOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  schoolId?: Prisma.SortOrder
+  schoolId?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
   status?: Prisma.SortOrder
   category?: Prisma.SortOrder
@@ -476,7 +476,7 @@ export type TransactionScalarWhereWithAggregatesInput = {
   OR?: Prisma.TransactionScalarWhereWithAggregatesInput[]
   NOT?: Prisma.TransactionScalarWhereWithAggregatesInput | Prisma.TransactionScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Transaction"> | string
-  schoolId?: Prisma.StringWithAggregatesFilter<"Transaction"> | string
+  schoolId?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
   type?: Prisma.EnumTransactionTypeWithAggregatesFilter<"Transaction"> | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusWithAggregatesFilter<"Transaction"> | $Enums.TransactionStatus
   category?: Prisma.EnumTransactionCategoryWithAggregatesFilter<"Transaction"> | $Enums.TransactionCategory
@@ -522,7 +522,7 @@ export type TransactionCreateInput = {
   resolutionNote?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  school: Prisma.SchoolCreateNestedOneWithoutTransactionsInput
+  school?: Prisma.SchoolCreateNestedOneWithoutTransactionsInput
   membership?: Prisma.MembershipCreateNestedOneWithoutTransactionsInput
   user?: Prisma.UserCreateNestedOneWithoutTransactionsInput
   resolvedByUser?: Prisma.UserCreateNestedOneWithoutResolvedTransactionsInput
@@ -530,7 +530,7 @@ export type TransactionCreateInput = {
 
 export type TransactionUncheckedCreateInput = {
   id?: string
-  schoolId: string
+  schoolId?: string | null
   type: $Enums.TransactionType
   status?: $Enums.TransactionStatus
   category?: $Enums.TransactionCategory
@@ -576,7 +576,7 @@ export type TransactionUpdateInput = {
   resolutionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  school?: Prisma.SchoolUpdateOneRequiredWithoutTransactionsNestedInput
+  school?: Prisma.SchoolUpdateOneWithoutTransactionsNestedInput
   membership?: Prisma.MembershipUpdateOneWithoutTransactionsNestedInput
   user?: Prisma.UserUpdateOneWithoutTransactionsNestedInput
   resolvedByUser?: Prisma.UserUpdateOneWithoutResolvedTransactionsNestedInput
@@ -584,7 +584,7 @@ export type TransactionUpdateInput = {
 
 export type TransactionUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  schoolId?: Prisma.StringFieldUpdateOperationsInput | string
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
   category?: Prisma.EnumTransactionCategoryFieldUpdateOperationsInput | $Enums.TransactionCategory
@@ -611,7 +611,7 @@ export type TransactionUncheckedUpdateInput = {
 
 export type TransactionCreateManyInput = {
   id?: string
-  schoolId: string
+  schoolId?: string | null
   type: $Enums.TransactionType
   status?: $Enums.TransactionStatus
   category?: $Enums.TransactionCategory
@@ -661,7 +661,7 @@ export type TransactionUpdateManyMutationInput = {
 
 export type TransactionUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  schoolId?: Prisma.StringFieldUpdateOperationsInput | string
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
   category?: Prisma.EnumTransactionCategoryFieldUpdateOperationsInput | $Enums.TransactionCategory
@@ -990,14 +990,14 @@ export type TransactionCreateWithoutUserInput = {
   resolutionNote?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  school: Prisma.SchoolCreateNestedOneWithoutTransactionsInput
+  school?: Prisma.SchoolCreateNestedOneWithoutTransactionsInput
   membership?: Prisma.MembershipCreateNestedOneWithoutTransactionsInput
   resolvedByUser?: Prisma.UserCreateNestedOneWithoutResolvedTransactionsInput
 }
 
 export type TransactionUncheckedCreateWithoutUserInput = {
   id?: string
-  schoolId: string
+  schoolId?: string | null
   type: $Enums.TransactionType
   status?: $Enums.TransactionStatus
   category?: $Enums.TransactionCategory
@@ -1052,14 +1052,14 @@ export type TransactionCreateWithoutResolvedByUserInput = {
   resolutionNote?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  school: Prisma.SchoolCreateNestedOneWithoutTransactionsInput
+  school?: Prisma.SchoolCreateNestedOneWithoutTransactionsInput
   membership?: Prisma.MembershipCreateNestedOneWithoutTransactionsInput
   user?: Prisma.UserCreateNestedOneWithoutTransactionsInput
 }
 
 export type TransactionUncheckedCreateWithoutResolvedByUserInput = {
   id?: string
-  schoolId: string
+  schoolId?: string | null
   type: $Enums.TransactionType
   status?: $Enums.TransactionStatus
   category?: $Enums.TransactionCategory
@@ -1114,7 +1114,7 @@ export type TransactionScalarWhereInput = {
   OR?: Prisma.TransactionScalarWhereInput[]
   NOT?: Prisma.TransactionScalarWhereInput | Prisma.TransactionScalarWhereInput[]
   id?: Prisma.StringFilter<"Transaction"> | string
-  schoolId?: Prisma.StringFilter<"Transaction"> | string
+  schoolId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   type?: Prisma.EnumTransactionTypeFilter<"Transaction"> | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFilter<"Transaction"> | $Enums.TransactionStatus
   category?: Prisma.EnumTransactionCategoryFilter<"Transaction"> | $Enums.TransactionCategory
@@ -1254,14 +1254,14 @@ export type TransactionCreateWithoutMembershipInput = {
   resolutionNote?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  school: Prisma.SchoolCreateNestedOneWithoutTransactionsInput
+  school?: Prisma.SchoolCreateNestedOneWithoutTransactionsInput
   user?: Prisma.UserCreateNestedOneWithoutTransactionsInput
   resolvedByUser?: Prisma.UserCreateNestedOneWithoutResolvedTransactionsInput
 }
 
 export type TransactionUncheckedCreateWithoutMembershipInput = {
   id?: string
-  schoolId: string
+  schoolId?: string | null
   type: $Enums.TransactionType
   status?: $Enums.TransactionStatus
   category?: $Enums.TransactionCategory
@@ -1313,7 +1313,7 @@ export type TransactionUpdateManyWithWhereWithoutMembershipInput = {
 
 export type TransactionCreateManyUserInput = {
   id?: string
-  schoolId: string
+  schoolId?: string | null
   type: $Enums.TransactionType
   status?: $Enums.TransactionStatus
   category?: $Enums.TransactionCategory
@@ -1339,7 +1339,7 @@ export type TransactionCreateManyUserInput = {
 
 export type TransactionCreateManyResolvedByUserInput = {
   id?: string
-  schoolId: string
+  schoolId?: string | null
   type: $Enums.TransactionType
   status?: $Enums.TransactionStatus
   category?: $Enums.TransactionCategory
@@ -1384,14 +1384,14 @@ export type TransactionUpdateWithoutUserInput = {
   resolutionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  school?: Prisma.SchoolUpdateOneRequiredWithoutTransactionsNestedInput
+  school?: Prisma.SchoolUpdateOneWithoutTransactionsNestedInput
   membership?: Prisma.MembershipUpdateOneWithoutTransactionsNestedInput
   resolvedByUser?: Prisma.UserUpdateOneWithoutResolvedTransactionsNestedInput
 }
 
 export type TransactionUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  schoolId?: Prisma.StringFieldUpdateOperationsInput | string
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
   category?: Prisma.EnumTransactionCategoryFieldUpdateOperationsInput | $Enums.TransactionCategory
@@ -1417,7 +1417,7 @@ export type TransactionUncheckedUpdateWithoutUserInput = {
 
 export type TransactionUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  schoolId?: Prisma.StringFieldUpdateOperationsInput | string
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
   category?: Prisma.EnumTransactionCategoryFieldUpdateOperationsInput | $Enums.TransactionCategory
@@ -1462,14 +1462,14 @@ export type TransactionUpdateWithoutResolvedByUserInput = {
   resolutionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  school?: Prisma.SchoolUpdateOneRequiredWithoutTransactionsNestedInput
+  school?: Prisma.SchoolUpdateOneWithoutTransactionsNestedInput
   membership?: Prisma.MembershipUpdateOneWithoutTransactionsNestedInput
   user?: Prisma.UserUpdateOneWithoutTransactionsNestedInput
 }
 
 export type TransactionUncheckedUpdateWithoutResolvedByUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  schoolId?: Prisma.StringFieldUpdateOperationsInput | string
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
   category?: Prisma.EnumTransactionCategoryFieldUpdateOperationsInput | $Enums.TransactionCategory
@@ -1495,7 +1495,7 @@ export type TransactionUncheckedUpdateWithoutResolvedByUserInput = {
 
 export type TransactionUncheckedUpdateManyWithoutResolvedByUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  schoolId?: Prisma.StringFieldUpdateOperationsInput | string
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
   category?: Prisma.EnumTransactionCategoryFieldUpdateOperationsInput | $Enums.TransactionCategory
@@ -1625,7 +1625,7 @@ export type TransactionUncheckedUpdateManyWithoutSchoolInput = {
 
 export type TransactionCreateManyMembershipInput = {
   id?: string
-  schoolId: string
+  schoolId?: string | null
   type: $Enums.TransactionType
   status?: $Enums.TransactionStatus
   category?: $Enums.TransactionCategory
@@ -1670,14 +1670,14 @@ export type TransactionUpdateWithoutMembershipInput = {
   resolutionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  school?: Prisma.SchoolUpdateOneRequiredWithoutTransactionsNestedInput
+  school?: Prisma.SchoolUpdateOneWithoutTransactionsNestedInput
   user?: Prisma.UserUpdateOneWithoutTransactionsNestedInput
   resolvedByUser?: Prisma.UserUpdateOneWithoutResolvedTransactionsNestedInput
 }
 
 export type TransactionUncheckedUpdateWithoutMembershipInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  schoolId?: Prisma.StringFieldUpdateOperationsInput | string
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
   category?: Prisma.EnumTransactionCategoryFieldUpdateOperationsInput | $Enums.TransactionCategory
@@ -1703,7 +1703,7 @@ export type TransactionUncheckedUpdateWithoutMembershipInput = {
 
 export type TransactionUncheckedUpdateManyWithoutMembershipInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  schoolId?: Prisma.StringFieldUpdateOperationsInput | string
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
   category?: Prisma.EnumTransactionCategoryFieldUpdateOperationsInput | $Enums.TransactionCategory
@@ -1754,7 +1754,7 @@ export type TransactionSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   resolutionNote?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
+  school?: boolean | Prisma.Transaction$schoolArgs<ExtArgs>
   membership?: boolean | Prisma.Transaction$membershipArgs<ExtArgs>
   user?: boolean | Prisma.Transaction$userArgs<ExtArgs>
   resolvedByUser?: boolean | Prisma.Transaction$resolvedByUserArgs<ExtArgs>
@@ -1785,7 +1785,7 @@ export type TransactionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   resolutionNote?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
+  school?: boolean | Prisma.Transaction$schoolArgs<ExtArgs>
   membership?: boolean | Prisma.Transaction$membershipArgs<ExtArgs>
   user?: boolean | Prisma.Transaction$userArgs<ExtArgs>
   resolvedByUser?: boolean | Prisma.Transaction$resolvedByUserArgs<ExtArgs>
@@ -1816,7 +1816,7 @@ export type TransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   resolutionNote?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
+  school?: boolean | Prisma.Transaction$schoolArgs<ExtArgs>
   membership?: boolean | Prisma.Transaction$membershipArgs<ExtArgs>
   user?: boolean | Prisma.Transaction$userArgs<ExtArgs>
   resolvedByUser?: boolean | Prisma.Transaction$resolvedByUserArgs<ExtArgs>
@@ -1851,19 +1851,19 @@ export type TransactionSelectScalar = {
 
 export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "type" | "status" | "category" | "paymentMethod" | "amount" | "currency" | "description" | "date" | "membershipId" | "bookingId" | "userId" | "stripePaymentIntentId" | "stripeInvoiceId" | "revolutOrderId" | "notes" | "periodStart" | "periodEnd" | "resolvedAt" | "resolvedBy" | "resolutionNote" | "createdAt" | "updatedAt", ExtArgs["result"]["transaction"]>
 export type TransactionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
+  school?: boolean | Prisma.Transaction$schoolArgs<ExtArgs>
   membership?: boolean | Prisma.Transaction$membershipArgs<ExtArgs>
   user?: boolean | Prisma.Transaction$userArgs<ExtArgs>
   resolvedByUser?: boolean | Prisma.Transaction$resolvedByUserArgs<ExtArgs>
 }
 export type TransactionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
+  school?: boolean | Prisma.Transaction$schoolArgs<ExtArgs>
   membership?: boolean | Prisma.Transaction$membershipArgs<ExtArgs>
   user?: boolean | Prisma.Transaction$userArgs<ExtArgs>
   resolvedByUser?: boolean | Prisma.Transaction$resolvedByUserArgs<ExtArgs>
 }
 export type TransactionIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
+  school?: boolean | Prisma.Transaction$schoolArgs<ExtArgs>
   membership?: boolean | Prisma.Transaction$membershipArgs<ExtArgs>
   user?: boolean | Prisma.Transaction$userArgs<ExtArgs>
   resolvedByUser?: boolean | Prisma.Transaction$resolvedByUserArgs<ExtArgs>
@@ -1872,14 +1872,14 @@ export type TransactionIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.
 export type $TransactionPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Transaction"
   objects: {
-    school: Prisma.$SchoolPayload<ExtArgs>
+    school: Prisma.$SchoolPayload<ExtArgs> | null
     membership: Prisma.$MembershipPayload<ExtArgs> | null
     user: Prisma.$UserPayload<ExtArgs> | null
     resolvedByUser: Prisma.$UserPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
-    schoolId: string
+    schoolId: string | null
     type: $Enums.TransactionType
     status: $Enums.TransactionStatus
     category: $Enums.TransactionCategory
@@ -2296,7 +2296,7 @@ readonly fields: TransactionFieldRefs;
  */
 export interface Prisma__TransactionClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  school<T extends Prisma.SchoolDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SchoolDefaultArgs<ExtArgs>>): Prisma.Prisma__SchoolClient<runtime.Types.Result.GetResult<Prisma.$SchoolPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  school<T extends Prisma.Transaction$schoolArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Transaction$schoolArgs<ExtArgs>>): Prisma.Prisma__SchoolClient<runtime.Types.Result.GetResult<Prisma.$SchoolPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   membership<T extends Prisma.Transaction$membershipArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Transaction$membershipArgs<ExtArgs>>): Prisma.Prisma__MembershipClient<runtime.Types.Result.GetResult<Prisma.$MembershipPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   user<T extends Prisma.Transaction$userArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Transaction$userArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   resolvedByUser<T extends Prisma.Transaction$resolvedByUserArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Transaction$resolvedByUserArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
@@ -2751,6 +2751,25 @@ export type TransactionDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.I
    * Limit how many Transactions to delete.
    */
   limit?: number
+}
+
+/**
+ * Transaction.school
+ */
+export type Transaction$schoolArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the School
+   */
+  select?: Prisma.SchoolSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the School
+   */
+  omit?: Prisma.SchoolOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SchoolInclude<ExtArgs> | null
+  where?: Prisma.SchoolWhereInput
 }
 
 /**

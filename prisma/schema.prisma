@@ -335,12 +335,12 @@ model ContentAccess {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model User {
-  id             String    @id @default(cuid())
-  email          String    @unique
-  name           String?
-  phone          String?
-  dateOfBirth    DateTime?
-  avatarUrl      String?
+  id          String    @id @default(cuid())
+  email       String    @unique
+  name        String?
+  phone       String?
+  dateOfBirth DateTime?
+  avatarUrl   String?
 
   // Required only for users under the platform's minimum consent age (16 —
   // the strictest common GDPR "digital consent age" among the countries
@@ -365,7 +365,7 @@ model User {
 
   // Relations
   bookings               Booking[]
-  staffBookings          Booking[]          @relation("BookingBookedBy")
+  staffBookings          Booking[]              @relation("BookingBookedBy")
   eventBookings          EventBooking[]
   memberships            Membership[]
   contentAccesses        ContentAccess[]
@@ -373,20 +373,24 @@ model User {
   reviews                Review[]
   schoolMembers          SchoolMember[]
   schoolClaims           SchoolClaim[]
-  gradings               Grading[]          @relation("GradingStudent")
-  gradingsGiven          Grading[]          @relation("GradingPromoter")
-  leads                  Lead[]             @relation("LeadConvertedUser")
+  gradings               Grading[]              @relation("GradingStudent")
+  gradingsGiven          Grading[]              @relation("GradingPromoter")
+  leads                  Lead[]                 @relation("LeadConvertedUser")
   leadNotes              LeadNote[]
-  transactions           Transaction[]      @relation("TransactionUser")
-  resolvedTransactions   Transaction[]      @relation("TransactionResolvedBy")
+  transactions           Transaction[]          @relation("TransactionUser")
+  resolvedTransactions   Transaction[]          @relation("TransactionResolvedBy")
+  deletedTransactions    Transaction[]          @relation("TransactionDeletedBy")
   userWaivers            UserWaiver[]
-  sentInvitations        SchoolInvitation[] @relation("InvitedByUser")
+  sentInvitations        SchoolInvitation[]     @relation("InvitedByUser")
   preference             UserPreference?
   loginHistory           LoginHistory[]
-  impersonationsAsActor  ImpersonationLog[] @relation("ImpersonationActor")
-  impersonationsAsTarget ImpersonationLog[] @relation("ImpersonationTarget")
+  impersonationsAsActor  ImpersonationLog[]     @relation("ImpersonationActor")
+  impersonationsAsTarget ImpersonationLog[]     @relation("ImpersonationTarget")
   targetedNotifications  Notification[]
   createdCampaigns       Campaign[]
+  orders                 Order[]
+  collectibleUnitsOwned  CollectibleUnit[]      @relation("CollectibleUnitOwner")
+  collectibleOwnerships  CollectibleOwnership[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -541,27 +545,31 @@ model School {
   claimedAt   DateTime?
 
   // Relations
-  staff             User[]             @relation("SchoolStaff")
-  impersonationLogs ImpersonationLog[]
-  disciplines       SchoolDiscipline[]
-  facilityCatalog   SchoolFacility[]
-  classes           Class[]
-  events            Event[]
-  memberships       Membership[]
-  camps             Camp[]
-  instructors       Instructor[]
-  membershipPlans   MembershipPlan[]
-  reviews           Review[]
-  members           SchoolMember[]
-  claims            SchoolClaim[]
-  gradings          Grading[]
-  gradingSystems    GradingSystem[]
-  leads             Lead[]
-  waivers           Waiver[]
-  transactions      Transaction[]
-  invitations       SchoolInvitation[]
-  notifications     Notification[]
-  campaigns         Campaign[]
+  staff              User[]              @relation("SchoolStaff")
+  impersonationLogs  ImpersonationLog[]
+  disciplines        SchoolDiscipline[]
+  facilityCatalog    SchoolFacility[]
+  classes            Class[]
+  events             Event[]
+  memberships        Membership[]
+  camps              Camp[]
+  instructors        Instructor[]
+  membershipPlans    MembershipPlan[]
+  reviews            Review[]
+  members            SchoolMember[]
+  claims             SchoolClaim[]
+  gradings           Grading[]
+  gradingSystems     GradingSystem[]
+  leads              Lead[]
+  waivers            Waiver[]
+  transactions       Transaction[]
+  invitations        SchoolInvitation[]
+  notifications      Notification[]
+  campaigns          Campaign[]
+  productCategories  ProductCategory[]
+  products           Product[]
+  orders             Order[]
+  limitedCollections LimitedCollection[]
 
   // Martial SaaS billing — school paying the platform (separate from the
   // school's own Stripe keys above, which they use to charge their members)
@@ -1473,9 +1481,11 @@ model ImpersonationLog {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Transaction {
-  id       String @id @default(cuid())
-  schoolId String
-  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  id       String  @id @default(cuid())
+  // Null only for Martial-sold marketplace products (sellerType MARTIAL,
+  // no school involved) — every other transaction still has a school.
+  schoolId String?
+  school   School? @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   type          TransactionType
   status        TransactionStatus   @default(PAID)
@@ -1517,6 +1527,15 @@ model Transaction {
   resolvedByUser User?     @relation("TransactionResolvedBy", fields: [resolvedBy], references: [id])
   resolutionNote String?
 
+  // Soft delete — admins correcting a manually-entered mistake (wrong
+  // amount/date, duplicate row) remove it from lists here, but the row is
+  // kept for audit rather than hard-deleted. See DELETE /api/dashboard/
+  // transactions/[id]. REFUNDED and unresolved FLAGGED rows are never
+  // deletable, soft or otherwise — those stay the authoritative record.
+  deletedAt     DateTime?
+  deletedBy     String?
+  deletedByUser User?     @relation("TransactionDeletedBy", fields: [deletedBy], references: [id])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1554,10 +1573,10 @@ model UserPreference {
   // email system in this codebase yet, so these are stored for when one
   // exists. Transactional receipts (trial/membership confirmations) are
   // not gated by these and always send, same as any receipt.
-  notifyClassReminders     Boolean @default(true)
-  notifyBookingConfirmed   Boolean @default(true)
-  notifyMembershipUpdates  Boolean @default(true)
-  notifyPromotions         Boolean @default(false)
+  notifyClassReminders    Boolean @default(true)
+  notifyBookingConfirmed  Boolean @default(true)
+  notifyMembershipUpdates Boolean @default(true)
+  notifyPromotions        Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1566,13 +1585,24 @@ model UserPreference {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// STORE  (Phase future — schema defined, not connected yet)
-// Maps V1 products (15) + orders (43)
+// STORE / MARKETPLACE
+// A product is sold either by a School, or directly by Martial (sellerType
+// MARTIAL, schoolId null — e.g. an athlete/brand collaboration like Buchecha's
+// kimono drop). BRAND/COMPANY sellers are intentionally not modeled yet —
+// there is no certified-seller onboarding flow — but sellerType exists as an
+// enum specifically so that adding them later doesn't require another schema
+// migration touching Product's identity again.
 // ─────────────────────────────────────────────────────────────────────────────
 
+enum MarketplaceSellerType {
+  SCHOOL
+  MARTIAL
+}
+
 model ProductCategory {
-  id       String @id @default(cuid())
-  schoolId String
+  id       String  @id @default(cuid())
+  schoolId String?
+  school   School? @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   name     String
   slug     String
 
@@ -1583,10 +1613,15 @@ model ProductCategory {
 }
 
 model Product {
-  id         String           @id @default(cuid())
-  schoolId   String
+  id         String                @id @default(cuid())
+  sellerType MarketplaceSellerType @default(SCHOOL)
+  // Required when sellerType=SCHOOL, null when sellerType=MARTIAL — enforced
+  // at the service layer (see lib/services/collectibles), not the DB, since
+  // Postgres has no conditional-FK constraint for this.
+  schoolId   String?
+  school     School?               @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   categoryId String?
-  category   ProductCategory? @relation(fields: [categoryId], references: [id])
+  category   ProductCategory?      @relation(fields: [categoryId], references: [id])
 
   name        String
   description String?
@@ -1595,6 +1630,9 @@ model Product {
   stock       Int? // null = unlimited (e.g. digital products)
   imageUrl    String?
   isActive    Boolean @default(true)
+
+  isLimitedEdition  Boolean            @default(false)
+  limitedCollection LimitedCollection?
 
   orderItems OrderItem[]
 
@@ -1605,9 +1643,12 @@ model Product {
 }
 
 model Order {
-  id       String @id @default(cuid())
-  schoolId String
+  id       String  @id @default(cuid())
+  // Null when the seller is Martial itself (sellerType MARTIAL on the product).
+  schoolId String?
+  school   School? @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   userId   String
+  user     User    @relation(fields: [userId], references: [id])
 
   status   String @default("PENDING") // PENDING | PAID | CANCELLED | REFUNDED
   total    Float
@@ -1615,7 +1656,9 @@ model Order {
 
   stripePaymentIntentId String?
 
-  items OrderItem[]
+  items                 OrderItem[]
+  collectibleUnits      CollectibleUnit[]
+  collectibleOwnerships CollectibleOwnership[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1635,6 +1678,197 @@ model OrderItem {
   currency  String @default("EUR")
 
   @@map("order_items")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LIMITED COLLECTIONS  (collectible drops — signed kimonos, numbered belts,
+// event/seminar merchandise, etc.) — a generic system a Product opts into via
+// isLimitedEdition, reusable across athletes/schools/brands, not specific to
+// any single launch.
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum CollectionStatus {
+  DRAFT
+  SCHEDULED
+  LIVE
+  SOLD_OUT
+  ENDED
+  ARCHIVED
+}
+
+enum CollectibleUnitStatus {
+  DRAFT
+  AVAILABLE
+  RESERVED
+  SOLD
+  AUTHENTICATED
+  ARCHIVED
+}
+
+enum OwnershipAcquisitionType {
+  PURCHASE
+}
+
+model LimitedCollection {
+  id        String  @id @default(cuid())
+  productId String  @unique
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  // Denormalized from product.sellerType/schoolId at creation (immutable) —
+  // needed so collection queries don't always have to join through Product,
+  // and to resolve which Stripe account a purchase settles through.
+  sellerType MarketplaceSellerType @default(SCHOOL)
+  schoolId   String?
+  school     School?               @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  name   String
+  slug   String           @unique
+  status CollectionStatus @default(DRAFT)
+
+  athleteName    String?
+  athleteUserId  String? // free reference, not a FK — see note in User model area
+  brandName      String?
+  collectionYear Int
+
+  totalUnits Int
+
+  launchDate DateTime?
+  endDate    DateTime?
+
+  numberSelectionEnabled     Boolean @default(false)
+  automaticAssignmentEnabled Boolean @default(true)
+  sizeSelectionEnabled       Boolean @default(false)
+  authenticityEnabled        Boolean @default(true)
+  publicRegistryEnabled      Boolean @default(false) // reserved for a future public registry page — not built yet
+
+  authenticationStatement String? @db.Text
+  skuPrefix               String
+
+  // Structured, validated config for DigitalCard — never arbitrary HTML.
+  cardTemplateConfig Json @default("{}")
+
+  heroImageUrl String?
+  story        String? @db.Text
+
+  tiers LimitedCollectionTier[]
+  units CollectibleUnit[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("limited_collections")
+}
+
+model LimitedCollectionTier {
+  id           String            @id @default(cuid())
+  collectionId String
+  collection   LimitedCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  name        String
+  code        String
+  description String?
+
+  startNumber Int
+  endNumber   Int
+
+  price    Float?
+  currency String?
+
+  primaryColor         String
+  secondaryColor       String
+  visualStyle          String?
+  benefits             String[] @default([])
+  packagingDescription String?
+
+  displayOrder Int @default(0)
+
+  units CollectibleUnit[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([collectionId, code])
+  @@map("limited_collection_tiers")
+}
+
+model CollectibleUnit {
+  id           String                @id @default(cuid())
+  collectionId String
+  collection   LimitedCollection     @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  tierId       String
+  tier         LimitedCollectionTier @relation(fields: [tierId], references: [id])
+
+  editionNumber Int
+  // displayNumber ("07/50") and editionTotal are derived from editionNumber +
+  // collection.totalUnits at read time, not stored — avoids a redundant
+  // field that could drift if it were ever computed inconsistently.
+  sku           String @unique
+
+  size          String?
+  specificPrice Float?
+  currency      String?
+
+  status CollectibleUnitStatus @default(DRAFT)
+
+  signed         Boolean   @default(false)
+  signedAt       DateTime?
+  signedLocation String?
+
+  // Admin-entered URLs (no dedicated private storage bucket) — access to
+  // these two fields is controlled at the API-response layer (owner/admin
+  // only), never returned from any public endpoint.
+  videoUrl       String?
+  certificateUrl String?
+
+  orderId     String?
+  order       Order?  @relation(fields: [orderId], references: [id])
+  ownerUserId String?
+  owner       User?   @relation("CollectibleUnitOwner", fields: [ownerUserId], references: [id])
+
+  // The only public identifier — the verification endpoint is scoped to
+  // return public fields only, so a second "private access token" would add
+  // complexity without adding real security.
+  publicVerificationCode String @unique
+
+  reservedAt           DateTime?
+  reservationExpiresAt DateTime?
+  soldAt               DateTime?
+
+  ownerships CollectibleOwnership[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([collectionId, editionNumber])
+  @@index([collectionId, status])
+  @@map("collectible_units")
+}
+
+model CollectibleOwnership {
+  id                String          @id @default(cuid())
+  collectibleUnitId String
+  collectibleUnit   CollectibleUnit @relation(fields: [collectibleUnitId], references: [id], onDelete: Cascade)
+  ownerUserId       String
+  owner             User            @relation(fields: [ownerUserId], references: [id])
+  orderId           String?
+  order             Order?          @relation(fields: [orderId], references: [id])
+
+  acquisitionType OwnershipAcquisitionType @default(PURCHASE)
+  acquiredAt      DateTime                 @default(now())
+  endedAt         DateTime?
+  isCurrent       Boolean                  @default(true)
+
+  ownerDisplayName  String?
+  showOwnerPublicly Boolean @default(false)
+
+  createdBy String?
+  notes     String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([collectibleUnitId, isCurrent])
+  @@map("collectible_ownerships")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1763,7 +1997,7 @@ model PlatformSettings {
 // listing — free text, not yet tied to a School row. Persisted so it shows
 // up in Admin even if the notification email fails or nobody checks it.
 model ClaimRequest {
-  id     String @id @default(cuid())
+  id     String             @id @default(cuid())
   status ClaimRequestStatus @default(PENDING)
 
   schoolName String

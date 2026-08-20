@@ -37,6 +37,8 @@ export type Permission =
   | 'school.notifications.view'
   | 'school.campaigns.view'
   | 'school.campaigns.manage'
+  | 'school.marketplace.view'
+  | 'school.marketplace.manage'
 
 const ALL: Permission[] = [
   'school.profile.view', 'school.profile.edit',
@@ -55,6 +57,7 @@ const ALL: Permission[] = [
   'school.communications.manage',
   'school.notifications.view',
   'school.campaigns.view', 'school.campaigns.manage',
+  'school.marketplace.view', 'school.marketplace.manage',
 ]
 
 // Permissions that stay OWNER/ADMIN-only even for MANAGER. Two distinct
@@ -76,6 +79,9 @@ const OWNER_ADMIN_ONLY: Permission[] = [
   'school.events.manage',
   'school.communications.manage',
   'school.campaigns.manage',
+  // Creating/publishing paid limited collections carries the same
+  // financial/legal weight as campaigns — same tier, MANAGER excluded.
+  'school.marketplace.manage',
 ]
 
 // Role → permission preset. Authorization always verified against SchoolMember.

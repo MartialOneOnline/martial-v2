@@ -427,6 +427,10 @@ export const ModelName = {
   Product: 'Product',
   Order: 'Order',
   OrderItem: 'OrderItem',
+  LimitedCollection: 'LimitedCollection',
+  LimitedCollectionTier: 'LimitedCollectionTier',
+  CollectibleUnit: 'CollectibleUnit',
+  CollectibleOwnership: 'CollectibleOwnership',
   Partner: 'Partner',
   Notification: 'Notification',
   PlatformSettings: 'PlatformSettings',
@@ -448,7 +452,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "classCancellation" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "campaign" | "campaignRecipient" | "schoolClaim" | "gradingSystem" | "beltRank" | "grading" | "lead" | "leadNote" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "impersonationLog" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "partner" | "notification" | "platformSettings" | "claimRequest" | "schoolSubscription" | "stripeWebhookEvent"
+    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "classCancellation" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "campaign" | "campaignRecipient" | "schoolClaim" | "gradingSystem" | "beltRank" | "grading" | "lead" | "leadNote" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "impersonationLog" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "limitedCollection" | "limitedCollectionTier" | "collectibleUnit" | "collectibleOwnership" | "partner" | "notification" | "platformSettings" | "claimRequest" | "schoolSubscription" | "stripeWebhookEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3634,6 +3638,302 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    LimitedCollection: {
+      payload: Prisma.$LimitedCollectionPayload<ExtArgs>
+      fields: Prisma.LimitedCollectionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.LimitedCollectionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LimitedCollectionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.LimitedCollectionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LimitedCollectionPayload>
+        }
+        findFirst: {
+          args: Prisma.LimitedCollectionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LimitedCollectionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.LimitedCollectionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LimitedCollectionPayload>
+        }
+        findMany: {
+          args: Prisma.LimitedCollectionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LimitedCollectionPayload>[]
+        }
+        create: {
+          args: Prisma.LimitedCollectionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LimitedCollectionPayload>
+        }
+        createMany: {
+          args: Prisma.LimitedCollectionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.LimitedCollectionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LimitedCollectionPayload>[]
+        }
+        delete: {
+          args: Prisma.LimitedCollectionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LimitedCollectionPayload>
+        }
+        update: {
+          args: Prisma.LimitedCollectionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LimitedCollectionPayload>
+        }
+        deleteMany: {
+          args: Prisma.LimitedCollectionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.LimitedCollectionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.LimitedCollectionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LimitedCollectionPayload>[]
+        }
+        upsert: {
+          args: Prisma.LimitedCollectionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LimitedCollectionPayload>
+        }
+        aggregate: {
+          args: Prisma.LimitedCollectionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateLimitedCollection>
+        }
+        groupBy: {
+          args: Prisma.LimitedCollectionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LimitedCollectionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.LimitedCollectionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LimitedCollectionCountAggregateOutputType> | number
+        }
+      }
+    }
+    LimitedCollectionTier: {
+      payload: Prisma.$LimitedCollectionTierPayload<ExtArgs>
+      fields: Prisma.LimitedCollectionTierFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.LimitedCollectionTierFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LimitedCollectionTierPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.LimitedCollectionTierFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LimitedCollectionTierPayload>
+        }
+        findFirst: {
+          args: Prisma.LimitedCollectionTierFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LimitedCollectionTierPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.LimitedCollectionTierFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LimitedCollectionTierPayload>
+        }
+        findMany: {
+          args: Prisma.LimitedCollectionTierFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LimitedCollectionTierPayload>[]
+        }
+        create: {
+          args: Prisma.LimitedCollectionTierCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LimitedCollectionTierPayload>
+        }
+        createMany: {
+          args: Prisma.LimitedCollectionTierCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.LimitedCollectionTierCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LimitedCollectionTierPayload>[]
+        }
+        delete: {
+          args: Prisma.LimitedCollectionTierDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LimitedCollectionTierPayload>
+        }
+        update: {
+          args: Prisma.LimitedCollectionTierUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LimitedCollectionTierPayload>
+        }
+        deleteMany: {
+          args: Prisma.LimitedCollectionTierDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.LimitedCollectionTierUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.LimitedCollectionTierUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LimitedCollectionTierPayload>[]
+        }
+        upsert: {
+          args: Prisma.LimitedCollectionTierUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LimitedCollectionTierPayload>
+        }
+        aggregate: {
+          args: Prisma.LimitedCollectionTierAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateLimitedCollectionTier>
+        }
+        groupBy: {
+          args: Prisma.LimitedCollectionTierGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LimitedCollectionTierGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.LimitedCollectionTierCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LimitedCollectionTierCountAggregateOutputType> | number
+        }
+      }
+    }
+    CollectibleUnit: {
+      payload: Prisma.$CollectibleUnitPayload<ExtArgs>
+      fields: Prisma.CollectibleUnitFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CollectibleUnitFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CollectibleUnitPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CollectibleUnitFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CollectibleUnitPayload>
+        }
+        findFirst: {
+          args: Prisma.CollectibleUnitFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CollectibleUnitPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CollectibleUnitFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CollectibleUnitPayload>
+        }
+        findMany: {
+          args: Prisma.CollectibleUnitFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CollectibleUnitPayload>[]
+        }
+        create: {
+          args: Prisma.CollectibleUnitCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CollectibleUnitPayload>
+        }
+        createMany: {
+          args: Prisma.CollectibleUnitCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CollectibleUnitCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CollectibleUnitPayload>[]
+        }
+        delete: {
+          args: Prisma.CollectibleUnitDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CollectibleUnitPayload>
+        }
+        update: {
+          args: Prisma.CollectibleUnitUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CollectibleUnitPayload>
+        }
+        deleteMany: {
+          args: Prisma.CollectibleUnitDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CollectibleUnitUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CollectibleUnitUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CollectibleUnitPayload>[]
+        }
+        upsert: {
+          args: Prisma.CollectibleUnitUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CollectibleUnitPayload>
+        }
+        aggregate: {
+          args: Prisma.CollectibleUnitAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCollectibleUnit>
+        }
+        groupBy: {
+          args: Prisma.CollectibleUnitGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CollectibleUnitGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CollectibleUnitCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CollectibleUnitCountAggregateOutputType> | number
+        }
+      }
+    }
+    CollectibleOwnership: {
+      payload: Prisma.$CollectibleOwnershipPayload<ExtArgs>
+      fields: Prisma.CollectibleOwnershipFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CollectibleOwnershipFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CollectibleOwnershipPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CollectibleOwnershipFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CollectibleOwnershipPayload>
+        }
+        findFirst: {
+          args: Prisma.CollectibleOwnershipFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CollectibleOwnershipPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CollectibleOwnershipFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CollectibleOwnershipPayload>
+        }
+        findMany: {
+          args: Prisma.CollectibleOwnershipFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CollectibleOwnershipPayload>[]
+        }
+        create: {
+          args: Prisma.CollectibleOwnershipCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CollectibleOwnershipPayload>
+        }
+        createMany: {
+          args: Prisma.CollectibleOwnershipCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CollectibleOwnershipCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CollectibleOwnershipPayload>[]
+        }
+        delete: {
+          args: Prisma.CollectibleOwnershipDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CollectibleOwnershipPayload>
+        }
+        update: {
+          args: Prisma.CollectibleOwnershipUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CollectibleOwnershipPayload>
+        }
+        deleteMany: {
+          args: Prisma.CollectibleOwnershipDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CollectibleOwnershipUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CollectibleOwnershipUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CollectibleOwnershipPayload>[]
+        }
+        upsert: {
+          args: Prisma.CollectibleOwnershipUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CollectibleOwnershipPayload>
+        }
+        aggregate: {
+          args: Prisma.CollectibleOwnershipAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCollectibleOwnership>
+        }
+        groupBy: {
+          args: Prisma.CollectibleOwnershipGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CollectibleOwnershipGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CollectibleOwnershipCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CollectibleOwnershipCountAggregateOutputType> | number
+        }
+      }
+    }
     Partner: {
       payload: Prisma.$PartnerPayload<ExtArgs>
       fields: Prisma.PartnerFieldRefs
@@ -4888,6 +5188,7 @@ export type ProductCategoryScalarFieldEnum = (typeof ProductCategoryScalarFieldE
 
 export const ProductScalarFieldEnum = {
   id: 'id',
+  sellerType: 'sellerType',
   schoolId: 'schoolId',
   categoryId: 'categoryId',
   name: 'name',
@@ -4897,6 +5198,7 @@ export const ProductScalarFieldEnum = {
   stock: 'stock',
   imageUrl: 'imageUrl',
   isActive: 'isActive',
+  isLimitedEdition: 'isLimitedEdition',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -4929,6 +5231,109 @@ export const OrderItemScalarFieldEnum = {
 } as const
 
 export type OrderItemScalarFieldEnum = (typeof OrderItemScalarFieldEnum)[keyof typeof OrderItemScalarFieldEnum]
+
+
+export const LimitedCollectionScalarFieldEnum = {
+  id: 'id',
+  productId: 'productId',
+  sellerType: 'sellerType',
+  schoolId: 'schoolId',
+  name: 'name',
+  slug: 'slug',
+  status: 'status',
+  athleteName: 'athleteName',
+  athleteUserId: 'athleteUserId',
+  brandName: 'brandName',
+  collectionYear: 'collectionYear',
+  totalUnits: 'totalUnits',
+  launchDate: 'launchDate',
+  endDate: 'endDate',
+  numberSelectionEnabled: 'numberSelectionEnabled',
+  automaticAssignmentEnabled: 'automaticAssignmentEnabled',
+  sizeSelectionEnabled: 'sizeSelectionEnabled',
+  authenticityEnabled: 'authenticityEnabled',
+  publicRegistryEnabled: 'publicRegistryEnabled',
+  authenticationStatement: 'authenticationStatement',
+  skuPrefix: 'skuPrefix',
+  cardTemplateConfig: 'cardTemplateConfig',
+  heroImageUrl: 'heroImageUrl',
+  story: 'story',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type LimitedCollectionScalarFieldEnum = (typeof LimitedCollectionScalarFieldEnum)[keyof typeof LimitedCollectionScalarFieldEnum]
+
+
+export const LimitedCollectionTierScalarFieldEnum = {
+  id: 'id',
+  collectionId: 'collectionId',
+  name: 'name',
+  code: 'code',
+  description: 'description',
+  startNumber: 'startNumber',
+  endNumber: 'endNumber',
+  price: 'price',
+  currency: 'currency',
+  primaryColor: 'primaryColor',
+  secondaryColor: 'secondaryColor',
+  visualStyle: 'visualStyle',
+  benefits: 'benefits',
+  packagingDescription: 'packagingDescription',
+  displayOrder: 'displayOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type LimitedCollectionTierScalarFieldEnum = (typeof LimitedCollectionTierScalarFieldEnum)[keyof typeof LimitedCollectionTierScalarFieldEnum]
+
+
+export const CollectibleUnitScalarFieldEnum = {
+  id: 'id',
+  collectionId: 'collectionId',
+  tierId: 'tierId',
+  editionNumber: 'editionNumber',
+  sku: 'sku',
+  size: 'size',
+  specificPrice: 'specificPrice',
+  currency: 'currency',
+  status: 'status',
+  signed: 'signed',
+  signedAt: 'signedAt',
+  signedLocation: 'signedLocation',
+  videoUrl: 'videoUrl',
+  certificateUrl: 'certificateUrl',
+  orderId: 'orderId',
+  ownerUserId: 'ownerUserId',
+  publicVerificationCode: 'publicVerificationCode',
+  reservedAt: 'reservedAt',
+  reservationExpiresAt: 'reservationExpiresAt',
+  soldAt: 'soldAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CollectibleUnitScalarFieldEnum = (typeof CollectibleUnitScalarFieldEnum)[keyof typeof CollectibleUnitScalarFieldEnum]
+
+
+export const CollectibleOwnershipScalarFieldEnum = {
+  id: 'id',
+  collectibleUnitId: 'collectibleUnitId',
+  ownerUserId: 'ownerUserId',
+  orderId: 'orderId',
+  acquisitionType: 'acquisitionType',
+  acquiredAt: 'acquiredAt',
+  endedAt: 'endedAt',
+  isCurrent: 'isCurrent',
+  ownerDisplayName: 'ownerDisplayName',
+  showOwnerPublicly: 'showOwnerPublicly',
+  createdBy: 'createdBy',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CollectibleOwnershipScalarFieldEnum = (typeof CollectibleOwnershipScalarFieldEnum)[keyof typeof CollectibleOwnershipScalarFieldEnum]
 
 
 export const PartnerScalarFieldEnum = {
@@ -5508,6 +5913,62 @@ export type ListEnumTransactionCategoryFieldRefInput<$PrismaModel> = FieldRefInp
 
 
 /**
+ * Reference to a field of type 'MarketplaceSellerType'
+ */
+export type EnumMarketplaceSellerTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MarketplaceSellerType'>
+    
+
+
+/**
+ * Reference to a field of type 'MarketplaceSellerType[]'
+ */
+export type ListEnumMarketplaceSellerTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MarketplaceSellerType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'CollectionStatus'
+ */
+export type EnumCollectionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CollectionStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'CollectionStatus[]'
+ */
+export type ListEnumCollectionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CollectionStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'CollectibleUnitStatus'
+ */
+export type EnumCollectibleUnitStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CollectibleUnitStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'CollectibleUnitStatus[]'
+ */
+export type ListEnumCollectibleUnitStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CollectibleUnitStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'OwnershipAcquisitionType'
+ */
+export type EnumOwnershipAcquisitionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OwnershipAcquisitionType'>
+    
+
+
+/**
+ * Reference to a field of type 'OwnershipAcquisitionType[]'
+ */
+export type ListEnumOwnershipAcquisitionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OwnershipAcquisitionType[]'>
+    
+
+
+/**
  * Reference to a field of type 'NotificationType'
  */
 export type EnumNotificationTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'NotificationType'>
@@ -5715,6 +6176,10 @@ export type GlobalOmitConfig = {
   product?: Prisma.ProductOmit
   order?: Prisma.OrderOmit
   orderItem?: Prisma.OrderItemOmit
+  limitedCollection?: Prisma.LimitedCollectionOmit
+  limitedCollectionTier?: Prisma.LimitedCollectionTierOmit
+  collectibleUnit?: Prisma.CollectibleUnitOmit
+  collectibleOwnership?: Prisma.CollectibleOwnershipOmit
   partner?: Prisma.PartnerOmit
   notification?: Prisma.NotificationOmit
   platformSettings?: Prisma.PlatformSettingsOmit

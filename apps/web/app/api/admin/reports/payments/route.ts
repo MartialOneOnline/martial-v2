@@ -55,7 +55,9 @@ export async function GET(req: NextRequest) {
     }),
   ])
 
-  const schoolIds = bySchool.map(s => s.schoolId)
+  // schoolId is null for Martial-sold marketplace products (no school
+  // involved) — excluded from the school lookup, labelled directly below.
+  const schoolIds = bySchool.map(s => s.schoolId).filter((id): id is string => id != null)
   const schools = await prisma.school.findMany({ where: { id: { in: schoolIds } }, select: { id: true, name: true } })
   const schoolMap = Object.fromEntries(schools.map(s => [s.id, s.name]))
 
@@ -81,7 +83,7 @@ export async function GET(req: NextRequest) {
     monthlyTrend: Array.from(monthMap.entries()).map(([month, v]) => ({ month, ...v })),
     bySchool: bySchool.map(s => ({
       schoolId: s.schoolId,
-      schoolName: schoolMap[s.schoolId] ?? s.schoolId,
+      schoolName: s.schoolId ? (schoolMap[s.schoolId] ?? s.schoolId) : 'Martial',
       income: s._sum.amount ?? 0,
     })),
   })

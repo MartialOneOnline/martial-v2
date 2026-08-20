@@ -205,7 +205,7 @@ export type OrderGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
 
 export type OrderGroupByOutputType = {
   id: string
-  schoolId: string
+  schoolId: string | null
   userId: string
   status: string
   total: number
@@ -240,7 +240,7 @@ export type OrderWhereInput = {
   OR?: Prisma.OrderWhereInput[]
   NOT?: Prisma.OrderWhereInput | Prisma.OrderWhereInput[]
   id?: Prisma.StringFilter<"Order"> | string
-  schoolId?: Prisma.StringFilter<"Order"> | string
+  schoolId?: Prisma.StringNullableFilter<"Order"> | string | null
   userId?: Prisma.StringFilter<"Order"> | string
   status?: Prisma.StringFilter<"Order"> | string
   total?: Prisma.FloatFilter<"Order"> | number
@@ -248,12 +248,16 @@ export type OrderWhereInput = {
   stripePaymentIntentId?: Prisma.StringNullableFilter<"Order"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
+  school?: Prisma.XOR<Prisma.SchoolNullableScalarRelationFilter, Prisma.SchoolWhereInput> | null
+  user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   items?: Prisma.OrderItemListRelationFilter
+  collectibleUnits?: Prisma.CollectibleUnitListRelationFilter
+  collectibleOwnerships?: Prisma.CollectibleOwnershipListRelationFilter
 }
 
 export type OrderOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  schoolId?: Prisma.SortOrder
+  schoolId?: Prisma.SortOrderInput | Prisma.SortOrder
   userId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   total?: Prisma.SortOrder
@@ -261,7 +265,11 @@ export type OrderOrderByWithRelationInput = {
   stripePaymentIntentId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  school?: Prisma.SchoolOrderByWithRelationInput
+  user?: Prisma.UserOrderByWithRelationInput
   items?: Prisma.OrderItemOrderByRelationAggregateInput
+  collectibleUnits?: Prisma.CollectibleUnitOrderByRelationAggregateInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipOrderByRelationAggregateInput
 }
 
 export type OrderWhereUniqueInput = Prisma.AtLeast<{
@@ -269,7 +277,7 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.OrderWhereInput | Prisma.OrderWhereInput[]
   OR?: Prisma.OrderWhereInput[]
   NOT?: Prisma.OrderWhereInput | Prisma.OrderWhereInput[]
-  schoolId?: Prisma.StringFilter<"Order"> | string
+  schoolId?: Prisma.StringNullableFilter<"Order"> | string | null
   userId?: Prisma.StringFilter<"Order"> | string
   status?: Prisma.StringFilter<"Order"> | string
   total?: Prisma.FloatFilter<"Order"> | number
@@ -277,12 +285,16 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
   stripePaymentIntentId?: Prisma.StringNullableFilter<"Order"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
+  school?: Prisma.XOR<Prisma.SchoolNullableScalarRelationFilter, Prisma.SchoolWhereInput> | null
+  user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   items?: Prisma.OrderItemListRelationFilter
+  collectibleUnits?: Prisma.CollectibleUnitListRelationFilter
+  collectibleOwnerships?: Prisma.CollectibleOwnershipListRelationFilter
 }, "id">
 
 export type OrderOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  schoolId?: Prisma.SortOrder
+  schoolId?: Prisma.SortOrderInput | Prisma.SortOrder
   userId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   total?: Prisma.SortOrder
@@ -302,7 +314,7 @@ export type OrderScalarWhereWithAggregatesInput = {
   OR?: Prisma.OrderScalarWhereWithAggregatesInput[]
   NOT?: Prisma.OrderScalarWhereWithAggregatesInput | Prisma.OrderScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Order"> | string
-  schoolId?: Prisma.StringWithAggregatesFilter<"Order"> | string
+  schoolId?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null
   userId?: Prisma.StringWithAggregatesFilter<"Order"> | string
   status?: Prisma.StringWithAggregatesFilter<"Order"> | string
   total?: Prisma.FloatWithAggregatesFilter<"Order"> | number
@@ -314,20 +326,22 @@ export type OrderScalarWhereWithAggregatesInput = {
 
 export type OrderCreateInput = {
   id?: string
-  schoolId: string
-  userId: string
   status?: string
   total: number
   currency?: string
   stripePaymentIntentId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  school?: Prisma.SchoolCreateNestedOneWithoutOrdersInput
+  user: Prisma.UserCreateNestedOneWithoutOrdersInput
   items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput
+  collectibleUnits?: Prisma.CollectibleUnitCreateNestedManyWithoutOrderInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateInput = {
   id?: string
-  schoolId: string
+  schoolId?: string | null
   userId: string
   status?: string
   total: number
@@ -336,24 +350,28 @@ export type OrderUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
+  collectibleUnits?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOrderInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  schoolId?: Prisma.StringFieldUpdateOperationsInput | string
-  userId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   total?: Prisma.FloatFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  school?: Prisma.SchoolUpdateOneWithoutOrdersNestedInput
+  user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
   items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput
+  collectibleUnits?: Prisma.CollectibleUnitUpdateManyWithoutOrderNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  schoolId?: Prisma.StringFieldUpdateOperationsInput | string
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   total?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -362,11 +380,13 @@ export type OrderUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
+  collectibleUnits?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOrderNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderCreateManyInput = {
   id?: string
-  schoolId: string
+  schoolId?: string | null
   userId: string
   status?: string
   total: number
@@ -378,8 +398,6 @@ export type OrderCreateManyInput = {
 
 export type OrderUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  schoolId?: Prisma.StringFieldUpdateOperationsInput | string
-  userId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   total?: Prisma.FloatFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
@@ -390,7 +408,7 @@ export type OrderUpdateManyMutationInput = {
 
 export type OrderUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  schoolId?: Prisma.StringFieldUpdateOperationsInput | string
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   total?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -398,6 +416,16 @@ export type OrderUncheckedUpdateManyInput = {
   stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type OrderListRelationFilter = {
+  every?: Prisma.OrderWhereInput
+  some?: Prisma.OrderWhereInput
+  none?: Prisma.OrderWhereInput
+}
+
+export type OrderOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
 }
 
 export type OrderCountOrderByAggregateInput = {
@@ -449,6 +477,95 @@ export type OrderScalarRelationFilter = {
   isNot?: Prisma.OrderWhereInput
 }
 
+export type OrderNullableScalarRelationFilter = {
+  is?: Prisma.OrderWhereInput | null
+  isNot?: Prisma.OrderWhereInput | null
+}
+
+export type OrderCreateNestedManyWithoutUserInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutUserInput, Prisma.OrderUncheckedCreateWithoutUserInput> | Prisma.OrderCreateWithoutUserInput[] | Prisma.OrderUncheckedCreateWithoutUserInput[]
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutUserInput | Prisma.OrderCreateOrConnectWithoutUserInput[]
+  createMany?: Prisma.OrderCreateManyUserInputEnvelope
+  connect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+}
+
+export type OrderUncheckedCreateNestedManyWithoutUserInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutUserInput, Prisma.OrderUncheckedCreateWithoutUserInput> | Prisma.OrderCreateWithoutUserInput[] | Prisma.OrderUncheckedCreateWithoutUserInput[]
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutUserInput | Prisma.OrderCreateOrConnectWithoutUserInput[]
+  createMany?: Prisma.OrderCreateManyUserInputEnvelope
+  connect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+}
+
+export type OrderUpdateManyWithoutUserNestedInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutUserInput, Prisma.OrderUncheckedCreateWithoutUserInput> | Prisma.OrderCreateWithoutUserInput[] | Prisma.OrderUncheckedCreateWithoutUserInput[]
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutUserInput | Prisma.OrderCreateOrConnectWithoutUserInput[]
+  upsert?: Prisma.OrderUpsertWithWhereUniqueWithoutUserInput | Prisma.OrderUpsertWithWhereUniqueWithoutUserInput[]
+  createMany?: Prisma.OrderCreateManyUserInputEnvelope
+  set?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  disconnect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  delete?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  connect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  update?: Prisma.OrderUpdateWithWhereUniqueWithoutUserInput | Prisma.OrderUpdateWithWhereUniqueWithoutUserInput[]
+  updateMany?: Prisma.OrderUpdateManyWithWhereWithoutUserInput | Prisma.OrderUpdateManyWithWhereWithoutUserInput[]
+  deleteMany?: Prisma.OrderScalarWhereInput | Prisma.OrderScalarWhereInput[]
+}
+
+export type OrderUncheckedUpdateManyWithoutUserNestedInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutUserInput, Prisma.OrderUncheckedCreateWithoutUserInput> | Prisma.OrderCreateWithoutUserInput[] | Prisma.OrderUncheckedCreateWithoutUserInput[]
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutUserInput | Prisma.OrderCreateOrConnectWithoutUserInput[]
+  upsert?: Prisma.OrderUpsertWithWhereUniqueWithoutUserInput | Prisma.OrderUpsertWithWhereUniqueWithoutUserInput[]
+  createMany?: Prisma.OrderCreateManyUserInputEnvelope
+  set?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  disconnect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  delete?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  connect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  update?: Prisma.OrderUpdateWithWhereUniqueWithoutUserInput | Prisma.OrderUpdateWithWhereUniqueWithoutUserInput[]
+  updateMany?: Prisma.OrderUpdateManyWithWhereWithoutUserInput | Prisma.OrderUpdateManyWithWhereWithoutUserInput[]
+  deleteMany?: Prisma.OrderScalarWhereInput | Prisma.OrderScalarWhereInput[]
+}
+
+export type OrderCreateNestedManyWithoutSchoolInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutSchoolInput, Prisma.OrderUncheckedCreateWithoutSchoolInput> | Prisma.OrderCreateWithoutSchoolInput[] | Prisma.OrderUncheckedCreateWithoutSchoolInput[]
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutSchoolInput | Prisma.OrderCreateOrConnectWithoutSchoolInput[]
+  createMany?: Prisma.OrderCreateManySchoolInputEnvelope
+  connect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+}
+
+export type OrderUncheckedCreateNestedManyWithoutSchoolInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutSchoolInput, Prisma.OrderUncheckedCreateWithoutSchoolInput> | Prisma.OrderCreateWithoutSchoolInput[] | Prisma.OrderUncheckedCreateWithoutSchoolInput[]
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutSchoolInput | Prisma.OrderCreateOrConnectWithoutSchoolInput[]
+  createMany?: Prisma.OrderCreateManySchoolInputEnvelope
+  connect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+}
+
+export type OrderUpdateManyWithoutSchoolNestedInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutSchoolInput, Prisma.OrderUncheckedCreateWithoutSchoolInput> | Prisma.OrderCreateWithoutSchoolInput[] | Prisma.OrderUncheckedCreateWithoutSchoolInput[]
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutSchoolInput | Prisma.OrderCreateOrConnectWithoutSchoolInput[]
+  upsert?: Prisma.OrderUpsertWithWhereUniqueWithoutSchoolInput | Prisma.OrderUpsertWithWhereUniqueWithoutSchoolInput[]
+  createMany?: Prisma.OrderCreateManySchoolInputEnvelope
+  set?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  disconnect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  delete?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  connect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  update?: Prisma.OrderUpdateWithWhereUniqueWithoutSchoolInput | Prisma.OrderUpdateWithWhereUniqueWithoutSchoolInput[]
+  updateMany?: Prisma.OrderUpdateManyWithWhereWithoutSchoolInput | Prisma.OrderUpdateManyWithWhereWithoutSchoolInput[]
+  deleteMany?: Prisma.OrderScalarWhereInput | Prisma.OrderScalarWhereInput[]
+}
+
+export type OrderUncheckedUpdateManyWithoutSchoolNestedInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutSchoolInput, Prisma.OrderUncheckedCreateWithoutSchoolInput> | Prisma.OrderCreateWithoutSchoolInput[] | Prisma.OrderUncheckedCreateWithoutSchoolInput[]
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutSchoolInput | Prisma.OrderCreateOrConnectWithoutSchoolInput[]
+  upsert?: Prisma.OrderUpsertWithWhereUniqueWithoutSchoolInput | Prisma.OrderUpsertWithWhereUniqueWithoutSchoolInput[]
+  createMany?: Prisma.OrderCreateManySchoolInputEnvelope
+  set?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  disconnect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  delete?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  connect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  update?: Prisma.OrderUpdateWithWhereUniqueWithoutSchoolInput | Prisma.OrderUpdateWithWhereUniqueWithoutSchoolInput[]
+  updateMany?: Prisma.OrderUpdateManyWithWhereWithoutSchoolInput | Prisma.OrderUpdateManyWithWhereWithoutSchoolInput[]
+  deleteMany?: Prisma.OrderScalarWhereInput | Prisma.OrderScalarWhereInput[]
+}
+
 export type OrderCreateNestedOneWithoutItemsInput = {
   create?: Prisma.XOR<Prisma.OrderCreateWithoutItemsInput, Prisma.OrderUncheckedCreateWithoutItemsInput>
   connectOrCreate?: Prisma.OrderCreateOrConnectWithoutItemsInput
@@ -463,9 +580,123 @@ export type OrderUpdateOneRequiredWithoutItemsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.OrderUpdateToOneWithWhereWithoutItemsInput, Prisma.OrderUpdateWithoutItemsInput>, Prisma.OrderUncheckedUpdateWithoutItemsInput>
 }
 
-export type OrderCreateWithoutItemsInput = {
+export type OrderCreateNestedOneWithoutCollectibleUnitsInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutCollectibleUnitsInput, Prisma.OrderUncheckedCreateWithoutCollectibleUnitsInput>
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutCollectibleUnitsInput
+  connect?: Prisma.OrderWhereUniqueInput
+}
+
+export type OrderUpdateOneWithoutCollectibleUnitsNestedInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutCollectibleUnitsInput, Prisma.OrderUncheckedCreateWithoutCollectibleUnitsInput>
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutCollectibleUnitsInput
+  upsert?: Prisma.OrderUpsertWithoutCollectibleUnitsInput
+  disconnect?: Prisma.OrderWhereInput | boolean
+  delete?: Prisma.OrderWhereInput | boolean
+  connect?: Prisma.OrderWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrderUpdateToOneWithWhereWithoutCollectibleUnitsInput, Prisma.OrderUpdateWithoutCollectibleUnitsInput>, Prisma.OrderUncheckedUpdateWithoutCollectibleUnitsInput>
+}
+
+export type OrderCreateNestedOneWithoutCollectibleOwnershipsInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutCollectibleOwnershipsInput, Prisma.OrderUncheckedCreateWithoutCollectibleOwnershipsInput>
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutCollectibleOwnershipsInput
+  connect?: Prisma.OrderWhereUniqueInput
+}
+
+export type OrderUpdateOneWithoutCollectibleOwnershipsNestedInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutCollectibleOwnershipsInput, Prisma.OrderUncheckedCreateWithoutCollectibleOwnershipsInput>
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutCollectibleOwnershipsInput
+  upsert?: Prisma.OrderUpsertWithoutCollectibleOwnershipsInput
+  disconnect?: Prisma.OrderWhereInput | boolean
+  delete?: Prisma.OrderWhereInput | boolean
+  connect?: Prisma.OrderWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrderUpdateToOneWithWhereWithoutCollectibleOwnershipsInput, Prisma.OrderUpdateWithoutCollectibleOwnershipsInput>, Prisma.OrderUncheckedUpdateWithoutCollectibleOwnershipsInput>
+}
+
+export type OrderCreateWithoutUserInput = {
   id?: string
-  schoolId: string
+  status?: string
+  total: number
+  currency?: string
+  stripePaymentIntentId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  school?: Prisma.SchoolCreateNestedOneWithoutOrdersInput
+  items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput
+  collectibleUnits?: Prisma.CollectibleUnitCreateNestedManyWithoutOrderInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOrderInput
+}
+
+export type OrderUncheckedCreateWithoutUserInput = {
+  id?: string
+  schoolId?: string | null
+  status?: string
+  total: number
+  currency?: string
+  stripePaymentIntentId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
+  collectibleUnits?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOrderInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOrderInput
+}
+
+export type OrderCreateOrConnectWithoutUserInput = {
+  where: Prisma.OrderWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrderCreateWithoutUserInput, Prisma.OrderUncheckedCreateWithoutUserInput>
+}
+
+export type OrderCreateManyUserInputEnvelope = {
+  data: Prisma.OrderCreateManyUserInput | Prisma.OrderCreateManyUserInput[]
+  skipDuplicates?: boolean
+}
+
+export type OrderUpsertWithWhereUniqueWithoutUserInput = {
+  where: Prisma.OrderWhereUniqueInput
+  update: Prisma.XOR<Prisma.OrderUpdateWithoutUserInput, Prisma.OrderUncheckedUpdateWithoutUserInput>
+  create: Prisma.XOR<Prisma.OrderCreateWithoutUserInput, Prisma.OrderUncheckedCreateWithoutUserInput>
+}
+
+export type OrderUpdateWithWhereUniqueWithoutUserInput = {
+  where: Prisma.OrderWhereUniqueInput
+  data: Prisma.XOR<Prisma.OrderUpdateWithoutUserInput, Prisma.OrderUncheckedUpdateWithoutUserInput>
+}
+
+export type OrderUpdateManyWithWhereWithoutUserInput = {
+  where: Prisma.OrderScalarWhereInput
+  data: Prisma.XOR<Prisma.OrderUpdateManyMutationInput, Prisma.OrderUncheckedUpdateManyWithoutUserInput>
+}
+
+export type OrderScalarWhereInput = {
+  AND?: Prisma.OrderScalarWhereInput | Prisma.OrderScalarWhereInput[]
+  OR?: Prisma.OrderScalarWhereInput[]
+  NOT?: Prisma.OrderScalarWhereInput | Prisma.OrderScalarWhereInput[]
+  id?: Prisma.StringFilter<"Order"> | string
+  schoolId?: Prisma.StringNullableFilter<"Order"> | string | null
+  userId?: Prisma.StringFilter<"Order"> | string
+  status?: Prisma.StringFilter<"Order"> | string
+  total?: Prisma.FloatFilter<"Order"> | number
+  currency?: Prisma.StringFilter<"Order"> | string
+  stripePaymentIntentId?: Prisma.StringNullableFilter<"Order"> | string | null
+  createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
+}
+
+export type OrderCreateWithoutSchoolInput = {
+  id?: string
+  status?: string
+  total: number
+  currency?: string
+  stripePaymentIntentId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutOrdersInput
+  items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput
+  collectibleUnits?: Prisma.CollectibleUnitCreateNestedManyWithoutOrderInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOrderInput
+}
+
+export type OrderUncheckedCreateWithoutSchoolInput = {
+  id?: string
   userId: string
   status?: string
   total: number
@@ -473,11 +704,54 @@ export type OrderCreateWithoutItemsInput = {
   stripePaymentIntentId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
+  collectibleUnits?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOrderInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOrderInput
+}
+
+export type OrderCreateOrConnectWithoutSchoolInput = {
+  where: Prisma.OrderWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrderCreateWithoutSchoolInput, Prisma.OrderUncheckedCreateWithoutSchoolInput>
+}
+
+export type OrderCreateManySchoolInputEnvelope = {
+  data: Prisma.OrderCreateManySchoolInput | Prisma.OrderCreateManySchoolInput[]
+  skipDuplicates?: boolean
+}
+
+export type OrderUpsertWithWhereUniqueWithoutSchoolInput = {
+  where: Prisma.OrderWhereUniqueInput
+  update: Prisma.XOR<Prisma.OrderUpdateWithoutSchoolInput, Prisma.OrderUncheckedUpdateWithoutSchoolInput>
+  create: Prisma.XOR<Prisma.OrderCreateWithoutSchoolInput, Prisma.OrderUncheckedCreateWithoutSchoolInput>
+}
+
+export type OrderUpdateWithWhereUniqueWithoutSchoolInput = {
+  where: Prisma.OrderWhereUniqueInput
+  data: Prisma.XOR<Prisma.OrderUpdateWithoutSchoolInput, Prisma.OrderUncheckedUpdateWithoutSchoolInput>
+}
+
+export type OrderUpdateManyWithWhereWithoutSchoolInput = {
+  where: Prisma.OrderScalarWhereInput
+  data: Prisma.XOR<Prisma.OrderUpdateManyMutationInput, Prisma.OrderUncheckedUpdateManyWithoutSchoolInput>
+}
+
+export type OrderCreateWithoutItemsInput = {
+  id?: string
+  status?: string
+  total: number
+  currency?: string
+  stripePaymentIntentId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  school?: Prisma.SchoolCreateNestedOneWithoutOrdersInput
+  user: Prisma.UserCreateNestedOneWithoutOrdersInput
+  collectibleUnits?: Prisma.CollectibleUnitCreateNestedManyWithoutOrderInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutItemsInput = {
   id?: string
-  schoolId: string
+  schoolId?: string | null
   userId: string
   status?: string
   total: number
@@ -485,6 +759,8 @@ export type OrderUncheckedCreateWithoutItemsInput = {
   stripePaymentIntentId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  collectibleUnits?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOrderInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutItemsInput = {
@@ -505,8 +781,218 @@ export type OrderUpdateToOneWithWhereWithoutItemsInput = {
 
 export type OrderUpdateWithoutItemsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  schoolId?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  total?: Prisma.FloatFieldUpdateOperationsInput | number
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  school?: Prisma.SchoolUpdateOneWithoutOrdersNestedInput
+  user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
+  collectibleUnits?: Prisma.CollectibleUnitUpdateManyWithoutOrderNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOrderNestedInput
+}
+
+export type OrderUncheckedUpdateWithoutItemsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  total?: Prisma.FloatFieldUpdateOperationsInput | number
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  collectibleUnits?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOrderNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOrderNestedInput
+}
+
+export type OrderCreateWithoutCollectibleUnitsInput = {
+  id?: string
+  status?: string
+  total: number
+  currency?: string
+  stripePaymentIntentId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  school?: Prisma.SchoolCreateNestedOneWithoutOrdersInput
+  user: Prisma.UserCreateNestedOneWithoutOrdersInput
+  items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOrderInput
+}
+
+export type OrderUncheckedCreateWithoutCollectibleUnitsInput = {
+  id?: string
+  schoolId?: string | null
+  userId: string
+  status?: string
+  total: number
+  currency?: string
+  stripePaymentIntentId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOrderInput
+}
+
+export type OrderCreateOrConnectWithoutCollectibleUnitsInput = {
+  where: Prisma.OrderWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrderCreateWithoutCollectibleUnitsInput, Prisma.OrderUncheckedCreateWithoutCollectibleUnitsInput>
+}
+
+export type OrderUpsertWithoutCollectibleUnitsInput = {
+  update: Prisma.XOR<Prisma.OrderUpdateWithoutCollectibleUnitsInput, Prisma.OrderUncheckedUpdateWithoutCollectibleUnitsInput>
+  create: Prisma.XOR<Prisma.OrderCreateWithoutCollectibleUnitsInput, Prisma.OrderUncheckedCreateWithoutCollectibleUnitsInput>
+  where?: Prisma.OrderWhereInput
+}
+
+export type OrderUpdateToOneWithWhereWithoutCollectibleUnitsInput = {
+  where?: Prisma.OrderWhereInput
+  data: Prisma.XOR<Prisma.OrderUpdateWithoutCollectibleUnitsInput, Prisma.OrderUncheckedUpdateWithoutCollectibleUnitsInput>
+}
+
+export type OrderUpdateWithoutCollectibleUnitsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  total?: Prisma.FloatFieldUpdateOperationsInput | number
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  school?: Prisma.SchoolUpdateOneWithoutOrdersNestedInput
+  user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
+  items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOrderNestedInput
+}
+
+export type OrderUncheckedUpdateWithoutCollectibleUnitsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  total?: Prisma.FloatFieldUpdateOperationsInput | number
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOrderNestedInput
+}
+
+export type OrderCreateWithoutCollectibleOwnershipsInput = {
+  id?: string
+  status?: string
+  total: number
+  currency?: string
+  stripePaymentIntentId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  school?: Prisma.SchoolCreateNestedOneWithoutOrdersInput
+  user: Prisma.UserCreateNestedOneWithoutOrdersInput
+  items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput
+  collectibleUnits?: Prisma.CollectibleUnitCreateNestedManyWithoutOrderInput
+}
+
+export type OrderUncheckedCreateWithoutCollectibleOwnershipsInput = {
+  id?: string
+  schoolId?: string | null
+  userId: string
+  status?: string
+  total: number
+  currency?: string
+  stripePaymentIntentId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
+  collectibleUnits?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOrderInput
+}
+
+export type OrderCreateOrConnectWithoutCollectibleOwnershipsInput = {
+  where: Prisma.OrderWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrderCreateWithoutCollectibleOwnershipsInput, Prisma.OrderUncheckedCreateWithoutCollectibleOwnershipsInput>
+}
+
+export type OrderUpsertWithoutCollectibleOwnershipsInput = {
+  update: Prisma.XOR<Prisma.OrderUpdateWithoutCollectibleOwnershipsInput, Prisma.OrderUncheckedUpdateWithoutCollectibleOwnershipsInput>
+  create: Prisma.XOR<Prisma.OrderCreateWithoutCollectibleOwnershipsInput, Prisma.OrderUncheckedCreateWithoutCollectibleOwnershipsInput>
+  where?: Prisma.OrderWhereInput
+}
+
+export type OrderUpdateToOneWithWhereWithoutCollectibleOwnershipsInput = {
+  where?: Prisma.OrderWhereInput
+  data: Prisma.XOR<Prisma.OrderUpdateWithoutCollectibleOwnershipsInput, Prisma.OrderUncheckedUpdateWithoutCollectibleOwnershipsInput>
+}
+
+export type OrderUpdateWithoutCollectibleOwnershipsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  total?: Prisma.FloatFieldUpdateOperationsInput | number
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  school?: Prisma.SchoolUpdateOneWithoutOrdersNestedInput
+  user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
+  items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput
+  collectibleUnits?: Prisma.CollectibleUnitUpdateManyWithoutOrderNestedInput
+}
+
+export type OrderUncheckedUpdateWithoutCollectibleOwnershipsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  total?: Prisma.FloatFieldUpdateOperationsInput | number
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
+  collectibleUnits?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOrderNestedInput
+}
+
+export type OrderCreateManyUserInput = {
+  id?: string
+  schoolId?: string | null
+  status?: string
+  total: number
+  currency?: string
+  stripePaymentIntentId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type OrderUpdateWithoutUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  total?: Prisma.FloatFieldUpdateOperationsInput | number
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  school?: Prisma.SchoolUpdateOneWithoutOrdersNestedInput
+  items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput
+  collectibleUnits?: Prisma.CollectibleUnitUpdateManyWithoutOrderNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOrderNestedInput
+}
+
+export type OrderUncheckedUpdateWithoutUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  total?: Prisma.FloatFieldUpdateOperationsInput | number
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
+  collectibleUnits?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOrderNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOrderNestedInput
+}
+
+export type OrderUncheckedUpdateManyWithoutUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   total?: Prisma.FloatFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
@@ -515,9 +1001,47 @@ export type OrderUpdateWithoutItemsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type OrderUncheckedUpdateWithoutItemsInput = {
+export type OrderCreateManySchoolInput = {
+  id?: string
+  userId: string
+  status?: string
+  total: number
+  currency?: string
+  stripePaymentIntentId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type OrderUpdateWithoutSchoolInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  schoolId?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  total?: Prisma.FloatFieldUpdateOperationsInput | number
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
+  items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput
+  collectibleUnits?: Prisma.CollectibleUnitUpdateManyWithoutOrderNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOrderNestedInput
+}
+
+export type OrderUncheckedUpdateWithoutSchoolInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  total?: Prisma.FloatFieldUpdateOperationsInput | number
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  stripePaymentIntentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
+  collectibleUnits?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOrderNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOrderNestedInput
+}
+
+export type OrderUncheckedUpdateManyWithoutSchoolInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   total?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -534,10 +1058,14 @@ export type OrderUncheckedUpdateWithoutItemsInput = {
 
 export type OrderCountOutputType = {
   items: number
+  collectibleUnits: number
+  collectibleOwnerships: number
 }
 
 export type OrderCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   items?: boolean | OrderCountOutputTypeCountItemsArgs
+  collectibleUnits?: boolean | OrderCountOutputTypeCountCollectibleUnitsArgs
+  collectibleOwnerships?: boolean | OrderCountOutputTypeCountCollectibleOwnershipsArgs
 }
 
 /**
@@ -557,6 +1085,20 @@ export type OrderCountOutputTypeCountItemsArgs<ExtArgs extends runtime.Types.Ext
   where?: Prisma.OrderItemWhereInput
 }
 
+/**
+ * OrderCountOutputType without action
+ */
+export type OrderCountOutputTypeCountCollectibleUnitsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CollectibleUnitWhereInput
+}
+
+/**
+ * OrderCountOutputType without action
+ */
+export type OrderCountOutputTypeCountCollectibleOwnershipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CollectibleOwnershipWhereInput
+}
+
 
 export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -568,7 +1110,11 @@ export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   stripePaymentIntentId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  school?: boolean | Prisma.Order$schoolArgs<ExtArgs>
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   items?: boolean | Prisma.Order$itemsArgs<ExtArgs>
+  collectibleUnits?: boolean | Prisma.Order$collectibleUnitsArgs<ExtArgs>
+  collectibleOwnerships?: boolean | Prisma.Order$collectibleOwnershipsArgs<ExtArgs>
   _count?: boolean | Prisma.OrderCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["order"]>
 
@@ -582,6 +1128,8 @@ export type OrderSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   stripePaymentIntentId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  school?: boolean | Prisma.Order$schoolArgs<ExtArgs>
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["order"]>
 
 export type OrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -594,6 +1142,8 @@ export type OrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   stripePaymentIntentId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  school?: boolean | Prisma.Order$schoolArgs<ExtArgs>
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["order"]>
 
 export type OrderSelectScalar = {
@@ -610,20 +1160,34 @@ export type OrderSelectScalar = {
 
 export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "userId" | "status" | "total" | "currency" | "stripePaymentIntentId" | "createdAt" | "updatedAt", ExtArgs["result"]["order"]>
 export type OrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  school?: boolean | Prisma.Order$schoolArgs<ExtArgs>
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   items?: boolean | Prisma.Order$itemsArgs<ExtArgs>
+  collectibleUnits?: boolean | Prisma.Order$collectibleUnitsArgs<ExtArgs>
+  collectibleOwnerships?: boolean | Prisma.Order$collectibleOwnershipsArgs<ExtArgs>
   _count?: boolean | Prisma.OrderCountOutputTypeDefaultArgs<ExtArgs>
 }
-export type OrderIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
-export type OrderIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type OrderIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  school?: boolean | Prisma.Order$schoolArgs<ExtArgs>
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+}
+export type OrderIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  school?: boolean | Prisma.Order$schoolArgs<ExtArgs>
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+}
 
 export type $OrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Order"
   objects: {
+    school: Prisma.$SchoolPayload<ExtArgs> | null
+    user: Prisma.$UserPayload<ExtArgs>
     items: Prisma.$OrderItemPayload<ExtArgs>[]
+    collectibleUnits: Prisma.$CollectibleUnitPayload<ExtArgs>[]
+    collectibleOwnerships: Prisma.$CollectibleOwnershipPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
-    schoolId: string
+    schoolId: string | null
     userId: string
     status: string
     total: number
@@ -1025,7 +1589,11 @@ readonly fields: OrderFieldRefs;
  */
 export interface Prisma__OrderClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  school<T extends Prisma.Order$schoolArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$schoolArgs<ExtArgs>>): Prisma.Prisma__SchoolClient<runtime.Types.Result.GetResult<Prisma.$SchoolPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   items<T extends Prisma.Order$itemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$itemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  collectibleUnits<T extends Prisma.Order$collectibleUnitsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$collectibleUnitsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CollectibleUnitPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  collectibleOwnerships<T extends Prisma.Order$collectibleOwnershipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$collectibleOwnershipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CollectibleOwnershipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1318,6 +1886,10 @@ export type OrderCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extension
    */
   data: Prisma.OrderCreateManyInput | Prisma.OrderCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrderIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1388,6 +1960,10 @@ export type OrderUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extension
    * Limit how many Orders to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrderIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1457,6 +2033,25 @@ export type OrderDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Interna
 }
 
 /**
+ * Order.school
+ */
+export type Order$schoolArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the School
+   */
+  select?: Prisma.SchoolSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the School
+   */
+  omit?: Prisma.SchoolOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SchoolInclude<ExtArgs> | null
+  where?: Prisma.SchoolWhereInput
+}
+
+/**
  * Order.items
  */
 export type Order$itemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1478,6 +2073,54 @@ export type Order$itemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
   take?: number
   skip?: number
   distinct?: Prisma.OrderItemScalarFieldEnum | Prisma.OrderItemScalarFieldEnum[]
+}
+
+/**
+ * Order.collectibleUnits
+ */
+export type Order$collectibleUnitsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CollectibleUnit
+   */
+  select?: Prisma.CollectibleUnitSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CollectibleUnit
+   */
+  omit?: Prisma.CollectibleUnitOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CollectibleUnitInclude<ExtArgs> | null
+  where?: Prisma.CollectibleUnitWhereInput
+  orderBy?: Prisma.CollectibleUnitOrderByWithRelationInput | Prisma.CollectibleUnitOrderByWithRelationInput[]
+  cursor?: Prisma.CollectibleUnitWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CollectibleUnitScalarFieldEnum | Prisma.CollectibleUnitScalarFieldEnum[]
+}
+
+/**
+ * Order.collectibleOwnerships
+ */
+export type Order$collectibleOwnershipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CollectibleOwnership
+   */
+  select?: Prisma.CollectibleOwnershipSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CollectibleOwnership
+   */
+  omit?: Prisma.CollectibleOwnershipOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CollectibleOwnershipInclude<ExtArgs> | null
+  where?: Prisma.CollectibleOwnershipWhereInput
+  orderBy?: Prisma.CollectibleOwnershipOrderByWithRelationInput | Prisma.CollectibleOwnershipOrderByWithRelationInput[]
+  cursor?: Prisma.CollectibleOwnershipWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CollectibleOwnershipScalarFieldEnum | Prisma.CollectibleOwnershipScalarFieldEnum[]
 }
 
 /**

@@ -2,7 +2,8 @@ import type { Prisma } from '@/lib/prisma-client/client'
 import { TransactionType, TransactionStatus, TransactionCategory, PaymentMethod } from '@/lib/prisma-client/enums'
 
 interface RecordFlaggedPaymentInput {
-  schoolId: string
+  // Null only for Martial-sold marketplace products (no school involved).
+  schoolId: string | null
   userId: string
   amount: number
   currency: string
@@ -21,7 +22,8 @@ interface RecordFlaggedPaymentInput {
 }
 
 interface RecordOnlinePaymentInput {
-  schoolId: string
+  // Null only for Martial-sold marketplace products (no school involved).
+  schoolId: string | null
   userId: string
   amount: number
   currency: string
