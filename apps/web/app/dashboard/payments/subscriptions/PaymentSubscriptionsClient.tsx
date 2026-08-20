@@ -13,6 +13,7 @@ import RowMenu from '../../../../components/RowMenu'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../../lib/format'
 import { downloadCsv } from '../../../../lib/csvExport'
+import { matchesSearch } from '../../../../lib/search'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type MemStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED' | 'EXPIRED' | 'PENDING'
@@ -28,6 +29,7 @@ interface SubRow {
   belt: string
   planName: string
   planType: string
+  paymentMethod: string
   amount: number
   currency: string
   startDate: string
@@ -250,7 +252,7 @@ function MemberSelect({ members, value, onChange, placeholder = 'Buscar miembro�
   const [open,  setOpen]  = useState(false)
   const selected = members.find(m => m.id === value)
   const filtered = query
-    ? members.filter(m => (m.name + m.email).toLowerCase().includes(query.toLowerCase())).slice(0, 50)
+    ? members.filter(m => matchesSearch(m.name + m.email, query)).slice(0, 50)
     : members.slice(0, 50)
 
   return (
@@ -541,6 +543,7 @@ export default function PaymentSubscriptionsClient() {
         belt:         m.belt ?? 'Blanco',
         planName:    m.planName,
         planType:    m.planType ?? 'SUBSCRIPTION',
+        paymentMethod: m.paymentMethod ?? 'CASH',
         amount:      m.price ?? 0,
         currency:    m.currency ?? 'EUR',
         startDate:   m.startDate,
@@ -848,6 +851,10 @@ export default function PaymentSubscriptionsClient() {
                           status={sub.status}
                           onDone={() => load()}
                           profileHref={sub.schoolMemberId ? `/dashboard/users/${sub.schoolMemberId}` : undefined}
+                          paymentMethod={sub.paymentMethod}
+                          startDate={sub.startDate}
+                          endDate={sub.endDate}
+                          onDatesUpdated={() => load()}
                         />
                       </div>
                     </td>
