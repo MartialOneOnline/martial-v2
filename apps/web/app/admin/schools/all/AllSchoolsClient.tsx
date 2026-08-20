@@ -7,7 +7,7 @@ import {
   Building2, Search, MapPin, ChevronLeft, ChevronRight,
   ExternalLink, RefreshCw, Filter, Users, Plus, X, Loader2,
   MoreHorizontal, Pencil, Trash2, ShieldCheck, ShieldOff, Send, LogIn,
-  AlertCircle, CheckCircle2, Archive, ArchiveRestore, Lock, Camera, Menu,
+  AlertCircle, CheckCircle2, Circle, Archive, ArchiveRestore, Lock, Camera, Menu,
 } from 'lucide-react'
 import { adminFetch } from '@/lib/api/adminFetch'
 import { useAdminShell } from '../../AdminLayoutClient'
@@ -27,7 +27,13 @@ type School = {
   createdAt: string
   _count: { members: number }
   subscription: { status: string } | null
-  setup: { classes: boolean; memberships: boolean; payments: boolean; staff: boolean; waivers: boolean }
+  setup: {
+    classes: { done: boolean; count: number }
+    memberships: { done: boolean; count: number }
+    payments: { done: boolean; methods: string[] }
+    staff: { done: boolean; count: number }
+    waivers: { done: boolean; count: number }
+  }
 }
 
 const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
@@ -83,31 +89,63 @@ const SETUP_STEPS: { key: keyof School['setup']; label: string }[] = [
   { key: 'waivers',     label: 'Waivers' },
 ]
 
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
+
+// What the school actually entered for each step — the "mirror" of their
+// setup, not just a yes/no — shown in the popover below.
+function setupDetail(key: keyof School['setup'], setup: School['setup']): string {
+  switch (key) {
+    case 'classes':     return setup.classes.done ? plural(setup.classes.count, 'active class') : 'No active classes'
+    case 'memberships': return setup.memberships.done ? plural(setup.memberships.count, 'plan') : 'No membership plans'
+    case 'payments':    return setup.payments.done ? setup.payments.methods.join(', ') : 'No payment method configured'
+    case 'staff':       return setup.staff.done ? plural(setup.staff.count, 'staff member') : 'No staff invited'
+    case 'waivers':     return setup.waivers.done ? plural(setup.waivers.count, 'waiver') : 'No waivers'
+  }
+}
+
 // Setup completeness at a glance: a done/total pill plus one dot per step, so
-// an admin can spot an unfinished school without opening it. The tooltip
-// spells out exactly what's missing.
+// an admin can spot an unfinished school without opening it. Click reveals
+// the breakdown — a plain title-attribute tooltip isn't discoverable enough
+// and gets clipped by the table's overflow-x-auto wrapper, so this reuses
+// RowMenu's portal-based popover the same way the row actions menu does.
 function SetupProgress({ setup }: { setup: School['setup'] }) {
-  const done = SETUP_STEPS.filter(s => setup[s.key]).length
+  const done = SETUP_STEPS.filter(s => setup[s.key].done).length
   const total = SETUP_STEPS.length
-  const missing = SETUP_STEPS.filter(s => !setup[s.key]).map(s => s.label)
   const cls = done === total
     ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
     : done === 0
     ? 'bg-gray-100 text-gray-400 border border-gray-200'
     : 'bg-amber-50 text-amber-700 border border-amber-100'
-  const title = done === total ? 'Setup complete' : `Missing: ${missing.join(', ')}`
   return (
-    <div className="flex items-center gap-1.5" title={title}>
-      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${cls}`}>{done}/{total}</span>
-      <div className="flex items-center gap-0.5">
+    <RowMenu trigger={({ onClick }) => (
+      <button onClick={onClick} className="flex items-center gap-1.5 cursor-pointer">
+        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${cls}`}>{done}/{total}</span>
+        <div className="flex items-center gap-0.5">
+          {SETUP_STEPS.map(s => (
+            <span
+              key={s.key}
+              className={`w-1.5 h-1.5 rounded-full ${setup[s.key].done ? 'bg-emerald-400' : 'bg-gray-200'}`}
+            />
+          ))}
+        </div>
+      </button>
+    )}>
+      <div className="rounded-xl py-2"
+        style={{ background: '#fff', border: '1px solid #E5E7EB', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 220 }}>
+        <p className="px-3 pb-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Setup — {done}/{total}</p>
         {SETUP_STEPS.map(s => (
-          <span
-            key={s.key}
-            className={`w-1.5 h-1.5 rounded-full ${setup[s.key] ? 'bg-emerald-400' : 'bg-gray-200'}`}
-          />
+          <div key={s.key} className="flex items-start gap-2 px-3 py-1.5">
+            {setup[s.key].done
+              ? <CheckCircle2 size={14} className="text-emerald-500 shrink-0 mt-0.5" />
+              : <Circle size={14} className="text-gray-300 shrink-0 mt-0.5" />}
+            <span className="flex flex-col">
+              <span className={`text-xs ${setup[s.key].done ? 'text-gray-700 font-medium' : 'text-gray-400 font-medium'}`}>{s.label}</span>
+              <span className="text-[11px] text-gray-400">{setupDetail(s.key, setup)}</span>
+            </span>
+          </div>
         ))}
       </div>
-    </div>
+    </RowMenu>
   )
 }
 

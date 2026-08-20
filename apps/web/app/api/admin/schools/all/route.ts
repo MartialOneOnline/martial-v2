@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { guardSuperadmin } from '@/lib/auth/server'
 
+const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  CASH: 'Cash',
+  STRIPE: 'Stripe',
+  BANK_TRANSFER: 'Bank transfer',
+  REVOLUT: 'Revolut',
+}
+
 export async function GET(req: NextRequest) {
   const deny = await guardSuperadmin(req)
   if (deny) return deny
@@ -76,18 +83,26 @@ export async function GET(req: NextRequest) {
   // Setup completeness — mirrors the school-facing Getting Started checklist
   // (see /api/dashboard/stats) but adds staff + waivers, which that checklist
   // doesn't track, for a super-admin-facing view of what's still missing.
+  // Each step carries the actual figure (count / method names), not just a
+  // done flag, so the admin sees what the school entered, not just that they
+  // entered something.
   const schoolsWithSetup = schools.map(s => {
-    const acceptedMethods = (s.defaultBookingSettings as { acceptedMethods?: string[] } | null)?.acceptedMethods
+    const acceptedMethods = (s.defaultBookingSettings as { acceptedMethods?: string[] } | null)?.acceptedMethods ?? []
+    const stripeConnected = Boolean(s.stripePublishableKey && s.stripeSecretKey)
+    const revolutConnected = Boolean(s.revolutPublicKey && s.revolutSecretKey)
+    const methodLabels = new Set<string>()
+    for (const m of acceptedMethods) methodLabels.add(PAYMENT_METHOD_LABELS[m] ?? m)
+    if (stripeConnected) methodLabels.add('Stripe')
+    if (revolutConnected) methodLabels.add('Revolut')
+
+    const staffCount = staffCountBySchool.get(s.id) ?? 0
+
     const setup = {
-      classes: s._count.classes > 0,
-      memberships: s._count.membershipPlans > 0,
-      payments: Boolean(
-        (s.stripePublishableKey && s.stripeSecretKey) ||
-        (s.revolutPublicKey && s.revolutSecretKey) ||
-        (acceptedMethods && acceptedMethods.length > 0)
-      ),
-      staff: (staffCountBySchool.get(s.id) ?? 0) > 0,
-      waivers: s._count.waivers > 0,
+      classes: { done: s._count.classes > 0, count: s._count.classes },
+      memberships: { done: s._count.membershipPlans > 0, count: s._count.membershipPlans },
+      payments: { done: methodLabels.size > 0, methods: Array.from(methodLabels) },
+      staff: { done: staffCount > 0, count: staffCount },
+      waivers: { done: s._count.waivers > 0, count: s._count.waivers },
     }
     const {
       stripePublishableKey: _sp, stripeSecretKey: _ss,
