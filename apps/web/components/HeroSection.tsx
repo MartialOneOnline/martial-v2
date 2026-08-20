@@ -67,10 +67,10 @@ export default function HeroSection({ onOpenLoginModal }: HeroSectionProps) {
                 >→</motion.span>
               </a>
               <a
-                href="/claim"
+                href="/register"
                 className="px-8 py-4 bg-white text-[#0E3A7A] font-extrabold text-[15px] rounded-xl border-2 border-[#0E3A7A]/20 hover:border-[#0870E2] hover:text-[#0870E2] active:scale-95 transition-all"
               >
-                Claim Your School
+                Register
               </a>
             </div>
 
