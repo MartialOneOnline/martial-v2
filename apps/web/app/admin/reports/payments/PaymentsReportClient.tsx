@@ -46,7 +46,7 @@ export default function PaymentsReportClient() {
 
   return (
     <div className="min-h-screen">
-      <div className="bg-white border-b border-gray-100 px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+      <div className="bg-white border-b border-gray-100 px-4 md:px-8 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
             style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(!menuOpen)}>
@@ -54,14 +54,14 @@ export default function PaymentsReportClient() {
           </button>
           <div>
             <h1 className="text-lg font-bold text-[#101828]">Payments</h1>
-            <p className="text-xs text-gray-400">School income & expenses — last 12 months, EUR only</p>
+            <p className="text-xs text-gray-400 hidden sm:block">School income & expenses — last 12 months, EUR only</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <ReportsTabs active="/admin/reports/payments" />
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="flex-1 min-w-0"><ReportsTabs active="/admin/reports/payments" /></div>
           <button onClick={load}
-            className="flex items-center gap-1.5 h-9 px-3 rounded-xl border border-gray-200 text-xs font-medium text-gray-500 hover:bg-gray-50 transition-colors">
-            <RefreshCw className="w-3.5 h-3.5" /> Refresh
+            className="flex items-center gap-1.5 h-9 px-3 rounded-xl border border-gray-200 text-xs font-medium text-gray-500 hover:bg-gray-50 transition-colors shrink-0">
+            <RefreshCw className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Refresh</span>
           </button>
         </div>
       </div>
@@ -71,7 +71,7 @@ export default function PaymentsReportClient() {
           <div className="w-6 h-6 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />
         </div>
       ) : (
-        <div className="p-8 space-y-6">
+        <div className="p-4 md:p-8 space-y-6">
           {data.stats.otherCurrencyCount > 0 && (
             <div className="p-3 rounded-xl bg-amber-50 border border-amber-100 text-xs text-amber-700">
               {data.stats.otherCurrencyCount} transaction(s) in a currency other than EUR are excluded from these totals to avoid mixing currencies.

@@ -6,6 +6,7 @@ import {
   Lock, Send, CheckCircle2,
 } from 'lucide-react'
 import { adminFetch } from '@/lib/api/adminFetch'
+import RowMenu from '@/components/RowMenu'
 
 export type AdminUser = {
   id: string
@@ -25,58 +26,50 @@ const label = 'block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracki
 const ROLES = ['SUPERADMIN', 'SCHOOL_OWNER', 'INSTRUCTOR', 'STUDENT']
 
 // ── Row kebab menu ─────────────────────────────────────────────────────────────
-// Open/close state is owned by the parent table (one menu open at a time),
-// matching the pattern already used for the All Schools table.
-export function UserActionsMenu({ user, isOpen, onToggle, onClose, onEdit, onContact, onDelete }: {
+// Rendered via a portal (RowMenu) so it escapes the table card's overflow-x-auto
+// clipping needed to keep wide tables from forcing the whole page to scroll on mobile.
+export function UserActionsMenu({ user, onEdit, onContact, onDelete }: {
   user: AdminUser
-  isOpen: boolean
-  onToggle: () => void
-  onClose: () => void
   onEdit: () => void
   onContact: () => void
   onDelete: () => void
 }) {
   return (
-    <div className="relative">
+    <RowMenu trigger={({ onClick }) => (
       <button
-        onClick={onToggle}
+        onClick={onClick}
         className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600"
       >
         <MoreHorizontal className="w-4 h-4" />
       </button>
-      {isOpen && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={onClose} />
-          <div className="absolute right-0 top-9 rounded-xl z-20 py-1"
-            style={{ background: '#fff', border: '1px solid #E5E7EB', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 160 }}>
+    )}>
+      <div className="rounded-xl py-1" style={{ background: '#fff', border: '1px solid #E5E7EB', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 160 }}>
+        <button
+          onClick={onEdit}
+          className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
+        >
+          <Pencil size={13} /> Edit
+        </button>
+        <button
+          onClick={onContact}
+          className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
+        >
+          <MessageCircle size={13} /> Contact
+        </button>
+        {user.role !== 'SUPERADMIN' && (
+          <>
+            <div className="my-1 border-t border-gray-100" />
             <button
-              onClick={() => { onClose(); onEdit() }}
-              className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
+              onClick={onDelete}
+              className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium hover:bg-red-50"
+              style={{ color: '#DC2626' }}
             >
-              <Pencil size={13} /> Edit
+              <Trash2 size={13} /> Delete
             </button>
-            <button
-              onClick={() => { onClose(); onContact() }}
-              className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
-            >
-              <MessageCircle size={13} /> Contact
-            </button>
-            {user.role !== 'SUPERADMIN' && (
-              <>
-                <div className="my-1 border-t border-gray-100" />
-                <button
-                  onClick={() => { onClose(); onDelete() }}
-                  className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium hover:bg-red-50"
-                  style={{ color: '#DC2626' }}
-                >
-                  <Trash2 size={13} /> Delete
-                </button>
-              </>
-            )}
-          </div>
-        </>
-      )}
-    </div>
+          </>
+        )}
+      </div>
+    </RowMenu>
   )
 }
 

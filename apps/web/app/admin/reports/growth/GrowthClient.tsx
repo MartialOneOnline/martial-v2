@@ -68,7 +68,7 @@ export default function GrowthClient() {
 
   return (
     <div className="min-h-screen">
-      <div className="bg-white border-b border-gray-100 px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+      <div className="bg-white border-b border-gray-100 px-4 md:px-8 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
             style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(!menuOpen)}>
@@ -76,14 +76,14 @@ export default function GrowthClient() {
           </button>
           <div>
             <h1 className="text-lg font-bold text-[#101828]">Growth</h1>
-            <p className="text-xs text-gray-400">Platform expansion metrics</p>
+            <p className="text-xs text-gray-400 hidden sm:block">Platform expansion metrics</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <ReportsTabs active="/admin/reports/growth" />
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="flex-1 min-w-0"><ReportsTabs active="/admin/reports/growth" /></div>
           <button onClick={load}
-            className="flex items-center gap-1.5 h-9 px-3 rounded-xl border border-gray-200 text-xs font-medium text-gray-500 hover:bg-gray-50 transition-colors">
-            <RefreshCw className="w-3.5 h-3.5" /> Refresh
+            className="flex items-center gap-1.5 h-9 px-3 rounded-xl border border-gray-200 text-xs font-medium text-gray-500 hover:bg-gray-50 transition-colors shrink-0">
+            <RefreshCw className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Refresh</span>
           </button>
         </div>
       </div>
@@ -93,7 +93,7 @@ export default function GrowthClient() {
           <div className="w-6 h-6 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />
         </div>
       ) : (
-        <div className="p-8 space-y-6">
+        <div className="p-4 md:p-8 space-y-6">
           {/* Summary cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <GrowthCard label="Schools this month" value={data.overview.schoolsThisMonth} sub={`vs ${data.overview.schoolsLastMonth} last month`} color="#0870E2" />

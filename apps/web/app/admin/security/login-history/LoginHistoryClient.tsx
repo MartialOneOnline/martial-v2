@@ -107,7 +107,7 @@ export default function LoginHistoryClient() {
         </button>
       </div>
 
-      <div className="p-8 space-y-4">
+      <div className="p-4 md:p-8 space-y-4">
         {/* Filters */}
         <div className="flex items-center gap-3 flex-wrap">
           <div className="relative">
@@ -144,7 +144,7 @@ export default function LoginHistoryClient() {
         </div>
 
         {/* Table */}
-        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-x-auto">
           {loading ? (
             <div className="flex items-center justify-center h-40">
               <div className="w-6 h-6 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />

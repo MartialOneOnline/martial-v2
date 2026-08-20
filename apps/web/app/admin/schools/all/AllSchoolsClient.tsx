@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { adminFetch } from '@/lib/api/adminFetch'
 import { useAdminShell } from '../../AdminLayoutClient'
+import RowMenu from '@/components/RowMenu'
 
 type School = {
   id: string
@@ -673,7 +674,6 @@ export default function AllSchoolsClient() {
   const [page, setPage] = useState(1)
   const [showCreate, setShowCreate] = useState(false)
 
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
   const [editSchoolId, setEditSchoolId] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<School | null>(null)
   const [deleteBusy, setDeleteBusy] = useState(false)
@@ -706,7 +706,6 @@ export default function AllSchoolsClient() {
   }, [banner])
 
   async function handleStatusChange(school: School, newStatus: 'VERIFIED' | 'SUSPENDED') {
-    setOpenMenuId(null)
     setActionId(school.id)
     const res = await adminFetch(`/api/admin/schools/${school.id}`, {
       method: 'PATCH',
@@ -720,7 +719,6 @@ export default function AllSchoolsClient() {
   }
 
   async function handleResendInvite(school: School) {
-    setOpenMenuId(null)
     setActionId(school.id)
     const res = await adminFetch(`/api/admin/schools/${school.id}/resend-invite`, { method: 'POST' })
     const data = await res.json().catch(() => ({}))
@@ -730,7 +728,6 @@ export default function AllSchoolsClient() {
   }
 
   async function handleImpersonate(school: School) {
-    setOpenMenuId(null)
     setActionId(school.id)
     const res = await adminFetch(`/api/admin/schools/${school.id}/impersonate`, { method: 'POST' })
     const data = await res.json().catch(() => ({}))
@@ -810,20 +807,20 @@ export default function AllSchoolsClient() {
             <p className="text-xs text-gray-400">{total} schools on the platform</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={load}
             className="flex items-center gap-1.5 h-9 px-3 rounded-xl border border-gray-200 text-xs font-medium text-gray-500 hover:bg-gray-50 transition-colors"
           >
             <RefreshCw className="w-3.5 h-3.5" />
-            Refresh
+            <span className="hidden sm:inline">Refresh</span>
           </button>
           <button
             onClick={() => setShowCreate(true)}
-            className="flex items-center gap-1.5 h-9 px-4 rounded-xl bg-[#0870E2] text-white text-xs font-semibold hover:bg-[#0660c8] transition-colors"
+            className="flex items-center gap-1.5 h-9 px-3 sm:px-4 rounded-xl bg-[#0870E2] text-white text-xs font-semibold hover:bg-[#0660c8] transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
-            New School
+            <span className="hidden sm:inline">New School</span>
           </button>
         </div>
       </div>
@@ -838,7 +835,7 @@ export default function AllSchoolsClient() {
         </div>
       )}
 
-      <div className="p-8 space-y-4">
+      <div className="p-4 md:p-8 space-y-4">
         {/* Filters */}
         <div className="flex items-center gap-3 flex-wrap">
           <div className="relative">
@@ -880,7 +877,7 @@ export default function AllSchoolsClient() {
         </div>
 
         {/* Table */}
-        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-visible">
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-x-auto">
           {loading ? (
             <div className="flex items-center justify-center h-40">
               <div className="w-6 h-6 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />
@@ -950,92 +947,89 @@ export default function AllSchoolsClient() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-xs text-gray-400">{fmtDate(school.createdAt)}</td>
-                    <td className="px-4 py-3 relative">
-                      <button
-                        onClick={() => setOpenMenuId(openMenuId === school.id ? null : school.id)}
-                        disabled={busy}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-                      >
-                        {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <MoreHorizontal className="w-4 h-4" />}
-                      </button>
-                      {openMenuId === school.id && (
-                        <>
-                          <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
-                          <div className="absolute right-6 top-9 rounded-xl z-20 py-1"
-                            style={{ background: '#fff', border: '1px solid #E5E7EB', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 190 }}>
-                            <Link
-                              href={`/school/${school.slug}`}
-                              target="_blank"
-                              onClick={() => setOpenMenuId(null)}
-                              className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                            >
-                              <ExternalLink size={13} /> View profile
-                            </Link>
+                    <td className="px-4 py-3">
+                      <RowMenu trigger={({ onClick }) => (
+                        <button
+                          onClick={onClick}
+                          disabled={busy}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                        >
+                          {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <MoreHorizontal className="w-4 h-4" />}
+                        </button>
+                      )}>
+                        <div className="rounded-xl py-1"
+                          style={{ background: '#fff', border: '1px solid #E5E7EB', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 190 }}>
+                          <Link
+                            href={`/school/${school.slug}`}
+                            target="_blank"
+                            className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                          >
+                            <ExternalLink size={13} /> View profile
+                          </Link>
+                          <button
+                            onClick={() => setEditSchoolId(school.id)}
+                            className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                          >
+                            <Pencil size={13} /> Edit
+                          </button>
+                          {school.status === 'SUSPENDED' ? (
                             <button
-                              onClick={() => { setEditSchoolId(school.id); setOpenMenuId(null) }}
+                              onClick={() => handleStatusChange(school, 'VERIFIED')}
                               className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
                             >
-                              <Pencil size={13} /> Edit
+                              <ShieldCheck size={13} /> Reactivate
                             </button>
-                            {school.status === 'SUSPENDED' ? (
-                              <button
-                                onClick={() => handleStatusChange(school, 'VERIFIED')}
-                                className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                              >
-                                <ShieldCheck size={13} /> Reactivate
-                              </button>
-                            ) : school.status === 'ARCHIVED' ? (
-                              <button
-                                onClick={() => handleStatusChange(school, 'VERIFIED')}
-                                className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                              >
-                                <ArchiveRestore size={13} /> Restore
-                              </button>
-                            ) : (
-                              <>
-                                {school.status !== 'VERIFIED' && (
-                                  <button
-                                    onClick={() => handleStatusChange(school, 'VERIFIED')}
-                                    className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                                  >
-                                    <ShieldCheck size={13} /> Verify
-                                  </button>
-                                )}
+                          ) : school.status === 'ARCHIVED' ? (
+                            <button
+                              onClick={() => handleStatusChange(school, 'VERIFIED')}
+                              className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                            >
+                              <ArchiveRestore size={13} /> Restore
+                            </button>
+                          ) : (
+                            <>
+                              {school.status !== 'VERIFIED' && (
                                 <button
-                                  onClick={() => handleStatusChange(school, 'SUSPENDED')}
+                                  onClick={() => handleStatusChange(school, 'VERIFIED')}
                                   className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
                                 >
-                                  <ShieldOff size={13} /> Suspend
+                                  <ShieldCheck size={13} /> Verify
                                 </button>
-                              </>
-                            )}
-                            {canResendInvite && (
+                              )}
                               <button
-                                onClick={() => handleResendInvite(school)}
+                                onClick={() => handleStatusChange(school, 'SUSPENDED')}
                                 className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
                               >
-                                <Send size={13} /> Resend claim invitation
+                                <ShieldOff size={13} /> Suspend
                               </button>
-                            )}
-                            {canImpersonate && (
-                              <button
-                                onClick={() => handleImpersonate(school)}
-                                className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                              >
-                                <LogIn size={13} /> Log in as owner
-                              </button>
-                            )}
-                            <div className="my-1 border-t border-gray-100" />
+                            </>
+                          )}
+                          {canResendInvite && (
                             <button
-                              onClick={() => { setDeleteError(''); setDeleteTarget(school); setOpenMenuId(null) }}
-                              className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium hover:bg-red-50"
-                              style={{ color: '#DC2626' }}
+                              onClick={() => handleResendInvite(school)}
+                              className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
                             >
-                              <Trash2 size={13} /> Archive / Delete
+                              <Send size={13} /> Resend claim invitation
                             </button>
-                          </div>
-                        </>
-                      )}
+                          )}
+                          {canImpersonate && (
+                            <button
+                              onClick={() => handleImpersonate(school)}
+                              className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                            >
+                              <LogIn size={13} /> Log in as owner
+                            </button>
+                          )}
+                          <div className="my-1 border-t border-gray-100" />
+                          <button
+                            onClick={() => { setDeleteError(''); setDeleteTarget(school) }}
+                            className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium hover:bg-red-50"
+                            style={{ color: '#DC2626' }}
+                          >
+                            <Trash2 size={13} /> Archive / Delete
+                          </button>
+                        </div>
+                      </RowMenu>
                     </td>
                   </tr>
                   )

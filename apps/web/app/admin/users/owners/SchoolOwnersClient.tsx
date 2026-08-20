@@ -33,7 +33,6 @@ export default function SchoolOwnersClient() {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
 
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
   const [editUserId, setEditUserId] = useState<string | null>(null)
   const [contactUser, setContactUser] = useState<AdminUser | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null)
@@ -109,7 +108,7 @@ export default function SchoolOwnersClient() {
         </div>
       )}
 
-      <div className="p-8 space-y-4">
+      <div className="p-4 md:p-8 space-y-4">
         <div className="relative w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
           <input
@@ -121,7 +120,7 @@ export default function SchoolOwnersClient() {
           />
         </div>
 
-        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-visible">
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-x-auto">
           {loading ? (
             <div className="flex items-center justify-center h-40">
               <div className="w-6 h-6 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />
@@ -193,9 +192,6 @@ export default function SchoolOwnersClient() {
                     <td className="px-4 py-3">
                       <UserActionsMenu
                         user={user}
-                        isOpen={openMenuId === user.id}
-                        onToggle={() => setOpenMenuId(openMenuId === user.id ? null : user.id)}
-                        onClose={() => setOpenMenuId(null)}
                         onEdit={() => setEditUserId(user.id)}
                         onContact={() => setContactUser(user)}
                         onDelete={() => setDeleteTarget(user)}

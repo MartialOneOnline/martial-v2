@@ -116,7 +116,7 @@ export default function VerifyQueueClient() {
         </button>
       </div>
 
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="w-6 h-6 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />

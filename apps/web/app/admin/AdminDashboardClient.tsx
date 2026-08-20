@@ -134,32 +134,32 @@ export default function AdminDashboardClient() {
           </button>
           <div>
             <h1 className="text-lg font-bold text-[#101828]">Dashboard</h1>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-400 hidden sm:block">
               {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={load}
             className="flex items-center gap-1.5 h-9 px-3 rounded-xl border border-gray-200 text-xs font-medium text-gray-500 hover:bg-gray-50 transition-colors"
           >
             <RefreshCw className="w-3.5 h-3.5" />
-            Refresh
+            <span className="hidden sm:inline">Refresh</span>
           </button>
           <Link
             href="/admin/schools"
             prefetch={false}
-            className="flex items-center gap-2 h-9 px-4 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+            className="flex items-center gap-2 h-9 px-3 sm:px-4 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition-opacity"
             style={{ background: '#0870E2' }}
           >
             <Plus className="w-4 h-4" />
-            Invite School
+            <span className="hidden sm:inline">Invite School</span>
           </Link>
         </div>
       </div>
 
-      <div className="p-8 space-y-6">
+      <div className="p-4 md:p-8 space-y-6">
 
         {/* ── Row 1: KPI cards ───────────────────────────────────────────── */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -316,6 +316,7 @@ export default function AdminDashboardClient() {
                 View all <ArrowUpRight className="w-3 h-3" />
               </Link>
             </div>
+            <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-50 bg-gray-50/60">
@@ -373,6 +374,7 @@ export default function AdminDashboardClient() {
                 )}
               </tbody>
             </table>
+            </div>
           </div>
 
           {/* Map + By country stacked */}

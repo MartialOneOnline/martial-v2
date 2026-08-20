@@ -92,28 +92,28 @@ export default function LeadsClient() {
             <p className="text-xs text-gray-400">School invitations and outreach</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <button onClick={load}
             className="flex items-center gap-1.5 h-9 px-3 rounded-xl border border-gray-200 text-xs font-medium text-gray-500 hover:bg-gray-50 transition-colors">
-            <RefreshCw className="w-3.5 h-3.5" /> Refresh
+            <RefreshCw className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Refresh</span>
           </button>
           <Link href="/admin/leads/pipeline"
             prefetch={false}
-            className="flex items-center gap-1.5 h-9 px-3 rounded-xl border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+            className="hidden sm:flex items-center gap-1.5 h-9 px-3 rounded-xl border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">
             Pipeline view →
           </Link>
           <Link href="/admin/schools"
             prefetch={false}
-            className="flex items-center gap-2 h-9 px-4 rounded-xl text-white text-xs font-semibold hover:opacity-90 transition-opacity"
+            className="flex items-center gap-2 h-9 px-3 sm:px-4 rounded-xl text-white text-xs font-semibold hover:opacity-90 transition-opacity"
             style={{ background: '#0870E2' }}>
-            <Mail className="w-3.5 h-3.5" /> New invite
+            <Mail className="w-3.5 h-3.5" /> <span className="hidden sm:inline">New invite</span>
           </Link>
         </div>
       </div>
 
-      <div className="p-8 space-y-4">
+      <div className="p-4 md:p-8 space-y-4">
         {/* Filters */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
             <input
@@ -152,7 +152,7 @@ export default function LeadsClient() {
           </div>
         </div>
 
-        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-x-auto">
           {loading ? (
             <div className="flex items-center justify-center h-40">
               <div className="w-6 h-6 border-2 border-[#0870E2] border-t-transparent rounded-full animate-spin" />

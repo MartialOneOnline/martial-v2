@@ -136,7 +136,7 @@ export default function SettingsClient() {
         </button>
       </div>
 
-      <div className="p-8 max-w-2xl space-y-6">
+      <div className="p-4 md:p-8 max-w-2xl space-y-6">
         <Section title="Notifications" icon={Bell}>
           <Toggle
             label="New school registered"

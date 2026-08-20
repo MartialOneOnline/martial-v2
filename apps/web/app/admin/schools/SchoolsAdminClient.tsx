@@ -7,6 +7,7 @@ import * as xlsx from 'xlsx'
 import { adminFetch } from '@/lib/api/adminFetch'
 import { matchesSearch } from '@/lib/search'
 import { useAdminShell } from '../AdminLayoutClient'
+import RowMenu from '@/components/RowMenu'
 
 const COUNTRIES = [
   'United Kingdom', 'Spain', 'Portugal', 'France', 'Germany', 'Italy',
@@ -603,7 +604,6 @@ export default function SchoolsAdminClient() {
   const [showModal, setShowModal]     = useState(false)
   const [search, setSearch]           = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('ALL')
-  const [openMenuId, setOpenMenuId]   = useState<string | null>(null)
   const [resendingId, setResendingId] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Invitation | null>(null)
   const [deleteBusy, setDeleteBusy]   = useState(false)
@@ -685,21 +685,21 @@ export default function SchoolsAdminClient() {
           </button>
           <div>
             <h1 className="text-2xl font-bold text-[#101828]">Schools</h1>
-            <p className="text-sm text-gray-500 mt-0.5">Manage school invitations and onboarding pipeline</p>
+            <p className="text-sm text-gray-500 mt-0.5 hidden sm:block">Manage school invitations and onboarding pipeline</p>
           </div>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 h-10 px-4 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+          className="flex items-center gap-2 h-10 px-3 sm:px-4 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition-opacity shrink-0"
           style={{ background: '#0870E2' }}
         >
           <Plus className="w-4 h-4" />
-          Invite School
+          <span className="hidden sm:inline">Invite School</span>
         </button>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {[
           { label: 'Total Invites',  value: stats.total,      color: '#0870E2' },
           { label: 'Sent',           value: stats.sent,       color: '#3B82F6' },
@@ -714,7 +714,7 @@ export default function SchoolsAdminClient() {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-3 mb-4">
+      <div className="flex items-center gap-3 mb-4 flex-wrap">
         <div className="flex-1 relative">
           <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
@@ -740,7 +740,7 @@ export default function SchoolsAdminClient() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50">
@@ -801,52 +801,47 @@ export default function SchoolsAdminClient() {
                     {new Date(inv.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </td>
                   <td className="px-5 py-3.5">
-                    <div className="relative">
+                    <RowMenu trigger={({ onClick }) => (
                       <button
-                        onClick={() => setOpenMenuId(openMenuId === inv.id ? null : inv.id)}
+                        onClick={onClick}
                         className="w-7 h-7 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
                       >
                         <MoreHorizontal className="w-4 h-4" />
                       </button>
-                      {openMenuId === inv.id && (
-                        <>
-                          <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
-                          <div
-                            className="absolute right-0 top-9 rounded-xl z-20 py-1"
-                            style={{ background: '#fff', border: '1px solid #E5E7EB', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 180 }}
+                    )}>
+                      <div
+                        className="rounded-xl py-1"
+                        style={{ background: '#fff', border: '1px solid #E5E7EB', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 180 }}
+                      >
+                        {inv.school && (
+                          <NextLink
+                            href={`/school/${inv.school.slug}`}
+                            target="_blank"
+                            className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
                           >
-                            {inv.school && (
-                              <NextLink
-                                href={`/school/${inv.school.slug}`}
-                                target="_blank"
-                                onClick={() => setOpenMenuId(null)}
-                                className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                              >
-                                <ExternalLink size={13} /> View school
-                              </NextLink>
-                            )}
-                            {inv.status !== 'REGISTERED' && (
-                              <button
-                                onClick={() => handleResend(inv)}
-                                disabled={resendingId === inv.id}
-                                className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                              >
-                                {resendingId === inv.id ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
-                                {resendingId === inv.id ? 'Sending…' : 'Resend invite'}
-                              </button>
-                            )}
-                            <div className="my-1 border-t border-gray-100" />
-                            <button
-                              onClick={() => { setOpenMenuId(null); setDeleteTarget(inv) }}
-                              className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium hover:bg-red-50"
-                              style={{ color: '#DC2626' }}
-                            >
-                              <Trash2 size={13} /> Delete invitation
-                            </button>
-                          </div>
-                        </>
-                      )}
-                    </div>
+                            <ExternalLink size={13} /> View school
+                          </NextLink>
+                        )}
+                        {inv.status !== 'REGISTERED' && (
+                          <button
+                            onClick={() => handleResend(inv)}
+                            disabled={resendingId === inv.id}
+                            className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                          >
+                            {resendingId === inv.id ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
+                            {resendingId === inv.id ? 'Sending…' : 'Resend invite'}
+                          </button>
+                        )}
+                        <div className="my-1 border-t border-gray-100" />
+                        <button
+                          onClick={() => setDeleteTarget(inv)}
+                          className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium hover:bg-red-50"
+                          style={{ color: '#DC2626' }}
+                        >
+                          <Trash2 size={13} /> Delete invitation
+                        </button>
+                      </div>
+                    </RowMenu>
                   </td>
                 </tr>
               )

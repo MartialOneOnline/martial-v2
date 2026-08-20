@@ -60,8 +60,8 @@ export default function MembershipDriftClient() {
           <p className="text-sm text-gray-400">No drift found — every active membership matches an active member.</p>
         </div>
       ) : (
-        <div className="p-8">
-          <div className="bg-white border border-amber-200 rounded-2xl shadow-sm overflow-hidden">
+        <div className="p-4 md:p-8">
+          <div className="bg-white border border-amber-200 rounded-2xl shadow-sm overflow-x-auto">
             <div className="px-6 py-4 border-b border-amber-100 bg-amber-50/40 flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-amber-500" />
               <p className="text-sm font-semibold text-amber-800">{members.length} member{members.length > 1 ? 's' : ''} need attention</p>

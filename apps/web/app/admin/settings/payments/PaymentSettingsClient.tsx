@@ -109,7 +109,7 @@ export default function PaymentSettingsClient() {
   }
 
   if (loading || !form) {
-    return <div className="p-8 text-sm text-gray-400">Loading…</div>
+    return <div className="p-4 md:p-8 text-sm text-gray-400">Loading…</div>
   }
 
   return (
@@ -136,7 +136,7 @@ export default function PaymentSettingsClient() {
         </button>
       </div>
 
-      <div className="p-8 max-w-2xl space-y-6">
+      <div className="p-4 md:p-8 max-w-2xl space-y-6">
         {error && (
           <div className="p-3 rounded-xl bg-red-50 border border-red-100 text-xs text-red-600">{error}</div>
         )}
