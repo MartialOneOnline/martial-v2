@@ -1,10 +1,16 @@
 'use client'
 
-import { useState } from 'react'
-import { X, UserPlus, Mail, User, Globe, CheckCircle } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { X, UserPlus, Mail, User, Globe, CheckCircle, Sparkles } from 'lucide-react'
 
 interface Props {
   onClose: () => void
+}
+
+interface TrialPlan {
+  id: string
+  name: string
+  validityDays: number | null
 }
 
 const LANGS = [
@@ -28,6 +34,22 @@ export default function InviteUserModal({ onClose }: Props) {
   const [error,   setError]   = useState('')
   const [sent,    setSent]    = useState(false)
 
+  const [trialPlans, setTrialPlans]           = useState<TrialPlan[]>([])
+  const [trialPlanId, setTrialPlanId]         = useState<string | null>(null)
+  const [trialAssigned, setTrialAssigned]     = useState(false)
+
+  useEffect(() => {
+    fetch('/api/dashboard/membership-plans')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        const plans = (data?.plans ?? []).filter(
+          (p: { planType: string; isActive: boolean }) => p.planType === 'TRIAL' && p.isActive
+        )
+        setTrialPlans(plans)
+      })
+      .catch(() => {})
+  }, [])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
@@ -37,10 +59,14 @@ export default function InviteUserModal({ onClose }: Props) {
       const res = await fetch('/api/dashboard/members/invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), name: name.trim() || undefined, lang }),
+        body: JSON.stringify({
+          email: email.trim(), name: name.trim() || undefined, lang,
+          trialPlanId: trialPlanId || undefined,
+        }),
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error ?? 'Failed to send invitation'); return }
+      setTrialAssigned(!!data.trialAssigned)
       setSent(true)
     } catch {
       setError('Connection error')
@@ -78,6 +104,7 @@ export default function InviteUserModal({ onClose }: Props) {
             <p style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>Invitation Sent!</p>
             <p style={{ fontSize: 13, color: '#6B7280' }}>
               We sent an invite to <strong>{email}</strong>
+              {trialAssigned && <> and enrolled them in their trial</>}
             </p>
             <button onClick={onClose}
               style={{ marginTop: 8, padding: '9px 28px', background: '#0071E3', color: '#fff',
@@ -107,6 +134,40 @@ export default function InviteUserModal({ onClose }: Props) {
                   required placeholder="john@example.com" style={inp} />
               </div>
             </div>
+
+            {/* Trial class (only shown if the school has an active trial plan) */}
+            {trialPlans.length > 0 && (
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>
+                  <Sparkles size={11} />
+                  Trial class (optional)
+                </label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  <button type="button" onClick={() => setTrialPlanId(null)}
+                    style={{
+                      padding: '7px 12px', borderRadius: 10, cursor: 'pointer', fontSize: 12,
+                      border: `2px solid ${trialPlanId === null ? '#0071E3' : '#E5E7EB'}`,
+                      background: trialPlanId === null ? '#EFF6FF' : '#fff',
+                      color: trialPlanId === null ? '#0071E3' : '#6B7280',
+                      fontWeight: trialPlanId === null ? 700 : 500,
+                    }}>
+                    No trial
+                  </button>
+                  {trialPlans.map(p => (
+                    <button key={p.id} type="button" onClick={() => setTrialPlanId(p.id)}
+                      style={{
+                        padding: '7px 12px', borderRadius: 10, cursor: 'pointer', fontSize: 12,
+                        border: `2px solid ${trialPlanId === p.id ? '#0071E3' : '#E5E7EB'}`,
+                        background: trialPlanId === p.id ? '#EFF6FF' : '#fff',
+                        color: trialPlanId === p.id ? '#0071E3' : '#6B7280',
+                        fontWeight: trialPlanId === p.id ? 700 : 500,
+                      }}>
+                      {p.name}{p.validityDays ? ` (${p.validityDays}d)` : ''}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Language */}
             <div>

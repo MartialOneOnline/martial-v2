@@ -6,6 +6,8 @@ import { requireSchoolAccess } from '@/lib/auth/contexts'
 import { hasPermission } from '@/lib/auth/permissions'
 import { getResend, FROM, APP_URL } from '@/lib/email/resend'
 import { buildInviteStudentEmail, detectLang, getInviteSubject } from '@/lib/email/templates/inviteStudent'
+import { assignPlan } from '@/lib/services/membership'
+import { PaymentMethod } from '@/lib/prisma-client/enums'
 
 function getAdminSupabase() {
   const key = process.env.SUPABASE_SECRET_KEY
@@ -34,7 +36,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const { email, name, lang: bodyLang } = await req.json()
+  const { email, name, lang: bodyLang, trialPlanId } = await req.json()
   if (!email?.trim()) return NextResponse.json({ error: 'Email is required' }, { status: 400 })
 
   const normalizedEmail = email.trim().toLowerCase()
@@ -44,6 +46,17 @@ export async function POST(req: NextRequest) {
     where: { id: schoolId },
     select: { name: true, city: true, country: true, language: true },
   })
+
+  // If a trial plan was picked, validate it up front so we don't create
+  // the user/member records only to fail the assignment afterwards.
+  let trialPlan: { id: string } | null = null
+  if (trialPlanId) {
+    trialPlan = await prisma.membershipPlan.findFirst({
+      where: { id: trialPlanId, schoolId, planType: 'TRIAL', isActive: true },
+      select: { id: true },
+    })
+    if (!trialPlan) return NextResponse.json({ error: 'Trial plan not found or inactive' }, { status: 400 })
+  }
 
   // Check if already a member
   const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } })
@@ -115,6 +128,24 @@ export async function POST(req: NextRequest) {
     },
   })
 
+  // Enroll into the selected trial plan right away, so the person has
+  // trial class access even before they accept the invite and set a password.
+  let trialAssigned = false
+  if (trialPlan) {
+    try {
+      await assignPlan({
+        schoolMemberId: schoolMember.id,
+        schoolId,
+        planId: trialPlan.id,
+        paymentMethod: PaymentMethod.CASH,
+        notes: 'Assigned via Invite User (trial)',
+      })
+      trialAssigned = true
+    } catch (err) {
+      console.error('[invite] trial plan assignment failed:', err)
+    }
+  }
+
   // Send email via Resend with our custom template
   // bodyLang overrides school language (admin can choose per invitation)
   const VALID_LANGS = ['en', 'es', 'pt', 'fr']
@@ -152,5 +183,6 @@ export async function POST(req: NextRequest) {
       role: schoolMember.role,
       joinedAt: schoolMember.joinedAt?.toISOString() ?? null,
     },
+    trialAssigned,
   }, { status: 201 })
 }
