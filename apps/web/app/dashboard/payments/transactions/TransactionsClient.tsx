@@ -406,7 +406,7 @@ function TxDetailDrawer({ tx, onClose }: { tx: TxRow; onClose: () => void }) {
         </span>
       ) : <span style={{ color: '#9CA3AF' }}>—</span> },
     { label: 'Submitted', value: <span style={{ color: '#374151' }}>{fmtDate(tx.date, true)}</span> },
-    ...(tx.periodStart ? [{ label: 'Activated', value: <span style={{ color: '#374151' }}>{fmtDate(tx.periodStart, true)}</span> }] : []),
+    ...(tx.periodStart ? [{ label: tx.status === 'PENDING' ? 'Period start' : 'Activated', value: <span style={{ color: '#374151' }}>{fmtDate(tx.periodStart, true)}</span> }] : []),
     ...(tx.periodEnd   ? [{ label: 'Renew',     value: <span style={{ color: '#374151' }}>{fmtDate(tx.periodEnd, true)}</span> }] : []),
     { label: 'Status',
       value: (
