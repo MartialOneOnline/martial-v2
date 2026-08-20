@@ -347,7 +347,7 @@ function SchoolTab() {
               </div>
               <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleLogoChange} />
             </label>
-            <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 6, textAlign: 'center', maxWidth: 72 }}>Click to upload</p>
+            <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 6, textAlign: 'center', maxWidth: 72 }}>Square, e.g. 400×400px</p>
           </div>
           <div className="flex-1 flex flex-col gap-4">
             <div>
@@ -369,6 +369,7 @@ function SchoolTab() {
           <label style={LBL}>Cover photo</label>
           <p style={{ fontSize: 12, color: '#9CA3AF', margin: '-2px 0 8px' }}>
             The banner shown on your public Explore card and profile page. Not the same as an event's own banner.
+            Recommended: landscape, ratio between 16:9 and 2:1 (e.g. 1600×800px) — very wide panoramic photos get cropped tightly on the Explore card.
           </p>
 
           {!form.coverUrl ? (

@@ -237,10 +237,10 @@ function SchoolCard({ school, onClick }: { school: DbSchool; onClick: () => void
   return (
     <button
       onClick={onClick}
-      className="group relative w-full text-left rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-lg transition-all duration-300 border border-[#E5E7EB]"
+      className="group relative w-full h-full flex flex-col text-left rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-lg transition-all duration-300 border border-[#E5E7EB]"
     >
       {/* Photo */}
-      <div className={`relative w-full h-48 overflow-hidden ${showGradient ? `bg-gradient-to-br ${gradient}` : 'bg-[#E5E7EB]'}`}>
+      <div className={`relative w-full h-48 overflow-hidden shrink-0 ${showGradient ? `bg-gradient-to-br ${gradient}` : 'bg-[#E5E7EB]'}`}>
         {school.coverUrl && !imgError && (
           <Image
             src={school.coverUrl} alt={school.name} fill
@@ -284,9 +284,9 @@ function SchoolCard({ school, onClick }: { school: DbSchool; onClick: () => void
       </div>
 
       {/* Info panel */}
-      <div className="px-4 pt-8 pb-4">
+      <div className="px-4 pt-8 pb-4 flex-1 flex flex-col">
         {/* Disciplines */}
-        <div className="flex flex-wrap gap-1 mb-2">
+        <div className="flex flex-wrap gap-1 mb-2 h-5 overflow-hidden">
           {disciplines.slice(0, 3).map(d => (
             <span key={d} className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[#F3F4F6] text-[#6B7280]">
               {d}
@@ -306,11 +306,11 @@ function SchoolCard({ school, onClick }: { school: DbSchool; onClick: () => void
           {[school.city, school.country].filter(Boolean).join(', ') || 'Location coming soon'}
         </p>
 
-        {school.description && (
-          <p className="text-xs text-[#6B7280] leading-relaxed line-clamp-2 mb-3">{school.description}</p>
-        )}
+        <p className="text-xs text-[#6B7280] leading-relaxed line-clamp-2 mb-3 min-h-[2rem]">
+          {school.description || ' '}
+        </p>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mt-auto pt-1">
           <span className="text-sm font-bold text-[#111827]">
             {school.priceFrom ? (
               <><span className="font-normal text-[#6B7280] text-xs">from </span>€{school.priceFrom}<span className="font-normal text-[#6B7280] text-xs">/mo</span></>
