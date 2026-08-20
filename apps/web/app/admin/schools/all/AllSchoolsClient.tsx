@@ -2,11 +2,12 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   Building2, Search, MapPin, ChevronLeft, ChevronRight,
   ExternalLink, RefreshCw, Filter, Users, Plus, X, Loader2,
   MoreHorizontal, Pencil, Trash2, ShieldCheck, ShieldOff, Send, LogIn,
-  AlertCircle, CheckCircle2, Archive, ArchiveRestore, Lock,
+  AlertCircle, CheckCircle2, Archive, ArchiveRestore, Lock, Camera,
 } from 'lucide-react'
 import { adminFetch } from '@/lib/api/adminFetch'
 
@@ -241,6 +242,7 @@ type EditForm = {
   email: string; phone: string; website: string; instagram: string
   description: string; tagline: string
   hasFreeTrialCls: boolean; priceFrom: string
+  logoUrl: string; coverUrl: string; disciplines: string[]
 }
 
 function AdminEditSchoolModal({ schoolId, onClose, onSaved }: {
@@ -250,6 +252,9 @@ function AdminEditSchoolModal({ schoolId, onClose, onSaved }: {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [uploadingLogo, setUploadingLogo] = useState(false)
+  const [uploadingCover, setUploadingCover] = useState(false)
+  const [disciplineOptions, setDisciplineOptions] = useState<{ slug: string; label: string }[]>([])
 
   useEffect(() => {
     adminFetch(`/api/admin/schools/${schoolId}`)
@@ -261,13 +266,42 @@ function AdminEditSchoolModal({ schoolId, onClose, onSaved }: {
         description: d.school.description ?? '', tagline: d.school.tagline ?? '',
         hasFreeTrialCls: d.school.hasFreeTrialCls ?? false,
         priceFrom: d.school.priceFrom != null ? String(d.school.priceFrom) : '',
+        logoUrl: d.school.logoUrl ?? '', coverUrl: d.school.coverUrl ?? '',
+        disciplines: d.school.disciplines ?? [],
       }))
       .catch(() => setError('Could not load school'))
       .finally(() => setLoading(false))
+    fetch('/api/disciplines')
+      .then(r => r.json())
+      .then((d: { disciplines: { name: string; slug: string }[] }) =>
+        setDisciplineOptions(d.disciplines.map(x => ({ slug: x.slug, label: x.name })))
+      )
+      .catch(() => {})
   }, [schoolId])
 
   function set(k: keyof EditForm, v: string) { setForm(f => f && ({ ...f, [k]: v })) }
   function toggleFreeTrial() { setForm(f => f && ({ ...f, hasFreeTrialCls: !f.hasFreeTrialCls })) }
+  function toggleDiscipline(slug: string) {
+    setForm(f => f && ({
+      ...f,
+      disciplines: f.disciplines.includes(slug) ? f.disciplines.filter(d => d !== slug) : [...f.disciplines, slug],
+    }))
+  }
+
+  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'cover') {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const setUploading = type === 'logo' ? setUploadingLogo : setUploadingCover
+    setUploading(true)
+    setError('')
+    const fd = new FormData()
+    fd.append('file', file)
+    const res = await adminFetch(`/api/admin/schools/${schoolId}/upload`, { method: 'POST', body: fd })
+    const data = await res.json().catch(() => ({}))
+    setUploading(false)
+    if (!res.ok) { setError(data.error || 'Upload failed'); return }
+    setForm(f => f && ({ ...f, [type === 'logo' ? 'logoUrl' : 'coverUrl']: data.url }))
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -330,6 +364,40 @@ function AdminEditSchoolModal({ schoolId, onClose, onSaved }: {
             </div>
 
             <div>
+              <label className={label}>Photos</label>
+              <div className="flex gap-4">
+                <div className="flex flex-col items-center gap-1.5">
+                  <label className="relative block w-20 h-20 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center cursor-pointer hover:border-[#0870E2]/50 hover:bg-[#F0F7FB] transition-colors overflow-hidden">
+                    {uploadingLogo ? (
+                      <Loader2 className="w-5 h-5 animate-spin text-gray-300" />
+                    ) : form.logoUrl ? (
+                      <Image src={form.logoUrl} alt="Logo" fill sizes="80px" className="object-cover" />
+                    ) : (
+                      <Camera className="w-6 h-6 text-gray-300" />
+                    )}
+                    <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
+                      onChange={e => handlePhotoUpload(e, 'logo')} />
+                  </label>
+                  <span className="text-[10px] text-gray-400 font-medium">Logo</span>
+                </div>
+                <div className="flex-1 flex flex-col gap-1.5">
+                  <label className="relative block h-20 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center cursor-pointer hover:border-[#0870E2]/50 hover:bg-[#F0F7FB] transition-colors overflow-hidden">
+                    {uploadingCover ? (
+                      <Loader2 className="w-5 h-5 animate-spin text-gray-300" />
+                    ) : form.coverUrl ? (
+                      <Image src={form.coverUrl} alt="Cover" fill sizes="320px" className="object-cover" />
+                    ) : (
+                      <Camera className="w-6 h-6 text-gray-300" />
+                    )}
+                    <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
+                      onChange={e => handlePhotoUpload(e, 'cover')} />
+                  </label>
+                  <span className="text-[10px] text-gray-400 font-medium">Cover photo (public profile banner)</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
               <label className={label}>Name *</label>
               <input required value={form.name} onChange={e => set('name', e.target.value)} className={field} />
             </div>
@@ -373,6 +441,26 @@ function AdminEditSchoolModal({ schoolId, onClose, onSaved }: {
               <div>
                 <label className={label}>Instagram</label>
                 <input value={form.instagram} onChange={e => set('instagram', e.target.value)} className={field} />
+              </div>
+            </div>
+
+            <div>
+              <label className={label}>Disciplines</label>
+              <div className="flex flex-wrap gap-2">
+                {disciplineOptions.map(d => (
+                  <button
+                    key={d.slug}
+                    type="button"
+                    onClick={() => toggleDiscipline(d.slug)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                      form.disciplines.includes(d.slug)
+                        ? 'bg-[#0870E2] text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {d.label}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -896,12 +984,22 @@ export default function AllSchoolsClient() {
                                 <ArchiveRestore size={13} /> Restore
                               </button>
                             ) : (
-                              <button
-                                onClick={() => handleStatusChange(school, 'SUSPENDED')}
-                                className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                              >
-                                <ShieldOff size={13} /> Suspend
-                              </button>
+                              <>
+                                {school.status !== 'VERIFIED' && (
+                                  <button
+                                    onClick={() => handleStatusChange(school, 'VERIFIED')}
+                                    className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                                  >
+                                    <ShieldCheck size={13} /> Verify
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => handleStatusChange(school, 'SUSPENDED')}
+                                  className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                                >
+                                  <ShieldOff size={13} /> Suspend
+                                </button>
+                              </>
                             )}
                             {canResendInvite && (
                               <button

@@ -17,11 +17,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       address: true, postcode: true, city: true, country: true,
       description: true, tagline: true,
       hasFreeTrialCls: true, priceFrom: true,
+      logoUrl: true, coverUrl: true,
+      disciplines: { select: { discipline: { select: { slug: true } } } },
     },
   })
   if (!school) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  return NextResponse.json({ school })
+  const { disciplines, ...rest } = school
+  return NextResponse.json({ school: { ...rest, disciplines: disciplines.map(d => d.discipline.slug) } })
 }
 
 // PATCH /api/admin/schools/[id] — edit school details
@@ -36,40 +39,59 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     address, postcode, city, country,
     description, tagline, status, type,
     hasFreeTrialCls, priceFrom,
+    logoUrl, coverUrl, disciplines,
   } = body
 
   if (name !== undefined && !name.trim()) {
     return NextResponse.json({ error: 'Name is required' }, { status: 400 })
   }
 
-  const school = await prisma.school.update({
-    where: { id },
-    data: {
-      ...(name !== undefined && { name: name.trim() }),
-      ...(email !== undefined && { email: email?.trim() || null }),
-      ...(phone !== undefined && { phone: phone?.trim() || null }),
-      ...(website !== undefined && { website: website?.trim() || null }),
-      ...(instagram !== undefined && { instagram: instagram?.trim() || null }),
-      ...(address !== undefined && { address: address?.trim() || null }),
-      ...(postcode !== undefined && { postcode: postcode?.trim() || null }),
-      ...(city !== undefined && { city: city?.trim() || null }),
-      ...(country !== undefined && { country: country?.trim() || null }),
-      ...(description !== undefined && { description: description?.trim() || null }),
-      ...(tagline !== undefined && { tagline: tagline?.trim() || null }),
-      ...(status !== undefined && { status }),
-      ...(type !== undefined && { type }),
-      ...(hasFreeTrialCls !== undefined && { hasFreeTrialCls: Boolean(hasFreeTrialCls) }),
-      // Display-only "Starting from" text (see /join CTA logic) — never used to
-      // gate whether a school has real public plans; that's hasPublicPlans.
-      ...(priceFrom !== undefined && { priceFrom: priceFrom === '' || priceFrom == null ? null : parseFloat(priceFrom) }),
-    },
-    select: {
-      id: true, name: true, slug: true, status: true, type: true,
-      email: true, phone: true, website: true, instagram: true,
-      address: true, postcode: true, city: true, country: true,
-      description: true, tagline: true,
-      hasFreeTrialCls: true, priceFrom: true,
-    },
+  // Disciplines are a separate join table (SchoolDiscipline), not a scalar
+  // column — resolved to ids by slug and swapped wholesale in the same
+  // transaction as the rest of the update so a partial write never leaves
+  // the school's tags out of sync with the form the admin just saved.
+  const school = await prisma.$transaction(async (tx) => {
+    if (disciplines !== undefined) {
+      const slugs = (disciplines as string[]).filter((s): s is string => typeof s === 'string' && s.length > 0)
+      const rows = slugs.length ? await tx.discipline.findMany({ where: { slug: { in: slugs } }, select: { id: true } }) : []
+      await tx.schoolDiscipline.deleteMany({ where: { schoolId: id } })
+      if (rows.length) {
+        await tx.schoolDiscipline.createMany({ data: rows.map(d => ({ schoolId: id, disciplineId: d.id })) })
+      }
+    }
+
+    return tx.school.update({
+      where: { id },
+      data: {
+        ...(name !== undefined && { name: name.trim() }),
+        ...(email !== undefined && { email: email?.trim() || null }),
+        ...(phone !== undefined && { phone: phone?.trim() || null }),
+        ...(website !== undefined && { website: website?.trim() || null }),
+        ...(instagram !== undefined && { instagram: instagram?.trim() || null }),
+        ...(address !== undefined && { address: address?.trim() || null }),
+        ...(postcode !== undefined && { postcode: postcode?.trim() || null }),
+        ...(city !== undefined && { city: city?.trim() || null }),
+        ...(country !== undefined && { country: country?.trim() || null }),
+        ...(description !== undefined && { description: description?.trim() || null }),
+        ...(tagline !== undefined && { tagline: tagline?.trim() || null }),
+        ...(status !== undefined && { status }),
+        ...(type !== undefined && { type }),
+        ...(hasFreeTrialCls !== undefined && { hasFreeTrialCls: Boolean(hasFreeTrialCls) }),
+        ...(logoUrl !== undefined && { logoUrl: logoUrl || null }),
+        ...(coverUrl !== undefined && { coverUrl: coverUrl || null }),
+        // Display-only "Starting from" text (see /join CTA logic) — never used to
+        // gate whether a school has real public plans; that's hasPublicPlans.
+        ...(priceFrom !== undefined && { priceFrom: priceFrom === '' || priceFrom == null ? null : parseFloat(priceFrom) }),
+      },
+      select: {
+        id: true, name: true, slug: true, status: true, type: true,
+        email: true, phone: true, website: true, instagram: true,
+        address: true, postcode: true, city: true, country: true,
+        description: true, tagline: true,
+        hasFreeTrialCls: true, priceFrom: true,
+        logoUrl: true, coverUrl: true,
+      },
+    })
   })
 
   return NextResponse.json({ school })

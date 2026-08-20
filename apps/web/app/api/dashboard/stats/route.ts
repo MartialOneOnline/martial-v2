@@ -155,6 +155,7 @@ export async function GET(req: NextRequest) {
         status: true, city: true, country: true,
         stripePublishableKey: true, stripeSecretKey: true,
         revolutPublicKey: true, revolutSecretKey: true,
+        defaultBookingSettings: true,
       },
     }),
     // Attendance rate over the last 30 days (confirmed/completed vs total)
@@ -202,13 +203,18 @@ export async function GET(req: NextRequest) {
   // independent signal (the tab covers language/notifications/etc.) so it's
   // just marked done once the five real steps are — a "go look around" nudge,
   // not a gate.
+  const acceptedPaymentMethods = (school?.defaultBookingSettings as { acceptedMethods?: string[] } | null)?.acceptedMethods
   const gettingStarted = {
     profile: Boolean(school?.city && school?.country),
     classes: activeClasses > 0,
     memberships: membershipPlanCount > 0,
+    // Connecting Stripe/Revolut counts, but so does explicitly picking accepted
+    // methods on Settings > Payments (e.g. cash-only schools) — verification
+    // doesn't require an online processor.
     payments: Boolean(
       (school?.stripePublishableKey && school?.stripeSecretKey) ||
-      (school?.revolutPublicKey && school?.revolutSecretKey)
+      (school?.revolutPublicKey && school?.revolutSecretKey) ||
+      (acceptedPaymentMethods && acceptedPaymentMethods.length > 0)
     ),
     students: studentCount > 0,
   }
