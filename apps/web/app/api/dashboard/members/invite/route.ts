@@ -139,6 +139,7 @@ export async function POST(req: NextRequest) {
         planId: trialPlan.id,
         paymentMethod: PaymentMethod.CASH,
         notes: 'Assigned via Invite User (trial)',
+        activateMember: false,
       })
       trialAssigned = true
     } catch (err) {

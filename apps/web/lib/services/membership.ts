@@ -27,6 +27,13 @@ export interface AssignPlanInput {
   /** If this is a renewal, pass the previous membership id */
   renewedFromId?: string
   /**
+   * Set false to leave SchoolMember.status untouched instead of bumping it
+   * to ACTIVE. Used when assigning a trial plan at invite time — the person
+   * hasn't accepted the invite yet, so the member must stay PENDING (and
+   * later PENDING→LEAD on acceptance) rather than jump straight to ACTIVE.
+   */
+  activateMember?: boolean
+  /**
    * Manual end-date override — only honored when paymentMethod is CASH.
    * Stripe/Revolut-driven dates must always match the provider's billing
    * state, so the override is silently ignored for any other method
@@ -349,7 +356,7 @@ export async function assignPlan(input: AssignPlanInput) {
     // Assigning a fresh active plan always restores access, ARCHIVED
     // included — staff (or a renewal) confirming an active plan for this
     // person is itself the reactivation decision.
-    if (schoolMember.status !== 'ACTIVE') {
+    if (input.activateMember !== false && schoolMember.status !== 'ACTIVE') {
       await tx.schoolMember.update({
         where: { id: schoolMemberId },
         data: { status: 'ACTIVE' },
