@@ -34,12 +34,16 @@ describe('findMembershipStatusDrift()', () => {
     membershipFindMany.mockReset()
   })
 
-  it('candidate query considers INACTIVE/PENDING/LEAD/FROZEN/ARCHIVED — never ACTIVE', async () => {
+  it('candidate query considers INACTIVE/FROZEN/ARCHIVED — never ACTIVE, never PENDING/LEAD', async () => {
     schoolMemberFindMany.mockResolvedValue([])
     await findMembershipStatusDrift()
     const where = schoolMemberFindMany.mock.calls[0]![0].where
-    expect(where.status.in).toEqual(expect.arrayContaining(['INACTIVE', 'PENDING', 'LEAD', 'FROZEN', 'ARCHIVED']))
+    expect(where.status.in).toEqual(expect.arrayContaining(['INACTIVE', 'FROZEN', 'ARCHIVED']))
     expect(where.status.in).not.toContain('ACTIVE')
+    // PENDING/LEAD + an ACTIVE trial Membership is the intended steady state
+    // for an invite-with-trial that hasn't been accepted yet — not drift.
+    expect(where.status.in).not.toContain('PENDING')
+    expect(where.status.in).not.toContain('LEAD')
   })
 
   it('no candidates: returns empty without querying memberships at all', async () => {

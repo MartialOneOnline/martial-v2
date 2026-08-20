@@ -198,11 +198,17 @@ export interface DriftedSchoolMember {
  * admin edits) — see the "Needs attention" panels in the school dashboard
  * and superadmin panel.
  *
+ * PENDING and LEAD are deliberately excluded from the candidate set: since
+ * Invite User can assign a trial plan at invite time (assignPlan called with
+ * activateMember: false, see members/invite/route.ts), a not-yet-accepted
+ * invite legitimately sits at PENDING/LEAD with an ACTIVE trial Membership —
+ * that combination is the intended steady state, not drift.
+ *
  * Pass schoolId to scope to one school; omit for a platform-wide scan.
  */
 export async function findMembershipStatusDrift(schoolId?: string): Promise<DriftedSchoolMember[]> {
   const candidates = await prisma.schoolMember.findMany({
-    where: { status: { in: ['INACTIVE', 'PENDING', 'LEAD', 'FROZEN', 'ARCHIVED'] }, ...(schoolId && { schoolId }) },
+    where: { status: { in: ['INACTIVE', 'FROZEN', 'ARCHIVED'] }, ...(schoolId && { schoolId }) },
     select: {
       id: true, status: true, userId: true, schoolId: true,
       user: { select: { name: true, email: true } },
