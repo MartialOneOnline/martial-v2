@@ -2,9 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import NextLink from 'next/link'
-import { X, Plus, Upload, Search, CheckCircle2, Clock, Mail, XCircle, Building2, ChevronDown, MoreHorizontal, Send, Camera, Globe, Link, ExternalLink, Trash2, Loader2 } from 'lucide-react'
+import { X, Plus, Upload, Search, CheckCircle2, Clock, Mail, XCircle, Building2, ChevronDown, MoreHorizontal, Send, Camera, Globe, Link, ExternalLink, Trash2, Loader2, Menu } from 'lucide-react'
 import * as xlsx from 'xlsx'
 import { adminFetch } from '@/lib/api/adminFetch'
+import { matchesSearch } from '@/lib/search'
+import { useAdminShell } from '../AdminLayoutClient'
 
 const COUNTRIES = [
   'United Kingdom', 'Spain', 'Portugal', 'France', 'Germany', 'Italy',
@@ -595,6 +597,7 @@ function DeleteInvitationModal({ invitation, busy, error, onConfirm, onCancel }:
 // ── Main Client ───────────────────────────────────────────────────────────────
 
 export default function SchoolsAdminClient() {
+  const { menuOpen, setMenuOpen } = useAdminShell()
   const [invitations, setInvitations] = useState<Invitation[]>([])
   const [loading, setLoading]         = useState(true)
   const [showModal, setShowModal]     = useState(false)
@@ -641,7 +644,7 @@ export default function SchoolsAdminClient() {
   }
 
   const filtered = invitations.filter(inv => {
-    const matchSearch = !search || inv.name.toLowerCase().includes(search.toLowerCase()) || inv.email.toLowerCase().includes(search.toLowerCase())
+    const matchSearch = matchesSearch(inv.name, search) || matchesSearch(inv.email, search)
     const matchStatus = statusFilter === 'ALL' || inv.status === statusFilter
     return matchSearch && matchStatus
   })
@@ -655,7 +658,7 @@ export default function SchoolsAdminClient() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       {showModal && (
         <SchoolInvitationsModal
           onClose={() => setShowModal(false)}
@@ -675,9 +678,15 @@ export default function SchoolsAdminClient() {
 
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-[#101828]">Schools</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Manage school invitations and onboarding pipeline</p>
+        <div className="flex items-center gap-3">
+          <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
+            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(!menuOpen)}>
+            <Menu size={16} style={{ color: '#374151' }} />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-[#101828]">Schools</h1>
+            <p className="text-sm text-gray-500 mt-0.5">Manage school invitations and onboarding pipeline</p>
+          </div>
         </div>
         <button
           onClick={() => setShowModal(true)}

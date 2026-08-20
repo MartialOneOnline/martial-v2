@@ -1,14 +1,36 @@
 'use client'
 
-import { useState } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Building2, Users, Settings,
   ChevronDown, ChevronRight, Target, GraduationCap,
-  TrendingUp, LogOut, ShieldAlert,
+  TrendingUp, LogOut, ShieldAlert, X,
+  PanelLeftClose, PanelLeftOpen,
 } from 'lucide-react'
+
+const SIDEBAR_COLLAPSED_KEY = 'admin-sidebar-collapsed'
+
+// ── Context ────────────────────────────────────────────────────────────────────
+interface AdminCtx {
+  menuOpen: boolean
+  setMenuOpen: (v: boolean) => void
+  collapsed: boolean
+  setCollapsed: (v: boolean) => void
+}
+
+const AdminContext = createContext<AdminCtx>({
+  menuOpen: false,
+  setMenuOpen: () => {},
+  collapsed: false,
+  setCollapsed: () => {},
+})
+
+export function useAdminShell() {
+  return useContext(AdminContext)
+}
 
 const NAV = [
   { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
@@ -57,7 +79,14 @@ const NAV = [
   },
 ]
 
-function NavItem({ item }: { item: typeof NAV[number] }) {
+function NavItem({
+  item, setMenuOpen, collapsed, onRequestExpand,
+}: {
+  item: typeof NAV[number]
+  setMenuOpen: (v: boolean) => void
+  collapsed: boolean
+  onRequestExpand: () => void
+}) {
   const pathname = usePathname()
   const [open, setOpen] = useState(() => {
     if (!('children' in item)) return false
@@ -70,14 +99,17 @@ function NavItem({ item }: { item: typeof NAV[number] }) {
       <Link
         href={item.href!}
         prefetch={false}
+        onClick={() => setMenuOpen(false)}
+        title={collapsed ? item.label : undefined}
         className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
           active
             ? 'bg-[#0870E2]/10 text-[#0870E2] font-semibold'
             : 'text-gray-500 hover:text-[#101828] hover:bg-gray-50'
         }`}
+        style={{ justifyContent: collapsed ? 'center' : 'flex-start' }}
       >
         {item.icon && <item.icon className="w-4 h-4 shrink-0" />}
-        {item.label}
+        {!collapsed && item.label}
       </Link>
     )
   }
@@ -87,21 +119,26 @@ function NavItem({ item }: { item: typeof NAV[number] }) {
   return (
     <div>
       <button
-        onClick={() => setOpen(v => !v)}
-        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
+        onClick={() => {
+          if (collapsed) { onRequestExpand(); setOpen(true); return }
+          setOpen(v => !v)
+        }}
+        title={collapsed ? item.label : undefined}
+        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${
           anyChildActive
             ? 'text-[#101828] font-semibold'
             : 'text-gray-500 hover:text-[#101828] hover:bg-gray-50'
         }`}
+        style={{ justifyContent: collapsed ? 'center' : 'flex-start' }}
       >
         {item.icon && <item.icon className="w-4 h-4 shrink-0" />}
-        <span className="flex-1 text-left">{item.label}</span>
-        {open
+        {!collapsed && <span className="flex-1 text-left">{item.label}</span>}
+        {!collapsed && (open
           ? <ChevronDown className="w-3.5 h-3.5 opacity-40" />
           : <ChevronRight className="w-3.5 h-3.5 opacity-40" />
-        }
+        )}
       </button>
-      {open && (
+      {open && !collapsed && (
         <div className="ml-6 mt-0.5 space-y-0.5 border-l border-gray-100 pl-3">
           {item.children.map(child => {
             const active = pathname === child.href || pathname.startsWith(child.href + '/')
@@ -110,6 +147,7 @@ function NavItem({ item }: { item: typeof NAV[number] }) {
                 key={child.href}
                 href={child.href}
                 prefetch={false}
+                onClick={() => setMenuOpen(false)}
                 className={`block px-2 py-1.5 rounded-md text-xs transition-colors ${
                   active
                     ? 'text-[#0870E2] font-semibold'
@@ -127,59 +165,128 @@ function NavItem({ item }: { item: typeof NAV[number] }) {
 }
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [collapsed, setCollapsedState] = useState(false)
+
+  useEffect(() => {
+    setCollapsedState(localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1')
+  }, [])
+
+  const setCollapsed = (v: boolean) => {
+    setCollapsedState(v)
+    localStorage.setItem(SIDEBAR_COLLAPSED_KEY, v ? '1' : '0')
+  }
+
   return (
-    <div className="min-h-screen flex bg-white">
-      {/* Sidebar */}
-      <aside className="w-52 bg-white border-r border-gray-100 flex flex-col shrink-0 fixed top-0 left-0 h-screen z-40">
+    <AdminContext.Provider value={{ menuOpen, setMenuOpen, collapsed, setCollapsed }}>
+      <div
+        className="min-h-screen flex bg-white"
+        style={{ ['--sidebar-width' as string]: collapsed ? '72px' : '208px' }}
+      >
+        <style>{`@media (min-width: 768px) { .admin-sidebar { transform: translateX(0) !important; } .admin-content { margin-left: var(--sidebar-width); transition: margin-left 0.2s ease; } }`}</style>
 
-        {/* Logo */}
-        <div className="px-4 py-5 border-b border-gray-100">
-          <Link href="/admin" prefetch={false} className="flex items-center gap-2.5">
-            <Image src="/martial-logo.png" alt="Martial" width={30} height={30} />
-            <div>
-              <p className="text-sm font-bold text-[#101828] leading-none">Martial</p>
-              <p className="text-[10px] text-gray-400 leading-none mt-0.5">Academy</p>
+        {/* Mobile overlay */}
+        {menuOpen && (
+          <div
+            className="fixed inset-0 z-40 md:hidden"
+            style={{ background: 'rgba(0,0,0,0.4)' }}
+            onClick={() => setMenuOpen(false)}
+          />
+        )}
+
+        {/* Sidebar */}
+        <aside
+          className="admin-sidebar bg-white border-r border-gray-100 flex flex-col shrink-0 fixed top-0 left-0 h-screen z-50"
+          style={{
+            width: collapsed ? 72 : 208,
+            transform: menuOpen ? 'translateX(0)' : 'translateX(-100%)',
+            transition: 'transform 0.28s cubic-bezier(0.4,0,0.2,1), width 0.2s ease',
+          }}
+        >
+          {/* Logo */}
+          <div className="px-4 py-5 border-b border-gray-100">
+            <div className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
+              <Link href="/admin" prefetch={false} onClick={() => setMenuOpen(false)} className="flex items-center gap-2.5 min-w-0">
+                <Image src="/martial-logo.png" alt="Martial" width={30} height={30} className="shrink-0" />
+                {!collapsed && (
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-[#101828] leading-none truncate">Martial</p>
+                    <p className="text-[10px] text-gray-400 leading-none mt-0.5">Academy</p>
+                  </div>
+                )}
+              </Link>
+              {!collapsed && (
+                <button
+                  className="md:hidden flex items-center justify-center w-6 h-6 rounded-md cursor-pointer hover:bg-gray-100 shrink-0"
+                  onClick={() => setMenuOpen(false)}
+                  aria-label="Close menu"
+                >
+                  <X size={14} strokeWidth={1.5} style={{ color: '#6B7280' }} />
+                </button>
+              )}
             </div>
-          </Link>
-          <div className="mt-3">
-            <span className="text-[9px] font-bold tracking-widest text-[#0870E2] uppercase bg-[#0870E2]/8 px-2 py-0.5 rounded-full">
-              Super Admin
-            </span>
+            {!collapsed && (
+              <div className="mt-3">
+                <span className="text-[9px] font-bold tracking-widest text-[#0870E2] uppercase bg-[#0870E2]/8 px-2 py-0.5 rounded-full">
+                  Super Admin
+                </span>
+              </div>
+            )}
           </div>
-        </div>
 
-        {/* Nav */}
-        <nav className="flex-1 overflow-y-auto px-2.5 py-4 space-y-0.5">
-          {NAV.map(item => (
-            <NavItem key={item.label} item={item} />
-          ))}
-        </nav>
+          {/* Nav */}
+          <nav className="flex-1 overflow-y-auto px-2.5 py-4 space-y-0.5">
+            {NAV.map(item => (
+              <NavItem key={item.label} item={item} setMenuOpen={setMenuOpen} collapsed={collapsed} onRequestExpand={() => setCollapsed(false)} />
+            ))}
+          </nav>
 
-        {/* Footer */}
-        <div className="px-3 py-4 border-t border-gray-100 space-y-0.5">
-          <Link
-            href="/dashboard"
-            prefetch={false}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors"
-          >
-            <GraduationCap className="w-3.5 h-3.5" />
-            School Dashboard
-          </Link>
-          <Link
-            href="/api/auth/signout"
-            prefetch={false}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            Sign out
-          </Link>
-        </div>
-      </aside>
+          {/* Footer */}
+          <div className="px-3 py-4 border-t border-gray-100 space-y-0.5">
+            <Link
+              href="/dashboard"
+              prefetch={false}
+              onClick={() => setMenuOpen(false)}
+              title={collapsed ? 'School Dashboard' : undefined}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors"
+              style={{ justifyContent: collapsed ? 'center' : 'flex-start' }}
+            >
+              <GraduationCap className="w-3.5 h-3.5 shrink-0" />
+              {!collapsed && 'School Dashboard'}
+            </Link>
 
-      {/* Main */}
-      <main className="flex-1 ml-52 min-h-screen overflow-auto bg-[#F8F9FB]">
-        {children}
-      </main>
-    </div>
+            {/* Collapse/expand toggle — tablet & desktop only */}
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              title={collapsed ? 'Expand' : 'Collapse'}
+              className="hidden md:flex w-full items-center gap-2 px-3 py-2 rounded-lg text-xs text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+              style={{ justifyContent: collapsed ? 'center' : 'flex-start', border: 'none', background: 'transparent' }}
+            >
+              {collapsed
+                ? <PanelLeftOpen className="w-3.5 h-3.5 shrink-0" />
+                : <PanelLeftClose className="w-3.5 h-3.5 shrink-0" />
+              }
+              {!collapsed && 'Collapse'}
+            </button>
+
+            <Link
+              href="/api/auth/signout"
+              prefetch={false}
+              title={collapsed ? 'Sign out' : undefined}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+              style={{ justifyContent: collapsed ? 'center' : 'flex-start' }}
+            >
+              <LogOut className="w-3.5 h-3.5 shrink-0" />
+              {!collapsed && 'Sign out'}
+            </Link>
+          </div>
+        </aside>
+
+        {/* Main */}
+        <main className="admin-content flex-1 min-h-screen overflow-auto bg-[#F8F9FB] min-w-0">
+          {children}
+        </main>
+      </div>
+    </AdminContext.Provider>
   )
 }

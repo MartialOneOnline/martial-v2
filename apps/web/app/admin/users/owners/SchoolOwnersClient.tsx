@@ -4,10 +4,11 @@ import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import {
   Building2, Search, ChevronLeft, ChevronRight,
-  RefreshCw, ExternalLink, AlertCircle, CheckCircle2,
+  RefreshCw, ExternalLink, AlertCircle, CheckCircle2, Menu,
 } from 'lucide-react'
 import { adminFetch } from '@/lib/api/adminFetch'
 import { AdminUser, UserActionsMenu, EditUserModal, ContactUserModal, DeleteUserModal } from '../UserActions'
+import { useAdminShell } from '../../AdminLayoutClient'
 
 const SCH_STATUS: Record<string, { label: string; cls: string }> = {
   VERIFIED:     { label: 'Verified',     cls: 'bg-emerald-50 text-emerald-700 border border-emerald-100' },
@@ -24,6 +25,7 @@ function fmtDate(iso: string) {
 }
 
 export default function SchoolOwnersClient() {
+  const { menuOpen, setMenuOpen } = useAdminShell()
   const [users, setUsers] = useState<AdminUser[]>([])
   const [total, setTotal] = useState(0)
   const [pages, setPages] = useState(1)
@@ -80,10 +82,16 @@ export default function SchoolOwnersClient() {
         />
       )}
 
-      <div className="bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
-        <div>
-          <h1 className="text-lg font-bold text-[#101828]">School Owners</h1>
-          <p className="text-xs text-gray-400">{total} registered owners</p>
+      <div className="bg-white border-b border-gray-100 px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+        <div className="flex items-center gap-3">
+          <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
+            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(!menuOpen)}>
+            <Menu size={16} style={{ color: '#374151' }} />
+          </button>
+          <div>
+            <h1 className="text-lg font-bold text-[#101828]">School Owners</h1>
+            <p className="text-xs text-gray-400">{total} registered owners</p>
+          </div>
         </div>
         <button onClick={load}
           className="flex items-center gap-1.5 h-9 px-3 rounded-xl border border-gray-200 text-xs font-medium text-gray-500 hover:bg-gray-50 transition-colors">

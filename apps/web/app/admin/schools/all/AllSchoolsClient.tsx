@@ -7,9 +7,10 @@ import {
   Building2, Search, MapPin, ChevronLeft, ChevronRight,
   ExternalLink, RefreshCw, Filter, Users, Plus, X, Loader2,
   MoreHorizontal, Pencil, Trash2, ShieldCheck, ShieldOff, Send, LogIn,
-  AlertCircle, CheckCircle2, Archive, ArchiveRestore, Lock, Camera,
+  AlertCircle, CheckCircle2, Archive, ArchiveRestore, Lock, Camera, Menu,
 } from 'lucide-react'
 import { adminFetch } from '@/lib/api/adminFetch'
+import { useAdminShell } from '../../AdminLayoutClient'
 
 type School = {
   id: string
@@ -660,6 +661,7 @@ function DeleteOrArchiveModal({ school, busy, error, onArchive, onDelete, onCanc
 
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function AllSchoolsClient() {
+  const { menuOpen, setMenuOpen } = useAdminShell()
   const [schools, setSchools] = useState<School[]>([])
   const [total, setTotal] = useState(0)
   const [pages, setPages] = useState(1)
@@ -797,10 +799,16 @@ export default function AllSchoolsClient() {
       )}
 
       {/* Top bar */}
-      <div className="bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
-        <div>
-          <h1 className="text-lg font-bold text-[#101828]">All Schools</h1>
-          <p className="text-xs text-gray-400">{total} schools on the platform</p>
+      <div className="bg-white border-b border-gray-100 px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+        <div className="flex items-center gap-3">
+          <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
+            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(!menuOpen)}>
+            <Menu size={16} style={{ color: '#374151' }} />
+          </button>
+          <div>
+            <h1 className="text-lg font-bold text-[#101828]">All Schools</h1>
+            <p className="text-xs text-gray-400">{total} schools on the platform</p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <button

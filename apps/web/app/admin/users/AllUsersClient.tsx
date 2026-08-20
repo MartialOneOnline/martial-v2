@@ -3,10 +3,11 @@
 import { useEffect, useState, useCallback } from 'react'
 import {
   Users, Search, ChevronLeft, ChevronRight,
-  RefreshCw, Building2, GraduationCap, AlertCircle, CheckCircle2,
+  RefreshCw, Building2, GraduationCap, AlertCircle, CheckCircle2, Menu,
 } from 'lucide-react'
 import { adminFetch } from '@/lib/api/adminFetch'
 import { AdminUser, UserActionsMenu, EditUserModal, ContactUserModal, DeleteUserModal } from './UserActions'
+import { useAdminShell } from '../AdminLayoutClient'
 
 const ROLE_BADGE: Record<string, { label: string; cls: string }> = {
   SUPERADMIN:   { label: 'Super Admin',    cls: 'bg-violet-50 text-violet-700 border border-violet-100' },
@@ -33,6 +34,7 @@ function Avatar({ user }: { user: AdminUser }) {
 }
 
 export default function AllUsersClient() {
+  const { menuOpen, setMenuOpen } = useAdminShell()
   const [users, setUsers] = useState<AdminUser[]>([])
   const [total, setTotal] = useState(0)
   const [pages, setPages] = useState(1)
@@ -90,10 +92,16 @@ export default function AllUsersClient() {
         />
       )}
 
-      <div className="bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
-        <div>
-          <h1 className="text-lg font-bold text-[#101828]">All Users</h1>
-          <p className="text-xs text-gray-400">{total} registered accounts</p>
+      <div className="bg-white border-b border-gray-100 px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+        <div className="flex items-center gap-3">
+          <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
+            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(!menuOpen)}>
+            <Menu size={16} style={{ color: '#374151' }} />
+          </button>
+          <div>
+            <h1 className="text-lg font-bold text-[#101828]">All Users</h1>
+            <p className="text-xs text-gray-400">{total} registered accounts</p>
+          </div>
         </div>
         <button
           onClick={load}

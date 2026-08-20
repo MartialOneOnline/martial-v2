@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { RefreshCw, AlertTriangle, ShieldCheck } from 'lucide-react'
+import { RefreshCw, AlertTriangle, ShieldCheck, Menu } from 'lucide-react'
 import { adminFetch } from '@/lib/api/adminFetch'
 import { memberStatusColors, type MemberStatus } from '@/lib/design/tokens'
+import { useAdminShell } from '../../AdminLayoutClient'
 
 interface DriftedMember {
   id: string
@@ -14,6 +15,7 @@ interface DriftedMember {
 }
 
 export default function MembershipDriftClient() {
+  const { menuOpen, setMenuOpen } = useAdminShell()
   const [members, setMembers] = useState<DriftedMember[] | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -29,12 +31,18 @@ export default function MembershipDriftClient() {
 
   return (
     <div className="min-h-screen">
-      <div className="bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
-        <div>
-          <h1 className="text-lg font-bold text-[#101828]">Membership status drift</h1>
-          <p className="text-xs text-gray-400">
-            Members with an ACTIVE membership whose access status disagrees — should stay empty
-          </p>
+      <div className="bg-white border-b border-gray-100 px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+        <div className="flex items-center gap-3">
+          <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
+            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(!menuOpen)}>
+            <Menu size={16} style={{ color: '#374151' }} />
+          </button>
+          <div>
+            <h1 className="text-lg font-bold text-[#101828]">Membership status drift</h1>
+            <p className="text-xs text-gray-400">
+              Members with an ACTIVE membership whose access status disagrees — should stay empty
+            </p>
+          </div>
         </div>
         <button onClick={load}
           className="flex items-center gap-1.5 h-9 px-3 rounded-xl border border-gray-200 text-xs font-medium text-gray-500 hover:bg-gray-50 transition-colors">

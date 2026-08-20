@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Dumbbell, Plus, Pencil, Trash2, X, Check } from 'lucide-react'
+import { Dumbbell, Plus, Pencil, Trash2, X, Check, Menu } from 'lucide-react'
 import { Section } from '../SettingsClient'
 import { adminFetch } from '@/lib/api/adminFetch'
+import { useAdminShell } from '../../AdminLayoutClient'
 
 type Discipline = {
   id: string
@@ -13,6 +14,7 @@ type Discipline = {
 }
 
 export default function CatalogClient() {
+  const { menuOpen, setMenuOpen } = useAdminShell()
   const [disciplines, setDisciplines] = useState<Discipline[] | null>(null)
   const [error, setError] = useState('')
 
@@ -81,14 +83,20 @@ export default function CatalogClient() {
 
   return (
     <div className="min-h-screen">
-      <div className="bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
-        <div>
-          <h1 className="text-lg font-bold text-[#101828]">Discipline Catalog</h1>
-          <p className="text-xs text-gray-400">Master list of disciplines offered platform-wide</p>
+      <div className="bg-white border-b border-gray-100 px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+        <div className="flex items-center gap-3">
+          <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
+            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(!menuOpen)}>
+            <Menu size={16} style={{ color: '#374151' }} />
+          </button>
+          <div>
+            <h1 className="text-lg font-bold text-[#101828]">Discipline Catalog</h1>
+            <p className="text-xs text-gray-400">Master list of disciplines offered platform-wide</p>
+          </div>
         </div>
       </div>
 
-      <div className="p-8 max-w-2xl space-y-6">
+      <div className="p-4 md:p-8 max-w-2xl space-y-6">
         {error && (
           <div className="p-3 rounded-xl bg-red-50 border border-red-100 text-xs text-red-600">{error}</div>
         )}

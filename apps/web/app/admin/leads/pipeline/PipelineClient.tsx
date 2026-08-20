@@ -4,9 +4,10 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
   Clock, Send, Eye, CheckCircle2, XCircle, RefreshCw,
-  MapPin, Mail, ArrowLeft,
+  MapPin, Mail, ArrowLeft, Menu,
 } from 'lucide-react'
 import { adminFetch } from '@/lib/api/adminFetch'
+import { useAdminShell } from '../../AdminLayoutClient'
 
 type Invitation = {
   id: string
@@ -34,6 +35,7 @@ function fmtDate(iso: string) {
 }
 
 export default function PipelineClient() {
+  const { menuOpen, setMenuOpen } = useAdminShell()
   const [invitations, setInvitations] = useState<Invitation[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -51,8 +53,12 @@ export default function PipelineClient() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <div className="bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+      <div className="bg-white border-b border-gray-100 px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-3">
+          <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
+            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(!menuOpen)}>
+            <Menu size={16} style={{ color: '#374151' }} />
+          </button>
           <Link href="/admin/leads" prefetch={false} className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors">
             <ArrowLeft className="w-3.5 h-3.5" /> Back
           </Link>

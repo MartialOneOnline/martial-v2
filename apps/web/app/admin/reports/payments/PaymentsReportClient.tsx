@@ -1,11 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { RefreshCw, Wallet } from 'lucide-react'
+import { RefreshCw, Wallet, Menu } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts'
 import { adminFetch } from '@/lib/api/adminFetch'
 import { fmtPrice } from '@/lib/format'
 import ReportsTabs from '../ReportsTabs'
+import { useAdminShell } from '../../AdminLayoutClient'
 
 interface ReportData {
   currency: string
@@ -29,6 +30,7 @@ function StatCard({ label, value, color }: { label: string; value: string; color
 }
 
 export default function PaymentsReportClient() {
+  const { menuOpen, setMenuOpen } = useAdminShell()
   const [data, setData] = useState<ReportData | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -44,10 +46,16 @@ export default function PaymentsReportClient() {
 
   return (
     <div className="min-h-screen">
-      <div className="bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
-        <div>
-          <h1 className="text-lg font-bold text-[#101828]">Payments</h1>
-          <p className="text-xs text-gray-400">School income & expenses — last 12 months, EUR only</p>
+      <div className="bg-white border-b border-gray-100 px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+        <div className="flex items-center gap-3">
+          <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
+            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(!menuOpen)}>
+            <Menu size={16} style={{ color: '#374151' }} />
+          </button>
+          <div>
+            <h1 className="text-lg font-bold text-[#101828]">Payments</h1>
+            <p className="text-xs text-gray-400">School income & expenses — last 12 months, EUR only</p>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <ReportsTabs active="/admin/reports/payments" />

@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Settings, Bell, Shield, Globe, Mail, Save, Check } from 'lucide-react'
+import { Settings, Bell, Shield, Globe, Mail, Save, Check, Menu } from 'lucide-react'
+import { useAdminShell } from '../AdminLayoutClient'
 
 export function Section({ title, icon: Icon, children }: { title: string; icon: React.ElementType; children: React.ReactNode }) {
   return (
@@ -41,6 +42,7 @@ export function Toggle({ label, description, checked, onChange }: {
 }
 
 export default function SettingsClient() {
+  const { menuOpen, setMenuOpen } = useAdminShell()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -112,10 +114,16 @@ export default function SettingsClient() {
 
   return (
     <div className="min-h-screen">
-      <div className="bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
-        <div>
-          <h1 className="text-lg font-bold text-[#101828]">Settings</h1>
-          <p className="text-xs text-gray-400">Platform configuration and preferences</p>
+      <div className="bg-white border-b border-gray-100 px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+        <div className="flex items-center gap-3">
+          <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
+            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(!menuOpen)}>
+            <Menu size={16} style={{ color: '#374151' }} />
+          </button>
+          <div>
+            <h1 className="text-lg font-bold text-[#101828]">Settings</h1>
+            <p className="text-xs text-gray-400">Platform configuration and preferences</p>
+          </div>
         </div>
         <button
           onClick={save}

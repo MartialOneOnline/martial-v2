@@ -4,9 +4,10 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
   Building2, CheckCircle2, XCircle, Clock, MapPin, Mail, Phone,
-  Globe, ExternalLink, RefreshCw, AlertTriangle, AtSign, Inbox,
+  Globe, ExternalLink, RefreshCw, AlertTriangle, AtSign, Inbox, Menu,
 } from 'lucide-react'
 import { adminFetch } from '@/lib/api/adminFetch'
+import { useAdminShell } from '../../AdminLayoutClient'
 
 type ClaimRequest = {
   id: string
@@ -46,6 +47,7 @@ function fmtDate(iso: string) {
 }
 
 export default function VerifyQueueClient() {
+  const { menuOpen, setMenuOpen } = useAdminShell()
   const [schools, setSchools] = useState<School[]>([])
   const [claims, setClaims] = useState<ClaimRequest[]>([])
   const [loading, setLoading] = useState(true)
@@ -94,10 +96,16 @@ export default function VerifyQueueClient() {
   return (
     <div className="min-h-screen">
       {/* Top bar */}
-      <div className="bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
-        <div>
-          <h1 className="text-lg font-bold text-[#101828]">Verification Queue</h1>
-          <p className="text-xs text-gray-400">Schools awaiting your review — finished setup, or just claimed and stalled</p>
+      <div className="bg-white border-b border-gray-100 px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+        <div className="flex items-center gap-3">
+          <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
+            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(!menuOpen)}>
+            <Menu size={16} style={{ color: '#374151' }} />
+          </button>
+          <div>
+            <h1 className="text-lg font-bold text-[#101828]">Verification Queue</h1>
+            <p className="text-xs text-gray-400">Schools awaiting your review — finished setup, or just claimed and stalled</p>
+          </div>
         </div>
         <button
           onClick={load}

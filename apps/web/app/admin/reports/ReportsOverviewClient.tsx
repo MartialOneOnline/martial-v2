@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
   Building2, Users, Mail, TrendingUp, CheckCircle2, Clock,
-  ArrowUpRight, RefreshCw,
+  ArrowUpRight, RefreshCw, Menu,
 } from 'lucide-react'
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip,
@@ -12,6 +12,7 @@ import {
 } from 'recharts'
 import { adminFetch } from '@/lib/api/adminFetch'
 import ReportsTabs from './ReportsTabs'
+import { useAdminShell } from '../AdminLayoutClient'
 
 interface ReportData {
   overview: {
@@ -44,6 +45,7 @@ function pct(val: number, last: number) {
 }
 
 export default function ReportsOverviewClient() {
+  const { menuOpen, setMenuOpen } = useAdminShell()
   const [data, setData] = useState<ReportData | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -99,10 +101,16 @@ export default function ReportsOverviewClient() {
 
   return (
     <div className="min-h-screen">
-      <div className="bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
-        <div>
-          <h1 className="text-lg font-bold text-[#101828]">Reports Overview</h1>
-          <p className="text-xs text-gray-400">Platform-wide metrics and growth</p>
+      <div className="bg-white border-b border-gray-100 px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+        <div className="flex items-center gap-3">
+          <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
+            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(!menuOpen)}>
+            <Menu size={16} style={{ color: '#374151' }} />
+          </button>
+          <div>
+            <h1 className="text-lg font-bold text-[#101828]">Reports Overview</h1>
+            <p className="text-xs text-gray-400">Platform-wide metrics and growth</p>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <ReportsTabs active="/admin/reports" />

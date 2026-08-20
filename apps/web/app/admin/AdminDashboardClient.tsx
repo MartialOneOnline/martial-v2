@@ -5,12 +5,13 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import {
   Building2, Users, Mail, Clock, CheckCircle2, AlertTriangle,
-  ArrowUpRight, Plus, Send, Eye, RefreshCw, MapPin, TrendingUp,
+  ArrowUpRight, Plus, Send, Eye, RefreshCw, MapPin, TrendingUp, Menu,
 } from 'lucide-react'
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
 } from 'recharts'
 import { adminFetch } from '@/lib/api/adminFetch'
+import { useAdminShell } from './AdminLayoutClient'
 
 const AdminMap = dynamic(() => import('./AdminMap'), { ssr: false })
 
@@ -38,6 +39,7 @@ function fmtDate(iso: string) {
 }
 
 export default function AdminDashboardClient() {
+  const { menuOpen, setMenuOpen } = useAdminShell()
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -124,12 +126,18 @@ export default function AdminDashboardClient() {
     <div className="min-h-screen">
 
       {/* Top bar */}
-      <div className="bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
-        <div>
-          <h1 className="text-lg font-bold text-[#101828]">Dashboard</h1>
-          <p className="text-xs text-gray-400">
-            {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-          </p>
+      <div className="bg-white border-b border-gray-100 px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+        <div className="flex items-center gap-3">
+          <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
+            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(!menuOpen)}>
+            <Menu size={16} style={{ color: '#374151' }} />
+          </button>
+          <div>
+            <h1 className="text-lg font-bold text-[#101828]">Dashboard</h1>
+            <p className="text-xs text-gray-400">
+              {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <button
