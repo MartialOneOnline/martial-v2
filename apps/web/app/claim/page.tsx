@@ -118,6 +118,13 @@ export default function ClaimPage() {
           <p className="text-xs text-gray-400 text-center mt-6">
             Already received an invitation link from us? Use that link directly — no need to submit this form.
           </p>
+          <p className="text-xs text-gray-400 text-center mt-2">
+            Not listed with us yet?{' '}
+            <Link href="/register?type=school" className="text-[#0870E2] font-semibold">
+              Register your school
+            </Link>{' '}
+            instead.
+          </p>
         </div>
       </main>
 

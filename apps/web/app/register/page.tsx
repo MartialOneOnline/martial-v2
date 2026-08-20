@@ -38,6 +38,7 @@ function RegisterPageInner() {
 
   const [accountType, setAccountType] = useState<AccountType>(initialType)
   const [step, setStep] = useState<'method' | 'details'>('method')
+  const showClaimHint = !typeLocked && accountType === 'school'
 
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
@@ -190,13 +191,20 @@ function RegisterPageInner() {
               <AccountTypeToggle accountType={accountType}
                 onChange={t => { setAccountType(t); setErrors({}); setApiError('') }} style={{ marginBottom: 10 }} />
             )}
-            <p style={{ margin: '0 0 20px', fontSize: 12.5, color: MUTED, textAlign: 'center', lineHeight: 1.5 }}>
+            <p style={{ margin: showClaimHint ? '0 0 8px' : '0 0 20px', fontSize: 12.5, color: MUTED, textAlign: 'center', lineHeight: 1.5 }}>
               {typeLocked
                 ? 'Create your free student account to get your ticket.'
                 : accountType === 'student'
                   ? 'Book classes, track your progress and manage your membership.'
                   : 'Manage your students, classes, timetable and payments.'}
             </p>
+
+            {showClaimHint && (
+              <p style={{ margin: '0 0 20px', fontSize: 12.5, color: MUTED, textAlign: 'center' }}>
+                Already listed on Martial?{' '}
+                <a href="/claim" style={{ color: NAVY, fontWeight: 600, textDecoration: 'underline' }}>Claim your school</a> instead.
+              </p>
+            )}
 
             <div style={{ background: '#fff', borderRadius: 16, border: `1px solid ${BORDER}`, boxShadow: '0 4px 24px rgba(0,0,0,0.06)', padding: 24 }}>
               <SocialAuthButtons redirectPath={accountType === 'school' ? '/onboarding/school' : redirectParam} />

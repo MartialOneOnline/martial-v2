@@ -191,10 +191,10 @@ export default function Header({ onOpenLoginModal }: HeaderProps) {
             {/* CTA buttons */}
             <div className="flex items-center select-none">
               <a
-                href="/claim"
+                href="/register"
                 className="relative bg-[#0870E2] text-white font-black text-[11px] uppercase tracking-wider py-2.5 px-6 rounded-l-md hover:bg-[#007cd7] shadow-sm -skew-x-[15deg] transition-all"
               >
-                <span className="skew-x-[15deg] inline-block">Claim Your School</span>
+                <span className="skew-x-[15deg] inline-block">Register</span>
               </a>
               {isLoggedIn ? (
                 <button
@@ -279,10 +279,10 @@ export default function Header({ onOpenLoginModal }: HeaderProps) {
 
               <div className="pt-4 border-t border-gray-100 flex flex-col gap-3">
                 <Link
-                  href="/claim"
+                  href="/register"
                   className="w-full text-center py-3 bg-[#0870E2] hover:bg-[#007cd7] text-white font-black text-xs uppercase tracking-wider rounded-lg transition-colors"
                 >
-                  Claim Your School
+                  Register
                 </Link>
                 {isLoggedIn ? (
                   <button
