@@ -97,6 +97,7 @@ export const ModelName = {
   Partner: 'Partner',
   Notification: 'Notification',
   PlatformSettings: 'PlatformSettings',
+  ClaimRequest: 'ClaimRequest',
   SchoolSubscription: 'SchoolSubscription',
   StripeWebhookEvent: 'StripeWebhookEvent'
 } as const
@@ -991,6 +992,22 @@ export const PlatformSettingsScalarFieldEnum = {
 } as const
 
 export type PlatformSettingsScalarFieldEnum = (typeof PlatformSettingsScalarFieldEnum)[keyof typeof PlatformSettingsScalarFieldEnum]
+
+
+export const ClaimRequestScalarFieldEnum = {
+  id: 'id',
+  status: 'status',
+  schoolName: 'schoolName',
+  city: 'city',
+  contactName: 'contactName',
+  contactEmail: 'contactEmail',
+  phone: 'phone',
+  message: 'message',
+  createdAt: 'createdAt',
+  resolvedAt: 'resolvedAt'
+} as const
+
+export type ClaimRequestScalarFieldEnum = (typeof ClaimRequestScalarFieldEnum)[keyof typeof ClaimRequestScalarFieldEnum]
 
 
 export const SchoolSubscriptionScalarFieldEnum = {

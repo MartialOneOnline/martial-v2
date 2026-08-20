@@ -317,3 +317,12 @@ export const NotificationType = {
 } as const
 
 export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]
+
+
+export const ClaimRequestStatus = {
+  PENDING: 'PENDING',
+  RESOLVED: 'RESOLVED',
+  DISMISSED: 'DISMISSED'
+} as const
+
+export type ClaimRequestStatus = (typeof ClaimRequestStatus)[keyof typeof ClaimRequestStatus]

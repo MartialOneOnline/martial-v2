@@ -1748,7 +1748,7 @@ model PlatformSettings {
   maintenanceMode          Boolean @default(false)
 
   // Security / contact
-  superAdminEmail String? @default("admin@martial.app")
+  superAdminEmail String? @default("notifications@martialapp.com")
   supportEmail    String? @default("hello@martial.app")
 
   // Email
@@ -1757,6 +1757,33 @@ model PlatformSettings {
   updatedAt DateTime @updatedAt
 
   @@map("platform_settings")
+}
+
+// A visitor asking to claim an existing (often unclaimed/imported) school
+// listing — free text, not yet tied to a School row. Persisted so it shows
+// up in Admin even if the notification email fails or nobody checks it.
+model ClaimRequest {
+  id     String @id @default(cuid())
+  status ClaimRequestStatus @default(PENDING)
+
+  schoolName String
+  city       String?
+
+  contactName  String
+  contactEmail String
+  phone        String?
+  message      String?
+
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+
+  @@map("claim_requests")
+}
+
+enum ClaimRequestStatus {
+  PENDING
+  RESOLVED
+  DISMISSED
 }
 
 model SchoolSubscription {

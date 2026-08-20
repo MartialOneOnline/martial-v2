@@ -844,6 +844,23 @@ export type EnumNotificationTypeWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumNotificationTypeFilter<$PrismaModel>
 }
 
+export type EnumClaimRequestStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.ClaimRequestStatus | Prisma.EnumClaimRequestStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ClaimRequestStatus[] | Prisma.ListEnumClaimRequestStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ClaimRequestStatus[] | Prisma.ListEnumClaimRequestStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumClaimRequestStatusFilter<$PrismaModel> | $Enums.ClaimRequestStatus
+}
+
+export type EnumClaimRequestStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ClaimRequestStatus | Prisma.EnumClaimRequestStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ClaimRequestStatus[] | Prisma.ListEnumClaimRequestStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ClaimRequestStatus[] | Prisma.ListEnumClaimRequestStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumClaimRequestStatusWithAggregatesFilter<$PrismaModel> | $Enums.ClaimRequestStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumClaimRequestStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumClaimRequestStatusFilter<$PrismaModel>
+}
+
 export type EnumSchoolSubscriptionStatusFilter<$PrismaModel = never> = {
   equals?: $Enums.SchoolSubscriptionStatus | Prisma.EnumSchoolSubscriptionStatusFieldRefInput<$PrismaModel>
   in?: $Enums.SchoolSubscriptionStatus[] | Prisma.ListEnumSchoolSubscriptionStatusFieldRefInput<$PrismaModel>
@@ -1641,6 +1658,23 @@ export type NestedEnumNotificationTypeWithAggregatesFilter<$PrismaModel = never>
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumNotificationTypeFilter<$PrismaModel>
   _max?: Prisma.NestedEnumNotificationTypeFilter<$PrismaModel>
+}
+
+export type NestedEnumClaimRequestStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.ClaimRequestStatus | Prisma.EnumClaimRequestStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ClaimRequestStatus[] | Prisma.ListEnumClaimRequestStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ClaimRequestStatus[] | Prisma.ListEnumClaimRequestStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumClaimRequestStatusFilter<$PrismaModel> | $Enums.ClaimRequestStatus
+}
+
+export type NestedEnumClaimRequestStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ClaimRequestStatus | Prisma.EnumClaimRequestStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ClaimRequestStatus[] | Prisma.ListEnumClaimRequestStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ClaimRequestStatus[] | Prisma.ListEnumClaimRequestStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumClaimRequestStatusWithAggregatesFilter<$PrismaModel> | $Enums.ClaimRequestStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumClaimRequestStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumClaimRequestStatusFilter<$PrismaModel>
 }
 
 export type NestedEnumSchoolSubscriptionStatusFilter<$PrismaModel = never> = {

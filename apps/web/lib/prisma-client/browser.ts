@@ -248,6 +248,11 @@ export type Notification = Prisma.NotificationModel
  */
 export type PlatformSettings = Prisma.PlatformSettingsModel
 /**
+ * Model ClaimRequest
+ * 
+ */
+export type ClaimRequest = Prisma.ClaimRequestModel
+/**
  * Model SchoolSubscription
  * 
  */

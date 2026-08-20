@@ -25,6 +25,14 @@ export async function POST(req: NextRequest) {
   const city = body.city?.trim() || ''
   const message = body.message?.trim() || ''
 
+  // Persist first — the source of truth for Admin → Verification Queue.
+  // The email below is a best-effort heads-up, not required for the request
+  // to be visible: if it fails (bad address, Resend outage) the request
+  // still shows up in admin.
+  await prisma.claimRequest.create({
+    data: { schoolName, city: city || null, contactName, contactEmail, phone: phone || null, message: message || null },
+  })
+
   const settings = await prisma.platformSettings.findUnique({ where: { id: 'singleton' } })
   const adminEmail = settings?.superAdminEmail || DEFAULT_ADMIN_EMAIL
 
@@ -53,8 +61,7 @@ export async function POST(req: NextRequest) {
   })
 
   if (error) {
-    console.error('[claim request] admin email failed:', error)
-    return NextResponse.json({ error: 'Failed to send request' }, { status: 502 })
+    console.error('[claim request] admin notification email failed (request is still saved):', error)
   }
 
   // Auto-reply to the submitter (fire-and-forget)

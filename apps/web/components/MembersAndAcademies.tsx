@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Megaphone, Gauge, MessageSquare, Calendar, MapPin, Receipt, Music4 } from 'lucide-react'
 
 const FEATURES = [
@@ -57,9 +58,12 @@ export default function MembersAndAcademies() {
                 </li>
               ))}
             </ul>
-            <button className="text-xs font-black text-cyan-400 hover:text-cyan-300 transition-colors cursor-pointer">
-              + Many other great features!
-            </button>
+            <Link
+              href="/register"
+              className="inline-block text-xs font-black text-cyan-400 hover:text-cyan-300 transition-colors"
+            >
+              Register your school →
+            </Link>
           </div>
 
         </div>

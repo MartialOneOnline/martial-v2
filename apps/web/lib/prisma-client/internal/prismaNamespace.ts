@@ -430,6 +430,7 @@ export const ModelName = {
   Partner: 'Partner',
   Notification: 'Notification',
   PlatformSettings: 'PlatformSettings',
+  ClaimRequest: 'ClaimRequest',
   SchoolSubscription: 'SchoolSubscription',
   StripeWebhookEvent: 'StripeWebhookEvent'
 } as const
@@ -447,7 +448,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "classCancellation" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "campaign" | "campaignRecipient" | "schoolClaim" | "gradingSystem" | "beltRank" | "grading" | "lead" | "leadNote" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "impersonationLog" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "partner" | "notification" | "platformSettings" | "schoolSubscription" | "stripeWebhookEvent"
+    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "classCancellation" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "campaign" | "campaignRecipient" | "schoolClaim" | "gradingSystem" | "beltRank" | "grading" | "lead" | "leadNote" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "impersonationLog" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "partner" | "notification" | "platformSettings" | "claimRequest" | "schoolSubscription" | "stripeWebhookEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3855,6 +3856,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ClaimRequest: {
+      payload: Prisma.$ClaimRequestPayload<ExtArgs>
+      fields: Prisma.ClaimRequestFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ClaimRequestFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimRequestPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ClaimRequestFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimRequestPayload>
+        }
+        findFirst: {
+          args: Prisma.ClaimRequestFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimRequestPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ClaimRequestFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimRequestPayload>
+        }
+        findMany: {
+          args: Prisma.ClaimRequestFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimRequestPayload>[]
+        }
+        create: {
+          args: Prisma.ClaimRequestCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimRequestPayload>
+        }
+        createMany: {
+          args: Prisma.ClaimRequestCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ClaimRequestCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimRequestPayload>[]
+        }
+        delete: {
+          args: Prisma.ClaimRequestDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimRequestPayload>
+        }
+        update: {
+          args: Prisma.ClaimRequestUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimRequestPayload>
+        }
+        deleteMany: {
+          args: Prisma.ClaimRequestDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ClaimRequestUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ClaimRequestUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimRequestPayload>[]
+        }
+        upsert: {
+          args: Prisma.ClaimRequestUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimRequestPayload>
+        }
+        aggregate: {
+          args: Prisma.ClaimRequestAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateClaimRequest>
+        }
+        groupBy: {
+          args: Prisma.ClaimRequestGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClaimRequestGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ClaimRequestCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClaimRequestCountAggregateOutputType> | number
+        }
+      }
+    }
     SchoolSubscription: {
       payload: Prisma.$SchoolSubscriptionPayload<ExtArgs>
       fields: Prisma.SchoolSubscriptionFieldRefs
@@ -4918,6 +4993,22 @@ export const PlatformSettingsScalarFieldEnum = {
 export type PlatformSettingsScalarFieldEnum = (typeof PlatformSettingsScalarFieldEnum)[keyof typeof PlatformSettingsScalarFieldEnum]
 
 
+export const ClaimRequestScalarFieldEnum = {
+  id: 'id',
+  status: 'status',
+  schoolName: 'schoolName',
+  city: 'city',
+  contactName: 'contactName',
+  contactEmail: 'contactEmail',
+  phone: 'phone',
+  message: 'message',
+  createdAt: 'createdAt',
+  resolvedAt: 'resolvedAt'
+} as const
+
+export type ClaimRequestScalarFieldEnum = (typeof ClaimRequestScalarFieldEnum)[keyof typeof ClaimRequestScalarFieldEnum]
+
+
 export const SchoolSubscriptionScalarFieldEnum = {
   id: 'id',
   schoolId: 'schoolId',
@@ -5431,6 +5522,20 @@ export type ListEnumNotificationTypeFieldRefInput<$PrismaModel> = FieldRefInputT
 
 
 /**
+ * Reference to a field of type 'ClaimRequestStatus'
+ */
+export type EnumClaimRequestStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClaimRequestStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'ClaimRequestStatus[]'
+ */
+export type ListEnumClaimRequestStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClaimRequestStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'SchoolSubscriptionStatus'
  */
 export type EnumSchoolSubscriptionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SchoolSubscriptionStatus'>
@@ -5613,6 +5718,7 @@ export type GlobalOmitConfig = {
   partner?: Prisma.PartnerOmit
   notification?: Prisma.NotificationOmit
   platformSettings?: Prisma.PlatformSettingsOmit
+  claimRequest?: Prisma.ClaimRequestOmit
   schoolSubscription?: Prisma.SchoolSubscriptionOmit
   stripeWebhookEvent?: Prisma.StripeWebhookEventOmit
 }

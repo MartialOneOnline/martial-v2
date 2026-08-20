@@ -96,7 +96,7 @@ export default function Header({ onOpenLoginModal }: HeaderProps) {
 
   const NAV_LINKS = [
     { label: 'Explore',     href: '/explore' },
-    { label: 'For Schools', href: '#for-schools' },
+    { label: 'For Schools', href: '/register' },
     { label: 'Camps',       href: '#camps' },
     { label: 'Marketplace', href: '#marketplace' },
     { label: 'Pricing',     href: '#pricing' },
