@@ -6,10 +6,14 @@ export async function GET(req: NextRequest) {
   const deny = await guardSuperadmin(req)
   if (deny) return deny
 
+  // UNDER_REVIEW = finished the Getting Started checklist, ready to review.
+  // CLAIMED = owner signed up but hasn't (or won't) finish it — e.g. a school
+  // linked to an owner outside the self-serve flow, or one that's just slow.
+  // Both land here so a school never sits invisible waiting on a checklist
+  // step it may never complete; sorted with UNDER_REVIEW first since those
+  // are the most actionable.
   const schools = await prisma.school.findMany({
-    // Only schools that finished their own setup (Getting Started checklist)
-    // land here — a raw CLAIMED signup has nothing to review yet.
-    where: { status: 'UNDER_REVIEW' },
+    where: { status: { in: ['UNDER_REVIEW', 'CLAIMED'] } },
     orderBy: { updatedAt: 'desc' },
     select: {
       id: true, name: true, slug: true, status: true, source: true,
@@ -20,6 +24,7 @@ export async function GET(req: NextRequest) {
       invitations: { select: { id: true, sentAt: true, registeredAt: true } },
     },
   })
+  schools.sort((a, b) => (a.status === b.status ? 0 : a.status === 'UNDER_REVIEW' ? -1 : 1))
   return NextResponse.json({ schools })
 }
 

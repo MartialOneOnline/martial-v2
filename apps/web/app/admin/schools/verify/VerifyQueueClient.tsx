@@ -64,7 +64,7 @@ export default function VerifyQueueClient() {
       <div className="bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
         <div>
           <h1 className="text-lg font-bold text-[#101828]">Verification Queue</h1>
-          <p className="text-xs text-gray-400">Schools that finished their own setup and are awaiting approval</p>
+          <p className="text-xs text-gray-400">Schools awaiting your review — finished setup, or just claimed and stalled</p>
         </div>
         <button
           onClick={load}
@@ -95,8 +95,10 @@ export default function VerifyQueueClient() {
               </span>
             </div>
 
-            {schools.map(school => (
-              <div key={school.id} className="bg-white border border-amber-100 rounded-2xl shadow-sm overflow-hidden">
+            {schools.map(school => {
+              const readyForReview = school.status === 'UNDER_REVIEW'
+              return (
+              <div key={school.id} className={`bg-white border rounded-2xl shadow-sm overflow-hidden ${readyForReview ? 'border-amber-100' : 'border-gray-100'}`}>
                 <div className="p-6">
                   <div className="flex items-start gap-4">
                     {/* Avatar */}
@@ -111,7 +113,14 @@ export default function VerifyQueueClient() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-4">
                         <div>
-                          <h3 className="text-sm font-bold text-[#101828]">{school.name}</h3>
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-sm font-bold text-[#101828]">{school.name}</h3>
+                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                              readyForReview ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-blue-50 text-blue-700 border border-blue-100'
+                            }`}>
+                              {readyForReview ? 'Ready for review' : 'Claimed — setup stalled'}
+                            </span>
+                          </div>
                           <div className="flex items-center gap-3 mt-1 flex-wrap">
                             {school.city && (
                               <span className="flex items-center gap-1 text-xs text-gray-400">
@@ -119,7 +128,7 @@ export default function VerifyQueueClient() {
                               </span>
                             )}
                             <span className="flex items-center gap-1 text-xs text-gray-400">
-                              <Clock className="w-3 h-3" /> Ready for review {fmtDate(school.updatedAt)}
+                              <Clock className="w-3 h-3" /> {readyForReview ? 'Ready since' : 'Claimed'} {fmtDate(school.updatedAt)}
                             </span>
                             <span className="text-xs text-gray-400">{school._count.members} member{school._count.members !== 1 ? 's' : ''}</span>
                           </div>
@@ -187,7 +196,8 @@ export default function VerifyQueueClient() {
                   </div>
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
