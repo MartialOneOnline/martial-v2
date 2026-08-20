@@ -81,13 +81,19 @@ function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-const SETUP_STEPS: { key: keyof School['setup']; label: string }[] = [
-  { key: 'classes',     label: 'Classes' },
-  { key: 'memberships', label: 'Memberships' },
-  { key: 'payments',    label: 'Payments' },
-  { key: 'staff',       label: 'Staff' },
-  { key: 'waivers',     label: 'Waivers' },
+// "Required" = actually blocks a school from operating if missing (nothing in
+// the booking/checkout code path enforces staff or waivers — verified against
+// apps/web/app/api/bookings, /my/checkout, /my/events/checkout and
+// lib/services/bookingEligibility.ts, classAccess.ts). Staff/waivers are
+// tracked for visibility only, not readiness.
+const SETUP_STEPS: { key: keyof School['setup']; label: string; required: boolean }[] = [
+  { key: 'classes',     label: 'Classes',     required: true },
+  { key: 'memberships', label: 'Memberships', required: true },
+  { key: 'payments',    label: 'Payments',    required: true },
+  { key: 'staff',       label: 'Staff',       required: false },
+  { key: 'waivers',     label: 'Waivers',     required: false },
 ]
+const REQUIRED_STEPS = SETUP_STEPS.filter(s => s.required)
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
 
@@ -103,37 +109,61 @@ function setupDetail(key: keyof School['setup'], setup: School['setup']): string
   }
 }
 
-// Setup completeness at a glance: a done/total pill plus one dot per step, so
-// an admin can spot an unfinished school without opening it. Click reveals
-// the breakdown — a plain title-attribute tooltip isn't discoverable enough
-// and gets clipped by the table's overflow-x-auto wrapper, so this reuses
-// RowMenu's portal-based popover the same way the row actions menu does.
+// Setup completeness at a glance. The headline badge reflects whether the
+// school can actually operate (Classes + Memberships + Payments — the only
+// steps the booking/checkout flow depends on) rather than the full 5/5,
+// so an admin scanning the table sees "Ready" the moment a school can take
+// bookings, without Staff/Waivers (informational only) muddying that signal.
+// Click reveals the full breakdown — a plain title-attribute tooltip isn't
+// discoverable enough and gets clipped by the table's overflow-x-auto
+// wrapper, so this reuses RowMenu's portal-based popover like the row
+// actions menu does.
 function SetupProgress({ setup }: { setup: School['setup'] }) {
-  const done = SETUP_STEPS.filter(s => setup[s.key].done).length
-  const total = SETUP_STEPS.length
-  const cls = done === total
+  const requiredDone = REQUIRED_STEPS.filter(s => setup[s.key].done).length
+  const ready = requiredDone === REQUIRED_STEPS.length
+  const badgeCls = ready
     ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
-    : done === 0
+    : requiredDone === 0
     ? 'bg-gray-100 text-gray-400 border border-gray-200'
     : 'bg-amber-50 text-amber-700 border border-amber-100'
   return (
     <RowMenu trigger={({ onClick }) => (
       <button onClick={onClick} className="flex items-center gap-1.5 cursor-pointer">
-        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${cls}`}>{done}/{total}</span>
+        <span className={`flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${badgeCls}`}>
+          {ready && <CheckCircle2 size={11} />}
+          {ready ? 'Ready' : `${requiredDone}/${REQUIRED_STEPS.length}`}
+        </span>
         <div className="flex items-center gap-0.5">
           {SETUP_STEPS.map(s => (
             <span
               key={s.key}
-              className={`w-1.5 h-1.5 rounded-full ${setup[s.key].done ? 'bg-emerald-400' : 'bg-gray-200'}`}
+              className={`rounded-full ${setup[s.key].done ? 'bg-emerald-400' : 'bg-gray-200'} ${s.required ? 'w-1.5 h-1.5' : 'w-1 h-1'}`}
             />
           ))}
         </div>
       </button>
     )}>
       <div className="rounded-xl py-2"
-        style={{ background: '#fff', border: '1px solid #E5E7EB', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 220 }}>
-        <p className="px-3 pb-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Setup — {done}/{total}</p>
-        {SETUP_STEPS.map(s => (
+        style={{ background: '#fff', border: '1px solid #E5E7EB', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 230 }}>
+        <div className="px-3 pb-2 mb-1 border-b border-gray-100 flex items-center gap-1.5">
+          {ready
+            ? <><CheckCircle2 size={13} className="text-emerald-500" /><span className="text-xs font-semibold text-emerald-700">Ready to take bookings</span></>
+            : <><Circle size={13} className="text-amber-400" /><span className="text-xs font-semibold text-amber-700">Not ready yet</span></>}
+        </div>
+        <p className="px-3 pt-1 pb-1 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Required</p>
+        {SETUP_STEPS.filter(s => s.required).map(s => (
+          <div key={s.key} className="flex items-start gap-2 px-3 py-1.5">
+            {setup[s.key].done
+              ? <CheckCircle2 size={14} className="text-emerald-500 shrink-0 mt-0.5" />
+              : <Circle size={14} className="text-gray-300 shrink-0 mt-0.5" />}
+            <span className="flex flex-col">
+              <span className={`text-xs ${setup[s.key].done ? 'text-gray-700 font-medium' : 'text-gray-400 font-medium'}`}>{s.label}</span>
+              <span className="text-[11px] text-gray-400">{setupDetail(s.key, setup)}</span>
+            </span>
+          </div>
+        ))}
+        <p className="px-3 pt-2 pb-1 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Optional</p>
+        {SETUP_STEPS.filter(s => !s.required).map(s => (
           <div key={s.key} className="flex items-start gap-2 px-3 py-1.5">
             {setup[s.key].done
               ? <CheckCircle2 size={14} className="text-emerald-500 shrink-0 mt-0.5" />
