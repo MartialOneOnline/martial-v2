@@ -109,8 +109,18 @@ async function UsersPageWithSchool({ schoolId }: { schoolId: string }) {
   // Members with an ACTIVE membership whose access status disagrees (e.g.
   // stuck INACTIVE) — surfaced as an OWNER/ADMIN-only banner below. Computed
   // from data already fetched above, no extra query needed.
+  //
+  // PENDING/LEAD are deliberately excluded: Invite User can assign a trial
+  // plan before the invite is accepted (assignPlan called with
+  // activateMember: false — see members/invite/route.ts), so a not-yet-
+  // accepted invite legitimately sits at PENDING/LEAD with an ACTIVE trial
+  // Membership. That's the intended steady state, not drift. Mirrors the
+  // same candidate set as findMembershipStatusDrift() in
+  // lib/services/membership.ts (used by the superadmin panel) — this page
+  // computes it locally instead of calling that function only because the
+  // membership data is already fetched above.
   const driftedMembers = students
-    .filter(s => s.activeMembership && s.status !== 'ACTIVE')
+    .filter(s => s.activeMembership && ['INACTIVE', 'FROZEN', 'ARCHIVED'].includes(s.status))
     .map(s => ({ id: s.id, name: s.name, status: s.status }))
 
   let canViewDrift = false
