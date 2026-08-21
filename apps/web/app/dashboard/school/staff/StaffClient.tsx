@@ -71,9 +71,13 @@ const STATUS_MAP: Record<StaffStatus, { bg: string; color: string; border: strin
 }
 
 function AddStaffDrawer({ open, onClose, onSuccess, members }: { open: boolean; onClose: () => void; onSuccess: () => void; members: MemberOption[] }) {
+  const [mode, setMode]                     = useState<'existing' | 'new'>('existing')
   const [memberQuery, setMemberQuery]       = useState('')
   const [selectedMember, setSelectedMember] = useState<MemberOption | null>(null)
   const [showDropdown, setShowDropdown]     = useState(false)
+  const [newName, setNewName]               = useState('')
+  const [invite, setInvite]                 = useState(false)
+  const [newEmail, setNewEmail]             = useState('')
   const [role, setRole]                     = useState<StaffRole | ''>('')
   const [belt, setBelt]                     = useState('')
   const [salary, setSalary]                 = useState('')
@@ -87,24 +91,34 @@ function AddStaffDrawer({ open, onClose, onSuccess, members }: { open: boolean; 
   )
 
   function reset() {
+    setMode('existing')
     setMemberQuery(''); setSelectedMember(null); setShowDropdown(false)
+    setNewName(''); setInvite(false); setNewEmail('')
     setRole(''); setBelt(''); setSalary(''); setStartDate(''); setNotes(''); setError('')
   }
   function handleClose() { reset(); onClose() }
 
   async function handleSubmit() {
-    if (!selectedMember || !role) return
+    if (!role) return
     setSaving(true); setError('')
-    const res = await fetch('/api/dashboard/staff', {
+
+    const url = mode === 'new' && invite ? '/api/dashboard/staff/invite' : '/api/dashboard/staff'
+    const payload = mode === 'existing'
+      ? { userId: selectedMember?.id, role, belt, salary, startDate, notes }
+      : { name: newName, email: invite ? newEmail : undefined, role, belt, salary, startDate, notes }
+
+    const res = await fetch(url, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: selectedMember.id, role, belt, salary, startDate, notes }),
+      body: JSON.stringify(payload),
     })
     setSaving(false)
     if (!res.ok) { const d = await res.json(); setError(d.error ?? 'Error'); return }
     reset(); onSuccess()
   }
 
-  const canSubmit = selectedMember && role && belt && startDate && !saving
+  const canSubmit = role && belt && startDate && !saving && (
+    mode === 'existing' ? !!selectedMember : newName.trim() && (!invite || newEmail.trim())
+  )
 
   const inputStyle: React.CSSProperties = {
     width: '100%', border: '1px solid #E5E7EB', borderRadius: 10,
@@ -136,6 +150,40 @@ function AddStaffDrawer({ open, onClose, onSuccess, members }: { open: boolean; 
           </button>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-5">
+          <div className="flex rounded-xl p-1" style={{ background: '#F3F4F6' }}>
+            {(['existing', 'new'] as const).map(m => (
+              <button key={m} onClick={() => setMode(m)}
+                className="flex-1 py-2 rounded-lg cursor-pointer"
+                style={{ fontSize: 12, fontWeight: 600, border: 'none',
+                  background: mode === m ? '#fff' : 'transparent',
+                  color: mode === m ? '#111827' : '#6B7280',
+                  boxShadow: mode === m ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}>
+                {m === 'existing' ? 'Existing member' : 'Not in the system yet'}
+              </button>
+            ))}
+          </div>
+          {mode === 'new' ? (
+            <>
+              <div>
+                <label style={labelStyle}>Name</label>
+                <input type="text" placeholder="Full name…" value={newName} onChange={e => setNewName(e.target.value)} style={inputStyle} />
+              </div>
+              <label className="flex items-center gap-2 cursor-pointer" style={{ fontSize: 13, color: '#374151' }}>
+                <input type="checkbox" checked={invite} onChange={e => setInvite(e.target.checked)} />
+                Invite them to log into the dashboard
+              </label>
+              {invite && (
+                <div>
+                  <label style={labelStyle}>Email</label>
+                  <input type="email" placeholder="name@email.com" value={newEmail} onChange={e => setNewEmail(e.target.value)} style={inputStyle} />
+                  <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>They&apos;ll get an email to activate their account and access the dashboard.</p>
+                </div>
+              )}
+              {!invite && (
+                <p style={{ fontSize: 11, color: '#9CA3AF' }}>They&apos;ll be added to your roster and available to assign to classes, without a login of their own. Check the box above to give them dashboard access instead.</p>
+              )}
+            </>
+          ) : (
           <div className="relative">
             <label style={labelStyle}>Member</label>
             {selectedMember ? (
@@ -191,12 +239,13 @@ function AddStaffDrawer({ open, onClose, onSuccess, members }: { open: boolean; 
                 {showDropdown && memberQuery && filteredMembers.length === 0 && (
                   <div className="absolute left-0 right-0 rounded-xl z-20 mt-1 px-4 py-3"
                     style={{ background: '#fff', border: '1px solid #E5E7EB', boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}>
-                    <p style={{ fontSize: 12, color: '#9CA3AF' }}>No members found</p>
+                    <p style={{ fontSize: 12, color: '#9CA3AF' }}>No members found — try &quot;Not in the system yet&quot; above</p>
                   </div>
                 )}
               </div>
             )}
           </div>
+          )}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label style={labelStyle}>Role</label>
@@ -244,7 +293,7 @@ function AddStaffDrawer({ open, onClose, onSuccess, members }: { open: boolean; 
             style={{ fontSize: 13, fontWeight: 600, border: 'none',
               background: canSubmit ? '#0071E3' : '#93C5FD', color: '#fff',
               cursor: canSubmit ? 'pointer' : 'not-allowed' }}>
-            <Plus size={14} />{saving ? 'Adding…' : 'Add Staff'}
+            <Plus size={14} />{saving ? (mode === 'new' && invite ? 'Sending invite…' : 'Adding…') : (mode === 'new' && invite ? 'Send Invite' : 'Add Staff')}
           </button>
         </div>
       </div>

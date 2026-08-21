@@ -78,35 +78,52 @@ export async function GET() {
   return NextResponse.json({ staff, members })
 }
 
-// POST /api/dashboard/staff — promote an existing school member to staff (creates an Instructor row)
+// POST /api/dashboard/staff — add a staff member (creates an Instructor row).
+// Two modes: pass `userId` to promote an existing school member, or pass a
+// bare `name` (no userId) for a profile-only entry with no linked account —
+// e.g. an instructor who just needs to show up on the roster/class picker,
+// not log into the dashboard. To invite someone with dashboard access who
+// isn't a member yet, use POST /api/dashboard/staff/invite instead.
 export async function POST(req: NextRequest) {
   const auth = await authorise('school.staff.manage')
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const body = await req.json()
-  const { userId, role, belt, salary, startDate, notes } = body
+  const { userId, name, role, belt, salary, startDate, notes } = body
 
-  if (!userId) return NextResponse.json({ error: 'Member is required' }, { status: 400 })
   if (!role?.trim()) return NextResponse.json({ error: 'Role is required' }, { status: 400 })
 
-  const schoolMember = await prisma.schoolMember.findFirst({
-    where: { schoolId: auth.schoolId, userId },
-    include: { user: { select: { id: true, name: true, email: true, avatarUrl: true } } },
-  })
-  if (!schoolMember) return NextResponse.json({ error: 'This person is not a member of this school' }, { status: 400 })
+  let instructorName: string
+  let email = ''
+  let avatarUrl: string | null = null
 
-  const existing = await prisma.instructor.findUnique({ where: { userId } })
-  if (existing) {
-    return NextResponse.json({
-      error: existing.schoolId === auth.schoolId ? 'This member is already staff' : 'This member is already staff at another school',
-    }, { status: 409 })
+  if (userId) {
+    const schoolMember = await prisma.schoolMember.findFirst({
+      where: { schoolId: auth.schoolId, userId },
+      include: { user: { select: { id: true, name: true, email: true, avatarUrl: true } } },
+    })
+    if (!schoolMember) return NextResponse.json({ error: 'This person is not a member of this school' }, { status: 400 })
+
+    const existing = await prisma.instructor.findUnique({ where: { userId } })
+    if (existing) {
+      return NextResponse.json({
+        error: existing.schoolId === auth.schoolId ? 'This member is already staff' : 'This member is already staff at another school',
+      }, { status: 409 })
+    }
+
+    instructorName = schoolMember.user.name ?? schoolMember.user.email
+    email = schoolMember.user.email
+    avatarUrl = schoolMember.user.avatarUrl ?? null
+  } else {
+    if (!name?.trim()) return NextResponse.json({ error: 'Name is required' }, { status: 400 })
+    instructorName = name.trim()
   }
 
   const instructor = await prisma.instructor.create({
     data: {
       schoolId: auth.schoolId,
-      userId,
-      name: schoolMember.user.name ?? schoolMember.user.email,
+      userId: userId || null,
+      name: instructorName,
       role: role.trim(),
       belt: belt?.trim() || null,
       salary: salary !== undefined && salary !== '' ? Number(salary) : null,
@@ -121,8 +138,8 @@ export async function POST(req: NextRequest) {
       id: instructor.id,
       userId: instructor.userId,
       name: instructor.name,
-      email: schoolMember.user.email,
-      avatarUrl: schoolMember.user.avatarUrl ?? null,
+      email,
+      avatarUrl,
       role: instructor.role,
       belt: instructor.belt ?? '',
       classes: [] as string[],
