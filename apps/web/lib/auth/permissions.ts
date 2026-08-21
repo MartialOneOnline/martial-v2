@@ -92,35 +92,32 @@ export const ROLE_PERMISSIONS: Record<SchoolMemberRole, Permission[]> = {
 
   MANAGER: ALL.filter(p => !OWNER_ADMIN_ONLY.includes(p)),
 
-  // Read-only on classes — creating/editing/deleting class definitions is a
-  // MANAGER+ operational decision, not something an instructor does from the
-  // dashboard. Instructors still manage their own bookings/attendance and
-  // grade students (see school.bookings.* and school.gradings.manage).
+  // Instructors are scoped to running their own classes: seeing the
+  // schedule, taking attendance/bookings, and grading — not the school's
+  // members list, leads, payments, or analytics. (2026-08-21: narrowed from
+  // an earlier broader preset per school owner request.)
   INSTRUCTOR: [
     'school.profile.view',
     'school.classes.view',
     'school.bookings.view', 'school.bookings.manage',
-    'school.members.view',
-    'school.memberships.view',
-    'school.membershipPlans.view',
-    'school.leads.view',
-    'school.analytics.view',
     'school.gradings.manage',
-    'school.events.view',
   ],
 
   ASSISTANT_INSTRUCTOR: [
     'school.profile.view',
     'school.classes.view',
     'school.bookings.view', 'school.bookings.manage',
-    'school.members.view',
   ],
 
+  // Front-desk role: check students into class, take payments/see the
+  // transaction log, and manage the leads pipeline + member roster — but no
+  // gradings, analytics, staff, or settings access.
   RECEPTIONIST: [
     'school.profile.view',
     'school.classes.view',
     'school.bookings.view', 'school.bookings.manage',
-    'school.members.view',
+    'school.members.view', 'school.members.create',
+    'school.payments.view',
     'school.leads.view', 'school.leads.manage',
   ],
 

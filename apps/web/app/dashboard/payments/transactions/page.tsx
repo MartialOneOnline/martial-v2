@@ -1,2 +1,5 @@
 import TransactionsClient from './TransactionsClient'
-export default function TransactionsPage() { return <TransactionsClient /> }
+import RequirePermission from '../../../../components/RequirePermission'
+export default function TransactionsPage() {
+  return <RequirePermission permission="school.payments.view"><TransactionsClient /></RequirePermission>
+}

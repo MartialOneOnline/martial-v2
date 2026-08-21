@@ -1,2 +1,5 @@
 import PaymentSubscriptionsClient from './PaymentSubscriptionsClient'
-export default function PaymentSubscriptionsPage() { return <PaymentSubscriptionsClient /> }
+import RequirePermission from '../../../../components/RequirePermission'
+export default function PaymentSubscriptionsPage() {
+  return <RequirePermission permission="school.memberships.view"><PaymentSubscriptionsClient /></RequirePermission>
+}

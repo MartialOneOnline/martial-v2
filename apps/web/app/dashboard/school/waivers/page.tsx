@@ -1,2 +1,5 @@
 import WaiversClient from './WaiversClient'
-export default function WaiversPage() { return <WaiversClient /> }
+import RequirePermission from '../../../../components/RequirePermission'
+export default function WaiversPage() {
+  return <RequirePermission permission="school.waivers.manage"><WaiversClient /></RequirePermission>
+}

@@ -41,19 +41,30 @@ describe('hasPermission()', () => {
     expect(hasPermission('INSTRUCTOR', 'school.classes.delete')).toBe(false)
   })
 
-  it('INSTRUCTOR can view but not create/update/delete members', () => {
-    expect(hasPermission('INSTRUCTOR', 'school.members.view')).toBe(true)
+  // 2026-08-21: narrowed to bookings/classes/gradings only, per school owner
+  // request — instructors run their own classes, not the member roster.
+  it('INSTRUCTOR is scoped to classes/bookings/gradings, not members/leads/payments/analytics', () => {
+    expect(hasPermission('INSTRUCTOR', 'school.bookings.view')).toBe(true)
+    expect(hasPermission('INSTRUCTOR', 'school.bookings.manage')).toBe(true)
+    expect(hasPermission('INSTRUCTOR', 'school.gradings.manage')).toBe(true)
+    expect(hasPermission('INSTRUCTOR', 'school.members.view')).toBe(false)
     expect(hasPermission('INSTRUCTOR', 'school.members.create')).toBe(false)
-    expect(hasPermission('INSTRUCTOR', 'school.members.update')).toBe(false)
-    expect(hasPermission('INSTRUCTOR', 'school.members.delete')).toBe(false)
-    expect(hasPermission('INSTRUCTOR', 'school.members.import')).toBe(false)
+    expect(hasPermission('INSTRUCTOR', 'school.leads.view')).toBe(false)
+    expect(hasPermission('INSTRUCTOR', 'school.payments.view')).toBe(false)
+    expect(hasPermission('INSTRUCTOR', 'school.analytics.view')).toBe(false)
   })
 
-  it('RECEPTIONIST can manage leads and bookings but not classes or members', () => {
+  // 2026-08-21: widened to cover the front desk's actual job — checking
+  // students in/out and taking payments — alongside the leads pipeline.
+  it('RECEPTIONIST can manage leads/bookings and view members/payments, but not classes or gradings', () => {
     expect(hasPermission('RECEPTIONIST', 'school.leads.manage')).toBe(true)
     expect(hasPermission('RECEPTIONIST', 'school.bookings.manage')).toBe(true)
+    expect(hasPermission('RECEPTIONIST', 'school.members.view')).toBe(true)
+    expect(hasPermission('RECEPTIONIST', 'school.members.create')).toBe(true)
+    expect(hasPermission('RECEPTIONIST', 'school.payments.view')).toBe(true)
+    expect(hasPermission('RECEPTIONIST', 'school.payments.manage')).toBe(false)
     expect(hasPermission('RECEPTIONIST', 'school.classes.create')).toBe(false)
-    expect(hasPermission('RECEPTIONIST', 'school.members.create')).toBe(false)
+    expect(hasPermission('RECEPTIONIST', 'school.gradings.manage')).toBe(false)
   })
 
   it('ASSISTANT_INSTRUCTOR is limited to viewing + booking management', () => {
@@ -88,10 +99,12 @@ describe('hasPermission()', () => {
   // permissions.ts OWNER_ADMIN_ONLY comment and the PR report for the roles
   // this deliberately does NOT match (MANAGER on events/communications,
   // RECEPTIONIST on events/notifications, ASSISTANT_INSTRUCTOR on events).
-  it('school.events.view is OWNER/ADMIN/INSTRUCTOR only — MANAGER and RECEPTIONIST excluded', () => {
+  // 2026-08-21: INSTRUCTOR lost school.events.view along with the rest of its
+  // narrowing — events are no longer part of any non-owner/admin role.
+  it('school.events.view is OWNER/ADMIN only', () => {
     expect(hasPermission('OWNER', 'school.events.view')).toBe(true)
     expect(hasPermission('ADMIN', 'school.events.view')).toBe(true)
-    expect(hasPermission('INSTRUCTOR', 'school.events.view')).toBe(true)
+    expect(hasPermission('INSTRUCTOR', 'school.events.view')).toBe(false)
     expect(hasPermission('MANAGER', 'school.events.view')).toBe(false)
     expect(hasPermission('RECEPTIONIST', 'school.events.view')).toBe(false)
     expect(hasPermission('ASSISTANT_INSTRUCTOR', 'school.events.view')).toBe(false)

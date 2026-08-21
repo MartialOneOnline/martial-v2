@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { hasPermission, type Permission } from '@/lib/auth/permissions'
 
-async function authorise() {
+async function authorise(permission: Permission) {
   const user = await getAuthUser()
   if (!user) return { error: 'Unauthorized', status: 401 }
   const schoolId = await getCurrentSchoolId()
@@ -11,7 +12,7 @@ async function authorise() {
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!['OWNER', 'ADMIN', 'MANAGER'].includes(member.role)) return { error: 'Forbidden', status: 403 }
+      if (!hasPermission(member.role, permission)) return { error: 'Forbidden', status: 403 }
     } catch {
       return { error: 'Forbidden', status: 403 }
     }
@@ -21,7 +22,7 @@ async function authorise() {
 
 // GET /api/dashboard/transactions
 export async function GET(req: NextRequest) {
-  const auth = await authorise()
+  const auth = await authorise('school.payments.view')
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const { searchParams } = new URL(req.url)
@@ -153,7 +154,7 @@ export async function GET(req: NextRequest) {
 
 // POST /api/dashboard/transactions
 export async function POST(req: NextRequest) {
-  const auth = await authorise()
+  const auth = await authorise('school.payments.manage')
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const body = await req.json()

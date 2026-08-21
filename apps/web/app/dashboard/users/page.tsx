@@ -5,6 +5,8 @@ import { cookies } from 'next/headers'
 import UsersClient from './UsersClient'
 import { getAuthUser } from '@/lib/auth/server'
 import { getSchoolMembership } from '@/lib/auth/contexts'
+import { hasPermission } from '@/lib/auth/permissions'
+import { ForbiddenView } from '../../../components/RequirePermission'
 
 export default function UsersPage() {
   return (
@@ -44,6 +46,14 @@ async function UsersPageContent() {
 }
 
 async function UsersPageWithSchool({ schoolId }: { schoolId: string }) {
+  const viewer = await getAuthUser()
+  if (viewer && viewer.role !== 'SUPERADMIN') {
+    const viewerMembership = await getSchoolMembership(viewer.id, schoolId)
+    if (!viewerMembership || !hasPermission(viewerMembership.role, 'school.members.view')) {
+      return <ForbiddenView />
+    }
+  }
+
   const members = await prisma.schoolMember.findMany({
     where: { schoolId, role: 'STUDENT' },
     include: { user: { select: { id: true, name: true, email: true, avatarUrl: true, supabaseAuthId: true } } },
@@ -124,12 +134,9 @@ async function UsersPageWithSchool({ schoolId }: { schoolId: string }) {
     .map(s => ({ id: s.id, name: s.name, status: s.status }))
 
   let canViewDrift = false
-  if (driftedMembers.length > 0) {
-    const viewer = await getAuthUser()
-    if (viewer) {
-      canViewDrift = viewer.role === 'SUPERADMIN'
-        || ['OWNER', 'ADMIN'].includes((await getSchoolMembership(viewer.id, schoolId))?.role ?? '')
-    }
+  if (driftedMembers.length > 0 && viewer) {
+    canViewDrift = viewer.role === 'SUPERADMIN'
+      || ['OWNER', 'ADMIN'].includes((await getSchoolMembership(viewer.id, schoolId))?.role ?? '')
   }
 
   return <UsersClient students={students} driftedMembers={canViewDrift ? driftedMembers : []} />

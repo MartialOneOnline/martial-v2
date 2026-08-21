@@ -13,13 +13,15 @@ import {
 } from 'lucide-react'
 import { useT } from '../lib/i18n/LanguageContext'
 import { useSchoolContext } from '../lib/auth/useSchoolContext'
+import type { Permission } from '../lib/auth/permissions'
 
 type NavItem = {
   label: string
   icon: React.ElementType
   href?: string
   badge?: number
-  children?: { label: string; href: string }[]
+  permission?: Permission
+  children?: { label: string; href: string; permission?: Permission }[]
 }
 
 function NavGroup({
@@ -152,7 +154,7 @@ interface Props {
 
 export default function DashboardSidebar({ menuOpen, setMenuOpen, collapsed, setCollapsed }: Props) {
   const router = useRouter()
-  const { currentSchool, schools, switchSchool, loading: ctxLoading } = useSchoolContext()
+  const { currentSchool, schools, switchSchool, isAdmin, loading: ctxLoading } = useSchoolContext()
   const [switcherOpen, setSwitcherOpen] = useState(false)
   const [pendingTransactions, setPendingTransactions] = useState(0)
   const t = useT()
@@ -181,39 +183,48 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen, collapsed, set
 
   const NAV_MAIN: NavItem[] = [
     { label: t.sidebar.dashboard,   icon: Flame,      href: '/dashboard' },
-    { label: t.sidebar.users,       icon: Users,      href: '/dashboard/users' },
-    { label: t.sidebar.campaigns,   icon: Megaphone,  href: '/dashboard/campaigns' },
+    { label: t.sidebar.users,       icon: Users,      href: '/dashboard/users', permission: 'school.members.view' },
+    { label: t.sidebar.campaigns,   icon: Megaphone,  href: '/dashboard/campaigns', permission: 'school.campaigns.view' },
     { label: t.sidebar.classes,     icon: Calendar,   children: [
-      { label: t.sidebar.classes,   href: '/dashboard/classes' },
-      { label: t.sidebar.events,    href: '/dashboard/classes/events' },
-      { label: t.sidebar.registrations, href: '/dashboard/classes/events/registrations' },
-      { label: t.sidebar.calendar,  href: '/dashboard/classes/calendar' },
-      { label: t.sidebar.timetable, href: '/dashboard/classes/timetable' },
+      { label: t.sidebar.classes,   href: '/dashboard/classes', permission: 'school.classes.view' },
+      { label: t.sidebar.events,    href: '/dashboard/classes/events', permission: 'school.events.view' },
+      { label: t.sidebar.registrations, href: '/dashboard/classes/events/registrations', permission: 'school.events.view' },
+      { label: t.sidebar.calendar,  href: '/dashboard/classes/calendar', permission: 'school.classes.view' },
+      { label: t.sidebar.timetable, href: '/dashboard/classes/timetable', permission: 'school.classes.view' },
     ]},
-    { label: t.sidebar.memberships, icon: Award,      href: '/dashboard/memberships' },
+    { label: t.sidebar.memberships, icon: Award,      href: '/dashboard/memberships', permission: 'school.memberships.view' },
     { label: t.sidebar.payments,    icon: CreditCard, badge: pendingTransactions, children: [
-      { label: t.sidebar.transactions,  href: '/dashboard/payments/transactions' },
-      { label: t.sidebar.subscriptions, href: '/dashboard/payments/subscriptions' },
+      { label: t.sidebar.transactions,  href: '/dashboard/payments/transactions', permission: 'school.payments.view' },
+      { label: t.sidebar.subscriptions, href: '/dashboard/payments/subscriptions', permission: 'school.memberships.view' },
     ]},
     { label: t.sidebar.school,      icon: School,     children: [
-      { label: t.sidebar.leads,      href: '/dashboard/school/leads' },
+      { label: t.sidebar.leads,      href: '/dashboard/school/leads', permission: 'school.leads.view' },
       { label: t.sidebar.store,      href: '/dashboard/school/store' },
       { label: t.sidebar.curriculum, href: '/dashboard/school/curriculum' },
       { label: t.sidebar.affiliates, href: '/dashboard/school/affiliates' },
-      { label: t.sidebar.staff,      href: '/dashboard/school/staff' },
-      { label: t.sidebar.waivers,    href: '/dashboard/school/waivers' },
-      { label: t.sidebar.gradings,   href: '/dashboard/school/gradings' },
+      { label: t.sidebar.staff,      href: '/dashboard/school/staff', permission: 'school.staff.view' },
+      { label: t.sidebar.waivers,    href: '/dashboard/school/waivers', permission: 'school.waivers.manage' },
+      { label: t.sidebar.gradings,   href: '/dashboard/school/gradings', permission: 'school.gradings.manage' },
     ]},
     { label: t.sidebar.reports,     icon: BarChart2,  children: [
-      { label: t.sidebar.bookings, href: '/dashboard/reports/bookings' },
-      { label: t.sidebar.gradings, href: '/dashboard/reports/gradings' },
-      { label: t.sidebar.payments, href: '/dashboard/reports/payments' },
-      { label: t.sidebar.balance,  href: '/dashboard/reports/balance' },
-      { label: t.sidebar.absents,  href: '/dashboard/reports/absents' },
-      { label: t.sidebar.users,    href: '/dashboard/reports/users' },
+      { label: t.sidebar.bookings, href: '/dashboard/reports/bookings', permission: 'school.analytics.view' },
+      { label: t.sidebar.gradings, href: '/dashboard/reports/gradings', permission: 'school.analytics.view' },
+      { label: t.sidebar.payments, href: '/dashboard/reports/payments', permission: 'school.analytics.view' },
+      { label: t.sidebar.balance,  href: '/dashboard/reports/balance', permission: 'school.analytics.view' },
+      { label: t.sidebar.absents,  href: '/dashboard/reports/absents', permission: 'school.analytics.view' },
+      { label: t.sidebar.users,    href: '/dashboard/reports/users', permission: 'school.analytics.view' },
     ]},
-    { label: t.sidebar.settings,    icon: Settings,   href: '/dashboard/settings' },
+    { label: t.sidebar.settings,    icon: Settings,   href: '/dashboard/settings', permission: 'school.settings.view' },
   ]
+
+  // Hide nav items the current role has no permission for. While the school
+  // context is still loading (or for SUPERADMIN, who may have no SchoolMember
+  // row at all) everything stays visible rather than flashing an empty menu.
+  const perms = currentSchool?.permissions ?? []
+  const can = (p?: Permission) => !p || isAdmin || ctxLoading || perms.includes(p)
+  const visibleNavMain = NAV_MAIN
+    .map(item => item.children ? { ...item, children: item.children.filter(c => can(c.permission)) } : item)
+    .filter(item => can(item.permission) && (!item.children || item.children.length > 0))
 
   const NAV_BOTTOM: NavItem[] = [
     { label: t.sidebar.subscription,  icon: ShoppingBag, href: '/dashboard/subscription' },
@@ -326,7 +337,7 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen, collapsed, set
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-0.5">
-          {NAV_MAIN.map(item => (
+          {visibleNavMain.map(item => (
             <NavGroup key={item.label} item={item} setMenuOpen={setMenuOpen} collapsed={collapsed} onRequestExpand={() => setCollapsed(false)} />
           ))}
         </nav>
