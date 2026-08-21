@@ -26,11 +26,11 @@ export default function HeroSection({ onOpenLoginModal }: HeroSectionProps) {
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-[#0E3A7A] via-[#0870E2]/90 to-[#0a2d5e] pb-16 pt-20 lg:pt-28 lg:pb-20">
-      {/* Mobile-only hero photo — cropped so the eyes sit clear of the headline, above it */}
-      <div className="absolute right-0 top-0 w-[500px] h-[210px] overflow-hidden lg:hidden">
-        <Image src="/buchecha.png" alt="" fill className="object-cover object-[50%_24%]" priority />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0E3A7A]/50 via-transparent to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-b from-transparent to-[#0E3A7A]" />
+      {/* Mobile-only hero photo — pre-cropped (buchecha-mobile.png) so the eyes sit near the top, clear of the headline */}
+      <div className="absolute right-0 top-0 w-[347px] h-[560px] overflow-hidden lg:hidden">
+        <Image src="/buchecha-mobile.png" alt="" fill className="object-cover object-top" priority />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0E3A7A]/45 via-transparent to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-[#0a2d5e]" />
       </div>
 
       <div className="absolute top-0 right-0 -z-0 w-[600px] h-[600px] bg-white/5 rounded-full blur-3xl pointer-events-none" />
