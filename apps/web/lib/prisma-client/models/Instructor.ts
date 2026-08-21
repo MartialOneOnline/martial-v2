@@ -28,10 +28,12 @@ export type AggregateInstructor = {
 
 export type InstructorAvgAggregateOutputType = {
   sortOrder: number | null
+  salary: number | null
 }
 
 export type InstructorSumAggregateOutputType = {
   sortOrder: number | null
+  salary: number | null
 }
 
 export type InstructorMinAggregateOutputType = {
@@ -47,6 +49,9 @@ export type InstructorMinAggregateOutputType = {
   isHead: boolean | null
   isActive: boolean | null
   sortOrder: number | null
+  salary: number | null
+  startDate: Date | null
+  notes: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -64,6 +69,9 @@ export type InstructorMaxAggregateOutputType = {
   isHead: boolean | null
   isActive: boolean | null
   sortOrder: number | null
+  salary: number | null
+  startDate: Date | null
+  notes: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -81,6 +89,9 @@ export type InstructorCountAggregateOutputType = {
   isHead: number
   isActive: number
   sortOrder: number
+  salary: number
+  startDate: number
+  notes: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -89,10 +100,12 @@ export type InstructorCountAggregateOutputType = {
 
 export type InstructorAvgAggregateInputType = {
   sortOrder?: true
+  salary?: true
 }
 
 export type InstructorSumAggregateInputType = {
   sortOrder?: true
+  salary?: true
 }
 
 export type InstructorMinAggregateInputType = {
@@ -108,6 +121,9 @@ export type InstructorMinAggregateInputType = {
   isHead?: true
   isActive?: true
   sortOrder?: true
+  salary?: true
+  startDate?: true
+  notes?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -125,6 +141,9 @@ export type InstructorMaxAggregateInputType = {
   isHead?: true
   isActive?: true
   sortOrder?: true
+  salary?: true
+  startDate?: true
+  notes?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -142,6 +161,9 @@ export type InstructorCountAggregateInputType = {
   isHead?: true
   isActive?: true
   sortOrder?: true
+  salary?: true
+  startDate?: true
+  notes?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -246,6 +268,9 @@ export type InstructorGroupByOutputType = {
   isHead: boolean
   isActive: boolean
   sortOrder: number
+  salary: number | null
+  startDate: Date | null
+  notes: string | null
   createdAt: Date
   updatedAt: Date
   _count: InstructorCountAggregateOutputType | null
@@ -286,6 +311,9 @@ export type InstructorWhereInput = {
   isHead?: Prisma.BoolFilter<"Instructor"> | boolean
   isActive?: Prisma.BoolFilter<"Instructor"> | boolean
   sortOrder?: Prisma.IntFilter<"Instructor"> | number
+  salary?: Prisma.FloatNullableFilter<"Instructor"> | number | null
+  startDate?: Prisma.DateTimeNullableFilter<"Instructor"> | Date | string | null
+  notes?: Prisma.StringNullableFilter<"Instructor"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Instructor"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Instructor"> | Date | string
   school?: Prisma.XOR<Prisma.SchoolScalarRelationFilter, Prisma.SchoolWhereInput>
@@ -306,6 +334,9 @@ export type InstructorOrderByWithRelationInput = {
   isHead?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   sortOrder?: Prisma.SortOrder
+  salary?: Prisma.SortOrderInput | Prisma.SortOrder
+  startDate?: Prisma.SortOrderInput | Prisma.SortOrder
+  notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   school?: Prisma.SchoolOrderByWithRelationInput
@@ -329,6 +360,9 @@ export type InstructorWhereUniqueInput = Prisma.AtLeast<{
   isHead?: Prisma.BoolFilter<"Instructor"> | boolean
   isActive?: Prisma.BoolFilter<"Instructor"> | boolean
   sortOrder?: Prisma.IntFilter<"Instructor"> | number
+  salary?: Prisma.FloatNullableFilter<"Instructor"> | number | null
+  startDate?: Prisma.DateTimeNullableFilter<"Instructor"> | Date | string | null
+  notes?: Prisma.StringNullableFilter<"Instructor"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Instructor"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Instructor"> | Date | string
   school?: Prisma.XOR<Prisma.SchoolScalarRelationFilter, Prisma.SchoolWhereInput>
@@ -349,6 +383,9 @@ export type InstructorOrderByWithAggregationInput = {
   isHead?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   sortOrder?: Prisma.SortOrder
+  salary?: Prisma.SortOrderInput | Prisma.SortOrder
+  startDate?: Prisma.SortOrderInput | Prisma.SortOrder
+  notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.InstructorCountOrderByAggregateInput
@@ -374,6 +411,9 @@ export type InstructorScalarWhereWithAggregatesInput = {
   isHead?: Prisma.BoolWithAggregatesFilter<"Instructor"> | boolean
   isActive?: Prisma.BoolWithAggregatesFilter<"Instructor"> | boolean
   sortOrder?: Prisma.IntWithAggregatesFilter<"Instructor"> | number
+  salary?: Prisma.FloatNullableWithAggregatesFilter<"Instructor"> | number | null
+  startDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Instructor"> | Date | string | null
+  notes?: Prisma.StringNullableWithAggregatesFilter<"Instructor"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Instructor"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Instructor"> | Date | string
 }
@@ -390,6 +430,9 @@ export type InstructorCreateInput = {
   isHead?: boolean
   isActive?: boolean
   sortOrder?: number
+  salary?: number | null
+  startDate?: Date | string | null
+  notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school: Prisma.SchoolCreateNestedOneWithoutInstructorsInput
@@ -410,6 +453,9 @@ export type InstructorUncheckedCreateInput = {
   isHead?: boolean
   isActive?: boolean
   sortOrder?: number
+  salary?: number | null
+  startDate?: Date | string | null
+  notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutInstructorInput
@@ -428,6 +474,9 @@ export type InstructorUpdateInput = {
   isHead?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  salary?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneRequiredWithoutInstructorsNestedInput
@@ -448,6 +497,9 @@ export type InstructorUncheckedUpdateInput = {
   isHead?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  salary?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classes?: Prisma.ClassUncheckedUpdateManyWithoutInstructorNestedInput
@@ -467,6 +519,9 @@ export type InstructorCreateManyInput = {
   isHead?: boolean
   isActive?: boolean
   sortOrder?: number
+  salary?: number | null
+  startDate?: Date | string | null
+  notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -483,6 +538,9 @@ export type InstructorUpdateManyMutationInput = {
   isHead?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  salary?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -500,6 +558,9 @@ export type InstructorUncheckedUpdateManyInput = {
   isHead?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  salary?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -527,12 +588,16 @@ export type InstructorCountOrderByAggregateInput = {
   isHead?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   sortOrder?: Prisma.SortOrder
+  salary?: Prisma.SortOrder
+  startDate?: Prisma.SortOrder
+  notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type InstructorAvgOrderByAggregateInput = {
   sortOrder?: Prisma.SortOrder
+  salary?: Prisma.SortOrder
 }
 
 export type InstructorMaxOrderByAggregateInput = {
@@ -548,6 +613,9 @@ export type InstructorMaxOrderByAggregateInput = {
   isHead?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   sortOrder?: Prisma.SortOrder
+  salary?: Prisma.SortOrder
+  startDate?: Prisma.SortOrder
+  notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -565,12 +633,16 @@ export type InstructorMinOrderByAggregateInput = {
   isHead?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   sortOrder?: Prisma.SortOrder
+  salary?: Prisma.SortOrder
+  startDate?: Prisma.SortOrder
+  notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type InstructorSumOrderByAggregateInput = {
   sortOrder?: Prisma.SortOrder
+  salary?: Prisma.SortOrder
 }
 
 export type InstructorNullableScalarRelationFilter = {
@@ -664,6 +736,9 @@ export type InstructorCreateWithoutSchoolInput = {
   isHead?: boolean
   isActive?: boolean
   sortOrder?: number
+  salary?: number | null
+  startDate?: Date | string | null
+  notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   classes?: Prisma.ClassCreateNestedManyWithoutInstructorInput
@@ -682,6 +757,9 @@ export type InstructorUncheckedCreateWithoutSchoolInput = {
   isHead?: boolean
   isActive?: boolean
   sortOrder?: number
+  salary?: number | null
+  startDate?: Date | string | null
+  notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutInstructorInput
@@ -730,6 +808,9 @@ export type InstructorScalarWhereInput = {
   isHead?: Prisma.BoolFilter<"Instructor"> | boolean
   isActive?: Prisma.BoolFilter<"Instructor"> | boolean
   sortOrder?: Prisma.IntFilter<"Instructor"> | number
+  salary?: Prisma.FloatNullableFilter<"Instructor"> | number | null
+  startDate?: Prisma.DateTimeNullableFilter<"Instructor"> | Date | string | null
+  notes?: Prisma.StringNullableFilter<"Instructor"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Instructor"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Instructor"> | Date | string
 }
@@ -746,6 +827,9 @@ export type InstructorCreateWithoutClassesInput = {
   isHead?: boolean
   isActive?: boolean
   sortOrder?: number
+  salary?: number | null
+  startDate?: Date | string | null
+  notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school: Prisma.SchoolCreateNestedOneWithoutInstructorsInput
@@ -765,6 +849,9 @@ export type InstructorUncheckedCreateWithoutClassesInput = {
   isHead?: boolean
   isActive?: boolean
   sortOrder?: number
+  salary?: number | null
+  startDate?: Date | string | null
+  notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   events?: Prisma.EventUncheckedCreateNestedManyWithoutInstructorInput
@@ -798,6 +885,9 @@ export type InstructorUpdateWithoutClassesInput = {
   isHead?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  salary?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneRequiredWithoutInstructorsNestedInput
@@ -817,6 +907,9 @@ export type InstructorUncheckedUpdateWithoutClassesInput = {
   isHead?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  salary?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   events?: Prisma.EventUncheckedUpdateManyWithoutInstructorNestedInput
@@ -834,6 +927,9 @@ export type InstructorCreateWithoutEventsInput = {
   isHead?: boolean
   isActive?: boolean
   sortOrder?: number
+  salary?: number | null
+  startDate?: Date | string | null
+  notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   school: Prisma.SchoolCreateNestedOneWithoutInstructorsInput
@@ -853,6 +949,9 @@ export type InstructorUncheckedCreateWithoutEventsInput = {
   isHead?: boolean
   isActive?: boolean
   sortOrder?: number
+  salary?: number | null
+  startDate?: Date | string | null
+  notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   classes?: Prisma.ClassUncheckedCreateNestedManyWithoutInstructorInput
@@ -886,6 +985,9 @@ export type InstructorUpdateWithoutEventsInput = {
   isHead?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  salary?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneRequiredWithoutInstructorsNestedInput
@@ -905,6 +1007,9 @@ export type InstructorUncheckedUpdateWithoutEventsInput = {
   isHead?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  salary?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classes?: Prisma.ClassUncheckedUpdateManyWithoutInstructorNestedInput
@@ -922,6 +1027,9 @@ export type InstructorCreateManySchoolInput = {
   isHead?: boolean
   isActive?: boolean
   sortOrder?: number
+  salary?: number | null
+  startDate?: Date | string | null
+  notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -938,6 +1046,9 @@ export type InstructorUpdateWithoutSchoolInput = {
   isHead?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  salary?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classes?: Prisma.ClassUpdateManyWithoutInstructorNestedInput
@@ -956,6 +1067,9 @@ export type InstructorUncheckedUpdateWithoutSchoolInput = {
   isHead?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  salary?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classes?: Prisma.ClassUncheckedUpdateManyWithoutInstructorNestedInput
@@ -974,6 +1088,9 @@ export type InstructorUncheckedUpdateManyWithoutSchoolInput = {
   isHead?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  salary?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1031,6 +1148,9 @@ export type InstructorSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   isHead?: boolean
   isActive?: boolean
   sortOrder?: boolean
+  salary?: boolean
+  startDate?: boolean
+  notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
@@ -1052,6 +1172,9 @@ export type InstructorSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   isHead?: boolean
   isActive?: boolean
   sortOrder?: boolean
+  salary?: boolean
+  startDate?: boolean
+  notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
@@ -1070,6 +1193,9 @@ export type InstructorSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   isHead?: boolean
   isActive?: boolean
   sortOrder?: boolean
+  salary?: boolean
+  startDate?: boolean
+  notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
@@ -1088,11 +1214,14 @@ export type InstructorSelectScalar = {
   isHead?: boolean
   isActive?: boolean
   sortOrder?: boolean
+  salary?: boolean
+  startDate?: boolean
+  notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type InstructorOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "userId" | "name" | "role" | "belt" | "bio" | "photoUrl" | "instagram" | "isHead" | "isActive" | "sortOrder" | "createdAt" | "updatedAt", ExtArgs["result"]["instructor"]>
+export type InstructorOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "userId" | "name" | "role" | "belt" | "bio" | "photoUrl" | "instagram" | "isHead" | "isActive" | "sortOrder" | "salary" | "startDate" | "notes" | "createdAt" | "updatedAt", ExtArgs["result"]["instructor"]>
 export type InstructorInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   classes?: boolean | Prisma.Instructor$classesArgs<ExtArgs>
@@ -1126,6 +1255,9 @@ export type $InstructorPayload<ExtArgs extends runtime.Types.Extensions.Internal
     isHead: boolean
     isActive: boolean
     sortOrder: number
+    salary: number | null
+    startDate: Date | null
+    notes: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["instructor"]>
@@ -1566,6 +1698,9 @@ export interface InstructorFieldRefs {
   readonly isHead: Prisma.FieldRef<"Instructor", 'Boolean'>
   readonly isActive: Prisma.FieldRef<"Instructor", 'Boolean'>
   readonly sortOrder: Prisma.FieldRef<"Instructor", 'Int'>
+  readonly salary: Prisma.FieldRef<"Instructor", 'Float'>
+  readonly startDate: Prisma.FieldRef<"Instructor", 'DateTime'>
+  readonly notes: Prisma.FieldRef<"Instructor", 'String'>
   readonly createdAt: Prisma.FieldRef<"Instructor", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Instructor", 'DateTime'>
 }

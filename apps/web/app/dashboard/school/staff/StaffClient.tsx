@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Menu, X, Search, Check, TrendingUp,
   MoreHorizontal, Eye, Plus, Users, Award,
@@ -13,22 +13,41 @@ import { matchesSearch } from '../../../../lib/search'
 type Filter = string
 
 type StaffRole = 'Head Instructor' | 'Instructor' | 'Assistant' | 'Admin' | 'Receptionist'
-type StaffStatus = 'Active' | 'On Leave' | 'Inactive'
+type StaffStatus = 'Active' | 'Inactive'
 
 interface StaffMember {
-  id: number
-  avatar: string
+  id: string
+  avatarUrl: string | null
   name: string
   email: string
   role: StaffRole
   belt: string
   classes: string[]
-  salary: string
+  salary: number | null
   since: string
   status: StaffStatus
 }
 
-const STAFF: StaffMember[] = []
+interface MemberOption {
+  id: string
+  avatarUrl: string | null
+  name: string
+  email: string
+}
+
+function Avatar({ name, avatarUrl, size = 42 }: { name: string; avatarUrl: string | null; size?: number }) {
+  const initials = (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+  if (avatarUrl) return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={avatarUrl} alt={name} className="rounded-full shrink-0" style={{ width: size, height: size, objectFit: 'cover' }} />
+  )
+  return (
+    <div className="rounded-full shrink-0 flex items-center justify-center" style={{ width: size, height: size,
+      background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', color: '#fff', fontSize: size * 0.33, fontWeight: 700 }}>
+      {initials}
+    </div>
+  )
+}
 
 const ROLE_MAP: Record<StaffRole, { bg: string; color: string }> = {
   'Head Instructor': { bg: '#FDF2F8', color: '#9D174D' },
@@ -48,34 +67,44 @@ const BELT_MAP: Record<string, { bg: string; color: string }> = {
 
 const STATUS_MAP: Record<StaffStatus, { bg: string; color: string; border: string }> = {
   'Active':   { bg: '#F0FDF4', color: '#16A34A', border: '#BBF7D0' },
-  'On Leave': { bg: '#FFFBEB', color: '#D97706', border: '#FDE68A' },
   'Inactive': { bg: '#F3F4F6', color: '#6B7280', border: '#E5E7EB' },
 }
 
-const MEMBERS: { id: number; avatar: string; name: string; email: string }[] = []
-
-function AddStaffDrawer({ open, onClose, onSuccess }: { open: boolean; onClose: () => void; onSuccess: () => void }) {
+function AddStaffDrawer({ open, onClose, onSuccess, members }: { open: boolean; onClose: () => void; onSuccess: () => void; members: MemberOption[] }) {
   const [memberQuery, setMemberQuery]       = useState('')
-  const [selectedMember, setSelectedMember] = useState<typeof MEMBERS[0] | null>(null)
+  const [selectedMember, setSelectedMember] = useState<MemberOption | null>(null)
   const [showDropdown, setShowDropdown]     = useState(false)
   const [role, setRole]                     = useState<StaffRole | ''>('')
   const [belt, setBelt]                     = useState('')
   const [salary, setSalary]                 = useState('')
   const [startDate, setStartDate]           = useState('')
   const [notes, setNotes]                   = useState('')
+  const [saving, setSaving]                 = useState(false)
+  const [error, setError]                   = useState('')
 
-  const filteredMembers = MEMBERS.filter(m =>
+  const filteredMembers = members.filter(m =>
     matchesSearch(m.name, memberQuery) || matchesSearch(m.email, memberQuery)
   )
 
   function reset() {
     setMemberQuery(''); setSelectedMember(null); setShowDropdown(false)
-    setRole(''); setBelt(''); setSalary(''); setStartDate(''); setNotes('')
+    setRole(''); setBelt(''); setSalary(''); setStartDate(''); setNotes(''); setError('')
   }
   function handleClose() { reset(); onClose() }
-  function handleSuccess() { reset(); onSuccess() }
 
-  const canSubmit = selectedMember && role && belt && startDate
+  async function handleSubmit() {
+    if (!selectedMember || !role) return
+    setSaving(true); setError('')
+    const res = await fetch('/api/dashboard/staff', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: selectedMember.id, role, belt, salary, startDate, notes }),
+    })
+    setSaving(false)
+    if (!res.ok) { const d = await res.json(); setError(d.error ?? 'Error'); return }
+    reset(); onSuccess()
+  }
+
+  const canSubmit = selectedMember && role && belt && startDate && !saving
 
   const inputStyle: React.CSSProperties = {
     width: '100%', border: '1px solid #E5E7EB', borderRadius: 10,
@@ -113,8 +142,7 @@ function AddStaffDrawer({ open, onClose, onSuccess }: { open: boolean; onClose: 
               <div className="flex items-center justify-between px-3 py-2.5 rounded-xl"
                 style={{ border: '1px solid #0071E3', background: '#EFF6FF' }}>
                 <div className="flex items-center gap-2.5">
-                  <img src={selectedMember.avatar} alt={selectedMember.name}
-                    className="rounded-full shrink-0" style={{ width: 42, height: 42 }} />
+                  <Avatar name={selectedMember.name} avatarUrl={selectedMember.avatarUrl} />
                   <div>
                     <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{selectedMember.name}</p>
                     <p style={{ fontSize: 11, color: '#6B7280' }}>{selectedMember.email}</p>
@@ -150,7 +178,7 @@ function AddStaffDrawer({ open, onClose, onSuccess }: { open: boolean; onClose: 
                           style={{ background: 'transparent', border: 'none' }}
                           onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
                           onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                          <img src={m.avatar} alt={m.name} className="rounded-full shrink-0" style={{ width: 42, height: 42 }} />
+                          <Avatar name={m.name} avatarUrl={m.avatarUrl} />
                           <div>
                             <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{m.name}</p>
                             <p style={{ fontSize: 11, color: '#9CA3AF' }}>{m.email}</p>
@@ -159,6 +187,12 @@ function AddStaffDrawer({ open, onClose, onSuccess }: { open: boolean; onClose: 
                       ))}
                     </div>
                   </>
+                )}
+                {showDropdown && memberQuery && filteredMembers.length === 0 && (
+                  <div className="absolute left-0 right-0 rounded-xl z-20 mt-1 px-4 py-3"
+                    style={{ background: '#fff', border: '1px solid #E5E7EB', boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}>
+                    <p style={{ fontSize: 12, color: '#9CA3AF' }}>No members found</p>
+                  </div>
                 )}
               </div>
             )}
@@ -198,6 +232,7 @@ function AddStaffDrawer({ open, onClose, onSuccess }: { open: boolean; onClose: 
             <textarea rows={3} placeholder="Notes about this staff member…" value={notes} onChange={e => setNotes(e.target.value)}
               style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }} />
           </div>
+          {error && <p style={{ fontSize: 12, color: '#DC2626' }}>{error}</p>}
         </div>
         <div className="px-6 py-4 flex items-center gap-3 justify-end shrink-0"
           style={{ background: '#fff', borderTop: '1px solid #E5E7EB' }}>
@@ -205,11 +240,11 @@ function AddStaffDrawer({ open, onClose, onSuccess }: { open: boolean; onClose: 
             style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
             Cancel
           </button>
-          <button onClick={handleSuccess} disabled={!canSubmit} className="px-6 py-2.5 rounded-xl cursor-pointer flex items-center gap-2"
+          <button onClick={handleSubmit} disabled={!canSubmit} className="px-6 py-2.5 rounded-xl cursor-pointer flex items-center gap-2"
             style={{ fontSize: 13, fontWeight: 600, border: 'none',
               background: canSubmit ? '#0071E3' : '#93C5FD', color: '#fff',
               cursor: canSubmit ? 'pointer' : 'not-allowed' }}>
-            <Plus size={14} />Add Staff
+            <Plus size={14} />{saving ? 'Adding…' : 'Add Staff'}
           </button>
         </div>
       </div>
@@ -248,6 +283,23 @@ export default function StaffClient() {
   const [currentPage, setCurrentPage]   = useState(1)
   const [drawerOpen, setDrawerOpen]     = useState(false)
   const [toast, setToast]               = useState(false)
+  const [STAFF, setStaff]               = useState<StaffMember[]>([])
+  const [members, setMembers]           = useState<MemberOption[]>([])
+  const [loading, setLoading]           = useState(true)
+
+  function load() {
+    fetch('/api/dashboard/staff').then(r => r.json()).then(d => {
+      setStaff(d.staff ?? [])
+      setMembers(d.members ?? [])
+      setLoading(false)
+    })
+  }
+  useEffect(() => { load() }, [])
+
+  async function handleRemove(id: string) {
+    await fetch(`/api/dashboard/staff/${id}`, { method: 'DELETE' })
+    load()
+  }
 
   const filtered = STAFF.filter(s => {
     const matchFilter = activeFilter === 'All'
@@ -387,7 +439,7 @@ export default function StaffClient() {
                         style={{ borderBottom: idx < paginated.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
                         <td className="px-3 sm:px-5 py-3">
                           <div className="flex items-center gap-3 min-w-0">
-                            <img src={member.avatar} alt={member.name} className="rounded-full shrink-0" style={{ width: 42, height: 42 }} />
+                            <Avatar name={member.name} avatarUrl={member.avatarUrl} />
                             <div className="min-w-0">
                               <p className="truncate" style={{ fontSize: 14, fontWeight: 600, color: '#111827', maxWidth: 150 }}>{member.name}</p>
                               <p className="truncate" style={{ fontSize: 11, color: '#9CA3AF', maxWidth: 150 }}>{member.email}</p>
@@ -401,10 +453,12 @@ export default function StaffClient() {
                           </span>
                         </td>
                         <td className="hidden sm:table-cell px-5 py-3">
-                          <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999,
-                            background: beltc.bg, color: beltc.color }}>
-                            {member.belt}
-                          </span>
+                          {member.belt ? (
+                            <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999,
+                              background: beltc.bg, color: beltc.color }}>
+                              {member.belt}
+                            </span>
+                          ) : <span style={{ fontSize: 11, color: '#9CA3AF' }}>—</span>}
                         </td>
                         <td className="hidden lg:table-cell px-5 py-3">
                           <div className="flex items-center gap-1 flex-wrap">
@@ -426,7 +480,7 @@ export default function StaffClient() {
                           </div>
                         </td>
                         <td className="hidden md:table-cell px-5 py-3">
-                          <span style={{ fontSize: 13, color: '#6B7280' }}>{member.since}</span>
+                          <span style={{ fontSize: 13, color: '#6B7280' }}>{new Date(member.since).toLocaleDateString()}</span>
                         </td>
                         <td className="px-2 sm:px-5 py-3">
                           <span className="inline-flex items-center gap-1.5"
@@ -457,6 +511,7 @@ export default function StaffClient() {
                                   boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 160 }}>
                                 {['View profile','Edit details','Remove staff'].map((label, i) => (
                                   <button key={label}
+                                    onClick={i === 2 ? () => handleRemove(member.id) : undefined}
                                     className="w-full text-left px-4 py-2.5 cursor-pointer"
                                     style={{ fontSize: 13, color: i === 2 ? '#DC2626' : '#374151',
                                       background: 'transparent', border: 'none' }}
@@ -476,7 +531,7 @@ export default function StaffClient() {
                     <tr>
                       <td colSpan={7} style={{ textAlign: 'center', padding: '48px 0' }}>
                         <Users size={28} style={{ color: '#E5E7EB', margin: '0 auto 10px' }} />
-                        <p style={{ fontSize: 14, color: '#9CA3AF' }}>{t.school.noStaff}</p>
+                        <p style={{ fontSize: 14, color: '#9CA3AF' }}>{loading ? '...' : t.school.noStaff}</p>
                       </td>
                     </tr>
                   )}
@@ -523,8 +578,9 @@ export default function StaffClient() {
 
     <AddStaffDrawer
       open={drawerOpen}
+      members={members}
       onClose={() => setDrawerOpen(false)}
-      onSuccess={() => { setDrawerOpen(false); setToast(true); setTimeout(() => setToast(false), 3500) }}
+      onSuccess={() => { setDrawerOpen(false); load(); setToast(true); setTimeout(() => setToast(false), 3500) }}
     />
     {toast && <SuccessToast message="Staff member added successfully" onClose={() => setToast(false)} />}
     </>

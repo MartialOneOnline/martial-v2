@@ -2,7 +2,7 @@
 
 import { useDashboard } from '../../../../components/DashboardShell'
 import NotificationBell from '../../../../components/NotificationBell'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {Users, Calendar, CreditCard, BarChart2, Settings, ChevronRight, ChevronDown, Menu, X, Search, Check, TrendingDown, MoreHorizontal, Eye, Plus, FileText, Download, Send} from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import RowMenu from '../../../../components/RowMenu'
@@ -12,8 +12,8 @@ type WaiverType = 'Liability' | 'Medical' | 'Photo Release' | 'Minor'
 type WaiverStatus = 'Signed' | 'Pending' | 'Expired'
 
 interface Waiver {
-  id: number
-  avatar: string
+  id: string
+  avatarUrl: string | null
   name: string
   email: string
   type: WaiverType
@@ -22,7 +22,26 @@ interface Waiver {
   status: WaiverStatus
 }
 
-const WAIVERS: Waiver[] = []
+interface MemberOption {
+  id: string
+  avatarUrl: string | null
+  name: string
+  email: string
+}
+
+function Avatar({ name, avatarUrl, size = 42 }: { name: string; avatarUrl: string | null; size?: number }) {
+  const initials = (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+  if (avatarUrl) return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={avatarUrl} alt={name} className="rounded-full shrink-0" style={{ width: size, height: size, objectFit: 'cover' }} />
+  )
+  return (
+    <div className="rounded-full shrink-0 flex items-center justify-center" style={{ width: size, height: size,
+      background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', color: '#fff', fontSize: size * 0.33, fontWeight: 700 }}>
+      {initials}
+    </div>
+  )
+}
 
 const STATUS_MAP: Record<WaiverStatus, { bg: string; color: string; border: string }> = {
   Signed:  { bg: '#F0FDF4', color: '#16A34A', border: '#BBF7D0' },
@@ -37,28 +56,40 @@ const TYPE_MAP: Record<WaiverType, { bg: string; color: string }> = {
   'Minor':        { bg: '#FFFBEB', color: '#D97706' },
 }
 
-const MEMBERS: { id: number; avatar: string; name: string; email: string }[] = []
-
-function AddWaiverDrawer({ open, onClose, onSuccess }: { open: boolean; onClose: () => void; onSuccess: () => void }) {
+function AddWaiverDrawer({ open, onClose, onSuccess, members }: { open: boolean; onClose: () => void; onSuccess: () => void; members: MemberOption[] }) {
   const [memberQuery, setMemberQuery]       = useState('')
-  const [selectedMember, setSelectedMember] = useState<typeof MEMBERS[0] | null>(null)
+  const [selectedMember, setSelectedMember] = useState<MemberOption | null>(null)
   const [showDropdown, setShowDropdown]     = useState(false)
   const [waiverType, setWaiverType]         = useState<WaiverType | ''>('')
+  const [content, setContent]               = useState('')
   const [sendMethod, setSendMethod]         = useState('Email')
   const [notes, setNotes]                   = useState('')
+  const [saving, setSaving]                 = useState(false)
+  const [error, setError]                   = useState('')
 
-  const filteredMembers = MEMBERS.filter(m =>
+  const filteredMembers = members.filter(m =>
     matchesSearch(m.name, memberQuery) || matchesSearch(m.email, memberQuery)
   )
 
   function reset() {
     setMemberQuery(''); setSelectedMember(null); setShowDropdown(false)
-    setWaiverType(''); setSendMethod('Email'); setNotes('')
+    setWaiverType(''); setContent(''); setSendMethod('Email'); setNotes(''); setError('')
   }
   function handleClose() { reset(); onClose() }
-  function handleSuccess() { reset(); onSuccess() }
 
-  const canSubmit = selectedMember && waiverType
+  async function handleSubmit() {
+    if (!selectedMember || !waiverType || !content.trim()) return
+    setSaving(true); setError('')
+    const res = await fetch('/api/dashboard/waivers', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: selectedMember.id, waiverType, content, sendMethod, notes }),
+    })
+    setSaving(false)
+    if (!res.ok) { const d = await res.json(); setError(d.error ?? 'Error'); return }
+    reset(); onSuccess()
+  }
+
+  const canSubmit = selectedMember && waiverType && content.trim() && !saving
 
   const inputStyle: React.CSSProperties = {
     width: '100%', border: '1px solid #E5E7EB', borderRadius: 10,
@@ -96,8 +127,7 @@ function AddWaiverDrawer({ open, onClose, onSuccess }: { open: boolean; onClose:
               <div className="flex items-center justify-between px-3 py-2.5 rounded-xl"
                 style={{ border: '1px solid #0071E3', background: '#EFF6FF' }}>
                 <div className="flex items-center gap-2.5">
-                  <img src={selectedMember.avatar} alt={selectedMember.name}
-                    className="rounded-full shrink-0" style={{ width: 42, height: 42 }} />
+                  <Avatar name={selectedMember.name} avatarUrl={selectedMember.avatarUrl} />
                   <div>
                     <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{selectedMember.name}</p>
                     <p style={{ fontSize: 11, color: '#6B7280' }}>{selectedMember.email}</p>
@@ -133,7 +163,7 @@ function AddWaiverDrawer({ open, onClose, onSuccess }: { open: boolean; onClose:
                           style={{ background: 'transparent', border: 'none' }}
                           onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
                           onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                          <img src={m.avatar} alt={m.name} className="rounded-full shrink-0" style={{ width: 42, height: 42 }} />
+                          <Avatar name={m.name} avatarUrl={m.avatarUrl} />
                           <div>
                             <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{m.name}</p>
                             <p style={{ fontSize: 11, color: '#9CA3AF' }}>{m.email}</p>
@@ -142,6 +172,12 @@ function AddWaiverDrawer({ open, onClose, onSuccess }: { open: boolean; onClose:
                       ))}
                     </div>
                   </>
+                )}
+                {showDropdown && memberQuery && filteredMembers.length === 0 && (
+                  <div className="absolute left-0 right-0 rounded-xl z-20 mt-1 px-4 py-3"
+                    style={{ background: '#fff', border: '1px solid #E5E7EB', boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}>
+                    <p style={{ fontSize: 12, color: '#9CA3AF' }}>No members found</p>
+                  </div>
                 )}
               </div>
             )}
@@ -166,10 +202,17 @@ function AddWaiverDrawer({ open, onClose, onSuccess }: { open: boolean; onClose:
             </div>
           </div>
           <div>
+            <label style={labelStyle}>Waiver Content</label>
+            <textarea rows={5} placeholder="Paste or write the legal text for this waiver…" value={content} onChange={e => setContent(e.target.value)}
+              style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }} />
+            <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>Saved as the current template for this waiver type — future sends of the same type reuse and can update this text.</p>
+          </div>
+          <div>
             <label style={labelStyle}>Notes <span style={{ fontWeight: 400, color: '#9CA3AF' }}>(optional)</span></label>
             <textarea rows={3} placeholder="Notes about this waiver…" value={notes} onChange={e => setNotes(e.target.value)}
               style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }} />
           </div>
+          {error && <p style={{ fontSize: 12, color: '#DC2626' }}>{error}</p>}
         </div>
         <div className="px-6 py-4 flex items-center gap-3 justify-end shrink-0"
           style={{ background: '#fff', borderTop: '1px solid #E5E7EB' }}>
@@ -177,11 +220,11 @@ function AddWaiverDrawer({ open, onClose, onSuccess }: { open: boolean; onClose:
             style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
             Cancel
           </button>
-          <button onClick={handleSuccess} disabled={!canSubmit} className="px-6 py-2.5 rounded-xl cursor-pointer flex items-center gap-2"
+          <button onClick={handleSubmit} disabled={!canSubmit} className="px-6 py-2.5 rounded-xl cursor-pointer flex items-center gap-2"
             style={{ fontSize: 13, fontWeight: 600, border: 'none',
               background: canSubmit ? '#0071E3' : '#93C5FD', color: '#fff',
               cursor: canSubmit ? 'pointer' : 'not-allowed' }}>
-            <Send size={14} />Send Waiver
+            <Send size={14} />{saving ? 'Sending…' : 'Send Waiver'}
           </button>
         </div>
       </div>
@@ -222,6 +265,23 @@ export default function WaiversClient() {
   const [currentPage, setCurrentPage]   = useState(1)
   const [drawerOpen, setDrawerOpen]     = useState(false)
   const [toast, setToast]               = useState(false)
+  const [WAIVERS, setWaivers]           = useState<Waiver[]>([])
+  const [members, setMembers]           = useState<MemberOption[]>([])
+  const [loading, setLoading]           = useState(true)
+
+  function load() {
+    fetch('/api/dashboard/waivers').then(r => r.json()).then(d => {
+      setWaivers(d.waivers ?? [])
+      setMembers(d.members ?? [])
+      setLoading(false)
+    })
+  }
+  useEffect(() => { load() }, [])
+
+  async function handleDelete(id: string) {
+    await fetch(`/api/dashboard/waivers/${id}`, { method: 'DELETE' })
+    load()
+  }
 
   const filtered = WAIVERS.filter(w => {
     const matchFilter = activeFilter === 'All' || w.status === activeFilter
@@ -353,7 +413,7 @@ export default function WaiversClient() {
                         style={{ borderBottom: idx < paginated.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
                         <td className="px-3 sm:px-5 py-3">
                           <div className="flex items-center gap-3 min-w-0">
-                            <img src={waiver.avatar} alt={waiver.name} className="rounded-full shrink-0" style={{ width: 42, height: 42 }} />
+                            <Avatar name={waiver.name} avatarUrl={waiver.avatarUrl} />
                             <div className="min-w-0">
                               <p className="truncate" style={{ fontSize: 14, fontWeight: 600, color: '#111827', maxWidth: 150 }}>{waiver.name}</p>
                               <p className="truncate" style={{ fontSize: 11, color: '#9CA3AF', maxWidth: 150 }}>{waiver.email}</p>
@@ -407,6 +467,7 @@ export default function WaiversClient() {
                                   boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 160 }}>
                                 {['View waiver','Download PDF','Resend','Delete'].map((label, i) => (
                                   <button key={label}
+                                    onClick={i === 3 ? () => handleDelete(waiver.id) : undefined}
                                     className="w-full text-left px-4 py-2.5 cursor-pointer"
                                     style={{ fontSize: 13, color: i === 3 ? '#DC2626' : '#374151',
                                       background: 'transparent', border: 'none' }}
@@ -426,7 +487,7 @@ export default function WaiversClient() {
                     <tr>
                       <td colSpan={6} style={{ textAlign: 'center', padding: '48px 0' }}>
                         <FileText size={28} style={{ color: '#E5E7EB', margin: '0 auto 10px' }} />
-                        <p style={{ fontSize: 14, color: '#9CA3AF' }}>{t.school.noWaivers}</p>
+                        <p style={{ fontSize: 14, color: '#9CA3AF' }}>{loading ? '...' : t.school.noWaivers}</p>
                       </td>
                     </tr>
                   )}
@@ -471,8 +532,9 @@ export default function WaiversClient() {
           </div>
       <AddWaiverDrawer
       open={drawerOpen}
+      members={members}
       onClose={() => setDrawerOpen(false)}
-      onSuccess={() => { setDrawerOpen(false); setToast(true); setTimeout(() => setToast(false), 3500) }}
+      onSuccess={() => { setDrawerOpen(false); load(); setToast(true); setTimeout(() => setToast(false), 3500) }}
     />
       {toast && <SuccessToast message="Waiver sent successfully" onClose={() => setToast(false)} />}
     </main>

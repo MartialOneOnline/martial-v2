@@ -621,14 +621,21 @@ function ModulesTab() {
 }
 
 // ── Staff Tab ─────────────────────────────────────────────────────────────────
+interface StaffOverviewRow { name: string; role: string; belt: string; status: 'Active' | 'Inactive' }
+
 function StaffTab() {
-  const MOCK_STAFF = [
-    { name: 'Jorge Sanchez', role: 'Head Instructor', belt: 'Black',  status: 'Active',   avatar: '' },
-    { name: 'Ana Díaz',      role: 'Instructor',      belt: 'Brown',  status: 'Active',   avatar: '' },
-    { name: 'Roberto Flores',role: 'Assistant',        belt: 'Blue',   status: 'Active',   avatar: '' },
-    { name: 'María López',   role: 'Admin',            belt: 'White',  status: 'Active',   avatar: '' },
-    { name: 'Pavel Kowalski',role: 'Instructor',       belt: 'Purple', status: 'On Leave', avatar: '' },
-  ]
+  const [staff, setStaff]     = useState<StaffOverviewRow[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/dashboard/staff').then(r => r.json()).then(d => {
+      setStaff((d.staff ?? []).map((s: { name: string; role: string; belt: string; status: string }) => ({
+        name: s.name, role: s.role, belt: s.belt || '—', status: s.status,
+      })))
+      setLoading(false)
+    })
+  }, [])
+
   const BELT_COLOR: Record<string, string> = { Black: '#111827', Brown: '#92400E', Blue: '#1D4ED8', Purple: '#6D28D9', White: '#374151' }
   const ROLE_COLOR: Record<string, string> = { 'Head Instructor': '#DC2626', Instructor: '#0870E2', Assistant: '#7C3AED', Admin: '#16A34A' }
 
@@ -638,11 +645,15 @@ function StaffTab() {
         <p style={SECTION_TITLE}>Active staff</p>
         <p style={SECTION_SUB}>Quick overview of your team</p>
         <div className="flex flex-col" style={{ border: '1.5px solid #E5E7EB', borderRadius: 14, overflow: 'hidden' }}>
-          {MOCK_STAFF.map((s, i) => {
+          {staff.length === 0 ? (
+            <div className="px-5 py-6" style={{ background: '#fff' }}>
+              <p style={{ fontSize: 13, color: '#9CA3AF' }}>{loading ? 'Loading…' : 'No staff yet'}</p>
+            </div>
+          ) : staff.map((s, i) => {
             const initials = s.name.split(' ').map(w => w[0]).join('').slice(0, 2)
             return (
-              <div key={s.name} className="flex items-center gap-4 px-5 py-3.5"
-                style={{ borderBottom: i < MOCK_STAFF.length - 1 ? '1px solid #F3F4F6' : 'none', background: '#fff' }}>
+              <div key={s.name + i} className="flex items-center gap-4 px-5 py-3.5"
+                style={{ borderBottom: i < staff.length - 1 ? '1px solid #F3F4F6' : 'none', background: '#fff' }}>
                 <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
                   style={{ background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', fontSize: 12, fontWeight: 700, color: '#fff' }}>
                   {initials}

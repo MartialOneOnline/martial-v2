@@ -225,6 +225,7 @@ export type WaiverOrderByWithRelationInput = {
 
 export type WaiverWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  schoolId_title?: Prisma.WaiverSchoolIdTitleCompoundUniqueInput
   AND?: Prisma.WaiverWhereInput | Prisma.WaiverWhereInput[]
   OR?: Prisma.WaiverWhereInput[]
   NOT?: Prisma.WaiverWhereInput | Prisma.WaiverWhereInput[]
@@ -237,7 +238,7 @@ export type WaiverWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Waiver"> | Date | string
   school?: Prisma.XOR<Prisma.SchoolScalarRelationFilter, Prisma.SchoolWhereInput>
   signedBy?: Prisma.UserWaiverListRelationFilter
-}, "id">
+}, "id" | "schoolId_title">
 
 export type WaiverOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -355,6 +356,11 @@ export type WaiverListRelationFilter = {
 
 export type WaiverOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type WaiverSchoolIdTitleCompoundUniqueInput = {
+  schoolId: string
+  title: string
 }
 
 export type WaiverCountOrderByAggregateInput = {

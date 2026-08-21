@@ -602,6 +602,10 @@ model Instructor {
   isActive  Boolean @default(true)
   sortOrder Int     @default(0)
 
+  salary    Float?
+  startDate DateTime?
+  notes     String?
+
   classes Class[]
   events  Event[]
 
@@ -1386,6 +1390,7 @@ model Waiver {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([schoolId, title])
   @@map("waivers")
 }
 
@@ -1396,9 +1401,14 @@ model UserWaiver {
   userId   String
   user     User   @relation(fields: [userId], references: [id])
 
-  signedAt  DateTime @default(now())
+  // Null until the member actually signs — a row is created as soon as a
+  // waiver is sent to them, so "sent but not yet signed" is representable.
+  signedAt  DateTime?
   ipAddress String?
   signature String? // base64 or typed name
+  notes     String? // Internal school notes about this send (not shown to the member)
+
+  createdAt DateTime @default(now())
 
   @@unique([waiverId, userId])
   @@map("user_waivers")

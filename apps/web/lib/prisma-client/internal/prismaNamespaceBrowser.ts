@@ -331,6 +331,9 @@ export const InstructorScalarFieldEnum = {
   isHead: 'isHead',
   isActive: 'isActive',
   sortOrder: 'sortOrder',
+  salary: 'salary',
+  startDate: 'startDate',
+  notes: 'notes',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -791,7 +794,9 @@ export const UserWaiverScalarFieldEnum = {
   userId: 'userId',
   signedAt: 'signedAt',
   ipAddress: 'ipAddress',
-  signature: 'signature'
+  signature: 'signature',
+  notes: 'notes',
+  createdAt: 'createdAt'
 } as const
 
 export type UserWaiverScalarFieldEnum = (typeof UserWaiverScalarFieldEnum)[keyof typeof UserWaiverScalarFieldEnum]

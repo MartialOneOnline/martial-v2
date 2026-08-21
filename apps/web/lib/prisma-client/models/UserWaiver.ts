@@ -31,6 +31,8 @@ export type UserWaiverMinAggregateOutputType = {
   signedAt: Date | null
   ipAddress: string | null
   signature: string | null
+  notes: string | null
+  createdAt: Date | null
 }
 
 export type UserWaiverMaxAggregateOutputType = {
@@ -40,6 +42,8 @@ export type UserWaiverMaxAggregateOutputType = {
   signedAt: Date | null
   ipAddress: string | null
   signature: string | null
+  notes: string | null
+  createdAt: Date | null
 }
 
 export type UserWaiverCountAggregateOutputType = {
@@ -49,6 +53,8 @@ export type UserWaiverCountAggregateOutputType = {
   signedAt: number
   ipAddress: number
   signature: number
+  notes: number
+  createdAt: number
   _all: number
 }
 
@@ -60,6 +66,8 @@ export type UserWaiverMinAggregateInputType = {
   signedAt?: true
   ipAddress?: true
   signature?: true
+  notes?: true
+  createdAt?: true
 }
 
 export type UserWaiverMaxAggregateInputType = {
@@ -69,6 +77,8 @@ export type UserWaiverMaxAggregateInputType = {
   signedAt?: true
   ipAddress?: true
   signature?: true
+  notes?: true
+  createdAt?: true
 }
 
 export type UserWaiverCountAggregateInputType = {
@@ -78,6 +88,8 @@ export type UserWaiverCountAggregateInputType = {
   signedAt?: true
   ipAddress?: true
   signature?: true
+  notes?: true
+  createdAt?: true
   _all?: true
 }
 
@@ -157,9 +169,11 @@ export type UserWaiverGroupByOutputType = {
   id: string
   waiverId: string
   userId: string
-  signedAt: Date
+  signedAt: Date | null
   ipAddress: string | null
   signature: string | null
+  notes: string | null
+  createdAt: Date
   _count: UserWaiverCountAggregateOutputType | null
   _min: UserWaiverMinAggregateOutputType | null
   _max: UserWaiverMaxAggregateOutputType | null
@@ -187,9 +201,11 @@ export type UserWaiverWhereInput = {
   id?: Prisma.StringFilter<"UserWaiver"> | string
   waiverId?: Prisma.StringFilter<"UserWaiver"> | string
   userId?: Prisma.StringFilter<"UserWaiver"> | string
-  signedAt?: Prisma.DateTimeFilter<"UserWaiver"> | Date | string
+  signedAt?: Prisma.DateTimeNullableFilter<"UserWaiver"> | Date | string | null
   ipAddress?: Prisma.StringNullableFilter<"UserWaiver"> | string | null
   signature?: Prisma.StringNullableFilter<"UserWaiver"> | string | null
+  notes?: Prisma.StringNullableFilter<"UserWaiver"> | string | null
+  createdAt?: Prisma.DateTimeFilter<"UserWaiver"> | Date | string
   waiver?: Prisma.XOR<Prisma.WaiverScalarRelationFilter, Prisma.WaiverWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }
@@ -198,9 +214,11 @@ export type UserWaiverOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   waiverId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  signedAt?: Prisma.SortOrder
+  signedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   ipAddress?: Prisma.SortOrderInput | Prisma.SortOrder
   signature?: Prisma.SortOrderInput | Prisma.SortOrder
+  notes?: Prisma.SortOrderInput | Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
   waiver?: Prisma.WaiverOrderByWithRelationInput
   user?: Prisma.UserOrderByWithRelationInput
 }
@@ -213,9 +231,11 @@ export type UserWaiverWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.UserWaiverWhereInput | Prisma.UserWaiverWhereInput[]
   waiverId?: Prisma.StringFilter<"UserWaiver"> | string
   userId?: Prisma.StringFilter<"UserWaiver"> | string
-  signedAt?: Prisma.DateTimeFilter<"UserWaiver"> | Date | string
+  signedAt?: Prisma.DateTimeNullableFilter<"UserWaiver"> | Date | string | null
   ipAddress?: Prisma.StringNullableFilter<"UserWaiver"> | string | null
   signature?: Prisma.StringNullableFilter<"UserWaiver"> | string | null
+  notes?: Prisma.StringNullableFilter<"UserWaiver"> | string | null
+  createdAt?: Prisma.DateTimeFilter<"UserWaiver"> | Date | string
   waiver?: Prisma.XOR<Prisma.WaiverScalarRelationFilter, Prisma.WaiverWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }, "id" | "waiverId_userId">
@@ -224,9 +244,11 @@ export type UserWaiverOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   waiverId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  signedAt?: Prisma.SortOrder
+  signedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   ipAddress?: Prisma.SortOrderInput | Prisma.SortOrder
   signature?: Prisma.SortOrderInput | Prisma.SortOrder
+  notes?: Prisma.SortOrderInput | Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
   _count?: Prisma.UserWaiverCountOrderByAggregateInput
   _max?: Prisma.UserWaiverMaxOrderByAggregateInput
   _min?: Prisma.UserWaiverMinOrderByAggregateInput
@@ -239,16 +261,20 @@ export type UserWaiverScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"UserWaiver"> | string
   waiverId?: Prisma.StringWithAggregatesFilter<"UserWaiver"> | string
   userId?: Prisma.StringWithAggregatesFilter<"UserWaiver"> | string
-  signedAt?: Prisma.DateTimeWithAggregatesFilter<"UserWaiver"> | Date | string
+  signedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"UserWaiver"> | Date | string | null
   ipAddress?: Prisma.StringNullableWithAggregatesFilter<"UserWaiver"> | string | null
   signature?: Prisma.StringNullableWithAggregatesFilter<"UserWaiver"> | string | null
+  notes?: Prisma.StringNullableWithAggregatesFilter<"UserWaiver"> | string | null
+  createdAt?: Prisma.DateTimeWithAggregatesFilter<"UserWaiver"> | Date | string
 }
 
 export type UserWaiverCreateInput = {
   id?: string
-  signedAt?: Date | string
+  signedAt?: Date | string | null
   ipAddress?: string | null
   signature?: string | null
+  notes?: string | null
+  createdAt?: Date | string
   waiver: Prisma.WaiverCreateNestedOneWithoutSignedByInput
   user: Prisma.UserCreateNestedOneWithoutUserWaiversInput
 }
@@ -257,16 +283,20 @@ export type UserWaiverUncheckedCreateInput = {
   id?: string
   waiverId: string
   userId: string
-  signedAt?: Date | string
+  signedAt?: Date | string | null
   ipAddress?: string | null
   signature?: string | null
+  notes?: string | null
+  createdAt?: Date | string
 }
 
 export type UserWaiverUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  signedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  signedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ipAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   waiver?: Prisma.WaiverUpdateOneRequiredWithoutSignedByNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutUserWaiversNestedInput
 }
@@ -275,34 +305,42 @@ export type UserWaiverUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   waiverId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  signedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  signedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ipAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type UserWaiverCreateManyInput = {
   id?: string
   waiverId: string
   userId: string
-  signedAt?: Date | string
+  signedAt?: Date | string | null
   ipAddress?: string | null
   signature?: string | null
+  notes?: string | null
+  createdAt?: Date | string
 }
 
 export type UserWaiverUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  signedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  signedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ipAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type UserWaiverUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   waiverId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  signedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  signedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ipAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type UserWaiverListRelationFilter = {
@@ -327,6 +365,8 @@ export type UserWaiverCountOrderByAggregateInput = {
   signedAt?: Prisma.SortOrder
   ipAddress?: Prisma.SortOrder
   signature?: Prisma.SortOrder
+  notes?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
 }
 
 export type UserWaiverMaxOrderByAggregateInput = {
@@ -336,6 +376,8 @@ export type UserWaiverMaxOrderByAggregateInput = {
   signedAt?: Prisma.SortOrder
   ipAddress?: Prisma.SortOrder
   signature?: Prisma.SortOrder
+  notes?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
 }
 
 export type UserWaiverMinOrderByAggregateInput = {
@@ -345,6 +387,8 @@ export type UserWaiverMinOrderByAggregateInput = {
   signedAt?: Prisma.SortOrder
   ipAddress?: Prisma.SortOrder
   signature?: Prisma.SortOrder
+  notes?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
 }
 
 export type UserWaiverCreateNestedManyWithoutUserInput = {
@@ -433,18 +477,22 @@ export type UserWaiverUncheckedUpdateManyWithoutWaiverNestedInput = {
 
 export type UserWaiverCreateWithoutUserInput = {
   id?: string
-  signedAt?: Date | string
+  signedAt?: Date | string | null
   ipAddress?: string | null
   signature?: string | null
+  notes?: string | null
+  createdAt?: Date | string
   waiver: Prisma.WaiverCreateNestedOneWithoutSignedByInput
 }
 
 export type UserWaiverUncheckedCreateWithoutUserInput = {
   id?: string
   waiverId: string
-  signedAt?: Date | string
+  signedAt?: Date | string | null
   ipAddress?: string | null
   signature?: string | null
+  notes?: string | null
+  createdAt?: Date | string
 }
 
 export type UserWaiverCreateOrConnectWithoutUserInput = {
@@ -480,25 +528,31 @@ export type UserWaiverScalarWhereInput = {
   id?: Prisma.StringFilter<"UserWaiver"> | string
   waiverId?: Prisma.StringFilter<"UserWaiver"> | string
   userId?: Prisma.StringFilter<"UserWaiver"> | string
-  signedAt?: Prisma.DateTimeFilter<"UserWaiver"> | Date | string
+  signedAt?: Prisma.DateTimeNullableFilter<"UserWaiver"> | Date | string | null
   ipAddress?: Prisma.StringNullableFilter<"UserWaiver"> | string | null
   signature?: Prisma.StringNullableFilter<"UserWaiver"> | string | null
+  notes?: Prisma.StringNullableFilter<"UserWaiver"> | string | null
+  createdAt?: Prisma.DateTimeFilter<"UserWaiver"> | Date | string
 }
 
 export type UserWaiverCreateWithoutWaiverInput = {
   id?: string
-  signedAt?: Date | string
+  signedAt?: Date | string | null
   ipAddress?: string | null
   signature?: string | null
+  notes?: string | null
+  createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutUserWaiversInput
 }
 
 export type UserWaiverUncheckedCreateWithoutWaiverInput = {
   id?: string
   userId: string
-  signedAt?: Date | string
+  signedAt?: Date | string | null
   ipAddress?: string | null
   signature?: string | null
+  notes?: string | null
+  createdAt?: Date | string
 }
 
 export type UserWaiverCreateOrConnectWithoutWaiverInput = {
@@ -530,65 +584,81 @@ export type UserWaiverUpdateManyWithWhereWithoutWaiverInput = {
 export type UserWaiverCreateManyUserInput = {
   id?: string
   waiverId: string
-  signedAt?: Date | string
+  signedAt?: Date | string | null
   ipAddress?: string | null
   signature?: string | null
+  notes?: string | null
+  createdAt?: Date | string
 }
 
 export type UserWaiverUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  signedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  signedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ipAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   waiver?: Prisma.WaiverUpdateOneRequiredWithoutSignedByNestedInput
 }
 
 export type UserWaiverUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   waiverId?: Prisma.StringFieldUpdateOperationsInput | string
-  signedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  signedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ipAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type UserWaiverUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   waiverId?: Prisma.StringFieldUpdateOperationsInput | string
-  signedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  signedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ipAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type UserWaiverCreateManyWaiverInput = {
   id?: string
   userId: string
-  signedAt?: Date | string
+  signedAt?: Date | string | null
   ipAddress?: string | null
   signature?: string | null
+  notes?: string | null
+  createdAt?: Date | string
 }
 
 export type UserWaiverUpdateWithoutWaiverInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  signedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  signedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ipAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutUserWaiversNestedInput
 }
 
 export type UserWaiverUncheckedUpdateWithoutWaiverInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  signedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  signedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ipAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type UserWaiverUncheckedUpdateManyWithoutWaiverInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  signedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  signedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ipAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -600,6 +670,8 @@ export type UserWaiverSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   signedAt?: boolean
   ipAddress?: boolean
   signature?: boolean
+  notes?: boolean
+  createdAt?: boolean
   waiver?: boolean | Prisma.WaiverDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["userWaiver"]>
@@ -611,6 +683,8 @@ export type UserWaiverSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   signedAt?: boolean
   ipAddress?: boolean
   signature?: boolean
+  notes?: boolean
+  createdAt?: boolean
   waiver?: boolean | Prisma.WaiverDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["userWaiver"]>
@@ -622,6 +696,8 @@ export type UserWaiverSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   signedAt?: boolean
   ipAddress?: boolean
   signature?: boolean
+  notes?: boolean
+  createdAt?: boolean
   waiver?: boolean | Prisma.WaiverDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["userWaiver"]>
@@ -633,9 +709,11 @@ export type UserWaiverSelectScalar = {
   signedAt?: boolean
   ipAddress?: boolean
   signature?: boolean
+  notes?: boolean
+  createdAt?: boolean
 }
 
-export type UserWaiverOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "waiverId" | "userId" | "signedAt" | "ipAddress" | "signature", ExtArgs["result"]["userWaiver"]>
+export type UserWaiverOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "waiverId" | "userId" | "signedAt" | "ipAddress" | "signature" | "notes" | "createdAt", ExtArgs["result"]["userWaiver"]>
 export type UserWaiverInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   waiver?: boolean | Prisma.WaiverDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -659,9 +737,11 @@ export type $UserWaiverPayload<ExtArgs extends runtime.Types.Extensions.Internal
     id: string
     waiverId: string
     userId: string
-    signedAt: Date
+    signedAt: Date | null
     ipAddress: string | null
     signature: string | null
+    notes: string | null
+    createdAt: Date
   }, ExtArgs["result"]["userWaiver"]>
   composites: {}
 }
@@ -1093,6 +1173,8 @@ export interface UserWaiverFieldRefs {
   readonly signedAt: Prisma.FieldRef<"UserWaiver", 'DateTime'>
   readonly ipAddress: Prisma.FieldRef<"UserWaiver", 'String'>
   readonly signature: Prisma.FieldRef<"UserWaiver", 'String'>
+  readonly notes: Prisma.FieldRef<"UserWaiver", 'String'>
+  readonly createdAt: Prisma.FieldRef<"UserWaiver", 'DateTime'>
 }
     
 
