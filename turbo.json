@@ -13,7 +13,12 @@
     "RESEND_API_KEY",
     "STRIPE_PLATFORM_SECRET_KEY",
     "STRIPE_PLATFORM_WEBHOOK_SECRET",
-    "CRON_SECRET"
+    "CRON_SECRET",
+    "MUX_TOKEN_ID",
+    "MUX_TOKEN_SECRET",
+    "MUX_WEBHOOK_SECRET",
+    "MUX_SIGNING_KEY",
+    "MUX_PRIVATE_KEY"
   ],
   "tasks": {
     "build": {

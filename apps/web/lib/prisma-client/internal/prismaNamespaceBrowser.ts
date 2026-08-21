@@ -56,7 +56,9 @@ export const ModelName = {
   ContentSeries: 'ContentSeries',
   ContentVideo: 'ContentVideo',
   ContentAccess: 'ContentAccess',
-  CurriculumVideo: 'CurriculumVideo',
+  Curriculum: 'Curriculum',
+  CurriculumLesson: 'CurriculumLesson',
+  CurriculumLessonView: 'CurriculumLessonView',
   User: 'User',
   Discipline: 'Discipline',
   SchoolDiscipline: 'SchoolDiscipline',
@@ -206,11 +208,24 @@ export const ContentAccessScalarFieldEnum = {
 export type ContentAccessScalarFieldEnum = (typeof ContentAccessScalarFieldEnum)[keyof typeof ContentAccessScalarFieldEnum]
 
 
-export const CurriculumVideoScalarFieldEnum = {
+export const CurriculumScalarFieldEnum = {
   id: 'id',
   schoolId: 'schoolId',
+  name: 'name',
+  description: 'description',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CurriculumScalarFieldEnum = (typeof CurriculumScalarFieldEnum)[keyof typeof CurriculumScalarFieldEnum]
+
+
+export const CurriculumLessonScalarFieldEnum = {
+  id: 'id',
+  curriculumId: 'curriculumId',
+  schoolId: 'schoolId',
   title: 'title',
-  belt: 'belt',
   category: 'category',
   description: 'description',
   sortOrder: 'sortOrder',
@@ -225,7 +240,19 @@ export const CurriculumVideoScalarFieldEnum = {
   updatedAt: 'updatedAt'
 } as const
 
-export type CurriculumVideoScalarFieldEnum = (typeof CurriculumVideoScalarFieldEnum)[keyof typeof CurriculumVideoScalarFieldEnum]
+export type CurriculumLessonScalarFieldEnum = (typeof CurriculumLessonScalarFieldEnum)[keyof typeof CurriculumLessonScalarFieldEnum]
+
+
+export const CurriculumLessonViewScalarFieldEnum = {
+  id: 'id',
+  lessonId: 'lessonId',
+  userId: 'userId',
+  viewCount: 'viewCount',
+  firstViewedAt: 'firstViewedAt',
+  lastViewedAt: 'lastViewedAt'
+} as const
+
+export type CurriculumLessonViewScalarFieldEnum = (typeof CurriculumLessonViewScalarFieldEnum)[keyof typeof CurriculumLessonViewScalarFieldEnum]
 
 
 export const UserScalarFieldEnum = {

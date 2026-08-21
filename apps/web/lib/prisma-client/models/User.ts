@@ -291,7 +291,8 @@ export type UserWhereInput = {
   orders?: Prisma.OrderListRelationFilter
   collectibleUnitsOwned?: Prisma.CollectibleUnitListRelationFilter
   collectibleOwnerships?: Prisma.CollectibleOwnershipListRelationFilter
-  curriculumVideosMade?: Prisma.CurriculumVideoListRelationFilter
+  curriculumLessonsMade?: Prisma.CurriculumLessonListRelationFilter
+  curriculumLessonViews?: Prisma.CurriculumLessonViewListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -339,7 +340,8 @@ export type UserOrderByWithRelationInput = {
   orders?: Prisma.OrderOrderByRelationAggregateInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitOrderByRelationAggregateInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipOrderByRelationAggregateInput
-  curriculumVideosMade?: Prisma.CurriculumVideoOrderByRelationAggregateInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonOrderByRelationAggregateInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -390,7 +392,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   orders?: Prisma.OrderListRelationFilter
   collectibleUnitsOwned?: Prisma.CollectibleUnitListRelationFilter
   collectibleOwnerships?: Prisma.CollectibleOwnershipListRelationFilter
-  curriculumVideosMade?: Prisma.CurriculumVideoListRelationFilter
+  curriculumLessonsMade?: Prisma.CurriculumLessonListRelationFilter
+  curriculumLessonViews?: Prisma.CurriculumLessonViewListRelationFilter
 }, "id" | "email" | "supabaseAuthId">
 
 export type UserOrderByWithAggregationInput = {
@@ -479,7 +482,8 @@ export type UserCreateInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -526,7 +530,8 @@ export type UserUncheckedCreateInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -573,7 +578,8 @@ export type UserUpdateInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -620,7 +626,8 @@ export type UserUncheckedUpdateInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -764,20 +771,34 @@ export type UserUpdateOneRequiredWithoutContentAccessesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutContentAccessesInput, Prisma.UserUpdateWithoutContentAccessesInput>, Prisma.UserUncheckedUpdateWithoutContentAccessesInput>
 }
 
-export type UserCreateNestedOneWithoutCurriculumVideosMadeInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutCurriculumVideosMadeInput, Prisma.UserUncheckedCreateWithoutCurriculumVideosMadeInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCurriculumVideosMadeInput
+export type UserCreateNestedOneWithoutCurriculumLessonsMadeInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCurriculumLessonsMadeInput, Prisma.UserUncheckedCreateWithoutCurriculumLessonsMadeInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCurriculumLessonsMadeInput
   connect?: Prisma.UserWhereUniqueInput
 }
 
-export type UserUpdateOneWithoutCurriculumVideosMadeNestedInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutCurriculumVideosMadeInput, Prisma.UserUncheckedCreateWithoutCurriculumVideosMadeInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCurriculumVideosMadeInput
-  upsert?: Prisma.UserUpsertWithoutCurriculumVideosMadeInput
+export type UserUpdateOneWithoutCurriculumLessonsMadeNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCurriculumLessonsMadeInput, Prisma.UserUncheckedCreateWithoutCurriculumLessonsMadeInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCurriculumLessonsMadeInput
+  upsert?: Prisma.UserUpsertWithoutCurriculumLessonsMadeInput
   disconnect?: Prisma.UserWhereInput | boolean
   delete?: Prisma.UserWhereInput | boolean
   connect?: Prisma.UserWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCurriculumVideosMadeInput, Prisma.UserUpdateWithoutCurriculumVideosMadeInput>, Prisma.UserUncheckedUpdateWithoutCurriculumVideosMadeInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCurriculumLessonsMadeInput, Prisma.UserUpdateWithoutCurriculumLessonsMadeInput>, Prisma.UserUncheckedUpdateWithoutCurriculumLessonsMadeInput>
+}
+
+export type UserCreateNestedOneWithoutCurriculumLessonViewsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCurriculumLessonViewsInput, Prisma.UserUncheckedCreateWithoutCurriculumLessonViewsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCurriculumLessonViewsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutCurriculumLessonViewsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCurriculumLessonViewsInput, Prisma.UserUncheckedCreateWithoutCurriculumLessonViewsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCurriculumLessonViewsInput
+  upsert?: Prisma.UserUpsertWithoutCurriculumLessonViewsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCurriculumLessonViewsInput, Prisma.UserUpdateWithoutCurriculumLessonViewsInput>, Prisma.UserUncheckedUpdateWithoutCurriculumLessonViewsInput>
 }
 
 export type EnumRoleFieldUpdateOperationsInput = {
@@ -1275,7 +1296,8 @@ export type UserCreateWithoutContentAccessesInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutContentAccessesInput = {
@@ -1321,7 +1343,8 @@ export type UserUncheckedCreateWithoutContentAccessesInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutContentAccessesInput = {
@@ -1383,7 +1406,8 @@ export type UserUpdateWithoutContentAccessesInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContentAccessesInput = {
@@ -1429,10 +1453,11 @@ export type UserUncheckedUpdateWithoutContentAccessesInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
-export type UserCreateWithoutCurriculumVideosMadeInput = {
+export type UserCreateWithoutCurriculumLessonsMadeInput = {
   id?: string
   email: string
   name?: string | null
@@ -1476,9 +1501,10 @@ export type UserCreateWithoutCurriculumVideosMadeInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
-export type UserUncheckedCreateWithoutCurriculumVideosMadeInput = {
+export type UserUncheckedCreateWithoutCurriculumLessonsMadeInput = {
   id?: string
   email: string
   name?: string | null
@@ -1522,25 +1548,26 @@ export type UserUncheckedCreateWithoutCurriculumVideosMadeInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
-export type UserCreateOrConnectWithoutCurriculumVideosMadeInput = {
+export type UserCreateOrConnectWithoutCurriculumLessonsMadeInput = {
   where: Prisma.UserWhereUniqueInput
-  create: Prisma.XOR<Prisma.UserCreateWithoutCurriculumVideosMadeInput, Prisma.UserUncheckedCreateWithoutCurriculumVideosMadeInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutCurriculumLessonsMadeInput, Prisma.UserUncheckedCreateWithoutCurriculumLessonsMadeInput>
 }
 
-export type UserUpsertWithoutCurriculumVideosMadeInput = {
-  update: Prisma.XOR<Prisma.UserUpdateWithoutCurriculumVideosMadeInput, Prisma.UserUncheckedUpdateWithoutCurriculumVideosMadeInput>
-  create: Prisma.XOR<Prisma.UserCreateWithoutCurriculumVideosMadeInput, Prisma.UserUncheckedCreateWithoutCurriculumVideosMadeInput>
+export type UserUpsertWithoutCurriculumLessonsMadeInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutCurriculumLessonsMadeInput, Prisma.UserUncheckedUpdateWithoutCurriculumLessonsMadeInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutCurriculumLessonsMadeInput, Prisma.UserUncheckedCreateWithoutCurriculumLessonsMadeInput>
   where?: Prisma.UserWhereInput
 }
 
-export type UserUpdateToOneWithWhereWithoutCurriculumVideosMadeInput = {
+export type UserUpdateToOneWithWhereWithoutCurriculumLessonsMadeInput = {
   where?: Prisma.UserWhereInput
-  data: Prisma.XOR<Prisma.UserUpdateWithoutCurriculumVideosMadeInput, Prisma.UserUncheckedUpdateWithoutCurriculumVideosMadeInput>
+  data: Prisma.XOR<Prisma.UserUpdateWithoutCurriculumLessonsMadeInput, Prisma.UserUncheckedUpdateWithoutCurriculumLessonsMadeInput>
 }
 
-export type UserUpdateWithoutCurriculumVideosMadeInput = {
+export type UserUpdateWithoutCurriculumLessonsMadeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1584,9 +1611,10 @@ export type UserUpdateWithoutCurriculumVideosMadeInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
-export type UserUncheckedUpdateWithoutCurriculumVideosMadeInput = {
+export type UserUncheckedUpdateWithoutCurriculumLessonsMadeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1630,6 +1658,211 @@ export type UserUncheckedUpdateWithoutCurriculumVideosMadeInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutCurriculumLessonViewsInput = {
+  id?: string
+  email: string
+  name?: string | null
+  phone?: string | null
+  dateOfBirth?: Date | string | null
+  avatarUrl?: string | null
+  guardianName?: string | null
+  guardianContact?: string | null
+  guardianConsentAt?: Date | string | null
+  supabaseAuthId?: string | null
+  role?: $Enums.Role
+  deletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
+  claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
+  eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
+  contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
+  campBookings?: Prisma.CampBookingCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
+  schoolMembers?: Prisma.SchoolMemberCreateNestedManyWithoutUserInput
+  schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
+  gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
+  leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
+  userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
+  sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
+  loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
+  targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
+  createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+}
+
+export type UserUncheckedCreateWithoutCurriculumLessonViewsInput = {
+  id?: string
+  email: string
+  name?: string | null
+  phone?: string | null
+  dateOfBirth?: Date | string | null
+  avatarUrl?: string | null
+  guardianName?: string | null
+  guardianContact?: string | null
+  guardianConsentAt?: Date | string | null
+  supabaseAuthId?: string | null
+  role?: $Enums.Role
+  deletedAt?: Date | string | null
+  schoolId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
+  eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
+  contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
+  campBookings?: Prisma.CampBookingUncheckedCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
+  schoolMembers?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutUserInput
+  schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
+  gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
+  leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
+  userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
+  sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
+  loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
+  targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
+  createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+}
+
+export type UserCreateOrConnectWithoutCurriculumLessonViewsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutCurriculumLessonViewsInput, Prisma.UserUncheckedCreateWithoutCurriculumLessonViewsInput>
+}
+
+export type UserUpsertWithoutCurriculumLessonViewsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutCurriculumLessonViewsInput, Prisma.UserUncheckedUpdateWithoutCurriculumLessonViewsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutCurriculumLessonViewsInput, Prisma.UserUncheckedCreateWithoutCurriculumLessonViewsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutCurriculumLessonViewsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutCurriculumLessonViewsInput, Prisma.UserUncheckedUpdateWithoutCurriculumLessonViewsInput>
+}
+
+export type UserUpdateWithoutCurriculumLessonViewsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianContact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
+  claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
+  eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
+  contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
+  campBookings?: Prisma.CampBookingUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
+  schoolMembers?: Prisma.SchoolMemberUpdateManyWithoutUserNestedInput
+  schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
+  gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
+  leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
+  userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
+  sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
+  loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
+  targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
+  createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutCurriculumLessonViewsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianContact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
+  eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
+  contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
+  campBookings?: Prisma.CampBookingUncheckedUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
+  schoolMembers?: Prisma.SchoolMemberUncheckedUpdateManyWithoutUserNestedInput
+  schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
+  gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
+  leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
+  userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
+  sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
+  loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
+  targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
+  createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutClaimedSchoolsInput = {
@@ -1675,7 +1908,8 @@ export type UserCreateWithoutClaimedSchoolsInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutClaimedSchoolsInput = {
@@ -1721,7 +1955,8 @@ export type UserUncheckedCreateWithoutClaimedSchoolsInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutClaimedSchoolsInput = {
@@ -1772,7 +2007,8 @@ export type UserCreateWithoutSchoolInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSchoolInput = {
@@ -1818,7 +2054,8 @@ export type UserUncheckedCreateWithoutSchoolInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSchoolInput = {
@@ -1885,7 +2122,8 @@ export type UserUpdateWithoutClaimedSchoolsInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutClaimedSchoolsInput = {
@@ -1931,7 +2169,8 @@ export type UserUncheckedUpdateWithoutClaimedSchoolsInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithWhereUniqueWithoutSchoolInput = {
@@ -2014,7 +2253,8 @@ export type UserCreateWithoutReviewsInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutReviewsInput = {
@@ -2060,7 +2300,8 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutReviewsInput = {
@@ -2122,7 +2363,8 @@ export type UserUpdateWithoutReviewsInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReviewsInput = {
@@ -2168,7 +2410,8 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutEventBookingsInput = {
@@ -2214,7 +2457,8 @@ export type UserCreateWithoutEventBookingsInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutEventBookingsInput = {
@@ -2260,7 +2504,8 @@ export type UserUncheckedCreateWithoutEventBookingsInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutEventBookingsInput = {
@@ -2322,7 +2567,8 @@ export type UserUpdateWithoutEventBookingsInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutEventBookingsInput = {
@@ -2368,7 +2614,8 @@ export type UserUncheckedUpdateWithoutEventBookingsInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutBookingsInput = {
@@ -2414,7 +2661,8 @@ export type UserCreateWithoutBookingsInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutBookingsInput = {
@@ -2460,7 +2708,8 @@ export type UserUncheckedCreateWithoutBookingsInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutBookingsInput = {
@@ -2511,7 +2760,8 @@ export type UserCreateWithoutStaffBookingsInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutStaffBookingsInput = {
@@ -2557,7 +2807,8 @@ export type UserUncheckedCreateWithoutStaffBookingsInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutStaffBookingsInput = {
@@ -2619,7 +2870,8 @@ export type UserUpdateWithoutBookingsInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutBookingsInput = {
@@ -2665,7 +2917,8 @@ export type UserUncheckedUpdateWithoutBookingsInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutStaffBookingsInput = {
@@ -2722,7 +2975,8 @@ export type UserUpdateWithoutStaffBookingsInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutStaffBookingsInput = {
@@ -2768,7 +3022,8 @@ export type UserUncheckedUpdateWithoutStaffBookingsInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutMembershipsInput = {
@@ -2814,7 +3069,8 @@ export type UserCreateWithoutMembershipsInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutMembershipsInput = {
@@ -2860,7 +3116,8 @@ export type UserUncheckedCreateWithoutMembershipsInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutMembershipsInput = {
@@ -2922,7 +3179,8 @@ export type UserUpdateWithoutMembershipsInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMembershipsInput = {
@@ -2968,7 +3226,8 @@ export type UserUncheckedUpdateWithoutMembershipsInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCampBookingsInput = {
@@ -3014,7 +3273,8 @@ export type UserCreateWithoutCampBookingsInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCampBookingsInput = {
@@ -3060,7 +3320,8 @@ export type UserUncheckedCreateWithoutCampBookingsInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCampBookingsInput = {
@@ -3122,7 +3383,8 @@ export type UserUpdateWithoutCampBookingsInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCampBookingsInput = {
@@ -3168,7 +3430,8 @@ export type UserUncheckedUpdateWithoutCampBookingsInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSchoolMembersInput = {
@@ -3214,7 +3477,8 @@ export type UserCreateWithoutSchoolMembersInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSchoolMembersInput = {
@@ -3260,7 +3524,8 @@ export type UserUncheckedCreateWithoutSchoolMembersInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSchoolMembersInput = {
@@ -3322,7 +3587,8 @@ export type UserUpdateWithoutSchoolMembersInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSchoolMembersInput = {
@@ -3368,7 +3634,8 @@ export type UserUncheckedUpdateWithoutSchoolMembersInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCreatedCampaignsInput = {
@@ -3414,7 +3681,8 @@ export type UserCreateWithoutCreatedCampaignsInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCreatedCampaignsInput = {
@@ -3460,7 +3728,8 @@ export type UserUncheckedCreateWithoutCreatedCampaignsInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCreatedCampaignsInput = {
@@ -3522,7 +3791,8 @@ export type UserUpdateWithoutCreatedCampaignsInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCreatedCampaignsInput = {
@@ -3568,7 +3838,8 @@ export type UserUncheckedUpdateWithoutCreatedCampaignsInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSchoolClaimsInput = {
@@ -3614,7 +3885,8 @@ export type UserCreateWithoutSchoolClaimsInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSchoolClaimsInput = {
@@ -3660,7 +3932,8 @@ export type UserUncheckedCreateWithoutSchoolClaimsInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSchoolClaimsInput = {
@@ -3722,7 +3995,8 @@ export type UserUpdateWithoutSchoolClaimsInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSchoolClaimsInput = {
@@ -3768,7 +4042,8 @@ export type UserUncheckedUpdateWithoutSchoolClaimsInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutGradingsInput = {
@@ -3814,7 +4089,8 @@ export type UserCreateWithoutGradingsInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutGradingsInput = {
@@ -3860,7 +4136,8 @@ export type UserUncheckedCreateWithoutGradingsInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutGradingsInput = {
@@ -3911,7 +4188,8 @@ export type UserCreateWithoutGradingsGivenInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutGradingsGivenInput = {
@@ -3957,7 +4235,8 @@ export type UserUncheckedCreateWithoutGradingsGivenInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutGradingsGivenInput = {
@@ -4019,7 +4298,8 @@ export type UserUpdateWithoutGradingsInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutGradingsInput = {
@@ -4065,7 +4345,8 @@ export type UserUncheckedUpdateWithoutGradingsInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutGradingsGivenInput = {
@@ -4122,7 +4403,8 @@ export type UserUpdateWithoutGradingsGivenInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutGradingsGivenInput = {
@@ -4168,7 +4450,8 @@ export type UserUncheckedUpdateWithoutGradingsGivenInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutLeadsInput = {
@@ -4214,7 +4497,8 @@ export type UserCreateWithoutLeadsInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutLeadsInput = {
@@ -4260,7 +4544,8 @@ export type UserUncheckedCreateWithoutLeadsInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutLeadsInput = {
@@ -4322,7 +4607,8 @@ export type UserUpdateWithoutLeadsInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLeadsInput = {
@@ -4368,7 +4654,8 @@ export type UserUncheckedUpdateWithoutLeadsInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutLeadNotesInput = {
@@ -4414,7 +4701,8 @@ export type UserCreateWithoutLeadNotesInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutLeadNotesInput = {
@@ -4460,7 +4748,8 @@ export type UserUncheckedCreateWithoutLeadNotesInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutLeadNotesInput = {
@@ -4522,7 +4811,8 @@ export type UserUpdateWithoutLeadNotesInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLeadNotesInput = {
@@ -4568,7 +4858,8 @@ export type UserUncheckedUpdateWithoutLeadNotesInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSentInvitationsInput = {
@@ -4614,7 +4905,8 @@ export type UserCreateWithoutSentInvitationsInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSentInvitationsInput = {
@@ -4660,7 +4952,8 @@ export type UserUncheckedCreateWithoutSentInvitationsInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSentInvitationsInput = {
@@ -4722,7 +5015,8 @@ export type UserUpdateWithoutSentInvitationsInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSentInvitationsInput = {
@@ -4768,7 +5062,8 @@ export type UserUncheckedUpdateWithoutSentInvitationsInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutUserWaiversInput = {
@@ -4814,7 +5109,8 @@ export type UserCreateWithoutUserWaiversInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutUserWaiversInput = {
@@ -4860,7 +5156,8 @@ export type UserUncheckedCreateWithoutUserWaiversInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutUserWaiversInput = {
@@ -4922,7 +5219,8 @@ export type UserUpdateWithoutUserWaiversInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutUserWaiversInput = {
@@ -4968,7 +5266,8 @@ export type UserUncheckedUpdateWithoutUserWaiversInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutLoginHistoryInput = {
@@ -5014,7 +5313,8 @@ export type UserCreateWithoutLoginHistoryInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutLoginHistoryInput = {
@@ -5060,7 +5360,8 @@ export type UserUncheckedCreateWithoutLoginHistoryInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutLoginHistoryInput = {
@@ -5122,7 +5423,8 @@ export type UserUpdateWithoutLoginHistoryInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLoginHistoryInput = {
@@ -5168,7 +5470,8 @@ export type UserUncheckedUpdateWithoutLoginHistoryInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutImpersonationsAsActorInput = {
@@ -5214,7 +5517,8 @@ export type UserCreateWithoutImpersonationsAsActorInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutImpersonationsAsActorInput = {
@@ -5260,7 +5564,8 @@ export type UserUncheckedCreateWithoutImpersonationsAsActorInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutImpersonationsAsActorInput = {
@@ -5311,7 +5616,8 @@ export type UserCreateWithoutImpersonationsAsTargetInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutImpersonationsAsTargetInput = {
@@ -5357,7 +5663,8 @@ export type UserUncheckedCreateWithoutImpersonationsAsTargetInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutImpersonationsAsTargetInput = {
@@ -5419,7 +5726,8 @@ export type UserUpdateWithoutImpersonationsAsActorInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutImpersonationsAsActorInput = {
@@ -5465,7 +5773,8 @@ export type UserUncheckedUpdateWithoutImpersonationsAsActorInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutImpersonationsAsTargetInput = {
@@ -5522,7 +5831,8 @@ export type UserUpdateWithoutImpersonationsAsTargetInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutImpersonationsAsTargetInput = {
@@ -5568,7 +5878,8 @@ export type UserUncheckedUpdateWithoutImpersonationsAsTargetInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutTransactionsInput = {
@@ -5614,7 +5925,8 @@ export type UserCreateWithoutTransactionsInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTransactionsInput = {
@@ -5660,7 +5972,8 @@ export type UserUncheckedCreateWithoutTransactionsInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTransactionsInput = {
@@ -5711,7 +6024,8 @@ export type UserCreateWithoutResolvedTransactionsInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutResolvedTransactionsInput = {
@@ -5757,7 +6071,8 @@ export type UserUncheckedCreateWithoutResolvedTransactionsInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutResolvedTransactionsInput = {
@@ -5808,7 +6123,8 @@ export type UserCreateWithoutDeletedTransactionsInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutDeletedTransactionsInput = {
@@ -5854,7 +6170,8 @@ export type UserUncheckedCreateWithoutDeletedTransactionsInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutDeletedTransactionsInput = {
@@ -5916,7 +6233,8 @@ export type UserUpdateWithoutTransactionsInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTransactionsInput = {
@@ -5962,7 +6280,8 @@ export type UserUncheckedUpdateWithoutTransactionsInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutResolvedTransactionsInput = {
@@ -6019,7 +6338,8 @@ export type UserUpdateWithoutResolvedTransactionsInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutResolvedTransactionsInput = {
@@ -6065,7 +6385,8 @@ export type UserUncheckedUpdateWithoutResolvedTransactionsInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutDeletedTransactionsInput = {
@@ -6122,7 +6443,8 @@ export type UserUpdateWithoutDeletedTransactionsInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutDeletedTransactionsInput = {
@@ -6168,7 +6490,8 @@ export type UserUncheckedUpdateWithoutDeletedTransactionsInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutPreferenceInput = {
@@ -6214,7 +6537,8 @@ export type UserCreateWithoutPreferenceInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPreferenceInput = {
@@ -6260,7 +6584,8 @@ export type UserUncheckedCreateWithoutPreferenceInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPreferenceInput = {
@@ -6322,7 +6647,8 @@ export type UserUpdateWithoutPreferenceInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPreferenceInput = {
@@ -6368,7 +6694,8 @@ export type UserUncheckedUpdateWithoutPreferenceInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutOrdersInput = {
@@ -6414,7 +6741,8 @@ export type UserCreateWithoutOrdersInput = {
   createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutOrdersInput = {
@@ -6460,7 +6788,8 @@ export type UserUncheckedCreateWithoutOrdersInput = {
   createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutOrdersInput = {
@@ -6522,7 +6851,8 @@ export type UserUpdateWithoutOrdersInput = {
   createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOrdersInput = {
@@ -6568,7 +6898,8 @@ export type UserUncheckedUpdateWithoutOrdersInput = {
   createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCollectibleUnitsOwnedInput = {
@@ -6614,7 +6945,8 @@ export type UserCreateWithoutCollectibleUnitsOwnedInput = {
   createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCollectibleUnitsOwnedInput = {
@@ -6660,7 +6992,8 @@ export type UserUncheckedCreateWithoutCollectibleUnitsOwnedInput = {
   createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCollectibleUnitsOwnedInput = {
@@ -6722,7 +7055,8 @@ export type UserUpdateWithoutCollectibleUnitsOwnedInput = {
   createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCollectibleUnitsOwnedInput = {
@@ -6768,7 +7102,8 @@ export type UserUncheckedUpdateWithoutCollectibleUnitsOwnedInput = {
   createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCollectibleOwnershipsInput = {
@@ -6814,7 +7149,8 @@ export type UserCreateWithoutCollectibleOwnershipsInput = {
   createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCollectibleOwnershipsInput = {
@@ -6860,7 +7196,8 @@ export type UserUncheckedCreateWithoutCollectibleOwnershipsInput = {
   createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCollectibleOwnershipsInput = {
@@ -6922,7 +7259,8 @@ export type UserUpdateWithoutCollectibleOwnershipsInput = {
   createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCollectibleOwnershipsInput = {
@@ -6968,7 +7306,8 @@ export type UserUncheckedUpdateWithoutCollectibleOwnershipsInput = {
   createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutTargetedNotificationsInput = {
@@ -7014,7 +7353,8 @@ export type UserCreateWithoutTargetedNotificationsInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTargetedNotificationsInput = {
@@ -7060,7 +7400,8 @@ export type UserUncheckedCreateWithoutTargetedNotificationsInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTargetedNotificationsInput = {
@@ -7122,7 +7463,8 @@ export type UserUpdateWithoutTargetedNotificationsInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTargetedNotificationsInput = {
@@ -7168,7 +7510,8 @@ export type UserUncheckedUpdateWithoutTargetedNotificationsInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManySchoolInput = {
@@ -7231,7 +7574,8 @@ export type UserUpdateWithoutSchoolInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSchoolInput = {
@@ -7277,7 +7621,8 @@ export type UserUncheckedUpdateWithoutSchoolInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
-  curriculumVideosMade?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutSchoolInput = {
@@ -7330,7 +7675,8 @@ export type UserCountOutputType = {
   orders: number
   collectibleUnitsOwned: number
   collectibleOwnerships: number
-  curriculumVideosMade: number
+  curriculumLessonsMade: number
+  curriculumLessonViews: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -7361,7 +7707,8 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   orders?: boolean | UserCountOutputTypeCountOrdersArgs
   collectibleUnitsOwned?: boolean | UserCountOutputTypeCountCollectibleUnitsOwnedArgs
   collectibleOwnerships?: boolean | UserCountOutputTypeCountCollectibleOwnershipsArgs
-  curriculumVideosMade?: boolean | UserCountOutputTypeCountCurriculumVideosMadeArgs
+  curriculumLessonsMade?: boolean | UserCountOutputTypeCountCurriculumLessonsMadeArgs
+  curriculumLessonViews?: boolean | UserCountOutputTypeCountCurriculumLessonViewsArgs
 }
 
 /**
@@ -7566,8 +7913,15 @@ export type UserCountOutputTypeCountCollectibleOwnershipsArgs<ExtArgs extends ru
 /**
  * UserCountOutputType without action
  */
-export type UserCountOutputTypeCountCurriculumVideosMadeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.CurriculumVideoWhereInput
+export type UserCountOutputTypeCountCurriculumLessonsMadeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CurriculumLessonWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountCurriculumLessonViewsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CurriculumLessonViewWhereInput
 }
 
 
@@ -7616,7 +7970,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   orders?: boolean | Prisma.User$ordersArgs<ExtArgs>
   collectibleUnitsOwned?: boolean | Prisma.User$collectibleUnitsOwnedArgs<ExtArgs>
   collectibleOwnerships?: boolean | Prisma.User$collectibleOwnershipsArgs<ExtArgs>
-  curriculumVideosMade?: boolean | Prisma.User$curriculumVideosMadeArgs<ExtArgs>
+  curriculumLessonsMade?: boolean | Prisma.User$curriculumLessonsMadeArgs<ExtArgs>
+  curriculumLessonViews?: boolean | Prisma.User$curriculumLessonViewsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -7707,7 +8062,8 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   orders?: boolean | Prisma.User$ordersArgs<ExtArgs>
   collectibleUnitsOwned?: boolean | Prisma.User$collectibleUnitsOwnedArgs<ExtArgs>
   collectibleOwnerships?: boolean | Prisma.User$collectibleOwnershipsArgs<ExtArgs>
-  curriculumVideosMade?: boolean | Prisma.User$curriculumVideosMadeArgs<ExtArgs>
+  curriculumLessonsMade?: boolean | Prisma.User$curriculumLessonsMadeArgs<ExtArgs>
+  curriculumLessonViews?: boolean | Prisma.User$curriculumLessonViewsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -7749,7 +8105,8 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     orders: Prisma.$OrderPayload<ExtArgs>[]
     collectibleUnitsOwned: Prisma.$CollectibleUnitPayload<ExtArgs>[]
     collectibleOwnerships: Prisma.$CollectibleOwnershipPayload<ExtArgs>[]
-    curriculumVideosMade: Prisma.$CurriculumVideoPayload<ExtArgs>[]
+    curriculumLessonsMade: Prisma.$CurriculumLessonPayload<ExtArgs>[]
+    curriculumLessonViews: Prisma.$CurriculumLessonViewPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -8190,7 +8547,8 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   orders<T extends Prisma.User$ordersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   collectibleUnitsOwned<T extends Prisma.User$collectibleUnitsOwnedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$collectibleUnitsOwnedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CollectibleUnitPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   collectibleOwnerships<T extends Prisma.User$collectibleOwnershipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$collectibleOwnershipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CollectibleOwnershipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  curriculumVideosMade<T extends Prisma.User$curriculumVideosMadeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$curriculumVideosMadeArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CurriculumVideoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  curriculumLessonsMade<T extends Prisma.User$curriculumLessonsMadeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$curriculumLessonsMadeArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CurriculumLessonPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  curriculumLessonViews<T extends Prisma.User$curriculumLessonViewsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$curriculumLessonViewsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CurriculumLessonViewPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -9322,27 +9680,51 @@ export type User$collectibleOwnershipsArgs<ExtArgs extends runtime.Types.Extensi
 }
 
 /**
- * User.curriculumVideosMade
+ * User.curriculumLessonsMade
  */
-export type User$curriculumVideosMadeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type User$curriculumLessonsMadeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the CurriculumVideo
+   * Select specific fields to fetch from the CurriculumLesson
    */
-  select?: Prisma.CurriculumVideoSelect<ExtArgs> | null
+  select?: Prisma.CurriculumLessonSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the CurriculumVideo
+   * Omit specific fields from the CurriculumLesson
    */
-  omit?: Prisma.CurriculumVideoOmit<ExtArgs> | null
+  omit?: Prisma.CurriculumLessonOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.CurriculumVideoInclude<ExtArgs> | null
-  where?: Prisma.CurriculumVideoWhereInput
-  orderBy?: Prisma.CurriculumVideoOrderByWithRelationInput | Prisma.CurriculumVideoOrderByWithRelationInput[]
-  cursor?: Prisma.CurriculumVideoWhereUniqueInput
+  include?: Prisma.CurriculumLessonInclude<ExtArgs> | null
+  where?: Prisma.CurriculumLessonWhereInput
+  orderBy?: Prisma.CurriculumLessonOrderByWithRelationInput | Prisma.CurriculumLessonOrderByWithRelationInput[]
+  cursor?: Prisma.CurriculumLessonWhereUniqueInput
   take?: number
   skip?: number
-  distinct?: Prisma.CurriculumVideoScalarFieldEnum | Prisma.CurriculumVideoScalarFieldEnum[]
+  distinct?: Prisma.CurriculumLessonScalarFieldEnum | Prisma.CurriculumLessonScalarFieldEnum[]
+}
+
+/**
+ * User.curriculumLessonViews
+ */
+export type User$curriculumLessonViewsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CurriculumLessonView
+   */
+  select?: Prisma.CurriculumLessonViewSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CurriculumLessonView
+   */
+  omit?: Prisma.CurriculumLessonViewOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CurriculumLessonViewInclude<ExtArgs> | null
+  where?: Prisma.CurriculumLessonViewWhereInput
+  orderBy?: Prisma.CurriculumLessonViewOrderByWithRelationInput | Prisma.CurriculumLessonViewOrderByWithRelationInput[]
+  cursor?: Prisma.CurriculumLessonViewWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CurriculumLessonViewScalarFieldEnum | Prisma.CurriculumLessonViewScalarFieldEnum[]
 }
 
 /**

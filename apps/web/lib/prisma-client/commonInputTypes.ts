@@ -202,11 +202,11 @@ export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedDateTimeNullableFilter<$PrismaModel>
 }
 
-export type EnumCurriculumVideoStatusFilter<$PrismaModel = never> = {
-  equals?: $Enums.CurriculumVideoStatus | Prisma.EnumCurriculumVideoStatusFieldRefInput<$PrismaModel>
-  in?: $Enums.CurriculumVideoStatus[] | Prisma.ListEnumCurriculumVideoStatusFieldRefInput<$PrismaModel>
-  notIn?: $Enums.CurriculumVideoStatus[] | Prisma.ListEnumCurriculumVideoStatusFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumCurriculumVideoStatusFilter<$PrismaModel> | $Enums.CurriculumVideoStatus
+export type EnumCurriculumLessonStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.CurriculumLessonStatus | Prisma.EnumCurriculumLessonStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.CurriculumLessonStatus[] | Prisma.ListEnumCurriculumLessonStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CurriculumLessonStatus[] | Prisma.ListEnumCurriculumLessonStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCurriculumLessonStatusFilter<$PrismaModel> | $Enums.CurriculumLessonStatus
 }
 
 export type FloatNullableFilter<$PrismaModel = never> = {
@@ -220,14 +220,14 @@ export type FloatNullableFilter<$PrismaModel = never> = {
   not?: Prisma.NestedFloatNullableFilter<$PrismaModel> | number | null
 }
 
-export type EnumCurriculumVideoStatusWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.CurriculumVideoStatus | Prisma.EnumCurriculumVideoStatusFieldRefInput<$PrismaModel>
-  in?: $Enums.CurriculumVideoStatus[] | Prisma.ListEnumCurriculumVideoStatusFieldRefInput<$PrismaModel>
-  notIn?: $Enums.CurriculumVideoStatus[] | Prisma.ListEnumCurriculumVideoStatusFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumCurriculumVideoStatusWithAggregatesFilter<$PrismaModel> | $Enums.CurriculumVideoStatus
+export type EnumCurriculumLessonStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CurriculumLessonStatus | Prisma.EnumCurriculumLessonStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.CurriculumLessonStatus[] | Prisma.ListEnumCurriculumLessonStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CurriculumLessonStatus[] | Prisma.ListEnumCurriculumLessonStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCurriculumLessonStatusWithAggregatesFilter<$PrismaModel> | $Enums.CurriculumLessonStatus
   _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumCurriculumVideoStatusFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumCurriculumVideoStatusFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCurriculumLessonStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCurriculumLessonStatusFilter<$PrismaModel>
 }
 
 export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -1181,21 +1181,21 @@ export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedDateTimeNullableFilter<$PrismaModel>
 }
 
-export type NestedEnumCurriculumVideoStatusFilter<$PrismaModel = never> = {
-  equals?: $Enums.CurriculumVideoStatus | Prisma.EnumCurriculumVideoStatusFieldRefInput<$PrismaModel>
-  in?: $Enums.CurriculumVideoStatus[] | Prisma.ListEnumCurriculumVideoStatusFieldRefInput<$PrismaModel>
-  notIn?: $Enums.CurriculumVideoStatus[] | Prisma.ListEnumCurriculumVideoStatusFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumCurriculumVideoStatusFilter<$PrismaModel> | $Enums.CurriculumVideoStatus
+export type NestedEnumCurriculumLessonStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.CurriculumLessonStatus | Prisma.EnumCurriculumLessonStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.CurriculumLessonStatus[] | Prisma.ListEnumCurriculumLessonStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CurriculumLessonStatus[] | Prisma.ListEnumCurriculumLessonStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCurriculumLessonStatusFilter<$PrismaModel> | $Enums.CurriculumLessonStatus
 }
 
-export type NestedEnumCurriculumVideoStatusWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.CurriculumVideoStatus | Prisma.EnumCurriculumVideoStatusFieldRefInput<$PrismaModel>
-  in?: $Enums.CurriculumVideoStatus[] | Prisma.ListEnumCurriculumVideoStatusFieldRefInput<$PrismaModel>
-  notIn?: $Enums.CurriculumVideoStatus[] | Prisma.ListEnumCurriculumVideoStatusFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumCurriculumVideoStatusWithAggregatesFilter<$PrismaModel> | $Enums.CurriculumVideoStatus
+export type NestedEnumCurriculumLessonStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CurriculumLessonStatus | Prisma.EnumCurriculumLessonStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.CurriculumLessonStatus[] | Prisma.ListEnumCurriculumLessonStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CurriculumLessonStatus[] | Prisma.ListEnumCurriculumLessonStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCurriculumLessonStatusWithAggregatesFilter<$PrismaModel> | $Enums.CurriculumLessonStatus
   _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumCurriculumVideoStatusFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumCurriculumVideoStatusFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCurriculumLessonStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCurriculumLessonStatusFilter<$PrismaModel>
 }
 
 export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {

@@ -1,5 +1,5 @@
-import { ModuleComingSoon } from '../../../components/my/ModuleComingSoon'
+import MyCurriculumClient from './MyCurriculumClient'
 
 export default function MyCurriculumPage() {
-  return <ModuleComingSoon labelKey="navCurriculum" />
+  return <MyCurriculumClient />
 }

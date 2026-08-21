@@ -252,14 +252,14 @@ export const StripeWebhookEventStatus = {
 export type StripeWebhookEventStatus = (typeof StripeWebhookEventStatus)[keyof typeof StripeWebhookEventStatus]
 
 
-export const CurriculumVideoStatus = {
+export const CurriculumLessonStatus = {
   UPLOADING: 'UPLOADING',
   PROCESSING: 'PROCESSING',
   READY: 'READY',
   ERRORED: 'ERRORED'
 } as const
 
-export type CurriculumVideoStatus = (typeof CurriculumVideoStatus)[keyof typeof CurriculumVideoStatus]
+export type CurriculumLessonStatus = (typeof CurriculumLessonStatus)[keyof typeof CurriculumLessonStatus]
 
 
 export const CampaignType = {

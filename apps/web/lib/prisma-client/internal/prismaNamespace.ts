@@ -389,7 +389,9 @@ export const ModelName = {
   ContentSeries: 'ContentSeries',
   ContentVideo: 'ContentVideo',
   ContentAccess: 'ContentAccess',
-  CurriculumVideo: 'CurriculumVideo',
+  Curriculum: 'Curriculum',
+  CurriculumLesson: 'CurriculumLesson',
+  CurriculumLessonView: 'CurriculumLessonView',
   User: 'User',
   Discipline: 'Discipline',
   SchoolDiscipline: 'SchoolDiscipline',
@@ -454,7 +456,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "curriculumVideo" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "classCancellation" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "staffRole" | "campaign" | "campaignRecipient" | "schoolClaim" | "gradingSystem" | "beltRank" | "grading" | "lead" | "leadNote" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "impersonationLog" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "limitedCollection" | "limitedCollectionTier" | "collectibleUnit" | "collectibleOwnership" | "partner" | "notification" | "platformSettings" | "claimRequest" | "schoolSubscription" | "stripeWebhookEvent"
+    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "curriculum" | "curriculumLesson" | "curriculumLessonView" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "classCancellation" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "staffRole" | "campaign" | "campaignRecipient" | "schoolClaim" | "gradingSystem" | "beltRank" | "grading" | "lead" | "leadNote" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "impersonationLog" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "limitedCollection" | "limitedCollectionTier" | "collectibleUnit" | "collectibleOwnership" | "partner" | "notification" | "platformSettings" | "claimRequest" | "schoolSubscription" | "stripeWebhookEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -828,77 +830,225 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    CurriculumVideo: {
-      payload: Prisma.$CurriculumVideoPayload<ExtArgs>
-      fields: Prisma.CurriculumVideoFieldRefs
+    Curriculum: {
+      payload: Prisma.$CurriculumPayload<ExtArgs>
+      fields: Prisma.CurriculumFieldRefs
       operations: {
         findUnique: {
-          args: Prisma.CurriculumVideoFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumVideoPayload> | null
+          args: Prisma.CurriculumFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumPayload> | null
         }
         findUniqueOrThrow: {
-          args: Prisma.CurriculumVideoFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumVideoPayload>
+          args: Prisma.CurriculumFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumPayload>
         }
         findFirst: {
-          args: Prisma.CurriculumVideoFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumVideoPayload> | null
+          args: Prisma.CurriculumFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumPayload> | null
         }
         findFirstOrThrow: {
-          args: Prisma.CurriculumVideoFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumVideoPayload>
+          args: Prisma.CurriculumFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumPayload>
         }
         findMany: {
-          args: Prisma.CurriculumVideoFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumVideoPayload>[]
+          args: Prisma.CurriculumFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumPayload>[]
         }
         create: {
-          args: Prisma.CurriculumVideoCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumVideoPayload>
+          args: Prisma.CurriculumCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumPayload>
         }
         createMany: {
-          args: Prisma.CurriculumVideoCreateManyArgs<ExtArgs>
+          args: Prisma.CurriculumCreateManyArgs<ExtArgs>
           result: BatchPayload
         }
         createManyAndReturn: {
-          args: Prisma.CurriculumVideoCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumVideoPayload>[]
+          args: Prisma.CurriculumCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumPayload>[]
         }
         delete: {
-          args: Prisma.CurriculumVideoDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumVideoPayload>
+          args: Prisma.CurriculumDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumPayload>
         }
         update: {
-          args: Prisma.CurriculumVideoUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumVideoPayload>
+          args: Prisma.CurriculumUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumPayload>
         }
         deleteMany: {
-          args: Prisma.CurriculumVideoDeleteManyArgs<ExtArgs>
+          args: Prisma.CurriculumDeleteManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateMany: {
-          args: Prisma.CurriculumVideoUpdateManyArgs<ExtArgs>
+          args: Prisma.CurriculumUpdateManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateManyAndReturn: {
-          args: Prisma.CurriculumVideoUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumVideoPayload>[]
+          args: Prisma.CurriculumUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumPayload>[]
         }
         upsert: {
-          args: Prisma.CurriculumVideoUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumVideoPayload>
+          args: Prisma.CurriculumUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumPayload>
         }
         aggregate: {
-          args: Prisma.CurriculumVideoAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateCurriculumVideo>
+          args: Prisma.CurriculumAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCurriculum>
         }
         groupBy: {
-          args: Prisma.CurriculumVideoGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.CurriculumVideoGroupByOutputType>[]
+          args: Prisma.CurriculumGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CurriculumGroupByOutputType>[]
         }
         count: {
-          args: Prisma.CurriculumVideoCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.CurriculumVideoCountAggregateOutputType> | number
+          args: Prisma.CurriculumCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CurriculumCountAggregateOutputType> | number
+        }
+      }
+    }
+    CurriculumLesson: {
+      payload: Prisma.$CurriculumLessonPayload<ExtArgs>
+      fields: Prisma.CurriculumLessonFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CurriculumLessonFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumLessonPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CurriculumLessonFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumLessonPayload>
+        }
+        findFirst: {
+          args: Prisma.CurriculumLessonFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumLessonPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CurriculumLessonFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumLessonPayload>
+        }
+        findMany: {
+          args: Prisma.CurriculumLessonFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumLessonPayload>[]
+        }
+        create: {
+          args: Prisma.CurriculumLessonCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumLessonPayload>
+        }
+        createMany: {
+          args: Prisma.CurriculumLessonCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CurriculumLessonCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumLessonPayload>[]
+        }
+        delete: {
+          args: Prisma.CurriculumLessonDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumLessonPayload>
+        }
+        update: {
+          args: Prisma.CurriculumLessonUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumLessonPayload>
+        }
+        deleteMany: {
+          args: Prisma.CurriculumLessonDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CurriculumLessonUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CurriculumLessonUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumLessonPayload>[]
+        }
+        upsert: {
+          args: Prisma.CurriculumLessonUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumLessonPayload>
+        }
+        aggregate: {
+          args: Prisma.CurriculumLessonAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCurriculumLesson>
+        }
+        groupBy: {
+          args: Prisma.CurriculumLessonGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CurriculumLessonGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CurriculumLessonCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CurriculumLessonCountAggregateOutputType> | number
+        }
+      }
+    }
+    CurriculumLessonView: {
+      payload: Prisma.$CurriculumLessonViewPayload<ExtArgs>
+      fields: Prisma.CurriculumLessonViewFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CurriculumLessonViewFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumLessonViewPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CurriculumLessonViewFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumLessonViewPayload>
+        }
+        findFirst: {
+          args: Prisma.CurriculumLessonViewFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumLessonViewPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CurriculumLessonViewFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumLessonViewPayload>
+        }
+        findMany: {
+          args: Prisma.CurriculumLessonViewFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumLessonViewPayload>[]
+        }
+        create: {
+          args: Prisma.CurriculumLessonViewCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumLessonViewPayload>
+        }
+        createMany: {
+          args: Prisma.CurriculumLessonViewCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CurriculumLessonViewCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumLessonViewPayload>[]
+        }
+        delete: {
+          args: Prisma.CurriculumLessonViewDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumLessonViewPayload>
+        }
+        update: {
+          args: Prisma.CurriculumLessonViewUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumLessonViewPayload>
+        }
+        deleteMany: {
+          args: Prisma.CurriculumLessonViewDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CurriculumLessonViewUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CurriculumLessonViewUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumLessonViewPayload>[]
+        }
+        upsert: {
+          args: Prisma.CurriculumLessonViewUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumLessonViewPayload>
+        }
+        aggregate: {
+          args: Prisma.CurriculumLessonViewAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCurriculumLessonView>
+        }
+        groupBy: {
+          args: Prisma.CurriculumLessonViewGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CurriculumLessonViewGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CurriculumLessonViewCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CurriculumLessonViewCountAggregateOutputType> | number
         }
       }
     }
@@ -4649,11 +4799,24 @@ export const ContentAccessScalarFieldEnum = {
 export type ContentAccessScalarFieldEnum = (typeof ContentAccessScalarFieldEnum)[keyof typeof ContentAccessScalarFieldEnum]
 
 
-export const CurriculumVideoScalarFieldEnum = {
+export const CurriculumScalarFieldEnum = {
   id: 'id',
   schoolId: 'schoolId',
+  name: 'name',
+  description: 'description',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CurriculumScalarFieldEnum = (typeof CurriculumScalarFieldEnum)[keyof typeof CurriculumScalarFieldEnum]
+
+
+export const CurriculumLessonScalarFieldEnum = {
+  id: 'id',
+  curriculumId: 'curriculumId',
+  schoolId: 'schoolId',
   title: 'title',
-  belt: 'belt',
   category: 'category',
   description: 'description',
   sortOrder: 'sortOrder',
@@ -4668,7 +4831,19 @@ export const CurriculumVideoScalarFieldEnum = {
   updatedAt: 'updatedAt'
 } as const
 
-export type CurriculumVideoScalarFieldEnum = (typeof CurriculumVideoScalarFieldEnum)[keyof typeof CurriculumVideoScalarFieldEnum]
+export type CurriculumLessonScalarFieldEnum = (typeof CurriculumLessonScalarFieldEnum)[keyof typeof CurriculumLessonScalarFieldEnum]
+
+
+export const CurriculumLessonViewScalarFieldEnum = {
+  id: 'id',
+  lessonId: 'lessonId',
+  userId: 'userId',
+  viewCount: 'viewCount',
+  firstViewedAt: 'firstViewedAt',
+  lastViewedAt: 'lastViewedAt'
+} as const
+
+export type CurriculumLessonViewScalarFieldEnum = (typeof CurriculumLessonViewScalarFieldEnum)[keyof typeof CurriculumLessonViewScalarFieldEnum]
 
 
 export const UserScalarFieldEnum = {
@@ -5748,16 +5923,16 @@ export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
- * Reference to a field of type 'CurriculumVideoStatus'
+ * Reference to a field of type 'CurriculumLessonStatus'
  */
-export type EnumCurriculumVideoStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CurriculumVideoStatus'>
+export type EnumCurriculumLessonStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CurriculumLessonStatus'>
     
 
 
 /**
- * Reference to a field of type 'CurriculumVideoStatus[]'
+ * Reference to a field of type 'CurriculumLessonStatus[]'
  */
-export type ListEnumCurriculumVideoStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CurriculumVideoStatus[]'>
+export type ListEnumCurriculumLessonStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CurriculumLessonStatus[]'>
     
 
 
@@ -6351,7 +6526,9 @@ export type GlobalOmitConfig = {
   contentSeries?: Prisma.ContentSeriesOmit
   contentVideo?: Prisma.ContentVideoOmit
   contentAccess?: Prisma.ContentAccessOmit
-  curriculumVideo?: Prisma.CurriculumVideoOmit
+  curriculum?: Prisma.CurriculumOmit
+  curriculumLesson?: Prisma.CurriculumLessonOmit
+  curriculumLessonView?: Prisma.CurriculumLessonViewOmit
   user?: Prisma.UserOmit
   discipline?: Prisma.DisciplineOmit
   schoolDiscipline?: Prisma.SchoolDisciplineOmit

@@ -335,33 +335,58 @@ model ContentAccess {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CURRICULUM VIDEO
-// Per-school technique videos shown to their own students (School.modules.curriculum),
-// distinct from ContentVideo above which is Affiliation-scoped ("Roger Gracie TV").
-// Hosted on Mux — muxUploadId is set immediately on upload, muxAssetId/muxPlaybackId
-// are filled in by the video.asset.ready webhook once transcoding finishes.
+// CURRICULUM
+// Two levels, matching the proven V1 shape: a school creates named Curriculums
+// (not a fixed belt enum — a name can be a belt "White Belt", or an instructor
+// program "Leandro Lo", V1 has both side by side), each containing Lessons
+// (today always a Mux-hosted video; see CurriculumLessonView below for the
+// bigger idea this sets up — a lesson satisfied by watching OR attending a
+// linked class). Distinct from ContentVideo above, which is Affiliation-scoped
+// ("Roger Gracie TV"), not school-scoped.
 // ─────────────────────────────────────────────────────────────────────────────
 
-enum CurriculumVideoStatus {
+model Curriculum {
+  id       String @id @default(cuid())
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  name        String // "White Belt", "Leandro Lo Program" — free text, school-defined
+  description String?
+  sortOrder   Int     @default(0)
+
+  lessons CurriculumLesson[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([schoolId])
+  @@map("curriculums")
+}
+
+enum CurriculumLessonStatus {
   UPLOADING // Direct-upload URL issued, browser hasn't finished PUTting the file yet
   PROCESSING // Mux received the file, transcoding in progress
   READY // Playable — muxPlaybackId is set
   ERRORED
 }
 
-model CurriculumVideo {
-  id       String @id @default(cuid())
-  schoolId String
-  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+model CurriculumLesson {
+  id           String     @id @default(cuid())
+  curriculumId String
+  curriculum   Curriculum @relation(fields: [curriculumId], references: [id], onDelete: Cascade)
+  // Denormalised from curriculum.schoolId — every auth check in the API
+  // (staff role, student membership) is school-scoped, so this avoids a join
+  // just to find out which school a lesson belongs to.
+  schoolId     String
+  school       School     @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   title       String
-  belt        String
-  category    String
+  category    String?
   description String?
   sortOrder   Int     @default(0)
 
-  status        CurriculumVideoStatus @default(UPLOADING)
-  muxUploadId   String?               @unique
+  status        CurriculumLessonStatus @default(UPLOADING)
+  muxUploadId   String?                @unique
   muxAssetId    String?
   muxPlaybackId String?
   durationSec   Float?
@@ -370,11 +395,34 @@ model CurriculumVideo {
   createdById String?
   createdBy   User?   @relation(fields: [createdById], references: [id], onDelete: SetNull)
 
+  views CurriculumLessonView[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([schoolId, belt])
-  @@map("curriculum_videos")
+  @@index([curriculumId])
+  @@index([schoolId])
+  @@map("curriculum_lessons")
+}
+
+// One row per (lesson, student) — "has this student watched this lesson's
+// video", not a play-by-play log. Marked on first playback start from
+// /my/curriculum. Deliberately video-only for now — the future idea is a
+// lesson counted as done via EITHER this (watched) OR attending a class
+// linked to the same lesson, not built yet.
+model CurriculumLessonView {
+  id       String           @id @default(cuid())
+  lessonId String
+  lesson   CurriculumLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  viewCount     Int      @default(1)
+  firstViewedAt DateTime @default(now())
+  lastViewedAt  DateTime @default(now())
+
+  @@unique([lessonId, userId])
+  @@map("curriculum_lesson_views")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -438,7 +486,8 @@ model User {
   orders                 Order[]
   collectibleUnitsOwned  CollectibleUnit[]      @relation("CollectibleUnitOwner")
   collectibleOwnerships  CollectibleOwnership[]
-  curriculumVideosMade   CurriculumVideo[]
+  curriculumLessonsMade  CurriculumLesson[]
+  curriculumLessonViews  CurriculumLessonView[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -619,7 +668,8 @@ model School {
   products           Product[]
   orders             Order[]
   limitedCollections LimitedCollection[]
-  curriculumVideos   CurriculumVideo[]
+  curriculums        Curriculum[]
+  curriculumLessons  CurriculumLesson[]
 
   // Martial SaaS billing — school paying the platform (separate from the
   // school's own Stripe keys above, which they use to charge their members)
