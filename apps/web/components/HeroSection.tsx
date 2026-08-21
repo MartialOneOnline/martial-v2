@@ -26,10 +26,16 @@ export default function HeroSection({ onOpenLoginModal }: HeroSectionProps) {
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-[#0E3A7A] via-[#0870E2]/90 to-[#0a2d5e] pb-16 pt-20 lg:pt-28 lg:pb-20">
+      {/* Mobile-only blurred background photo */}
+      <div className="absolute inset-0 lg:hidden">
+        <Image src="/buchecha.png" alt="" fill className="object-cover object-top blur-md scale-110 opacity-70" priority />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0E3A7A]/40 via-[#0870E2]/45 to-[#0a2d5e]/90" />
+      </div>
+
       <div className="absolute top-0 right-0 -z-0 w-[600px] h-[600px] bg-white/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 -z-0 w-[400px] h-[400px] bg-[#7DE7EC]/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+      <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="grid lg:grid-cols-12 gap-12 lg:gap-8 items-center">
 
           {/* Left — Text */}
