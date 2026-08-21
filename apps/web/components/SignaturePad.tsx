@@ -20,14 +20,30 @@ const SignaturePad = forwardRef<SignaturePadHandle, { height?: number }>(functio
     const canvas = canvasRef.current
     if (!canvas) return
 
+    let lastWidth = 0
+    let lastHeight = 0
+
+    // Mobile browsers (especially in-app WebViews like Gmail's) fire
+    // `resize` constantly — keyboard open/close, address-bar collapse on
+    // scroll — without the canvas's own CSS box actually changing size.
+    // Resizing the backing bitmap always clears it, so blindly doing that
+    // on every event wiped a signature the user had already drawn, right
+    // before they tapped submit. Only touch the bitmap (and preserve any
+    // ink already on it) when the box size has genuinely changed.
     function resize() {
       if (!canvas) return
-      const ratio = Math.max(window.devicePixelRatio || 1, 1)
       const rect = canvas.getBoundingClientRect()
+      if (rect.width === lastWidth && rect.height === lastHeight) return
+      lastWidth = rect.width
+      lastHeight = rect.height
+
+      const ratio = Math.max(window.devicePixelRatio || 1, 1)
+      const data = padRef.current && !padRef.current.isEmpty() ? padRef.current.toData() : null
       canvas.width = rect.width * ratio
       canvas.height = rect.height * ratio
       canvas.getContext('2d')?.scale(ratio, ratio)
       padRef.current?.clear()
+      if (data) padRef.current?.fromData(data)
     }
 
     padRef.current = new SignaturePadLib(canvas, { penColor: '#111827', backgroundColor: '#ffffff' })

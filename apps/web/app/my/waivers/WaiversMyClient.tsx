@@ -35,11 +35,18 @@ function SignModal({ waiver, onClose, onSigned }: { waiver: Waiver; onClose: () 
     if (!agreed) { setError(t.my.agreementRequiredError); return }
     if (!typedName.trim()) return
     setSaving(true); setError('')
-    const res = await myFetch(`/api/my/waivers/${waiver.id}/sign`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ typedName: typedName.trim(), signatureDataUrl: padRef.current?.toDataURL() ?? null }),
-    })
+    let res: Response
+    try {
+      res = await myFetch(`/api/my/waivers/${waiver.id}/sign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ typedName: typedName.trim(), signatureDataUrl: padRef.current?.toDataURL() ?? null }),
+      })
+    } catch {
+      setSaving(false)
+      setError(t.my.networkError)
+      return
+    }
     setSaving(false)
     if (!res.ok) {
       const d = await res.json().catch(() => ({}))
