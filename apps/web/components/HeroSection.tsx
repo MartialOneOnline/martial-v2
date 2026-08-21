@@ -28,10 +28,10 @@ export default function HeroSection({ onOpenLoginModal }: HeroSectionProps) {
     <section className="relative overflow-hidden bg-gradient-to-br from-[#0E3A7A] via-[#0870E2]/90 to-[#0a2d5e] pb-16 pt-20 lg:pt-28 lg:pb-20">
       {/* Mobile-only hero photo — pre-cropped (buchecha-mobile.png) so the eyes sit near the top, clear of the headline */}
       <div
-        className="absolute right-0 top-0 w-[347px] h-[560px] overflow-hidden lg:hidden"
+        className="absolute right-0 top-0 w-[347px] h-[750px] overflow-hidden lg:hidden"
         style={{
-          WebkitMaskImage: 'linear-gradient(to bottom, black 82%, transparent 100%)',
-          maskImage: 'linear-gradient(to bottom, black 82%, transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(to bottom, black 69%, transparent 100%)',
+          maskImage: 'linear-gradient(to bottom, black 69%, transparent 100%)',
         }}
       >
         <div
