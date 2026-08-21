@@ -334,6 +334,49 @@ model ContentAccess {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// CURRICULUM VIDEO
+// Per-school technique videos shown to their own students (School.modules.curriculum),
+// distinct from ContentVideo above which is Affiliation-scoped ("Roger Gracie TV").
+// Hosted on Mux — muxUploadId is set immediately on upload, muxAssetId/muxPlaybackId
+// are filled in by the video.asset.ready webhook once transcoding finishes.
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum CurriculumVideoStatus {
+  UPLOADING // Direct-upload URL issued, browser hasn't finished PUTting the file yet
+  PROCESSING // Mux received the file, transcoding in progress
+  READY // Playable — muxPlaybackId is set
+  ERRORED
+}
+
+model CurriculumVideo {
+  id       String @id @default(cuid())
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  title       String
+  belt        String
+  category    String
+  description String?
+  sortOrder   Int     @default(0)
+
+  status        CurriculumVideoStatus @default(UPLOADING)
+  muxUploadId   String?               @unique
+  muxAssetId    String?
+  muxPlaybackId String?
+  durationSec   Float?
+  errorMessage  String?
+
+  createdById String?
+  createdBy   User?   @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([schoolId, belt])
+  @@map("curriculum_videos")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // USER
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -394,6 +437,7 @@ model User {
   orders                 Order[]
   collectibleUnitsOwned  CollectibleUnit[]      @relation("CollectibleUnitOwner")
   collectibleOwnerships  CollectibleOwnership[]
+  curriculumVideosMade   CurriculumVideo[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -573,6 +617,7 @@ model School {
   products           Product[]
   orders             Order[]
   limitedCollections LimitedCollection[]
+  curriculumVideos   CurriculumVideo[]
 
   // Martial SaaS billing — school paying the platform (separate from the
   // school's own Stripe keys above, which they use to charge their members)
@@ -1422,6 +1467,13 @@ model UserWaiver {
   // "EMAIL" (student signed digitally after a sent link) or "MANUAL" (staff
   // recorded an in-person/paper signature on the member's behalf).
   sentVia String @default("EMAIL")
+
+  // Set per send, not per template — the same waiver template can be sent
+  // once as a hard blocker (liability waiver) and another time as
+  // informational-only (e.g. a photo release re-sent for a returning member
+  // who's already cleared to book). Only rows with this true count toward
+  // lib/waivers.ts#getBlockingWaivers.
+  requiresSignatureToBook Boolean @default(true)
 
   // Soft-revoke: keeps the row (and any prior signature) as an audit record
   // instead of destroying it, while still counting as "not currently valid"

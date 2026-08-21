@@ -43,6 +43,11 @@ export type ContentVideo = Prisma.ContentVideoModel
  */
 export type ContentAccess = Prisma.ContentAccessModel
 /**
+ * Model CurriculumVideo
+ * 
+ */
+export type CurriculumVideo = Prisma.CurriculumVideoModel
+/**
  * Model User
  * 
  */

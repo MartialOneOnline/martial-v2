@@ -37,6 +37,7 @@ export type UserWaiverMinAggregateOutputType = {
   signedVersion: string | null
   pdfPath: string | null
   sentVia: string | null
+  requiresSignatureToBook: boolean | null
   revokedAt: Date | null
   createdAt: Date | null
 }
@@ -54,6 +55,7 @@ export type UserWaiverMaxAggregateOutputType = {
   signedVersion: string | null
   pdfPath: string | null
   sentVia: string | null
+  requiresSignatureToBook: boolean | null
   revokedAt: Date | null
   createdAt: Date | null
 }
@@ -71,6 +73,7 @@ export type UserWaiverCountAggregateOutputType = {
   signedVersion: number
   pdfPath: number
   sentVia: number
+  requiresSignatureToBook: number
   revokedAt: number
   createdAt: number
   _all: number
@@ -90,6 +93,7 @@ export type UserWaiverMinAggregateInputType = {
   signedVersion?: true
   pdfPath?: true
   sentVia?: true
+  requiresSignatureToBook?: true
   revokedAt?: true
   createdAt?: true
 }
@@ -107,6 +111,7 @@ export type UserWaiverMaxAggregateInputType = {
   signedVersion?: true
   pdfPath?: true
   sentVia?: true
+  requiresSignatureToBook?: true
   revokedAt?: true
   createdAt?: true
 }
@@ -124,6 +129,7 @@ export type UserWaiverCountAggregateInputType = {
   signedVersion?: true
   pdfPath?: true
   sentVia?: true
+  requiresSignatureToBook?: true
   revokedAt?: true
   createdAt?: true
   _all?: true
@@ -214,6 +220,7 @@ export type UserWaiverGroupByOutputType = {
   signedVersion: string | null
   pdfPath: string | null
   sentVia: string
+  requiresSignatureToBook: boolean
   revokedAt: Date | null
   createdAt: Date
   _count: UserWaiverCountAggregateOutputType | null
@@ -252,6 +259,7 @@ export type UserWaiverWhereInput = {
   signedVersion?: Prisma.StringNullableFilter<"UserWaiver"> | string | null
   pdfPath?: Prisma.StringNullableFilter<"UserWaiver"> | string | null
   sentVia?: Prisma.StringFilter<"UserWaiver"> | string
+  requiresSignatureToBook?: Prisma.BoolFilter<"UserWaiver"> | boolean
   revokedAt?: Prisma.DateTimeNullableFilter<"UserWaiver"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"UserWaiver"> | Date | string
   waiver?: Prisma.XOR<Prisma.WaiverScalarRelationFilter, Prisma.WaiverWhereInput>
@@ -271,6 +279,7 @@ export type UserWaiverOrderByWithRelationInput = {
   signedVersion?: Prisma.SortOrderInput | Prisma.SortOrder
   pdfPath?: Prisma.SortOrderInput | Prisma.SortOrder
   sentVia?: Prisma.SortOrder
+  requiresSignatureToBook?: Prisma.SortOrder
   revokedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   waiver?: Prisma.WaiverOrderByWithRelationInput
@@ -294,6 +303,7 @@ export type UserWaiverWhereUniqueInput = Prisma.AtLeast<{
   signedVersion?: Prisma.StringNullableFilter<"UserWaiver"> | string | null
   pdfPath?: Prisma.StringNullableFilter<"UserWaiver"> | string | null
   sentVia?: Prisma.StringFilter<"UserWaiver"> | string
+  requiresSignatureToBook?: Prisma.BoolFilter<"UserWaiver"> | boolean
   revokedAt?: Prisma.DateTimeNullableFilter<"UserWaiver"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"UserWaiver"> | Date | string
   waiver?: Prisma.XOR<Prisma.WaiverScalarRelationFilter, Prisma.WaiverWhereInput>
@@ -313,6 +323,7 @@ export type UserWaiverOrderByWithAggregationInput = {
   signedVersion?: Prisma.SortOrderInput | Prisma.SortOrder
   pdfPath?: Prisma.SortOrderInput | Prisma.SortOrder
   sentVia?: Prisma.SortOrder
+  requiresSignatureToBook?: Prisma.SortOrder
   revokedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.UserWaiverCountOrderByAggregateInput
@@ -336,6 +347,7 @@ export type UserWaiverScalarWhereWithAggregatesInput = {
   signedVersion?: Prisma.StringNullableWithAggregatesFilter<"UserWaiver"> | string | null
   pdfPath?: Prisma.StringNullableWithAggregatesFilter<"UserWaiver"> | string | null
   sentVia?: Prisma.StringWithAggregatesFilter<"UserWaiver"> | string
+  requiresSignatureToBook?: Prisma.BoolWithAggregatesFilter<"UserWaiver"> | boolean
   revokedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"UserWaiver"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"UserWaiver"> | Date | string
 }
@@ -351,6 +363,7 @@ export type UserWaiverCreateInput = {
   signedVersion?: string | null
   pdfPath?: string | null
   sentVia?: string
+  requiresSignatureToBook?: boolean
   revokedAt?: Date | string | null
   createdAt?: Date | string
   waiver: Prisma.WaiverCreateNestedOneWithoutSignedByInput
@@ -370,6 +383,7 @@ export type UserWaiverUncheckedCreateInput = {
   signedVersion?: string | null
   pdfPath?: string | null
   sentVia?: string
+  requiresSignatureToBook?: boolean
   revokedAt?: Date | string | null
   createdAt?: Date | string
 }
@@ -385,6 +399,7 @@ export type UserWaiverUpdateInput = {
   signedVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pdfPath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sentVia?: Prisma.StringFieldUpdateOperationsInput | string
+  requiresSignatureToBook?: Prisma.BoolFieldUpdateOperationsInput | boolean
   revokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   waiver?: Prisma.WaiverUpdateOneRequiredWithoutSignedByNestedInput
@@ -404,6 +419,7 @@ export type UserWaiverUncheckedUpdateInput = {
   signedVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pdfPath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sentVia?: Prisma.StringFieldUpdateOperationsInput | string
+  requiresSignatureToBook?: Prisma.BoolFieldUpdateOperationsInput | boolean
   revokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -421,6 +437,7 @@ export type UserWaiverCreateManyInput = {
   signedVersion?: string | null
   pdfPath?: string | null
   sentVia?: string
+  requiresSignatureToBook?: boolean
   revokedAt?: Date | string | null
   createdAt?: Date | string
 }
@@ -436,6 +453,7 @@ export type UserWaiverUpdateManyMutationInput = {
   signedVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pdfPath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sentVia?: Prisma.StringFieldUpdateOperationsInput | string
+  requiresSignatureToBook?: Prisma.BoolFieldUpdateOperationsInput | boolean
   revokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -453,6 +471,7 @@ export type UserWaiverUncheckedUpdateManyInput = {
   signedVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pdfPath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sentVia?: Prisma.StringFieldUpdateOperationsInput | string
+  requiresSignatureToBook?: Prisma.BoolFieldUpdateOperationsInput | boolean
   revokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -485,6 +504,7 @@ export type UserWaiverCountOrderByAggregateInput = {
   signedVersion?: Prisma.SortOrder
   pdfPath?: Prisma.SortOrder
   sentVia?: Prisma.SortOrder
+  requiresSignatureToBook?: Prisma.SortOrder
   revokedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -502,6 +522,7 @@ export type UserWaiverMaxOrderByAggregateInput = {
   signedVersion?: Prisma.SortOrder
   pdfPath?: Prisma.SortOrder
   sentVia?: Prisma.SortOrder
+  requiresSignatureToBook?: Prisma.SortOrder
   revokedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -519,6 +540,7 @@ export type UserWaiverMinOrderByAggregateInput = {
   signedVersion?: Prisma.SortOrder
   pdfPath?: Prisma.SortOrder
   sentVia?: Prisma.SortOrder
+  requiresSignatureToBook?: Prisma.SortOrder
   revokedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -618,6 +640,7 @@ export type UserWaiverCreateWithoutUserInput = {
   signedVersion?: string | null
   pdfPath?: string | null
   sentVia?: string
+  requiresSignatureToBook?: boolean
   revokedAt?: Date | string | null
   createdAt?: Date | string
   waiver: Prisma.WaiverCreateNestedOneWithoutSignedByInput
@@ -635,6 +658,7 @@ export type UserWaiverUncheckedCreateWithoutUserInput = {
   signedVersion?: string | null
   pdfPath?: string | null
   sentVia?: string
+  requiresSignatureToBook?: boolean
   revokedAt?: Date | string | null
   createdAt?: Date | string
 }
@@ -681,6 +705,7 @@ export type UserWaiverScalarWhereInput = {
   signedVersion?: Prisma.StringNullableFilter<"UserWaiver"> | string | null
   pdfPath?: Prisma.StringNullableFilter<"UserWaiver"> | string | null
   sentVia?: Prisma.StringFilter<"UserWaiver"> | string
+  requiresSignatureToBook?: Prisma.BoolFilter<"UserWaiver"> | boolean
   revokedAt?: Prisma.DateTimeNullableFilter<"UserWaiver"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"UserWaiver"> | Date | string
 }
@@ -696,6 +721,7 @@ export type UserWaiverCreateWithoutWaiverInput = {
   signedVersion?: string | null
   pdfPath?: string | null
   sentVia?: string
+  requiresSignatureToBook?: boolean
   revokedAt?: Date | string | null
   createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutUserWaiversInput
@@ -713,6 +739,7 @@ export type UserWaiverUncheckedCreateWithoutWaiverInput = {
   signedVersion?: string | null
   pdfPath?: string | null
   sentVia?: string
+  requiresSignatureToBook?: boolean
   revokedAt?: Date | string | null
   createdAt?: Date | string
 }
@@ -755,6 +782,7 @@ export type UserWaiverCreateManyUserInput = {
   signedVersion?: string | null
   pdfPath?: string | null
   sentVia?: string
+  requiresSignatureToBook?: boolean
   revokedAt?: Date | string | null
   createdAt?: Date | string
 }
@@ -770,6 +798,7 @@ export type UserWaiverUpdateWithoutUserInput = {
   signedVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pdfPath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sentVia?: Prisma.StringFieldUpdateOperationsInput | string
+  requiresSignatureToBook?: Prisma.BoolFieldUpdateOperationsInput | boolean
   revokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   waiver?: Prisma.WaiverUpdateOneRequiredWithoutSignedByNestedInput
@@ -787,6 +816,7 @@ export type UserWaiverUncheckedUpdateWithoutUserInput = {
   signedVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pdfPath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sentVia?: Prisma.StringFieldUpdateOperationsInput | string
+  requiresSignatureToBook?: Prisma.BoolFieldUpdateOperationsInput | boolean
   revokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -803,6 +833,7 @@ export type UserWaiverUncheckedUpdateManyWithoutUserInput = {
   signedVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pdfPath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sentVia?: Prisma.StringFieldUpdateOperationsInput | string
+  requiresSignatureToBook?: Prisma.BoolFieldUpdateOperationsInput | boolean
   revokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -819,6 +850,7 @@ export type UserWaiverCreateManyWaiverInput = {
   signedVersion?: string | null
   pdfPath?: string | null
   sentVia?: string
+  requiresSignatureToBook?: boolean
   revokedAt?: Date | string | null
   createdAt?: Date | string
 }
@@ -834,6 +866,7 @@ export type UserWaiverUpdateWithoutWaiverInput = {
   signedVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pdfPath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sentVia?: Prisma.StringFieldUpdateOperationsInput | string
+  requiresSignatureToBook?: Prisma.BoolFieldUpdateOperationsInput | boolean
   revokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutUserWaiversNestedInput
@@ -851,6 +884,7 @@ export type UserWaiverUncheckedUpdateWithoutWaiverInput = {
   signedVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pdfPath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sentVia?: Prisma.StringFieldUpdateOperationsInput | string
+  requiresSignatureToBook?: Prisma.BoolFieldUpdateOperationsInput | boolean
   revokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -867,6 +901,7 @@ export type UserWaiverUncheckedUpdateManyWithoutWaiverInput = {
   signedVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pdfPath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sentVia?: Prisma.StringFieldUpdateOperationsInput | string
+  requiresSignatureToBook?: Prisma.BoolFieldUpdateOperationsInput | boolean
   revokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -886,6 +921,7 @@ export type UserWaiverSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   signedVersion?: boolean
   pdfPath?: boolean
   sentVia?: boolean
+  requiresSignatureToBook?: boolean
   revokedAt?: boolean
   createdAt?: boolean
   waiver?: boolean | Prisma.WaiverDefaultArgs<ExtArgs>
@@ -905,6 +941,7 @@ export type UserWaiverSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   signedVersion?: boolean
   pdfPath?: boolean
   sentVia?: boolean
+  requiresSignatureToBook?: boolean
   revokedAt?: boolean
   createdAt?: boolean
   waiver?: boolean | Prisma.WaiverDefaultArgs<ExtArgs>
@@ -924,6 +961,7 @@ export type UserWaiverSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   signedVersion?: boolean
   pdfPath?: boolean
   sentVia?: boolean
+  requiresSignatureToBook?: boolean
   revokedAt?: boolean
   createdAt?: boolean
   waiver?: boolean | Prisma.WaiverDefaultArgs<ExtArgs>
@@ -943,11 +981,12 @@ export type UserWaiverSelectScalar = {
   signedVersion?: boolean
   pdfPath?: boolean
   sentVia?: boolean
+  requiresSignatureToBook?: boolean
   revokedAt?: boolean
   createdAt?: boolean
 }
 
-export type UserWaiverOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "waiverId" | "userId" | "signedAt" | "ipAddress" | "userAgent" | "signature" | "notes" | "contentSnapshot" | "signedVersion" | "pdfPath" | "sentVia" | "revokedAt" | "createdAt", ExtArgs["result"]["userWaiver"]>
+export type UserWaiverOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "waiverId" | "userId" | "signedAt" | "ipAddress" | "userAgent" | "signature" | "notes" | "contentSnapshot" | "signedVersion" | "pdfPath" | "sentVia" | "requiresSignatureToBook" | "revokedAt" | "createdAt", ExtArgs["result"]["userWaiver"]>
 export type UserWaiverInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   waiver?: boolean | Prisma.WaiverDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -980,6 +1019,7 @@ export type $UserWaiverPayload<ExtArgs extends runtime.Types.Extensions.Internal
     signedVersion: string | null
     pdfPath: string | null
     sentVia: string
+    requiresSignatureToBook: boolean
     revokedAt: Date | null
     createdAt: Date
   }, ExtArgs["result"]["userWaiver"]>
@@ -1419,6 +1459,7 @@ export interface UserWaiverFieldRefs {
   readonly signedVersion: Prisma.FieldRef<"UserWaiver", 'String'>
   readonly pdfPath: Prisma.FieldRef<"UserWaiver", 'String'>
   readonly sentVia: Prisma.FieldRef<"UserWaiver", 'String'>
+  readonly requiresSignatureToBook: Prisma.FieldRef<"UserWaiver", 'Boolean'>
   readonly revokedAt: Prisma.FieldRef<"UserWaiver", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"UserWaiver", 'DateTime'>
 }

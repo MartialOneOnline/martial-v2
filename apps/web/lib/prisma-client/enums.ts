@@ -251,6 +251,16 @@ export const StripeWebhookEventStatus = {
 export type StripeWebhookEventStatus = (typeof StripeWebhookEventStatus)[keyof typeof StripeWebhookEventStatus]
 
 
+export const CurriculumVideoStatus = {
+  UPLOADING: 'UPLOADING',
+  PROCESSING: 'PROCESSING',
+  READY: 'READY',
+  ERRORED: 'ERRORED'
+} as const
+
+export type CurriculumVideoStatus = (typeof CurriculumVideoStatus)[keyof typeof CurriculumVideoStatus]
+
+
 export const CampaignType = {
   REMINDER: 'REMINDER',
   DISCOUNT_OFFER: 'DISCOUNT_OFFER',

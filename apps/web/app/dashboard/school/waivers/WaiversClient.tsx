@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react'
 import {Check, TrendingDown, MoreHorizontal, Eye, Plus, FileText, Download, Send, Menu, X, Search, Edit2, Ban, PenLine} from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import RowMenu from '../../../../components/RowMenu'
+import SendWaiverModal from '../../../../components/SendWaiverModal'
 import { matchesSearch } from '../../../../lib/search'
 
 type WaiverStatus = 'Signed' | 'Pending' | 'Expired'
@@ -22,6 +23,7 @@ interface Waiver {
   sentVia: string
   hasPdf: boolean
   revoked: boolean
+  requiresSignatureToBook: boolean
   content: string
   signature: string | null
   ipAddress: string | null
@@ -73,169 +75,6 @@ const labelStyle: React.CSSProperties = {
   display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 5,
 }
 
-function Drawer({ open, title, subtitle, onClose, children, footer }: {
-  open: boolean; title: string; subtitle: string; onClose: () => void; children: React.ReactNode; footer: React.ReactNode
-}) {
-  return (
-    <>
-      <div className="fixed inset-0 z-40 transition-opacity"
-        style={{ background: 'rgba(0,0,0,0.35)', opacity: open ? 1 : 0, pointerEvents: open ? 'auto' : 'none' }}
-        onClick={onClose} />
-      <div className="fixed top-0 right-0 h-full z-50 flex flex-col overflow-hidden"
-        style={{ width: 'min(560px,96vw)', background: '#F9FAFB',
-          boxShadow: '-4px 0 32px rgba(0,0,0,0.12)',
-          transform: open ? 'translateX(0)' : 'translateX(100%)',
-          transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)' }}>
-        <div className="flex items-center justify-between px-6 py-5 shrink-0"
-          style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
-          <div>
-            <h2 style={{ fontSize: 17, fontWeight: 700, color: '#111827', margin: 0, letterSpacing: '-0.02em' }}>{title}</h2>
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{subtitle}</p>
-          </div>
-          <button onClick={onClose} className="w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
-            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-            <X size={15} style={{ color: '#6B7280' }} />
-          </button>
-        </div>
-        <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-5">{children}</div>
-        <div className="px-6 py-4 flex items-center gap-3 justify-end shrink-0"
-          style={{ background: '#fff', borderTop: '1px solid #E5E7EB' }}>{footer}</div>
-      </div>
-    </>
-  )
-}
-
-function AddWaiverDrawer({ open, onClose, onSuccess, members, templates }: {
-  open: boolean; onClose: () => void; onSuccess: () => void; members: MemberOption[]; templates: Template[]
-}) {
-  const [memberQuery, setMemberQuery]       = useState('')
-  const [selectedMember, setSelectedMember] = useState<MemberOption | null>(null)
-  const [showDropdown, setShowDropdown]     = useState(false)
-  const [templateId, setTemplateId]         = useState('')
-  const [notes, setNotes]                   = useState('')
-  const [saving, setSaving]                 = useState(false)
-  const [error, setError]                   = useState('')
-
-  const filteredMembers = members.filter(m =>
-    matchesSearch(m.name, memberQuery) || matchesSearch(m.email, memberQuery)
-  )
-  const activeTemplates = templates.filter(t => t.isActive)
-
-  function reset() {
-    setMemberQuery(''); setSelectedMember(null); setShowDropdown(false)
-    setTemplateId(''); setNotes(''); setError('')
-  }
-  function handleClose() { reset(); onClose() }
-
-  async function handleSubmit() {
-    if (!selectedMember || !templateId) return
-    setSaving(true); setError('')
-    const res = await fetch('/api/dashboard/waivers', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: selectedMember.id, templateId, notes }),
-    })
-    setSaving(false)
-    if (!res.ok) { const d = await res.json(); setError(d.error ?? 'Error'); return }
-    reset(); onSuccess()
-  }
-
-  const canSubmit = selectedMember && templateId && !saving
-
-  return (
-    <Drawer open={open} onClose={handleClose} title="Send Waiver" subtitle="Send a waiver to a member for signature"
-      footer={<>
-        <button onClick={handleClose} className="px-5 py-2.5 rounded-xl cursor-pointer"
-          style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
-          Cancel
-        </button>
-        <button onClick={handleSubmit} disabled={!canSubmit} className="px-6 py-2.5 rounded-xl cursor-pointer flex items-center gap-2"
-          style={{ fontSize: 13, fontWeight: 600, border: 'none',
-            background: canSubmit ? '#0071E3' : '#93C5FD', color: '#fff',
-            cursor: canSubmit ? 'pointer' : 'not-allowed' }}>
-          <Send size={14} />{saving ? 'Sending…' : 'Send Waiver'}
-        </button>
-      </>}>
-      <div className="relative">
-        <label style={labelStyle}>Member</label>
-        {selectedMember ? (
-          <div className="flex items-center justify-between px-3 py-2.5 rounded-xl"
-            style={{ border: '1px solid #0071E3', background: '#EFF6FF' }}>
-            <div className="flex items-center gap-2.5">
-              <Avatar name={selectedMember.name} avatarUrl={selectedMember.avatarUrl} />
-              <div>
-                <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{selectedMember.name}</p>
-                <p style={{ fontSize: 11, color: '#6B7280' }}>{selectedMember.email}</p>
-              </div>
-            </div>
-            <button onClick={() => { setSelectedMember(null); setMemberQuery('') }}
-              className="w-6 h-6 flex items-center justify-center rounded-lg cursor-pointer"
-              style={{ background: 'transparent', border: 'none' }}>
-              <X size={13} style={{ color: '#6B7280' }} />
-            </button>
-          </div>
-        ) : (
-          <div className="relative">
-            <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl"
-              style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
-              <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
-              <input type="text" placeholder="Search member…"
-                value={memberQuery}
-                onChange={e => { setMemberQuery(e.target.value); setShowDropdown(true) }}
-                onFocus={() => setShowDropdown(true)}
-                style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
-            </div>
-            {showDropdown && filteredMembers.length > 0 && (
-              <>
-                <div className="fixed inset-0 z-10" onClick={() => setShowDropdown(false)} />
-                <div className="absolute left-0 right-0 rounded-xl z-20 overflow-hidden mt-1"
-                  style={{ background: '#fff', border: '1px solid #E5E7EB',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.1)', maxHeight: 220, overflowY: 'auto' }}>
-                  {filteredMembers.map(m => (
-                    <button key={m.id}
-                      onClick={() => { setSelectedMember(m); setMemberQuery(''); setShowDropdown(false) }}
-                      className="w-full text-left flex items-center gap-3 px-4 py-2.5 cursor-pointer"
-                      style={{ background: 'transparent', border: 'none' }}
-                      onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
-                      onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                      <Avatar name={m.name} avatarUrl={m.avatarUrl} />
-                      <div>
-                        <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{m.name}</p>
-                        <p style={{ fontSize: 11, color: '#9CA3AF' }}>{m.email}</p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-            {showDropdown && memberQuery && filteredMembers.length === 0 && (
-              <div className="absolute left-0 right-0 rounded-xl z-20 mt-1 px-4 py-3"
-                style={{ background: '#fff', border: '1px solid #E5E7EB', boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}>
-                <p style={{ fontSize: 12, color: '#9CA3AF' }}>No members found</p>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-      <div>
-        <label style={labelStyle}>Waiver Template</label>
-        <select value={templateId} onChange={e => setTemplateId(e.target.value)} style={inputStyle}>
-          <option value="">Select template…</option>
-          {activeTemplates.map(tpl => <option key={tpl.id} value={tpl.id}>{tpl.title} (v{tpl.version})</option>)}
-        </select>
-        {activeTemplates.length === 0 && (
-          <p style={{ fontSize: 11, color: '#D97706', marginTop: 4 }}>No active templates yet — create one in the Templates tab first.</p>
-        )}
-      </div>
-      <div>
-        <label style={labelStyle}>Notes <span style={{ fontWeight: 400, color: '#9CA3AF' }}>(optional)</span></label>
-        <textarea rows={3} placeholder="Notes about this waiver…" value={notes} onChange={e => setNotes(e.target.value)}
-          style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }} />
-      </div>
-      {error && <p style={{ fontSize: 12, color: '#DC2626' }}>{error}</p>}
-    </Drawer>
-  )
-}
-
 function ViewWaiverModal({ waiver, onClose }: { waiver: Waiver; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={onClose}
@@ -262,6 +101,10 @@ function ViewWaiverModal({ waiver, onClose }: { waiver: Waiver; onClose: () => v
           <div>
             <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase' }}>Signed via</p>
             <p style={{ fontSize: 13, color: '#111827' }}>{waiver.sentVia}</p>
+          </div>
+          <div>
+            <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase' }}>Restricts booking</p>
+            <p style={{ fontSize: 13, color: '#111827' }}>{waiver.requiresSignatureToBook ? 'Yes, until signed' : 'No — informational only'}</p>
           </div>
           {waiver.signedVersion && (
             <div>
@@ -816,13 +659,14 @@ export default function WaiversClient() {
             </div>
             )}
           </div>
-      <AddWaiverDrawer
-      open={drawerOpen}
-      members={members}
-      templates={templates}
-      onClose={() => setDrawerOpen(false)}
-      onSuccess={() => { setDrawerOpen(false); load(); showToast('Waiver sent successfully') }}
-    />
+      {drawerOpen && (
+        <SendWaiverModal
+          mode="bulk"
+          members={members}
+          onClose={() => setDrawerOpen(false)}
+          onSuccess={({ sentCount }) => { setDrawerOpen(false); load(); showToast(sentCount > 1 ? `Waiver sent to ${sentCount} members` : 'Waiver sent successfully') }}
+        />
+      )}
       {viewing && <ViewWaiverModal waiver={viewing} onClose={() => setViewing(null)} />}
       {marking && (
         <MarkSignedModal waiver={marking} onClose={() => setMarking(null)}

@@ -22,6 +22,7 @@ import { submitMemberStatusChange, applyOptimisticStatus } from '../../../lib/me
 import { downloadCsv } from '../../../lib/csvExport'
 import { matchesSearch } from '../../../lib/search'
 import CampaignComposerModal from './CampaignComposerModal'
+import SendWaiverModal from '../../../components/SendWaiverModal'
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
 type ToastType = 'success' | 'error' | 'info'
@@ -168,6 +169,7 @@ function ActionsMenu({
   onQRCode,
   onMarkPaid,
   onSyncMembership,
+  onSendWaiver,
   showToast,
 }: {
   student: Student
@@ -181,6 +183,7 @@ function ActionsMenu({
   onQRCode: (student: Student) => void
   onMarkPaid: (student: Student) => void
   onSyncMembership: (student: Student) => void
+  onSendWaiver: (student: Student) => void
   showToast: (msg: string, type?: 'success' | 'error' | 'info') => void
 }) {
   const router = useRouter()
@@ -367,12 +370,11 @@ function ActionsMenu({
           () => showToast('Invoice — Coming soon', 'info'),
         )}
 
-        {/* TODO(waiver): build waiver document model + send flow, then restore
         {menuItem(
           <FileText size={13} style={{ color: '#6B7280', flexShrink: 0 }} />,
           'Send Waiver',
-          () => showToast('Send Waiver — Coming soon', 'info'),
-        )} */}
+          () => onSendWaiver(student),
+        )}
 
         <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
 
@@ -1639,6 +1641,7 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
   const [editStudent, setEditStudent]     = useState<Student | null>(null)
   const [msgStudent, setMsgStudent]       = useState<Student | null>(null)
   const [qrStudent, setQrStudent]         = useState<Student | null>(null)
+  const [waiverStudent, setWaiverStudent] = useState<Student | null>(null)
   const [markPaidStudent, setMarkPaidStudent] = useState<Student | null>(null)
 
   // Deep link from the dashboard's global search (e.g. /dashboard/users?search=Jane)
@@ -1825,6 +1828,14 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
       )}
       {qrStudent && (
         <StudentQRModal student={qrStudent} onClose={() => setQrStudent(null)} />
+      )}
+      {waiverStudent && (
+        <SendWaiverModal
+          mode="single"
+          member={{ id: waiverStudent.id, name: waiverStudent.name, email: waiverStudent.email, avatarUrl: waiverStudent.avatarUrl }}
+          onClose={() => setWaiverStudent(null)}
+          onSuccess={() => { showToast(`Waiver enviado a ${waiverStudent.name}`, 'success'); setWaiverStudent(null) }}
+        />
       )}
       {showComposer && (
         <CampaignComposerModal
@@ -2174,6 +2185,7 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
                       onQRCode={s => setQrStudent(s)}
                       onMarkPaid={handleMarkAsPaid}
                       onSyncMembership={handleSyncMembership}
+                      onSendWaiver={s => setWaiverStudent(s)}
                       showToast={showToast}
                     />
                   </td>

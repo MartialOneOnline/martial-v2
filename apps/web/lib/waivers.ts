@@ -10,6 +10,7 @@ export async function getBlockingWaivers(userId: string, schoolId: string) {
     where: {
       userId,
       waiver: { schoolId, isActive: true },
+      requiresSignatureToBook: true,
       OR: [{ signedAt: null }, { revokedAt: { not: null } }],
     },
     select: { id: true, waiver: { select: { id: true, title: true } } },

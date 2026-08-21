@@ -7,11 +7,12 @@ import {
   Send, MoreHorizontal, Sparkles, CreditCard,
   BookOpen, TrendingUp, Clock, AlertCircle, ChevronRight,
   User, Heart, FileText, Dumbbell, X, Plus, Check, CheckCircle,
-  Archive, Trash2, Bell,
+  Archive, Trash2, Bell, FileSignature,
 } from 'lucide-react'
 import { fmtPrice } from '../../../../lib/format'
 import NotificationBell from '../../../../components/NotificationBell'
 import RowMenu from '../../../../components/RowMenu'
+import SendWaiverModal from '../../../../components/SendWaiverModal'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type Booking = { id: string; className: string; date: string; status: string; attendedAt: string | null }
@@ -1390,6 +1391,7 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [medicalModalOpen, setMedicalModalOpen] = useState(false)
   const [emailModalOpen, setEmailModalOpen] = useState(false)
+  const [waiverModalOpen, setWaiverModalOpen] = useState(false)
   const [attendanceModalOpen, setAttendanceModalOpen] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [resending, setResending] = useState(false)
@@ -1534,6 +1536,15 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
         />
       )}
 
+      {waiverModalOpen && (
+        <SendWaiverModal
+          mode="single"
+          member={{ id: profile.userId, name: profile.name, email: profile.email, avatarUrl: profile.avatarUrl }}
+          onClose={() => setWaiverModalOpen(false)}
+          onSuccess={() => { showToast(`Waiver enviado a ${profile.name}`, 'success'); setWaiverModalOpen(false) }}
+        />
+      )}
+
       {attendanceModalOpen && (
         <AttendanceCardModal
           profile={profile}
@@ -1658,6 +1669,16 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
                       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
                       <Heart size={13} style={{ color: '#6B7280', flexShrink: 0 }} />
                       Notas médicas
+                    </button>
+
+                    <button
+                      onClick={() => setWaiverModalOpen(true)}
+                      className="w-full flex items-center gap-2 cursor-pointer"
+                      style={{ padding: '8px 14px', fontSize: 13, border: 'none', textAlign: 'left', color: '#374151', background: 'transparent' }}
+                      onMouseEnter={e => (e.currentTarget.style.background = '#F9FAFB')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                      <FileSignature size={13} style={{ color: '#6B7280', flexShrink: 0 }} />
+                      Enviar waiver
                     </button>
 
                     <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />

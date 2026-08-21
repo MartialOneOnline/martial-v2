@@ -637,6 +637,7 @@ export type SchoolWhereInput = {
   products?: Prisma.ProductListRelationFilter
   orders?: Prisma.OrderListRelationFilter
   limitedCollections?: Prisma.LimitedCollectionListRelationFilter
+  curriculumVideos?: Prisma.CurriculumVideoListRelationFilter
   subscription?: Prisma.XOR<Prisma.SchoolSubscriptionNullableScalarRelationFilter, Prisma.SchoolSubscriptionWhereInput> | null
 }
 
@@ -722,6 +723,7 @@ export type SchoolOrderByWithRelationInput = {
   products?: Prisma.ProductOrderByRelationAggregateInput
   orders?: Prisma.OrderOrderByRelationAggregateInput
   limitedCollections?: Prisma.LimitedCollectionOrderByRelationAggregateInput
+  curriculumVideos?: Prisma.CurriculumVideoOrderByRelationAggregateInput
   subscription?: Prisma.SchoolSubscriptionOrderByWithRelationInput
 }
 
@@ -810,6 +812,7 @@ export type SchoolWhereUniqueInput = Prisma.AtLeast<{
   products?: Prisma.ProductListRelationFilter
   orders?: Prisma.OrderListRelationFilter
   limitedCollections?: Prisma.LimitedCollectionListRelationFilter
+  curriculumVideos?: Prisma.CurriculumVideoListRelationFilter
   subscription?: Prisma.XOR<Prisma.SchoolSubscriptionNullableScalarRelationFilter, Prisma.SchoolSubscriptionWhereInput> | null
 }, "id" | "slug" | "v1UserId">
 
@@ -1010,6 +1013,7 @@ export type SchoolCreateInput = {
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -1092,6 +1096,7 @@ export type SchoolUncheckedCreateInput = {
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -1174,6 +1179,7 @@ export type SchoolUpdateInput = {
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -1256,6 +1262,7 @@ export type SchoolUncheckedUpdateInput = {
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -1431,14 +1438,14 @@ export type SchoolOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
-export type SchoolNullableScalarRelationFilter = {
-  is?: Prisma.SchoolWhereInput | null
-  isNot?: Prisma.SchoolWhereInput | null
-}
-
 export type SchoolScalarRelationFilter = {
   is?: Prisma.SchoolWhereInput
   isNot?: Prisma.SchoolWhereInput
+}
+
+export type SchoolNullableScalarRelationFilter = {
+  is?: Prisma.SchoolWhereInput | null
+  isNot?: Prisma.SchoolWhereInput | null
 }
 
 export type StringNullableListFilter<$PrismaModel = never> = {
@@ -1672,6 +1679,20 @@ export type SchoolUncheckedUpdateManyWithoutAffiliationNestedInput = {
   deleteMany?: Prisma.SchoolScalarWhereInput | Prisma.SchoolScalarWhereInput[]
 }
 
+export type SchoolCreateNestedOneWithoutCurriculumVideosInput = {
+  create?: Prisma.XOR<Prisma.SchoolCreateWithoutCurriculumVideosInput, Prisma.SchoolUncheckedCreateWithoutCurriculumVideosInput>
+  connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutCurriculumVideosInput
+  connect?: Prisma.SchoolWhereUniqueInput
+}
+
+export type SchoolUpdateOneRequiredWithoutCurriculumVideosNestedInput = {
+  create?: Prisma.XOR<Prisma.SchoolCreateWithoutCurriculumVideosInput, Prisma.SchoolUncheckedCreateWithoutCurriculumVideosInput>
+  connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutCurriculumVideosInput
+  upsert?: Prisma.SchoolUpsertWithoutCurriculumVideosInput
+  connect?: Prisma.SchoolWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SchoolUpdateToOneWithWhereWithoutCurriculumVideosInput, Prisma.SchoolUpdateWithoutCurriculumVideosInput>, Prisma.SchoolUncheckedUpdateWithoutCurriculumVideosInput>
+}
+
 export type SchoolCreateNestedOneWithoutStaffInput = {
   create?: Prisma.XOR<Prisma.SchoolCreateWithoutStaffInput, Prisma.SchoolUncheckedCreateWithoutStaffInput>
   connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutStaffInput
@@ -1796,14 +1817,6 @@ export type EnumSchoolSourceFieldUpdateOperationsInput = {
 
 export type EnumSchoolTypeFieldUpdateOperationsInput = {
   set?: $Enums.SchoolType
-}
-
-export type NullableFloatFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
 }
 
 export type FloatFieldUpdateOperationsInput = {
@@ -2286,6 +2299,7 @@ export type SchoolCreateWithoutAffiliationInput = {
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -2367,6 +2381,7 @@ export type SchoolUncheckedCreateWithoutAffiliationInput = {
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -2454,6 +2469,350 @@ export type SchoolScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"School"> | Date | string
 }
 
+export type SchoolCreateWithoutCurriculumVideosInput = {
+  id?: string
+  name: string
+  slug: string
+  status?: $Enums.SchoolStatus
+  source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
+  country?: string | null
+  city?: string | null
+  address?: string | null
+  postcode?: string | null
+  lat?: number | null
+  lng?: number | null
+  phone?: string | null
+  email?: string | null
+  website?: string | null
+  language?: string
+  instagram?: string | null
+  facebook?: string | null
+  youtube?: string | null
+  tiktok?: string | null
+  description?: string | null
+  tagline?: string | null
+  logoUrl?: string | null
+  coverUrl?: string | null
+  coverPosY?: number
+  photos?: Prisma.SchoolCreatephotosInput | string[]
+  priceFrom?: number | null
+  hasFreeTrialCls?: boolean
+  facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
+  foundedYear?: number | null
+  totalStudents?: number | null
+  googleRating?: number | null
+  googleReviews?: number | null
+  googlePlaceId?: string | null
+  v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
+  revolutWebhookSecret?: string | null
+  parentRelationshipType?: $Enums.SchoolRelationshipType | null
+  leadStage?: $Enums.LeadStage | null
+  claimedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  affiliation?: Prisma.AffiliationCreateNestedOneWithoutSchoolsInput
+  parent?: Prisma.SchoolCreateNestedOneWithoutBranchesInput
+  branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
+  claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
+  staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogCreateNestedManyWithoutSchoolInput
+  disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
+  classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventCreateNestedManyWithoutSchoolInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
+  camps?: Prisma.CampCreateNestedManyWithoutSchoolInput
+  instructors?: Prisma.InstructorCreateNestedManyWithoutSchoolInput
+  membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
+  members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
+  gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
+  invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
+  productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
+  products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
+  orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
+  limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
+}
+
+export type SchoolUncheckedCreateWithoutCurriculumVideosInput = {
+  id?: string
+  name: string
+  slug: string
+  status?: $Enums.SchoolStatus
+  source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
+  affiliationId?: string | null
+  country?: string | null
+  city?: string | null
+  address?: string | null
+  postcode?: string | null
+  lat?: number | null
+  lng?: number | null
+  phone?: string | null
+  email?: string | null
+  website?: string | null
+  language?: string
+  instagram?: string | null
+  facebook?: string | null
+  youtube?: string | null
+  tiktok?: string | null
+  description?: string | null
+  tagline?: string | null
+  logoUrl?: string | null
+  coverUrl?: string | null
+  coverPosY?: number
+  photos?: Prisma.SchoolCreatephotosInput | string[]
+  priceFrom?: number | null
+  hasFreeTrialCls?: boolean
+  facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
+  foundedYear?: number | null
+  totalStudents?: number | null
+  googleRating?: number | null
+  googleReviews?: number | null
+  googlePlaceId?: string | null
+  v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
+  revolutWebhookSecret?: string | null
+  parentId?: string | null
+  parentRelationshipType?: $Enums.SchoolRelationshipType | null
+  leadStage?: $Enums.LeadStage | null
+  claimedById?: string | null
+  claimedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
+  staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutSchoolInput
+  disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
+  classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
+  camps?: Prisma.CampUncheckedCreateNestedManyWithoutSchoolInput
+  instructors?: Prisma.InstructorUncheckedCreateNestedManyWithoutSchoolInput
+  membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
+  members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
+  gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
+  invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
+  productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
+  products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
+  limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
+}
+
+export type SchoolCreateOrConnectWithoutCurriculumVideosInput = {
+  where: Prisma.SchoolWhereUniqueInput
+  create: Prisma.XOR<Prisma.SchoolCreateWithoutCurriculumVideosInput, Prisma.SchoolUncheckedCreateWithoutCurriculumVideosInput>
+}
+
+export type SchoolUpsertWithoutCurriculumVideosInput = {
+  update: Prisma.XOR<Prisma.SchoolUpdateWithoutCurriculumVideosInput, Prisma.SchoolUncheckedUpdateWithoutCurriculumVideosInput>
+  create: Prisma.XOR<Prisma.SchoolCreateWithoutCurriculumVideosInput, Prisma.SchoolUncheckedCreateWithoutCurriculumVideosInput>
+  where?: Prisma.SchoolWhereInput
+}
+
+export type SchoolUpdateToOneWithWhereWithoutCurriculumVideosInput = {
+  where?: Prisma.SchoolWhereInput
+  data: Prisma.XOR<Prisma.SchoolUpdateWithoutCurriculumVideosInput, Prisma.SchoolUncheckedUpdateWithoutCurriculumVideosInput>
+}
+
+export type SchoolUpdateWithoutCurriculumVideosInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
+  source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tiktok?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
+  photos?: Prisma.SchoolUpdatephotosInput | string[]
+  priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
+  foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
+  leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  affiliation?: Prisma.AffiliationUpdateOneWithoutSchoolsNestedInput
+  parent?: Prisma.SchoolUpdateOneWithoutBranchesNestedInput
+  branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
+  claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
+  staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUpdateManyWithoutSchoolNestedInput
+  disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
+  classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
+  camps?: Prisma.CampUpdateManyWithoutSchoolNestedInput
+  instructors?: Prisma.InstructorUpdateManyWithoutSchoolNestedInput
+  membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
+  members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
+  gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
+  invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
+  productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
+  products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
+  limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
+}
+
+export type SchoolUncheckedUpdateWithoutCurriculumVideosInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
+  source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
+  affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tiktok?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
+  photos?: Prisma.SchoolUpdatephotosInput | string[]
+  priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
+  foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
+  leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
+  claimedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
+  staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutSchoolNestedInput
+  disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
+  classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
+  camps?: Prisma.CampUncheckedUpdateManyWithoutSchoolNestedInput
+  instructors?: Prisma.InstructorUncheckedUpdateManyWithoutSchoolNestedInput
+  membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
+  members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
+  gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
+  invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
+  productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
+  products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
+  limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
+}
+
 export type SchoolCreateWithoutStaffInput = {
   id?: string
   name: string
@@ -2532,6 +2891,7 @@ export type SchoolCreateWithoutStaffInput = {
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -2613,6 +2973,7 @@ export type SchoolUncheckedCreateWithoutStaffInput = {
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -2699,6 +3060,7 @@ export type SchoolCreateWithoutClaimedByInput = {
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -2780,6 +3142,7 @@ export type SchoolUncheckedCreateWithoutClaimedByInput = {
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -2882,6 +3245,7 @@ export type SchoolUpdateWithoutStaffInput = {
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -2963,6 +3327,7 @@ export type SchoolUncheckedUpdateWithoutStaffInput = {
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -3060,6 +3425,7 @@ export type SchoolCreateWithoutDisciplinesInput = {
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -3141,6 +3507,7 @@ export type SchoolUncheckedCreateWithoutDisciplinesInput = {
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -3238,6 +3605,7 @@ export type SchoolUpdateWithoutDisciplinesInput = {
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -3319,6 +3687,7 @@ export type SchoolUncheckedUpdateWithoutDisciplinesInput = {
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -3400,6 +3769,7 @@ export type SchoolCreateWithoutFacilityCatalogInput = {
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -3481,6 +3851,7 @@ export type SchoolUncheckedCreateWithoutFacilityCatalogInput = {
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -3578,6 +3949,7 @@ export type SchoolUpdateWithoutFacilityCatalogInput = {
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -3659,6 +4031,7 @@ export type SchoolUncheckedUpdateWithoutFacilityCatalogInput = {
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -3740,6 +4113,7 @@ export type SchoolCreateWithoutBranchesInput = {
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -3821,6 +4195,7 @@ export type SchoolUncheckedCreateWithoutBranchesInput = {
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -3907,6 +4282,7 @@ export type SchoolCreateWithoutParentInput = {
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -3988,6 +4364,7 @@ export type SchoolUncheckedCreateWithoutParentInput = {
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -4090,6 +4467,7 @@ export type SchoolUpdateWithoutBranchesInput = {
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -4171,6 +4549,7 @@ export type SchoolUncheckedUpdateWithoutBranchesInput = {
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -4268,6 +4647,7 @@ export type SchoolCreateWithoutInstructorsInput = {
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -4349,6 +4729,7 @@ export type SchoolUncheckedCreateWithoutInstructorsInput = {
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -4446,6 +4827,7 @@ export type SchoolUpdateWithoutInstructorsInput = {
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -4527,6 +4909,7 @@ export type SchoolUncheckedUpdateWithoutInstructorsInput = {
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -4608,6 +4991,7 @@ export type SchoolCreateWithoutMembershipPlansInput = {
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -4689,6 +5073,7 @@ export type SchoolUncheckedCreateWithoutMembershipPlansInput = {
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -4786,6 +5171,7 @@ export type SchoolUpdateWithoutMembershipPlansInput = {
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -4867,6 +5253,7 @@ export type SchoolUncheckedUpdateWithoutMembershipPlansInput = {
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -4948,6 +5335,7 @@ export type SchoolCreateWithoutReviewsInput = {
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -5029,6 +5417,7 @@ export type SchoolUncheckedCreateWithoutReviewsInput = {
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -5126,6 +5515,7 @@ export type SchoolUpdateWithoutReviewsInput = {
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -5207,6 +5597,7 @@ export type SchoolUncheckedUpdateWithoutReviewsInput = {
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -5288,6 +5679,7 @@ export type SchoolCreateWithoutClassesInput = {
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -5369,6 +5761,7 @@ export type SchoolUncheckedCreateWithoutClassesInput = {
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -5466,6 +5859,7 @@ export type SchoolUpdateWithoutClassesInput = {
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -5547,6 +5941,7 @@ export type SchoolUncheckedUpdateWithoutClassesInput = {
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -5628,6 +6023,7 @@ export type SchoolCreateWithoutEventsInput = {
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -5709,6 +6105,7 @@ export type SchoolUncheckedCreateWithoutEventsInput = {
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -5806,6 +6203,7 @@ export type SchoolUpdateWithoutEventsInput = {
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -5887,6 +6285,7 @@ export type SchoolUncheckedUpdateWithoutEventsInput = {
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -5968,6 +6367,7 @@ export type SchoolCreateWithoutMembershipsInput = {
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -6049,6 +6449,7 @@ export type SchoolUncheckedCreateWithoutMembershipsInput = {
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -6146,6 +6547,7 @@ export type SchoolUpdateWithoutMembershipsInput = {
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -6227,6 +6629,7 @@ export type SchoolUncheckedUpdateWithoutMembershipsInput = {
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -6308,6 +6711,7 @@ export type SchoolCreateWithoutCampsInput = {
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -6389,6 +6793,7 @@ export type SchoolUncheckedCreateWithoutCampsInput = {
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -6486,6 +6891,7 @@ export type SchoolUpdateWithoutCampsInput = {
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -6567,6 +6973,7 @@ export type SchoolUncheckedUpdateWithoutCampsInput = {
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -6648,6 +7055,7 @@ export type SchoolCreateWithoutMembersInput = {
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -6729,6 +7137,7 @@ export type SchoolUncheckedCreateWithoutMembersInput = {
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -6826,6 +7235,7 @@ export type SchoolUpdateWithoutMembersInput = {
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -6907,6 +7317,7 @@ export type SchoolUncheckedUpdateWithoutMembersInput = {
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -6988,6 +7399,7 @@ export type SchoolCreateWithoutCampaignsInput = {
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -7069,6 +7481,7 @@ export type SchoolUncheckedCreateWithoutCampaignsInput = {
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -7166,6 +7579,7 @@ export type SchoolUpdateWithoutCampaignsInput = {
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -7247,6 +7661,7 @@ export type SchoolUncheckedUpdateWithoutCampaignsInput = {
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -7328,6 +7743,7 @@ export type SchoolCreateWithoutClaimsInput = {
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -7409,6 +7825,7 @@ export type SchoolUncheckedCreateWithoutClaimsInput = {
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -7506,6 +7923,7 @@ export type SchoolUpdateWithoutClaimsInput = {
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -7587,6 +8005,7 @@ export type SchoolUncheckedUpdateWithoutClaimsInput = {
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -7668,6 +8087,7 @@ export type SchoolCreateWithoutGradingSystemsInput = {
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -7749,6 +8169,7 @@ export type SchoolUncheckedCreateWithoutGradingSystemsInput = {
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -7846,6 +8267,7 @@ export type SchoolUpdateWithoutGradingSystemsInput = {
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -7927,6 +8349,7 @@ export type SchoolUncheckedUpdateWithoutGradingSystemsInput = {
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -8008,6 +8431,7 @@ export type SchoolCreateWithoutGradingsInput = {
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -8089,6 +8513,7 @@ export type SchoolUncheckedCreateWithoutGradingsInput = {
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -8186,6 +8611,7 @@ export type SchoolUpdateWithoutGradingsInput = {
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -8267,6 +8693,7 @@ export type SchoolUncheckedUpdateWithoutGradingsInput = {
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -8348,6 +8775,7 @@ export type SchoolCreateWithoutLeadsInput = {
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -8429,6 +8857,7 @@ export type SchoolUncheckedCreateWithoutLeadsInput = {
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -8526,6 +8955,7 @@ export type SchoolUpdateWithoutLeadsInput = {
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -8607,6 +9037,7 @@ export type SchoolUncheckedUpdateWithoutLeadsInput = {
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -8688,6 +9119,7 @@ export type SchoolCreateWithoutInvitationsInput = {
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -8769,6 +9201,7 @@ export type SchoolUncheckedCreateWithoutInvitationsInput = {
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -8866,6 +9299,7 @@ export type SchoolUpdateWithoutInvitationsInput = {
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -8947,6 +9381,7 @@ export type SchoolUncheckedUpdateWithoutInvitationsInput = {
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -9028,6 +9463,7 @@ export type SchoolCreateWithoutWaiversInput = {
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -9109,6 +9545,7 @@ export type SchoolUncheckedCreateWithoutWaiversInput = {
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -9206,6 +9643,7 @@ export type SchoolUpdateWithoutWaiversInput = {
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -9287,6 +9725,7 @@ export type SchoolUncheckedUpdateWithoutWaiversInput = {
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -9368,6 +9807,7 @@ export type SchoolCreateWithoutImpersonationLogsInput = {
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -9449,6 +9889,7 @@ export type SchoolUncheckedCreateWithoutImpersonationLogsInput = {
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -9546,6 +9987,7 @@ export type SchoolUpdateWithoutImpersonationLogsInput = {
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -9627,6 +10069,7 @@ export type SchoolUncheckedUpdateWithoutImpersonationLogsInput = {
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -9708,6 +10151,7 @@ export type SchoolCreateWithoutTransactionsInput = {
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -9789,6 +10233,7 @@ export type SchoolUncheckedCreateWithoutTransactionsInput = {
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -9886,6 +10331,7 @@ export type SchoolUpdateWithoutTransactionsInput = {
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -9967,6 +10413,7 @@ export type SchoolUncheckedUpdateWithoutTransactionsInput = {
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -10048,6 +10495,7 @@ export type SchoolCreateWithoutProductCategoriesInput = {
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -10129,6 +10577,7 @@ export type SchoolUncheckedCreateWithoutProductCategoriesInput = {
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -10226,6 +10675,7 @@ export type SchoolUpdateWithoutProductCategoriesInput = {
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -10307,6 +10757,7 @@ export type SchoolUncheckedUpdateWithoutProductCategoriesInput = {
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -10388,6 +10839,7 @@ export type SchoolCreateWithoutProductsInput = {
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -10469,6 +10921,7 @@ export type SchoolUncheckedCreateWithoutProductsInput = {
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -10566,6 +11019,7 @@ export type SchoolUpdateWithoutProductsInput = {
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -10647,6 +11101,7 @@ export type SchoolUncheckedUpdateWithoutProductsInput = {
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -10728,6 +11183,7 @@ export type SchoolCreateWithoutOrdersInput = {
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -10809,6 +11265,7 @@ export type SchoolUncheckedCreateWithoutOrdersInput = {
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -10906,6 +11363,7 @@ export type SchoolUpdateWithoutOrdersInput = {
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -10987,6 +11445,7 @@ export type SchoolUncheckedUpdateWithoutOrdersInput = {
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -11068,6 +11527,7 @@ export type SchoolCreateWithoutLimitedCollectionsInput = {
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -11149,6 +11609,7 @@ export type SchoolUncheckedCreateWithoutLimitedCollectionsInput = {
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -11246,6 +11707,7 @@ export type SchoolUpdateWithoutLimitedCollectionsInput = {
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -11327,6 +11789,7 @@ export type SchoolUncheckedUpdateWithoutLimitedCollectionsInput = {
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -11408,6 +11871,7 @@ export type SchoolCreateWithoutNotificationsInput = {
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
 }
 
@@ -11489,6 +11953,7 @@ export type SchoolUncheckedCreateWithoutNotificationsInput = {
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
   subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
 }
 
@@ -11586,6 +12051,7 @@ export type SchoolUpdateWithoutNotificationsInput = {
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -11667,6 +12133,7 @@ export type SchoolUncheckedUpdateWithoutNotificationsInput = {
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -11749,6 +12216,7 @@ export type SchoolCreateWithoutSubscriptionInput = {
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
 }
 
 export type SchoolUncheckedCreateWithoutSubscriptionInput = {
@@ -11830,6 +12298,7 @@ export type SchoolUncheckedCreateWithoutSubscriptionInput = {
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
 }
 
 export type SchoolCreateOrConnectWithoutSubscriptionInput = {
@@ -11927,6 +12396,7 @@ export type SchoolUpdateWithoutSubscriptionInput = {
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
 }
 
 export type SchoolUncheckedUpdateWithoutSubscriptionInput = {
@@ -12008,6 +12478,7 @@ export type SchoolUncheckedUpdateWithoutSubscriptionInput = {
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
 }
 
 export type SchoolCreateManyAffiliationInput = {
@@ -12142,6 +12613,7 @@ export type SchoolUpdateWithoutAffiliationInput = {
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -12223,6 +12695,7 @@ export type SchoolUncheckedUpdateWithoutAffiliationInput = {
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -12412,6 +12885,7 @@ export type SchoolUpdateWithoutClaimedByInput = {
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -12493,6 +12967,7 @@ export type SchoolUncheckedUpdateWithoutClaimedByInput = {
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -12682,6 +13157,7 @@ export type SchoolUpdateWithoutParentInput = {
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
 }
 
@@ -12763,6 +13239,7 @@ export type SchoolUncheckedUpdateWithoutParentInput = {
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
   limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
   subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
 }
 
@@ -12852,6 +13329,7 @@ export type SchoolCountOutputType = {
   products: number
   orders: number
   limitedCollections: number
+  curriculumVideos: number
 }
 
 export type SchoolCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -12881,6 +13359,7 @@ export type SchoolCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions
   products?: boolean | SchoolCountOutputTypeCountProductsArgs
   orders?: boolean | SchoolCountOutputTypeCountOrdersArgs
   limitedCollections?: boolean | SchoolCountOutputTypeCountLimitedCollectionsArgs
+  curriculumVideos?: boolean | SchoolCountOutputTypeCountCurriculumVideosArgs
 }
 
 /**
@@ -13075,6 +13554,13 @@ export type SchoolCountOutputTypeCountLimitedCollectionsArgs<ExtArgs extends run
   where?: Prisma.LimitedCollectionWhereInput
 }
 
+/**
+ * SchoolCountOutputType without action
+ */
+export type SchoolCountOutputTypeCountCurriculumVideosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CurriculumVideoWhereInput
+}
+
 
 export type SchoolSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -13158,6 +13644,7 @@ export type SchoolSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   products?: boolean | Prisma.School$productsArgs<ExtArgs>
   orders?: boolean | Prisma.School$ordersArgs<ExtArgs>
   limitedCollections?: boolean | Prisma.School$limitedCollectionsArgs<ExtArgs>
+  curriculumVideos?: boolean | Prisma.School$curriculumVideosArgs<ExtArgs>
   subscription?: boolean | Prisma.School$subscriptionArgs<ExtArgs>
   _count?: boolean | Prisma.SchoolCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["school"]>
@@ -13364,6 +13851,7 @@ export type SchoolInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   products?: boolean | Prisma.School$productsArgs<ExtArgs>
   orders?: boolean | Prisma.School$ordersArgs<ExtArgs>
   limitedCollections?: boolean | Prisma.School$limitedCollectionsArgs<ExtArgs>
+  curriculumVideos?: boolean | Prisma.School$curriculumVideosArgs<ExtArgs>
   subscription?: boolean | Prisma.School$subscriptionArgs<ExtArgs>
   _count?: boolean | Prisma.SchoolCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -13410,6 +13898,7 @@ export type $SchoolPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     products: Prisma.$ProductPayload<ExtArgs>[]
     orders: Prisma.$OrderPayload<ExtArgs>[]
     limitedCollections: Prisma.$LimitedCollectionPayload<ExtArgs>[]
+    curriculumVideos: Prisma.$CurriculumVideoPayload<ExtArgs>[]
     subscription: Prisma.$SchoolSubscriptionPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -13888,6 +14377,7 @@ export interface Prisma__SchoolClient<T, Null = never, ExtArgs extends runtime.T
   products<T extends Prisma.School$productsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$productsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   orders<T extends Prisma.School$ordersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   limitedCollections<T extends Prisma.School$limitedCollectionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$limitedCollectionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LimitedCollectionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  curriculumVideos<T extends Prisma.School$curriculumVideosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$curriculumVideosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CurriculumVideoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   subscription<T extends Prisma.School$subscriptionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$subscriptionArgs<ExtArgs>>): Prisma.Prisma__SchoolSubscriptionClient<runtime.Types.Result.GetResult<Prisma.$SchoolSubscriptionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -15049,6 +15539,30 @@ export type School$limitedCollectionsArgs<ExtArgs extends runtime.Types.Extensio
   take?: number
   skip?: number
   distinct?: Prisma.LimitedCollectionScalarFieldEnum | Prisma.LimitedCollectionScalarFieldEnum[]
+}
+
+/**
+ * School.curriculumVideos
+ */
+export type School$curriculumVideosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CurriculumVideo
+   */
+  select?: Prisma.CurriculumVideoSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CurriculumVideo
+   */
+  omit?: Prisma.CurriculumVideoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CurriculumVideoInclude<ExtArgs> | null
+  where?: Prisma.CurriculumVideoWhereInput
+  orderBy?: Prisma.CurriculumVideoOrderByWithRelationInput | Prisma.CurriculumVideoOrderByWithRelationInput[]
+  cursor?: Prisma.CurriculumVideoWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CurriculumVideoScalarFieldEnum | Prisma.CurriculumVideoScalarFieldEnum[]
 }
 
 /**

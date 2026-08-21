@@ -56,6 +56,7 @@ export const ModelName = {
   ContentSeries: 'ContentSeries',
   ContentVideo: 'ContentVideo',
   ContentAccess: 'ContentAccess',
+  CurriculumVideo: 'CurriculumVideo',
   User: 'User',
   Discipline: 'Discipline',
   SchoolDiscipline: 'SchoolDiscipline',
@@ -202,6 +203,28 @@ export const ContentAccessScalarFieldEnum = {
 } as const
 
 export type ContentAccessScalarFieldEnum = (typeof ContentAccessScalarFieldEnum)[keyof typeof ContentAccessScalarFieldEnum]
+
+
+export const CurriculumVideoScalarFieldEnum = {
+  id: 'id',
+  schoolId: 'schoolId',
+  title: 'title',
+  belt: 'belt',
+  category: 'category',
+  description: 'description',
+  sortOrder: 'sortOrder',
+  status: 'status',
+  muxUploadId: 'muxUploadId',
+  muxAssetId: 'muxAssetId',
+  muxPlaybackId: 'muxPlaybackId',
+  durationSec: 'durationSec',
+  errorMessage: 'errorMessage',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CurriculumVideoScalarFieldEnum = (typeof CurriculumVideoScalarFieldEnum)[keyof typeof CurriculumVideoScalarFieldEnum]
 
 
 export const UserScalarFieldEnum = {
@@ -801,6 +824,7 @@ export const UserWaiverScalarFieldEnum = {
   signedVersion: 'signedVersion',
   pdfPath: 'pdfPath',
   sentVia: 'sentVia',
+  requiresSignatureToBook: 'requiresSignatureToBook',
   revokedAt: 'revokedAt',
   createdAt: 'createdAt'
 } as const

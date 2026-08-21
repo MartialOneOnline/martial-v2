@@ -389,6 +389,7 @@ export const ModelName = {
   ContentSeries: 'ContentSeries',
   ContentVideo: 'ContentVideo',
   ContentAccess: 'ContentAccess',
+  CurriculumVideo: 'CurriculumVideo',
   User: 'User',
   Discipline: 'Discipline',
   SchoolDiscipline: 'SchoolDiscipline',
@@ -452,7 +453,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "classCancellation" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "campaign" | "campaignRecipient" | "schoolClaim" | "gradingSystem" | "beltRank" | "grading" | "lead" | "leadNote" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "impersonationLog" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "limitedCollection" | "limitedCollectionTier" | "collectibleUnit" | "collectibleOwnership" | "partner" | "notification" | "platformSettings" | "claimRequest" | "schoolSubscription" | "stripeWebhookEvent"
+    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "curriculumVideo" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "classCancellation" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "campaign" | "campaignRecipient" | "schoolClaim" | "gradingSystem" | "beltRank" | "grading" | "lead" | "leadNote" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "impersonationLog" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "limitedCollection" | "limitedCollectionTier" | "collectibleUnit" | "collectibleOwnership" | "partner" | "notification" | "platformSettings" | "claimRequest" | "schoolSubscription" | "stripeWebhookEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -823,6 +824,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ContentAccessCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ContentAccessCountAggregateOutputType> | number
+        }
+      }
+    }
+    CurriculumVideo: {
+      payload: Prisma.$CurriculumVideoPayload<ExtArgs>
+      fields: Prisma.CurriculumVideoFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CurriculumVideoFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumVideoPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CurriculumVideoFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumVideoPayload>
+        }
+        findFirst: {
+          args: Prisma.CurriculumVideoFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumVideoPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CurriculumVideoFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumVideoPayload>
+        }
+        findMany: {
+          args: Prisma.CurriculumVideoFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumVideoPayload>[]
+        }
+        create: {
+          args: Prisma.CurriculumVideoCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumVideoPayload>
+        }
+        createMany: {
+          args: Prisma.CurriculumVideoCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CurriculumVideoCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumVideoPayload>[]
+        }
+        delete: {
+          args: Prisma.CurriculumVideoDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumVideoPayload>
+        }
+        update: {
+          args: Prisma.CurriculumVideoUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumVideoPayload>
+        }
+        deleteMany: {
+          args: Prisma.CurriculumVideoDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CurriculumVideoUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CurriculumVideoUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumVideoPayload>[]
+        }
+        upsert: {
+          args: Prisma.CurriculumVideoUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CurriculumVideoPayload>
+        }
+        aggregate: {
+          args: Prisma.CurriculumVideoAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCurriculumVideo>
+        }
+        groupBy: {
+          args: Prisma.CurriculumVideoGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CurriculumVideoGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CurriculumVideoCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CurriculumVideoCountAggregateOutputType> | number
         }
       }
     }
@@ -4499,6 +4574,28 @@ export const ContentAccessScalarFieldEnum = {
 export type ContentAccessScalarFieldEnum = (typeof ContentAccessScalarFieldEnum)[keyof typeof ContentAccessScalarFieldEnum]
 
 
+export const CurriculumVideoScalarFieldEnum = {
+  id: 'id',
+  schoolId: 'schoolId',
+  title: 'title',
+  belt: 'belt',
+  category: 'category',
+  description: 'description',
+  sortOrder: 'sortOrder',
+  status: 'status',
+  muxUploadId: 'muxUploadId',
+  muxAssetId: 'muxAssetId',
+  muxPlaybackId: 'muxPlaybackId',
+  durationSec: 'durationSec',
+  errorMessage: 'errorMessage',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CurriculumVideoScalarFieldEnum = (typeof CurriculumVideoScalarFieldEnum)[keyof typeof CurriculumVideoScalarFieldEnum]
+
+
 export const UserScalarFieldEnum = {
   id: 'id',
   email: 'email',
@@ -5096,6 +5193,7 @@ export const UserWaiverScalarFieldEnum = {
   signedVersion: 'signedVersion',
   pdfPath: 'pdfPath',
   sentVia: 'sentVia',
+  requiresSignatureToBook: 'requiresSignatureToBook',
   revokedAt: 'revokedAt',
   createdAt: 'createdAt'
 } as const
@@ -5562,6 +5660,34 @@ export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
+ * Reference to a field of type 'CurriculumVideoStatus'
+ */
+export type EnumCurriculumVideoStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CurriculumVideoStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'CurriculumVideoStatus[]'
+ */
+export type ListEnumCurriculumVideoStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CurriculumVideoStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Float'
+ */
+export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+    
+
+
+/**
+ * Reference to a field of type 'Float[]'
+ */
+export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+    
+
+
+/**
  * Reference to a field of type 'Role'
  */
 export type EnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Role'>
@@ -5614,20 +5740,6 @@ export type EnumSchoolTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$Prism
  * Reference to a field of type 'SchoolType[]'
  */
 export type ListEnumSchoolTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SchoolType[]'>
-    
-
-
-/**
- * Reference to a field of type 'Float'
- */
-export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
-    
-
-
-/**
- * Reference to a field of type 'Float[]'
- */
-export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
     
 
 
@@ -6151,6 +6263,7 @@ export type GlobalOmitConfig = {
   contentSeries?: Prisma.ContentSeriesOmit
   contentVideo?: Prisma.ContentVideoOmit
   contentAccess?: Prisma.ContentAccessOmit
+  curriculumVideo?: Prisma.CurriculumVideoOmit
   user?: Prisma.UserOmit
   discipline?: Prisma.DisciplineOmit
   schoolDiscipline?: Prisma.SchoolDisciplineOmit
