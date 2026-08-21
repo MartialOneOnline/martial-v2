@@ -11,6 +11,7 @@ import {
 } from './templates/eventTicketReceipt'
 import { generateEventQrDataUri } from './qr'
 import { buildCollectibleReceiptEmail, getCollectibleReceiptSubject } from './templates/collectibleReceipt'
+import { buildWaiverRequestEmail, getWaiverRequestSubject } from './templates/waiverRequest'
 
 type SendResult = { success: true; emailId?: string } | { success: false; error: string }
 
@@ -303,6 +304,35 @@ export async function sendEventTicketRefundedEmail({
     currency,
     bookingId,
     dashboardUrl: `${APP_URL}/my/events`,
+    lang,
+  })
+  return send(to, subject, html)
+}
+
+// ── 7b. Waiver request (sign before booking) ───────────────────────────────────
+export async function sendWaiverRequestEmail({
+  to,
+  studentName,
+  schoolName,
+  schoolCity,
+  waiverTitle,
+  lang,
+}: {
+  to: string
+  studentName?: string | null
+  schoolName: string
+  schoolCity?: string | null
+  waiverTitle: string
+  lang?: string | null
+}): Promise<SendResult> {
+  const l = detectLang(lang)
+  const subject = getWaiverRequestSubject(waiverTitle, l)
+  const html = buildWaiverRequestEmail({
+    studentName,
+    schoolName,
+    schoolCity,
+    waiverTitle,
+    signUrl: `${APP_URL}/my/waivers`,
     lang,
   })
   return send(to, subject, html)

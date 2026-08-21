@@ -96,3 +96,13 @@ export function notifyClassCancelled(schoolId: string, studentName: string, clas
     href: `/dashboard/classes?classId=${classId}`,
   })
 }
+
+export function notifyWaiverSigned(schoolId: string, signerName: string, waiverTitle: string) {
+  createNotification({
+    schoolId,
+    type: 'WAIVER_SIGNED',
+    title: 'Waiver firmado',
+    body: `${signerName} ha firmado el waiver "${waiverTitle}"`,
+    href: '/dashboard/school/waivers',
+  })
+}

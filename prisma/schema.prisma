@@ -123,6 +123,7 @@ enum MembershipStatus {
 
 enum LeadStatus {
   NEW
+  INVITED // Staff sent a membership invite, not yet accepted
   CONTACTED
   TRIAL_BOOKED
   CONVERTED // Became a SchoolMember
@@ -136,6 +137,8 @@ enum LeadSource {
   WALK_IN
   REFERRAL
   PHONE
+  INVITE // Staff-initiated membership invite
+  SELF_REQUEST // Visitor requested to join via "Join this school"
   OTHER
 }
 
@@ -1405,8 +1408,25 @@ model UserWaiver {
   // waiver is sent to them, so "sent but not yet signed" is representable.
   signedAt  DateTime?
   ipAddress String?
-  signature String? // base64 or typed name
+  userAgent String?
+  signature String? // base64 drawn signature or typed name
   notes     String? // Internal school notes about this send (not shown to the member)
+
+  // Immutable proof of what was actually agreed to — captured from
+  // Waiver.content/version at the moment of signing, so a later template
+  // edit can never retroactively change what a past signature covers.
+  contentSnapshot String?
+  signedVersion   String?
+  pdfPath         String? // path in the private "waivers" Storage bucket
+
+  // "EMAIL" (student signed digitally after a sent link) or "MANUAL" (staff
+  // recorded an in-person/paper signature on the member's behalf).
+  sentVia String @default("EMAIL")
+
+  // Soft-revoke: keeps the row (and any prior signature) as an audit record
+  // instead of destroying it, while still counting as "not currently valid"
+  // for booking-restriction purposes.
+  revokedAt DateTime?
 
   createdAt DateTime @default(now())
 
@@ -1919,6 +1939,7 @@ enum NotificationType {
   STUDENT_INACTIVE
   MESSAGE
   LEAD_REMINDER
+  WAIVER_SIGNED
 }
 
 model Notification {

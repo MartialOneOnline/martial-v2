@@ -5089,8 +5089,14 @@ export const UserWaiverScalarFieldEnum = {
   userId: 'userId',
   signedAt: 'signedAt',
   ipAddress: 'ipAddress',
+  userAgent: 'userAgent',
   signature: 'signature',
   notes: 'notes',
+  contentSnapshot: 'contentSnapshot',
+  signedVersion: 'signedVersion',
+  pdfPath: 'pdfPath',
+  sentVia: 'sentVia',
+  revokedAt: 'revokedAt',
   createdAt: 'createdAt'
 } as const
 

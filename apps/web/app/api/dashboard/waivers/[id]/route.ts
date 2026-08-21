@@ -1,28 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
-import { requireSchoolAccess } from '@/lib/auth/contexts'
-import { hasPermission } from '@/lib/auth/permissions'
+import { authoriseWaivers } from '../_authorise'
 
-async function authorise() {
-  const user = await getAuthUser()
-  if (!user) return { error: 'Unauthorized', status: 401 }
-  const schoolId = await getCurrentSchoolId()
-  if (!schoolId) return { error: 'No school context', status: 400 }
-  if (user.role !== 'SUPERADMIN') {
-    try {
-      const member = await requireSchoolAccess(user.id, schoolId)
-      if (!hasPermission(member.role, 'school.waivers.manage')) return { error: 'Forbidden', status: 403 }
-    } catch {
-      return { error: 'Forbidden', status: 403 }
-    }
-  }
-  return { user, schoolId }
-}
-
-// DELETE /api/dashboard/waivers/[id] — remove a waiver send
+// DELETE /api/dashboard/waivers/[id] — revoke a waiver send. Soft: keeps the
+// UserWaiver row (and any prior signature/PDF) as an audit record, but
+// marks it revoked so it immediately blocks booking again — see
+// lib/waivers.ts#getBlockingWaivers. Re-sending the same template to the
+// same member later clears revokedAt (see POST /api/dashboard/waivers).
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await authorise()
+  const auth = await authoriseWaivers()
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const { id } = await params
@@ -31,6 +17,6 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  await prisma.userWaiver.delete({ where: { id } })
+  await prisma.userWaiver.update({ where: { id }, data: { revokedAt: new Date() } })
   return NextResponse.json({ success: true })
 }

@@ -6,6 +6,7 @@ import { isValidScheduledAt, type ScheduleSlot } from '@/lib/scheduling'
 import { type ClassAccessConfig } from '@/lib/services/classAccess'
 import { checkBookingEligibility } from '@/lib/services/bookingEligibility'
 import { sendTrialConfirmedEmail } from '@/lib/email/sendEmails'
+import { getBlockingWaivers } from '@/lib/waivers'
 
 export async function POST(req: NextRequest) {
   const dbUser = await getAuthUser()
@@ -83,6 +84,23 @@ export async function POST(req: NextRequest) {
   if (!activeMembership) {
     return NextResponse.json(
       { error: 'No active membership for this school' },
+      { status: 403 },
+    )
+  }
+
+  // Block booking until every waiver sent to this member for this school has
+  // been signed — see lib/waivers.ts. Checked before the transaction since
+  // it's a straightforward eligibility gate, not something that needs the
+  // advisory-lock protection below (no concurrent-write race to protect
+  // against on a read-only check).
+  const blockingWaivers = await getBlockingWaivers(dbUser.id, cls.schoolId)
+  if (blockingWaivers.length > 0) {
+    return NextResponse.json(
+      {
+        error: 'You need to sign a waiver before booking. Go to My Waivers to sign it.',
+        code: 'WAIVER_REQUIRED',
+        waivers: blockingWaivers.map(w => ({ id: w.id, title: w.waiver.title })),
+      },
       { status: 403 },
     )
   }

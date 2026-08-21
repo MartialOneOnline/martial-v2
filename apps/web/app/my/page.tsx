@@ -276,6 +276,9 @@ export default function MyHomePage() {
           prev && prev.classId === occ.classId && prev.scheduledAt === occ.scheduledAt ? null : prev
         )
         setBookSuccessOcc(occ)
+      } else {
+        const data = await res.json().catch(() => ({}))
+        if (data.code === 'WAIVER_REQUIRED') router.push('/my/waivers')
       }
     } finally {
       setBookingId(null)

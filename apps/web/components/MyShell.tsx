@@ -9,7 +9,7 @@ import {
   LogOut, X, CreditCard, DollarSign, Settings,
   HelpCircle, Shield, QrCode, Medal, Menu,
   PlayCircle, ShoppingBag, Newspaper, Ticket,
-  Music, Timer, Award,
+  Music, Timer, Award, FileSignature,
 } from 'lucide-react'
 import { useT } from '../lib/i18n/LanguageContext'
 import type { SchoolModuleKey } from '../lib/school-modules'
@@ -40,6 +40,7 @@ const SIDEBAR_NAV: NavSection[] = [
     items: [
       { labelKey: 'navMembership',   href: '/my/membership', icon: CreditCard },
       { labelKey: 'navTransactions', href: '/my/payments',   icon: DollarSign },
+      { labelKey: 'navWaivers',      href: '/my/waivers',    icon: FileSignature },
       { labelKey: 'navCurriculum',   href: '/my/curriculum', icon: PlayCircle,   moduleKey: 'curriculum' },
       { labelKey: 'navStore',        href: '/my/store',      icon: ShoppingBag,  moduleKey: 'store' },
       { labelKey: 'navNews',         href: '/my/news',       icon: Newspaper,    moduleKey: 'news' },

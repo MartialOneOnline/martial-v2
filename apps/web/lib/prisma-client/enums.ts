@@ -155,6 +155,7 @@ export type MembershipStatus = (typeof MembershipStatus)[keyof typeof Membership
 
 export const LeadStatus = {
   NEW: 'NEW',
+  INVITED: 'INVITED',
   CONTACTED: 'CONTACTED',
   TRIAL_BOOKED: 'TRIAL_BOOKED',
   CONVERTED: 'CONVERTED',
@@ -171,6 +172,8 @@ export const LeadSource = {
   WALK_IN: 'WALK_IN',
   REFERRAL: 'REFERRAL',
   PHONE: 'PHONE',
+  INVITE: 'INVITE',
+  SELF_REQUEST: 'SELF_REQUEST',
   OTHER: 'OTHER'
 } as const
 
@@ -352,7 +355,8 @@ export const NotificationType = {
   GRADING_COMPLETED: 'GRADING_COMPLETED',
   STUDENT_INACTIVE: 'STUDENT_INACTIVE',
   MESSAGE: 'MESSAGE',
-  LEAD_REMINDER: 'LEAD_REMINDER'
+  LEAD_REMINDER: 'LEAD_REMINDER',
+  WAIVER_SIGNED: 'WAIVER_SIGNED'
 } as const
 
 export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]
