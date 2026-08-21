@@ -20,7 +20,7 @@ interface StaffMember {
   avatarUrl: string | null
   name: string
   email: string
-  role: StaffRole
+  role: string
   belt: string
   classes: string[]
   salary: number | null
@@ -49,7 +49,7 @@ function Avatar({ name, avatarUrl, size = 42 }: { name: string; avatarUrl: strin
   )
 }
 
-const ROLE_MAP: Record<StaffRole, { bg: string; color: string }> = {
+const ROLE_MAP: Record<string, { bg: string; color: string }> = {
   'Head Instructor': { bg: '#FDF2F8', color: '#9D174D' },
   'Instructor':      { bg: '#EFF6FF', color: '#2563EB' },
   'Assistant':       { bg: '#F5F3FF', color: '#6D28D9' },
@@ -480,9 +480,9 @@ export default function StaffClient() {
                 </thead>
                 <tbody>
                   {paginated.map((member, idx) => {
-                    const rolec = ROLE_MAP[member.role]
+                    const rolec = ROLE_MAP[member.role] ?? { bg: '#F3F4F6', color: '#374151' }
                     const beltc = BELT_MAP[member.belt] ?? { bg: '#F3F4F6', color: '#374151' }
-                    const sc    = STATUS_MAP[member.status]
+                    const sc    = STATUS_MAP[member.status] ?? STATUS_MAP.Active
                     return (
                       <tr key={member.id} className="hover:bg-[#FAFAFA] transition-colors cursor-pointer"
                         style={{ borderBottom: idx < paginated.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
