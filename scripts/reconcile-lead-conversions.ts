@@ -53,8 +53,11 @@ async function main() {
     })
     if (!user) { skippedNoUser++; continue }
 
+    // price > 0 excludes free trial memberships — "converted" means they
+    // bought a membership, not that they used a free trial (see
+    // upsertProspectLead's TRIAL_BOOKED status for that distinct case).
     const membership = await prisma.membership.findFirst({
-      where: { userId: user.id, schoolId: lead.schoolId, status: { in: EVER_ACTIVATED_STATUSES } },
+      where: { userId: user.id, schoolId: lead.schoolId, status: { in: EVER_ACTIVATED_STATUSES }, price: { gt: 0 } },
       orderBy: { startDate: 'asc' },
       select: { startDate: true },
     })

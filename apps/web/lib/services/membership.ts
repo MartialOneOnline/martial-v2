@@ -372,10 +372,14 @@ export async function assignPlan(input: AssignPlanInput) {
     return [m]
   })
 
-  // A newly-ACTIVE membership is the actual conversion event for the CRM —
-  // fire-and-forget, must never fail the assignment itself.
-  convertLeadOnMembershipActivation(schoolId, schoolMember.userId).catch(err =>
-    console.error('[assignPlan] lead conversion failed:', err))
+  // A newly-ACTIVE *paid* membership is the actual conversion event for the
+  // CRM — a free/trial plan (e.g. the trial assigned via Invite User, which
+  // calls this with activateMember: false) must not mark the lead Won just
+  // for getting trial access. Fire-and-forget, must never fail the assignment.
+  if (plan.price > 0) {
+    convertLeadOnMembershipActivation(schoolId, schoolMember.userId).catch(err =>
+      console.error('[assignPlan] lead conversion failed:', err))
+  }
 
   // Send receipt email for paid plans
   if (plan.price > 0) {
