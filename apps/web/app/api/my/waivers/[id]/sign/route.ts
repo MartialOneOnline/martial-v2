@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { getAuthUser } from '@/lib/auth/server'
 import { generateWaiverPdf } from '@/lib/waiverPdf'
 import { notifyWaiverSigned } from '@/lib/notifications/create'
+import { sendWaiverSignedEmail } from '@/lib/email/sendEmails'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SUPABASE_KEY = process.env.SUPABASE_SECRET_KEY!
@@ -73,6 +74,22 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   })
 
   notifyWaiverSigned(userWaiver.waiver.schoolId, dbUser.name ?? typedName.trim(), userWaiver.waiver.title)
+
+  if (dbUser.email) {
+    prisma.school.findUnique({ where: { id: userWaiver.waiver.schoolId }, select: { name: true, city: true, language: true } })
+      .then(school => {
+        if (!school) return
+        return sendWaiverSignedEmail({
+          to: dbUser.email!,
+          studentName: dbUser.name,
+          schoolName: school.name,
+          schoolCity: school.city,
+          waiverTitle: userWaiver.waiver.title,
+          lang: school.language,
+        })
+      })
+      .catch(err => console.error('[waivers] signed confirmation email failed:', err))
+  }
 
   return NextResponse.json({ success: true })
 }

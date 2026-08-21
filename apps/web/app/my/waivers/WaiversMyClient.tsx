@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { FileSignature, CheckCircle2, X, Check } from 'lucide-react'
+import { FileSignature, CheckCircle2, X, Check, Download } from 'lucide-react'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { isStudentContextRequired, chooseProfileUrl } from '../../../lib/studentContext'
 import { myFetch } from '../../../lib/api/myFetch'
@@ -17,6 +17,7 @@ type Waiver = {
   signedAt: string | null
   revoked: boolean
   pending: boolean
+  hasPdf: boolean
 }
 
 function fmtDate(iso: string) {
@@ -87,7 +88,7 @@ function SignModal({ waiver, onClose, onSigned }: { waiver: Waiver; onClose: () 
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">{t.my.yourFullName}</label>
             <input type="text" value={typedName} onChange={e => setTypedName(e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#0870E2]" />
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-base outline-none focus:border-[#0870E2]" />
           </div>
 
           <div>
@@ -135,6 +136,12 @@ export default function WaiversMyClient() {
   }, [router, pathname])
 
   useEffect(() => { load() }, [load])
+
+  async function handleDownload(id: string) {
+    const res = await myFetch(`/api/my/waivers/${id}/pdf`)
+    const d = await res.json()
+    if (res.ok && d.url) window.open(d.url, '_blank')
+  }
 
   const pending = waivers.filter(w => w.pending)
   const signed = waivers.filter(w => !w.pending)
@@ -191,7 +198,13 @@ export default function WaiversMyClient() {
                         <p className="text-xs font-semibold text-[#101828] truncate">{w.title}</p>
                         <p className="text-[11px] text-gray-400">{w.schoolName}{w.signedAt ? ` · ${fmtDate(w.signedAt)}` : ''}</p>
                       </div>
-                      <span className="text-[11px] font-semibold text-green-600">{t.my.signedWaiverBadge}</span>
+                      <span className="text-[11px] font-semibold text-green-600 shrink-0">{t.my.signedWaiverBadge}</span>
+                      {w.hasPdf && (
+                        <button onClick={() => handleDownload(w.id)}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg shrink-0 text-gray-400 hover:bg-gray-50">
+                          <Download size={14} />
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>

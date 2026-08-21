@@ -31,6 +31,7 @@ export async function GET() {
     signedAt: r.signedAt?.toISOString() ?? null,
     revoked: !!r.revokedAt,
     pending: !r.signedAt || !!r.revokedAt,
+    hasPdf: !!r.pdfPath,
   }))
 
   return NextResponse.json({ waivers })

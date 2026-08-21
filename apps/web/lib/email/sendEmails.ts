@@ -12,6 +12,7 @@ import {
 import { generateEventQrDataUri } from './qr'
 import { buildCollectibleReceiptEmail, getCollectibleReceiptSubject } from './templates/collectibleReceipt'
 import { buildWaiverRequestEmail, getWaiverRequestSubject } from './templates/waiverRequest'
+import { buildWaiverSignedEmail, getWaiverSignedSubject } from './templates/waiverSigned'
 
 type SendResult = { success: true; emailId?: string } | { success: false; error: string }
 
@@ -333,6 +334,35 @@ export async function sendWaiverRequestEmail({
     schoolCity,
     waiverTitle,
     signUrl: `${APP_URL}/my/waivers`,
+    lang,
+  })
+  return send(to, subject, html)
+}
+
+// ── 7c. Waiver signed (confirmation) ────────────────────────────────────────────
+export async function sendWaiverSignedEmail({
+  to,
+  studentName,
+  schoolName,
+  schoolCity,
+  waiverTitle,
+  lang,
+}: {
+  to: string
+  studentName?: string | null
+  schoolName: string
+  schoolCity?: string | null
+  waiverTitle: string
+  lang?: string | null
+}): Promise<SendResult> {
+  const l = detectLang(lang)
+  const subject = getWaiverSignedSubject(waiverTitle, l)
+  const html = buildWaiverSignedEmail({
+    studentName,
+    schoolName,
+    schoolCity,
+    waiverTitle,
+    waiversUrl: `${APP_URL}/my/waivers`,
     lang,
   })
   return send(to, subject, html)
