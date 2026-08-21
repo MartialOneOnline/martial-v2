@@ -45,8 +45,8 @@ const TYPE_ICONS: Record<CampaignType, React.ComponentType<{ size?: number }>> =
   CUSTOM: Pencil,
 }
 
-const STATUS_DISPLAY: Record<string, string> = { ACTIVE: 'Active', INACTIVE: 'Inactive', PENDING: 'Pending', ARCHIVED: 'Archived', LEAD: 'Lead' }
-const PICKER_FILTERS = ['All', 'Active', 'Pending', 'Lead', 'Inactive', 'Archived'] as const
+const STATUS_DISPLAY: Record<string, string> = { ACTIVE: 'Active', INACTIVE: 'Inactive', PENDING: 'Pending', ARCHIVED: 'Archived', LEAD: 'Invited' }
+const PICKER_FILTERS = ['All', 'Active', 'Pending', 'Invited', 'Inactive', 'Archived'] as const
 type PickerFilter = typeof PICKER_FILTERS[number]
 
 const inputStyle: React.CSSProperties = {
@@ -124,7 +124,7 @@ export default function CampaignComposerModal({ preselectedStudents, campaignId,
 
   const FILTER_LABELS: Record<PickerFilter, string> = {
     All: t.common.all, Active: t.common.active, Pending: t.common.pending,
-    Lead: t.common.lead, Inactive: t.common.inactive, Archived: t.common.archived,
+    Invited: t.common.invited, Inactive: t.common.inactive, Archived: t.common.archived,
   }
 
   const TYPE_LABELS: Record<CampaignType, string> = {

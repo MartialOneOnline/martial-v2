@@ -4,6 +4,8 @@ import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
 import { notifyNewLead } from '@/lib/notifications/create'
 import { normalizePhone } from '@/lib/phone'
+import { upsertProspectLead } from '@/lib/leads'
+import { LeadSource, LeadStatus } from '@/lib/prisma-client/enums'
 
 export async function POST(req: NextRequest) {
   const cookieStore = await cookies()
@@ -181,6 +183,10 @@ export async function POST(req: NextRequest) {
   }
 
   notifyNewLead(schoolId, dbUser.name ?? dbUser.email)
+  upsertProspectLead(schoolId, dbUser.email, dbUser.name, {
+    source: LeadSource.WEBSITE,
+    status: LeadStatus.TRIAL_BOOKED,
+  }).catch(err => console.error('[trial] lead upsert failed:', err))
 
   return NextResponse.json({ success: true, trialEnds: endDate })
 }

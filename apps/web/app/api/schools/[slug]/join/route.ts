@@ -3,6 +3,8 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
 import { notifySelfJoinRequest } from '@/lib/notifications/create'
+import { upsertProspectLead } from '@/lib/leads'
+import { LeadSource, LeadStatus } from '@/lib/prisma-client/enums'
 
 // POST /api/schools/[slug]/join — logged-in user confirms "Join this school".
 // Creates a SchoolMember (status LEAD) directly, tied to their account — unlike
@@ -84,6 +86,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
   }
 
   notifySelfJoinRequest(school.id, dbUser.name ?? dbUser.email)
+  upsertProspectLead(school.id, dbUser.email, dbUser.name, {
+    source: LeadSource.SELF_REQUEST,
+    status: LeadStatus.CONTACTED,
+  }).catch(err => console.error('[join] lead upsert failed:', err))
 
   return NextResponse.json({ success: true })
 }

@@ -112,7 +112,7 @@ const STATUS_DISPLAY: Record<string, string> = {
   INACTIVE: 'Inactive',
   PENDING:  'Pending',
   ARCHIVED: 'Archived',
-  LEAD:     'Lead',
+  LEAD:     'Invited',
 }
 
 const BELT_COLORS: Record<string, { bg: string; color: string; dot: string }> = {
@@ -129,7 +129,7 @@ const STATUSES: Array<{ value: string; label: string }> = [
   { value: 'ACTIVE',   label: 'Active'   },
   { value: 'INACTIVE', label: 'Inactive' },
   { value: 'PENDING',  label: 'Pending'  },
-  { value: 'LEAD',     label: 'Lead'     },
+  { value: 'LEAD',     label: 'Invited'  },
   { value: 'ARCHIVED', label: 'Archived' },
 ]
 
@@ -1443,7 +1443,7 @@ function getPaginationPages(current: number, total: number): (number | '...')[] 
   return [1, '...', current - 1, current, current + 1, '...', total]
 }
 
-type FilterType = 'All' | 'Active' | 'Inactive' | 'Pending' | 'Lead' | 'Archived'
+type FilterType = 'All' | 'Active' | 'Inactive' | 'Pending' | 'Invited' | 'Archived'
 
 // ── Mark as Paid modal ─────────────────────────────────────────────────────────
 
@@ -1675,11 +1675,11 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
 
   const filtered = students.filter(s => {
     const displayStatus = STATUS_DISPLAY[s.status] ?? s.status
-    // Lead tab also surfaces PENDING invites (sent but not yet accepted) so
+    // Invited tab also surfaces PENDING invites (sent but not yet accepted) so
     // admins can find them without hunting through the Pending tab — the
     // underlying status stays PENDING, this only affects what's shown here.
     const matchStatusTab = activeFilter === 'All' || displayStatus === activeFilter
-      || (activeFilter === 'Lead' && s.status === 'PENDING')
+      || (activeFilter === 'Invited' && s.status === 'PENDING')
     const matchSearch = matchesSearch(s.name, search) || matchesSearch(s.email, search)
     const matchBelt   = advFilters.belts.length === 0    || advFilters.belts.includes(s.belt)
     const matchStatus = advFilters.statuses.length === 0 || advFilters.statuses.includes(s.status)
@@ -1954,10 +1954,10 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
         {/* Filter tabs */}
         <div className="overflow-x-auto pb-1 scrollbar-none" style={{ WebkitOverflowScrolling: 'touch' }}>
           <div className="flex items-center gap-2 w-max">
-            {(['All', 'Active', 'Pending', 'Lead', 'Inactive', 'Archived'] as FilterType[]).map(f => {
+            {(['All', 'Active', 'Pending', 'Invited', 'Inactive', 'Archived'] as FilterType[]).map(f => {
               const filterLabels: Record<FilterType, string> = {
                 All: t.common.all, Active: t.common.active, Pending: t.common.pending,
-                Lead: t.common.lead, Inactive: t.common.inactive, Archived: t.common.archived,
+                Invited: t.common.invited, Inactive: t.common.inactive, Archived: t.common.archived,
               }
               return (
                 <button key={f} onClick={() => handleFilter(f)}
@@ -1972,7 +1972,7 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
                   {filterLabels[f]}
                   <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 600, color: activeFilter === f ? '#0071E3' : '#9CA3AF' }}>
                     {f === 'All' ? students.length
-                      : f === 'Lead' ? students.filter(s => s.status === 'LEAD' || s.status === 'PENDING').length
+                      : f === 'Invited' ? students.filter(s => s.status === 'LEAD' || s.status === 'PENDING').length
                       : students.filter(s => (STATUS_DISPLAY[s.status] ?? s.status) === f).length}
                   </span>
                 </button>

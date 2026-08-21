@@ -35,7 +35,9 @@ export async function GET(req: NextRequest) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const where: any = {
     schoolId: auth.schoolId,
-    ...(status && status !== 'ALL' ? { status } : {}),
+    ...(status && status !== 'ALL'
+      ? (status === 'OPEN' ? { status: { in: ['NEW', 'INVITED', 'CONTACTED', 'TRIAL_BOOKED'] } } : { status })
+      : {}),
     ...(search ? {
       OR: [
         { name:  { contains: search, mode: 'insensitive' } },
@@ -63,10 +65,12 @@ export async function GET(req: NextRequest) {
   const countMap = Object.fromEntries(counts.map(c => [c.status, c._count.id]))
   const totalAll      = Object.values(countMap).reduce((a, b) => a + b, 0)
   const totalNew      = countMap['NEW']           ?? 0
+  const totalInvited  = countMap['INVITED']       ?? 0
   const totalContacted = countMap['CONTACTED']    ?? 0
   const totalTrial    = countMap['TRIAL_BOOKED']  ?? 0
   const totalConverted = countMap['CONVERTED']    ?? 0
   const totalLost     = countMap['LOST']          ?? 0
+  const totalOpen      = totalNew + totalInvited + totalContacted + totalTrial
   const conversionRate = totalAll > 0 ? Math.round((totalConverted / totalAll) * 100) : 0
 
   return NextResponse.json({
@@ -83,7 +87,7 @@ export async function GET(req: NextRequest) {
     total,
     page,
     pageSize,
-    stats: { totalAll, totalNew, totalContacted, totalTrial, totalConverted, totalLost, conversionRate },
+    stats: { totalAll, totalOpen, totalNew, totalInvited, totalContacted, totalTrial, totalConverted, totalLost, conversionRate },
   })
 }
 

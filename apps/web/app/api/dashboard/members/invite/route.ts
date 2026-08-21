@@ -7,7 +7,8 @@ import { hasPermission } from '@/lib/auth/permissions'
 import { getResend, FROM, APP_URL } from '@/lib/email/resend'
 import { buildInviteStudentEmail, detectLang, getInviteSubject } from '@/lib/email/templates/inviteStudent'
 import { assignPlan } from '@/lib/services/membership'
-import { PaymentMethod } from '@/lib/prisma-client/enums'
+import { PaymentMethod, LeadSource, LeadStatus } from '@/lib/prisma-client/enums'
+import { upsertProspectLead } from '@/lib/leads'
 
 function getAdminSupabase() {
   const key = process.env.SUPABASE_SECRET_KEY
@@ -127,6 +128,11 @@ export async function POST(req: NextRequest) {
       user: { select: { id: true, name: true, email: true, avatarUrl: true } },
     },
   })
+
+  upsertProspectLead(schoolId, normalizedEmail, dbUser.name, {
+    source: LeadSource.INVITE,
+    status: LeadStatus.INVITED,
+  }).catch(err => console.error('[invite] lead upsert failed:', err))
 
   // Enroll into the selected trial plan right away, so the person has
   // trial class access even before they accept the invite and set a password.

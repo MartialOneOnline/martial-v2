@@ -34,7 +34,7 @@ const STATUS_STYLES: Record<string, { bg: string; color: string; border: string;
   ACTIVE:   { bg: '#F0FDF4', color: '#16A34A', border: '#BBF7D0', label: 'Active'   },
   INACTIVE: { bg: '#F3F4F6', color: '#6B7280', border: '#E5E7EB', label: 'Inactive' },
   FROZEN:   { bg: '#EFF6FF', color: '#1D4ED8', border: '#BFDBFE', label: 'Frozen'   },
-  LEAD:     { bg: '#FFF7ED', color: '#C2410C', border: '#FED7AA', label: 'Lead'     },
+  LEAD:     { bg: '#FFF7ED', color: '#C2410C', border: '#FED7AA', label: 'Invited'  },
 }
 
 function Avatar({ name, avatarUrl, size = 32 }: { name: string; avatarUrl: string | null; size?: number }) {

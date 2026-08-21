@@ -9,7 +9,7 @@ import { useDashboard } from '../../../../components/DashboardShell'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import RowMenu from '../../../../components/RowMenu'
 
-type FilterTab = 'ALL' | 'NEW' | 'CONTACTED' | 'TRIAL_BOOKED' | 'CONVERTED' | 'LOST'
+type FilterTab = 'OPEN' | 'ALL' | 'NEW' | 'INVITED' | 'CONTACTED' | 'TRIAL_BOOKED' | 'CONVERTED' | 'LOST'
 
 interface Lead {
   id: string
@@ -23,7 +23,9 @@ interface Lead {
 
 interface Stats {
   totalAll: number
+  totalOpen: number
   totalNew: number
+  totalInvited: number
   totalContacted: number
   totalTrial: number
   totalConverted: number
@@ -32,10 +34,11 @@ interface Stats {
 }
 
 const STATUS_DISPLAY: Record<string, string> = {
-  NEW: 'New', CONTACTED: 'Contacted', TRIAL_BOOKED: 'Trial', CONVERTED: 'Converted', LOST: 'Lost',
+  NEW: 'New', INVITED: 'Invited', CONTACTED: 'Contacted', TRIAL_BOOKED: 'Trial', CONVERTED: 'Converted', LOST: 'Lost',
 }
 const STATUS_STYLE: Record<string, { bg: string; color: string; border: string }> = {
   NEW:          { bg: '#EFF6FF', color: '#1D4ED8', border: '#BFDBFE' },
+  INVITED:      { bg: '#FFF7ED', color: '#C2410C', border: '#FED7AA' },
   CONTACTED:    { bg: '#FFFBEB', color: '#D97706', border: '#FDE68A' },
   TRIAL_BOOKED: { bg: '#F5F3FF', color: '#6D28D9', border: '#DDD6FE' },
   CONVERTED:    { bg: '#F0FDF4', color: '#16A34A', border: '#BBF7D0' },
@@ -43,16 +46,19 @@ const STATUS_STYLE: Record<string, { bg: string; color: string; border: string }
 }
 const SOURCE_DISPLAY: Record<string, string> = {
   INSTAGRAM: 'Instagram', FACEBOOK: 'Facebook', WALK_IN: 'Walk-in',
-  WEBSITE: 'Website', REFERRAL: 'Referral', PHONE: 'Phone', OTHER: 'Other',
+  WEBSITE: 'Website', REFERRAL: 'Referral', PHONE: 'Phone',
+  INVITE: 'Invite', SELF_REQUEST: 'Self-request', OTHER: 'Other',
 }
 const SOURCE_STYLE: Record<string, { bg: string; color: string }> = {
-  INSTAGRAM: { bg: '#FDF2F8', color: '#9D174D' },
-  FACEBOOK:  { bg: '#EFF6FF', color: '#1D4ED8' },
-  WALK_IN:   { bg: '#FFF7ED', color: '#C2410C' },
-  WEBSITE:   { bg: '#EFF6FF', color: '#2563EB' },
-  REFERRAL:  { bg: '#F0FDF4', color: '#15803D' },
-  PHONE:     { bg: '#F5F3FF', color: '#6D28D9' },
-  OTHER:     { bg: '#F3F4F6', color: '#6B7280' },
+  INSTAGRAM:    { bg: '#FDF2F8', color: '#9D174D' },
+  FACEBOOK:     { bg: '#EFF6FF', color: '#1D4ED8' },
+  WALK_IN:      { bg: '#FFF7ED', color: '#C2410C' },
+  WEBSITE:      { bg: '#EFF6FF', color: '#2563EB' },
+  REFERRAL:     { bg: '#F0FDF4', color: '#15803D' },
+  PHONE:        { bg: '#F5F3FF', color: '#6D28D9' },
+  INVITE:       { bg: '#ECFEFF', color: '#0E7490' },
+  SELF_REQUEST: { bg: '#EEF2FF', color: '#4338CA' },
+  OTHER:        { bg: '#F3F4F6', color: '#6B7280' },
 }
 
 function initials(name: string) {
@@ -704,10 +710,10 @@ export default function LeadsClient() {
   const t = useT()
 
   const [leads, setLeads]           = useState<Lead[]>([])
-  const [stats, setStats]           = useState<Stats>({ totalAll:0, totalNew:0, totalContacted:0, totalTrial:0, totalConverted:0, totalLost:0, conversionRate:0 })
+  const [stats, setStats]           = useState<Stats>({ totalAll:0, totalOpen:0, totalNew:0, totalInvited:0, totalContacted:0, totalTrial:0, totalConverted:0, totalLost:0, conversionRate:0 })
   const [total, setTotal]           = useState(0)
   const [loading, setLoading]       = useState(true)
-  const [activeFilter, setActiveFilter] = useState<FilterTab>('ALL')
+  const [activeFilter, setActiveFilter] = useState<FilterTab>('OPEN')
   const [search, setSearch]         = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -799,15 +805,20 @@ export default function LeadsClient() {
   const selectedEmailCount = selectedEmailIds.length
 
   const STAT_CARDS = [
-    { label: t.school.totalLeads,  value: String(stats.totalAll),        icon: UserPlus,   color: '#0071E3', bg: '#EFF6FF' },
+    { label: t.school.activeLeads, value: String(stats.totalOpen),       icon: UserPlus,   color: '#0071E3', bg: '#EFF6FF' },
     { label: t.school.newLead,     value: String(stats.totalNew),        icon: TrendingUp, color: '#6D28D9', bg: '#F5F3FF' },
     { label: t.school.won,         value: String(stats.totalConverted),  icon: Check,      color: '#16A34A', bg: '#F0FDF4' },
     { label: t.school.conversion,  value: stats.conversionRate + '%',    icon: TrendingUp, color: '#D97706', bg: '#FFFBEB' },
   ]
 
+  // "OPEN" is the default landing view: leads that still need the sale closed
+  // (NEW + INVITED + CONTACTED + TRIAL_BOOKED), sorted most-recent-first. ALL
+  // keeps the full historical list (including CONVERTED/LOST) available on demand.
   const FILTERS: { id: FilterTab; label: string; count: number }[] = [
+    { id: 'OPEN',         label: t.school.activeLeads, count: stats.totalOpen      },
     { id: 'ALL',          label: t.common.all,       count: stats.totalAll       },
     { id: 'NEW',          label: t.school.newLead,   count: stats.totalNew       },
+    { id: 'INVITED',      label: t.school.invited,   count: stats.totalInvited   },
     { id: 'CONTACTED',    label: t.school.contacted, count: stats.totalContacted },
     { id: 'TRIAL_BOOKED', label: t.school.trial,     count: stats.totalTrial     },
     { id: 'CONVERTED',    label: t.school.won,       count: stats.totalConverted },

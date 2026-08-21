@@ -90,7 +90,7 @@ const STATUS_MAP: Record<string, { bg: string; color: string; label: string }> =
   INACTIVE: { bg: '#F3F4F6', color: '#6B7280', label: 'Inactive' },
   PENDING:  { bg: '#FFFBEB', color: '#D97706', label: 'Pending' },
   ARCHIVED: { bg: '#FEF2F2', color: '#9CA3AF', label: 'Archived' },
-  LEAD:     { bg: '#EEF2FF', color: '#6366F1', label: 'Lead' },
+  LEAD:     { bg: '#EEF2FF', color: '#6366F1', label: 'Invited' },
 }
 
 const TX_STATUS: Record<string, { bg: string; color: string; label: string }> = {

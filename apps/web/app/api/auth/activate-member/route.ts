@@ -3,6 +3,8 @@ import { prisma } from '@/lib/db'
 import { getAuthUser } from '@/lib/auth/server'
 import { sendWelcomeStudentEmail } from '@/lib/email/sendEmails'
 import { notifyNewMember } from '@/lib/notifications/create'
+import { upsertProspectLead } from '@/lib/leads'
+import { LeadSource, LeadStatus } from '@/lib/prisma-client/enums'
 
 // POST /api/auth/activate-member — called after invite link is clicked
 //
@@ -140,6 +142,12 @@ export async function POST(req: Request) {
     })
     if (fullUser) {
       notifyNewMember(targetSchoolId, fullUser.name ?? fullUser.email)
+    }
+    if (fullUser?.email) {
+      upsertProspectLead(targetSchoolId, fullUser.email, fullUser.name, {
+        source: LeadSource.INVITE,
+        status: LeadStatus.CONTACTED,
+      }).catch(err => console.error('[activate-member] lead upsert failed:', err))
     }
     if (fullUser?.email) {
       sendWelcomeStudentEmail({

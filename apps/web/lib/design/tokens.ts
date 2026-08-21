@@ -43,7 +43,7 @@ export const memberStatusColors = {
     solid: '#FACC15', solidText: '#111827',
   },
   LEAD: {
-    label: 'Lead',
+    label: 'Invited',
     bg: '#FFEDD5', text: '#C2410C', border: '#FDBA74', dot: '#F97316',
     solid: '#F97316', solidText: '#FFFFFF',
   },

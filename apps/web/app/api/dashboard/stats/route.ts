@@ -94,7 +94,7 @@ export async function GET(req: NextRequest) {
     }),
     // Open leads
     prisma.lead.count({
-      where: { schoolId, status: { in: ['NEW', 'CONTACTED', 'TRIAL_BOOKED'] } },
+      where: { schoolId, status: { in: ['NEW', 'INVITED', 'CONTACTED', 'TRIAL_BOOKED'] } },
     }),
     // Gradings this year
     prisma.grading.count({
