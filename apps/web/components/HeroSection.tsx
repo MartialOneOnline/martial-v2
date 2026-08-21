@@ -26,10 +26,11 @@ export default function HeroSection({ onOpenLoginModal }: HeroSectionProps) {
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-[#0E3A7A] via-[#0870E2]/90 to-[#0a2d5e] pb-16 pt-20 lg:pt-28 lg:pb-20">
-      {/* Mobile-only blurred background photo */}
-      <div className="absolute inset-0 lg:hidden">
-        <Image src="/buchecha.png" alt="" fill className="object-cover object-top blur-sm opacity-90" priority />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0E3A7A]/20 via-[#0870E2]/25 to-[#0a2d5e]/85" />
+      {/* Mobile-only hero photo — cropped so the eyes sit clear of the headline, above it */}
+      <div className="absolute right-0 top-0 w-[500px] h-[210px] overflow-hidden lg:hidden">
+        <Image src="/buchecha.png" alt="" fill className="object-cover object-[50%_24%]" priority />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0E3A7A]/50 via-transparent to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-b from-transparent to-[#0E3A7A]" />
       </div>
 
       <div className="absolute top-0 right-0 -z-0 w-[600px] h-[600px] bg-white/5 rounded-full blur-3xl pointer-events-none" />
@@ -60,10 +61,10 @@ export default function HeroSection({ onOpenLoginModal }: HeroSectionProps) {
               Find schools, book classes, manage your academy and connect with the global martial arts community.
             </p>
 
-            <div className="flex flex-wrap gap-3 items-center">
+            <div className="flex flex-nowrap gap-2.5 sm:gap-3 items-center">
               <a
                 href="/explore"
-                className="px-8 py-4 bg-[#0870E2] text-white font-extrabold text-[15px] rounded-xl hover:bg-[#007cd7] shadow-lg shadow-sky-500/20 active:scale-95 transition-all flex items-center gap-2"
+                className="px-5 py-3.5 sm:px-8 sm:py-4 bg-[#0870E2] text-white font-extrabold text-[13px] sm:text-[15px] rounded-xl hover:bg-[#007cd7] shadow-lg shadow-sky-500/20 active:scale-95 transition-all flex items-center gap-2 whitespace-nowrap"
               >
                 Explore Schools
                 <motion.span
@@ -74,7 +75,7 @@ export default function HeroSection({ onOpenLoginModal }: HeroSectionProps) {
               </a>
               <a
                 href="/register"
-                className="px-8 py-4 bg-white text-[#0E3A7A] font-extrabold text-[15px] rounded-xl border-2 border-[#0E3A7A]/20 hover:border-[#0870E2] hover:text-[#0870E2] active:scale-95 transition-all"
+                className="px-5 py-3.5 sm:px-8 sm:py-4 bg-white text-[#0E3A7A] font-extrabold text-[13px] sm:text-[15px] rounded-xl border-2 border-[#0E3A7A]/20 hover:border-[#0870E2] hover:text-[#0870E2] active:scale-95 transition-all whitespace-nowrap"
               >
                 Register
               </a>
