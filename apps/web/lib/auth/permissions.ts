@@ -40,7 +40,7 @@ export type Permission =
   | 'school.marketplace.view'
   | 'school.marketplace.manage'
 
-const ALL: Permission[] = [
+export const ALL_PERMISSIONS: Permission[] = [
   'school.profile.view', 'school.profile.edit',
   'school.classes.view', 'school.classes.create', 'school.classes.update', 'school.classes.delete',
   'school.bookings.view', 'school.bookings.manage',
@@ -86,11 +86,11 @@ const OWNER_ADMIN_ONLY: Permission[] = [
 
 // Role → permission preset. Authorization always verified against SchoolMember.
 export const ROLE_PERMISSIONS: Record<SchoolMemberRole, Permission[]> = {
-  OWNER: ALL,
+  OWNER: ALL_PERMISSIONS,
 
-  ADMIN: ALL,
+  ADMIN: ALL_PERMISSIONS,
 
-  MANAGER: ALL.filter(p => !OWNER_ADMIN_ONLY.includes(p)),
+  MANAGER: ALL_PERMISSIONS.filter(p => !OWNER_ADMIN_ONLY.includes(p)),
 
   // Instructors are scoped to running their own classes: seeing the
   // schedule, taking attendance/bookings, and grading — not the school's
@@ -126,6 +126,10 @@ export const ROLE_PERMISSIONS: Record<SchoolMemberRole, Permission[]> = {
     'school.classes.view',
     'school.bookings.view',
   ],
+
+  // Never read directly — a CUSTOM member's real permissions come from their
+  // StaffRole via lib/auth/customRoles.ts#getMemberPermissions, not this map.
+  CUSTOM: [],
 }
 
 export function getPermissions(role: SchoolMemberRole): Permission[] {

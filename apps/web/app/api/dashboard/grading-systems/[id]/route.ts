@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
-import { hasPermission } from '@/lib/auth/permissions'
+import { memberHasPermission } from '@/lib/auth/customRoles'
 
 async function auth() {
   const user = await getAuthUser()
@@ -12,7 +12,7 @@ async function auth() {
   if (user.role !== 'SUPERADMIN') {
     try {
       const m = await requireSchoolAccess(user.id, schoolId)
-      if (!hasPermission(m.role, 'school.gradings.manage')) return { error: 'Forbidden', status: 403 as const }
+      if (!await memberHasPermission(m, 'school.gradings.manage')) return { error: 'Forbidden', status: 403 as const }
     } catch { return { error: 'Forbidden', status: 403 as const } }
   }
   return { schoolId }

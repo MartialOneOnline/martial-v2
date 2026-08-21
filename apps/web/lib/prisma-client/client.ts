@@ -167,6 +167,11 @@ export type CampBooking = Prisma.CampBookingModel
  */
 export type SchoolMember = Prisma.SchoolMemberModel
 /**
+ * Model StaffRole
+ * 
+ */
+export type StaffRole = Prisma.StaffRoleModel
+/**
  * Model Campaign
  * 
  */

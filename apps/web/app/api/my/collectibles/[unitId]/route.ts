@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
-import { hasPermission } from '@/lib/auth/permissions'
+import { memberHasPermission } from '@/lib/auth/customRoles'
 import { formatDisplayNumber } from '@/lib/services/collectibles/verification'
 
 async function canAccessUnit(userId: string, userRole: string, unit: { ownerUserId: string | null; collection: { sellerType: string; schoolId: string | null } }) {
@@ -11,7 +11,7 @@ async function canAccessUnit(userId: string, userRole: string, unit: { ownerUser
   if (unit.collection.sellerType === 'SCHOOL' && unit.collection.schoolId) {
     try {
       const member = await requireSchoolAccess(userId, unit.collection.schoolId)
-      return hasPermission(member.role, 'school.marketplace.view')
+      return await memberHasPermission(member, 'school.marketplace.view')
     } catch {
       return false
     }

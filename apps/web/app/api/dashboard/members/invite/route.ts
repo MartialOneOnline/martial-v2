@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
-import { hasPermission } from '@/lib/auth/permissions'
+import { memberHasPermission } from '@/lib/auth/customRoles'
 import { getResend, FROM, APP_URL } from '@/lib/email/resend'
 import { buildInviteStudentEmail, detectLang, getInviteSubject } from '@/lib/email/templates/inviteStudent'
 import { assignPlan } from '@/lib/services/membership'
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!hasPermission(member.role, 'school.members.create')) {
+      if (!await memberHasPermission(member, 'school.members.create')) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
       }
     } catch {

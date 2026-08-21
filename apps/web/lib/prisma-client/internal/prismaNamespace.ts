@@ -409,6 +409,7 @@ export const ModelName = {
   Camp: 'Camp',
   CampBooking: 'CampBooking',
   SchoolMember: 'SchoolMember',
+  StaffRole: 'StaffRole',
   Campaign: 'Campaign',
   CampaignRecipient: 'CampaignRecipient',
   SchoolClaim: 'SchoolClaim',
@@ -453,7 +454,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "curriculumVideo" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "classCancellation" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "campaign" | "campaignRecipient" | "schoolClaim" | "gradingSystem" | "beltRank" | "grading" | "lead" | "leadNote" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "impersonationLog" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "limitedCollection" | "limitedCollectionTier" | "collectibleUnit" | "collectibleOwnership" | "partner" | "notification" | "platformSettings" | "claimRequest" | "schoolSubscription" | "stripeWebhookEvent"
+    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "curriculumVideo" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "classCancellation" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "staffRole" | "campaign" | "campaignRecipient" | "schoolClaim" | "gradingSystem" | "beltRank" | "grading" | "lead" | "leadNote" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "impersonationLog" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "limitedCollection" | "limitedCollectionTier" | "collectibleUnit" | "collectibleOwnership" | "partner" | "notification" | "platformSettings" | "claimRequest" | "schoolSubscription" | "stripeWebhookEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2304,6 +2305,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.SchoolMemberCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.SchoolMemberCountAggregateOutputType> | number
+        }
+      }
+    }
+    StaffRole: {
+      payload: Prisma.$StaffRolePayload<ExtArgs>
+      fields: Prisma.StaffRoleFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.StaffRoleFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffRolePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.StaffRoleFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffRolePayload>
+        }
+        findFirst: {
+          args: Prisma.StaffRoleFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffRolePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.StaffRoleFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffRolePayload>
+        }
+        findMany: {
+          args: Prisma.StaffRoleFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffRolePayload>[]
+        }
+        create: {
+          args: Prisma.StaffRoleCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffRolePayload>
+        }
+        createMany: {
+          args: Prisma.StaffRoleCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.StaffRoleCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffRolePayload>[]
+        }
+        delete: {
+          args: Prisma.StaffRoleDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffRolePayload>
+        }
+        update: {
+          args: Prisma.StaffRoleUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffRolePayload>
+        }
+        deleteMany: {
+          args: Prisma.StaffRoleDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.StaffRoleUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.StaffRoleUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffRolePayload>[]
+        }
+        upsert: {
+          args: Prisma.StaffRoleUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffRolePayload>
+        }
+        aggregate: {
+          args: Prisma.StaffRoleAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateStaffRole>
+        }
+        groupBy: {
+          args: Prisma.StaffRoleGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StaffRoleGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.StaffRoleCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StaffRoleCountAggregateOutputType> | number
         }
       }
     }
@@ -4973,6 +5048,7 @@ export const SchoolMemberScalarFieldEnum = {
   role: 'role',
   status: 'status',
   joinedAt: 'joinedAt',
+  customRoleId: 'customRoleId',
   belt: 'belt',
   beltRankId: 'beltRankId',
   beltDegree: 'beltDegree',
@@ -4985,6 +5061,18 @@ export const SchoolMemberScalarFieldEnum = {
 } as const
 
 export type SchoolMemberScalarFieldEnum = (typeof SchoolMemberScalarFieldEnum)[keyof typeof SchoolMemberScalarFieldEnum]
+
+
+export const StaffRoleScalarFieldEnum = {
+  id: 'id',
+  schoolId: 'schoolId',
+  name: 'name',
+  permissions: 'permissions',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type StaffRoleScalarFieldEnum = (typeof StaffRoleScalarFieldEnum)[keyof typeof StaffRoleScalarFieldEnum]
 
 
 export const CampaignScalarFieldEnum = {
@@ -6283,6 +6371,7 @@ export type GlobalOmitConfig = {
   camp?: Prisma.CampOmit
   campBooking?: Prisma.CampBookingOmit
   schoolMember?: Prisma.SchoolMemberOmit
+  staffRole?: Prisma.StaffRoleOmit
   campaign?: Prisma.CampaignOmit
   campaignRecipient?: Prisma.CampaignRecipientOmit
   schoolClaim?: Prisma.SchoolClaimOmit

@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db'
-import { getPermissions, type Permission } from './permissions'
+import type { Permission } from './permissions'
+import { getMemberPermissions } from './customRoles'
 import type { SchoolMemberRole } from '../prisma-client/enums'
 
 export type SchoolContext = {
@@ -27,15 +28,17 @@ export async function getUserContexts(userId: string, lastSchoolId?: string | nu
     }),
   ])
 
-  const schools: SchoolContext[] = memberships
-    .filter(m => m.school)
-    .map(m => ({
-      schoolId: m.school.id,
-      schoolName: m.school.name,
-      schoolSlug: m.school.slug,
-      role: m.role,
-      permissions: getPermissions(m.role),
-    }))
+  const schools: SchoolContext[] = await Promise.all(
+    memberships
+      .filter(m => m.school)
+      .map(async m => ({
+        schoolId: m.school.id,
+        schoolName: m.school.name,
+        schoolSlug: m.school.slug,
+        role: m.role,
+        permissions: await getMemberPermissions(m),
+      }))
+  )
 
   // Resolve currentSchoolId: prefer lastSchoolId if still valid
   const validLast = lastSchoolId ? schools.find(s => s.schoolId === lastSchoolId) : null
@@ -52,7 +55,7 @@ export async function getUserContexts(userId: string, lastSchoolId?: string | nu
 export async function getSchoolMembership(userId: string, schoolId: string) {
   return prisma.schoolMember.findUnique({
     where: { schoolId_userId: { schoolId, userId } },
-    select: { role: true, status: true },
+    select: { role: true, status: true, customRoleId: true },
   })
 }
 

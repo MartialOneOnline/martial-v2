@@ -685,6 +685,210 @@ function StaffTab() {
   )
 }
 
+// ── Staff Roles Tab ─────────────────────────────────────────────────────────────
+interface StaffRoleRow {
+  id: string
+  name: string
+  isCustom: boolean
+  permissions: string[]
+  memberCount: number | null
+}
+
+function humanizeGroup(prefix: string) {
+  const spaced = prefix.replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1)
+}
+function humanizeAction(action: string) {
+  return action.charAt(0).toUpperCase() + action.slice(1)
+}
+function groupPermissions(all: string[]) {
+  const map = new Map<string, string[]>()
+  for (const p of all) {
+    const group = p.split('.')[1] ?? p
+    if (!map.has(group)) map.set(group, [])
+    map.get(group)!.push(p)
+  }
+  return Array.from(map.entries()).map(([group, perms]) => ({
+    group,
+    label: humanizeGroup(group),
+    perms: perms.map(p => ({ key: p, label: humanizeAction(p.split('.')[2] ?? p) })),
+  }))
+}
+
+function RoleDrawer({ open, onClose, onSaved, role, allPermissions }: {
+  open: boolean; onClose: () => void; onSaved: () => void
+  role: StaffRoleRow | null
+  allPermissions: string[]
+}) {
+  const [name, setName]       = useState('')
+  const [granted, setGranted] = useState<Set<string>>(new Set())
+  const [saving, setSaving]   = useState(false)
+  const [error, setError]     = useState('')
+
+  useEffect(() => {
+    if (open) {
+      setName(role?.name ?? '')
+      setGranted(new Set(role?.permissions ?? []))
+      setError('')
+    }
+  }, [open, role])
+
+  const groups = groupPermissions(allPermissions)
+
+  function toggle(key: string, value: boolean) {
+    setGranted(prev => {
+      const next = new Set(prev)
+      if (value) next.add(key); else next.delete(key)
+      return next
+    })
+  }
+
+  async function submit() {
+    if (!name.trim()) { setError('Name is required'); return }
+    setSaving(true); setError('')
+    const url = role ? `/api/dashboard/staff-roles/${role.id}` : '/api/dashboard/staff-roles'
+    const res = await fetch(url, {
+      method: role ? 'PATCH' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, permissions: Array.from(granted) }),
+    })
+    setSaving(false)
+    if (!res.ok) { const d = await res.json(); setError(d.error ?? 'Error'); return }
+    onSaved()
+  }
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 transition-opacity"
+        style={{ background: 'rgba(0,0,0,0.35)', opacity: open ? 1 : 0, pointerEvents: open ? 'auto' : 'none' }}
+        onClick={onClose} />
+      <div className="fixed top-0 right-0 h-full z-50 flex flex-col overflow-hidden"
+        style={{ width: 'min(520px,96vw)', background: '#F9FAFB',
+          boxShadow: '-4px 0 32px rgba(0,0,0,0.12)',
+          transform: open ? 'translateX(0)' : 'translateX(100%)',
+          transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)' }}>
+        <div className="flex items-center justify-between px-6 py-5 shrink-0" style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
+          <h2 style={{ fontSize: 17, fontWeight: 700, color: '#111827', margin: 0 }}>{role ? 'Edit Staff Role' : 'Create Staff Role'}</h2>
+          <button onClick={onClose} className="w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer" style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
+            <X size={15} style={{ color: '#6B7280' }} />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-1">
+          <label style={LBL}>Role Name</label>
+          <input type="text" placeholder="e.g. Front Desk" value={name} onChange={e => setName(e.target.value)} style={{ ...INP, marginBottom: 16 }} />
+          <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginBottom: 4 }}>Permissions</p>
+          {groups.map(g => (
+            <div key={g.group}>
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.04em', margin: '10px 0 2px' }}>{g.label}</p>
+              {g.perms.map(p => (
+                <ToggleRow key={p.key} label={p.label} description="" value={granted.has(p.key)} onChange={v => toggle(p.key, v)} />
+              ))}
+            </div>
+          ))}
+          {error && <p style={{ fontSize: 12, color: '#DC2626', marginTop: 8 }}>{error}</p>}
+        </div>
+        <div className="px-6 py-4 flex items-center gap-3 justify-end shrink-0" style={{ background: '#fff', borderTop: '1px solid #E5E7EB' }}>
+          <button onClick={onClose} style={{ padding: '10px 20px', borderRadius: 10, border: '1px solid #E5E7EB', background: '#fff', color: '#374151', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>Cancel</button>
+          <button onClick={submit} disabled={saving} style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: '#0870E2', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            {saving ? 'Saving…' : role ? 'Save changes' : 'Create Staff Role'}
+          </button>
+        </div>
+      </div>
+    </>
+  )
+}
+
+function StaffRolesTab() {
+  const [roles, setRoles]               = useState<StaffRoleRow[]>([])
+  const [allPermissions, setAllPermissions] = useState<string[]>([])
+  const [loading, setLoading]           = useState(true)
+  const [drawerOpen, setDrawerOpen]     = useState(false)
+  const [editRole, setEditRole]         = useState<StaffRoleRow | null>(null)
+  const [deleteRole, setDeleteRole]     = useState<StaffRoleRow | null>(null)
+  const [deleteError, setDeleteError]   = useState('')
+
+  function load() {
+    fetch('/api/dashboard/staff-roles').then(r => r.json()).then(d => {
+      setRoles(d.roles ?? [])
+      setAllPermissions(d.allPermissions ?? [])
+      setLoading(false)
+    })
+  }
+  useEffect(() => { load() }, [])
+
+  async function confirmDelete() {
+    if (!deleteRole) return
+    const res = await fetch(`/api/dashboard/staff-roles/${deleteRole.id}`, { method: 'DELETE' })
+    if (!res.ok) { const d = await res.json(); setDeleteError(d.error ?? 'Error'); return }
+    setDeleteRole(null); setDeleteError('')
+    load()
+  }
+
+  return (
+    <div className="flex flex-col gap-6" style={{ maxWidth: 760 }}>
+      <div className="flex items-center justify-between">
+        <div>
+          <p style={SECTION_TITLE}>Staff Roles</p>
+          <p style={SECTION_SUB}>Built-in roles are fixed — create extra roles with exactly the permissions your school needs.</p>
+        </div>
+        <button onClick={() => { setEditRole(null); setDrawerOpen(true) }}
+          style={{ padding: '9px 16px', borderRadius: 10, border: 'none', background: '#0870E2', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+          + Create Staff Role
+        </button>
+      </div>
+
+      <div className="flex flex-col" style={{ border: '1.5px solid #E5E7EB', borderRadius: 14, overflow: 'hidden' }}>
+        {loading ? (
+          <p style={{ fontSize: 13, color: '#9CA3AF', padding: '20px' }}>Loading…</p>
+        ) : roles.map((r, i) => (
+          <div key={r.id} className="flex items-center gap-4 px-5 py-3.5" style={{ borderBottom: i < roles.length - 1 ? '1px solid #F3F4F6' : 'none', background: '#fff' }}>
+            <div className="flex-1 min-w-0">
+              <p style={{ fontSize: 14, fontWeight: 600, color: '#111827', margin: 0 }}>{r.name}</p>
+              <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>
+                {r.isCustom ? 'Custom role' : 'Built-in'} · {r.permissions.length} permission{r.permissions.length === 1 ? '' : 's'}
+                {r.memberCount !== null && ` · ${r.memberCount} member${r.memberCount === 1 ? '' : 's'}`}
+              </p>
+            </div>
+            {r.isCustom ? (
+              <div className="flex items-center gap-2 shrink-0">
+                <button onClick={() => { setEditRole(r); setDrawerOpen(true) }}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer" style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
+                  <Edit2 size={13} style={{ color: '#6B7280' }} />
+                </button>
+                <button onClick={() => { setDeleteRole(r); setDeleteError('') }}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer" style={{ background: '#FEF2F2', border: '1px solid #FECACA' }}>
+                  <Trash2 size={13} style={{ color: '#DC2626' }} />
+                </button>
+              </div>
+            ) : (
+              <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999, background: '#F3F4F6', color: '#6B7280' }}>Built-in</span>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <RoleDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} role={editRole} allPermissions={allPermissions}
+        onSaved={() => { setDrawerOpen(false); load() }} />
+
+      {deleteRole && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={() => setDeleteRole(null)} style={{ background: 'rgba(0,0,0,0.4)' }}>
+          <div onClick={e => e.stopPropagation()} className="w-full rounded-2xl overflow-hidden" style={{ maxWidth: 380, background: '#fff' }}>
+            <div className="px-6 py-5">
+              <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0 }}>Delete &quot;{deleteRole.name}&quot;?</p>
+              <p style={{ fontSize: 13, color: '#6B7280', marginTop: 8 }}>This can&apos;t be undone.</p>
+              {deleteError && <p style={{ fontSize: 12, color: '#DC2626', marginTop: 8 }}>{deleteError}</p>}
+            </div>
+            <div className="px-6 py-4 flex items-center gap-3 justify-end" style={{ borderTop: '1px solid #E5E7EB', background: '#F9FAFB' }}>
+              <button onClick={() => setDeleteRole(null)} style={{ padding: '9px 16px', borderRadius: 10, border: '1px solid #E5E7EB', background: '#fff', color: '#374151', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>Cancel</button>
+              <button onClick={confirmDelete} style={{ padding: '9px 16px', borderRadius: 10, border: 'none', background: '#DC2626', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Payments Tab ──────────────────────────────────────────────────────────────
 const PAYMENT_METHODS = [
   { key: 'CASH',          label: 'Cash',          description: 'Accept cash payments in person' },
@@ -1875,18 +2079,19 @@ function DeleteTab() {
 }
 
 // ── Tabs config ───────────────────────────────────────────────────────────────
-type TabId = 'profile' | 'school' | 'modules' | 'staff' | 'payments' | 'billing' | 'grading' | 'password' | 'delete'
+type TabId = 'profile' | 'school' | 'modules' | 'staff' | 'staffRoles' | 'payments' | 'billing' | 'grading' | 'password' | 'delete'
 
 const TABS: { id: TabId; label: string; danger?: boolean }[] = [
-  { id: 'profile',  label: 'Profile'         },
-  { id: 'school',   label: 'School'          },
-  { id: 'modules',  label: 'Modules'         },
-  { id: 'staff',    label: 'Staff'           },
-  { id: 'payments', label: 'Payments'        },
-  { id: 'billing',  label: 'Billing'         },
-  { id: 'grading',  label: 'Grading'         },
-  { id: 'password', label: 'Password'        },
-  { id: 'delete',   label: 'Delete Account', danger: true },
+  { id: 'profile',    label: 'Profile'         },
+  { id: 'school',     label: 'School'          },
+  { id: 'modules',    label: 'Modules'         },
+  { id: 'staff',      label: 'Staff'           },
+  { id: 'staffRoles', label: 'Staff Roles'     },
+  { id: 'payments',   label: 'Payments'        },
+  { id: 'billing',    label: 'Billing'         },
+  { id: 'grading',    label: 'Grading'         },
+  { id: 'password',   label: 'Password'        },
+  { id: 'delete',     label: 'Delete Account', danger: true },
 ]
 
 // ── Main ──────────────────────────────────────────────────────────────────────
@@ -1900,15 +2105,16 @@ export default function SettingsClient() {
   )
 
   const content: Record<TabId, React.ReactNode> = {
-    profile:  <ProfileTab />,
-    school:   <SchoolTab />,
-    modules:  <ModulesTab />,
-    staff:    <StaffTab />,
-    payments: <PaymentsTab />,
-    billing:  <BillingTab />,
-    grading:  <GradingTab />,
-    password: <PasswordTab />,
-    delete:   <DeleteTab />,
+    profile:    <ProfileTab />,
+    school:     <SchoolTab />,
+    modules:    <ModulesTab />,
+    staff:      <StaffTab />,
+    staffRoles: <StaffRolesTab />,
+    payments:   <PaymentsTab />,
+    billing:    <BillingTab />,
+    grading:    <GradingTab />,
+    password:   <PasswordTab />,
+    delete:     <DeleteTab />,
   }
 
   return (

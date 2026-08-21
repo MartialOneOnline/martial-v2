@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
-import { hasPermission } from '@/lib/auth/permissions'
+import { memberHasPermission } from '@/lib/auth/customRoles'
 import { createNotification } from '@/lib/notifications/create'
 import { getResend, FROM } from '@/lib/email/resend'
 
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ use
   if (admin.role !== 'SUPERADMIN') {
     try {
       const m = await requireSchoolAccess(admin.id, schoolId)
-      if (!hasPermission(m.role, 'school.members.update'))
+      if (!await memberHasPermission(m, 'school.members.update'))
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     } catch {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })

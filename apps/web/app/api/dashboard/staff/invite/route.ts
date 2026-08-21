@@ -3,11 +3,10 @@ import { createClient } from '@supabase/supabase-js'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
-import { hasPermission } from '@/lib/auth/permissions'
+import { memberHasPermission, resolveRoleAssignment } from '@/lib/auth/customRoles'
 import { getResend, FROM, APP_URL } from '@/lib/email/resend'
 import { buildInviteStaffEmail, getStaffInviteSubject } from '@/lib/email/templates/inviteStaff'
 import { detectLang } from '@/lib/email/templates/inviteStudent'
-import type { SchoolMemberRole } from '@/lib/prisma-client/enums'
 
 function getAdminSupabase() {
   const key = process.env.SUPABASE_SECRET_KEY
@@ -15,14 +14,6 @@ function getAdminSupabase() {
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, key, {
     auth: { autoRefreshToken: false, persistSession: false },
   })
-}
-
-const MEMBER_ROLE_FOR: Record<string, SchoolMemberRole> = {
-  'Head Instructor': 'INSTRUCTOR',
-  'Instructor': 'INSTRUCTOR',
-  'Assistant': 'ASSISTANT_INSTRUCTOR',
-  'Admin': 'ADMIN',
-  'Receptionist': 'RECEPTIONIST',
 }
 
 // POST /api/dashboard/staff/invite — invite someone who isn't a school member
@@ -38,20 +29,22 @@ export async function POST(req: NextRequest) {
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!hasPermission(member.role, 'school.staff.manage')) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      if (!await memberHasPermission(member, 'school.staff.manage')) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     } catch {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
   }
 
-  const { name, email, role, belt, salary, startDate, notes, lang: bodyLang } = await req.json()
+  const { name, email, roleId, role, belt, salary, startDate, notes, lang: bodyLang } = await req.json()
 
   if (!name?.trim()) return NextResponse.json({ error: 'Name is required' }, { status: 400 })
   if (!email?.trim()) return NextResponse.json({ error: 'Email is required' }, { status: 400 })
   if (!role?.trim()) return NextResponse.json({ error: 'Role is required' }, { status: 400 })
+  if (!roleId) return NextResponse.json({ error: 'Role is required' }, { status: 400 })
 
   const normalizedEmail = email.trim().toLowerCase()
-  const memberRole = MEMBER_ROLE_FOR[role.trim()] ?? 'INSTRUCTOR'
+  const assignment = await resolveRoleAssignment(schoolId, roleId)
+  if (!assignment) return NextResponse.json({ error: 'Role not found' }, { status: 400 })
 
   const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } })
   if (existingUser) {
@@ -99,7 +92,7 @@ export async function POST(req: NextRequest) {
   })
 
   await prisma.schoolMember.create({
-    data: { userId: dbUser.id, schoolId, role: memberRole, status: 'PENDING' },
+    data: { userId: dbUser.id, schoolId, role: assignment.role, customRoleId: assignment.customRoleId, status: 'PENDING' },
   })
 
   const instructor = await prisma.instructor.create({

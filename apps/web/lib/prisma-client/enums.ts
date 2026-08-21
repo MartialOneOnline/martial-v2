@@ -70,7 +70,8 @@ export const SchoolMemberRole = {
   INSTRUCTOR: 'INSTRUCTOR',
   ASSISTANT_INSTRUCTOR: 'ASSISTANT_INSTRUCTOR',
   RECEPTIONIST: 'RECEPTIONIST',
-  STUDENT: 'STUDENT'
+  STUDENT: 'STUDENT',
+  CUSTOM: 'CUSTOM'
 } as const
 
 export type SchoolMemberRole = (typeof SchoolMemberRole)[keyof typeof SchoolMemberRole]

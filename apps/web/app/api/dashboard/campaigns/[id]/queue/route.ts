@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
-import { hasPermission } from '@/lib/auth/permissions'
+import { memberHasPermission } from '@/lib/auth/customRoles'
 
 // POST /api/dashboard/campaigns/[id]/queue — flips a DRAFT campaign to QUEUED
 // so /process (and the safety-net cron) are allowed to start sending it.
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!hasPermission(member.role, 'school.campaigns.manage')) {
+      if (!await memberHasPermission(member, 'school.campaigns.manage')) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
       }
     } catch {

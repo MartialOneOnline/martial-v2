@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
-import { hasPermission } from '@/lib/auth/permissions'
+import { memberHasPermission } from '@/lib/auth/customRoles'
 
 // PATCH /api/dashboard/users/[userId] — update user profile fields (name, phone, dateOfBirth)
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ userId: string }> }) {
@@ -15,7 +15,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ us
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!hasPermission(member.role, 'school.members.update')) {
+      if (!await memberHasPermission(member, 'school.members.update')) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
       }
     } catch {

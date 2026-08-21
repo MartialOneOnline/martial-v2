@@ -63,6 +63,7 @@ enum SchoolMemberRole {
   ASSISTANT_INSTRUCTOR
   RECEPTIONIST
   STUDENT
+  CUSTOM // permissions come from StaffRole via SchoolMember.customRoleId, not this enum
 }
 
 enum LeadStage {
@@ -604,6 +605,7 @@ model School {
   membershipPlans    MembershipPlan[]
   reviews            Review[]
   members            SchoolMember[]
+  staffRoles         StaffRole[]
   claims             SchoolClaim[]
   gradings           Grading[]
   gradingSystems     GradingSystem[]
@@ -1072,6 +1074,12 @@ model SchoolMember {
   status   SchoolMemberStatus @default(PENDING)
   joinedAt DateTime?
 
+  // Only meaningful when role = CUSTOM — the school-defined role this member
+  // was assigned. Null for every other role (permissions come from the fixed
+  // ROLE_PERMISSIONS matrix instead — see lib/auth/customRoles.ts).
+  customRoleId String?
+  customRole   StaffRole? @relation(fields: [customRoleId], references: [id], onDelete: SetNull)
+
   // Belt / rank (current)
   belt       String? // "White Belt", "Blue Belt", "Purple Belt" — source of truth for display/history
   beltRankId String? // enrichment FK into the school's structured BeltRank catalog, may be null
@@ -1092,6 +1100,30 @@ model SchoolMember {
 
   @@unique([schoolId, userId])
   @@map("school_members")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STAFF ROLE
+// School-defined custom roles, on top of the fixed SchoolMemberRole base set.
+// The 7 base roles stay hardcoded in lib/auth/permissions.ts and are never
+// stored here — this only holds the *extra* roles a school creates.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model StaffRole {
+  id       String @id @default(cuid())
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  name        String
+  permissions Json // string[] of granted Permission keys, validated server-side against the real list
+
+  members SchoolMember[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolId, name])
+  @@map("staff_roles")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

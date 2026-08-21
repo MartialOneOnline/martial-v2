@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
-import { hasPermission } from '@/lib/auth/permissions'
+import { memberHasPermission } from '@/lib/auth/customRoles'
 
 type DayStatus = 'present' | 'absent' | 'promoted' | 'not_marked'
 const PRIORITY: Record<DayStatus, number> = { not_marked: 0, absent: 1, present: 2, promoted: 3 }
@@ -22,7 +22,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!hasPermission(member.role, 'school.members.view')) {
+      if (!await memberHasPermission(member, 'school.members.view')) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
       }
     } catch {

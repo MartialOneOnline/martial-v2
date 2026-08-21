@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db'
 import { Prisma } from '@/lib/prisma-client/client'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
-import { hasPermission } from '@/lib/auth/permissions'
+import { memberHasPermission } from '@/lib/auth/customRoles'
 import { scheduledAtForDate, type ScheduleSlot } from '@/lib/scheduling'
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!hasPermission(member.role, 'school.bookings.manage'))
+      if (!await memberHasPermission(member, 'school.bookings.manage'))
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     } catch {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -137,7 +137,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!hasPermission(member.role, 'school.bookings.view'))
+      if (!await memberHasPermission(member, 'school.bookings.view'))
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     } catch {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })

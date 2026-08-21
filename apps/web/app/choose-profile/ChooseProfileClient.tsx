@@ -26,6 +26,7 @@ const ROLE_LABEL: Record<SchoolMemberRole, string> = {
   ASSISTANT_INSTRUCTOR: 'Asst. Instructor',
   RECEPTIONIST: 'Receptionist',
   STUDENT: 'Student',
+  CUSTOM: 'Staff',
 }
 
 type Status = 'loading' | 'error' | 'ready'

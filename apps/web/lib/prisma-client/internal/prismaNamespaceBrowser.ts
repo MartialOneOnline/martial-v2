@@ -76,6 +76,7 @@ export const ModelName = {
   Camp: 'Camp',
   CampBooking: 'CampBooking',
   SchoolMember: 'SchoolMember',
+  StaffRole: 'StaffRole',
   Campaign: 'Campaign',
   CampaignRecipient: 'CampaignRecipient',
   SchoolClaim: 'SchoolClaim',
@@ -604,6 +605,7 @@ export const SchoolMemberScalarFieldEnum = {
   role: 'role',
   status: 'status',
   joinedAt: 'joinedAt',
+  customRoleId: 'customRoleId',
   belt: 'belt',
   beltRankId: 'beltRankId',
   beltDegree: 'beltDegree',
@@ -616,6 +618,18 @@ export const SchoolMemberScalarFieldEnum = {
 } as const
 
 export type SchoolMemberScalarFieldEnum = (typeof SchoolMemberScalarFieldEnum)[keyof typeof SchoolMemberScalarFieldEnum]
+
+
+export const StaffRoleScalarFieldEnum = {
+  id: 'id',
+  schoolId: 'schoolId',
+  name: 'name',
+  permissions: 'permissions',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type StaffRoleScalarFieldEnum = (typeof StaffRoleScalarFieldEnum)[keyof typeof StaffRoleScalarFieldEnum]
 
 
 export const CampaignScalarFieldEnum = {

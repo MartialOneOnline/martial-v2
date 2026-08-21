@@ -12,8 +12,13 @@ import RowMenu from '../../../../components/RowMenu'
 import { matchesSearch } from '../../../../lib/search'
 type Filter = string
 
-type StaffRole = 'Head Instructor' | 'Instructor' | 'Assistant' | 'Admin' | 'Receptionist'
 type StaffStatus = 'Active' | 'Inactive'
+
+interface RoleOption {
+  id: string // base SchoolMemberRole enum value, or a StaffRole cuid for custom roles
+  name: string
+  isCustom: boolean
+}
 
 interface StaffMember {
   id: string
@@ -70,7 +75,7 @@ const STATUS_MAP: Record<StaffStatus, { bg: string; color: string; border: strin
   'Inactive': { bg: '#F3F4F6', color: '#6B7280', border: '#E5E7EB' },
 }
 
-function AddStaffDrawer({ open, onClose, onSuccess, members }: { open: boolean; onClose: () => void; onSuccess: () => void; members: MemberOption[] }) {
+function AddStaffDrawer({ open, onClose, onSuccess, members, roleOptions }: { open: boolean; onClose: () => void; onSuccess: () => void; members: MemberOption[]; roleOptions: RoleOption[] }) {
   const [mode, setMode]                     = useState<'existing' | 'new'>('existing')
   const [memberQuery, setMemberQuery]       = useState('')
   const [selectedMember, setSelectedMember] = useState<MemberOption | null>(null)
@@ -78,7 +83,7 @@ function AddStaffDrawer({ open, onClose, onSuccess, members }: { open: boolean; 
   const [newName, setNewName]               = useState('')
   const [invite, setInvite]                 = useState(false)
   const [newEmail, setNewEmail]             = useState('')
-  const [role, setRole]                     = useState<StaffRole | ''>('')
+  const [roleId, setRoleId]                 = useState('')
   const [belt, setBelt]                     = useState('')
   const [salary, setSalary]                 = useState('')
   const [startDate, setStartDate]           = useState('')
@@ -89,23 +94,25 @@ function AddStaffDrawer({ open, onClose, onSuccess, members }: { open: boolean; 
   const filteredMembers = members.filter(m =>
     matchesSearch(m.name, memberQuery) || matchesSearch(m.email, memberQuery)
   )
+  const selectedRole = roleOptions.find(r => r.id === roleId)
 
   function reset() {
     setMode('existing')
     setMemberQuery(''); setSelectedMember(null); setShowDropdown(false)
     setNewName(''); setInvite(false); setNewEmail('')
-    setRole(''); setBelt(''); setSalary(''); setStartDate(''); setNotes(''); setError('')
+    setRoleId(''); setBelt(''); setSalary(''); setStartDate(''); setNotes(''); setError('')
   }
   function handleClose() { reset(); onClose() }
 
   async function handleSubmit() {
-    if (!role) return
+    if (!selectedRole) return
     setSaving(true); setError('')
 
     const url = mode === 'new' && invite ? '/api/dashboard/staff/invite' : '/api/dashboard/staff'
+    const roleFields = { roleId: selectedRole.id, role: selectedRole.name }
     const payload = mode === 'existing'
-      ? { userId: selectedMember?.id, role, belt, salary, startDate, notes }
-      : { name: newName, email: invite ? newEmail : undefined, role, belt, salary, startDate, notes }
+      ? { userId: selectedMember?.id, ...roleFields, belt, salary, startDate, notes }
+      : { name: newName, email: invite ? newEmail : undefined, ...roleFields, belt, salary, startDate, notes }
 
     const res = await fetch(url, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -116,7 +123,7 @@ function AddStaffDrawer({ open, onClose, onSuccess, members }: { open: boolean; 
     reset(); onSuccess()
   }
 
-  const canSubmit = role && belt && startDate && !saving && (
+  const canSubmit = !!selectedRole && belt && startDate && !saving && (
     mode === 'existing' ? !!selectedMember : newName.trim() && (!invite || newEmail.trim())
   )
 
@@ -249,10 +256,10 @@ function AddStaffDrawer({ open, onClose, onSuccess, members }: { open: boolean; 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label style={labelStyle}>Role</label>
-              <select value={role} onChange={e => setRole(e.target.value as StaffRole)} style={inputStyle}>
+              <select value={roleId} onChange={e => setRoleId(e.target.value)} style={inputStyle}>
                 <option value="">Select role…</option>
-                {(['Head Instructor','Instructor','Assistant','Admin','Receptionist'] as StaffRole[]).map(r => (
-                  <option key={r} value={r}>{r}</option>
+                {roleOptions.map(r => (
+                  <option key={r.id} value={r.id}>{r.name}{r.isCustom ? ' (custom)' : ''}</option>
                 ))}
               </select>
             </div>
@@ -334,6 +341,7 @@ export default function StaffClient() {
   const [toast, setToast]               = useState(false)
   const [STAFF, setStaff]               = useState<StaffMember[]>([])
   const [members, setMembers]           = useState<MemberOption[]>([])
+  const [roleOptions, setRoleOptions]   = useState<RoleOption[]>([])
   const [loading, setLoading]           = useState(true)
 
   function load() {
@@ -341,6 +349,9 @@ export default function StaffClient() {
       setStaff(d.staff ?? [])
       setMembers(d.members ?? [])
       setLoading(false)
+    })
+    fetch('/api/dashboard/staff-roles').then(r => r.ok ? r.json() : null).then(d => {
+      if (d) setRoleOptions((d.roles ?? []).map((r: { id: string; name: string; isCustom: boolean }) => ({ id: r.id, name: r.name, isCustom: r.isCustom })))
     })
   }
   useEffect(() => { load() }, [])
@@ -628,6 +639,7 @@ export default function StaffClient() {
     <AddStaffDrawer
       open={drawerOpen}
       members={members}
+      roleOptions={roleOptions}
       onClose={() => setDrawerOpen(false)}
       onSuccess={() => { setDrawerOpen(false); load(); setToast(true); setTimeout(() => setToast(false), 3500) }}
     />

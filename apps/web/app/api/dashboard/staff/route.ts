@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
-import { hasPermission, type Permission } from '@/lib/auth/permissions'
+import type { Permission } from '@/lib/auth/permissions'
+import { memberHasPermission, resolveRoleAssignment } from '@/lib/auth/customRoles'
 
 async function authorise(permission: Permission) {
   const user = await getAuthUser()
@@ -12,7 +13,7 @@ async function authorise(permission: Permission) {
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!hasPermission(member.role, permission)) return { error: 'Forbidden', status: 403 }
+      if (!await memberHasPermission(member, permission)) return { error: 'Forbidden', status: 403 }
     } catch {
       return { error: 'Forbidden', status: 403 }
     }
@@ -89,7 +90,7 @@ export async function POST(req: NextRequest) {
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const body = await req.json()
-  const { userId, name, role, belt, salary, startDate, notes } = body
+  const { userId, name, roleId, role, belt, salary, startDate, notes } = body
 
   if (!role?.trim()) return NextResponse.json({ error: 'Role is required' }, { status: 400 })
 
@@ -109,6 +110,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         error: existing.schoolId === auth.schoolId ? 'This member is already staff' : 'This member is already staff at another school',
       }, { status: 409 })
+    }
+
+    // Promoting someone to staff should actually grant the permissions the
+    // chosen role implies, not just create a display profile — otherwise
+    // they get an "Instructor" badge but keep whatever role (often STUDENT)
+    // they already had, with none of the dashboard access that implies.
+    if (roleId) {
+      const assignment = await resolveRoleAssignment(auth.schoolId, roleId)
+      if (!assignment) return NextResponse.json({ error: 'Role not found' }, { status: 400 })
+      await prisma.schoolMember.update({
+        where: { id: schoolMember.id },
+        data: { role: assignment.role, customRoleId: assignment.customRoleId },
+      })
     }
 
     instructorName = schoolMember.user.name ?? schoolMember.user.email

@@ -624,6 +624,7 @@ export type SchoolWhereInput = {
   membershipPlans?: Prisma.MembershipPlanListRelationFilter
   reviews?: Prisma.ReviewListRelationFilter
   members?: Prisma.SchoolMemberListRelationFilter
+  staffRoles?: Prisma.StaffRoleListRelationFilter
   claims?: Prisma.SchoolClaimListRelationFilter
   gradings?: Prisma.GradingListRelationFilter
   gradingSystems?: Prisma.GradingSystemListRelationFilter
@@ -710,6 +711,7 @@ export type SchoolOrderByWithRelationInput = {
   membershipPlans?: Prisma.MembershipPlanOrderByRelationAggregateInput
   reviews?: Prisma.ReviewOrderByRelationAggregateInput
   members?: Prisma.SchoolMemberOrderByRelationAggregateInput
+  staffRoles?: Prisma.StaffRoleOrderByRelationAggregateInput
   claims?: Prisma.SchoolClaimOrderByRelationAggregateInput
   gradings?: Prisma.GradingOrderByRelationAggregateInput
   gradingSystems?: Prisma.GradingSystemOrderByRelationAggregateInput
@@ -799,6 +801,7 @@ export type SchoolWhereUniqueInput = Prisma.AtLeast<{
   membershipPlans?: Prisma.MembershipPlanListRelationFilter
   reviews?: Prisma.ReviewListRelationFilter
   members?: Prisma.SchoolMemberListRelationFilter
+  staffRoles?: Prisma.StaffRoleListRelationFilter
   claims?: Prisma.SchoolClaimListRelationFilter
   gradings?: Prisma.GradingListRelationFilter
   gradingSystems?: Prisma.GradingSystemListRelationFilter
@@ -1000,6 +1003,7 @@ export type SchoolCreateInput = {
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
@@ -1083,6 +1087,7 @@ export type SchoolUncheckedCreateInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
@@ -1166,6 +1171,7 @@ export type SchoolUpdateInput = {
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
@@ -1249,6 +1255,7 @@ export type SchoolUncheckedUpdateInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
@@ -1997,6 +2004,20 @@ export type SchoolUpdateOneRequiredWithoutMembersNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.SchoolUpdateToOneWithWhereWithoutMembersInput, Prisma.SchoolUpdateWithoutMembersInput>, Prisma.SchoolUncheckedUpdateWithoutMembersInput>
 }
 
+export type SchoolCreateNestedOneWithoutStaffRolesInput = {
+  create?: Prisma.XOR<Prisma.SchoolCreateWithoutStaffRolesInput, Prisma.SchoolUncheckedCreateWithoutStaffRolesInput>
+  connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutStaffRolesInput
+  connect?: Prisma.SchoolWhereUniqueInput
+}
+
+export type SchoolUpdateOneRequiredWithoutStaffRolesNestedInput = {
+  create?: Prisma.XOR<Prisma.SchoolCreateWithoutStaffRolesInput, Prisma.SchoolUncheckedCreateWithoutStaffRolesInput>
+  connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutStaffRolesInput
+  upsert?: Prisma.SchoolUpsertWithoutStaffRolesInput
+  connect?: Prisma.SchoolWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SchoolUpdateToOneWithWhereWithoutStaffRolesInput, Prisma.SchoolUpdateWithoutStaffRolesInput>, Prisma.SchoolUncheckedUpdateWithoutStaffRolesInput>
+}
+
 export type SchoolCreateNestedOneWithoutCampaignsInput = {
   create?: Prisma.XOR<Prisma.SchoolCreateWithoutCampaignsInput, Prisma.SchoolUncheckedCreateWithoutCampaignsInput>
   connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutCampaignsInput
@@ -2286,6 +2307,7 @@ export type SchoolCreateWithoutAffiliationInput = {
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
@@ -2368,6 +2390,7 @@ export type SchoolUncheckedCreateWithoutAffiliationInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
@@ -2535,6 +2558,7 @@ export type SchoolCreateWithoutCurriculumVideosInput = {
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
@@ -2617,6 +2641,7 @@ export type SchoolUncheckedCreateWithoutCurriculumVideosInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
@@ -2715,6 +2740,7 @@ export type SchoolUpdateWithoutCurriculumVideosInput = {
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
@@ -2797,6 +2823,7 @@ export type SchoolUncheckedUpdateWithoutCurriculumVideosInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
@@ -2878,6 +2905,7 @@ export type SchoolCreateWithoutStaffInput = {
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
@@ -2960,6 +2988,7 @@ export type SchoolUncheckedCreateWithoutStaffInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
@@ -3047,6 +3076,7 @@ export type SchoolCreateWithoutClaimedByInput = {
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
@@ -3129,6 +3159,7 @@ export type SchoolUncheckedCreateWithoutClaimedByInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
@@ -3232,6 +3263,7 @@ export type SchoolUpdateWithoutStaffInput = {
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
@@ -3314,6 +3346,7 @@ export type SchoolUncheckedUpdateWithoutStaffInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
@@ -3412,6 +3445,7 @@ export type SchoolCreateWithoutDisciplinesInput = {
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
@@ -3494,6 +3528,7 @@ export type SchoolUncheckedCreateWithoutDisciplinesInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
@@ -3592,6 +3627,7 @@ export type SchoolUpdateWithoutDisciplinesInput = {
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
@@ -3674,6 +3710,7 @@ export type SchoolUncheckedUpdateWithoutDisciplinesInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
@@ -3756,6 +3793,7 @@ export type SchoolCreateWithoutFacilityCatalogInput = {
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
@@ -3838,6 +3876,7 @@ export type SchoolUncheckedCreateWithoutFacilityCatalogInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
@@ -3936,6 +3975,7 @@ export type SchoolUpdateWithoutFacilityCatalogInput = {
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
@@ -4018,6 +4058,7 @@ export type SchoolUncheckedUpdateWithoutFacilityCatalogInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
@@ -4100,6 +4141,7 @@ export type SchoolCreateWithoutBranchesInput = {
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
@@ -4182,6 +4224,7 @@ export type SchoolUncheckedCreateWithoutBranchesInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
@@ -4269,6 +4312,7 @@ export type SchoolCreateWithoutParentInput = {
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
@@ -4351,6 +4395,7 @@ export type SchoolUncheckedCreateWithoutParentInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
@@ -4454,6 +4499,7 @@ export type SchoolUpdateWithoutBranchesInput = {
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
@@ -4536,6 +4582,7 @@ export type SchoolUncheckedUpdateWithoutBranchesInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
@@ -4634,6 +4681,7 @@ export type SchoolCreateWithoutInstructorsInput = {
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
@@ -4716,6 +4764,7 @@ export type SchoolUncheckedCreateWithoutInstructorsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
@@ -4814,6 +4863,7 @@ export type SchoolUpdateWithoutInstructorsInput = {
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
@@ -4896,6 +4946,7 @@ export type SchoolUncheckedUpdateWithoutInstructorsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
@@ -4978,6 +5029,7 @@ export type SchoolCreateWithoutMembershipPlansInput = {
   instructors?: Prisma.InstructorCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
@@ -5060,6 +5112,7 @@ export type SchoolUncheckedCreateWithoutMembershipPlansInput = {
   instructors?: Prisma.InstructorUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
@@ -5158,6 +5211,7 @@ export type SchoolUpdateWithoutMembershipPlansInput = {
   instructors?: Prisma.InstructorUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
@@ -5240,6 +5294,7 @@ export type SchoolUncheckedUpdateWithoutMembershipPlansInput = {
   instructors?: Prisma.InstructorUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
@@ -5322,6 +5377,7 @@ export type SchoolCreateWithoutReviewsInput = {
   instructors?: Prisma.InstructorCreateNestedManyWithoutSchoolInput
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
@@ -5404,6 +5460,7 @@ export type SchoolUncheckedCreateWithoutReviewsInput = {
   instructors?: Prisma.InstructorUncheckedCreateNestedManyWithoutSchoolInput
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
@@ -5502,6 +5559,7 @@ export type SchoolUpdateWithoutReviewsInput = {
   instructors?: Prisma.InstructorUpdateManyWithoutSchoolNestedInput
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
@@ -5584,6 +5642,7 @@ export type SchoolUncheckedUpdateWithoutReviewsInput = {
   instructors?: Prisma.InstructorUncheckedUpdateManyWithoutSchoolNestedInput
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
@@ -5666,6 +5725,7 @@ export type SchoolCreateWithoutClassesInput = {
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
@@ -5748,6 +5808,7 @@ export type SchoolUncheckedCreateWithoutClassesInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
@@ -5846,6 +5907,7 @@ export type SchoolUpdateWithoutClassesInput = {
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
@@ -5928,6 +5990,7 @@ export type SchoolUncheckedUpdateWithoutClassesInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
@@ -6010,6 +6073,7 @@ export type SchoolCreateWithoutEventsInput = {
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
@@ -6092,6 +6156,7 @@ export type SchoolUncheckedCreateWithoutEventsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
@@ -6190,6 +6255,7 @@ export type SchoolUpdateWithoutEventsInput = {
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
@@ -6272,6 +6338,7 @@ export type SchoolUncheckedUpdateWithoutEventsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
@@ -6354,6 +6421,7 @@ export type SchoolCreateWithoutMembershipsInput = {
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
@@ -6436,6 +6504,7 @@ export type SchoolUncheckedCreateWithoutMembershipsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
@@ -6534,6 +6603,7 @@ export type SchoolUpdateWithoutMembershipsInput = {
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
@@ -6616,6 +6686,7 @@ export type SchoolUncheckedUpdateWithoutMembershipsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
@@ -6698,6 +6769,7 @@ export type SchoolCreateWithoutCampsInput = {
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
@@ -6780,6 +6852,7 @@ export type SchoolUncheckedCreateWithoutCampsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
@@ -6878,6 +6951,7 @@ export type SchoolUpdateWithoutCampsInput = {
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
@@ -6960,6 +7034,7 @@ export type SchoolUncheckedUpdateWithoutCampsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
@@ -7042,6 +7117,7 @@ export type SchoolCreateWithoutMembersInput = {
   instructors?: Prisma.InstructorCreateNestedManyWithoutSchoolInput
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
@@ -7124,6 +7200,7 @@ export type SchoolUncheckedCreateWithoutMembersInput = {
   instructors?: Prisma.InstructorUncheckedCreateNestedManyWithoutSchoolInput
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
@@ -7222,6 +7299,7 @@ export type SchoolUpdateWithoutMembersInput = {
   instructors?: Prisma.InstructorUpdateManyWithoutSchoolNestedInput
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
@@ -7304,6 +7382,355 @@ export type SchoolUncheckedUpdateWithoutMembersInput = {
   instructors?: Prisma.InstructorUncheckedUpdateManyWithoutSchoolNestedInput
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
+  claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
+  gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
+  invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
+  productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
+  products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
+  limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedUpdateManyWithoutSchoolNestedInput
+  subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
+}
+
+export type SchoolCreateWithoutStaffRolesInput = {
+  id?: string
+  name: string
+  slug: string
+  status?: $Enums.SchoolStatus
+  source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
+  country?: string | null
+  city?: string | null
+  address?: string | null
+  postcode?: string | null
+  lat?: number | null
+  lng?: number | null
+  phone?: string | null
+  email?: string | null
+  website?: string | null
+  language?: string
+  instagram?: string | null
+  facebook?: string | null
+  youtube?: string | null
+  tiktok?: string | null
+  description?: string | null
+  tagline?: string | null
+  logoUrl?: string | null
+  coverUrl?: string | null
+  coverPosY?: number
+  photos?: Prisma.SchoolCreatephotosInput | string[]
+  priceFrom?: number | null
+  hasFreeTrialCls?: boolean
+  facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
+  foundedYear?: number | null
+  totalStudents?: number | null
+  googleRating?: number | null
+  googleReviews?: number | null
+  googlePlaceId?: string | null
+  v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
+  revolutWebhookSecret?: string | null
+  parentRelationshipType?: $Enums.SchoolRelationshipType | null
+  leadStage?: $Enums.LeadStage | null
+  claimedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  affiliation?: Prisma.AffiliationCreateNestedOneWithoutSchoolsInput
+  parent?: Prisma.SchoolCreateNestedOneWithoutBranchesInput
+  branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
+  claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
+  staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogCreateNestedManyWithoutSchoolInput
+  disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
+  classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventCreateNestedManyWithoutSchoolInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
+  camps?: Prisma.CampCreateNestedManyWithoutSchoolInput
+  instructors?: Prisma.InstructorCreateNestedManyWithoutSchoolInput
+  membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
+  members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
+  gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
+  invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
+  productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
+  products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
+  orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
+  limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoCreateNestedManyWithoutSchoolInput
+  subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
+}
+
+export type SchoolUncheckedCreateWithoutStaffRolesInput = {
+  id?: string
+  name: string
+  slug: string
+  status?: $Enums.SchoolStatus
+  source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
+  affiliationId?: string | null
+  country?: string | null
+  city?: string | null
+  address?: string | null
+  postcode?: string | null
+  lat?: number | null
+  lng?: number | null
+  phone?: string | null
+  email?: string | null
+  website?: string | null
+  language?: string
+  instagram?: string | null
+  facebook?: string | null
+  youtube?: string | null
+  tiktok?: string | null
+  description?: string | null
+  tagline?: string | null
+  logoUrl?: string | null
+  coverUrl?: string | null
+  coverPosY?: number
+  photos?: Prisma.SchoolCreatephotosInput | string[]
+  priceFrom?: number | null
+  hasFreeTrialCls?: boolean
+  facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
+  foundedYear?: number | null
+  totalStudents?: number | null
+  googleRating?: number | null
+  googleReviews?: number | null
+  googlePlaceId?: string | null
+  v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
+  revolutWebhookSecret?: string | null
+  parentId?: string | null
+  parentRelationshipType?: $Enums.SchoolRelationshipType | null
+  leadStage?: $Enums.LeadStage | null
+  claimedById?: string | null
+  claimedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
+  staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutSchoolInput
+  disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
+  classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
+  camps?: Prisma.CampUncheckedCreateNestedManyWithoutSchoolInput
+  instructors?: Prisma.InstructorUncheckedCreateNestedManyWithoutSchoolInput
+  membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
+  members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
+  gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
+  invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
+  productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
+  products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
+  limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumVideos?: Prisma.CurriculumVideoUncheckedCreateNestedManyWithoutSchoolInput
+  subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
+}
+
+export type SchoolCreateOrConnectWithoutStaffRolesInput = {
+  where: Prisma.SchoolWhereUniqueInput
+  create: Prisma.XOR<Prisma.SchoolCreateWithoutStaffRolesInput, Prisma.SchoolUncheckedCreateWithoutStaffRolesInput>
+}
+
+export type SchoolUpsertWithoutStaffRolesInput = {
+  update: Prisma.XOR<Prisma.SchoolUpdateWithoutStaffRolesInput, Prisma.SchoolUncheckedUpdateWithoutStaffRolesInput>
+  create: Prisma.XOR<Prisma.SchoolCreateWithoutStaffRolesInput, Prisma.SchoolUncheckedCreateWithoutStaffRolesInput>
+  where?: Prisma.SchoolWhereInput
+}
+
+export type SchoolUpdateToOneWithWhereWithoutStaffRolesInput = {
+  where?: Prisma.SchoolWhereInput
+  data: Prisma.XOR<Prisma.SchoolUpdateWithoutStaffRolesInput, Prisma.SchoolUncheckedUpdateWithoutStaffRolesInput>
+}
+
+export type SchoolUpdateWithoutStaffRolesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
+  source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tiktok?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
+  photos?: Prisma.SchoolUpdatephotosInput | string[]
+  priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
+  foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
+  leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  affiliation?: Prisma.AffiliationUpdateOneWithoutSchoolsNestedInput
+  parent?: Prisma.SchoolUpdateOneWithoutBranchesNestedInput
+  branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
+  claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
+  staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUpdateManyWithoutSchoolNestedInput
+  disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
+  classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
+  camps?: Prisma.CampUpdateManyWithoutSchoolNestedInput
+  instructors?: Prisma.InstructorUpdateManyWithoutSchoolNestedInput
+  membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
+  members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
+  gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
+  invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
+  productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
+  products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
+  limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculumVideos?: Prisma.CurriculumVideoUpdateManyWithoutSchoolNestedInput
+  subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
+}
+
+export type SchoolUncheckedUpdateWithoutStaffRolesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
+  source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
+  affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tiktok?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
+  photos?: Prisma.SchoolUpdatephotosInput | string[]
+  priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
+  foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
+  leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
+  claimedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
+  staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutSchoolNestedInput
+  disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
+  classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
+  camps?: Prisma.CampUncheckedUpdateManyWithoutSchoolNestedInput
+  instructors?: Prisma.InstructorUncheckedUpdateManyWithoutSchoolNestedInput
+  membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
+  members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
@@ -7387,6 +7814,7 @@ export type SchoolCreateWithoutCampaignsInput = {
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
@@ -7469,6 +7897,7 @@ export type SchoolUncheckedCreateWithoutCampaignsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
@@ -7567,6 +7996,7 @@ export type SchoolUpdateWithoutCampaignsInput = {
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
@@ -7649,6 +8079,7 @@ export type SchoolUncheckedUpdateWithoutCampaignsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
@@ -7731,6 +8162,7 @@ export type SchoolCreateWithoutClaimsInput = {
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
   leads?: Prisma.LeadCreateNestedManyWithoutSchoolInput
@@ -7813,6 +8245,7 @@ export type SchoolUncheckedCreateWithoutClaimsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutSchoolInput
@@ -7911,6 +8344,7 @@ export type SchoolUpdateWithoutClaimsInput = {
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
   leads?: Prisma.LeadUpdateManyWithoutSchoolNestedInput
@@ -7993,6 +8427,7 @@ export type SchoolUncheckedUpdateWithoutClaimsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutSchoolNestedInput
@@ -8075,6 +8510,7 @@ export type SchoolCreateWithoutGradingSystemsInput = {
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   leads?: Prisma.LeadCreateNestedManyWithoutSchoolInput
@@ -8157,6 +8593,7 @@ export type SchoolUncheckedCreateWithoutGradingSystemsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutSchoolInput
@@ -8255,6 +8692,7 @@ export type SchoolUpdateWithoutGradingSystemsInput = {
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   leads?: Prisma.LeadUpdateManyWithoutSchoolNestedInput
@@ -8337,6 +8775,7 @@ export type SchoolUncheckedUpdateWithoutGradingSystemsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutSchoolNestedInput
@@ -8419,6 +8858,7 @@ export type SchoolCreateWithoutGradingsInput = {
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
   leads?: Prisma.LeadCreateNestedManyWithoutSchoolInput
@@ -8501,6 +8941,7 @@ export type SchoolUncheckedCreateWithoutGradingsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutSchoolInput
@@ -8599,6 +9040,7 @@ export type SchoolUpdateWithoutGradingsInput = {
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
   leads?: Prisma.LeadUpdateManyWithoutSchoolNestedInput
@@ -8681,6 +9123,7 @@ export type SchoolUncheckedUpdateWithoutGradingsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutSchoolNestedInput
@@ -8763,6 +9206,7 @@ export type SchoolCreateWithoutLeadsInput = {
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
@@ -8845,6 +9289,7 @@ export type SchoolUncheckedCreateWithoutLeadsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
@@ -8943,6 +9388,7 @@ export type SchoolUpdateWithoutLeadsInput = {
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
@@ -9025,6 +9471,7 @@ export type SchoolUncheckedUpdateWithoutLeadsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
@@ -9107,6 +9554,7 @@ export type SchoolCreateWithoutInvitationsInput = {
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
@@ -9189,6 +9637,7 @@ export type SchoolUncheckedCreateWithoutInvitationsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
@@ -9287,6 +9736,7 @@ export type SchoolUpdateWithoutInvitationsInput = {
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
@@ -9369,6 +9819,7 @@ export type SchoolUncheckedUpdateWithoutInvitationsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
@@ -9451,6 +9902,7 @@ export type SchoolCreateWithoutWaiversInput = {
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
@@ -9533,6 +9985,7 @@ export type SchoolUncheckedCreateWithoutWaiversInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
@@ -9631,6 +10084,7 @@ export type SchoolUpdateWithoutWaiversInput = {
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
@@ -9713,6 +10167,7 @@ export type SchoolUncheckedUpdateWithoutWaiversInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
@@ -9794,6 +10249,7 @@ export type SchoolCreateWithoutImpersonationLogsInput = {
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
@@ -9876,6 +10332,7 @@ export type SchoolUncheckedCreateWithoutImpersonationLogsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
@@ -9974,6 +10431,7 @@ export type SchoolUpdateWithoutImpersonationLogsInput = {
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
@@ -10056,6 +10514,7 @@ export type SchoolUncheckedUpdateWithoutImpersonationLogsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
@@ -10139,6 +10598,7 @@ export type SchoolCreateWithoutTransactionsInput = {
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
@@ -10221,6 +10681,7 @@ export type SchoolUncheckedCreateWithoutTransactionsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
@@ -10319,6 +10780,7 @@ export type SchoolUpdateWithoutTransactionsInput = {
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
@@ -10401,6 +10863,7 @@ export type SchoolUncheckedUpdateWithoutTransactionsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
@@ -10483,6 +10946,7 @@ export type SchoolCreateWithoutProductCategoriesInput = {
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
@@ -10565,6 +11029,7 @@ export type SchoolUncheckedCreateWithoutProductCategoriesInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
@@ -10663,6 +11128,7 @@ export type SchoolUpdateWithoutProductCategoriesInput = {
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
@@ -10745,6 +11211,7 @@ export type SchoolUncheckedUpdateWithoutProductCategoriesInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
@@ -10827,6 +11294,7 @@ export type SchoolCreateWithoutProductsInput = {
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
@@ -10909,6 +11377,7 @@ export type SchoolUncheckedCreateWithoutProductsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
@@ -11007,6 +11476,7 @@ export type SchoolUpdateWithoutProductsInput = {
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
@@ -11089,6 +11559,7 @@ export type SchoolUncheckedUpdateWithoutProductsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
@@ -11171,6 +11642,7 @@ export type SchoolCreateWithoutOrdersInput = {
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
@@ -11253,6 +11725,7 @@ export type SchoolUncheckedCreateWithoutOrdersInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
@@ -11351,6 +11824,7 @@ export type SchoolUpdateWithoutOrdersInput = {
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
@@ -11433,6 +11907,7 @@ export type SchoolUncheckedUpdateWithoutOrdersInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
@@ -11515,6 +11990,7 @@ export type SchoolCreateWithoutLimitedCollectionsInput = {
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
@@ -11597,6 +12073,7 @@ export type SchoolUncheckedCreateWithoutLimitedCollectionsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
@@ -11695,6 +12172,7 @@ export type SchoolUpdateWithoutLimitedCollectionsInput = {
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
@@ -11777,6 +12255,7 @@ export type SchoolUncheckedUpdateWithoutLimitedCollectionsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
@@ -11859,6 +12338,7 @@ export type SchoolCreateWithoutNotificationsInput = {
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
@@ -11941,6 +12421,7 @@ export type SchoolUncheckedCreateWithoutNotificationsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
@@ -12039,6 +12520,7 @@ export type SchoolUpdateWithoutNotificationsInput = {
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
@@ -12121,6 +12603,7 @@ export type SchoolUncheckedUpdateWithoutNotificationsInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
@@ -12203,6 +12686,7 @@ export type SchoolCreateWithoutSubscriptionInput = {
   membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
@@ -12285,6 +12769,7 @@ export type SchoolUncheckedCreateWithoutSubscriptionInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
   members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
   claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
   gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
@@ -12383,6 +12868,7 @@ export type SchoolUpdateWithoutSubscriptionInput = {
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
@@ -12465,6 +12951,7 @@ export type SchoolUncheckedUpdateWithoutSubscriptionInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
@@ -12600,6 +13087,7 @@ export type SchoolUpdateWithoutAffiliationInput = {
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
@@ -12682,6 +13170,7 @@ export type SchoolUncheckedUpdateWithoutAffiliationInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
@@ -12872,6 +13361,7 @@ export type SchoolUpdateWithoutClaimedByInput = {
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
@@ -12954,6 +13444,7 @@ export type SchoolUncheckedUpdateWithoutClaimedByInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
@@ -13144,6 +13635,7 @@ export type SchoolUpdateWithoutParentInput = {
   membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
@@ -13226,6 +13718,7 @@ export type SchoolUncheckedUpdateWithoutParentInput = {
   membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
   members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
   claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
   gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
@@ -13316,6 +13809,7 @@ export type SchoolCountOutputType = {
   membershipPlans: number
   reviews: number
   members: number
+  staffRoles: number
   claims: number
   gradings: number
   gradingSystems: number
@@ -13346,6 +13840,7 @@ export type SchoolCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions
   membershipPlans?: boolean | SchoolCountOutputTypeCountMembershipPlansArgs
   reviews?: boolean | SchoolCountOutputTypeCountReviewsArgs
   members?: boolean | SchoolCountOutputTypeCountMembersArgs
+  staffRoles?: boolean | SchoolCountOutputTypeCountStaffRolesArgs
   claims?: boolean | SchoolCountOutputTypeCountClaimsArgs
   gradings?: boolean | SchoolCountOutputTypeCountGradingsArgs
   gradingSystems?: boolean | SchoolCountOutputTypeCountGradingSystemsArgs
@@ -13461,6 +13956,13 @@ export type SchoolCountOutputTypeCountReviewsArgs<ExtArgs extends runtime.Types.
  */
 export type SchoolCountOutputTypeCountMembersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.SchoolMemberWhereInput
+}
+
+/**
+ * SchoolCountOutputType without action
+ */
+export type SchoolCountOutputTypeCountStaffRolesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.StaffRoleWhereInput
 }
 
 /**
@@ -13631,6 +14133,7 @@ export type SchoolSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   membershipPlans?: boolean | Prisma.School$membershipPlansArgs<ExtArgs>
   reviews?: boolean | Prisma.School$reviewsArgs<ExtArgs>
   members?: boolean | Prisma.School$membersArgs<ExtArgs>
+  staffRoles?: boolean | Prisma.School$staffRolesArgs<ExtArgs>
   claims?: boolean | Prisma.School$claimsArgs<ExtArgs>
   gradings?: boolean | Prisma.School$gradingsArgs<ExtArgs>
   gradingSystems?: boolean | Prisma.School$gradingSystemsArgs<ExtArgs>
@@ -13838,6 +14341,7 @@ export type SchoolInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   membershipPlans?: boolean | Prisma.School$membershipPlansArgs<ExtArgs>
   reviews?: boolean | Prisma.School$reviewsArgs<ExtArgs>
   members?: boolean | Prisma.School$membersArgs<ExtArgs>
+  staffRoles?: boolean | Prisma.School$staffRolesArgs<ExtArgs>
   claims?: boolean | Prisma.School$claimsArgs<ExtArgs>
   gradings?: boolean | Prisma.School$gradingsArgs<ExtArgs>
   gradingSystems?: boolean | Prisma.School$gradingSystemsArgs<ExtArgs>
@@ -13885,6 +14389,7 @@ export type $SchoolPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     membershipPlans: Prisma.$MembershipPlanPayload<ExtArgs>[]
     reviews: Prisma.$ReviewPayload<ExtArgs>[]
     members: Prisma.$SchoolMemberPayload<ExtArgs>[]
+    staffRoles: Prisma.$StaffRolePayload<ExtArgs>[]
     claims: Prisma.$SchoolClaimPayload<ExtArgs>[]
     gradings: Prisma.$GradingPayload<ExtArgs>[]
     gradingSystems: Prisma.$GradingSystemPayload<ExtArgs>[]
@@ -14364,6 +14869,7 @@ export interface Prisma__SchoolClient<T, Null = never, ExtArgs extends runtime.T
   membershipPlans<T extends Prisma.School$membershipPlansArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$membershipPlansArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MembershipPlanPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   reviews<T extends Prisma.School$reviewsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$reviewsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReviewPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   members<T extends Prisma.School$membersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$membersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SchoolMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  staffRoles<T extends Prisma.School$staffRolesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$staffRolesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StaffRolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   claims<T extends Prisma.School$claimsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$claimsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SchoolClaimPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   gradings<T extends Prisma.School$gradingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$gradingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GradingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   gradingSystems<T extends Prisma.School$gradingSystemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$gradingSystemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GradingSystemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -15227,6 +15733,30 @@ export type School$membersArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   distinct?: Prisma.SchoolMemberScalarFieldEnum | Prisma.SchoolMemberScalarFieldEnum[]
+}
+
+/**
+ * School.staffRoles
+ */
+export type School$staffRolesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the StaffRole
+   */
+  select?: Prisma.StaffRoleSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the StaffRole
+   */
+  omit?: Prisma.StaffRoleOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.StaffRoleInclude<ExtArgs> | null
+  where?: Prisma.StaffRoleWhereInput
+  orderBy?: Prisma.StaffRoleOrderByWithRelationInput | Prisma.StaffRoleOrderByWithRelationInput[]
+  cursor?: Prisma.StaffRoleWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.StaffRoleScalarFieldEnum | Prisma.StaffRoleScalarFieldEnum[]
 }
 
 /**
