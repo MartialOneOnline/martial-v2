@@ -26,17 +26,18 @@ export default function HeroSection({ onOpenLoginModal }: HeroSectionProps) {
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-[#0E3A7A] via-[#0870E2]/90 to-[#0a2d5e] pb-16 pt-20 lg:pt-28 lg:pb-20">
-      {/* Mobile-only hero photo — pre-cropped (buchecha-mobile-v7.png, 1200x1194). Box is wider
-          than the viewport (right-anchored, excess clipped by the section) so we keep vertical
-          framing freedom — a full-width box forces a 1:1 crop that caps how tall it can go before
-          the eyes hit the headline. This lets the photo reach down to the app-badge row while
-          keeping the eyes clear and (nearly) full headroom above the hair. */}
-      <div className="absolute right-[-90px] top-0 w-[570px] h-[550px] overflow-hidden md:hidden">
+      {/* Mobile-only hero photo — pre-cropped (buchecha-mobile-v8.png, 1200x1254, full height from
+          the original top so there's real dark margin above the hair). Box is wider than the
+          viewport (right-anchored, excess clipped by the section) so we keep vertical framing
+          freedom — a full-width box forces a 1:1 crop that caps how tall it can go before the eyes
+          hit the headline. object-[48%_98%] shows from ~30px into the source (visible dark gap
+          above the hair) while keeping the eyes clear of the h1. */}
+      <div className="absolute right-[-40px] top-0 w-[473px] h-[482px] overflow-hidden md:hidden">
         <Image
-          src="/buchecha-mobile-v7.png"
+          src="/buchecha-mobile-v8.png"
           alt=""
           fill
-          className="object-cover object-[50%_100%]"
+          className="object-cover object-[48%_98%]"
           style={{
             WebkitMaskImage: 'linear-gradient(to bottom, black 78%, transparent 100%)',
             maskImage: 'linear-gradient(to bottom, black 78%, transparent 100%)',
