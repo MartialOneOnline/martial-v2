@@ -26,20 +26,20 @@ export default function HeroSection({ onOpenLoginModal }: HeroSectionProps) {
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-[#0E3A7A] via-[#0870E2]/90 to-[#0a2d5e] pb-16 pt-20 lg:pt-28 lg:pb-20">
-      {/* Mobile-only hero photo — pre-cropped (buchecha-mobile.png, 1200x1194) with generous
-          headroom above the hair. Full-width now (not a right-anchored floating box) so it reads
-          as the hero's background rather than a cornered card, extending down to just above the
-          headline's safe zone (eyes stay clear of the h1) with a long fade tail into the plain
-          gradient below so the transition into the buttons/badges area feels smooth. */}
-      <div className="absolute inset-x-0 top-0 h-[460px] overflow-hidden md:hidden">
+      {/* Mobile-only hero photo — pre-cropped (buchecha-mobile-v7.png, 1200x1194). Box is wider
+          than the viewport (right-anchored, excess clipped by the section) so we keep vertical
+          framing freedom — a full-width box forces a 1:1 crop that caps how tall it can go before
+          the eyes hit the headline. This lets the photo reach down to the app-badge row while
+          keeping the eyes clear and (nearly) full headroom above the hair. */}
+      <div className="absolute right-0 top-0 w-[570px] h-[550px] overflow-hidden md:hidden">
         <Image
-          src="/buchecha-mobile.png"
+          src="/buchecha-mobile-v7.png"
           alt=""
           fill
-          className="object-cover object-[64%_top]"
+          className="object-cover object-[50%_100%]"
           style={{
-            WebkitMaskImage: 'linear-gradient(to bottom, black 62%, transparent 96%)',
-            maskImage: 'linear-gradient(to bottom, black 62%, transparent 96%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, black 78%, transparent 100%)',
+            maskImage: 'linear-gradient(to bottom, black 78%, transparent 100%)',
             filter: 'contrast(1.12) saturate(1.08) brightness(1.03)',
           }}
           priority
