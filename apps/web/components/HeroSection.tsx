@@ -26,24 +26,42 @@ export default function HeroSection({ onOpenLoginModal }: HeroSectionProps) {
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-[#0E3A7A] via-[#0870E2]/90 to-[#0a2d5e] pb-16 pt-20 lg:pt-28 lg:pb-20">
-      {/* Mobile-only hero photo — pre-cropped (buchecha-mobile.png) so the eyes sit near the top, clear of the headline */}
-      <div
-        className="absolute right-0 top-0 w-[347px] h-[750px] overflow-hidden lg:hidden"
-        style={{
-          WebkitMaskImage: 'linear-gradient(to bottom, black 69%, transparent 100%)',
-          maskImage: 'linear-gradient(to bottom, black 69%, transparent 100%)',
-        }}
-      >
-        <div
-          className="relative w-full h-full"
+      {/* Mobile-only hero photo — pre-cropped (buchecha-mobile.png, 719x1040) so Buchecha sits
+          right-of-frame at reduced zoom: full face, shoulder and torso, eyes ~15% from the top
+          (clear of the headline). Aspect matches the box below exactly, so object-position is
+          inert today but kept as documentation / resilience if the box ratio ever changes. */}
+      <div className="absolute inset-x-0 top-0 h-[542px] overflow-hidden md:hidden">
+        <Image
+          src="/buchecha-mobile.png"
+          alt=""
+          fill
+          className="object-cover object-[68%_15%]"
           style={{
-            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 55%)',
-            maskImage: 'linear-gradient(to right, transparent 0%, black 55%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, black 85%, transparent 100%)',
+            maskImage: 'linear-gradient(to bottom, black 85%, transparent 100%)',
           }}
-        >
-          <Image src="/buchecha-mobile.png" alt="" fill className="object-cover object-top" priority />
-        </div>
+          priority
+        />
+        {/* Blue integration layer — ties the photo into the brand palette */}
+        <div className="absolute inset-0 bg-[#0E3A7A]/25" />
       </div>
+
+      {/* Mobile legibility overlays — span the full hero so the paragraph/buttons/badges zone
+          stays readable even past the photo's own bottom edge */}
+      <div
+        className="absolute inset-0 md:hidden"
+        style={{
+          background:
+            'linear-gradient(90deg, rgba(3,37,86,0.98) 0%, rgba(4,60,130,0.92) 45%, rgba(5,92,190,0.55) 72%, rgba(4,25,65,0.20) 100%)',
+        }}
+      />
+      <div
+        className="absolute inset-0 md:hidden"
+        style={{
+          background:
+            'linear-gradient(180deg, rgba(2,28,67,0.05) 30%, rgba(2,34,78,0.45) 68%, rgba(2,25,60,0.75) 100%)',
+        }}
+      />
 
       <div className="absolute top-0 right-0 -z-0 w-[600px] h-[600px] bg-white/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 -z-0 w-[400px] h-[400px] bg-[#7DE7EC]/10 rounded-full blur-3xl pointer-events-none" />
