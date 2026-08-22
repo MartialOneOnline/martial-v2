@@ -26,26 +26,36 @@ export default function HeroSection({ onOpenLoginModal }: HeroSectionProps) {
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-[#0E3A7A] via-[#0870E2]/90 to-[#0a2d5e] pb-16 pt-20 lg:pt-28 lg:pb-20">
-      {/* Mobile-only hero photo — pre-cropped (buchecha-mobile.png, 1170x1124), ~30% wider/shorter
-          than the previous crop, so Buchecha reads noticeably smaller within the frame: full
-          face, shoulder and torso, eyes ~21% from the top (clear of the headline), with a lot of
-          dark background around him. The box is wider than the viewport and right-anchored, so
-          the excess bleeds off the left edge (clipped by the section's overflow-hidden). Aspect
-          matches the box below exactly, so object-position is inert today but kept as
-          documentation / resilience. */}
-      <div className="absolute right-0 top-0 w-[479px] h-[460px] overflow-hidden md:hidden">
-        <Image
-          src="/buchecha-mobile.png"
-          alt=""
-          fill
-          className="object-cover object-[50%_21%]"
+      {/* Mobile-only hero photo — pre-cropped (buchecha-mobile.png, 1200x1194) with generous
+          headroom above the hair (previous crops let his head crowd the top edge, reading as
+          "pushed into the corner" instead of smaller). The display box itself is now physically
+          smaller (340x338, vs 479x460 before) so Buchecha reads clearly smaller on screen, not
+          just differently cropped. Because the box is now narrower than the viewport, its own
+          left/bottom edges need a real alpha mask (not just an overlay) to blend into the
+          section's gradient instead of showing a hard rectangle. */}
+      <div
+        className="absolute right-0 top-0 w-[340px] h-[338px] overflow-hidden md:hidden"
+        style={{
+          WebkitMaskImage: 'linear-gradient(to bottom, black 80%, transparent 100%)',
+          maskImage: 'linear-gradient(to bottom, black 80%, transparent 100%)',
+        }}
+      >
+        <div
+          className="relative w-full h-full"
           style={{
-            WebkitMaskImage: 'linear-gradient(to bottom, black 85%, transparent 100%)',
-            maskImage: 'linear-gradient(to bottom, black 85%, transparent 100%)',
-            filter: 'contrast(1.12) saturate(1.08) brightness(1.03)',
+            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 30%)',
+            maskImage: 'linear-gradient(to right, transparent 0%, black 30%)',
           }}
-          priority
-        />
+        >
+          <Image
+            src="/buchecha-mobile.png"
+            alt=""
+            fill
+            className="object-cover object-[48%_26%]"
+            style={{ filter: 'contrast(1.12) saturate(1.08) brightness(1.03)' }}
+            priority
+          />
+        </div>
       </div>
 
       {/* Mobile legibility overlays — dark on the left for the copy, fading out quickly so the
