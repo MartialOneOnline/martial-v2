@@ -30,14 +30,14 @@ export default function HeroSection({ onOpenLoginModal }: HeroSectionProps) {
           the original top so there's real dark margin above the hair). Box is wider than the
           viewport (right-anchored, excess clipped by the section) so we keep vertical framing
           freedom — a full-width box forces a 1:1 crop that caps how tall it can go before the eyes
-          hit the headline. object-[48%_98%] shows from ~30px into the source (visible dark gap
-          above the hair) while keeping the eyes clear of the h1. */}
-      <div className="absolute right-[-40px] top-0 w-[473px] h-[482px] overflow-hidden md:hidden">
+          hit the headline. Sized so the box bottom lands right at the "Available on" row, trading
+          some of the headroom margin for reach. */}
+      <div className="absolute right-[-100px] top-0 w-[591px] h-[570px] overflow-hidden md:hidden">
         <Image
           src="/buchecha-mobile-v8.png"
           alt=""
           fill
-          className="object-cover object-[48%_98%]"
+          className="object-cover object-[48%_99%]"
           style={{
             WebkitMaskImage: 'linear-gradient(to bottom, black 78%, transparent 100%)',
             maskImage: 'linear-gradient(to bottom, black 78%, transparent 100%)',
