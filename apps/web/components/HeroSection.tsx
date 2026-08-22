@@ -26,16 +26,19 @@ export default function HeroSection({ onOpenLoginModal }: HeroSectionProps) {
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-[#0E3A7A] via-[#0870E2]/90 to-[#0a2d5e] pb-16 pt-20 lg:pt-28 lg:pb-20">
-      {/* Mobile-only hero photo — pre-cropped (buchecha-mobile.png, 719x1040) so Buchecha sits
+      {/* Mobile-only hero photo — pre-cropped (buchecha-mobile.png, 900x1040) so Buchecha sits
           right-of-frame at reduced zoom: full face, shoulder and torso, eyes ~15% from the top
-          (clear of the headline). Aspect matches the box below exactly, so object-position is
-          inert today but kept as documentation / resilience if the box ratio ever changes. */}
-      <div className="absolute inset-x-0 top-0 h-[542px] overflow-hidden md:hidden">
+          (clear of the headline), with much more dark background around him than before. The
+          box is wider than the viewport and right-anchored, so the excess bleeds off the left
+          edge (clipped by the section's overflow-hidden) — this is what lowers the zoom level
+          versus a box that matched the viewport width exactly. Aspect matches the box below
+          exactly, so object-position is inert today but kept as documentation / resilience. */}
+      <div className="absolute right-0 top-0 w-[469px] h-[542px] overflow-hidden md:hidden">
         <Image
           src="/buchecha-mobile.png"
           alt=""
           fill
-          className="object-cover object-[68%_15%]"
+          className="object-cover object-[62%_15%]"
           style={{
             WebkitMaskImage: 'linear-gradient(to bottom, black 85%, transparent 100%)',
             maskImage: 'linear-gradient(to bottom, black 85%, transparent 100%)',
