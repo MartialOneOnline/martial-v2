@@ -39,27 +39,26 @@ export default function HeroSection({ onOpenLoginModal }: HeroSectionProps) {
           style={{
             WebkitMaskImage: 'linear-gradient(to bottom, black 85%, transparent 100%)',
             maskImage: 'linear-gradient(to bottom, black 85%, transparent 100%)',
+            filter: 'contrast(1.12) saturate(1.08) brightness(1.03)',
           }}
           priority
         />
-        {/* Blue integration layer — ties the photo into the brand palette */}
-        <div className="absolute inset-0 bg-[#0E3A7A]/25" />
       </div>
 
-      {/* Mobile legibility overlays — span the full hero so the paragraph/buttons/badges zone
-          stays readable even past the photo's own bottom edge */}
+      {/* Mobile legibility overlays — dark on the left for the copy, fading out quickly so the
+          photo itself (face, kimono) stays crisp and high-contrast on the right */}
       <div
         className="absolute inset-0 md:hidden"
         style={{
           background:
-            'linear-gradient(90deg, rgba(3,37,86,0.98) 0%, rgba(4,60,130,0.92) 45%, rgba(5,92,190,0.55) 72%, rgba(4,25,65,0.20) 100%)',
+            'linear-gradient(90deg, rgba(3,15,40,0.95) 0%, rgba(4,30,70,0.78) 35%, rgba(4,40,90,0.45) 58%, rgba(4,40,90,0.15) 78%, rgba(4,40,90,0) 92%)',
         }}
       />
       <div
         className="absolute inset-0 md:hidden"
         style={{
           background:
-            'linear-gradient(180deg, rgba(2,28,67,0.05) 30%, rgba(2,34,78,0.45) 68%, rgba(2,25,60,0.75) 100%)',
+            'linear-gradient(180deg, rgba(2,10,30,0) 0%, rgba(2,10,30,0) 55%, rgba(2,15,40,0.25) 78%, rgba(2,15,40,0.55) 100%)',
         }}
       />
 
@@ -87,7 +86,7 @@ export default function HeroSection({ onOpenLoginModal }: HeroSectionProps) {
               <span className="text-[#7DE7EC]">martial arts.</span>
             </h1>
 
-            <p className="text-lg text-white/70 leading-relaxed max-w-xl">
+            <p className="text-lg text-white/70 leading-relaxed max-w-xl [text-shadow:0_2px_10px_rgba(0,0,0,0.55)] md:[text-shadow:none]">
               Find schools, book classes, manage your academy and connect with the global martial arts community.
             </p>
 
