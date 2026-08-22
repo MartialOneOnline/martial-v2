@@ -31,7 +31,7 @@ export default function HeroSection({ onOpenLoginModal }: HeroSectionProps) {
           framing freedom — a full-width box forces a 1:1 crop that caps how tall it can go before
           the eyes hit the headline. This lets the photo reach down to the app-badge row while
           keeping the eyes clear and (nearly) full headroom above the hair. */}
-      <div className="absolute right-0 top-0 w-[570px] h-[550px] overflow-hidden md:hidden">
+      <div className="absolute right-[-90px] top-0 w-[570px] h-[550px] overflow-hidden md:hidden">
         <Image
           src="/buchecha-mobile-v7.png"
           alt=""
