@@ -270,11 +270,14 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
     if (!resetEmail) { setResetErr('Please provide a valid email address.'); return }
 
     setResetLoading(true)
-    const { error: err } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-      redirectTo: `${window.location.origin}/auth/reset-password`,
-    })
+    try {
+      await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: resetEmail }),
+      })
+    } catch { /* best-effort — see /api/auth/forgot-password's own error handling */ }
     setResetLoading(false)
-    if (err) { setResetErr(err.message); return }
     setResetSent(true)
   }
 

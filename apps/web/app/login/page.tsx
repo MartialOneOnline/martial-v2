@@ -10,7 +10,7 @@ import { safeRedirect } from '@/lib/safeRedirect'
 import { safeConfirmRedirect } from '@/lib/authConfirmRedirect'
 import { resolveLoginRedirectAction } from '@/lib/auth/loginRedirect'
 import { fetchAvailableContexts } from '@/app/choose-profile/logic'
-import { useT } from '@/lib/i18n/LanguageContext'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { useGoogleSignInButton } from '@/lib/useGoogleSignInButton'
 
 const BLUE = '#0870E2'
@@ -84,7 +84,7 @@ function SocialButton({ provider, label, loading, disabled, onClick }: {
 // its own (no marketing header/footer, no dependency on the homepage).
 function LoginPageInner() {
   const router = useRouter()
-  const t = useT()
+  const { t, locale } = useLanguage()
   const searchParams = useSearchParams()
   const pathname = usePathname()
   const supabase = createClient()
@@ -330,11 +330,14 @@ function LoginPageInner() {
     if (!resetEmail) { setResetErr('Please provide a valid email address.'); return }
 
     setResetLoading(true)
-    const { error: err } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-      redirectTo: `${window.location.origin}/auth/reset-password`,
-    })
+    try {
+      await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: resetEmail, lang: locale }),
+      })
+    } catch { /* best-effort — see /api/auth/forgot-password's own error handling */ }
     setResetLoading(false)
-    if (err) { setResetErr(err.message); return }
     setResetSent(true)
   }
 
