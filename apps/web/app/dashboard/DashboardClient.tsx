@@ -263,8 +263,8 @@ function AreaChart({ data, formatValue }: { data: { label: string; value: number
 
   const active = activeIndex !== null ? { pt: points[activeIndex]!, d: data[activeIndex]! } : null
   const tooltipLabel = active ? `${active.d.label}: ${formatValue ? formatValue(active.d.value) : active.d.value}` : ''
-  const tooltipW = Math.max(50, tooltipLabel.length * 6 + 16)
-  const tooltipH = 22
+  const tooltipW = Math.max(60, tooltipLabel.length * 7.5 + 20)
+  const tooltipH = 28
   const tooltipX = active ? Math.min(Math.max(active.pt.x - tooltipW / 2, PAD.l - 4), W - PAD.r - tooltipW + 4) : 0
   const tooltipY = active ? Math.max(active.pt.y - tooltipH - 10, 2) : 0
 
@@ -308,8 +308,8 @@ function AreaChart({ data, formatValue }: { data: { label: string; value: number
       {active && (
         <g pointerEvents="none">
           <rect x={tooltipX} y={tooltipY} width={tooltipW} height={tooltipH} rx={6} fill="#111827" />
-          <text x={tooltipX + tooltipW / 2} y={tooltipY + tooltipH / 2 + 4} textAnchor="middle"
-            fontSize="11" fontWeight="600" fill="#fff"
+          <text x={tooltipX + tooltipW / 2} y={tooltipY + tooltipH / 2 + 5} textAnchor="middle"
+            fontSize="14" fontWeight="700" fill="#fff"
             style={{ fontFamily: '-apple-system, BlinkMacSystemFont, Inter, sans-serif' }}
           >
             {tooltipLabel}
@@ -392,7 +392,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
   const [disciplineCount, setDisciplineCount] = useState<number | null>(null)
   const [bookingsChart, setBookingsChart] = useState<{ date: string; confirmed: number; cancelled: number }[] | null>(null)
   const [revenueChart, setRevenueChart] = useState<{ date: string; revenue: number }[] | null>(null)
-  const [overviewMode, setOverviewMode] = useState<'bookings' | 'payments'>('bookings')
+  const [overviewMode, setOverviewMode] = useState<'bookings' | 'payments'>('payments')
 
   // Topbar search — filters students, loaded lazily on first use
   const router = useRouter()
@@ -927,7 +927,12 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                       border: 'none', borderRadius: 7, padding: '5px 10px',
                     }}
                   >
-                    {mode === 'bookings' ? t.dashboard.bookingsOverview : t.dashboard.paymentsOverview}
+                    <span className="hidden sm:inline">
+                      {mode === 'bookings' ? t.dashboard.bookingsOverview : t.dashboard.paymentsOverview}
+                    </span>
+                    <span className="sm:hidden">
+                      {mode === 'bookings' ? t.dashboard.bookingsShort : t.dashboard.paymentsShort}
+                    </span>
                   </button>
                 ))}
               </div>
