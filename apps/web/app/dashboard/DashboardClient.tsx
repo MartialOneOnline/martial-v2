@@ -263,8 +263,8 @@ function AreaChart({ data, formatValue }: { data: { label: string; value: number
 
   const active = activeIndex !== null ? { pt: points[activeIndex]!, d: data[activeIndex]! } : null
   const tooltipLabel = active ? `${active.d.label}: ${formatValue ? formatValue(active.d.value) : active.d.value}` : ''
-  const tooltipW = Math.max(60, tooltipLabel.length * 7.5 + 20)
-  const tooltipH = 28
+  const tooltipW = Math.max(55, tooltipLabel.length * 6.5 + 18)
+  const tooltipH = 24
   const tooltipX = active ? Math.min(Math.max(active.pt.x - tooltipW / 2, PAD.l - 4), W - PAD.r - tooltipW + 4) : 0
   const tooltipY = active ? Math.max(active.pt.y - tooltipH - 10, 2) : 0
 
@@ -308,8 +308,8 @@ function AreaChart({ data, formatValue }: { data: { label: string; value: number
       {active && (
         <g pointerEvents="none">
           <rect x={tooltipX} y={tooltipY} width={tooltipW} height={tooltipH} rx={6} fill="#111827" />
-          <text x={tooltipX + tooltipW / 2} y={tooltipY + tooltipH / 2 + 5} textAnchor="middle"
-            fontSize="14" fontWeight="700" fill="#fff"
+          <text x={tooltipX + tooltipW / 2} y={tooltipY + tooltipH / 2 + 4} textAnchor="middle"
+            fontSize="12" fontWeight="500" fill="#fff"
             style={{ fontFamily: '-apple-system, BlinkMacSystemFont, Inter, sans-serif' }}
           >
             {tooltipLabel}
@@ -889,11 +889,11 @@ export default function DashboardClient({ userName, userEmail }: Props) {
 
           {/* 6. Bookings / Payments chart — full width */}
           <div
-            className="rounded-2xl"
-            style={{ background: '#fff', border: '1px solid #E5E7EB', padding: '22px 26px' }}
+            className="rounded-2xl p-4 sm:px-[26px] sm:py-[22px]"
+            style={{ background: '#fff', border: '1px solid #E5E7EB' }}
           >
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+              <div className="flex items-center gap-3 flex-wrap">
                 <p style={{ fontSize: 16, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>
                   {overviewMode === 'bookings'
                     ? (bookingsChart && bookingsChart.length > 0
