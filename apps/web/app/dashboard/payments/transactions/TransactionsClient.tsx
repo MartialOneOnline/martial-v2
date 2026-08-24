@@ -132,12 +132,31 @@ interface FiltersState {
 
 const EMPTY_FILTERS: FiltersState = { method: 'ALL', dateFrom: '', dateTo: '', membership: '', belt: '' }
 
-const BELT_OPTIONS = ['Blanco', 'Azul', 'Morado', 'Marrón', 'Negro']
+// Default view = current calendar month, so "Total Collected" and the list
+// start scoped instead of the full all-time history. "Clear all" in the
+// filters popup still resets to EMPTY_FILTERS (no date bound) to see everything.
+function currentMonthStart(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`
+}
+function defaultFilters(): FiltersState {
+  return { ...EMPTY_FILTERS, dateFrom: currentMonthStart() }
+}
+
+// value = actual SchoolMember.belt DB value (no accent, see UsersClient.tsx
+// BELTS / StudentProfileClient.tsx BELT_ORDER); label = accented display text.
+const BELT_OPTIONS: { value: string; label: string }[] = [
+  { value: 'Blanco', label: 'Blanco' },
+  { value: 'Azul',   label: 'Azul' },
+  { value: 'Morado', label: 'Morado' },
+  { value: 'Marron', label: 'Marrón' },
+  { value: 'Negro',  label: 'Negro' },
+]
 const BELT_STYLES: Record<string, { bg: string; color: string; border: string }> = {
   Blanco: { bg: '#F9FAFB', color: '#374151', border: '#D1D5DB' },
   Azul:   { bg: '#EFF6FF', color: '#1D4ED8', border: '#BFDBFE' },
   Morado: { bg: '#F5F3FF', color: '#6D28D9', border: '#DDD6FE' },
-  Marrón: { bg: '#FFF7ED', color: '#C2410C', border: '#FED7AA' },
+  Marron: { bg: '#FFF7ED', color: '#C2410C', border: '#FED7AA' },
   Negro:  { bg: '#1F2937', color: '#F9FAFB', border: '#374151' },
 }
 
@@ -226,16 +245,16 @@ function FiltersPanel({ filters, onChange }: {
                     color: !local.belt ? '#0870E2' : '#6B7280' }}>
                   All
                 </button>
-                {BELT_OPTIONS.map(b => {
-                  const bs = BELT_STYLES[b]!
-                  const isOn = local.belt === b
+                {BELT_OPTIONS.map(({ value, label }) => {
+                  const bs = BELT_STYLES[value]!
+                  const isOn = local.belt === value
                   return (
-                    <button key={b} onClick={() => setLocal(p => ({ ...p, belt: isOn ? '' : b }))}
+                    <button key={value} onClick={() => setLocal(p => ({ ...p, belt: isOn ? '' : value }))}
                       style={{ fontSize: 11, fontWeight: 600, padding: '4px 11px', borderRadius: 999, cursor: 'pointer',
                         border: isOn ? `1.5px solid ${bs.border}` : '1px solid #E5E7EB',
                         background: isOn ? bs.bg : '#F9FAFB',
                         color: isOn ? bs.color : '#6B7280' }}>
-                      {b}
+                      {label}
                     </button>
                   )
                 })}
@@ -931,7 +950,7 @@ export default function TransactionsClient() {
   const [activeType,    setActiveType]    = useState<TypeFilter>('INCOME')
   const [search,        setSearch]        = useState('')
   const [page,          setPage]          = useState(1)
-  const [filters, setFilters] = useState<FiltersState>(EMPTY_FILTERS)
+  const [filters, setFilters] = useState<FiltersState>(defaultFilters)
 
   const load = useCallback(async () => {
     setLoading(true)

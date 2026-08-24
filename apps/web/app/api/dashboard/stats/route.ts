@@ -103,11 +103,13 @@ export async function GET(req: NextRequest) {
         gradedAt: { gte: new Date(now.getFullYear(), 0, 1) },
       },
     }),
-    // Revenue this month
+    // Revenue this month — PAID only, to match /reports/payments and the
+    // Transactions page ("revenue" means money actually collected).
     prisma.transaction.aggregate({
       where: {
         schoolId,
         type: 'INCOME',
+        status: 'PAID',
         deletedAt: null,
         date: { gte: startOfMonth },
       },
@@ -119,6 +121,7 @@ export async function GET(req: NextRequest) {
       where: {
         schoolId,
         type: 'INCOME',
+        status: 'PAID',
         deletedAt: null,
         date: { gte: startOfLastMonth, lte: comparableEndOfLastMonth },
       },

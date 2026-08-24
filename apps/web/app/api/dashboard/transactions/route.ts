@@ -71,6 +71,14 @@ export async function GET(req: NextRequest) {
     } : {}),
   }
 
+  // Stats (status tab counts + Total Collected) are scoped by every filter
+  // except status/resolvedAt themselves, so switching status tabs doesn't
+  // hide the other tabs' counts, but date range/method/plan/belt/search DO
+  // narrow them — "Total Collected" is a sum over the active filters, not
+  // a fixed all-time number.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { status: _statusFilter, resolvedAt: _resolvedAtFilter, ...statsWhere } = where
+
   const [transactions, total, stats, unresolvedFlaggedCount] = await Promise.all([
     prisma.transaction.findMany({
       where,
@@ -86,7 +94,7 @@ export async function GET(req: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     prisma.transaction.groupBy({
       by: ['status'],
-      where: { schoolId: auth.schoolId, deletedAt: null, ...(type && type !== 'ALL' ? { type: type as any } : {}) } as any,
+      where: statsWhere,
       _count: { id: true },
       _sum: { amount: true },
     }) as any,
@@ -94,7 +102,7 @@ export async function GET(req: NextRequest) {
     // ever flagged — resolved ones shouldn't inflate the "needs attention"
     // badge. Can't get this split from the groupBy above (it only groups by
     // status, not resolvedAt), so it's a dedicated count.
-    prisma.transaction.count({ where: { schoolId: auth.schoolId, deletedAt: null, status: 'FLAGGED', resolvedAt: null } }),
+    prisma.transaction.count({ where: { ...statsWhere, status: 'FLAGGED', resolvedAt: null } }),
   ])
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
