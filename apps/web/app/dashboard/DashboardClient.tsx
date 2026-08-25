@@ -52,21 +52,6 @@ interface Props {
 
 // STATS labels/sub are resolved at render via t.*
 
-// Mock transaction dates are computed relative to today (preview only)
-function relDate(daysAgo: number) {
-  const d = new Date()
-  d.setDate(d.getDate() - daysAgo)
-  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-}
-const TRANSACTIONS = [
-  { id: 1, avatar: 'https://i.pravatar.cc/32?u=fn', name: 'Fernanda Neves',   method: 'Free',   price: '€ 0.00',  date: relDate(0),  status: 'Paid'    },
-  { id: 2, avatar: 'https://i.pravatar.cc/32?u=pm', name: 'Patricia Mancera', method: 'Free',   price: '€ 0.00',  date: relDate(3),  status: 'Paid'    },
-  { id: 3, avatar: 'https://i.pravatar.cc/32?u=mt', name: 'Matias Toloza',    method: 'Free',   price: '€ 0.00',  date: relDate(4),  status: 'Pending' },
-  { id: 4, avatar: 'https://i.pravatar.cc/32?u=fw', name: 'Florian Walter',   method: 'Stripe', price: '€ 65.00', date: relDate(4),  status: 'Paid'    },
-  { id: 5, avatar: 'https://i.pravatar.cc/32?u=ad', name: 'Alejandro DB',     method: 'Cash',   price: '€ 65.00', date: relDate(5),  status: 'Failed'  },
-  { id: 6, avatar: 'https://i.pravatar.cc/32?u=rg', name: 'Rafael Gonzalez',  method: 'Stripe', price: '€ 65.00', date: relDate(6),  status: 'Paid'    },
-]
-
 const DAY_LABELS = ['MON','TUE','WED','THU','FRI','SAT','SUN']
 // Generate 14 days starting from today — computed once at module load time (client-side)
 // This is mock data for the preview/demo dashboard only; the real dashboard uses API data.

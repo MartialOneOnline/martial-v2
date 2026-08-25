@@ -1203,7 +1203,16 @@ export default function ClassesClient() {
   // so closing the drawer afterward doesn't reopen it.
   const openedFromUrl = useRef(false)
   useEffect(() => {
-    if (openedFromUrl.current || classes.length === 0) return
+    if (openedFromUrl.current) return
+    // Same deep-link pattern, for the Calendar page's "Add Class" button —
+    // it has no create form of its own, so it sends admins here instead.
+    // Doesn't need `classes` loaded first, unlike the edit case below.
+    if (searchParams.get('create')) {
+      openCreate()
+      openedFromUrl.current = true
+      return
+    }
+    if (classes.length === 0) return
     const editId = searchParams.get('edit')
     if (!editId) return
     const match = classes.find(c => c.id === editId)

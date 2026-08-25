@@ -5,7 +5,7 @@ import NotificationBell from '../../../../components/NotificationBell'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import {Users, Calendar, CreditCard, BarChart2, Settings, ChevronRight, ChevronDown, Menu, X, Plus, ChevronLeft, Clock, CalendarDays, LayoutList, MoreHorizontal, Pencil, Copy, Trash2, Eye, Check, Upload, CheckCircle, XCircle, Loader2} from 'lucide-react'
+import {Users, Calendar, CreditCard, BarChart2, Settings, ChevronRight, ChevronDown, Menu, Plus, ChevronLeft, Clock, CalendarDays, LayoutList, MoreHorizontal, Pencil, Copy, Trash2, Eye, Check, CheckCircle, XCircle, Loader2} from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import type { Translations } from '../../../../lib/i18n/translations'
 
@@ -503,206 +503,10 @@ function WeekClassBlock({ slot, date, enrolled, onSelect }: { slot: ClassSlot; d
   )
 }
 
-// ── Add Class drawer (reused from classes page) ────────────────────────────────
-const INSTRUCTORS_LIST = ['Carlos Silva', 'Monti', 'Ana Torres', 'Jorge Sanchez', 'Laura M.']
-const ACTIVITIES_LIST  = Object.keys(ACTIVITY_COLORS)
-const DEFAULT_DAYS     = [true, true, true, true, true, false, false]
-
-// Stub location/room data for the Add Class form (TODO: replace with API data)
-const DRAWER_LOCATIONS = [
-  { id: 1, name: 'Main Academy',  city: 'Madrid', color: '#0071E3' },
-  { id: 2, name: 'Branch Malaga', city: 'Malaga', color: '#7C3AED' },
-]
-const DRAWER_ROOMS = [
-  { id: 1, name: 'Main Mat',     capacity: 30, locationId: 1 },
-  { id: 2, name: 'Kids Room',    capacity: 20, locationId: 1 },
-  { id: 3, name: 'Weights Area', capacity: 15, locationId: 1 },
-  { id: 4, name: 'Dojo Central', capacity: 25, locationId: 2 },
-  { id: 5, name: 'Fitness Room', capacity: 12, locationId: 2 },
-]
-
-function AddClassDrawer({ open, onClose, onSuccess }: { open: boolean; onClose: () => void; onSuccess: () => void }) {
-  const t = useT()
-  const daysOfWeek = t.classes.daysOfWeek.split(',')
-  const [selLocId, setSelLocId]     = useState<number | ''>('')
-  const [dayEnabled, setDayEnabled] = useState<boolean[]>([...DEFAULT_DAYS])
-  const [bannerDrag, setBannerDrag] = useState(false)
-  const [repeat, setRepeat]         = useState('Yes')
-
-  useEffect(() => {
-    if (open) { setSelLocId(''); setDayEnabled([...DEFAULT_DAYS]); setBannerDrag(false); setRepeat('Yes') }
-  }, [open])
-
-  const availableRooms = selLocId !== '' ? DRAWER_ROOMS.filter(r => r.locationId === selLocId) : []
-  const iStyle: React.CSSProperties = {
-    border: '1px solid #E5E7EB', borderRadius: 8, padding: '8px 10px',
-    fontSize: 12, color: '#111827', background: '#fff', outline: 'none', width: '100%',
-  }
-  const lStyle: React.CSSProperties = { display: 'block', fontSize: 11, fontWeight: 600, color: '#374151', marginBottom: 4 }
-
-  return (
-    <>
-      <div className="fixed inset-0 z-40"
-        style={{ background: 'rgba(0,0,0,0.35)', opacity: open ? 1 : 0, pointerEvents: open ? 'auto' : 'none', transition: 'opacity 0.2s' }}
-        onClick={onClose} />
-      <div className="fixed top-0 right-0 h-full z-50 flex flex-col"
-        style={{ width: 'min(760px,96vw)', background: '#F9FAFB',
-          boxShadow: '-4px 0 32px rgba(0,0,0,0.12)',
-          transform: open ? 'translateX(0)' : 'translateX(100%)',
-          transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)' }}>
-        <div className="flex items-center justify-between px-6 py-4 shrink-0" style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
-          <div>
-            <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>{t.classes.addClassToCalendar}</h2>
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{t.classes.scheduleNewClass}</p>
-          </div>
-          <button onClick={onClose} className="w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
-            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-            <X size={14} style={{ color: '#6B7280' }} />
-          </button>
-        </div>
-        <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-5">
-          {/* Banner */}
-          <div>
-            <label style={lStyle}>{t.classes.classBanner}</label>
-            <div onDragEnter={() => setBannerDrag(true)} onDragLeave={() => setBannerDrag(false)} onDrop={() => setBannerDrag(false)}
-              className="flex items-center gap-4 rounded-xl"
-              style={{ border: `2px dashed ${bannerDrag ? '#0071E3' : '#D1D5DB'}`,
-                background: bannerDrag ? '#EFF6FF' : '#fff', padding: '12px 16px' }}>
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: '#F3F4F6' }}>
-                <Upload size={15} style={{ color: '#9CA3AF' }} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>{t.common.dropImage}</p>
-                <p style={{ fontSize: 11, color: '#9CA3AF' }}>{t.common.pngJpg}</p>
-              </div>
-              <label className="px-3 py-1.5 rounded-lg cursor-pointer shrink-0"
-                style={{ fontSize: 12, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
-                {t.common.browse}<input type="file" accept="image/*" className="hidden" />
-              </label>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div><label style={lStyle}>{t.common.title}</label><input type="text" placeholder={t.classes.classTitlePlaceholder} style={iStyle} /></div>
-            <div>
-              <label style={lStyle}>{t.common.instructor}</label>
-              <select style={iStyle}><option value="">{t.classes.selectInstructor.replace('…','...')}</option>{INSTRUCTORS_LIST.map(i => <option key={i}>{i}</option>)}</select>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label style={lStyle}>{t.common.activity}</label>
-              <select style={iStyle}><option value="">{t.classes.selectActivity.replace('…','...')}</option>{ACTIVITIES_LIST.map(a => <option key={a}>{a}</option>)}</select>
-            </div>
-            <div><label style={lStyle}>{t.common.capacity}</label><input type="number" placeholder="20" min={1} style={iStyle} /></div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label style={lStyle}>{t.common.location}</label>
-              <select style={iStyle} value={selLocId} onChange={e => setSelLocId(e.target.value === '' ? '' : Number(e.target.value))}>
-                <option value="">{t.classes.selectLocation.replace('…','...')}</option>{DRAWER_LOCATIONS.map(l => <option key={l.id} value={l.id}>{l.name} — {l.city}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={lStyle}>{t.classes.room}</label>
-              <select style={{ ...iStyle, opacity: selLocId === '' ? 0.5 : 1 }} disabled={selLocId === ''}>
-                <option value="">{selLocId === '' ? t.classes.selectLocationFirst : t.classes.selectRoom}</option>
-                {availableRooms.map(r => <option key={r.id} value={r.id}>{r.name} ({t.classes.cap} {r.capacity})</option>)}
-              </select>
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label style={lStyle}>{t.classes.repeat}</label>
-              <select value={repeat} onChange={e => setRepeat(e.target.value)} style={iStyle}><option value="Yes">{t.common.yes}</option><option value="No">{t.common.no}</option></select>
-            </div>
-            <div><label style={lStyle}>{t.common.startDate}</label><input type="date" style={iStyle} /></div>
-            <div><label style={lStyle}>{repeat === 'Yes' ? t.classes.repeatEndDate : t.common.endDate}</label><input type="date" style={iStyle} /></div>
-          </div>
-          {/* Session timings */}
-          <div>
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#0071E3', marginBottom: 12 }}>{t.classes.sessionTimings}</p>
-            <div className="rounded-xl overflow-hidden" style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
-              <table className="w-full">
-                <thead>
-                  <tr style={{ borderBottom: '1px solid #F3F4F6', background: '#F9FAFB' }}>
-                    {[t.classes.day, t.classes.startTimeCol, t.classes.endTimeCol, t.classes.breakStart, t.classes.breakEnd, t.common.active].map(h => (
-                      <th key={h} className="px-3 py-2 text-left"
-                        style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {daysOfWeek.map((day, idx) => {
-                    const on = dayEnabled[idx] ?? false
-                    return (
-                      <tr key={day} style={{ borderBottom: idx < daysOfWeek.length - 1 ? '1px solid #F9FAFB' : 'none', opacity: on ? 1 : 0.4, transition: 'opacity 0.15s' }}>
-                        <td className="px-3 py-2">
-                          <span style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{day.slice(0, 3)}</span>
-                        </td>
-                        {[0, 1, 2, 3].map(i => (
-                          <td key={i} className="px-3 py-2">
-                            <input type="time" disabled={!on} style={{ ...iStyle, width: 90, padding: '5px 6px', fontSize: 11, cursor: on ? 'text' : 'not-allowed' }} />
-                          </td>
-                        ))}
-                        <td className="px-3 py-2">
-                          <div onClick={() => setDayEnabled(prev => prev.map((v, i) => i === idx ? !v : v))}
-                            className="cursor-pointer select-none"
-                            style={{ width: 44, height: 22, borderRadius: 99, background: on ? '#0071E3' : '#E5E7EB',
-                              padding: '2px', display: 'flex', alignItems: 'center', justifyContent: on ? 'flex-end' : 'flex-start', transition: 'background 0.2s' }}>
-                            <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.25)', transition: 'all 0.2s' }} />
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-        <div className="px-6 py-4 flex items-center justify-end gap-3 shrink-0" style={{ background: '#fff', borderTop: '1px solid #E5E7EB' }}>
-          <button onClick={onClose} className="px-5 py-2.5 rounded-xl cursor-pointer"
-            style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
-            {t.common.cancel}
-          </button>
-          <button onClick={onSuccess} className="px-6 py-2.5 rounded-xl cursor-pointer"
-            style={{ fontSize: 13, fontWeight: 600, border: 'none', background: '#0071E3', color: '#fff' }}>
-            {t.classes.addToCalendar}
-          </button>
-        </div>
-      </div>
-    </>
-  )
-}
-
-function SuccessModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const t = useT()
-  if (!open) return null
-  return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onClose}>
-      <div className="rounded-2xl p-8 flex flex-col items-center text-center gap-4"
-        style={{ background: '#fff', width: 360, boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}
-        onClick={e => e.stopPropagation()}>
-        <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: '#F0FDF4' }}>
-          <Check size={32} style={{ color: '#16A34A' }} strokeWidth={2.5} />
-        </div>
-        <div>
-          <h3 style={{ fontSize: 18, fontWeight: 700, color: '#111827', margin: 0 }}>{t.classes.classAdded}</h3>
-          <p style={{ fontSize: 13, color: '#6B7280', marginTop: 6 }}>{t.classes.classAddedDesc}</p>
-        </div>
-        <button onClick={onClose} className="w-full py-2.5 rounded-xl cursor-pointer"
-          style={{ fontSize: 13, fontWeight: 600, border: 'none', background: '#0071E3', color: '#fff' }}>{t.common.done}</button>
-      </div>
-    </div>
-  )
-}
-
 // ── Main ───────────────────────────────────────────────────────────────────────
 export default function CalendarClient() {
   const { setMenuOpen } = useDashboard()
+  const router = useRouter()
   const t = useT()
   const monthNames = t.classes.monthNames.split(',')
   const weekDayLabels = t.classes.weekDays.split(',')
@@ -714,8 +518,6 @@ export default function CalendarClient() {
   const [selectedSlot, setSelectedSlot]   = useState<ClassSlot | null>(null)
   const [selectedSlotDate, setSelectedSlotDate] = useState<Date>(() => new Date())
   const [pickerOpen, setPickerOpen]       = useState(false)
-  const [drawerOpen, setDrawerOpen]       = useState(false)
-  const [successOpen, setSuccessOpen]     = useState(false)
   const [expandedDay, setExpandedDay]     = useState<string | null>(null)
   const [classes, setClasses]             = useState<ClassSlot[]>([])
   const [enrollments, setEnrollments]     = useState<Record<string, number>>({})
@@ -898,7 +700,7 @@ export default function CalendarClient() {
               {today.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
             </div>
             <NotificationBell />
-            <button onClick={() => setDrawerOpen(true)}
+            <button onClick={() => router.push('/dashboard/classes?create=1')}
               className="flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer"
               style={{ background: '#0071E3', border: 'none', color: '#fff' }}>
               <Plus size={16} />
@@ -1126,12 +928,6 @@ export default function CalendarClient() {
         />
       )}
 
-      <AddClassDrawer
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        onSuccess={() => { setDrawerOpen(false); setSuccessOpen(true) }}
-      />
-      <SuccessModal open={successOpen} onClose={() => setSuccessOpen(false)} />
     </main>
   )
 }
