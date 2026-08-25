@@ -22,6 +22,8 @@ export type Permission =
   | 'school.membershipPlans.delete'
   | 'school.leads.view'
   | 'school.leads.manage'
+  | 'school.affiliates.view'
+  | 'school.affiliates.manage'
   | 'school.payments.view'
   | 'school.payments.manage'
   | 'school.staff.view'
@@ -48,6 +50,7 @@ export const ALL_PERMISSIONS: Permission[] = [
   'school.memberships.view', 'school.memberships.manage',
   'school.membershipPlans.view', 'school.membershipPlans.create', 'school.membershipPlans.update', 'school.membershipPlans.delete',
   'school.leads.view', 'school.leads.manage',
+  'school.affiliates.view', 'school.affiliates.manage',
   'school.payments.view', 'school.payments.manage',
   'school.staff.view', 'school.staff.manage',
   'school.analytics.view',

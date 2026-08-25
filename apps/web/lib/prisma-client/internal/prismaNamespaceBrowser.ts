@@ -87,6 +87,7 @@ export const ModelName = {
   Grading: 'Grading',
   Lead: 'Lead',
   LeadNote: 'LeadNote',
+  Affiliate: 'Affiliate',
   SchoolInvitation: 'SchoolInvitation',
   Waiver: 'Waiver',
   UserWaiver: 'UserWaiver',
@@ -805,6 +806,24 @@ export const LeadNoteScalarFieldEnum = {
 } as const
 
 export type LeadNoteScalarFieldEnum = (typeof LeadNoteScalarFieldEnum)[keyof typeof LeadNoteScalarFieldEnum]
+
+
+export const AffiliateScalarFieldEnum = {
+  id: 'id',
+  schoolId: 'schoolId',
+  name: 'name',
+  city: 'city',
+  country: 'country',
+  contactName: 'contactName',
+  contactEmail: 'contactEmail',
+  notes: 'notes',
+  studentCount: 'studentCount',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AffiliateScalarFieldEnum = (typeof AffiliateScalarFieldEnum)[keyof typeof AffiliateScalarFieldEnum]
 
 
 export const SchoolInvitationScalarFieldEnum = {

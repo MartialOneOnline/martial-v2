@@ -296,6 +296,15 @@ export const CampaignRecipientStatus = {
 export type CampaignRecipientStatus = (typeof CampaignRecipientStatus)[keyof typeof CampaignRecipientStatus]
 
 
+export const AffiliateStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+  PENDING: 'PENDING'
+} as const
+
+export type AffiliateStatus = (typeof AffiliateStatus)[keyof typeof AffiliateStatus]
+
+
 export const InvitationStatus = {
   PENDING: 'PENDING',
   SENT: 'SENT',

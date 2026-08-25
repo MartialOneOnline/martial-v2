@@ -222,6 +222,11 @@ export type Lead = Prisma.LeadModel
  */
 export type LeadNote = Prisma.LeadNoteModel
 /**
+ * Model Affiliate
+ * 
+ */
+export type Affiliate = Prisma.AffiliateModel
+/**
  * Model SchoolInvitation
  * 
  */

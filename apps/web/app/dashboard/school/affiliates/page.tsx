@@ -1,2 +1,5 @@
 import AffiliatesClient from './AffiliatesClient'
-export default function AffiliatesPage() { return <AffiliatesClient /> }
+import RequirePermission from '../../../../components/RequirePermission'
+export default function AffiliatesPage() {
+  return <RequirePermission permission="school.affiliates.view"><AffiliatesClient /></RequirePermission>
+}

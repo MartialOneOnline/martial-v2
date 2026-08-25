@@ -11,6 +11,7 @@ import {
   Sparkles, Send,
   Calendar,
   Menu, UserPlus, QrCode, Pencil,
+  MoreHorizontal, Eye, Check, AlertCircle,
 } from 'lucide-react'
 import { useDashboard } from '../../components/DashboardShell'
 import { useSchoolContext } from '../../lib/auth/useSchoolContext'
@@ -22,7 +23,7 @@ import EditSchoolModal           from '../../components/popups/EditSchoolModal'
 import AIMessagesModal           from '../../components/popups/AIMessagesModal'
 import ClassCapacityPopup        from '../../components/popups/ClassCapacityPopup'
 import ClassDetailPopup          from '../../components/popups/ClassDetailPopup'
-import { TransactionActionsButton } from '../../components/popups/TransactionActionsPopup'
+import RowMenu                   from '../../components/RowMenu'
 import { useT }                  from '../../lib/i18n/LanguageContext'
 import DashboardLanguageSelector  from '../../components/DashboardLanguageSelector'
 import GettingStartedChecklist    from './GettingStartedChecklist'
@@ -432,6 +433,14 @@ export default function DashboardClient({ userName, userEmail }: Props) {
     if (!query.trim()) return
     setStudentSearchOpen(false)
     router.push(`/dashboard/users?search=${encodeURIComponent(query)}`)
+  }
+
+  async function handleRecentTxStatusChange(id: string, status: string) {
+    const res = await fetch(`/api/dashboard/transactions/${id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    })
+    if (res.ok) setRecentTx(prev => prev.map(tx => tx.id === id ? { ...tx, status } : tx))
   }
 
   const refreshTodayClasses = (offset = activeDay) => {
@@ -972,6 +981,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                     { label: t.dashboard.amount, cls: '' },
                     { label: t.dashboard.date,   cls: 'hidden md:table-cell' },
                     { label: t.dashboard.status, cls: 'hidden sm:table-cell' },
+                    { label: '', cls: '' },
                   ].map(h => (
                     <th key={h.label} className={`px-4 md:px-7 py-3 text-left ${h.cls}`}
                       style={{ fontSize: 12, fontWeight: 500, color: '#9CA3AF' }}>
@@ -982,7 +992,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
               </thead>
               <tbody>
                 {recentTx.length === 0 ? (
-                  <tr><td colSpan={6} style={{ padding: '32px 28px', fontSize: 13, color: '#9CA3AF', textAlign: 'center' }}>Loading…</td></tr>
+                  <tr><td colSpan={7} style={{ padding: '32px 28px', fontSize: 13, color: '#9CA3AF', textAlign: 'center' }}>Loading…</td></tr>
                 ) : recentTx.map((tx, idx) => {
                   const initials = (tx.userName || '?').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
                   const methodLabel: Record<string, string> = { STRIPE: 'Stripe', CASH: 'Cash', BANK_TRANSFER: 'Transfer', DIRECT_DEBIT: 'Direct Debit', OTHER: 'Other', FREE: 'Free' }
@@ -1031,6 +1041,49 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                         <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999, background: ss.bg, color: ss.color }}>
                           {tx.status.charAt(0) + tx.status.slice(1).toLowerCase()}
                         </span>
+                      </td>
+                      <td className="px-2 md:px-4 py-4" style={{ textAlign: 'right' }}>
+                        <RowMenu trigger={({ onClick }) => (
+                          <button onClick={onClick}
+                            style={{ width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', color: '#9CA3AF' }}
+                            onMouseEnter={e => (e.currentTarget.style.background = '#F3F4F6')}
+                            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                            <MoreHorizontal size={14} />
+                          </button>
+                        )}>
+                          <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12,
+                            boxShadow: '0 4px 16px rgba(0,0,0,0.10)', minWidth: 170, padding: '4px 0', overflow: 'hidden' }}>
+                            <Link href="/dashboard/payments/transactions" className="no-underline"
+                              style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
+                                fontWeight: 500, color: '#374151', background: 'transparent', border: 'none', cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', gap: 8 }}
+                              onMouseEnter={e => (e.currentTarget.style.background = '#F9FAFB')}
+                              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                              <Eye size={13} /> View Details
+                            </Link>
+                            {tx.status === 'PENDING' && (
+                              <button onClick={() => handleRecentTxStatusChange(tx.id, 'PAID')}
+                                style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
+                                  fontWeight: 500, color: '#16A34A', background: 'transparent', border: 'none', cursor: 'pointer',
+                                  display: 'flex', alignItems: 'center', gap: 8 }}
+                                onMouseEnter={e => (e.currentTarget.style.background = '#F0FDF4')}
+                                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                                <Check size={13} /> Mark as Paid
+                              </button>
+                            )}
+                            {tx.status !== 'FAILED' && (
+                              <button onClick={() => handleRecentTxStatusChange(tx.id, 'FAILED')}
+                                style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
+                                  fontWeight: 500, color: '#D97706', background: 'transparent', border: 'none', cursor: 'pointer',
+                                  display: 'flex', alignItems: 'center', gap: 8 }}
+                                onMouseEnter={e => (e.currentTarget.style.background = '#FFFBEB')}
+                                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                                <AlertCircle size={13} /> Mark as Failed
+                              </button>
+                            )}
+                          </div>
+                        </RowMenu>
                       </td>
                     </tr>
                   )

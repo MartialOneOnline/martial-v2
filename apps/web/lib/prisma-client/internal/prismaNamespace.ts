@@ -420,6 +420,7 @@ export const ModelName = {
   Grading: 'Grading',
   Lead: 'Lead',
   LeadNote: 'LeadNote',
+  Affiliate: 'Affiliate',
   SchoolInvitation: 'SchoolInvitation',
   Waiver: 'Waiver',
   UserWaiver: 'UserWaiver',
@@ -456,7 +457,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "curriculum" | "curriculumLesson" | "curriculumLessonView" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "classCancellation" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "staffRole" | "campaign" | "campaignRecipient" | "schoolClaim" | "gradingSystem" | "beltRank" | "grading" | "lead" | "leadNote" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "impersonationLog" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "limitedCollection" | "limitedCollectionTier" | "collectibleUnit" | "collectibleOwnership" | "partner" | "notification" | "platformSettings" | "claimRequest" | "schoolSubscription" | "stripeWebhookEvent"
+    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "curriculum" | "curriculumLesson" | "curriculumLessonView" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "classCancellation" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "staffRole" | "campaign" | "campaignRecipient" | "schoolClaim" | "gradingSystem" | "beltRank" | "grading" | "lead" | "leadNote" | "affiliate" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "impersonationLog" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "limitedCollection" | "limitedCollectionTier" | "collectibleUnit" | "collectibleOwnership" | "partner" | "notification" | "platformSettings" | "claimRequest" | "schoolSubscription" | "stripeWebhookEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3124,6 +3125,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Affiliate: {
+      payload: Prisma.$AffiliatePayload<ExtArgs>
+      fields: Prisma.AffiliateFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AffiliateFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliatePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AffiliateFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliatePayload>
+        }
+        findFirst: {
+          args: Prisma.AffiliateFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliatePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AffiliateFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliatePayload>
+        }
+        findMany: {
+          args: Prisma.AffiliateFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliatePayload>[]
+        }
+        create: {
+          args: Prisma.AffiliateCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliatePayload>
+        }
+        createMany: {
+          args: Prisma.AffiliateCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AffiliateCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliatePayload>[]
+        }
+        delete: {
+          args: Prisma.AffiliateDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliatePayload>
+        }
+        update: {
+          args: Prisma.AffiliateUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliatePayload>
+        }
+        deleteMany: {
+          args: Prisma.AffiliateDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AffiliateUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AffiliateUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliatePayload>[]
+        }
+        upsert: {
+          args: Prisma.AffiliateUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliatePayload>
+        }
+        aggregate: {
+          args: Prisma.AffiliateAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAffiliate>
+        }
+        groupBy: {
+          args: Prisma.AffiliateGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AffiliateGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AffiliateCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AffiliateCountAggregateOutputType> | number
+        }
+      }
+    }
     SchoolInvitation: {
       payload: Prisma.$SchoolInvitationPayload<ExtArgs>
       fields: Prisma.SchoolInvitationFieldRefs
@@ -5398,6 +5473,24 @@ export const LeadNoteScalarFieldEnum = {
 export type LeadNoteScalarFieldEnum = (typeof LeadNoteScalarFieldEnum)[keyof typeof LeadNoteScalarFieldEnum]
 
 
+export const AffiliateScalarFieldEnum = {
+  id: 'id',
+  schoolId: 'schoolId',
+  name: 'name',
+  city: 'city',
+  country: 'country',
+  contactName: 'contactName',
+  contactEmail: 'contactEmail',
+  notes: 'notes',
+  studentCount: 'studentCount',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AffiliateScalarFieldEnum = (typeof AffiliateScalarFieldEnum)[keyof typeof AffiliateScalarFieldEnum]
+
+
 export const SchoolInvitationScalarFieldEnum = {
   id: 'id',
   token: 'token',
@@ -6231,6 +6324,20 @@ export type ListEnumLeadStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$P
 
 
 /**
+ * Reference to a field of type 'AffiliateStatus'
+ */
+export type EnumAffiliateStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AffiliateStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'AffiliateStatus[]'
+ */
+export type ListEnumAffiliateStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AffiliateStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'InvitationStatus'
  */
 export type EnumInvitationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InvitationStatus'>
@@ -6557,6 +6664,7 @@ export type GlobalOmitConfig = {
   grading?: Prisma.GradingOmit
   lead?: Prisma.LeadOmit
   leadNote?: Prisma.LeadNoteOmit
+  affiliate?: Prisma.AffiliateOmit
   schoolInvitation?: Prisma.SchoolInvitationOmit
   waiver?: Prisma.WaiverOmit
   userWaiver?: Prisma.UserWaiverOmit

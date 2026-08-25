@@ -201,7 +201,7 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen, collapsed, set
       { label: t.sidebar.leads,      href: '/dashboard/school/leads', permission: 'school.leads.view' },
       { label: t.sidebar.store,      href: '/dashboard/school/store' },
       { label: t.sidebar.curriculum, href: '/dashboard/school/curriculum' },
-      { label: t.sidebar.affiliates, href: '/dashboard/school/affiliates' },
+      { label: t.sidebar.affiliates, href: '/dashboard/school/affiliates', permission: 'school.affiliates.view' },
       { label: t.sidebar.staff,      href: '/dashboard/school/staff', permission: 'school.staff.view' },
       { label: t.sidebar.waivers,    href: '/dashboard/school/waivers', permission: 'school.waivers.manage' },
       { label: t.sidebar.gradings,   href: '/dashboard/school/gradings', permission: 'school.gradings.manage' },

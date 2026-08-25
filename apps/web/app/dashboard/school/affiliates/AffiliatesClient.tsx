@@ -2,35 +2,51 @@
 
 import { useDashboard } from '../../../../components/DashboardShell'
 import NotificationBell from '../../../../components/NotificationBell'
-import { useState } from 'react'
-import {Users, Calendar, CreditCard, BarChart2, Settings, ChevronRight, ChevronDown, Menu, X, Search, Check, TrendingDown, MoreHorizontal, Eye, Plus, Globe} from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import {Users, Globe, Menu, X, Search, Check, Clock, MoreHorizontal, Eye, Plus, Ban, Trash2} from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import RowMenu from '../../../../components/RowMenu'
 import { matchesSearch } from '../../../../lib/search'
 
-type AffiliateStatus = 'Active' | 'Inactive' | 'Pending'
+type AffiliateStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING'
 
 interface Affiliate {
-  id: number
+  id: string
   name: string
-  country: string
   city: string
-  contact: string
-  email: string
-  students: number
-  since: string
+  country: string
+  contactName: string
+  contactEmail: string
+  notes: string | null
+  studentCount: number
   status: AffiliateStatus
+  createdAt: string
 }
 
-const AFFILIATES: Affiliate[] = []
-
-const STATUS_MAP: Record<AffiliateStatus, { bg: string; color: string; border: string }> = {
-  Active:   { bg: '#F0FDF4', color: '#16A34A', border: '#BBF7D0' },
-  Inactive: { bg: '#F3F4F6', color: '#6B7280', border: '#E5E7EB' },
-  Pending:  { bg: '#FFFBEB', color: '#D97706', border: '#FDE68A' },
+const STATUS_MAP: Record<AffiliateStatus, { bg: string; color: string; border: string; label: string }> = {
+  ACTIVE:   { bg: '#F0FDF4', color: '#16A34A', border: '#BBF7D0', label: 'Active'   },
+  INACTIVE: { bg: '#F3F4F6', color: '#6B7280', border: '#E5E7EB', label: 'Inactive' },
+  PENDING:  { bg: '#FFFBEB', color: '#D97706', border: '#FDE68A', label: 'Pending'  },
 }
 
-function AddAffiliateDrawer({ open, onClose, onSuccess }: { open: boolean; onClose: () => void; onSuccess: () => void }) {
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
+const drawerInputStyle: React.CSSProperties = {
+  width: '100%', border: '1px solid #E5E7EB', borderRadius: 10,
+  padding: '9px 12px', fontSize: 13, color: '#111827', background: '#fff', outline: 'none',
+}
+const drawerLabelStyle: React.CSSProperties = {
+  display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 5,
+}
+
+// ── Add Affiliate ─────────────────────────────────────────────────────────────
+function AddAffiliateDrawer({ open, onClose, onCreated }: {
+  open: boolean
+  onClose: () => void
+  onCreated: (a: Affiliate) => void
+}) {
   const t = useT()
   const [name, setName]       = useState('')
   const [city, setCity]       = useState('')
@@ -38,19 +54,26 @@ function AddAffiliateDrawer({ open, onClose, onSuccess }: { open: boolean; onClo
   const [contact, setContact] = useState('')
   const [email, setEmail]     = useState('')
   const [notes, setNotes]     = useState('')
+  const [saving, setSaving]   = useState(false)
+  const [error, setError]     = useState('')
 
-  function reset() { setName(''); setCity(''); setCountry(''); setContact(''); setEmail(''); setNotes('') }
+  function reset() { setName(''); setCity(''); setCountry(''); setContact(''); setEmail(''); setNotes(''); setError('') }
   function handleClose() { reset(); onClose() }
-  function handleSuccess() { reset(); onSuccess() }
 
-  const canSubmit = name && city && country && contact && email
+  const canSubmit = !!(name && city && country && contact && email)
 
-  const inputStyle: React.CSSProperties = {
-    width: '100%', border: '1px solid #E5E7EB', borderRadius: 10,
-    padding: '9px 12px', fontSize: 13, color: '#111827', background: '#fff', outline: 'none',
-  }
-  const labelStyle: React.CSSProperties = {
-    display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 5,
+  async function handleSave() {
+    if (!canSubmit) return
+    setSaving(true); setError('')
+    const res = await fetch('/api/dashboard/affiliates', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, city, country, contactName: contact, contactEmail: email, notes }),
+    })
+    const data = await res.json().catch(() => ({}))
+    setSaving(false)
+    if (!res.ok) { setError(data.error ?? 'Could not add affiliate'); return }
+    reset()
+    onCreated(data.affiliate)
   }
 
   return (
@@ -76,34 +99,35 @@ function AddAffiliateDrawer({ open, onClose, onSuccess }: { open: boolean; onClo
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-5">
           <div>
-            <label style={labelStyle}>School Name</label>
-            <input type="text" placeholder="e.g. Berlin Jiu-Jitsu" value={name} onChange={e => setName(e.target.value)} style={inputStyle} />
+            <label style={drawerLabelStyle}>School Name</label>
+            <input type="text" placeholder="e.g. Berlin Jiu-Jitsu" value={name} onChange={e => setName(e.target.value)} style={drawerInputStyle} />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label style={labelStyle}>City</label>
-              <input type="text" placeholder="Berlin" value={city} onChange={e => setCity(e.target.value)} style={inputStyle} />
+              <label style={drawerLabelStyle}>City</label>
+              <input type="text" placeholder="Berlin" value={city} onChange={e => setCity(e.target.value)} style={drawerInputStyle} />
             </div>
             <div>
-              <label style={labelStyle}>Country</label>
-              <input type="text" placeholder="Germany" value={country} onChange={e => setCountry(e.target.value)} style={inputStyle} />
+              <label style={drawerLabelStyle}>Country</label>
+              <input type="text" placeholder="Germany" value={country} onChange={e => setCountry(e.target.value)} style={drawerInputStyle} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label style={labelStyle}>Contact Name</label>
-              <input type="text" placeholder="Klaus Braun" value={contact} onChange={e => setContact(e.target.value)} style={inputStyle} />
+              <label style={drawerLabelStyle}>Contact Name</label>
+              <input type="text" placeholder="Klaus Braun" value={contact} onChange={e => setContact(e.target.value)} style={drawerInputStyle} />
             </div>
             <div>
-              <label style={labelStyle}>Contact Email</label>
-              <input type="email" placeholder="email@school.com" value={email} onChange={e => setEmail(e.target.value)} style={inputStyle} />
+              <label style={drawerLabelStyle}>Contact Email</label>
+              <input type="email" placeholder="email@school.com" value={email} onChange={e => setEmail(e.target.value)} style={drawerInputStyle} />
             </div>
           </div>
           <div>
-            <label style={labelStyle}>Notes <span style={{ fontWeight: 400, color: '#9CA3AF' }}>(optional)</span></label>
+            <label style={drawerLabelStyle}>Notes <span style={{ fontWeight: 400, color: '#9CA3AF' }}>(optional)</span></label>
             <textarea rows={3} placeholder="Additional notes…" value={notes} onChange={e => setNotes(e.target.value)}
-              style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }} />
+              style={{ ...drawerInputStyle, resize: 'vertical', lineHeight: 1.6 }} />
           </div>
+          {error && <p style={{ fontSize: 12, color: '#DC2626', fontWeight: 500, margin: 0 }}>{error}</p>}
         </div>
         <div className="px-6 py-4 flex items-center gap-3 justify-end shrink-0"
           style={{ background: '#fff', borderTop: '1px solid #E5E7EB' }}>
@@ -111,11 +135,126 @@ function AddAffiliateDrawer({ open, onClose, onSuccess }: { open: boolean; onClo
             style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
             {t.common.cancel}
           </button>
-          <button onClick={handleSuccess} disabled={!canSubmit} className="px-6 py-2.5 rounded-xl cursor-pointer flex items-center gap-2"
+          <button onClick={handleSave} disabled={!canSubmit || saving} className="px-6 py-2.5 rounded-xl cursor-pointer flex items-center gap-2"
             style={{ fontSize: 13, fontWeight: 600, border: 'none',
               background: canSubmit ? '#0071E3' : '#93C5FD', color: '#fff',
-              cursor: canSubmit ? 'pointer' : 'not-allowed' }}>
-            <Plus size={14} />{t.school.addAffiliate}
+              cursor: canSubmit && !saving ? 'pointer' : 'not-allowed', opacity: saving ? 0.7 : 1 }}>
+            <Plus size={14} />{saving ? 'Saving…' : t.school.addAffiliate}
+          </button>
+        </div>
+      </div>
+    </>
+  )
+}
+
+// ── Edit Affiliate ────────────────────────────────────────────────────────────
+function EditAffiliateDrawer({ affiliate, onClose, onSaved }: {
+  affiliate: Affiliate
+  onClose: () => void
+  onSaved: (a: Affiliate) => void
+}) {
+  const [name, setName]               = useState(affiliate.name)
+  const [city, setCity]               = useState(affiliate.city)
+  const [country, setCountry]         = useState(affiliate.country)
+  const [contact, setContact]         = useState(affiliate.contactName)
+  const [email, setEmail]             = useState(affiliate.contactEmail)
+  const [notes, setNotes]             = useState(affiliate.notes ?? '')
+  const [studentCount, setStudentCount] = useState(String(affiliate.studentCount))
+  const [status, setStatus]           = useState<AffiliateStatus>(affiliate.status)
+  const [saving, setSaving]           = useState(false)
+  const [error, setError]             = useState('')
+
+  const canSubmit = !!(name && city && country && contact && email)
+
+  async function handleSave() {
+    if (!canSubmit) return
+    setSaving(true); setError('')
+    const res = await fetch(`/api/dashboard/affiliates/${affiliate.id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name, city, country, contactName: contact, contactEmail: email, notes,
+        studentCount: parseInt(studentCount, 10) || 0, status,
+      }),
+    })
+    const data = await res.json().catch(() => ({}))
+    setSaving(false)
+    if (!res.ok) { setError(data.error ?? 'Could not save changes'); return }
+    onSaved(data.affiliate)
+  }
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40" style={{ background: 'rgba(0,0,0,0.35)' }} onClick={onClose} />
+      <div className="fixed top-0 right-0 h-full z-50 flex flex-col overflow-hidden"
+        style={{ width: 'min(560px,96vw)', background: '#F9FAFB', boxShadow: '-4px 0 32px rgba(0,0,0,0.12)' }}>
+        <div className="flex items-center justify-between px-6 py-5 shrink-0"
+          style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
+          <div>
+            <h2 style={{ fontSize: 17, fontWeight: 700, color: '#111827', margin: 0, letterSpacing: '-0.02em' }}>Edit Affiliate</h2>
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{affiliate.name}</p>
+          </div>
+          <button onClick={onClose} className="w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
+            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
+            <X size={15} style={{ color: '#6B7280' }} />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-5">
+          <div>
+            <label style={drawerLabelStyle}>School Name</label>
+            <input type="text" value={name} onChange={e => setName(e.target.value)} style={drawerInputStyle} />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label style={drawerLabelStyle}>City</label>
+              <input type="text" value={city} onChange={e => setCity(e.target.value)} style={drawerInputStyle} />
+            </div>
+            <div>
+              <label style={drawerLabelStyle}>Country</label>
+              <input type="text" value={country} onChange={e => setCountry(e.target.value)} style={drawerInputStyle} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label style={drawerLabelStyle}>Contact Name</label>
+              <input type="text" value={contact} onChange={e => setContact(e.target.value)} style={drawerInputStyle} />
+            </div>
+            <div>
+              <label style={drawerLabelStyle}>Contact Email</label>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} style={drawerInputStyle} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label style={drawerLabelStyle}>Students</label>
+              <input type="number" min="0" value={studentCount} onChange={e => setStudentCount(e.target.value)} style={drawerInputStyle} />
+            </div>
+            <div>
+              <label style={drawerLabelStyle}>Status</label>
+              <select value={status} onChange={e => setStatus(e.target.value as AffiliateStatus)} style={drawerInputStyle}>
+                <option value="PENDING">Pending</option>
+                <option value="ACTIVE">Active</option>
+                <option value="INACTIVE">Inactive</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label style={drawerLabelStyle}>Notes <span style={{ fontWeight: 400, color: '#9CA3AF' }}>(optional)</span></label>
+            <textarea rows={3} value={notes} onChange={e => setNotes(e.target.value)}
+              style={{ ...drawerInputStyle, resize: 'vertical', lineHeight: 1.6 }} />
+          </div>
+          {error && <p style={{ fontSize: 12, color: '#DC2626', fontWeight: 500, margin: 0 }}>{error}</p>}
+        </div>
+        <div className="px-6 py-4 flex items-center gap-3 justify-end shrink-0"
+          style={{ background: '#fff', borderTop: '1px solid #E5E7EB' }}>
+          <button onClick={onClose} className="px-5 py-2.5 rounded-xl cursor-pointer"
+            style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
+            Cancel
+          </button>
+          <button onClick={handleSave} disabled={!canSubmit || saving} className="px-6 py-2.5 rounded-xl cursor-pointer"
+            style={{ fontSize: 13, fontWeight: 600, border: 'none',
+              background: canSubmit ? '#0071E3' : '#93C5FD', color: '#fff',
+              cursor: canSubmit && !saving ? 'pointer' : 'not-allowed', opacity: saving ? 0.7 : 1 }}>
+            {saving ? 'Saving…' : 'Save Changes'}
           </button>
         </div>
       </div>
@@ -151,22 +290,54 @@ type Filter = 'All' | AffiliateStatus
 export default function AffiliatesClient() {
   const { setMenuOpen } = useDashboard()
   const t = useT()
+
+  const [affiliates, setAffiliates] = useState<Affiliate[]>([])
+  const [loading, setLoading]       = useState(true)
   const [activeFilter, setActiveFilter] = useState<Filter>('All')
   const [search, setSearch]             = useState('')
   const [currentPage, setCurrentPage]   = useState(1)
   const [drawerOpen, setDrawerOpen]     = useState(false)
-  const [toast, setToast]               = useState(false)
+  const [editing, setEditing]           = useState<Affiliate | null>(null)
+  const [toast, setToast]               = useState('')
 
-  const filtered = AFFILIATES.filter(a => {
+  const load = useCallback(async () => {
+    setLoading(true)
+    const res = await fetch('/api/dashboard/affiliates')
+    if (res.ok) {
+      const data = await res.json()
+      setAffiliates(data.affiliates ?? [])
+    }
+    setLoading(false)
+  }, [])
+
+  useEffect(() => { load() }, [load])
+
+  function showToast(message: string) { setToast(message); setTimeout(() => setToast(''), 3000) }
+
+  async function handleStatusChange(id: string, status: AffiliateStatus) {
+    const res = await fetch(`/api/dashboard/affiliates/${id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    })
+    if (res.ok) setAffiliates(prev => prev.map(a => a.id === id ? { ...a, status } : a))
+  }
+
+  async function handleDelete(id: string, name: string) {
+    if (!confirm(`Remove ${name} from your affiliates?`)) return
+    const res = await fetch(`/api/dashboard/affiliates/${id}`, { method: 'DELETE' })
+    if (res.ok) { setAffiliates(prev => prev.filter(a => a.id !== id)); showToast('Affiliate removed') }
+  }
+
+  const filtered = affiliates.filter(a => {
     const matchFilter = activeFilter === 'All' || a.status === activeFilter
     const matchSearch = matchesSearch(a.name, search) || matchesSearch(a.city, search) || matchesSearch(a.country, search)
     return matchFilter && matchSearch
   })
 
-  const totalAffiliates = AFFILIATES.length
-  const activeCount     = AFFILIATES.filter(a => a.status === 'Active').length
-  const pendingCount    = AFFILIATES.filter(a => a.status === 'Pending').length
-  const totalStudents   = AFFILIATES.reduce((s, a) => s + a.students, 0)
+  const totalAffiliates = affiliates.length
+  const activeCount     = affiliates.filter(a => a.status === 'ACTIVE').length
+  const pendingCount    = affiliates.filter(a => a.status === 'PENDING').length
+  const totalStudents   = affiliates.reduce((s, a) => s + a.studentCount, 0)
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE))
   const safePage   = Math.min(currentPage, totalPages)
@@ -174,17 +345,17 @@ export default function AffiliatesClient() {
   const pages      = getPaginationPages(safePage, totalPages)
 
   const STATS = [
-    { label: t.school.totalAffiliates, value: String(totalAffiliates), icon: Globe,      color: '#0071E3', bg: '#EFF6FF' },
-    { label: t.common.active,          value: String(activeCount),     icon: Check,      color: '#16A34A', bg: '#F0FDF4' },
-    { label: t.common.pending,         value: String(pendingCount),    icon: TrendingDown, color: '#D97706', bg: '#FFFBEB' },
-    { label: 'Total Students',         value: String(totalStudents),   icon: Users,      color: '#6D28D9', bg: '#F5F3FF' },
+    { label: t.school.totalAffiliates, value: String(totalAffiliates), icon: Globe, color: '#0071E3', bg: '#EFF6FF' },
+    { label: t.common.active,          value: String(activeCount),     icon: Check, color: '#16A34A', bg: '#F0FDF4' },
+    { label: t.common.pending,         value: String(pendingCount),    icon: Clock, color: '#D97706', bg: '#FFFBEB' },
+    { label: 'Total Students',         value: String(totalStudents),   icon: Users, color: '#6D28D9', bg: '#F5F3FF' },
   ]
 
   const FILTERS: { id: Filter; label: string }[] = [
     { id: 'All',      label: t.common.all      },
-    { id: 'Active',   label: t.common.active   },
-    { id: 'Pending',  label: t.common.pending  },
-    { id: 'Inactive', label: t.common.inactive },
+    { id: 'ACTIVE',   label: t.common.active   },
+    { id: 'PENDING',  label: t.common.pending  },
+    { id: 'INACTIVE', label: t.common.inactive },
   ]
 
   return (
@@ -235,7 +406,7 @@ export default function AffiliatesClient() {
             <div style={{ borderBottom: '1px solid #E5E7EB' }}>
               <div className="flex items-center gap-1">
                 {FILTERS.map(f => {
-                  const count = f.id === 'All' ? AFFILIATES.length : AFFILIATES.filter(a => a.status === f.id).length
+                  const count = f.id === 'All' ? affiliates.length : affiliates.filter(a => a.status === f.id).length
                   const isActive = activeFilter === f.id
                   const sc = f.id !== 'All' ? STATUS_MAP[f.id as AffiliateStatus] : null
                   return (
@@ -279,10 +450,12 @@ export default function AffiliatesClient() {
                   </tr>
                 </thead>
                 <tbody>
-                  {paginated.map((aff, idx) => {
+                  {loading ? (
+                    <tr><td colSpan={6} style={{ textAlign: 'center', padding: '48px 0', fontSize: 13, color: '#9CA3AF' }}>Loading…</td></tr>
+                  ) : paginated.map((aff, idx) => {
                     const sc = STATUS_MAP[aff.status]
                     return (
-                      <tr key={aff.id} className="hover:bg-[#FAFAFA] transition-colors cursor-pointer"
+                      <tr key={aff.id} className="hover:bg-[#FAFAFA] transition-colors"
                         style={{ borderBottom: idx < paginated.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
                         <td className="px-3 sm:px-5 py-3">
                           <div className="flex items-center gap-3 min-w-0">
@@ -297,60 +470,75 @@ export default function AffiliatesClient() {
                           </div>
                         </td>
                         <td className="hidden md:table-cell px-5 py-3">
-                          <p style={{ fontSize: 13, fontWeight: 500, color: '#374151' }}>{aff.contact}</p>
-                          <p style={{ fontSize: 11, color: '#9CA3AF' }}>{aff.email}</p>
+                          <p style={{ fontSize: 13, fontWeight: 500, color: '#374151' }}>{aff.contactName}</p>
+                          <p style={{ fontSize: 11, color: '#9CA3AF' }}>{aff.contactEmail}</p>
                         </td>
                         <td className="hidden sm:table-cell px-5 py-3">
-                          <span style={{ fontSize: 15, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em' }}>{aff.students}</span>
+                          <span style={{ fontSize: 15, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em' }}>{aff.studentCount}</span>
                         </td>
                         <td className="hidden sm:table-cell px-5 py-3">
-                          <span style={{ fontSize: 13, color: '#6B7280' }}>{aff.since}</span>
+                          <span style={{ fontSize: 13, color: '#6B7280' }}>{fmtDate(aff.createdAt)}</span>
                         </td>
                         <td className="px-2 sm:px-5 py-3">
                           <span className="inline-flex items-center gap-1.5"
                             style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999,
                               background: sc.bg, color: sc.color, border: '1px solid ' + sc.border, whiteSpace: 'nowrap' }}>
-                            {aff.status}
+                            {sc.label}
                           </span>
                         </td>
                         <td className="px-2 sm:px-5 py-3">
-                          <div className="flex items-center gap-1">
-                            <button className="hidden sm:flex w-7 h-7 items-center justify-center rounded-lg cursor-pointer"
+                          <RowMenu trigger={({ onClick }) => (
+                            <button onClick={onClick}
+                              className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
                               style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
                               onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
                               onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                              <Eye size={14} />
+                              <MoreHorizontal size={15} />
                             </button>
-                            <RowMenu trigger={({ onClick }) => (
-                              <button onClick={onClick}
-                                className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
-                                style={{ color: '#9CA3AF', background: 'transparent', border: 'none' }}
+                          )}>
+                            <div className="rounded-xl py-1 overflow-hidden"
+                              style={{ background: '#fff', border: '1px solid #E5E7EB',
+                                boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 180 }}>
+                              <button onClick={() => setEditing(aff)}
+                                className="w-full text-left px-4 py-2.5 cursor-pointer flex items-center gap-2"
+                                style={{ fontSize: 13, color: '#374151', background: 'transparent', border: 'none' }}
                                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
                                 onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                                <MoreHorizontal size={15} />
+                                <Eye size={13} /> View / Edit details
                               </button>
-                            )}>
-                              <div className="rounded-xl py-1 overflow-hidden"
-                                style={{ background: '#fff', border: '1px solid #E5E7EB',
-                                  boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: 160 }}>
-                                {['View details','Edit affiliate','Remove affiliate'].map((label, i) => (
-                                  <button key={label}
-                                    className="w-full text-left px-4 py-2.5 cursor-pointer"
-                                    style={{ fontSize: 13, color: i === 2 ? '#DC2626' : '#374151',
-                                      background: 'transparent', border: 'none' }}
-                                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = i === 2 ? '#FEF2F2' : '#F9FAFB'}
-                                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
-                                    {label}
-                                  </button>
-                                ))}
-                              </div>
-                            </RowMenu>
-                          </div>
+                              {aff.status !== 'ACTIVE' && (
+                                <button onClick={() => handleStatusChange(aff.id, 'ACTIVE')}
+                                  className="w-full text-left px-4 py-2.5 cursor-pointer flex items-center gap-2"
+                                  style={{ fontSize: 13, color: '#16A34A', background: 'transparent', border: 'none' }}
+                                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F0FDF4'}
+                                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+                                  <Check size={13} /> Mark Active
+                                </button>
+                              )}
+                              {aff.status !== 'INACTIVE' && (
+                                <button onClick={() => handleStatusChange(aff.id, 'INACTIVE')}
+                                  className="w-full text-left px-4 py-2.5 cursor-pointer flex items-center gap-2"
+                                  style={{ fontSize: 13, color: '#6B7280', background: 'transparent', border: 'none' }}
+                                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
+                                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+                                  <Ban size={13} /> Mark Inactive
+                                </button>
+                              )}
+                              <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
+                              <button onClick={() => handleDelete(aff.id, aff.name)}
+                                className="w-full text-left px-4 py-2.5 cursor-pointer flex items-center gap-2"
+                                style={{ fontSize: 13, fontWeight: 600, color: '#DC2626', background: 'transparent', border: 'none' }}
+                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#FEF2F2'}
+                                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+                                <Trash2 size={13} /> Remove affiliate
+                              </button>
+                            </div>
+                          </RowMenu>
                         </td>
                       </tr>
                     )
                   })}
-                  {paginated.length === 0 && (
+                  {!loading && paginated.length === 0 && (
                     <tr>
                       <td colSpan={6} style={{ textAlign: 'center', padding: '48px 0' }}>
                         <Globe size={28} style={{ color: '#E5E7EB', margin: '0 auto 10px' }} />
@@ -398,11 +586,18 @@ export default function AffiliatesClient() {
             </div>
           </div>
       <AddAffiliateDrawer
-      open={drawerOpen}
-      onClose={() => setDrawerOpen(false)}
-      onSuccess={() => { setDrawerOpen(false); setToast(true); setTimeout(() => setToast(false), 3500) }}
-    />
-      {toast && <SuccessToast message="Affiliate added successfully" onClose={() => setToast(false)} />}
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        onCreated={a => { setDrawerOpen(false); setAffiliates(prev => [a, ...prev]); showToast('Affiliate added successfully') }}
+      />
+      {editing && (
+        <EditAffiliateDrawer
+          affiliate={editing}
+          onClose={() => setEditing(null)}
+          onSaved={a => { setEditing(null); setAffiliates(prev => prev.map(x => x.id === a.id ? a : x)); showToast('Affiliate updated') }}
+        />
+      )}
+      {toast && <SuccessToast message={toast} onClose={() => setToast('')} />}
     </main>
   )
 }
