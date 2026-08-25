@@ -98,7 +98,7 @@ function BottomNav() {
             href={item.href}
             prefetch={false}
             className="relative flex-1 flex flex-col items-center justify-center gap-1 transition-colors"
-            style={{ padding: '8px 0 14px', color: active ? '#007AFF' : '#8E8E93' }}
+            style={{ paddingTop: 8, paddingBottom: 'max(14px, env(safe-area-inset-bottom))', color: active ? '#007AFF' : '#8E8E93' }}
           >
             {active && (
               <span className="absolute top-0 left-1/2 -translate-x-1/2 rounded-full" style={{ width: 32, height: 2, background: '#007AFF' }} />
@@ -114,7 +114,7 @@ function BottomNav() {
         href="/my/qr"
         prefetch={false}
         className="flex flex-col items-center gap-1"
-        style={{ flex: 1, paddingBottom: 14, color: qrActive ? '#007AFF' : '#8E8E93' }}
+        style={{ flex: 1, paddingBottom: 'max(14px, env(safe-area-inset-bottom))', color: qrActive ? '#007AFF' : '#8E8E93' }}
       >
         <div
           className="flex items-center justify-center rounded-full"
@@ -142,7 +142,7 @@ function BottomNav() {
             href={item.href}
             prefetch={false}
             className="relative flex-1 flex flex-col items-center justify-center gap-1 transition-colors"
-            style={{ padding: '8px 0 14px', color: active ? '#007AFF' : '#8E8E93' }}
+            style={{ paddingTop: 8, paddingBottom: 'max(14px, env(safe-area-inset-bottom))', color: active ? '#007AFF' : '#8E8E93' }}
           >
             {active && (
               <span className="absolute top-0 left-1/2 -translate-x-1/2 rounded-full" style={{ width: 32, height: 2, background: '#007AFF' }} />
