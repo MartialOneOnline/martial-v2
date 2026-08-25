@@ -266,6 +266,17 @@ function LoginPageInner() {
     if (err) { setError(err.message); setOauthLoading(null) }
   }
 
+  // Only reached when GSI's popup can't work at all (embedded WebView) —
+  // full-page navigation to our own OAuth kickoff route instead of
+  // supabase.auth.signInWithOAuth, so Google's consent screen shows
+  // martialapp.com instead of Supabase's own domain. See
+  // app/api/auth/google/start/route.ts.
+  const handleGoogleWebViewFallback = () => {
+    setOauthLoading('google')
+    const redirectQuery = redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ''
+    window.location.href = `/api/auth/google/start${redirectQuery}`
+  }
+
   // Google specifically skips signInWithOAuth's redirect round trip — the ID
   // token comes back straight from Google's own button (rendered by
   // useGoogleSignInButton below) without ever leaving this page, so there's
@@ -438,7 +449,7 @@ function LoginPageInner() {
               <div style={{ position: 'relative', height: 52 }}>
                 <SocialButton provider="google" label="Continue with Google"
                   loading={oauthLoading === 'google'} disabled={oauthLoading !== null}
-                  onClick={googleFallback ? () => handleOAuth('google') : () => {}} />
+                  onClick={googleFallback ? handleGoogleWebViewFallback : () => {}} />
                 {/* Google's real button, invisible and stacked on top — its
                     click (not a simulated one) is what's actually allowed to
                     open the account-picker popup, per Google's ToS. The
