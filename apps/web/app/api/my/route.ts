@@ -52,7 +52,7 @@ export async function GET() {
           classesUsed: true, paymentMethod: true,
           school: {
             select: {
-              id: true, name: true, slug: true, logoUrl: true, city: true, modules: true,
+              id: true, name: true, slug: true, logoUrl: true, coverUrl: true, coverPosY: true, city: true, modules: true,
               email: true, phone: true,
               _count: { select: { gradingSystems: { where: { isActive: true } } } },
             },
@@ -118,7 +118,7 @@ export async function GET() {
           id: true, belt: true, beltDegree: true, beltDate: true, role: true, status: true,
           school: {
             select: {
-              id: true, name: true, slug: true, logoUrl: true, modules: true,
+              id: true, name: true, slug: true, logoUrl: true, coverUrl: true, coverPosY: true, modules: true,
               email: true, phone: true,
               _count: { select: { gradingSystems: { where: { isActive: true } } } },
             },

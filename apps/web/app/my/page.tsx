@@ -64,7 +64,7 @@ type UserData = {
       startDate: string
       endDate: string | null
       classesUsed: number
-      school: { id: string; name: string; slug: string; logoUrl: string | null; city: string | null }
+      school: { id: string; name: string; slug: string; logoUrl: string | null; coverUrl: string | null; coverPosY: number; city: string | null }
       plan: { classAccess: Record<string, unknown> } | null
     }[]
     bookings: {
@@ -103,7 +103,7 @@ type UserData = {
       beltDate: string | null
       role: string
       status: string
-      school: { id: string; name: string; slug: string; logoUrl: string | null }
+      school: { id: string; name: string; slug: string; logoUrl: string | null; coverUrl: string | null; coverPosY: number }
     }[]
     gradings: {
       id: string
@@ -401,7 +401,7 @@ export default function MyHomePage() {
     ? occurrences.find(o => o.classId === nextBooking.class.id && o.scheduledAt === nextBooking.scheduledAt)
     : undefined
 
-  const primarySchool: { name: string; slug: string; logoUrl: string | null; city?: string | null } | undefined =
+  const primarySchool: { name: string; slug: string; logoUrl: string | null; coverUrl?: string | null; coverPosY?: number; city?: string | null } | undefined =
     activeMembership?.school ?? pendingMembership?.school ?? primaryMember?.school
 
   // ── Desktop rail cards — shared between the mobile stacked layout and the
@@ -654,24 +654,44 @@ export default function MyHomePage() {
           </div>
         </div>
       ) : (
-        /* No upcoming booking */
-        <div className="mx-4 md:mx-6 mb-5 md:mb-6 rounded-[20px]" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)', padding: '18px 20px 20px' }}>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="flex items-center justify-center rounded-full shrink-0" style={{ width: 26, height: 26, background: 'rgba(0,122,255,.1)' }}>
-              <Calendar className="w-3.5 h-3.5" style={{ color: '#007AFF' }} />
+        /* No upcoming booking — school cover photo as backdrop, with a dark
+           scrim so the text/CTA stay legible over any photo. Falls back to
+           a plain card when the school has no cover photo set. */
+        <div
+          className="relative mx-4 md:mx-6 mb-5 md:mb-6 rounded-[20px] overflow-hidden"
+          style={{ boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)', padding: '18px 20px 20px' }}
+        >
+          {primarySchool?.coverUrl ? (
+            <>
+              <img
+                src={primarySchool.coverUrl}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover"
+                style={{ objectPosition: `50% ${primarySchool.coverPosY ?? 50}%` }}
+              />
+              <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,.25) 0%, rgba(0,0,0,.62) 100%)' }} />
+            </>
+          ) : (
+            <div className="absolute inset-0" style={{ background: '#fff' }} />
+          )}
+          <div className="relative">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center justify-center rounded-full shrink-0" style={{ width: 26, height: 26, background: primarySchool?.coverUrl ? 'rgba(255,255,255,.18)' : 'rgba(0,122,255,.1)' }}>
+                <Calendar className="w-3.5 h-3.5" style={{ color: primarySchool?.coverUrl ? '#fff' : '#007AFF' }} />
+              </div>
+              <span className="text-[11px] font-semibold uppercase" style={{ color: primarySchool?.coverUrl ? 'rgba(255,255,255,.75)' : '#9CA3AF', letterSpacing: '.6px' }}>{t.my.nextClass}</span>
             </div>
-            <span className="text-[11px] font-semibold uppercase" style={{ color: '#9CA3AF', letterSpacing: '.6px' }}>{t.my.nextClass}</span>
+            <p className="text-sm font-medium mb-3" style={{ color: primarySchool?.coverUrl ? '#fff' : '#1C1C1E' }}>{t.my.noUpcomingClasses}</p>
+            <Link
+              href="/my/classes"
+              prefetch={false}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold rounded-full"
+              style={{ background: primarySchool?.coverUrl ? '#fff' : '#E8F7FF', color: '#006197', padding: '10px 16px' }}
+            >
+              <CalendarPlus className="w-3.5 h-3.5 shrink-0" />
+              {t.my.bookAClass}
+            </Link>
           </div>
-          <p className="text-sm font-medium mb-3" style={{ color: '#1C1C1E' }}>{t.my.noUpcomingClasses}</p>
-          <Link
-            href="/my/classes"
-            prefetch={false}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold rounded-full"
-            style={{ background: '#E8F7FF', color: '#006197', padding: '10px 16px' }}
-          >
-            <CalendarPlus className="w-3.5 h-3.5 shrink-0" />
-            {t.my.bookAClass}
-          </Link>
         </div>
       )}
 
