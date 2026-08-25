@@ -217,7 +217,7 @@ function TicketDrawer({ ev, onClose }: { ev: EventItem; onClose: () => void }) {
 
   if (cashReserved) {
     return (
-      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
         <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl text-center" onClick={e => e.stopPropagation()}>
           <div className="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
             <CheckCircle2 className="w-7 h-7 text-emerald-500" />
@@ -318,7 +318,7 @@ function TicketDrawer({ ev, onClose }: { ev: EventItem; onClose: () => void }) {
 function TicketQrModal({ booking, onClose }: { booking: MyBooking; onClose: () => void }) {
   const t = useT()
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto" onClick={onClose}>
       <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl text-center my-8" onClick={e => e.stopPropagation()}>
         <div className="flex justify-end -mt-1 -mr-1 mb-1">
           <button onClick={onClose}><X className="w-5 h-5 text-gray-400" /></button>

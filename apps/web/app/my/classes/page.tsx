@@ -373,7 +373,7 @@ function DetailDrawer({ occ, onClose, onBook }: {
   }, [occ.classId, occ.scheduledAt, occ.cancelled])
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
       <div
         className="w-full max-w-lg bg-white rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto pb-24"
         onClick={e => e.stopPropagation()}
@@ -569,7 +569,7 @@ function ConfirmModal({ occ, onConfirm, onCancel, booking, success }: {
 
   if (success) {
     return (
-      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
         <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl text-center">
           <div className="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
             <CheckCircle2 className="w-7 h-7 text-emerald-500" />
@@ -586,7 +586,7 @@ function ConfirmModal({ occ, onConfirm, onCancel, booking, success }: {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl">
         <h2 className="text-base font-bold text-[#101828] mb-1">{t.my.confirmBookingTitle}</h2>
         <p className="text-sm text-gray-500 mb-4">{occ.className} · {dateStr} at {fmtTime(occ.scheduledAt)}</p>
@@ -616,7 +616,7 @@ function CancelModal({ booking, onConfirm, onClose, cancelling }: {
   const t = useT()
   const dateStr = new Date(booking.scheduledAt).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm">
       <div className="w-full max-w-sm bg-white rounded-t-3xl sm:rounded-3xl px-6 pt-4 pb-28 sm:pb-6 shadow-2xl">
         <div className="flex justify-center mb-4">
           <div className="w-10 h-1 rounded-full bg-gray-200" />

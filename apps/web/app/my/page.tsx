@@ -956,7 +956,7 @@ export default function MyHomePage() {
       {/* ── Cancel confirm modal ──────────────────────────────────────────── */}
       {cancelOcc && (
         <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+          className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center"
           style={{ background: 'rgba(0,0,0,.5)', backdropFilter: 'blur(4px)' }}
           onClick={() => !cancelling && setCancelOcc(null)}
         >
@@ -998,7 +998,7 @@ export default function MyHomePage() {
       {/* ── Class detail bottom sheet ──────────────────────────────────────── */}
       {detailOcc && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center"
+          className="fixed inset-0 z-[60] flex items-end justify-center"
           style={{ background: 'rgba(0,0,0,.5)', backdropFilter: 'blur(4px)' }}
           onClick={() => setDetailOcc(null)}
         >
@@ -1168,7 +1168,7 @@ export default function MyHomePage() {
       {/* ── Booking success popup ──────────────────────────────────────────── */}
       {bookSuccessOcc && (
         <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
+          className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4"
           style={{ background: 'rgba(0,0,0,.5)', backdropFilter: 'blur(4px)' }}
           onClick={() => setBookSuccessOcc(null)}
         >
@@ -1197,7 +1197,7 @@ export default function MyHomePage() {
 
       {/* ── Curriculum video lightbox ───────────────────────────────────── */}
       {playingLesson && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.85)' }} onClick={() => setPlayingLesson(null)}>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.85)' }} onClick={() => setPlayingLesson(null)}>
           <div className="w-full max-w-lg px-4" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
               <p style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{playingLesson.title}</p>
