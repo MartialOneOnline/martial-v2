@@ -12,6 +12,7 @@ import { resolveLoginRedirectAction } from '@/lib/auth/loginRedirect'
 import { fetchAvailableContexts } from '@/app/choose-profile/logic'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { useGoogleSignInButton } from '@/lib/useGoogleSignInButton'
+import { AuthLegalNotice } from '@/components/AuthLegalNotice'
 
 const BLUE = '#0870E2'
 const NAVY = '#0E3A7A'
@@ -476,6 +477,8 @@ function LoginPageInner() {
               Continue with Email
             </button>
 
+            <AuthLegalNotice />
+
             <p style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: MUTED }}>
               Don&apos;t have an account?{' '}
               <a href="/register" style={{ color: NAVY, fontWeight: 600, textDecoration: 'underline' }}>Register</a>
@@ -621,6 +624,8 @@ function LoginPageInner() {
                 {loading ? 'Logging in…' : 'Log in'}
               </button>
             </form>
+
+            <AuthLegalNotice />
           </div>
         ) : view === 'email' ? (
           <div style={{ background: '#fff', borderRadius: 16, border: `1px solid ${BORDER}`, boxShadow: '0 4px 24px rgba(0,0,0,0.06)', padding: 28 }}>

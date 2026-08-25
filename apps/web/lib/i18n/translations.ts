@@ -820,6 +820,12 @@ export const translations = {
       registerCheckBody: 'We sent a confirmation link to {email}. Click it to activate your account, then log in.',
       registerGoToLogin: 'Go to login',
     },
+    authLegal: {
+      noticeLine1: "By continuing, you agree to Martial App's {terms}.",
+      noticeLine2: 'Read our {privacy}.',
+      terms: 'Terms of Use',
+      privacy: 'Privacy Policy',
+    },
   },
 
   // ── ESPAÑOL ────────────────────────────────────────────────────────────────
@@ -1561,6 +1567,12 @@ export const translations = {
       registerCheckTitle: 'Revisa tu email',
       registerCheckBody: 'Te enviamos un enlace de confirmación a {email}. Haz clic para activar tu cuenta y luego inicia sesión.',
       registerGoToLogin: 'Ir a iniciar sesión',
+    },
+    authLegal: {
+      noticeLine1: 'Al continuar, aceptas los {terms} de Martial App.',
+      noticeLine2: 'Lee nuestra {privacy}.',
+      terms: 'Términos de Uso',
+      privacy: 'Política de Privacidad',
     },
   },
 
@@ -2304,6 +2316,12 @@ export const translations = {
       registerCheckBody: 'Enviamos um link de confirmação para {email}. Clique nele para ativar sua conta e depois faça login.',
       registerGoToLogin: 'Ir para o login',
     },
+    authLegal: {
+      noticeLine1: 'Ao continuar, você concorda com os {terms}.',
+      noticeLine2: 'Leia nossa {privacy}.',
+      terms: 'Termos de Uso',
+      privacy: 'Política de Privacidade',
+    },
   },
 
   // ── FRANÇAIS ───────────────────────────────────────────────────────────────
@@ -3045,6 +3063,12 @@ export const translations = {
       registerCheckTitle: 'Vérifiez votre email',
       registerCheckBody: 'Nous avons envoyé un lien de confirmation à {email}. Cliquez dessus pour activer votre compte, puis connectez-vous.',
       registerGoToLogin: 'Aller à la connexion',
+    },
+    authLegal: {
+      noticeLine1: "En continuant, vous acceptez les {terms}.",
+      noticeLine2: 'Lisez notre {privacy}.',
+      terms: "Conditions d'utilisation",
+      privacy: 'Politique de confidentialité',
     },
   },
 }

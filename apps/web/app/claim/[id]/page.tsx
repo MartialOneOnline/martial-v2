@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { AuthLegalNotice } from '@/components/AuthLegalNotice'
 
 type InvitationData = {
   id: string
@@ -243,6 +244,8 @@ export default function ClaimPage() {
               {submitting ? 'Creating account…' : 'Activate my school →'}
             </button>
           </form>
+
+          <AuthLegalNotice />
 
           <p style={{ fontSize: 12, color: '#9CA3AF', textAlign: 'center', marginTop: 20 }}>
             Already have an account?{' '}

@@ -12,6 +12,7 @@ import { safeRedirect } from '@/lib/safeRedirect'
 import { resolveLoginRedirectAction } from '@/lib/auth/loginRedirect'
 import { fetchAvailableContexts } from '@/app/choose-profile/logic'
 import { useGoogleSignInButton } from '@/lib/useGoogleSignInButton'
+import { AuthLegalNotice } from '@/components/AuthLegalNotice'
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 function GoogleIcon() {
@@ -388,6 +389,8 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
 
                 <SSOButton icon={<EmailIcon />} label="Continue with Email" onClick={() => setView('email')} />
 
+                <AuthLegalNotice />
+
                 <p className="text-[13px] text-[#6b7280] text-center mt-6">
                   Don&apos;t have an account?{' '}
                   <span onClick={() => router.push('/register')}
@@ -447,6 +450,8 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
                     {loading ? 'Logging in...' : 'Login'}
                   </button>
                 </form>
+
+                <AuthLegalNotice />
 
                 <p className="text-[13px] text-[#6b7280] text-center mt-5">
                   Don&apos;t have an account?{' '}

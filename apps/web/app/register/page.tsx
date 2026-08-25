@@ -7,6 +7,7 @@ import { ArrowLeft, Building2, GraduationCap, Mail, Loader2 } from 'lucide-react
 import { createClient } from '@/lib/supabase/client'
 import { safeConfirmRedirect } from '@/lib/authConfirmRedirect'
 import { SocialAuthButtons } from '@/components/SocialAuthButtons'
+import { AuthLegalNotice } from '@/components/AuthLegalNotice'
 import { useT, useLanguage } from '@/lib/i18n/LanguageContext'
 
 const BLUE = '#0870E2'
@@ -218,6 +219,8 @@ function RegisterPageInner() {
               </button>
             </div>
 
+            <AuthLegalNotice />
+
             <p style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: MUTED }}>
               Already have an account?{' '}
               <a href="/login" style={{ color: NAVY, fontWeight: 600, textDecoration: 'underline' }}>Log in</a>
@@ -279,6 +282,8 @@ function RegisterPageInner() {
                 {signingIn ? 'Signing you in…' : loading ? 'Creating account…' : accountType === 'school' ? 'Create academy account' : 'Create account'}
               </button>
             </form>
+
+            <AuthLegalNotice />
 
             <p style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: MUTED }}>
               Already have an account?{' '}
