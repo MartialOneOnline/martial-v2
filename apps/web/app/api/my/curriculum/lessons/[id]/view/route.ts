@@ -3,10 +3,11 @@ import { prisma } from '@/lib/db'
 import { getAuthUser } from '@/lib/auth/server'
 
 // POST /api/my/curriculum/lessons/[id]/view
-// Called once from MyCurriculumClient when playback starts. Re-checks
-// membership itself rather than trusting that the lesson ever appeared in a
-// prior /api/my/curriculum response — a membership could have lapsed between
-// that GET and this POST.
+// Called once from MyCurriculumClient when playback reaches ~90% or ends —
+// not on play start, so a few seconds of playback doesn't count as
+// "watched". Re-checks membership itself rather than trusting that the
+// lesson ever appeared in a prior /api/my/curriculum response — a
+// membership could have lapsed between that GET and this POST.
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const user = await getAuthUser()

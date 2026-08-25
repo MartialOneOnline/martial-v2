@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db'
 import { getAuthUser } from '@/lib/auth/server'
 import { getActiveStudentContext } from '@/lib/auth/activeContextCookie'
 import { getSchoolModules } from '@/lib/school-modules'
-import { signCurriculumPlaybackToken } from '@/lib/mux'
+import { signCurriculumPlaybackToken, signCurriculumThumbnailToken } from '@/lib/mux'
 
 // GET /api/my/curriculum
 // Gated by: real STUDENT-role, ACTIVE SchoolMember at the resolved school
@@ -47,7 +47,7 @@ export async function GET() {
       lessons: {
         where: { status: 'READY' },
         orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
-        select: { id: true, title: true, category: true, description: true, muxPlaybackId: true, durationSec: true },
+        select: { id: true, title: true, category: true, description: true, muxPlaybackId: true, durationSec: true, createdAt: true },
       },
     },
   })
@@ -61,6 +61,7 @@ export async function GET() {
         c.lessons.map(async l => ({
           ...l,
           playbackToken: l.muxPlaybackId ? await signCurriculumPlaybackToken(l.muxPlaybackId) : null,
+          thumbnailToken: l.muxPlaybackId ? await signCurriculumThumbnailToken(l.muxPlaybackId) : null,
         }))
       ),
     }))

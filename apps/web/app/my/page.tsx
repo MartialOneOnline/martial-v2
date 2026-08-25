@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import {
   Calendar, Clock, CalendarCheck, QrCode, CalendarPlus,
-  CreditCard, TrendingUp, ChevronRight, CheckCircle2, Ticket, Users, Info,
+  CreditCard, TrendingUp, ChevronRight, CheckCircle2, Ticket, Users, Info, PlayCircle,
 } from 'lucide-react'
 import { fmtPrice } from '../../lib/format'
 import { getBeltImage } from '../../lib/belts'
@@ -33,6 +33,15 @@ type Occurrence = {
 }
 
 type Attendee = { id: string; name: string; avatarUrl: string | null; belt: string | null; beltDegree: number }
+
+type CurriculumLessonPreview = {
+  id: string
+  title: string
+  category: string | null
+  muxPlaybackId: string | null
+  thumbnailToken: string | null
+  durationSec: number | null
+}
 
 type UserData = {
   user: {
@@ -153,6 +162,12 @@ function fmtDateShortFn(iso: string, todayLabel: string, tomorrowLabel: string) 
   if (day.getTime() === tomorrow.getTime()) return tomorrowLabel
   return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
 }
+function fmtDuration(sec: number | null) {
+  if (!sec) return null
+  const m = Math.floor(sec / 60)
+  const s = Math.round(sec % 60)
+  return `${m}:${String(s).padStart(2, '0')}`
+}
 function classTypeBadge(name: string) {
   const lower = name.toLowerCase()
   if (lower.includes('nogi') || lower.includes('no-gi')) return 'NOGI'
@@ -201,6 +216,7 @@ export default function MyHomePage() {
   const [bookSuccessOcc, setBookSuccessOcc] = useState<Occurrence | null>(null)
   const [attendees, setAttendees] = useState<Attendee[]>([])
   const [loadingAttendees, setLoadingAttendees] = useState(true)
+  const [curriculumLessons, setCurriculumLessons] = useState<CurriculumLessonPreview[]>([])
   const carRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -235,6 +251,18 @@ export default function MyHomePage() {
       .then(d => {
         if (isStudentContextRequired(d)) return
         setOccurrences(d.occurrences ?? [])
+      })
+      .catch(() => {})
+    // 403 here just means the school hasn't turned the Curriculum module on
+    // (or this student isn't ACTIVE yet) — the section below simply stays
+    // hidden in that case, same as every other conditionally-shown card.
+    myFetch('/api/my/curriculum')
+      .then(async r => {
+        if (!r.ok) return
+        const d = await r.json()
+        type CurriculumGroup = { lessons: CurriculumLessonPreview[] }
+        const groups: CurriculumGroup[] = d.curriculums ?? []
+        setCurriculumLessons(groups.flatMap(c => c.lessons).filter(l => l.muxPlaybackId))
       })
       .catch(() => {})
   }, [router, pathname])
@@ -794,6 +822,60 @@ export default function MyHomePage() {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── Curriculum preview — technique videos, hidden if the school hasn't
+          enabled the module or this student can't see it (see the 403 case
+          in the fetch above). ────────────────────────────────────────────── */}
+      {curriculumLessons.length > 0 && (
+        <div className="mb-2 mt-2">
+          <div className="flex items-center justify-between px-4 md:px-6 lg:px-0 mb-3">
+            <span className="text-base md:text-lg font-semibold" style={{ color: '#1C1C1E', letterSpacing: '-0.2px' }}>Curriculum</span>
+            <Link href="/my/curriculum" prefetch={false} className="flex items-center text-sm font-normal" style={{ color: '#007AFF' }}>
+              {t.my.viewAll}<ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          <div
+            className="flex gap-3 overflow-x-auto pb-1"
+            style={{ scrollSnapType: 'x mandatory', scrollPaddingLeft: 16, paddingLeft: 16, WebkitOverflowScrolling: 'touch' }}
+          >
+            {curriculumLessons.slice(0, 8).map(lesson => {
+              const thumbUrl = lesson.muxPlaybackId && lesson.thumbnailToken
+                ? `https://image.mux.com/${lesson.muxPlaybackId}/thumbnail.jpg?token=${lesson.thumbnailToken}&width=320`
+                : null
+              return (
+                <Link
+                  key={lesson.id}
+                  href="/my/curriculum"
+                  prefetch={false}
+                  className="flex flex-col shrink-0 rounded-xl overflow-hidden"
+                  style={{ width: 160, background: '#fff', border: '1px solid rgba(0,0,0,.07)', boxShadow: '0 1px 4px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04)', scrollSnapAlign: 'start', textDecoration: 'none' }}
+                >
+                  <div className="relative shrink-0 overflow-hidden flex items-center justify-center" style={{ aspectRatio: '16/9', background: '#111827' }}>
+                    {thumbUrl && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={thumbUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                    )}
+                    <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'rgba(0,0,0,.15)' }}>
+                      <PlayCircle className="w-6 h-6" style={{ color: '#fff' }} fill="rgba(0,0,0,.35)" />
+                    </div>
+                    {fmtDuration(lesson.durationSec) && (
+                      <span className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded" style={{ fontSize: 10, fontWeight: 600, color: '#fff', background: 'rgba(0,0,0,.7)' }}>
+                        {fmtDuration(lesson.durationSec)}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ padding: '8px 10px 10px' }}>
+                    <p className="truncate" style={{ fontSize: 12.5, fontWeight: 600, color: '#1C1C1E' }}>{lesson.title}</p>
+                    <p className="truncate" style={{ fontSize: 11, color: '#9CA3AF', marginTop: 1 }}>{lesson.category ?? 'Lesson'}</p>
+                  </div>
+                </Link>
+              )
+            })}
+            <div className="shrink-0" style={{ width: 16 }} />
+          </div>
         </div>
       )}
       </div>{/* end main column */}

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import MuxPlayer from '@mux/mux-player-react'
+import type MuxPlayerElement from '@mux/mux-player'
 import { PlayCircle, X, BookOpen } from 'lucide-react'
 import { myFetch } from '../../../lib/api/myFetch'
 
@@ -12,6 +13,7 @@ interface Lesson {
   description: string | null
   muxPlaybackId: string | null
   playbackToken: string | null
+  thumbnailToken: string | null
   durationSec: number | null
 }
 
@@ -36,13 +38,23 @@ export default function MyCurriculumClient() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [playing, setPlaying] = useState<Lesson | null>(null)
   const markedThisSession = useRef<Set<string>>(new Set())
+  const playerRef = useRef<MuxPlayerElement>(null)
 
   function markWatched(lessonId: string) {
-    // 'play' fires again on every pause/resume — only the first play of a
-    // given open-the-lightbox session should hit the endpoint.
+    // Fires from onTimeUpdate/onEnded below once the lesson is essentially
+    // finished, not from onPlay — a few seconds of playback before closing
+    // the lightbox shouldn't count as "watched". timeupdate keeps firing
+    // after the 90% threshold, so dedupe per open-the-lightbox session.
     if (markedThisSession.current.has(lessonId)) return
     markedThisSession.current.add(lessonId)
     myFetch(`/api/my/curriculum/lessons/${lessonId}/view`, { method: 'POST' }).catch(() => {})
+  }
+
+  function handleProgress() {
+    if (!playing) return
+    const el = playerRef.current
+    if (!el || !el.duration || Number.isNaN(el.duration)) return
+    if (el.currentTime / el.duration >= 0.9) markWatched(playing.id)
   }
 
   useEffect(() => {
@@ -100,21 +112,39 @@ export default function MyCurriculumClient() {
             </div>
 
             <div className="flex flex-col gap-3 mt-5">
-              {selected?.lessons.map(lesson => (
-                <button key={lesson.id} onClick={() => lesson.muxPlaybackId && setPlaying(lesson)}
-                  className="flex items-center gap-4 p-4 rounded-2xl text-left cursor-pointer"
-                  style={{ background: '#fff', border: 'none' }}>
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#EFF6FF' }}>
-                    <PlayCircle size={20} style={{ color: '#2563EB' }} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{lesson.title}</p>
-                    <p style={{ fontSize: 12, color: '#9CA3AF' }}>
-                      {lesson.category ?? 'Lesson'}{fmtDuration(lesson.durationSec) ? ` · ${fmtDuration(lesson.durationSec)}` : ''}
-                    </p>
-                  </div>
-                </button>
-              ))}
+              {selected?.lessons.map(lesson => {
+                const thumbUrl = lesson.muxPlaybackId && lesson.thumbnailToken
+                  ? `https://image.mux.com/${lesson.muxPlaybackId}/thumbnail.jpg?token=${lesson.thumbnailToken}&width=240`
+                  : null
+                return (
+                  <button key={lesson.id} onClick={() => lesson.muxPlaybackId && setPlaying(lesson)}
+                    className="flex items-center gap-4 p-3 rounded-2xl text-left cursor-pointer"
+                    style={{ background: '#fff', border: 'none' }}>
+                    <div className="relative w-20 shrink-0 rounded-xl overflow-hidden flex items-center justify-center"
+                      style={{ aspectRatio: '16/9', background: '#111827' }}>
+                      {thumbUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={thumbUrl} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <PlayCircle size={18} style={{ color: 'rgba(255,255,255,0.35)' }} />
+                      )}
+                      <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.15)' }}>
+                        <PlayCircle size={18} style={{ color: '#fff' }} fill="rgba(0,0,0,0.3)" />
+                      </div>
+                      {fmtDuration(lesson.durationSec) && (
+                        <span className="absolute bottom-1 right-1 px-1 py-0.5 rounded"
+                          style={{ fontSize: 9, fontWeight: 600, color: '#fff', background: 'rgba(0,0,0,0.7)', lineHeight: 1 }}>
+                          {fmtDuration(lesson.durationSec)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{lesson.title}</p>
+                      <p style={{ fontSize: 12, color: '#9CA3AF' }}>{lesson.category ?? 'Lesson'}</p>
+                    </div>
+                  </button>
+                )
+              })}
               {selected && selected.lessons.length === 0 && (
                 <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', marginTop: 24 }}>No lessons in this curriculum yet.</p>
               )}
@@ -135,11 +165,13 @@ export default function MyCurriculumClient() {
             </div>
             {playing.muxPlaybackId && (
               <MuxPlayer
+                ref={playerRef}
                 playbackId={playing.muxPlaybackId}
                 tokens={playing.playbackToken ? { playback: playing.playbackToken } : undefined}
                 streamType="on-demand"
                 autoPlay
-                onPlay={() => markWatched(playing.id)}
+                onTimeUpdate={handleProgress}
+                onEnded={() => markWatched(playing.id)}
                 style={{ width: '100%', aspectRatio: '16/9', borderRadius: 12 }}
               />
             )}

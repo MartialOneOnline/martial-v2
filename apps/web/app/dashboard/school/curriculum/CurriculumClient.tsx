@@ -271,6 +271,75 @@ function AddLessonDrawer({ open, curriculumId, onClose, onSuccess }: {
   )
 }
 
+interface Viewer {
+  userId: string
+  name: string | null
+  email: string
+  avatarUrl: string | null
+  viewCount: number
+  lastViewedAt: string
+}
+
+function fmtViewedDate(iso: string) {
+  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+function ViewersModal({ lesson, onClose }: { lesson: Lesson; onClose: () => void }) {
+  const [viewers, setViewers] = useState<Viewer[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    jsonFetch<{ views: Viewer[] }>(`/api/dashboard/school/curriculum/lessons/${lesson.id}/views`)
+      .then(({ views }) => { if (!cancelled) setViewers(views) })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [lesson.id])
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.35)' }} onClick={onClose}>
+      <div className="rounded-2xl overflow-hidden flex flex-col" style={{ width: 'min(420px,92vw)', maxHeight: '80vh', background: '#fff' }} onClick={e => e.stopPropagation()}>
+        <div className="px-6 py-5 flex items-center justify-between shrink-0" style={{ borderBottom: '1px solid #E5E7EB' }}>
+          <div>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>Watched by</h2>
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }} className="truncate">{lesson.title}</p>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer shrink-0" style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
+            <X size={14} style={{ color: '#6B7280' }} />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-3 py-3">
+          {loading && (
+            <div style={{ textAlign: 'center', padding: '32px 0' }}>
+              <Loader2 size={20} className="animate-spin" style={{ color: '#D1D5DB', margin: '0 auto' }} />
+            </div>
+          )}
+          {!loading && viewers.length === 0 && (
+            <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: '32px 0' }}>No one has finished watching this yet.</p>
+          )}
+          {!loading && viewers.map(v => (
+            <div key={v.userId} className="flex items-center gap-3 px-3 py-2.5 rounded-xl">
+              {v.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={v.avatarUrl} alt="" className="w-9 h-9 rounded-full object-cover shrink-0" />
+              ) : (
+                <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ background: '#EFF6FF' }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: '#2563EB' }}>{(v.name ?? v.email).charAt(0).toUpperCase()}</span>
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="truncate" style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{v.name ?? v.email}</p>
+                <p style={{ fontSize: 11, color: '#9CA3AF' }}>Watched {fmtViewedDate(v.lastViewedAt)}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function SuccessToast({ message, onClose }: { message: string; onClose: () => void }) {
   return (
     <div className="fixed bottom-6 right-6 z-[70] flex items-center gap-3 px-5 py-3.5 rounded-2xl"
@@ -298,6 +367,7 @@ export default function CurriculumClient() {
   const [addCurriculumOpen, setAddCurriculumOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [toast, setToast] = useState(false)
+  const [viewersLesson, setViewersLesson] = useState<Lesson | null>(null)
 
   async function loadCurriculums(selectAfter?: string) {
     setLoadingCurriculums(true)
@@ -467,10 +537,11 @@ export default function CurriculumClient() {
                               )}
                               <div className="flex items-center justify-between mt-1">
                                 {lesson.status === 'READY' ? (
-                                  <span className="inline-flex items-center gap-1" title="Active students who've watched this"
-                                    style={{ fontSize: 11, color: '#6B7280' }}>
+                                  <button onClick={() => setViewersLesson(lesson)} title="See who's watched this"
+                                    className="inline-flex items-center gap-1 cursor-pointer"
+                                    style={{ fontSize: 11, color: '#6B7280', background: 'transparent', border: 'none', padding: 0, fontFamily: 'inherit' }}>
                                     <Eye size={12} style={{ color: '#9CA3AF' }} />{lesson._count.views}/{activeStudentCount}
-                                  </span>
+                                  </button>
                                 ) : <span />}
                                 <button onClick={() => handleDeleteLesson(lesson.id)}
                                   className="w-6 h-6 rounded-md flex items-center justify-center cursor-pointer"
@@ -503,6 +574,7 @@ export default function CurriculumClient() {
         onSuccess={() => { setDrawerOpen(false); setToast(true); if (selectedId) loadLessons(selectedId); loadCurriculums(selectedId ?? undefined); setTimeout(() => setToast(false), 3500) }}
       />
       {toast && <SuccessToast message="Lesson added — processing now" onClose={() => setToast(false)} />}
+      {viewersLesson && <ViewersModal lesson={viewersLesson} onClose={() => setViewersLesson(null)} />}
     </main>
   )
 }
