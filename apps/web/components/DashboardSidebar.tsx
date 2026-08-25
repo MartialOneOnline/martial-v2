@@ -178,7 +178,7 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen, collapsed, set
   const handleSignOut = async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
-    window.location.href = '/'
+    window.location.href = '/login'
   }
 
   const NAV_MAIN: NavItem[] = [

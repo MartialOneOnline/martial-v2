@@ -91,7 +91,7 @@ export default function Header({ onOpenLoginModal }: HeaderProps) {
   const handleSignOut = async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
-    window.location.href = '/'
+    window.location.href = '/login'
   }
 
   const NAV_LINKS = [

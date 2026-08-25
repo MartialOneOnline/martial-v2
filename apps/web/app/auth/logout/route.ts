@@ -4,7 +4,7 @@ import { cookies } from 'next/headers'
 
 export async function GET(request: Request) {
   const cookieStore = await cookies()
-  const response = NextResponse.redirect(new URL('/', request.url))
+  const response = NextResponse.redirect(new URL('/login', request.url))
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
