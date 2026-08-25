@@ -3,9 +3,11 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
+import MuxPlayer from '@mux/mux-player-react'
+import type MuxPlayerElement from '@mux/mux-player'
 import {
   Calendar, Clock, CalendarCheck, QrCode, CalendarPlus,
-  CreditCard, TrendingUp, ChevronRight, CheckCircle2, Ticket, Users, Info, PlayCircle,
+  CreditCard, TrendingUp, ChevronRight, CheckCircle2, Ticket, Users, Info, PlayCircle, X,
 } from 'lucide-react'
 import { fmtPrice } from '../../lib/format'
 import { getBeltImage } from '../../lib/belts'
@@ -39,6 +41,7 @@ type CurriculumLessonPreview = {
   title: string
   category: string | null
   muxPlaybackId: string | null
+  playbackToken: string | null
   thumbnailToken: string | null
   durationSec: number | null
 }
@@ -217,7 +220,25 @@ export default function MyHomePage() {
   const [attendees, setAttendees] = useState<Attendee[]>([])
   const [loadingAttendees, setLoadingAttendees] = useState(true)
   const [curriculumLessons, setCurriculumLessons] = useState<CurriculumLessonPreview[]>([])
+  const [playingLesson, setPlayingLesson] = useState<CurriculumLessonPreview | null>(null)
   const carRef = useRef<HTMLDivElement>(null)
+  const markedThisSession = useRef<Set<string>>(new Set())
+  const playerRef = useRef<MuxPlayerElement>(null)
+
+  function markLessonWatched(lessonId: string) {
+    // Fires once the lesson is essentially finished, not on play — see the
+    // same guard in MyCurriculumClient.tsx.
+    if (markedThisSession.current.has(lessonId)) return
+    markedThisSession.current.add(lessonId)
+    myFetch(`/api/my/curriculum/lessons/${lessonId}/view`, { method: 'POST' }).catch(() => {})
+  }
+
+  function handleLessonProgress() {
+    if (!playingLesson) return
+    const el = playerRef.current
+    if (!el || !el.duration || Number.isNaN(el.duration)) return
+    if (el.currentTime / el.duration >= 0.9) markLessonWatched(playingLesson.id)
+  }
 
   useEffect(() => {
     if (!detailOcc || detailOcc.cancelled) { setLoadingAttendees(false); return }
@@ -846,12 +867,11 @@ export default function MyHomePage() {
                 ? `https://image.mux.com/${lesson.muxPlaybackId}/thumbnail.jpg?token=${lesson.thumbnailToken}&width=320`
                 : null
               return (
-                <Link
+                <button
                   key={lesson.id}
-                  href="/my/curriculum"
-                  prefetch={false}
-                  className="flex flex-col shrink-0 rounded-xl overflow-hidden"
-                  style={{ width: 160, background: '#fff', border: '1px solid rgba(0,0,0,.07)', boxShadow: '0 1px 4px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04)', scrollSnapAlign: 'start', textDecoration: 'none' }}
+                  onClick={() => lesson.muxPlaybackId && setPlayingLesson(lesson)}
+                  className="flex flex-col shrink-0 rounded-xl overflow-hidden text-left cursor-pointer"
+                  style={{ width: 260, background: '#fff', border: '1px solid rgba(0,0,0,.07)', boxShadow: '0 1px 4px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04)', scrollSnapAlign: 'start' }}
                 >
                   <div className="relative shrink-0 overflow-hidden flex items-center justify-center" style={{ aspectRatio: '16/9', background: '#111827' }}>
                     {thumbUrl && (
@@ -859,7 +879,7 @@ export default function MyHomePage() {
                       <img src={thumbUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
                     )}
                     <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'rgba(0,0,0,.15)' }}>
-                      <PlayCircle className="w-6 h-6" style={{ color: '#fff' }} fill="rgba(0,0,0,.35)" />
+                      <PlayCircle className="w-10 h-10" style={{ color: '#fff' }} fill="rgba(0,0,0,.35)" />
                     </div>
                     {fmtDuration(lesson.durationSec) && (
                       <span className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded" style={{ fontSize: 10, fontWeight: 600, color: '#fff', background: 'rgba(0,0,0,.7)' }}>
@@ -871,7 +891,7 @@ export default function MyHomePage() {
                     <p className="truncate" style={{ fontSize: 12.5, fontWeight: 600, color: '#1C1C1E' }}>{lesson.title}</p>
                     <p className="truncate" style={{ fontSize: 11, color: '#9CA3AF', marginTop: 1 }}>{lesson.category ?? 'Lesson'}</p>
                   </div>
-                </Link>
+                </button>
               )
             })}
             <div className="shrink-0" style={{ width: 16 }} />
@@ -1152,6 +1172,33 @@ export default function MyHomePage() {
             >
               {t.common.done}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Curriculum video lightbox ───────────────────────────────────── */}
+      {playingLesson && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.85)' }} onClick={() => setPlayingLesson(null)}>
+          <div className="w-full max-w-lg px-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <p style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{playingLesson.title}</p>
+              <button onClick={() => setPlayingLesson(null)} className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer"
+                style={{ background: 'rgba(255,255,255,0.15)', border: 'none' }}>
+                <X size={16} style={{ color: '#fff' }} />
+              </button>
+            </div>
+            {playingLesson.muxPlaybackId && (
+              <MuxPlayer
+                ref={playerRef}
+                playbackId={playingLesson.muxPlaybackId}
+                tokens={playingLesson.playbackToken ? { playback: playingLesson.playbackToken } : undefined}
+                streamType="on-demand"
+                autoPlay
+                onTimeUpdate={handleLessonProgress}
+                onEnded={() => markLessonWatched(playingLesson.id)}
+                style={{ width: '100%', aspectRatio: '16/9', borderRadius: 12 }}
+              />
+            )}
           </div>
         </div>
       )}
