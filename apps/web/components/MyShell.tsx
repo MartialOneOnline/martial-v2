@@ -83,10 +83,22 @@ function BottomNav() {
   const rightItems = BOTTOM_NAV_KEYS.slice(2)
   const qrActive   = isActive(pathname, '/my/qr')
 
+  // Useful nav height stays a fixed 64px regardless of device; the safe-area
+  // inset is added on top as its own padding, never folded into the 64px so
+  // there's no double-counting between this and the native shell's own inset
+  // handling (the wrapped iOS app explicitly excludes the bottom SafeArea and
+  // defers to this component — see martial-mobile-app/lib/main.dart).
+  const NAV_HEIGHT = 64
+
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden"
-      style={{ background: 'rgba(248,248,250,.96)', borderTop: '.5px solid rgba(60,60,67,.18)' }}
+      className="fixed bottom-0 left-0 right-0 z-50 flex items-stretch lg:hidden"
+      style={{
+        height: `calc(${NAV_HEIGHT}px + env(safe-area-inset-bottom))`,
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        background: 'rgba(248,248,250,.96)',
+        boxShadow: '0 -0.5px 0 rgba(60,60,67,.12)',
+      }}
     >
       {/* Left items */}
       {leftItems.map(item => {
@@ -97,39 +109,40 @@ function BottomNav() {
             key={item.href}
             href={item.href}
             prefetch={false}
-            className="relative flex-1 flex flex-col items-center justify-center gap-1 transition-colors active:opacity-50"
-            style={{ paddingTop: 14, paddingBottom: 'max(22px, env(safe-area-inset-bottom))', minHeight: 56, touchAction: 'manipulation', color: active ? '#007AFF' : '#8E8E93' }}
+            className="flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors active:opacity-50"
+            style={{ touchAction: 'manipulation', color: active ? '#007AFF' : '#8E8E93' }}
           >
-            {active && (
-              <span className="absolute top-0 left-1/2 -translate-x-1/2 rounded-full" style={{ width: 32, height: 2, background: '#007AFF' }} />
-            )}
             <Icon className="w-6 h-6" strokeWidth={active ? 2.5 : 1.5} />
-            <span style={{ fontSize: 10, fontWeight: active ? 600 : 400 }}>{t.my[item.labelKey as keyof typeof t.my]}</span>
+            <span style={{ fontSize: 12, fontWeight: active ? 600 : 400 }}>{t.my[item.labelKey as keyof typeof t.my]}</span>
           </Link>
         )
       })}
 
-      {/* Center QR FAB */}
+      {/* Center QR FAB — protrudes 12px above the bar, absolutely positioned
+          so its size/offset never affects the bar's own 64px height. */}
       <Link
         href="/my/qr"
         prefetch={false}
-        className="flex flex-col items-center gap-1 active:opacity-50"
-        style={{ flex: 1, paddingTop: 14, paddingBottom: 'max(22px, env(safe-area-inset-bottom))', minHeight: 56, touchAction: 'manipulation', color: qrActive ? '#007AFF' : '#8E8E93' }}
+        className="relative flex-1 flex flex-col items-center justify-end active:opacity-50"
+        style={{ touchAction: 'manipulation', color: qrActive ? '#007AFF' : '#8E8E93' }}
       >
         <div
           className="flex items-center justify-center rounded-full"
           style={{
-            width: 46,
-            height: 46,
+            position: 'absolute',
+            top: -12,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: 60,
+            height: 60,
             background: '#007AFF',
-            marginTop: -20,
             border: '3px solid rgba(248,248,250,.96)',
-            boxShadow: '0 4px 18px rgba(0,122,255,.38)',
+            boxShadow: '0 3px 10px rgba(0,122,255,.28)',
           }}
         >
-          <QrCode className="w-5 h-5 text-white" />
+          <QrCode className="w-6 h-6 text-white" />
         </div>
-        <span style={{ fontSize: 10, fontWeight: qrActive ? 600 : 400 }}>QR</span>
+        <span style={{ fontSize: 12, fontWeight: qrActive ? 600 : 400, paddingBottom: 6 }}>QR</span>
       </Link>
 
       {/* Right items */}
@@ -141,14 +154,11 @@ function BottomNav() {
             key={item.href}
             href={item.href}
             prefetch={false}
-            className="relative flex-1 flex flex-col items-center justify-center gap-1 transition-colors active:opacity-50"
-            style={{ paddingTop: 14, paddingBottom: 'max(22px, env(safe-area-inset-bottom))', minHeight: 56, touchAction: 'manipulation', color: active ? '#007AFF' : '#8E8E93' }}
+            className="flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors active:opacity-50"
+            style={{ touchAction: 'manipulation', color: active ? '#007AFF' : '#8E8E93' }}
           >
-            {active && (
-              <span className="absolute top-0 left-1/2 -translate-x-1/2 rounded-full" style={{ width: 32, height: 2, background: '#007AFF' }} />
-            )}
             <Icon className="w-6 h-6" strokeWidth={active ? 2.5 : 1.5} />
-            <span style={{ fontSize: 10, fontWeight: active ? 600 : 400 }}>{t.my[item.labelKey as keyof typeof t.my]}</span>
+            <span style={{ fontSize: 12, fontWeight: active ? 600 : 400 }}>{t.my[item.labelKey as keyof typeof t.my]}</span>
           </Link>
         )
       })}
