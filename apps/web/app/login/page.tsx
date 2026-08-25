@@ -301,8 +301,8 @@ function LoginPageInner() {
 
     setLoading(true)
     const { data, error: err } = await supabase.auth.signInWithPassword({ email, password })
-    setLoading(false)
     if (err) {
+      setLoading(false)
       // Only reachable if the Supabase project's "Confirm email" toggle is
       // on — proxy.ts's email_confirmed_at gate is the authoritative check
       // otherwise (a session can exist for an unconfirmed user).
@@ -322,6 +322,10 @@ function LoginPageInner() {
       }).catch(() => {})
     }
 
+    // Left true deliberately — resolveRedirect() below does its own fetches
+    // before navigating away, and clearing it here would flip the button
+    // back to its idle state for that whole window, making the page look
+    // unresponsive right after a successful login.
     await resolveRedirect()
   }
 
