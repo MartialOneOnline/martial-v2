@@ -858,43 +858,42 @@ export default function MyHomePage() {
             </Link>
           </div>
 
-          <div
-            className="flex gap-3 overflow-x-auto pb-1"
-            style={{ scrollSnapType: 'x mandatory', scrollPaddingLeft: 16, paddingLeft: 16, WebkitOverflowScrolling: 'touch' }}
-          >
-            {curriculumLessons.slice(0, 8).map(lesson => {
+          <div className="flex flex-col gap-4 px-4 md:px-6 lg:px-0">
+            {curriculumLessons.slice(0, 3).map(lesson => {
               const thumbUrl = lesson.muxPlaybackId && lesson.thumbnailToken
-                ? `https://image.mux.com/${lesson.muxPlaybackId}/thumbnail.jpg?token=${lesson.thumbnailToken}&width=320`
+                ? `https://image.mux.com/${lesson.muxPlaybackId}/thumbnail.jpg?token=${lesson.thumbnailToken}&width=640`
                 : null
               return (
                 <button
                   key={lesson.id}
                   onClick={() => lesson.muxPlaybackId && setPlayingLesson(lesson)}
-                  className="flex flex-col shrink-0 rounded-xl overflow-hidden text-left cursor-pointer"
-                  style={{ width: 260, background: '#fff', border: '1px solid rgba(0,0,0,.07)', boxShadow: '0 1px 4px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04)', scrollSnapAlign: 'start' }}
+                  className="flex flex-col text-left cursor-pointer"
+                  style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'inherit' }}
                 >
-                  <div className="relative shrink-0 overflow-hidden flex items-center justify-center" style={{ aspectRatio: '16/9', background: '#111827' }}>
+                  <div className="relative w-full overflow-hidden flex items-center justify-center" style={{ aspectRatio: '16/9', background: '#111827', borderRadius: 18 }}>
                     {thumbUrl && (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={thumbUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
                     )}
-                    <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'rgba(0,0,0,.15)' }}>
-                      <PlayCircle className="w-10 h-10" style={{ color: '#fff' }} fill="rgba(0,0,0,.35)" />
+                    <div
+                      className="relative w-14 h-14 rounded-full flex items-center justify-center"
+                      style={{ background: 'rgba(255,255,255,.22)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,.3)' }}
+                    >
+                      <PlayCircle className="w-7 h-7 ml-0.5" style={{ color: '#fff' }} strokeWidth={1.5} />
                     </div>
                     {fmtDuration(lesson.durationSec) && (
-                      <span className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded" style={{ fontSize: 10, fontWeight: 600, color: '#fff', background: 'rgba(0,0,0,.7)' }}>
+                      <span className="absolute bottom-2.5 right-2.5 px-2 py-1 rounded-lg" style={{ fontSize: 11, fontWeight: 600, color: '#fff', background: 'rgba(0,0,0,.55)', backdropFilter: 'blur(6px)' }}>
                         {fmtDuration(lesson.durationSec)}
                       </span>
                     )}
                   </div>
-                  <div style={{ padding: '8px 10px 10px' }}>
-                    <p className="truncate" style={{ fontSize: 12.5, fontWeight: 600, color: '#1C1C1E' }}>{lesson.title}</p>
-                    <p className="truncate" style={{ fontSize: 11, color: '#9CA3AF', marginTop: 1 }}>{lesson.category ?? 'Lesson'}</p>
+                  <div style={{ padding: '10px 2px 0' }}>
+                    <p className="truncate" style={{ fontSize: 15, fontWeight: 600, color: '#1C1C1E', letterSpacing: '-0.2px' }}>{lesson.title}</p>
+                    <p className="truncate" style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>{lesson.category ?? 'Lesson'}</p>
                   </div>
                 </button>
               )
             })}
-            <div className="shrink-0" style={{ width: 16 }} />
           </div>
         </div>
       )}
