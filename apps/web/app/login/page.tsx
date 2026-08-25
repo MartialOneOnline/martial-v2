@@ -540,7 +540,7 @@ function LoginPageInner() {
                   value={resetEmail}
                   onChange={e => setResetEmail(e.target.value)}
                   placeholder="you@email.com"
-                  style={{ width: '100%', padding: '11px 14px', fontSize: 15, border: `1px solid ${resetErr ? '#DC2626' : BORDER}`, borderRadius: 10, outline: 'none', boxSizing: 'border-box', color: TEXT }}
+                  style={{ width: '100%', padding: '11px 14px', fontSize: 16, border: `1px solid ${resetErr ? '#DC2626' : BORDER}`, borderRadius: 10, outline: 'none', boxSizing: 'border-box', color: TEXT }}
                 />
                 {resetErr && <p style={{ margin: '6px 0 0', fontSize: 12, color: '#DC2626' }}>{resetErr}</p>}
               </div>
@@ -575,7 +575,7 @@ function LoginPageInner() {
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="you@email.com"
-                  style={{ width: '100%', padding: '11px 14px', fontSize: 15, border: `1px solid ${BORDER}`, borderRadius: 10, outline: 'none', boxSizing: 'border-box', color: TEXT }}
+                  style={{ width: '100%', padding: '11px 14px', fontSize: 16, border: `1px solid ${BORDER}`, borderRadius: 10, outline: 'none', boxSizing: 'border-box', color: TEXT }}
                 />
               </div>
 
@@ -588,7 +588,7 @@ function LoginPageInner() {
                     onChange={e => setPassword(e.target.value)}
                     placeholder="Enter password"
                     autoFocus
-                    style={{ width: '100%', padding: '11px 44px 11px 14px', fontSize: 15, border: `1px solid ${passErr ? '#DC2626' : BORDER}`, borderRadius: 10, outline: 'none', boxSizing: 'border-box', color: TEXT }}
+                    style={{ width: '100%', padding: '11px 44px 11px 14px', fontSize: 16, border: `1px solid ${passErr ? '#DC2626' : BORDER}`, borderRadius: 10, outline: 'none', boxSizing: 'border-box', color: TEXT }}
                   />
                   <button type="button" onClick={() => setShowPass(v => !v)}
                     aria-label={showPass ? 'Hide password' : 'Show password'}
@@ -643,7 +643,7 @@ function LoginPageInner() {
                   onChange={e => setEmail(e.target.value)}
                   placeholder="you@email.com"
                   autoFocus
-                  style={{ width: '100%', padding: '11px 14px', fontSize: 15, border: `1px solid ${emailErr ? '#DC2626' : BORDER}`, borderRadius: 10, outline: 'none', boxSizing: 'border-box', color: TEXT }}
+                  style={{ width: '100%', padding: '11px 14px', fontSize: 16, border: `1px solid ${emailErr ? '#DC2626' : BORDER}`, borderRadius: 10, outline: 'none', boxSizing: 'border-box', color: TEXT }}
                 />
                 {emailErr && <p style={{ margin: '6px 0 0', fontSize: 12, color: '#DC2626' }}>{emailErr}</p>}
               </div>
