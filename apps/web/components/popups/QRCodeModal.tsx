@@ -120,7 +120,7 @@ export default function QRCodeModal({ schoolName, schoolSlug, onClose }: Props) 
 
           <div className="text-center">
             <p style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{schoolName}</p>
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>martial.app/school/{schoolSlug}</p>
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{profileUrl.replace(/^https?:\/\//, '')}</p>
           </div>
 
           <p style={{ fontSize: 12, color: '#6B7280', textAlign: 'center', lineHeight: 1.5, maxWidth: 260 }}>

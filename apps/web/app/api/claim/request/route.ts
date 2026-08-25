@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getResend, FROM } from '@/lib/email/resend'
 
-const DEFAULT_ADMIN_EMAIL = 'admin@martial.app'
+const DEFAULT_ADMIN_EMAIL = 'support@martialapp.com'
 
 // POST /api/claim/request — Public endpoint. A visitor asks to claim ownership
 // of a school listing; we email the superadmin so they can verify and send the
