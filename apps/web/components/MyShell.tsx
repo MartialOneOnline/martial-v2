@@ -83,12 +83,12 @@ function BottomNav() {
   const rightItems = BOTTOM_NAV_KEYS.slice(2)
   const qrActive   = isActive(pathname, '/my/qr')
 
-  // Useful nav height stays a fixed 64px regardless of device; the safe-area
+  // Useful nav height stays a fixed value regardless of device; the safe-area
   // inset is added on top as its own padding, never folded into the 64px so
   // there's no double-counting between this and the native shell's own inset
   // handling (the wrapped iOS app explicitly excludes the bottom SafeArea and
   // defers to this component — see martial-mobile-app/lib/main.dart).
-  const NAV_HEIGHT = 64
+  const NAV_HEIGHT = 74
 
   return (
     <nav
@@ -118,8 +118,8 @@ function BottomNav() {
         )
       })}
 
-      {/* Center QR FAB — protrudes 12px above the bar, absolutely positioned
-          so its size/offset never affects the bar's own 64px height. */}
+      {/* Center QR FAB — protrudes above the bar, absolutely positioned so
+          its size/offset never affects the bar's own height. */}
       <Link
         href="/my/qr"
         prefetch={false}
@@ -130,7 +130,7 @@ function BottomNav() {
           className="flex items-center justify-center rounded-full"
           style={{
             position: 'absolute',
-            top: -12,
+            top: -16,
             left: '50%',
             transform: 'translateX(-50%)',
             width: 60,
@@ -142,7 +142,7 @@ function BottomNav() {
         >
           <QrCode className="w-6 h-6 text-white" />
         </div>
-        <span style={{ fontSize: 12, fontWeight: qrActive ? 600 : 400, paddingBottom: 6 }}>QR</span>
+        <span style={{ fontSize: 12, fontWeight: qrActive ? 600 : 400, paddingBottom: 10 }}>QR</span>
       </Link>
 
       {/* Right items */}
