@@ -28,9 +28,13 @@ import { createServerClient } from '@supabase/ssr'
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // /dashboard/preview is always public
+  // /dashboard/preview is always public. dashboard/layout.tsx can't read the
+  // pathname itself (Server Components don't get it), so it needs this header
+  // to know to skip its own auth redirect for this one route.
   if (pathname === '/dashboard/preview' || pathname.startsWith('/dashboard/preview/')) {
-    return NextResponse.next({ request })
+    const requestHeaders = new Headers(request.headers)
+    requestHeaders.set('x-dashboard-preview', '1')
+    return NextResponse.next({ request: { headers: requestHeaders } })
   }
 
   const isProtected = pathname.startsWith('/dashboard')
