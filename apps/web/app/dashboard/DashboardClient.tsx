@@ -1134,36 +1134,32 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                   </RowMenu>
                 )
                 return (
-                  <div key={tx.id} className="px-4 py-3"
+                  <div key={tx.id} className="px-4 py-3 flex items-center gap-3"
                     style={{ borderBottom: idx < recentTx.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-3 min-w-0">
-                        {tx.userAvatar ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={tx.userAvatar} alt={tx.userName} width={36} height={36}
-                            style={{ width: 36, height: 36, objectFit: 'cover', borderRadius: '50%', border: '1px solid #E5E7EB', flexShrink: 0 }} />
-                        ) : (
-                          <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', color: '#fff', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            {initials}
-                          </div>
-                        )}
-                        <span style={{ fontSize: 13, color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
-                          title={tx.userName}>{tx.userName}</span>
+                    {tx.userAvatar ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={tx.userAvatar} alt={tx.userName} width={36} height={36}
+                        style={{ width: 36, height: 36, objectFit: 'cover', borderRadius: '50%', border: '1px solid #E5E7EB', flexShrink: 0 }} />
+                    ) : (
+                      <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', color: '#fff', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        {initials}
                       </div>
-                      <div className="flex items-center gap-2" style={{ flexShrink: 0 }}>
-                        <span style={{ fontSize: 14, fontWeight: 600, color: '#111827', whiteSpace: 'nowrap' }}>
-                          {fmtPrice(tx.amount, tx.currency)}
-                        </span>
-                        {menu}
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between gap-2 mt-1" style={{ paddingLeft: 48 }}>
-                      <span style={{ fontSize: 12, color: '#9CA3AF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <span style={{ display: 'block', fontSize: 13, color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                        title={tx.userName}>{tx.userName}</span>
+                      <span style={{ display: 'block', fontSize: 12, color: '#9CA3AF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: 2 }}
                         title={tx.description ?? undefined}>{tx.description?.split(' — ')[0] ?? '—'}</span>
-                      <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999, background: ss.bg, color: ss.color, whiteSpace: 'nowrap', flexShrink: 0 }}>
+                    </div>
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                      <span style={{ display: 'inline-block', fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999, background: ss.bg, color: ss.color, whiteSpace: 'nowrap' }}>
                         {tx.status.charAt(0) + tx.status.slice(1).toLowerCase()}
                       </span>
+                      <span style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#111827', whiteSpace: 'nowrap', marginTop: 4 }}>
+                        {fmtPrice(tx.amount, tx.currency)}
+                      </span>
                     </div>
+                    {menu}
                   </div>
                 )
               })}
