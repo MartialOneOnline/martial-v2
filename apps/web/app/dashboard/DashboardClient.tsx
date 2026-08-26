@@ -956,17 +956,26 @@ export default function DashboardClient({ userName, userEmail }: Props) {
               </Link>
             </div>
 
-            <div className="overflow-x-auto">
+            {(() => {
+              const methodLabel: Record<string, string> = { STRIPE: 'Stripe', CASH: 'Cash', BANK_TRANSFER: 'Transfer', DIRECT_DEBIT: 'Direct Debit', OTHER: 'Other', FREE: 'Free' }
+              const statusStyle: Record<string, { bg: string; color: string }> = {
+                PAID:      { bg: '#F0FDF4', color: '#16A34A' },
+                PENDING:   { bg: '#FFFBEB', color: '#D97706' },
+                FAILED:    { bg: '#FEF2F2', color: '#DC2626' },
+                REFUNDED:  { bg: '#F5F3FF', color: '#6D28D9' },
+              }
+              return (<>
+            <div className="hidden sm:block overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
                   {[
                     { label: t.common.member,     cls: '' },
-                    { label: t.users.membership,  cls: 'hidden sm:table-cell' },
-                    { label: t.dashboard.method, cls: 'hidden sm:table-cell' },
+                    { label: t.users.membership,  cls: '' },
+                    { label: t.dashboard.method, cls: '' },
                     { label: t.dashboard.amount, cls: '' },
                     { label: t.dashboard.date,   cls: 'hidden md:table-cell' },
-                    { label: t.dashboard.status, cls: 'hidden sm:table-cell' },
+                    { label: t.dashboard.status, cls: '' },
                     { label: '', cls: '' },
                   ].map(h => (
                     <th key={h.label} className={`px-2 md:px-4 py-3 text-left ${h.cls}`}
@@ -981,13 +990,6 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                   <tr><td colSpan={7} style={{ padding: '32px 28px', fontSize: 13, color: '#9CA3AF', textAlign: 'center' }}>Loading…</td></tr>
                 ) : recentTx.map((tx, idx) => {
                   const initials = (tx.userName || '?').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
-                  const methodLabel: Record<string, string> = { STRIPE: 'Stripe', CASH: 'Cash', BANK_TRANSFER: 'Transfer', DIRECT_DEBIT: 'Direct Debit', OTHER: 'Other', FREE: 'Free' }
-                  const statusStyle: Record<string, { bg: string; color: string }> = {
-                    PAID:      { bg: '#F0FDF4', color: '#16A34A' },
-                    PENDING:   { bg: '#FFFBEB', color: '#D97706' },
-                    FAILED:    { bg: '#FEF2F2', color: '#DC2626' },
-                    REFUNDED:  { bg: '#F5F3FF', color: '#6D28D9' },
-                  }
                   const ss = statusStyle[tx.status] ?? { bg: '#F3F4F6', color: '#6B7280' }
                   return (
                     <tr key={tx.id}
@@ -1008,31 +1010,26 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                             title={tx.userName}>{tx.userName}</span>
                         </div>
                       </td>
-                      <td className="hidden sm:table-cell px-2 md:px-4 py-4" style={{ maxWidth: 110 }}>
+                      <td className="px-2 md:px-4 py-4" style={{ maxWidth: 110 }}>
                         <span style={{ fontSize: 12, color: '#374151', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                           title={tx.description ?? undefined}>{tx.description?.split(' — ')[0] ?? '—'}</span>
                       </td>
-                      <td className="hidden sm:table-cell px-2 md:px-4 py-4" style={{ maxWidth: 90 }}>
+                      <td className="px-2 md:px-4 py-4" style={{ maxWidth: 90 }}>
                         <span style={{ fontSize: 13, color: '#6B7280', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {methodLabel[tx.method] ?? tx.method}
                         </span>
                       </td>
                       <td className="px-2 md:px-4 py-4" style={{ whiteSpace: 'nowrap', maxWidth: 90 }}>
-                        <div className="flex flex-col gap-1">
-                          <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>
-                            {fmtPrice(tx.amount, tx.currency)}
-                          </span>
-                          <span className="sm:hidden" style={{ fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 999, background: ss.bg, color: ss.color, width: 'fit-content' }}>
-                            {tx.status.charAt(0) + tx.status.slice(1).toLowerCase()}
-                          </span>
-                        </div>
+                        <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>
+                          {fmtPrice(tx.amount, tx.currency)}
+                        </span>
                       </td>
                       <td className="hidden md:table-cell px-2 md:px-4 py-4" style={{ whiteSpace: 'nowrap', maxWidth: 95 }}>
                         <span style={{ fontSize: 13, color: '#6B7280' }}>
                           {new Date(tx.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </span>
                       </td>
-                      <td className="hidden sm:table-cell px-2 md:px-4 py-4" style={{ maxWidth: 85 }}>
+                      <td className="px-2 md:px-4 py-4" style={{ maxWidth: 85 }}>
                         <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999, background: ss.bg, color: ss.color, whiteSpace: 'nowrap' }}>
                           {tx.status.charAt(0) + tx.status.slice(1).toLowerCase()}
                         </span>
@@ -1086,6 +1083,93 @@ export default function DashboardClient({ userName, userEmail }: Props) {
               </tbody>
             </table>
             </div>
+
+            <div className="sm:hidden">
+              {recentTx.length === 0 ? (
+                <div style={{ padding: '32px 28px', fontSize: 13, color: '#9CA3AF', textAlign: 'center' }}>Loading…</div>
+              ) : recentTx.map((tx, idx) => {
+                const initials = (tx.userName || '?').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
+                const ss = statusStyle[tx.status] ?? { bg: '#F3F4F6', color: '#6B7280' }
+                const menu = (
+                  <RowMenu trigger={({ onClick }) => (
+                    <button onClick={onClick}
+                      style={{ width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', color: '#9CA3AF', flexShrink: 0 }}
+                      onMouseEnter={e => (e.currentTarget.style.background = '#F3F4F6')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                      <MoreHorizontal size={14} />
+                    </button>
+                  )}>
+                    <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12,
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.10)', minWidth: 170, padding: '4px 0', overflow: 'hidden' }}>
+                      <Link href="/dashboard/payments/transactions" className="no-underline"
+                        style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
+                          fontWeight: 500, color: '#374151', background: 'transparent', border: 'none', cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', gap: 8 }}
+                        onMouseEnter={e => (e.currentTarget.style.background = '#F9FAFB')}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                        <Eye size={13} /> View Details
+                      </Link>
+                      {tx.status === 'PENDING' && (
+                        <button onClick={() => handleRecentTxStatusChange(tx.id, 'PAID')}
+                          style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
+                            fontWeight: 500, color: '#16A34A', background: 'transparent', border: 'none', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', gap: 8 }}
+                          onMouseEnter={e => (e.currentTarget.style.background = '#F0FDF4')}
+                          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                          <Check size={13} /> Mark as Paid
+                        </button>
+                      )}
+                      {tx.status !== 'FAILED' && (
+                        <button onClick={() => handleRecentTxStatusChange(tx.id, 'FAILED')}
+                          style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
+                            fontWeight: 500, color: '#D97706', background: 'transparent', border: 'none', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', gap: 8 }}
+                          onMouseEnter={e => (e.currentTarget.style.background = '#FFFBEB')}
+                          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                          <AlertCircle size={13} /> Mark as Failed
+                        </button>
+                      )}
+                    </div>
+                  </RowMenu>
+                )
+                return (
+                  <div key={tx.id} className="px-4 py-3"
+                    style={{ borderBottom: idx < recentTx.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-3 min-w-0">
+                        {tx.userAvatar ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={tx.userAvatar} alt={tx.userName} width={36} height={36}
+                            style={{ width: 36, height: 36, objectFit: 'cover', borderRadius: '50%', border: '1px solid #E5E7EB', flexShrink: 0 }} />
+                        ) : (
+                          <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', color: '#fff', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            {initials}
+                          </div>
+                        )}
+                        <span style={{ fontSize: 13, color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                          title={tx.userName}>{tx.userName}</span>
+                      </div>
+                      <div className="flex items-center gap-2" style={{ flexShrink: 0 }}>
+                        <span style={{ fontSize: 14, fontWeight: 600, color: '#111827', whiteSpace: 'nowrap' }}>
+                          {fmtPrice(tx.amount, tx.currency)}
+                        </span>
+                        {menu}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 mt-1" style={{ paddingLeft: 48 }}>
+                      <span style={{ fontSize: 12, color: '#9CA3AF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                        title={tx.description ?? undefined}>{tx.description?.split(' — ')[0] ?? '—'}</span>
+                      <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999, background: ss.bg, color: ss.color, whiteSpace: 'nowrap', flexShrink: 0 }}>
+                        {tx.status.charAt(0) + tx.status.slice(1).toLowerCase()}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </>)
+            })()}
           </div>
 
 
