@@ -21,6 +21,7 @@ import { memberStatusColors } from '../../../lib/design/tokens'
 import { submitMemberStatusChange, applyOptimisticStatus } from '../../../lib/memberStatus'
 import { downloadCsv } from '../../../lib/csvExport'
 import { matchesSearch } from '../../../lib/search'
+import { fmtPrice } from '../../../lib/format'
 import CampaignComposerModal from './CampaignComposerModal'
 import SendWaiverModal from '../../../components/SendWaiverModal'
 
@@ -1543,7 +1544,7 @@ function MarkAsPaidModal({
               style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
               <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{mem.planName}</p>
               <span style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>
-                {sym}{mem.price.toFixed(2)}
+                {fmtPrice(mem.price, mem.currency)}
               </span>
             </div>
           )}

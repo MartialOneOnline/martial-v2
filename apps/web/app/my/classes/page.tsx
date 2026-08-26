@@ -8,6 +8,7 @@ import { useT } from '../../../lib/i18n/LanguageContext'
 import { isStudentContextRequired, chooseProfileUrl } from '../../../lib/studentContext'
 import { getBeltImage } from '../../../lib/belts'
 import { myFetch } from '../../../lib/api/myFetch'
+import { fmtPrice } from '../../../lib/format'
 
 /* ── Types ── */
 type Booking = {
@@ -661,12 +662,6 @@ function getPassTypeConfig(t: ReturnType<typeof useT>): Record<string, { label: 
   }
 }
 
-function fmtPassPrice(price: number, currency: string) {
-  if (currency === 'EUR') return `${price.toFixed(2).replace('.', ',')} €`
-  if (currency === 'GBP') return `£${price.toFixed(2)}`
-  return `$${price.toFixed(2)}`
-}
-
 function PassCard({ plan, onRequest, requesting }: {
   plan: PassPlan
   onRequest: (plan: PassPlan) => void
@@ -695,7 +690,7 @@ function PassCard({ plan, onRequest, requesting }: {
         )}
       </div>
       <div className="text-right flex-shrink-0">
-        <p className="text-base font-bold text-[#101828]">{fmtPassPrice(plan.price, plan.currency)}</p>
+        <p className="text-base font-bold text-[#101828]">{fmtPrice(plan.price, plan.currency)}</p>
         {plan.alreadyActive ? (
           <span className="text-xs text-green-600 font-semibold">{t.my.active}</span>
         ) : plan.pending ? (

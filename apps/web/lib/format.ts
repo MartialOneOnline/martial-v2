@@ -6,8 +6,11 @@
  */
 export function fmtPrice(amount: number, currency = 'EUR'): string {
   if (currency === 'EUR') {
+    // de-DE (not es-ES) deliberately: same comma-decimal/period-thousands
+    // format, but es-ES's CLDR data suppresses the thousands separator for
+    // 4-digit amounts (e.g. 3015 -> "3015,00" instead of "3.015,00").
     return (
-      new Intl.NumberFormat('es-ES', {
+      new Intl.NumberFormat('de-DE', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }).format(amount) + ' €'

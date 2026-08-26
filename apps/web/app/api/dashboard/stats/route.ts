@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId, requireDashboardAccess } from '@/lib/auth/server'
+import { fmtPrice } from '@/lib/format'
 
 export async function GET(req: NextRequest) {
   const user = await getAuthUser()
@@ -244,7 +245,7 @@ export async function GET(req: NextRequest) {
     activeClasses: { value: activeClasses },
     revenue: {
       value: revenueNow,
-      formatted: `€${revenueNow.toLocaleString('en-EU', { minimumFractionDigits: 0 })}`,
+      formatted: fmtPrice(revenueNow),
       trend: revenueTrend,
     },
     bookings: { value: totalBookings, trend: bookingsTrend },
