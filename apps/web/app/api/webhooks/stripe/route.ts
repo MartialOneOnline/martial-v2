@@ -609,7 +609,7 @@ async function handleStripeEvent(event: Stripe.Event) {
 
       const membership = await prisma.membership.findFirst({
         where: { stripeSubId: sub.id },
-        select: { id: true, userId: true, schoolId: true },
+        select: { id: true, userId: true, schoolId: true, endDate: true },
       })
       if (!membership) break
 
@@ -632,7 +632,15 @@ async function handleStripeEvent(event: Stripe.Event) {
       // wrongly, and checkAndExpireMembership only acts once cancelledAt is
       // also set, so a stale endDate here is inert until then anyway.
       const periodEndUnix = sub.current_period_end ?? sub.items?.data?.[0]?.current_period_end
-      const periodEndDate = periodEndUnix ? new Date(periodEndUnix * 1000) : undefined
+      let periodEndDate = periodEndUnix ? new Date(periodEndUnix * 1000) : undefined
+
+      // Stripe doesn't guarantee delivery order, and can send this event
+      // out of order relative to invoice.payment_succeeded. A stale
+      // current_period_end here must never regress a renewal that already
+      // advanced endDate further into the future.
+      if (periodEndDate && membership.endDate && periodEndDate < membership.endDate) {
+        periodEndDate = undefined
+      }
 
       if (!newStatus && cancelledAt === undefined && !periodEndDate) break // nothing to sync
 

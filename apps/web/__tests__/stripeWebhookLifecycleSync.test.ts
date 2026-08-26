@@ -327,6 +327,20 @@ describe('customer.subscription.updated', () => {
 
     expect(memberships['membership-1']!.endDate).toEqual(new Date(periodEndUnix * 1000))
   })
+
+  it('does not regress endDate when current_period_end is older than the stored value (out-of-order delivery)', async () => {
+    const staleEndUnix = Math.floor(Date.now() / 1000) + 5 * 86_400
+    const advancedEndDate = new Date((staleEndUnix + 25 * 86_400) * 1000)
+    seedMembership({ id: 'membership-1', stripeSubId: 'sub_1', status: 'ACTIVE', endDate: advancedEndDate })
+
+    await POST(makeRequest({
+      id: 'evt_9b', type: 'customer.subscription.updated',
+      data: { object: { id: 'sub_1', status: 'active', current_period_end: staleEndUnix, metadata: { schoolId: 'school-1' } } },
+    }))
+
+    expect(memberships['membership-1']!.endDate).toEqual(advancedEndDate)
+    expect(memberships['membership-1']!.status).toBe('ACTIVE') // status still synced even though endDate was rejected
+  })
 })
 
 describe('checkout.session.completed — ARCHIVED member payment success', () => {
