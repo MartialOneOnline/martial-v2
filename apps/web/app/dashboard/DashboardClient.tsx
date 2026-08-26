@@ -961,15 +961,15 @@ export default function DashboardClient({ userName, userEmail }: Props) {
               <thead>
                 <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
                   {[
-                    { label: t.common.member,    cls: '' },
-                    { label: 'Description',       cls: 'hidden sm:table-cell' },
+                    { label: t.common.member,     cls: '' },
+                    { label: t.users.membership,  cls: 'hidden sm:table-cell' },
                     { label: t.dashboard.method, cls: 'hidden sm:table-cell' },
                     { label: t.dashboard.amount, cls: '' },
                     { label: t.dashboard.date,   cls: 'hidden md:table-cell' },
                     { label: t.dashboard.status, cls: 'hidden sm:table-cell' },
                     { label: '', cls: '' },
                   ].map(h => (
-                    <th key={h.label} className={`px-4 md:px-7 py-3 text-left ${h.cls}`}
+                    <th key={h.label} className={`px-2 md:px-4 py-3 text-left ${h.cls}`}
                       style={{ fontSize: 12, fontWeight: 500, color: '#9CA3AF' }}>
                       {h.label}
                     </th>
@@ -993,8 +993,8 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                     <tr key={tx.id}
                       style={{ borderBottom: idx < recentTx.length - 1 ? '1px solid #F9FAFB' : 'none' }}
                       className="hover:bg-[#FAFAFA] transition-colors">
-                      <td className="px-4 md:px-7 py-4">
-                        <div className="flex items-center gap-3">
+                      <td className="px-2 md:px-4 py-4">
+                        <div className="flex items-center gap-2" style={{ maxWidth: 150 }}>
                           {tx.userAvatar ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={tx.userAvatar} alt={tx.userName} width={36} height={36}
@@ -1004,27 +1004,36 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                               {initials}
                             </div>
                           )}
-                          <span style={{ fontSize: 13, color: '#111827', whiteSpace: 'nowrap' }}>{tx.userName}</span>
+                          <span style={{ fontSize: 13, color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                            title={tx.userName}>{tx.userName}</span>
                         </div>
                       </td>
-                      <td className="hidden sm:table-cell px-4 md:px-7 py-4">
-                        <span style={{ fontSize: 12, color: '#374151', whiteSpace: 'nowrap' }}>{tx.description ?? '—'}</span>
+                      <td className="hidden sm:table-cell px-2 md:px-4 py-4" style={{ maxWidth: 110 }}>
+                        <span style={{ fontSize: 12, color: '#374151', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                          title={tx.description ?? undefined}>{tx.description?.split(' — ')[0] ?? '—'}</span>
                       </td>
-                      <td className="hidden sm:table-cell px-4 md:px-7 py-4">
-                        <span style={{ fontSize: 13, color: '#6B7280' }}>{methodLabel[tx.method] ?? tx.method}</span>
-                      </td>
-                      <td className="px-4 md:px-7 py-4" style={{ whiteSpace: 'nowrap' }}>
-                        <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>
-                          {fmtPrice(tx.amount, tx.currency)}
+                      <td className="hidden sm:table-cell px-2 md:px-4 py-4" style={{ maxWidth: 90 }}>
+                        <span style={{ fontSize: 13, color: '#6B7280', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {methodLabel[tx.method] ?? tx.method}
                         </span>
                       </td>
-                      <td className="hidden md:table-cell px-4 md:px-7 py-4" style={{ whiteSpace: 'nowrap' }}>
+                      <td className="px-2 md:px-4 py-4" style={{ whiteSpace: 'nowrap', maxWidth: 90 }}>
+                        <div className="flex flex-col gap-1">
+                          <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>
+                            {fmtPrice(tx.amount, tx.currency)}
+                          </span>
+                          <span className="sm:hidden" style={{ fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 999, background: ss.bg, color: ss.color, width: 'fit-content' }}>
+                            {tx.status.charAt(0) + tx.status.slice(1).toLowerCase()}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="hidden md:table-cell px-2 md:px-4 py-4" style={{ whiteSpace: 'nowrap', maxWidth: 95 }}>
                         <span style={{ fontSize: 13, color: '#6B7280' }}>
                           {new Date(tx.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </span>
                       </td>
-                      <td className="hidden sm:table-cell px-4 md:px-7 py-4">
-                        <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999, background: ss.bg, color: ss.color }}>
+                      <td className="hidden sm:table-cell px-2 md:px-4 py-4" style={{ maxWidth: 85 }}>
+                        <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999, background: ss.bg, color: ss.color, whiteSpace: 'nowrap' }}>
                           {tx.status.charAt(0) + tx.status.slice(1).toLowerCase()}
                         </span>
                       </td>
