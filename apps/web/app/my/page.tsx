@@ -213,6 +213,7 @@ export default function MyHomePage() {
   const [occurrences, setOccurrences] = useState<Occurrence[]>([])
   const [bookingId, setBookingId]   = useState<string | null>(null)
   const [activeDot, setActiveDot]   = useState(0)
+  const [activeLessonDot, setActiveLessonDot] = useState(0)
   const [detailOcc, setDetailOcc]   = useState<Occurrence | null>(null)
   const [cancelOcc, setCancelOcc]   = useState<Occurrence | null>(null)
   const [cancelling, setCancelling] = useState(false)
@@ -222,6 +223,7 @@ export default function MyHomePage() {
   const [curriculumLessons, setCurriculumLessons] = useState<CurriculumLessonPreview[]>([])
   const [playingLesson, setPlayingLesson] = useState<CurriculumLessonPreview | null>(null)
   const carRef = useRef<HTMLDivElement>(null)
+  const lessonCarRef = useRef<HTMLDivElement>(null)
   const markedThisSession = useRef<Set<string>>(new Set())
   const playerRef = useRef<MuxPlayerElement>(null)
 
@@ -306,6 +308,24 @@ export default function MyHomePage() {
     return () => el.removeEventListener('scroll', handler)
   }, [occurrences])
 
+  // Curriculum carousel dot sync — same approach as the classes carousel above
+  useEffect(() => {
+    const el = lessonCarRef.current
+    if (!el) return
+    const handler = () => {
+      const cards = el.querySelectorAll<HTMLElement>('.lesson-car-card')
+      let closest = 0, minDist = Infinity
+      const elLeft = el.getBoundingClientRect().left
+      cards.forEach((c, i) => {
+        const dist = Math.abs(c.getBoundingClientRect().left - elLeft)
+        if (dist < minDist) { minDist = dist; closest = i }
+      })
+      setActiveLessonDot(closest)
+    }
+    el.addEventListener('scroll', handler, { passive: true })
+    return () => el.removeEventListener('scroll', handler)
+  }, [curriculumLessons])
+
   async function bookClass(occ: Occurrence) {
     if (bookingId) return
     setBookingId(`${occ.classId}:${occ.scheduledAt}`)
@@ -375,6 +395,7 @@ export default function MyHomePage() {
   const greeting          = hour < 12 ? t.my.goodMorning : hour < 18 ? t.my.goodAfternoon : t.my.goodEvening
   const days              = nextBooking ? daysUntil(nextBooking.scheduledAt) : null
   const dotCount          = Math.min(occurrences.length, 4)
+  const lessonDotCount    = Math.min(curriculumLessons.length, 3)
 
   // A single "up next" hero slot: whichever of the next class or the next
   // paid event ticket happens sooner wins it, so a confirmed seminar isn't
@@ -440,24 +461,46 @@ export default function MyHomePage() {
 
   function renderBeltCard() {
     if (!primaryMember?.belt) return null
+    const degree = primaryMember.beltDegree ?? 0
+    // Same fixed scale the /my/progress ranking card uses — stripes are
+    // awarded by an instructor, not earned on a schedule, so degree/MAX is
+    // the only honest "progress" figure available (no fabricated percentage).
+    const MAX_STRIPES = 4
     return (
       <div className="rounded-[20px]" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)', padding: 20 }}>
-        <div className="flex items-center gap-4">
+        <p className="text-[11px] font-semibold uppercase" style={{ color: '#9CA3AF', letterSpacing: '.6px' }}>{t.my.currentBelt}</p>
+        <p className="text-[19px] font-semibold mt-0.5" style={{ color: '#1C1C1E', letterSpacing: '-0.2px' }}>
+          {primaryMember.belt}
+          {degree > 0 && ` · ${degree} ${t.my.stripesLabel}`}
+        </p>
+
+        <div className="mt-4 rounded-xl flex items-center justify-center" style={{ background: '#F8FAFC', border: '1.5px solid #E2E8F0', padding: '14px 16px' }}>
           <img
-            src={getBeltImage(primaryMember.belt, primaryMember.beltDegree ?? 0)}
+            src={getBeltImage(primaryMember.belt, degree)}
             alt={primaryMember.belt}
-            className="h-8 w-auto max-w-[90px] object-contain shrink-0"
+            className="w-full h-auto object-contain"
+            style={{ maxWidth: 220 }}
           />
-          <div className="flex-1" style={{ minWidth: 0 }}>
-            <p className="text-sm font-medium" style={{ color: '#1C1C1E' }}>
-              {primaryMember.belt}
-              {(primaryMember.beltDegree ?? 0) > 0 && ` · ${primaryMember.beltDegree} ${t.my.stripesLabel}`}
-            </p>
-            <Link href="/my/progress" prefetch={false} className="flex items-center gap-0.5 text-sm font-medium mt-1 whitespace-nowrap" style={{ color: '#007AFF' }}>
-              {t.my.viewProgress}<ChevronRight className="w-3.5 h-3.5 shrink-0" />
-            </Link>
+        </div>
+
+        <div className="mt-4">
+          <div className="flex items-center justify-between text-xs font-medium mb-1.5" style={{ color: '#6B6B70' }}>
+            <span>{t.my.stripesCount}</span>
+            <span className="font-semibold" style={{ color: '#1C1C1E' }}>{degree} / {MAX_STRIPES}</span>
+          </div>
+          <div className="rounded-full overflow-hidden" style={{ height: 7, background: '#EEF0F4' }}>
+            <div className="h-full rounded-full" style={{ width: `${(degree / MAX_STRIPES) * 100}%`, background: 'linear-gradient(90deg, #007AFF, #3C9DFF)' }} />
           </div>
         </div>
+
+        <Link
+          href="/my/progress"
+          prefetch={false}
+          className="mt-4 flex items-center justify-center gap-1 text-sm font-semibold rounded-xl"
+          style={{ background: 'rgba(0,122,255,.08)', color: '#007AFF', padding: '11px 0', textDecoration: 'none' }}
+        >
+          {t.my.viewProgress}<ChevronRight className="w-3.5 h-3.5 shrink-0" />
+        </Link>
       </div>
     )
   }
@@ -878,7 +921,13 @@ export default function MyHomePage() {
             </Link>
           </div>
 
-          <div className="flex flex-col gap-4 px-4 md:px-6 lg:px-0">
+          {/* One lesson per row, lateral scroll — same snap-carousel pattern as
+              the upcoming-classes carousel above (car-card / carRef / dotCount). */}
+          <div
+            ref={lessonCarRef}
+            className="flex gap-3 overflow-x-auto pb-1"
+            style={{ scrollSnapType: 'x mandatory', scrollPaddingLeft: 16, paddingLeft: 16, WebkitOverflowScrolling: 'touch' }}
+          >
             {curriculumLessons.slice(0, 3).map(lesson => {
               const thumbUrl = lesson.muxPlaybackId && lesson.thumbnailToken
                 ? `https://image.mux.com/${lesson.muxPlaybackId}/thumbnail.jpg?token=${lesson.thumbnailToken}&width=640`
@@ -887,13 +936,22 @@ export default function MyHomePage() {
                 <button
                   key={lesson.id}
                   onClick={() => lesson.muxPlaybackId && setPlayingLesson(lesson)}
-                  className="flex flex-col text-left cursor-pointer"
-                  style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'inherit' }}
+                  className="lesson-car-card flex flex-col text-left cursor-pointer shrink-0 rounded-2xl overflow-hidden"
+                  style={{ width: 'calc(100vw - 80px)', maxWidth: 360, background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)', border: 'none', padding: 0, fontFamily: 'inherit', scrollSnapAlign: 'start' }}
                 >
-                  <div className="relative w-full overflow-hidden flex items-center justify-center" style={{ aspectRatio: '16/9', background: '#111827', borderRadius: 18 }}>
+                  <div className="relative w-full overflow-hidden flex items-center justify-center" style={{ aspectRatio: '16/9', background: '#111827' }}>
                     {thumbUrl && (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={thumbUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                    )}
+                    <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0) 45%, rgba(0,0,0,.55) 100%)' }} />
+                    {lesson.category && (
+                      <span
+                        className="absolute top-3 left-3 text-[11px] font-semibold rounded-full"
+                        style={{ color: '#fff', background: 'rgba(255,255,255,.18)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,.28)', padding: '4px 10px' }}
+                      >
+                        {lesson.category}
+                      </span>
                     )}
                     <div
                       className="relative w-14 h-14 rounded-full flex items-center justify-center"
@@ -902,19 +960,42 @@ export default function MyHomePage() {
                       <PlayCircle className="w-7 h-7 ml-0.5" style={{ color: '#fff' }} strokeWidth={1.5} />
                     </div>
                     {fmtDuration(lesson.durationSec) && (
-                      <span className="absolute bottom-2.5 right-2.5 px-2 py-1 rounded-lg" style={{ fontSize: 11, fontWeight: 600, color: '#fff', background: 'rgba(0,0,0,.55)', backdropFilter: 'blur(6px)' }}>
+                      <span className="absolute bottom-3 right-3 px-2 py-1 rounded-lg" style={{ fontSize: 11, fontWeight: 600, color: '#fff', background: 'rgba(0,0,0,.55)', backdropFilter: 'blur(6px)' }}>
                         {fmtDuration(lesson.durationSec)}
                       </span>
                     )}
                   </div>
-                  <div style={{ padding: '10px 2px 0' }}>
-                    <p className="truncate" style={{ fontSize: 15, fontWeight: 600, color: '#1C1C1E', letterSpacing: '-0.2px' }}>{lesson.title}</p>
-                    <p className="truncate" style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>{lesson.category ?? 'Lesson'}</p>
+                  <div className="flex items-center justify-between gap-2" style={{ padding: '12px 14px 13px' }}>
+                    <div style={{ minWidth: 0 }}>
+                      <p className="truncate" style={{ fontSize: 15, fontWeight: 600, color: '#1C1C1E', letterSpacing: '-0.2px' }}>{lesson.title}</p>
+                      <p className="truncate" style={{ fontSize: 12.5, color: '#9CA3AF', marginTop: 2 }}>{lesson.category ?? 'Lesson'}</p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 shrink-0" style={{ color: '#C7C7CC' }} />
                   </div>
                 </button>
               )
             })}
+            {/* Right-edge spacer — paddingRight doesn't work reliably in flex scroll */}
+            <div className="shrink-0" style={{ width: 16 }} />
           </div>
+
+          {/* Dots */}
+          {lessonDotCount > 1 && (
+            <div className="flex items-center justify-center gap-1.5 pt-2 pb-1">
+              {Array.from({ length: lessonDotCount }).map((_, i) => (
+                <div
+                  key={i}
+                  style={{
+                    width: i === activeLessonDot ? 18 : 6,
+                    height: 6,
+                    borderRadius: i === activeLessonDot ? 4 : '50%',
+                    background: i === activeLessonDot ? '#007AFF' : '#AEAEB2',
+                    transition: 'all .2s',
+                  }}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
       </div>{/* end main column */}
