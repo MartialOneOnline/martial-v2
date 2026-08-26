@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import MuxPlayer from '@mux/mux-player-react'
@@ -641,7 +642,7 @@ export default function MyHomePage() {
               below use), so the card reads in white text either way. */}
           <div className="absolute inset-0" style={{ background: classGradient(nextBooking.class.name) }} />
           {nextBookingOcc?.coverUrl && (
-            <img src={nextBookingOcc.coverUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+            <Image src={nextBookingOcc.coverUrl} alt="" fill priority className="object-cover" />
           )}
           <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,.2) 0%, rgba(0,0,0,.6) 100%)' }} />
 
@@ -708,10 +709,12 @@ export default function MyHomePage() {
         >
           {primarySchool?.coverUrl ? (
             <>
-              <img
+              <Image
                 src={primarySchool.coverUrl}
                 alt=""
-                className="absolute inset-0 w-full h-full object-cover"
+                fill
+                priority
+                className="object-cover"
                 style={{ objectPosition: `50% ${primarySchool.coverPosY ?? 50}%` }}
               />
               <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,.25) 0%, rgba(0,0,0,.62) 100%)' }} />
