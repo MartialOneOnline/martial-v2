@@ -956,6 +956,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
               </Link>
             </div>
 
+            <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
@@ -1075,6 +1076,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                 })}
               </tbody>
             </table>
+            </div>
           </div>
 
 
