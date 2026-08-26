@@ -13,6 +13,7 @@ import Footer from '../../components/Footer'
 import LoginModal from '../../components/LoginModal'
 import { useT } from '../../lib/i18n/LanguageContext'
 import { matchesSearch } from '../../lib/search'
+import { fmtPrice } from '../../lib/format'
 
 // ── Types & Data ──────────────────────────────────────────────────────────────
 
@@ -187,7 +188,7 @@ export default function AcademyPage() {
           <div className="hidden sm:flex items-center gap-3 shrink-0">
             <span className="text-xs font-bold text-slate-400">Your Wallet:</span>
             <span className="bg-sky-500/10 text-[#0870E2] border border-sky-400/20 px-2.5 py-1 rounded-md text-xs font-black">
-              ${walletBalance.toFixed(2)}
+              {fmtPrice(walletBalance, 'USD')}
             </span>
           </div>
         </div>
@@ -366,7 +367,7 @@ export default function AcademyPage() {
                       <div className="flex flex-col">
                         <span className="text-[9px] font-black text-slate-400 tracking-wider">PRICING</span>
                         <span className="text-lg font-black text-slate-900">
-                          {course.isSubscriptionOnly ? 'Sub Access' : `$${course.price.toFixed(2)}`}
+                          {course.isSubscriptionOnly ? 'Sub Access' : fmtPrice(course.price, 'USD')}
                         </span>
                       </div>
 
@@ -426,7 +427,7 @@ export default function AcademyPage() {
                   </span>
 
                   <h3 className="text-xl font-black text-slate-900 mt-4">
-                    ${tier.priceMonthly.toFixed(2)}
+                    {fmtPrice(tier.priceMonthly, 'USD')}
                     <span className="text-slate-400 font-semibold text-xs lowercase"> / m</span>
                   </h3>
 
@@ -540,7 +541,7 @@ export default function AcademyPage() {
                     <div className="space-y-2.5 text-[11px]">
                       <div className="flex justify-between"><span className="text-slate-400 font-bold">Lessons:</span><span className="text-slate-700 font-black">{selectedCourse.lessonsCount} chapters</span></div>
                       <div className="flex justify-between"><span className="text-slate-400 font-bold">Duration:</span><span className="text-slate-700 font-black">{selectedCourse.durationHours} hrs</span></div>
-                      <div className="flex justify-between"><span className="text-slate-400 font-bold">Price:</span><span className="text-slate-700 font-black">{selectedCourse.isSubscriptionOnly ? 'Sub Access' : `$${selectedCourse.price.toFixed(2)}`}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400 font-bold">Price:</span><span className="text-slate-700 font-black">{selectedCourse.isSubscriptionOnly ? 'Sub Access' : fmtPrice(selectedCourse.price, 'USD')}</span></div>
                     </div>
                     <div className="mt-6 pt-4 border-t border-slate-200 space-y-2">
                       {hasAccess(selectedCourse) ? (
@@ -551,7 +552,7 @@ export default function AcademyPage() {
                         <>
                           {!selectedCourse.isSubscriptionOnly && (
                             <button onClick={() => handleGetCourse(selectedCourse)} className="w-full bg-[#0870E2] hover:bg-[#007cd7] text-white font-extrabold text-xs py-3 px-4 rounded-xl cursor-pointer flex items-center justify-center gap-1 shadow-sm">
-                              Buy (${selectedCourse.price.toFixed(2)})
+                              Buy ({fmtPrice(selectedCourse.price, 'USD')})
                             </button>
                           )}
                           <button
@@ -586,15 +587,15 @@ export default function AcademyPage() {
                 <p className="text-[10px] font-black text-slate-400 tracking-widest uppercase">Selected Tier</p>
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-black text-indigo-700">{tierModal.name}</span>
-                  <span className="text-md font-black text-slate-800">${tierModal.priceMonthly.toFixed(2)}/mo</span>
+                  <span className="text-md font-black text-slate-800">{fmtPrice(tierModal.priceMonthly, 'USD')}/mo</span>
                 </div>
               </div>
 
               <div className="mt-5 space-y-2">
-                <div className="flex justify-between text-xs"><span className="text-slate-400 font-bold">Your Balance:</span><span className="font-black">${walletBalance.toFixed(2)}</span></div>
-                <div className="flex justify-between text-xs"><span className="text-slate-400 font-bold">Cost:</span><span className="text-rose-500 font-black">-${tierModal.priceMonthly.toFixed(2)}</span></div>
+                <div className="flex justify-between text-xs"><span className="text-slate-400 font-bold">Your Balance:</span><span className="font-black">{fmtPrice(walletBalance, 'USD')}</span></div>
+                <div className="flex justify-between text-xs"><span className="text-slate-400 font-bold">Cost:</span><span className="text-rose-500 font-black">-{fmtPrice(tierModal.priceMonthly, 'USD')}</span></div>
                 <div className="h-px bg-slate-100" />
-                <div className="flex justify-between text-xs font-black"><span>Remaining:</span><span className="text-emerald-600">${(walletBalance - tierModal.priceMonthly).toFixed(2)}</span></div>
+                <div className="flex justify-between text-xs font-black"><span>Remaining:</span><span className="text-emerald-600">{fmtPrice(walletBalance - tierModal.priceMonthly, 'USD')}</span></div>
               </div>
 
               <div className="mt-6 flex gap-3">
@@ -605,7 +606,7 @@ export default function AcademyPage() {
                   onClick={() => { setSubscribedTier(tierModal.id); setTierModal(null) }}
                   className="w-1/2 py-3 bg-[#ff424d] hover:bg-[#e03a44] text-white font-extrabold text-xs rounded-xl cursor-pointer shadow-md"
                 >
-                  Confirm (${tierModal.priceMonthly.toFixed(2)})
+                  Confirm ({fmtPrice(tierModal.priceMonthly, 'USD')})
                 </button>
               </div>
             </motion.div>
