@@ -785,7 +785,7 @@ export default function MyHomePage() {
                 <div
                   key={`${occ.classId}:${occ.scheduledAt}`}
                   className="car-card flex flex-col shrink-0 rounded-xl overflow-hidden"
-                  style={{ width: 'calc(100vw - 80px)', maxWidth: 360, background: '#fff', border: '1px solid rgba(0,0,0,.07)', boxShadow: '0 1px 4px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04)', scrollSnapAlign: 'start' }}
+                  style={{ width: 'calc(100vw - 32px)', maxWidth: 420, background: '#fff', border: '1px solid rgba(0,0,0,.07)', boxShadow: '0 1px 4px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04)', scrollSnapAlign: 'start' }}
                 >
                   {/* Photo — fixed aspect-ratio (not a fixed height) so it scales cleanly
                       with the card width instead of stretching or cropping oddly. 16:9 keeps
@@ -937,7 +937,7 @@ export default function MyHomePage() {
                   key={lesson.id}
                   onClick={() => lesson.muxPlaybackId && setPlayingLesson(lesson)}
                   className="lesson-car-card flex flex-col text-left cursor-pointer shrink-0 rounded-2xl overflow-hidden"
-                  style={{ width: 'calc(100vw - 80px)', maxWidth: 360, background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)', border: 'none', padding: 0, fontFamily: 'inherit', scrollSnapAlign: 'start' }}
+                  style={{ width: 'calc(100vw - 32px)', maxWidth: 420, background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)', border: 'none', padding: 0, fontFamily: 'inherit', scrollSnapAlign: 'start' }}
                 >
                   <div className="relative w-full overflow-hidden flex items-center justify-center" style={{ aspectRatio: '16/9', background: '#111827' }}>
                     {thumbUrl && (
