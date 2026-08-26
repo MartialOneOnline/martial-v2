@@ -4,6 +4,7 @@ import { getAuthUser } from '@/lib/auth/server'
 import { hasDashboardAccess, hasStudentAccess } from '@/lib/auth/contexts'
 import { prisma } from '@/lib/db'
 import { calculateAge, MIN_CONSENT_AGE } from '@/lib/age'
+import { getSchoolModules } from '@/lib/school-modules'
 import MyShell from '../../components/MyShell'
 
 export default async function MyLayout({ children }: { children: React.ReactNode }) {
@@ -45,5 +46,50 @@ export default async function MyLayout({ children }: { children: React.ReactNode
     redirect('/complete-profile')
   }
 
-  return <MyShell>{children}</MyShell>
+  // Same priority as MyShell used to resolve client-side (active membership >
+  // most recent membership > plain SchoolMember, e.g. a LEAD awaiting payment
+  // approval) — resolved here instead so the sidebar/topbar render the real
+  // school name + logo on first paint, instead of the generic "Martial"
+  // placeholder flashing in while a client-side fetch is still in flight.
+  const schoolData = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: {
+      memberships: {
+        where: { status: { in: ['ACTIVE', 'PENDING', 'PAUSED'] } },
+        orderBy: { startDate: 'desc' },
+        take: 3,
+        select: {
+          status: true,
+          school: {
+            select: {
+              name: true, logoUrl: true, modules: true,
+              _count: { select: { gradingSystems: { where: { isActive: true } } } },
+            },
+          },
+        },
+      },
+      schoolMembers: {
+        where: { status: { in: ['ACTIVE', 'LEAD', 'FROZEN'] }, role: 'STUDENT' },
+        take: 1,
+        select: {
+          school: {
+            select: {
+              name: true, logoUrl: true, modules: true,
+              _count: { select: { gradingSystems: { where: { isActive: true } } } },
+            },
+          },
+        },
+      },
+    },
+  })
+  const membership = schoolData?.memberships.find(m => m.status === 'ACTIVE') ?? schoolData?.memberships[0]
+  const rawSchool = membership?.school ?? schoolData?.schoolMembers[0]?.school
+  const initialSchool = rawSchool && {
+    name: rawSchool.name,
+    logoUrl: rawSchool.logoUrl,
+    modules: getSchoolModules(rawSchool.modules),
+    hasGrading: rawSchool._count.gradingSystems > 0,
+  }
+
+  return <MyShell initialSchool={initialSchool ?? null}>{children}</MyShell>
 }

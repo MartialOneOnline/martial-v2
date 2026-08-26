@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -13,7 +13,6 @@ import {
 } from 'lucide-react'
 import { useT } from '../lib/i18n/LanguageContext'
 import type { SchoolModuleKey } from '../lib/school-modules'
-import { myFetch } from '../lib/api/myFetch'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -171,6 +170,7 @@ function BottomNav() {
 function SidebarContent({ school, onClose }: { school: School; onClose?: () => void }) {
   const pathname = usePathname()
   const t = useT()
+  const [logoBroken, setLogoBroken] = useState(false)
 
   return (
     <div className="w-60 bg-white border-r border-gray-100 flex flex-col h-full">
@@ -178,11 +178,12 @@ function SidebarContent({ school, onClose }: { school: School; onClose?: () => v
       {/* School header — shows the student's school, not generic branding */}
       <div className="px-5 py-4 flex items-center justify-between border-b border-gray-50">
         <Link href="/my" onClick={onClose} prefetch={false} className="flex items-center gap-3 min-w-0">
-          {school?.logoUrl ? (
+          {school?.logoUrl && !logoBroken ? (
             <img
               src={school.logoUrl}
               alt={school.name}
               className="w-8 h-8 rounded-xl object-cover shrink-0 border border-gray-100"
+              onError={() => setLogoBroken(true)}
             />
           ) : (
             <div className="w-8 h-8 rounded-xl bg-[#0870E2]/10 flex items-center justify-center shrink-0">
@@ -262,32 +263,13 @@ function SidebarContent({ school, onClose }: { school: School; onClose?: () => v
 
 // ── Shell ────────────────────────────────────────────────────────────────────
 
-export default function MyShell({ children }: { children: React.ReactNode }) {
+export default function MyShell({ children, initialSchool }: { children: React.ReactNode; initialSchool: School }) {
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [school, setSchool] = useState<School>(null)
-
-  // Fetch the student's primary school for sidebar branding.
-  // Prefer the school behind an active/pending/paused membership, but fall back
-  // to the school of a plain SchoolMember record (e.g. a LEAD awaiting payment
-  // approval) so branding + module-gated nav still show before any membership exists.
-  useEffect(() => {
-    myFetch('/api/my')
-      .then(r => r.json())
-      .then(d => {
-        const membership = d.user?.memberships?.find((m: { status: string }) => m.status === 'ACTIVE')
-          ?? d.user?.memberships?.[0]
-        const school = membership?.school ?? d.user?.schoolMembers?.[0]?.school
-        if (school) {
-          setSchool({
-            name: school.name,
-            logoUrl: school.logoUrl,
-            modules: school.modules,
-            hasGrading: school.hasGrading,
-          })
-        }
-      })
-      .catch(() => {})
-  }, [])
+  const [logoBroken, setLogoBroken] = useState(false)
+  // Resolved server-side (see app/my/layout.tsx) so the sidebar/topbar render
+  // the real school branding on first paint — no client fetch, no flash of
+  // the generic "Martial" placeholder.
+  const school = initialSchool
 
   return (
     <div className="min-h-screen flex" style={{ background: '#F2F2F7' }}>
@@ -307,8 +289,13 @@ export default function MyShell({ children }: { children: React.ReactNode }) {
           <Menu className="w-5 h-5" />
         </button>
         <div className="flex-1 flex items-center justify-center gap-2">
-          {school?.logoUrl ? (
-            <img src={school.logoUrl} alt={school.name} className="w-6 h-6 rounded-lg object-cover" />
+          {school?.logoUrl && !logoBroken ? (
+            <img
+              src={school.logoUrl}
+              alt={school.name}
+              className="w-6 h-6 rounded-lg object-cover"
+              onError={() => setLogoBroken(true)}
+            />
           ) : (
             <Image src="/logo.svg" alt="Martial" width={20} height={20} />
           )}
