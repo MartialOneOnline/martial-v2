@@ -26,7 +26,7 @@ type MembershipRecord = {
   startDate: string; endDate: string | null; consumed: number
 }
 type ActiveMembership = {
-  id: string; planName: string; status: string; paymentMethod: string
+  id: string; planName: string; planType: string; status: string; paymentMethod: string
   startDate: string; expiresAt: string | null
   price: number; currency?: string; interval: string | null; consumed: number
 }
@@ -904,6 +904,7 @@ function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
       onAssigned({
         id: data.id,
         planName: data.plan?.name ?? data.planName,
+        planType: data.plan?.planType ?? 'SUBSCRIPTION',
         status: data.status,
         paymentMethod: data.paymentMethod,
         startDate: data.startDate,
@@ -1270,8 +1271,10 @@ function MembershipSection({
               </div>
             </div>
 
-            {/* Usage bar — only if consumed > 0 */}
-            {activeMembership.consumed > 0 && (
+            {/* Usage bar — only for class-pack plans (SINGLE_PASS/TRIAL); a
+                SUBSCRIPTION membership is unlimited, so "classes used" has
+                no ceiling to show progress against. */}
+            {activeMembership.planType !== 'SUBSCRIPTION' && activeMembership.consumed > 0 && (
               <div style={{ marginTop: 10 }}>
                 <div className="flex justify-between" style={{ marginBottom: 4 }}>
                   <span style={{ fontSize: 11, color: '#6B7280' }}>Classes used</span>
@@ -1347,7 +1350,7 @@ function MembershipSection({
                     <p style={{ fontSize: 11, color: '#9CA3AF', margin: '1px 0 0' }}>
                       {new Date(m.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                       {m.endDate && ` → ${new Date(m.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`}
-                      {m.consumed > 0 && ` · ${m.consumed} classes`}
+                      {m.planType !== 'SUBSCRIPTION' && m.consumed > 0 && ` · ${m.consumed} classes`}
                     </p>
                   </div>
                   <span style={{ fontSize: 10, fontWeight: 600, background: ms.bg, color: ms.color, padding: '2px 8px', borderRadius: 999 }}>
