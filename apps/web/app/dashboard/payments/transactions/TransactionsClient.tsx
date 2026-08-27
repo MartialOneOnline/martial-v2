@@ -1172,7 +1172,59 @@ export default function TransactionsClient() {
 
         {/* Table */}
         <div className="rounded-2xl overflow-hidden" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-          <table className="w-full">
+
+          {/* Mobile card list — the table below has no horizontal scroll on
+              its wrapper, so on narrow screens the Method/Date/Status columns
+              (hidden here anyway) and the Actions column were getting clipped
+              instead of just scrolling into view. A dedicated card layout
+              keeps status + actions reachable at any width. */}
+          <div className="sm:hidden">
+            {loading ? (
+              <div style={{ padding: '32px 28px', fontSize: 13, color: '#9CA3AF', textAlign: 'center' }}>Loading…</div>
+            ) : transactions.length === 0 ? (
+              <div className="px-5 py-12 text-center">
+                <RefreshCw size={28} style={{ color: '#E5E7EB', margin: '0 auto 10px' }} />
+                <p style={{ fontSize: 13, color: '#9CA3AF' }}>No transactions found</p>
+              </div>
+            ) : transactions.map((tx, idx) => {
+              const sc = STATUS_MAP[tx.status] ?? STATUS_MAP.PAID
+              const StatusIcon = sc.icon
+              const isExpense = tx.type === 'EXPENSE'
+              const isSelected = selectedTx?.id === tx.id
+              return (
+                <div key={tx.id} className="px-4 py-3 flex items-center gap-3"
+                  style={{ borderBottom: idx < transactions.length - 1 ? '1px solid #F9FAFB' : 'none',
+                    background: isSelected ? '#F0F7FF' : undefined }}>
+                  <Avatar name={tx.userName} avatarUrl={tx.userAvatar} size={36} />
+                  <button onClick={() => setSelectedTx(isSelected ? null : tx)}
+                    className="flex-1 min-w-0 text-left" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit' }}>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tx.userName}</p>
+                    <p style={{ fontSize: 12, color: '#9CA3AF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: 2 }}>{tx.userEmail ?? '—'}</p>
+                  </button>
+                  <div className="flex flex-col items-center" style={{ flexShrink: 0, width: 92, gap: 5 }}>
+                    <span className="inline-flex items-center gap-1" style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999,
+                      background: sc.bg, color: sc.color, border: '1px solid ' + sc.border, whiteSpace: 'nowrap' }}>
+                      <StatusIcon size={10} />{sc.label}
+                    </span>
+                    <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.02em', whiteSpace: 'nowrap',
+                      color: isExpense ? '#DC2626' : '#111827' }}>
+                      {isExpense ? '−' : ''}{fmtPrice(tx.amount, tx.currency)}
+                    </span>
+                  </div>
+                  <RowActions
+                    tx={tx}
+                    onStatusChange={handleStatusChange}
+                    onDelete={handleDelete}
+                    onView={() => setSelectedTx(isSelected ? null : tx)}
+                    onResolve={() => setResolvingTx(tx)}
+                    onEdit={() => setEditingTx(tx)}
+                  />
+                </div>
+              )
+            })}
+          </div>
+
+          <table className="w-full hidden sm:table">
             <thead>
               <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
                 {[
