@@ -145,9 +145,17 @@ function LoginPageInner() {
   const [showOauthSpinner, setShowOauthSpinner] = useState(oauthCallback.active && !oauthCallback.error)
 
   const resolveRedirect = async () => {
+    // Hard navigation (not router.push) for every destination here: proxy.ts
+    // reads the Supabase session cookie fresh on each request, and Google's
+    // sign-in (see handleGoogleCredential) reaches this function in the same
+    // render as the cookie write, with no intervening page load — unlike the
+    // Apple/Microsoft flow (full redirect round trip via Supabase) or the
+    // modal's Google path (client nav to /login first). Without a real
+    // navigation here, that first /dashboard request can beat the cookie to
+    // the browser's jar and bounce back to /login, forcing a second attempt.
     try {
       if (redirectTo) {
-        router.push(redirectTo)
+        window.location.href = redirectTo
         return
       }
 
@@ -155,7 +163,7 @@ function LoginPageInner() {
       const json = await res.json()
 
       if (json.user?.globalRole === 'SUPERADMIN') {
-        router.push('/admin')
+        window.location.href = '/admin'
         return
       }
 
@@ -181,7 +189,7 @@ function LoginPageInner() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ schoolId: action.schoolId }),
           })
-          router.push('/dashboard')
+          window.location.href = '/dashboard'
           return
         case 'legacy-picker':
           setPickerSchools(action.schools)
@@ -189,11 +197,11 @@ function LoginPageInner() {
         case 'noop':
           return
         case 'push':
-          router.push(action.path)
+          window.location.href = action.path
           return
       }
     } catch {
-      router.push('/my')
+      window.location.href = '/my'
     }
   }
 
