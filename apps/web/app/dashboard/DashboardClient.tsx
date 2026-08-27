@@ -1151,7 +1151,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                       <span style={{ display: 'block', fontSize: 12, color: '#9CA3AF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: 2 }}
                         title={tx.description ?? undefined}>{tx.description?.split(' — ')[0] ?? '—'}</span>
                     </div>
-                    <div className="flex flex-col items-center" style={{ flexShrink: 0, gap: 5 }}>
+                    <div className="flex flex-col items-center" style={{ flexShrink: 0, width: 92, gap: 5 }}>
                       <span style={{ display: 'inline-block', fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999, background: ss.bg, color: ss.color, whiteSpace: 'nowrap' }}>
                         {tx.status.charAt(0) + tx.status.slice(1).toLowerCase()}
                       </span>
