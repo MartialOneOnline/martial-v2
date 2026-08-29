@@ -71,6 +71,21 @@ function graceCutoff(): Date {
  * - SINGLE_PASS / TRIAL: endDate = start + validityDays
  * - No validityDays + SUBSCRIPTION → null (open-ended until next renewal)
  */
+/**
+ * Adds `months` to `date`, clamping to the last day of the target month
+ * instead of letting JS overflow (e.g. 31 Aug + 1 month must land on
+ * 30 Sep, not roll over to 1 Oct).
+ */
+function addMonthsClamped(date: Date, months: number): Date {
+  const d = new Date(date)
+  const day = d.getDate()
+  d.setDate(1)
+  d.setMonth(d.getMonth() + months)
+  const daysInMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()
+  d.setDate(Math.min(day, daysInMonth))
+  return d
+}
+
 export function computeEndDate(
   planType: string,
   billingCycle: string,
@@ -78,16 +93,14 @@ export function computeEndDate(
   start: Date,
 ): Date | null {
   if (planType === 'SUBSCRIPTION') {
-    const end = new Date(start)
     switch (billingCycle) {
-      case 'monthly':    end.setMonth(end.getMonth() + 1);    break
-      case 'quarterly':  end.setMonth(end.getMonth() + 3);    break
-      case 'annual':     end.setFullYear(end.getFullYear() + 1); break
-      case 'two-weekly': end.setDate(end.getDate() + 14);     break
+      case 'monthly':    return addMonthsClamped(start, 1)
+      case 'quarterly':  return addMonthsClamped(start, 3)
+      case 'annual':     { const end = new Date(start); end.setFullYear(end.getFullYear() + 1); return end }
+      case 'two-weekly': { const end = new Date(start); end.setDate(end.getDate() + 14); return end }
       case 'one-off':    return null  // lifetime / single payment subscription
-      default:           end.setMonth(end.getMonth() + 1)
+      default:           return addMonthsClamped(start, 1)
     }
-    return end
   }
   if (validityDays) {
     const end = new Date(start)
