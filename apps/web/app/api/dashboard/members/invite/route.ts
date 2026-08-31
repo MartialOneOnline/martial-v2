@@ -59,16 +59,20 @@ export async function POST(req: NextRequest) {
     if (!trialPlan) return NextResponse.json({ error: 'Trial plan not found or inactive' }, { status: 400 })
   }
 
-  // Check if already a member
+  // Look up an existing member so re-inviting (e.g. an ARCHIVED/INACTIVE
+  // member coming back) reuses their row and just resends access instead of
+  // erroring out — status here is irrelevant, this endpoint's only job is
+  // getting them a working login link.
   const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } })
-  if (existingUser) {
-    const existingMember = await prisma.schoolMember.findFirst({
-      where: { userId: existingUser.id, schoolId },
-    })
-    if (existingMember) {
-      return NextResponse.json({ error: 'This person is already a member of this school' }, { status: 409 })
-    }
-  }
+  const existingMember = existingUser
+    ? await prisma.schoolMember.findFirst({
+        where: { userId: existingUser.id, schoolId },
+        select: {
+          id: true, belt: true, beltDegree: true, status: true, role: true, joinedAt: true,
+          user: { select: { id: true, name: true, email: true, avatarUrl: true } },
+        },
+      })
+    : null
 
   // Generate invite link via Supabase (does NOT send email — we handle that)
   // schoolId travels as a query param (not hash) so activate-member can scope
@@ -113,8 +117,9 @@ export async function POST(req: NextRequest) {
     select: { id: true, name: true, email: true, avatarUrl: true },
   })
 
-  // Create school member as PENDING
-  const schoolMember = await prisma.schoolMember.create({
+  // Reuse the existing member row (any status) instead of creating a
+  // duplicate — new members start PENDING as before.
+  const schoolMember = existingMember ?? await prisma.schoolMember.create({
     data: {
       userId: dbUser.id,
       schoolId,
