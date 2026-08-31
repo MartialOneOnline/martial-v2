@@ -62,10 +62,15 @@ export async function POST(req: NextRequest) {
 
   const user = await prisma.user.findFirst({
     where: { email: { equals: email, mode: 'insensitive' } },
-    select: { name: true, supabaseAuthId: true },
+    select: { name: true },
   })
 
-  if (user?.supabaseAuthId) {
+  // Gate on the Prisma User existing, not on supabaseAuthId being linked yet
+  // — a user who was invited but never finished /auth/set-password (so our
+  // side never auto-linked the two ids) still has a real Supabase auth
+  // account and needs to be able to recover into it. generateLink is the
+  // actual source of truth for whether that Supabase account exists.
+  if (user) {
     try {
       const admin = createAdminClient()
       const { data, error } = await admin.auth.admin.generateLink({
