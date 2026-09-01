@@ -1001,11 +1001,16 @@ export default function TransactionsClient() {
 
   async function handleDelete(id: string) {
     if (!confirm('Delete this transaction? This cannot be undone.')) return
+    const deletedTx = transactions.find(tx => tx.id === id)
     const res = await fetch(`/api/dashboard/transactions/${id}`, { method: 'DELETE' })
     if (res.ok) {
       setTransactions(prev => prev.filter(tx => tx.id !== id))
       if (selectedTx?.id === id) setSelectedTx(null)
       setTotal(prev => prev - 1)
+      if (deletedTx) {
+        setCountByStatus(prev => ({ ...prev, [deletedTx.status]: Math.max(0, prev[deletedTx.status] - 1) }))
+        if (deletedTx.status === 'PAID') setTotalAmount(prev => prev - deletedTx.amount)
+      }
     } else {
       const data = await res.json().catch(() => ({}))
       alert(data.error ?? 'Could not delete transaction.')

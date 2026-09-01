@@ -4,7 +4,7 @@ import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 import { notifyPaymentReceived } from '@/lib/notifications/create'
-import { applyPaidMembershipTransaction } from '@/lib/services/membership'
+import { applyPaidMembershipTransaction, revertMembershipForDeletedTransaction } from '@/lib/services/membership'
 import { fmtPrice } from '@/lib/format'
 
 // The Student Profile page renders the transaction list from a one-time SSR
@@ -222,10 +222,16 @@ export async function DELETE(
 
   // Soft delete: keeps the row (and the audit stamp of who removed it) for
   // history while taking it out of every list/stat query, which all filter
-  // on deletedAt: null (see GET /api/dashboard/transactions).
-  await prisma.transaction.update({
-    where: { id },
-    data: { deletedAt: new Date(), deletedBy: auth.userId },
+  // on deletedAt: null (see GET /api/dashboard/transactions). If this was a
+  // paid renewal that pushed the linked Membership's endDate forward, undo
+  // that too — otherwise the membership stays "renewed" even though the
+  // payment that justified it no longer exists.
+  await prisma.$transaction(async (trx) => {
+    await trx.transaction.update({
+      where: { id },
+      data: { deletedAt: new Date(), deletedBy: auth.userId },
+    })
+    await revertMembershipForDeletedTransaction(trx, tx, auth.schoolId)
   })
   await revalidateStudentProfile(auth.schoolId, tx.userId)
   return NextResponse.json({ ok: true })

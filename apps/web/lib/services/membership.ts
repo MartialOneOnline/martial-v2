@@ -775,6 +775,78 @@ export async function markRenewalPaid(input: MarkRenewalPaidInput) {
   return updated
 }
 
+/**
+ * Reverses the membership-side effect of markRenewalPaid/applyPaidMembershipTransaction
+ * when the Transaction that caused it is deleted. Only acts when the deleted
+ * transaction is still the one driving the membership's current endDate (its
+ * periodEnd matches membership.endDate exactly) — if a later renewal has since
+ * pushed endDate further, this is a no-op so we never clobber a newer, unrelated
+ * renewal. Also a no-op for transactions with no periodStart/periodEnd (the
+ * initial-assignment and Stripe/Revolut paths never set those — only the manual
+ * cash renewal flow does), so this only ever reverts what it created.
+ * Must run inside the same transaction as the Transaction soft-delete write.
+ */
+export async function revertMembershipForDeletedTransaction(
+  tx: Prisma.TransactionClient,
+  txn: { id: string; membershipId: string | null; status: TransactionStatus; date: Date; periodStart: Date | null; periodEnd: Date | null },
+  schoolId: string,
+) {
+  if (!txn.membershipId || txn.status !== TransactionStatus.PAID) return
+
+  if (txn.periodEnd) {
+    // ── Renewal payment (createRenewalPayment / markRenewalPaid) ─────────
+    const membership = await tx.membership.findFirst({ where: { id: txn.membershipId, schoolId } })
+    if (!membership || !membership.endDate) return
+    if (membership.endDate.getTime() !== txn.periodEnd.getTime()) return
+
+    const revertedEndDate = txn.periodStart ?? membership.startDate
+    const lapsed = revertedEndDate <= graceCutoff()
+    const newStatus = lapsed
+      ? (membership.cancelledAt ? MembershipStatus.CANCELLED : MembershipStatus.EXPIRED)
+      : MembershipStatus.ACTIVE
+
+    await tx.membership.update({
+      where: { id: membership.id },
+      data: { status: newStatus, endDate: revertedEndDate },
+    })
+    await syncSchoolMemberStatusForMembership(tx, {
+      userId: membership.userId, schoolId, membershipStatus: newStatus, excludeMembershipId: membership.id,
+    })
+    return
+  }
+
+  // ── Founding payment (assignPlan — initial assignment or "Change plan") ──
+  // That flow creates the Membership and its first Transaction together with
+  // no periodStart/periodEnd. If that transaction turns out to be a mistake
+  // (wrong plan picked, duplicate click) and gets deleted, cancel the
+  // membership it funded too — otherwise it's left active with nothing having
+  // ever actually been paid for it. Only when this was the ONLY payment ever
+  // made on the membership (a later renewal means it's no longer just an
+  // undo-the-mistake situation) and it was the one that started it. Doesn't
+  // touch whatever membership this one may have superseded — reactivating
+  // that is a separate, deliberate admin decision.
+  const membership = await tx.membership.findFirst({ where: { id: txn.membershipId, schoolId } })
+  if (!membership || membership.status === MembershipStatus.CANCELLED) return
+  if (membership.startDate.getTime() !== txn.date.getTime()) return
+
+  const otherPaidCount = await tx.transaction.count({
+    where: { membershipId: membership.id, status: TransactionStatus.PAID, id: { not: txn.id }, deletedAt: null },
+  })
+  if (otherPaidCount > 0) return
+
+  await tx.membership.update({
+    where: { id: membership.id },
+    data: { status: MembershipStatus.CANCELLED, cancelledAt: new Date() },
+  })
+  await tx.transaction.updateMany({
+    where: { membershipId: membership.id, status: TransactionStatus.PENDING },
+    data: { status: TransactionStatus.CANCELLED },
+  })
+  await syncSchoolMemberStatusForMembership(tx, {
+    userId: membership.userId, schoolId, membershipStatus: MembershipStatus.CANCELLED, excludeMembershipId: membership.id,
+  })
+}
+
 export interface ApplyPaidMembershipTransactionInput {
   transactionId: string
   schoolId: string
