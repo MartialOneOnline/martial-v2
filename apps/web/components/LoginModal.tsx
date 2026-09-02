@@ -217,7 +217,11 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
     const redirectQuery = safeTo ? `?redirect=${encodeURIComponent(safeTo)}` : ''
     const { error: err } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: `${window.location.origin}/login${redirectQuery}` },
+      // auth/callback/route.ts exchanges the code server-side (see
+      // app/login/page.tsx's handleOAuth for the full why) and lands on
+      // /login?oauth=1 — this modal has already unmounted by then, so that
+      // page's own effect handles the login-event ping + resolveRedirect().
+      options: { redirectTo: `${window.location.origin}/auth/callback${redirectQuery}` },
     })
     if (err) { setError(err.message); setOauthLoading(null) }
   }
@@ -231,8 +235,13 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
   const handleGoogleCredential = async (idToken: string) => {
     setError('')
     setOauthLoading('google')
-    const { error: err } = await supabase.auth.signInWithIdToken({ provider: 'google', token: idToken })
-    if (err) { setError(err.message); setOauthLoading(null); return }
+    const res = await fetch('/api/auth/google/idtoken', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken }),
+    })
+    const json = await res.json()
+    if (!res.ok) { setError(json.error || 'Google sign-in failed. Please try again.'); setOauthLoading(null); return }
     const safeTo = safeRedirect(redirectTo)
     const redirectQuery = safeTo ? `&redirect=${encodeURIComponent(safeTo)}` : ''
     onClose()
@@ -249,14 +258,19 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
     if (!valid) return
 
     setLoading(true)
-    const { data, error: err } = await supabase.auth.signInWithPassword({ email, password })
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    })
+    const json = await res.json()
     setLoading(false)
-    if (err) { setError(err.message); return }
+    if (!res.ok) { setError(json.error || 'Login failed. Please try again.'); return }
 
-    if (data.session?.access_token) {
+    if (json.accessToken) {
       fetch('/api/auth/login-event', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${data.session.access_token}` },
+        headers: { Authorization: `Bearer ${json.accessToken}` },
         keepalive: true,
       }).catch(() => {})
     }

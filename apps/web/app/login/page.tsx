@@ -113,24 +113,19 @@ function LoginPageInner() {
   const [resetSent, setResetSent] = useState(false)
   const [oauthLoading, setOauthLoading] = useState<OAuthProvider | null>(null)
 
-  // @supabase/ssr's browser client hardcodes flowType: 'pkce' (not
-  // overridable), so an OAuth round trip returns here as `?code=...` in the
-  // query string, not `#access_token=` in the hash — that's implicit flow,
-  // which never happens for these buttons. The SDK exchanges the code and
-  // strips it from the URL asynchronously as part of its own init, racing
-  // this component's effects, so the signal has to be captured synchronously
-  // on first render, before that happens.
-  //
-  // `?oauth=1` is the equivalent signal for the Google ID-token flow
-  // (SocialAuthButtons, register/join) — that flow already has a session by
-  // the time it lands here (signInWithIdToken ran client-side on the
-  // previous page), so there's no `?code=` to exchange, but it still needs
-  // the same login-event ping + resolveRedirect() sequence below.
+  // Every OAuth-ish sign-in path now completes server-side (see
+  // api/auth/login/route.ts for why) and lands here via a redirect with
+  // `?oauth=1` once the session cookie is already set — Apple/Microsoft via
+  // auth/callback/route.ts, the Google WebView fallback via
+  // api/auth/google/callback/route.ts. There's never a `?code=` to exchange
+  // on this page itself anymore. `oauth=1` has to be captured synchronously
+  // on first render since the login-event ping + resolveRedirect() below
+  // only fire once, off the SDK's own INITIAL_SESSION event.
   const [oauthCallback] = useState(() => {
     if (typeof window === 'undefined') return { active: false, error: null as string | null }
     const params = new URLSearchParams(window.location.search)
     return {
-      active: params.has('code') || params.get('oauth') === '1',
+      active: params.get('oauth') === '1',
       error: params.get('error_description') || params.get('error'),
     }
   })
@@ -262,7 +257,9 @@ function LoginPageInner() {
     const { error: err } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/login${redirectQuery}`,
+        // auth/callback/route.ts exchanges the code server-side and lands
+        // back on /login?oauth=1 — see the oauthCallback comment above.
+        redirectTo: `${window.location.origin}/auth/callback${redirectQuery}`,
         // Supabase's Azure provider doesn't request the `email` scope by
         // default, so accounts that don't expose it elsewhere in the token
         // fail sign-in with "Error getting user email from external
@@ -293,12 +290,17 @@ function LoginPageInner() {
   const handleGoogleCredential = async (idToken: string) => {
     setError('')
     setOauthLoading('google')
-    const { data, error: err } = await supabase.auth.signInWithIdToken({ provider: 'google', token: idToken })
-    if (err) { setError(err.message); setOauthLoading(null); return }
-    if (data.session?.access_token) {
+    const res = await fetch('/api/auth/google/idtoken', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken }),
+    })
+    const json = await res.json()
+    if (!res.ok) { setError(json.error || 'Google sign-in failed. Please try again.'); setOauthLoading(null); return }
+    if (json.accessToken) {
       fetch('/api/auth/login-event', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${data.session.access_token}` },
+        headers: { Authorization: `Bearer ${json.accessToken}` },
         keepalive: true,
       }).catch(() => {})
     }
@@ -319,24 +321,29 @@ function LoginPageInner() {
     if (!password) { setPassErr('Password field cannot be left blank.'); return }
 
     setLoading(true)
-    const { data, error: err } = await supabase.auth.signInWithPassword({ email, password })
-    if (err) {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    })
+    const json = await res.json()
+    if (!res.ok) {
       setLoading(false)
       // Only reachable if the Supabase project's "Confirm email" toggle is
       // on — proxy.ts's email_confirmed_at gate is the authoritative check
       // otherwise (a session can exist for an unconfirmed user).
-      if (err.message === 'Email not confirmed') {
+      if (json.error === 'Email not confirmed') {
         setUnconfirmedEmail(email)
       } else {
-        setError(err.message)
+        setError(json.error || 'Login failed. Please try again.')
       }
       return
     }
 
-    if (data.session?.access_token) {
+    if (json.accessToken) {
       fetch('/api/auth/login-event', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${data.session.access_token}` },
+        headers: { Authorization: `Bearer ${json.accessToken}` },
         keepalive: true,
       }).catch(() => {})
     }
