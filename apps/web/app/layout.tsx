@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Outfit, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from '../lib/i18n/LanguageContext'
@@ -24,6 +24,13 @@ export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: "Martial — The Global Martial Arts Platform",
   description: "Innovative Management Software for Martial Arts Academies and Business & Users interaction Worldwide.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({

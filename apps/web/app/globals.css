@@ -204,6 +204,17 @@
     color: inherit;
     text-decoration: none;
   }
+
+  /* Prevent iOS/Android auto-zoom on focus: mobile browsers zoom in when a
+     tapped input/select/textarea has a computed font-size under 16px.
+     !important because Tailwind's text-xs/text-sm utility classes (applied
+     directly on many inputs) otherwise win on specificity over this
+     element selector. */
+  @media (max-width: 1024px) {
+    input, select, textarea {
+      font-size: 16px !important;
+    }
+  }
 }
 
 /* ── Reusable component utilities ─────────────────────────────────────────── */
