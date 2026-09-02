@@ -1,9 +1,8 @@
 import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/db'
-import { cookies } from 'next/headers'
 import UsersClient from './UsersClient'
-import { getAuthUser } from '@/lib/auth/server'
+import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { getSchoolMembership } from '@/lib/auth/contexts'
 import { hasPermission } from '@/lib/auth/permissions'
 import { ForbiddenView } from '../../../components/RequirePermission'
@@ -22,25 +21,12 @@ async function UsersPageContent() {
 
   if (!user) return <UsersClient students={[]} />
 
-  const cookieStore = await cookies()
-  const schoolId = cookieStore.get('currentSchoolId')?.value
-
-  if (!schoolId) {
-    // Try to find the user's school automatically
-    const dbUser = await prisma.user.findUnique({
-      where: { supabaseAuthId: user.id },
-      select: { id: true },
-    })
-    if (!dbUser) return <UsersClient students={[]} />
-
-    const membership = await prisma.schoolMember.findFirst({
-      where: { userId: dbUser.id },
-      select: { schoolId: true },
-    })
-    if (!membership) return <UsersClient students={[]} />
-
-    return <UsersPageWithSchool schoolId={membership.schoolId} />
-  }
+  // getCurrentSchoolId() validates the cookie against an ACTUAL active
+  // membership and falls back to a real one if it's stale — critical for
+  // anyone who belongs to more than one school (e.g. an owner who is also a
+  // student elsewhere), same as the client sidebar already does.
+  const schoolId = await getCurrentSchoolId()
+  if (!schoolId) return <UsersClient students={[]} />
 
   return <UsersPageWithSchool schoolId={schoolId} />
 }

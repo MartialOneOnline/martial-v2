@@ -105,16 +105,41 @@ export async function getAuthUser() {
 export async function getCurrentSchoolId(): Promise<string | null> {
   const cookieStore = await cookies()
   const fromCookie = cookieStore.get('currentSchoolId')?.value ?? null
-  if (fromCookie) return fromCookie
 
-  // Fallback: read from UserPreference (handles cross-device / first login after claim)
   const user = await getAuthUser()
-  if (!user) return null
-  const pref = await prisma.userPreference.findUnique({
+  if (!user) return fromCookie
+
+  // SUPERADMIN has no SchoolMember row of their own — platform-admin routes
+  // gate on role, not membership, so trust the cookie (set via the admin
+  // "view as school" flow) as-is instead of validating it below.
+  if (user.role === 'SUPERADMIN') return fromCookie
+
+  // The cookie (or UserPreference fallback) is a hint, not authorization —
+  // it goes stale for anyone who belongs to more than one school (e.g. an
+  // owner who is also a student elsewhere) once it no longer points at an
+  // ACTIVE membership of theirs. Validate before trusting it, and fall back
+  // to a real membership instead of silently operating on — or denying
+  // access to — the wrong school.
+  const pref = fromCookie ? null : await prisma.userPreference.findUnique({
     where: { userId: user.id },
     select: { lastSchoolId: true },
   })
-  return pref?.lastSchoolId ?? null
+  const candidateId = fromCookie ?? pref?.lastSchoolId ?? null
+
+  if (candidateId) {
+    const validMembership = await prisma.schoolMember.findFirst({
+      where: { userId: user.id, schoolId: candidateId, status: 'ACTIVE' },
+      select: { schoolId: true },
+    })
+    if (validMembership) return validMembership.schoolId
+  }
+
+  const fallback = await prisma.schoolMember.findFirst({
+    where: { userId: user.id, status: 'ACTIVE' },
+    orderBy: { joinedAt: 'asc' },
+    select: { schoolId: true },
+  })
+  return fallback?.schoolId ?? null
 }
 
 // Convenience: get auth user + validate school access in one call.
