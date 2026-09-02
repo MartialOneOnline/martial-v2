@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { Search, Users as UsersIcon, ChevronLeft, ChevronRight } from 'lucide-react'
-import NotificationBell from '../../../components/NotificationBell'
-import DashboardLanguageSelector from '../../../components/DashboardLanguageSelector'
 import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { matchesSearch } from '../../../lib/search'
@@ -60,16 +58,12 @@ export default function StudentListPanel({ students }: { students: StudentListIt
 
       {/* Header */}
       <div style={{ padding: '14px 16px', borderBottom: '1px solid #F3F4F6', flexShrink: 0 }}>
-        <div className="flex items-center gap-2" style={{ marginBottom: 10 }}>
-          <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1"
-            style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-            <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
-            <input type="text" placeholder={t.users.searchPlaceholder} value={search}
-              onChange={e => { setSearch(e.target.value); setCurrentPage(1) }}
-              style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
-          </div>
-          <DashboardLanguageSelector />
-          <NotificationBell />
+        <div className="flex items-center gap-2 px-3 py-2 rounded-xl"
+          style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', marginBottom: 10 }}>
+          <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
+          <input type="text" placeholder={t.users.searchPlaceholder} value={search}
+            onChange={e => { setSearch(e.target.value); setCurrentPage(1) }}
+            style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
         </div>
         <div className="flex items-center gap-1.5" style={{ overflowX: 'auto' }}>
           {FILTERS.map(f => (

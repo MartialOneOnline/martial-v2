@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { fmtPrice } from '../../../../lib/format'
 import NotificationBell from '../../../../components/NotificationBell'
+import DashboardLanguageSelector from '../../../../components/DashboardLanguageSelector'
 import RowMenu from '../../../../components/RowMenu'
 import SendWaiverModal from '../../../../components/SendWaiverModal'
 import { useT } from '../../../../lib/i18n/LanguageContext'
@@ -1432,7 +1433,7 @@ function MembershipSection({
 }
 
 // ── Main component ─────────────────────────────────────────────────────────────
-export default function StudentProfileClient({ profile: initialProfile, ranks, hideOwnBellOnDesktop }: { profile: Profile; ranks: BeltRankInfo[]; hideOwnBellOnDesktop?: boolean }) {
+export default function StudentProfileClient({ profile: initialProfile, ranks }: { profile: Profile; ranks: BeltRankInfo[] }) {
   const tt = useT()
   const statusMap = getStatusMap(tt)
   const txStatusMap = getTxStatusMap(tt)
@@ -1640,7 +1641,8 @@ export default function StudentProfileClient({ profile: initialProfile, ranks, h
         <span style={{ color: '#D1D5DB' }}>/</span>
         <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{profile.name}</span>
         <div className="flex-1" />
-        {!hideOwnBellOnDesktop && <NotificationBell />}
+        <DashboardLanguageSelector />
+        <NotificationBell />
       </div>
 
       <div className="px-4 md:px-8 py-6" style={{ maxWidth: 1100, margin: '0 auto' }}>
