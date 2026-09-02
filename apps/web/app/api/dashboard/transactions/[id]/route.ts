@@ -141,7 +141,7 @@ export async function PATCH(
 
   const { status } = body
 
-  const allowed = ['PAID', 'PENDING', 'FAILED']
+  const allowed = ['PAID', 'PENDING', 'FAILED', 'CANCELLED']
   if (!allowed.includes(status)) {
     return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
   }
@@ -161,6 +161,15 @@ export async function PATCH(
   })
   if (!tx) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   if (tx.deletedAt) return NextResponse.json({ error: 'Cannot change status of a deleted transaction' }, { status: 400 })
+
+  // Cancelling means "we're never collecting this" (e.g. a pending renewal
+  // for a student who stopped attending) — distinct from delete, which keeps
+  // no trace at all. Only meaningful from PENDING/FAILED: an already-PAID
+  // transaction has to go through the delete flow (which reverts the
+  // membership dates it drove) rather than flip straight to CANCELLED.
+  if (status === 'CANCELLED' && tx.status !== 'PENDING' && tx.status !== 'FAILED') {
+    return NextResponse.json({ error: 'Only pending or failed payments can be cancelled' }, { status: 400 })
+  }
 
   const updated = await prisma.transaction.update({
     where: { id },

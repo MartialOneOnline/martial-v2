@@ -93,6 +93,29 @@ export async function PATCH(
       return NextResponse.json({ error: 'End date cannot be before start date' }, { status: 400 })
     }
 
+    // Guard against silently desyncing from a renewal payment that's already
+    // been collected: if the current endDate is exactly what a PAID renewal
+    // transaction's periodEnd pushed it to, overwriting it here would strand
+    // that transaction as "paid" for a period the membership no longer
+    // reflects (see revertMembershipForDeletedTransaction, which handles the
+    // equivalent case when that transaction is deleted instead).
+    if (data.endDate !== undefined && membership.endDate && end?.getTime() !== membership.endDate.getTime()) {
+      const drivingTransaction = await prisma.transaction.findFirst({
+        where: {
+          membershipId: id,
+          status: TransactionStatus.PAID,
+          deletedAt: null,
+          periodEnd: membership.endDate,
+        },
+      })
+      if (drivingTransaction) {
+        return NextResponse.json({
+          error: `A paid renewal already extended this membership to ${membership.endDate.toISOString().slice(0, 10)}. `
+            + 'Delete or edit that transaction instead of overriding the date here.',
+        }, { status: 409 })
+      }
+    }
+
     const updated = await prisma.membership.update({ where: { id }, data })
     return NextResponse.json({
       id: updated.id,

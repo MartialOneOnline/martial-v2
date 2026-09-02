@@ -13,6 +13,8 @@ import { fmtPrice } from '../../../../lib/format'
 import NotificationBell from '../../../../components/NotificationBell'
 import RowMenu from '../../../../components/RowMenu'
 import SendWaiverModal from '../../../../components/SendWaiverModal'
+import { useT } from '../../../../lib/i18n/LanguageContext'
+import type { Translations } from '../../../../lib/i18n/translations'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type Booking = { id: string; className: string; date: string; status: string; attendedAt: string | null }
@@ -86,21 +88,25 @@ function rankStyle(hexColor: string) {
   return { bg: `${hexColor}14`, color: hexColor, bar: hexColor }
 }
 
-const STATUS_MAP: Record<string, { bg: string; color: string; label: string }> = {
-  ACTIVE:   { bg: '#F0FDF4', color: '#16A34A', label: 'Active' },
-  INACTIVE: { bg: '#F3F4F6', color: '#6B7280', label: 'Inactive' },
-  PENDING:  { bg: '#FFFBEB', color: '#D97706', label: 'Pending' },
-  ARCHIVED: { bg: '#FEF2F2', color: '#9CA3AF', label: 'Archived' },
-  LEAD:     { bg: '#EEF2FF', color: '#6366F1', label: 'Invited' },
+function getStatusMap(t: Translations): Record<string, { bg: string; color: string; label: string }> {
+  return {
+    ACTIVE:   { bg: '#F0FDF4', color: '#16A34A', label: t.common.active },
+    INACTIVE: { bg: '#F3F4F6', color: '#6B7280', label: t.common.inactive },
+    PENDING:  { bg: '#FFFBEB', color: '#D97706', label: t.common.pending },
+    ARCHIVED: { bg: '#FEF2F2', color: '#9CA3AF', label: t.common.archived },
+    LEAD:     { bg: '#EEF2FF', color: '#6366F1', label: t.common.invited },
+  }
 }
 
-const TX_STATUS: Record<string, { bg: string; color: string; label: string }> = {
-  PAID:      { bg: '#F0FDF4', color: '#16A34A', label: 'Pagado' },
-  PENDING:   { bg: '#FFFBEB', color: '#D97706', label: 'Pendiente' },
-  FAILED:    { bg: '#FEF2F2', color: '#DC2626', label: 'Fallido' },
-  REFUNDED:  { bg: '#EEF2FF', color: '#6366F1', label: 'Reembolsado' },
-  CANCELLED: { bg: '#F3F4F6', color: '#6B7280', label: 'Cancelado' },
-  FLAGGED:   { bg: '#FEF2F2', color: '#DC2626', label: 'Marcado' },
+function getTxStatusMap(t: Translations): Record<string, { bg: string; color: string; label: string }> {
+  return {
+    PAID:      { bg: '#F0FDF4', color: '#16A34A', label: t.common.paid },
+    PENDING:   { bg: '#FFFBEB', color: '#D97706', label: t.common.pending },
+    FAILED:    { bg: '#FEF2F2', color: '#DC2626', label: t.common.failed },
+    REFUNDED:  { bg: '#EEF2FF', color: '#6366F1', label: t.common.refunded },
+    CANCELLED: { bg: '#F3F4F6', color: '#6B7280', label: t.common.cancelled },
+    FLAGGED:   { bg: '#FEF2F2', color: '#DC2626', label: t.studentProfile.flaggedLabel },
+  }
 }
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
@@ -217,6 +223,7 @@ function EditDrawer({
   onSaved: (updates: Partial<Profile>) => void
   ranks: BeltRankInfo[]
 }) {
+  const tt = useT()
   const [name, setName] = useState(profile.name)
   const [phone, setPhone] = useState(profile.phone ?? '')
   const [dob, setDob] = useState(profile.dateOfBirth?.substring(0, 10) ?? '')
@@ -259,7 +266,7 @@ function EditDrawer({
   }, [open, onClose])
 
   const save = async () => {
-    if (!name.trim()) { setError('El nombre es obligatorio.'); return }
+    if (!name.trim()) { setError(tt.studentProfile.nameRequired); return }
     setSaving(true)
     setError(null)
     try {
@@ -292,7 +299,7 @@ function EditDrawer({
       })
       onClose()
     } catch {
-      setError('Error al guardar. Inténtalo de nuevo.')
+      setError(tt.studentProfile.saveError)
     } finally {
       setSaving(false)
     }
@@ -324,7 +331,7 @@ function EditDrawer({
         {/* Header */}
         <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <div>
-            <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0 }}>Editar alumno</p>
+            <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0 }}>{tt.studentProfile.editStudentTitle}</p>
             <p style={{ fontSize: 12, color: '#9CA3AF', margin: '2px 0 0' }}>{profile.name}</p>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', padding: 6, borderRadius: 6, display: 'flex', alignItems: 'center' }}>
@@ -337,10 +344,10 @@ function EditDrawer({
 
           {/* Personal info */}
           <p style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 16px' }}>
-            Información personal
+            {tt.studentProfile.personalInfo}
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <Field label="Nombre completo">
+            <Field label={tt.studentProfile.fullName}>
               <input
                 value={name}
                 onChange={e => setName(e.target.value)}
@@ -349,10 +356,10 @@ function EditDrawer({
                 onBlur={e => (e.target.style.borderColor = '#E5E7EB')}
               />
             </Field>
-            <Field label="Email" hint="El email es el identificador de acceso — no se puede cambiar aquí.">
+            <Field label={tt.common.email} hint={tt.studentProfile.emailHint}>
               <input value={profile.email} disabled style={{ ...inputStyle, background: '#F9FAFB', color: '#9CA3AF', cursor: 'not-allowed' }} />
             </Field>
-            <Field label="Teléfono">
+            <Field label={tt.common.phone}>
               <input
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
@@ -362,7 +369,7 @@ function EditDrawer({
                 onBlur={e => (e.target.style.borderColor = '#E5E7EB')}
               />
             </Field>
-            <Field label="Fecha de nacimiento">
+            <Field label={tt.studentProfile.dateOfBirth}>
               <input
                 type="date"
                 value={dob}
@@ -372,17 +379,17 @@ function EditDrawer({
                 onBlur={e => (e.target.style.borderColor = '#E5E7EB')}
               />
             </Field>
-            <Field label="Estado">
+            <Field label={tt.studentProfile.statusField}>
               <select
                 value={status}
                 onChange={e => setStatus(e.target.value)}
                 style={{ ...inputStyle, cursor: 'pointer' }}
               >
-                <option value="ACTIVE">Active</option>
-                <option value="INACTIVE">Inactive</option>
-                <option value="PENDING">Pending</option>
-                <option value="LEAD">Lead</option>
-                <option value="ARCHIVED">Archived</option>
+                <option value="ACTIVE">{tt.common.active}</option>
+                <option value="INACTIVE">{tt.common.inactive}</option>
+                <option value="PENDING">{tt.common.pending}</option>
+                <option value="LEAD">{tt.common.invited}</option>
+                <option value="ARCHIVED">{tt.common.archived}</option>
               </select>
             </Field>
           </div>
@@ -391,12 +398,12 @@ function EditDrawer({
 
           {/* Belt section */}
           <p style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 16px' }}>
-            Cinturón & Progreso
+            {tt.studentProfile.beltProgressTitle}
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
             {/* Visual belt selector */}
-            <Field label="Cinturón">
+            <Field label={tt.studentProfile.beltField}>
               <div style={{ display: 'flex', gap: 6 }}>
                 {hasRanks ? ranks.map(rank => {
                   const rColor = rankStyle(rank.color)
@@ -460,7 +467,7 @@ function EditDrawer({
             </Field>
 
             {/* Degree selector */}
-            <Field label="Grados (rayas)">
+            <Field label={tt.studentProfile.degreesField}>
               <div style={{ display: 'flex', gap: 6 }}>
                 {Array.from({ length: maxDegrees + 1 }, (_, d) => d).map(d => {
                   const selected = beltDegree === d
@@ -485,11 +492,11 @@ function EditDrawer({
                 })}
               </div>
               <p style={{ fontSize: 11, color: '#9CA3AF', margin: '6px 0 0' }}>
-                Número de rayas/grados en el cinturón actual
+                {tt.studentProfile.degreesHint}
               </p>
             </Field>
 
-            <Field label="Fecha de promoción">
+            <Field label={tt.studentProfile.promotionDate}>
               <input
                 type="date"
                 value={beltDate}
@@ -515,14 +522,14 @@ function EditDrawer({
             onClick={onClose}
             style={{ flex: 1, padding: '10px', border: '1px solid #E5E7EB', borderRadius: 8, background: '#fff', fontSize: 13, fontWeight: 500, cursor: 'pointer', color: '#374151' }}
           >
-            Cancelar
+            {tt.common.cancel}
           </button>
           <button
             onClick={save}
             disabled={saving}
             style={{ flex: 2, padding: '10px', border: 'none', borderRadius: 8, background: '#0071E3', color: '#fff', fontSize: 13, fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1, transition: 'opacity 0.15s' }}
           >
-            {saving ? 'Guardando…' : 'Guardar cambios'}
+            {saving ? tt.studentProfile.saving : tt.studentProfile.saveChanges}
           </button>
         </div>
       </div>
@@ -537,6 +544,7 @@ function MedicalNotesModal({ profile, onClose, onSaved, showToast }: {
   onSaved: (updates: Partial<Profile>) => void
   showToast: (message: string, type?: ToastType) => void
 }) {
+  const tt = useT()
   const [emergencyContact, setEmergencyContact] = useState(profile.emergencyContact ?? '')
   const [medicalNotes, setMedicalNotes] = useState(profile.medicalNotes ?? '')
   const [saving, setSaving] = useState(false)
@@ -554,10 +562,10 @@ function MedicalNotesModal({ profile, onClose, onSaved, showToast }: {
       })
       if (!res.ok) throw new Error()
       onSaved({ emergencyContact: emergencyContact.trim() || null, medicalNotes: medicalNotes.trim() || null })
-      showToast('Notas médicas guardadas', 'success')
+      showToast(tt.studentProfile.medicalNotesSaved, 'success')
       onClose()
     } catch {
-      showToast('Error al guardar las notas médicas', 'error')
+      showToast(tt.studentProfile.medicalNotesError, 'error')
     } finally {
       setSaving(false)
     }
@@ -567,24 +575,24 @@ function MedicalNotesModal({ profile, onClose, onSaved, showToast }: {
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.45)' }}>
       <div style={{ background: '#fff', borderRadius: 16, width: 460, maxWidth: '95vw', padding: 28, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
         <div className="flex items-center justify-between" style={{ marginBottom: 20 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>Notas médicas</h3>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>{tt.studentProfile.medicalNotesTitle}</h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF' }}><X size={18} /></button>
         </div>
 
         <div className="flex flex-col gap-4">
-          <Field label="Contacto de emergencia">
+          <Field label={tt.studentProfile.emergencyContact}>
             <input
               value={emergencyContact}
               onChange={e => setEmergencyContact(e.target.value)}
-              placeholder="María García — +34 666 123 456"
+              placeholder={tt.studentProfile.emergencyContactPlaceholder}
               style={inputStyle}
             />
           </Field>
-          <Field label="Notas médicas" hint="Lesiones, alergias, condiciones a tener en cuenta.">
+          <Field label={tt.studentProfile.medicalNotesTitle} hint={tt.studentProfile.medicalNotesHint}>
             <textarea
               value={medicalNotes}
               onChange={e => setMedicalNotes(e.target.value)}
-              placeholder="Ej. Lesión de rodilla derecha, alergia a la penicilina"
+              placeholder={tt.studentProfile.medicalNotesPlaceholder}
               style={{ ...inputStyle, minHeight: 90, resize: 'vertical' }}
             />
           </Field>
@@ -593,12 +601,12 @@ function MedicalNotesModal({ profile, onClose, onSaved, showToast }: {
         <div className="flex gap-3 justify-end" style={{ marginTop: 20 }}>
           <button onClick={onClose}
             style={{ padding: '9px 20px', borderRadius: 10, border: '1px solid #E5E7EB', fontSize: 13, fontWeight: 600, color: '#374151', background: '#fff', cursor: 'pointer' }}>
-            Cancelar
+            {tt.common.cancel}
           </button>
           <button onClick={save} disabled={saving}
             style={{ padding: '9px 24px', borderRadius: 10, border: 'none', fontSize: 13, fontWeight: 600, color: '#fff',
               background: saving ? '#93C5FD' : '#0071E3', cursor: saving ? 'not-allowed' : 'pointer' }}>
-            {saving ? 'Guardando…' : 'Guardar'}
+            {saving ? tt.studentProfile.saving : tt.common.save}
           </button>
         </div>
       </div>
@@ -612,6 +620,7 @@ function EmailComposerModal({ profile, onClose, showToast }: {
   onClose: () => void
   showToast: (message: string, type?: ToastType) => void
 }) {
+  const tt = useT()
   const [subject, setSubject] = useState('')
   const [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
@@ -626,10 +635,10 @@ function EmailComposerModal({ profile, onClose, showToast }: {
         body: JSON.stringify({ subject: subject.trim(), message: message.trim() }),
       })
       if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error) }
-      showToast(`Email enviado a ${profile.email}`, 'success')
+      showToast(tt.studentProfile.emailSentTo.replace('{email}', profile.email), 'success')
       onClose()
     } catch (e: unknown) {
-      showToast(e instanceof Error && e.message ? e.message : 'Error al enviar el email', 'error')
+      showToast(e instanceof Error && e.message ? e.message : tt.studentProfile.emailSendError, 'error')
     } finally {
       setSending(false)
     }
@@ -639,25 +648,25 @@ function EmailComposerModal({ profile, onClose, showToast }: {
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.45)' }}>
       <div style={{ background: '#fff', borderRadius: 16, width: 520, maxWidth: '95vw', padding: 28, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
         <div className="flex items-center justify-between" style={{ marginBottom: 4 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>Enviar email</h3>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>{tt.studentProfile.sendEmailTitle}</h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF' }}><X size={18} /></button>
         </div>
-        <p style={{ fontSize: 12, color: '#9CA3AF', margin: '0 0 20px' }}>Para {profile.name} · {profile.email}</p>
+        <p style={{ fontSize: 12, color: '#9CA3AF', margin: '0 0 20px' }}>{tt.studentProfile.toLabel} {profile.name} · {profile.email}</p>
 
         <div className="flex flex-col gap-4">
-          <Field label="Asunto">
+          <Field label={tt.school.emailSubject}>
             <input
               value={subject}
               onChange={e => setSubject(e.target.value)}
-              placeholder="Ej. Sobre tu próxima clase"
+              placeholder={tt.studentProfile.subjectPlaceholder}
               style={inputStyle}
             />
           </Field>
-          <Field label="Mensaje">
+          <Field label={tt.studentProfile.messageLabel}>
             <textarea
               value={message}
               onChange={e => setMessage(e.target.value)}
-              placeholder="Escribe tu mensaje…"
+              placeholder={tt.studentProfile.messagePlaceholder}
               style={{ ...inputStyle, minHeight: 160, resize: 'vertical' }}
             />
           </Field>
@@ -666,13 +675,13 @@ function EmailComposerModal({ profile, onClose, showToast }: {
         <div className="flex gap-3 justify-end" style={{ marginTop: 20 }}>
           <button onClick={onClose}
             style={{ padding: '9px 20px', borderRadius: 10, border: '1px solid #E5E7EB', fontSize: 13, fontWeight: 600, color: '#374151', background: '#fff', cursor: 'pointer' }}>
-            Cancelar
+            {tt.common.cancel}
           </button>
           <button onClick={send} disabled={sending || !subject.trim() || !message.trim()}
             style={{ padding: '9px 24px', borderRadius: 10, border: 'none', fontSize: 13, fontWeight: 600, color: '#fff',
               background: sending || !subject.trim() || !message.trim() ? '#93C5FD' : '#0071E3',
               cursor: sending || !subject.trim() || !message.trim() ? 'not-allowed' : 'pointer' }}>
-            {sending ? 'Enviando…' : 'Enviar'}
+            {sending ? tt.studentProfile.sendingLabel : tt.common.send}
           </button>
         </div>
       </div>
@@ -681,14 +690,14 @@ function EmailComposerModal({ profile, onClose, showToast }: {
 }
 
 // ── Attendance card modal ────────────────────────────────────────────────────────
-const MONTHS_ES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
-
 type DayStatus = 'present' | 'absent' | 'promoted' | 'not_marked'
-const DAY_STATUS_DOT: Record<DayStatus, { color: string; label: string }> = {
-  present:     { color: '#22C55E', label: 'Presente' },
-  absent:      { color: '#E11D48', label: 'Ausente' },
-  promoted:    { color: '#EAB308', label: 'Promovido' },
-  not_marked:  { color: '#9CA3AF', label: 'Sin marcar' },
+function getDayStatusDot(t: Translations): Record<DayStatus, { color: string; label: string }> {
+  return {
+    present:     { color: '#22C55E', label: t.studentProfile.statusPresent },
+    absent:      { color: '#E11D48', label: t.studentProfile.statusAbsent },
+    promoted:    { color: '#EAB308', label: t.studentProfile.statusPromoted },
+    not_marked:  { color: '#9CA3AF', label: t.studentProfile.statusNotMarked },
+  }
 }
 
 function pad2(n: number) {
@@ -704,6 +713,9 @@ function AttendanceCardModal({ profile, belt, onClose }: {
   belt: { bg: string; color: string; bar: string }
   onClose: () => void
 }) {
+  const tt = useT()
+  const monthNames = tt.classes.monthNames.split(',')
+  const dayStatusDot = getDayStatusDot(tt)
   const currentYear = new Date().getFullYear()
   const [year, setYear] = useState(currentYear)
   const [years, setYears] = useState<number[]>([currentYear])
@@ -738,7 +750,7 @@ function AttendanceCardModal({ profile, belt, onClose }: {
                   <User size={20} style={{ color: belt.color }} />
                 </div>}
             <div>
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>Tarjeta de asistencia</h3>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>{tt.studentProfile.attendanceCardTitle}</h3>
               <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>{profile.name}</p>
             </div>
           </div>
@@ -754,20 +766,20 @@ function AttendanceCardModal({ profile, belt, onClose }: {
                 color: y === year ? '#0071E3' : '#9CA3AF',
                 borderBottom: y === year ? '2px solid #0071E3' : '2px solid transparent',
               }}>
-              Asistencia {y}
+              {tt.studentProfile.attendanceYear.replace('{year}', String(y))}
             </button>
           ))}
         </div>
 
         {lastGradingDate && (
           <p style={{ fontSize: 12, color: '#6B7280', margin: '0 0 14px' }}>
-            Última graduación: {fmt(lastGradingDate)}
+            {tt.studentProfile.lastGrading}: {fmt(lastGradingDate)}
           </p>
         )}
 
         {/* Legend */}
         <div className="flex items-center gap-5" style={{ marginBottom: 16 }}>
-          {(Object.entries(DAY_STATUS_DOT) as [DayStatus, { color: string; label: string }][]).map(([key, s]) => (
+          {(Object.entries(dayStatusDot) as [DayStatus, { color: string; label: string }][]).map(([key, s]) => (
             <div key={key} className="flex items-center gap-2">
               <span style={{ width: 9, height: 9, borderRadius: '50%', background: s.color, display: 'inline-block' }} />
               <span style={{ fontSize: 12, color: '#374151' }}>{s.label}</span>
@@ -790,7 +802,7 @@ function AttendanceCardModal({ profile, belt, onClose }: {
               </tr>
             </thead>
             <tbody>
-              {MONTHS_ES.map((monthName, monthIdx) => {
+              {monthNames.map((monthName, monthIdx) => {
                 const dim = daysInMonth(year, monthIdx)
                 return (
                   <tr key={monthName}>
@@ -805,7 +817,7 @@ function AttendanceCardModal({ profile, belt, onClose }: {
                       return (
                         <td key={day} style={{ border: '1px solid #F3F4F6', textAlign: 'center', padding: '4px 0' }}>
                           {status && (
-                            <span style={{ width: 10, height: 10, borderRadius: '50%', display: 'inline-block', background: DAY_STATUS_DOT[status].color }} />
+                            <span style={{ width: 10, height: 10, borderRadius: '50%', display: 'inline-block', background: dayStatusDot[status].color }} />
                           )}
                         </td>
                       )
@@ -823,19 +835,23 @@ function AttendanceCardModal({ profile, belt, onClose }: {
 
 // ── Main component ─────────────────────────────────────────────────────────────
 // ── Booking status map ─────────────────────────────────────────────────────────
-const BOOKING_STATUS: Record<string, { bg: string; color: string; label: string }> = {
-  CONFIRMED:  { bg: '#EFF6FF', color: '#2563EB', label: 'Confirmed' },
-  PENDING:    { bg: '#FFFBEB', color: '#D97706', label: 'Pending' },
-  COMPLETED:  { bg: '#F0FDF4', color: '#16A34A', label: 'Attended' },
-  CANCELLED:  { bg: '#F3F4F6', color: '#9CA3AF', label: 'Cancelled' },
-  NO_SHOW:    { bg: '#FEF2F2', color: '#DC2626', label: 'No-show' },
+function getBookingStatusMap(t: Translations): Record<string, { bg: string; color: string; label: string }> {
+  return {
+    CONFIRMED:  { bg: '#EFF6FF', color: '#2563EB', label: t.studentProfile.confirmedLabel },
+    PENDING:    { bg: '#FFFBEB', color: '#D97706', label: t.common.pending },
+    COMPLETED:  { bg: '#F0FDF4', color: '#16A34A', label: t.studentProfile.attendedLabel },
+    CANCELLED:  { bg: '#F3F4F6', color: '#9CA3AF', label: t.common.cancelled },
+    NO_SHOW:    { bg: '#FEF2F2', color: '#DC2626', label: t.studentProfile.noShowLabel },
+  }
 }
 
-const MEM_STATUS: Record<string, { bg: string; color: string; label: string }> = {
-  ACTIVE:    { bg: '#F0FDF4', color: '#16A34A', label: 'Active' },
-  PAUSED:    { bg: '#FFFBEB', color: '#D97706', label: 'Paused' },
-  CANCELLED: { bg: '#F3F4F6', color: '#6B7280', label: 'Cancelled' },
-  EXPIRED:   { bg: '#FEF2F2', color: '#9CA3AF', label: 'Expired' },
+function getMemStatusMap(t: Translations): Record<string, { bg: string; color: string; label: string }> {
+  return {
+    ACTIVE:    { bg: '#F0FDF4', color: '#16A34A', label: t.common.active },
+    PAUSED:    { bg: '#FFFBEB', color: '#D97706', label: t.studentProfile.pausedLabel },
+    CANCELLED: { bg: '#F3F4F6', color: '#6B7280', label: t.common.cancelled },
+    EXPIRED:   { bg: '#FEF2F2', color: '#9CA3AF', label: t.studentProfile.expiredLabel },
+  }
 }
 
 // ── Assign Plan Modal ──────────────────────────────────────────────────────────
@@ -845,6 +861,7 @@ function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
   onClose: () => void
   onAssigned: (m: ActiveMembership) => void
 }) {
+  const tt = useT()
   const [planId, setPlanId] = useState(plans[0]?.id ?? '')
   const [startDate, setStartDate] = useState(new Date().toISOString().substring(0, 10))
   const [paymentMethod, setPaymentMethod] = useState('CASH')
@@ -888,7 +905,7 @@ function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
   }, [planId, startDate, endDateTouched]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function save() {
-    if (!planId) { setError('Select a plan'); return }
+    if (!planId) { setError(tt.studentProfile.selectPlanError); return }
     setSaving(true); setError('')
     try {
       const res = await fetch(`/api/dashboard/members/${memberId}/membership`, {
@@ -899,7 +916,7 @@ function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
           ...(paymentMethod === 'CASH' && endDateOverride ? { endDate: endDateOverride } : {}),
         }),
       })
-      if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? 'Error'); }
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? tt.common.error); }
       const data = await res.json()
       onAssigned({
         id: data.id,
@@ -915,7 +932,7 @@ function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
       })
       onClose()
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Error')
+      setError(e instanceof Error ? e.message : tt.common.error)
     } finally {
       setSaving(false)
     }
@@ -925,14 +942,14 @@ function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.45)' }}>
       <div style={{ background: '#fff', borderRadius: 16, width: 480, maxWidth: '95vw', maxHeight: '90vh', padding: 28, boxShadow: '0 20px 60px rgba(0,0,0,0.2)', overflowY: 'auto' }}>
         <div className="flex items-center justify-between" style={{ marginBottom: 20 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>Assign membership plan</h3>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>{tt.studentProfile.assignPlanTitle}</h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF' }}><X size={18} /></button>
         </div>
 
         <div className="flex flex-col gap-4">
           {/* Plan selector */}
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 8 }}>Plan</label>
+            <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 8 }}>{tt.studentProfile.planLabel}</label>
             <div className="flex flex-col gap-2">
               {plans.map(p => (
                 <button key={p.id} onClick={() => setPlanId(p.id)}
@@ -943,8 +960,8 @@ function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
                   <div>
                     <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>{p.name}</p>
                     <p style={{ fontSize: 11, color: '#9CA3AF', margin: '2px 0 0' }}>
-                      {p.planType === 'TRIAL' ? 'Trial' : p.planType === 'SINGLE_PASS' ? 'Single pass' : 'Subscription'}
-                      {p.validityDays ? ` · ${p.validityDays} days` : p.billingCycle ? ` · ${p.billingCycle}` : ''}
+                      {p.planType === 'TRIAL' ? tt.studentProfile.trialLabel : p.planType === 'SINGLE_PASS' ? tt.studentProfile.singlePassLabel : tt.studentProfile.subscriptionLabel}
+                      {p.validityDays ? ` · ${p.validityDays} ${tt.studentProfile.daysSuffix}` : p.billingCycle ? ` · ${p.billingCycle}` : ''}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -961,17 +978,17 @@ function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
           {/* Start date + payment */}
           <div className="flex gap-3">
             <div style={{ flex: 1 }}>
-              <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Start date</label>
+              <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>{tt.studentProfile.startDateLabel}</label>
               <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
                 style={{ width: '100%', padding: '8px 12px', fontSize: 13, border: '1px solid #E5E7EB', borderRadius: 8, outline: 'none' }} />
             </div>
             <div style={{ flex: 1 }}>
-              <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Payment method</label>
+              <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>{tt.studentProfile.paymentMethodLabel}</label>
               <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)}
                 style={{ width: '100%', padding: '8px 12px', fontSize: 13, border: '1px solid #E5E7EB', borderRadius: 8, outline: 'none' }}>
-                <option value="CASH">Cash</option>
-                <option value="BANK_TRANSFER">Bank transfer</option>
-                <option value="STRIPE">Stripe</option>
+                <option value="CASH">{tt.studentProfile.cashLabel}</option>
+                <option value="BANK_TRANSFER">{tt.studentProfile.bankTransferLabel}</option>
+                <option value="STRIPE">{tt.studentProfile.stripeLabel}</option>
               </select>
             </div>
           </div>
@@ -979,7 +996,7 @@ function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
           {previewEndDate && paymentMethod === 'CASH' && (
             <div>
               <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>
-                {selected?.planType === 'SUBSCRIPTION' ? 'Next renewal' : 'Expires'}
+                {selected?.planType === 'SUBSCRIPTION' ? tt.studentProfile.nextRenewal : tt.studentProfile.expiresLabel}
               </label>
               <input type="date" value={endDateOverride}
                 onChange={e => { setEndDateOverride(e.target.value); setEndDateTouched(true) }}
@@ -989,19 +1006,19 @@ function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
 
           {previewEndDate && paymentMethod !== 'CASH' && (
             <p style={{ fontSize: 12, color: '#6B7280', background: '#F9FAFB', padding: '8px 12px', borderRadius: 8, margin: 0 }}>
-              {selected?.planType === 'SUBSCRIPTION' ? 'Next renewal' : 'Expires'} on:{' '}
+              {selected?.planType === 'SUBSCRIPTION' ? tt.studentProfile.nextRenewal : tt.studentProfile.expiresLabel}:{' '}
               <strong>{previewEndDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</strong>
             </p>
           )}
 
           {/* Notes */}
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Notes <span style={{ fontWeight: 400, color: '#9CA3AF' }}>(optional)</span></label>
+            <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>{tt.common.description} <span style={{ fontWeight: 400, color: '#9CA3AF' }}>{tt.studentProfile.notesOptional}</span></label>
             <input
               type="text"
               value={notes}
               onChange={e => setNotes(e.target.value)}
-              placeholder="e.g. Paid in cash at reception"
+              placeholder={tt.studentProfile.notesPlaceholderPlan}
               style={{ width: '100%', padding: '8px 12px', fontSize: 13, border: '1px solid #E5E7EB', borderRadius: 8, outline: 'none' }}
             />
           </div>
@@ -1012,12 +1029,12 @@ function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
         <div className="flex gap-3 justify-end" style={{ marginTop: 20 }}>
           <button onClick={onClose}
             style={{ padding: '9px 20px', borderRadius: 10, border: '1px solid #E5E7EB', fontSize: 13, fontWeight: 600, color: '#374151', background: '#fff', cursor: 'pointer' }}>
-            Cancel
+            {tt.common.cancel}
           </button>
           <button onClick={save} disabled={saving || !planId}
             style={{ padding: '9px 24px', borderRadius: 10, border: 'none', fontSize: 13, fontWeight: 600, color: '#fff',
               background: saving || !planId ? '#93C5FD' : '#0071E3', cursor: saving || !planId ? 'not-allowed' : 'pointer' }}>
-            {saving ? 'Assigning…' : 'Assign plan'}
+            {saving ? tt.studentProfile.assigning : tt.studentProfile.assignPlanBtn}
           </button>
         </div>
       </div>
@@ -1028,7 +1045,7 @@ function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
 // ── Membership Section ─────────────────────────────────────────────────────────
 function MembershipSection({
   memberId, activeMembership: initialActiveMembership, memberships: initialMemberships, availablePlans,
-  pendingRenewal, onAssigned, onRenewalCreated, onRenewalPaid, onCancelled,
+  pendingRenewal, onAssigned, onRenewalCreated, onRenewalPaid, onRenewalCancelled, onCancelled,
 }: {
   memberId: string
   activeMembership: ActiveMembership | null
@@ -1038,8 +1055,11 @@ function MembershipSection({
   onAssigned: (m: ActiveMembership) => void
   onRenewalCreated: (t: Transaction) => void
   onRenewalPaid: (transactionId: string, newEndDate: string | null) => void
+  onRenewalCancelled: (transactionId: string) => void
   onCancelled: (membershipId: string) => void
 }) {
+  const tt = useT()
+  const memStatusMap = getMemStatusMap(tt)
   const [activeMembership, setActiveMembership] = useState(initialActiveMembership)
   const [memberships, setMemberships] = useState(initialMemberships)
   const [showModal, setShowModal] = useState(false)
@@ -1047,6 +1067,7 @@ function MembershipSection({
   const [cancelling, setCancelling] = useState(false)
   const [creatingRenewal, setCreatingRenewal] = useState(false)
   const [markingPaid, setMarkingPaid] = useState(false)
+  const [cancellingRenewal, setCancellingRenewal] = useState(false)
   const [editingDates, setEditingDates] = useState(false)
   const [editStart, setEditStart] = useState('')
   const [editEnd, setEditEnd] = useState('')
@@ -1078,7 +1099,7 @@ function MembershipSection({
         })
       } else {
         const d = await res.json().catch(() => ({}))
-        alert(d.error ?? 'Could not create the renewal payment')
+        alert(d.error ?? tt.studentProfile.couldNotCreateRenewal)
       }
     } finally {
       setCreatingRenewal(false)
@@ -1101,10 +1122,30 @@ function MembershipSection({
         onRenewalPaid(pendingRenewal.id, newEndDate)
       } else {
         const d = await res.json().catch(() => ({}))
-        alert(d.error ?? 'Could not mark the payment as paid')
+        alert(d.error ?? tt.studentProfile.couldNotMarkPaid)
       }
     } finally {
       setMarkingPaid(false)
+    }
+  }
+
+  async function handleCancelRenewal() {
+    if (!pendingRenewal || !confirm(tt.studentProfile.cancelRenewalConfirm)) return
+    setCancellingRenewal(true)
+    try {
+      const res = await fetch(`/api/dashboard/transactions/${pendingRenewal.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'CANCELLED' }),
+      })
+      if (res.ok) {
+        onRenewalCancelled(pendingRenewal.id)
+      } else {
+        const d = await res.json().catch(() => ({}))
+        alert(d.error ?? tt.studentProfile.couldNotCancelPayment)
+      }
+    } finally {
+      setCancellingRenewal(false)
     }
   }
 
@@ -1137,7 +1178,7 @@ function MembershipSection({
         setEditingDates(false)
       } else {
         const d = await res.json().catch(() => ({}))
-        setDateError(d.error ?? 'Could not update dates')
+        setDateError(d.error ?? tt.studentProfile.couldNotUpdateDates)
       }
     } finally {
       setSavingDates(false)
@@ -1145,7 +1186,7 @@ function MembershipSection({
   }
 
   async function handleCancel() {
-    if (!activeMembership || !confirm('Cancel this membership?')) return
+    if (!activeMembership || !confirm(tt.studentProfile.cancelMembershipConfirm)) return
     setCancelling(true)
     try {
       const res = await fetch(`/api/dashboard/members/${memberId}/membership`, {
@@ -1178,7 +1219,7 @@ function MembershipSection({
   return (
     <Card>
       <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
-        <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>Membership</p>
+        <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>{tt.studentProfile.membershipTitle}</p>
         <div className="flex items-center gap-2">
           {activeMembership && activeMembership.paymentMethod === 'CASH' && !pendingRenewal && (
             <button onClick={handleCreateRenewalPayment} disabled={creatingRenewal}
@@ -1186,7 +1227,7 @@ function MembershipSection({
               style={{ fontSize: 12, fontWeight: 600, color: '#D97706', background: '#FFFBEB', border: 'none',
                 padding: '5px 10px', borderRadius: 8, cursor: creatingRenewal ? 'not-allowed' : 'pointer', opacity: creatingRenewal ? 0.6 : 1 }}>
               <Plus size={11} />
-              {creatingRenewal ? 'Adding…' : 'Payment'}
+              {creatingRenewal ? tt.studentProfile.adding : tt.studentProfile.paymentBtn}
             </button>
           )}
           {activeMembership && (
@@ -1195,7 +1236,7 @@ function MembershipSection({
               style={{ fontSize: 12, fontWeight: 600, color: '#EF4444', background: '#FEF2F2', border: 'none',
                 padding: '5px 10px', borderRadius: 8, cursor: cancelling ? 'not-allowed' : 'pointer', opacity: cancelling ? 0.6 : 1 }}>
               <X size={11} />
-              {cancelling ? 'Cancelling…' : 'Cancel'}
+              {cancelling ? tt.studentProfile.cancelling : tt.common.cancel}
             </button>
           )}
           <button onClick={() => setShowModal(true)}
@@ -1203,7 +1244,7 @@ function MembershipSection({
             style={{ fontSize: 12, fontWeight: 600, color: '#0071E3', background: '#EFF6FF', border: 'none',
               padding: '5px 12px', borderRadius: 8, cursor: 'pointer' }}>
             <Plus size={12} />
-            {activeMembership ? 'Change plan' : 'Assign plan'}
+            {activeMembership ? tt.studentProfile.changePlan : tt.studentProfile.assignPlanBtn}
           </button>
         </div>
       </div>
@@ -1223,33 +1264,33 @@ function MembershipSection({
                   <div style={{ marginTop: 4 }}>
                     <div className="flex items-center gap-2 flex-wrap">
                       <label className="flex items-center gap-1" style={{ fontSize: 11, color: '#6B7280' }}>
-                        Start
+                        {tt.studentProfile.startDateLabel}
                         <input type="date" value={editStart} onChange={e => setEditStart(e.target.value)}
                           style={{ fontSize: 12, padding: '3px 6px', borderRadius: 6, border: '1px solid #D1D5DB' }} />
                       </label>
                       <label className="flex items-center gap-1" style={{ fontSize: 11, color: '#6B7280' }}>
-                        Expires
+                        {tt.studentProfile.expiresLabel}
                         <input type="date" value={editEnd} onChange={e => setEditEnd(e.target.value)}
                           style={{ fontSize: 12, padding: '3px 6px', borderRadius: 6, border: '1px solid #D1D5DB' }} />
                       </label>
                       <button onClick={handleSaveDates} disabled={savingDates}
                         style={{ fontSize: 11, fontWeight: 600, color: '#fff', background: '#16A34A', border: 'none',
                           padding: '4px 10px', borderRadius: 6, cursor: savingDates ? 'not-allowed' : 'pointer', opacity: savingDates ? 0.6 : 1 }}>
-                        {savingDates ? 'Saving…' : 'Save'}
+                        {savingDates ? tt.studentProfile.saving : tt.common.save}
                       </button>
                       <button onClick={() => setEditingDates(false)} disabled={savingDates}
                         style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px' }}>
-                        Cancel
+                        {tt.common.cancel}
                       </button>
                     </div>
                     {dateError && <p style={{ fontSize: 11, color: '#EF4444', margin: '4px 0 0' }}>{dateError}</p>}
                   </div>
                 ) : (
                   <p className="flex items-center gap-1.5" style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>
-                    Started {new Date(activeMembership.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                    {activeMembership.expiresAt && ` · Expires ${new Date(activeMembership.expiresAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`}
+                    {tt.studentProfile.started} {new Date(activeMembership.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    {activeMembership.expiresAt && ` · ${tt.studentProfile.expiresLabel} ${new Date(activeMembership.expiresAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`}
                     {activeMembership.paymentMethod === 'CASH' && (
-                      <button onClick={openDateEdit} title="Edit dates"
+                      <button onClick={openDateEdit} title={tt.studentProfile.editDatesTitle}
                         style={{ display: 'inline-flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: '#9CA3AF' }}>
                         <Edit2 size={11} />
                       </button>
@@ -1259,14 +1300,14 @@ function MembershipSection({
               </div>
               <div className="flex items-center gap-2">
                 <span style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>
-                  {activeMembership.price === 0 ? 'Free' : fmtPrice(activeMembership.price, activeMembership.currency ?? 'EUR')}
+                  {activeMembership.price === 0 ? tt.studentProfile.free : fmtPrice(activeMembership.price, activeMembership.currency ?? 'EUR')}
                   {activeMembership.interval && <span style={{ fontSize: 11, fontWeight: 400, color: '#9CA3AF' }}>/{activeMembership.interval}</span>}
                 </span>
                 <span style={{
                   fontSize: 11, fontWeight: 600, color: '#fff', padding: '2px 10px', borderRadius: 999,
                   background: isPastDue ? '#D97706' : '#16A34A',
                 }}>
-                  {isPastDue ? 'Renewal due' : 'Active'}
+                  {isPastDue ? tt.studentProfile.renewalDue : tt.common.active}
                 </span>
               </div>
             </div>
@@ -1277,7 +1318,7 @@ function MembershipSection({
             {activeMembership.planType !== 'SUBSCRIPTION' && activeMembership.consumed > 0 && (
               <div style={{ marginTop: 10 }}>
                 <div className="flex justify-between" style={{ marginBottom: 4 }}>
-                  <span style={{ fontSize: 11, color: '#6B7280' }}>Classes used</span>
+                  <span style={{ fontSize: 11, color: '#6B7280' }}>{tt.studentProfile.classesUsedLabel}</span>
                   <span style={{ fontSize: 11, fontWeight: 700, color: '#111827' }}>{activeMembership.consumed}</span>
                 </div>
                 <div style={{ height: 4, background: '#D1FAE5', borderRadius: 999 }}>
@@ -1293,17 +1334,22 @@ function MembershipSection({
               }}>
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <p style={{ fontSize: 12, color: '#92400E', margin: 0 }}>
-                    Renewal payment pending — <strong>{fmtPrice(pendingRenewal.amount, pendingRenewal.currency)}</strong> to collect in cash
+                    {tt.studentProfile.renewalPendingText.replace('{amount}', fmtPrice(pendingRenewal.amount, pendingRenewal.currency))}
                   </p>
                   <div className="flex items-center gap-2">
                     <button onClick={() => setShowModal(true)}
                       style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', padding: '5px 6px' }}>
-                      Create new membership instead
+                      {tt.studentProfile.createNewInstead}
+                    </button>
+                    <button onClick={handleCancelRenewal} disabled={cancellingRenewal}
+                      style={{ fontSize: 12, fontWeight: 600, color: '#EF4444', background: '#FEF2F2', border: 'none',
+                        padding: '6px 12px', borderRadius: 8, cursor: cancellingRenewal ? 'not-allowed' : 'pointer', opacity: cancellingRenewal ? 0.6 : 1 }}>
+                      {cancellingRenewal ? tt.studentProfile.cancelling : tt.studentProfile.cancelPayment}
                     </button>
                     <button onClick={handleMarkPaid} disabled={markingPaid}
                       style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: '#D97706', border: 'none',
                         padding: '6px 12px', borderRadius: 8, cursor: markingPaid ? 'not-allowed' : 'pointer', opacity: markingPaid ? 0.6 : 1 }}>
-                      {markingPaid ? 'Marking…' : 'Mark as paid'}
+                      {markingPaid ? tt.studentProfile.marking : tt.studentProfile.markAsPaid}
                     </button>
                   </div>
                 </div>
@@ -1317,19 +1363,19 @@ function MembershipSection({
               className="flex items-center gap-1.5"
               style={{ fontSize: 12, color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
               <ChevronRight size={13} style={{ transform: showHistory ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s' }} />
-              {showHistory ? 'Hide' : 'Show'} history ({memberships.length - 1} previous)
+              {showHistory ? tt.studentProfile.hideHistory : tt.studentProfile.showHistory} {tt.studentProfile.historyPrevious.replace('{n}', String(memberships.length - 1))}
             </button>
           )}
         </div>
       ) : (
         <div style={{ textAlign: 'center', padding: '20px 0' }}>
           <CreditCard size={28} style={{ color: '#E5E7EB', marginBottom: 8 }} />
-          <p style={{ fontSize: 13, color: '#9CA3AF', margin: '0 0 12px' }}>No active membership</p>
+          <p style={{ fontSize: 13, color: '#9CA3AF', margin: '0 0 12px' }}>{tt.studentProfile.noActiveMembership}</p>
           {availablePlans.length > 0 && (
             <button onClick={() => setShowModal(true)}
               style={{ fontSize: 12, fontWeight: 600, color: '#0071E3', background: '#EFF6FF', border: 'none',
                 padding: '7px 16px', borderRadius: 8, cursor: 'pointer' }}>
-              Assign a plan
+              {tt.studentProfile.assignAPlan}
             </button>
           )}
         </div>
@@ -1338,10 +1384,10 @@ function MembershipSection({
       {/* History list */}
       {showHistory && memberships.filter(m => m.status !== 'ACTIVE').length > 0 && (
         <div style={{ marginTop: 12, borderTop: '1px solid #F3F4F6', paddingTop: 12 }}>
-          <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 8px' }}>History</p>
+          <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 8px' }}>{tt.studentProfile.historyTitle}</p>
           <div className="flex flex-col gap-2">
             {memberships.filter(m => m.status !== 'ACTIVE').map(m => {
-              const ms = MEM_STATUS[m.status] ?? { bg: '#F3F4F6', color: '#6B7280', label: m.status }
+              const ms = memStatusMap[m.status] ?? { bg: '#F3F4F6', color: '#6B7280', label: m.status }
               return (
                 <div key={m.id} className="flex items-center justify-between"
                   style={{ padding: '8px 10px', borderRadius: 8, background: '#F9FAFB' }}>
@@ -1350,7 +1396,7 @@ function MembershipSection({
                     <p style={{ fontSize: 11, color: '#9CA3AF', margin: '1px 0 0' }}>
                       {new Date(m.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                       {m.endDate && ` → ${new Date(m.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`}
-                      {m.planType !== 'SUBSCRIPTION' && m.consumed > 0 && ` · ${m.consumed} classes`}
+                      {m.planType !== 'SUBSCRIPTION' && m.consumed > 0 && ` · ${m.consumed} ${tt.studentProfile.classesSuffix}`}
                     </p>
                   </div>
                   <span style={{ fontSize: 10, fontWeight: 600, background: ms.bg, color: ms.color, padding: '2px 8px', borderRadius: 999 }}>
@@ -1386,7 +1432,11 @@ function MembershipSection({
 }
 
 // ── Main component ─────────────────────────────────────────────────────────────
-export default function StudentProfileClient({ profile: initialProfile, ranks }: { profile: Profile; ranks: BeltRankInfo[] }) {
+export default function StudentProfileClient({ profile: initialProfile, ranks, hideOwnBellOnDesktop }: { profile: Profile; ranks: BeltRankInfo[]; hideOwnBellOnDesktop?: boolean }) {
+  const tt = useT()
+  const statusMap = getStatusMap(tt)
+  const txStatusMap = getTxStatusMap(tt)
+  const bookingStatusMap = getBookingStatusMap(tt)
   const router = useRouter()
   const [profile, setProfile] = useState(initialProfile)
   const [notesValue, setNotesValue] = useState(initialProfile.notes ?? '')
@@ -1406,6 +1456,7 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
   const [bookings] = useState(initialProfile.bookings)
   const [transactions, setTransactions] = useState(initialProfile.transactions)
   const [markingTxId, setMarkingTxId] = useState<string | null>(null)
+  const [cancellingTxId, setCancellingTxId] = useState<string | null>(null)
   const pendingRenewal = activeMembership
     ? transactions.find(t => t.membershipId === activeMembership.id && t.status === 'PENDING') ?? null
     : null
@@ -1426,7 +1477,7 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
   const hasRanks = ranks.length > 0
   const currentRank = ranks.find(r => r.id === profile.beltRankId)
   const belt = currentRank ? rankStyle(currentRank.color) : (BELT_COLORS[profile.belt] ?? BELT_COLORS['Blanco']!)
-  const status = STATUS_MAP[profile.status] ?? { bg: '#F3F4F6', color: '#6B7280', label: profile.status }
+  const status = statusMap[profile.status] ?? { bg: '#F3F4F6', color: '#6B7280', label: profile.status }
   const beltIdx = hasRanks
     ? (currentRank ? currentRank.order : -1)
     : BELT_ORDER.indexOf(profile.belt)
@@ -1434,8 +1485,8 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
   const beltMaxDegrees = currentRank ? currentRank.maxDegrees : 4
   const beltProgress = beltIdx >= 0 ? ((beltIdx + (profile.beltDegree / (beltMaxDegrees || 4))) / beltCount) * 100 : 0
   const nextRankName = hasRanks
-    ? (ranks.find(r => r.order === beltIdx + 1)?.name ?? '— (último cinturón)')
-    : (BELT_ORDER[beltIdx + 1] ?? '— (Cinturón negro)')
+    ? (ranks.find(r => r.order === beltIdx + 1)?.name ?? tt.studentProfile.lastBeltPlaceholder)
+    : (BELT_ORDER[beltIdx + 1] ?? tt.studentProfile.lastBeltPlaceholder)
   const handleSaved = (updates: Partial<Profile>) => {
     setProfile(prev => ({ ...prev, ...updates }))
   }
@@ -1454,9 +1505,9 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
     setResending(true)
     try {
       const res = await fetch(`/api/dashboard/members/${profile.memberId}/resend-invite`, { method: 'POST' })
-      showToast(res.ok ? `Invitación reenviada a ${profile.email}` : 'Error al reenviar la invitación', res.ok ? 'success' : 'error')
+      showToast(res.ok ? tt.studentProfile.inviteResentTo.replace('{email}', profile.email) : tt.studentProfile.inviteResendError, res.ok ? 'success' : 'error')
     } catch {
-      showToast('Error al reenviar la invitación', 'error')
+      showToast(tt.studentProfile.inviteResendError, 'error')
     } finally {
       setResending(false)
     }
@@ -1472,9 +1523,9 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
       })
       if (!res.ok) throw new Error()
       setProfile(prev => ({ ...prev, status: 'ARCHIVED' }))
-      showToast('Alumno archivado', 'success')
+      showToast(tt.studentProfile.studentArchived, 'success')
     } catch {
-      showToast('Error al archivar el alumno', 'error')
+      showToast(tt.studentProfile.archiveError, 'error')
     } finally {
       setArchiving(false)
     }
@@ -1489,12 +1540,31 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
         body: JSON.stringify({ status: 'PAID' }),
       })
       if (!res.ok) throw new Error()
-      setTransactions(prev => prev.map(t => t.id === txId ? { ...t, status: 'PAID' } : t))
-      showToast('Pago marcado como pagado', 'success')
+      setTransactions(prev => prev.map(tx => tx.id === txId ? { ...tx, status: 'PAID' } : tx))
+      showToast(tt.studentProfile.paymentMarkedPaid, 'success')
     } catch {
-      showToast('Error al marcar el pago como pagado', 'error')
+      showToast(tt.studentProfile.paymentMarkPaidError, 'error')
     } finally {
       setMarkingTxId(null)
+    }
+  }
+
+  const handleCancelTx = async (txId: string) => {
+    if (!confirm(tt.studentProfile.cancelTxConfirm)) return
+    setCancellingTxId(txId)
+    try {
+      const res = await fetch(`/api/dashboard/transactions/${txId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'CANCELLED' }),
+      })
+      if (!res.ok) throw new Error()
+      setTransactions(prev => prev.map(tx => tx.id === txId ? { ...tx, status: 'CANCELLED' } : tx))
+      showToast(tt.studentProfile.paymentCancelled, 'success')
+    } catch {
+      showToast(tt.studentProfile.paymentCancelError, 'error')
+    } finally {
+      setCancellingTxId(null)
     }
   }
 
@@ -1505,7 +1575,7 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
       if (!res.ok) throw new Error()
       router.push('/dashboard/users')
     } catch {
-      showToast('Error al eliminar el alumno', 'error')
+      showToast(tt.studentProfile.deleteError, 'error')
       setDeleting(false)
     }
   }
@@ -1544,7 +1614,7 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
           mode="single"
           member={{ id: profile.userId, name: profile.name, email: profile.email, avatarUrl: profile.avatarUrl }}
           onClose={() => setWaiverModalOpen(false)}
-          onSuccess={() => { showToast(`Waiver enviado a ${profile.name}`, 'success'); setWaiverModalOpen(false) }}
+          onSuccess={() => { showToast(tt.studentProfile.waiverSentTo.replace('{name}', profile.name), 'success'); setWaiverModalOpen(false) }}
         />
       )}
 
@@ -1565,12 +1635,12 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
           className="flex items-center gap-2 cursor-pointer"
           style={{ background: 'none', border: 'none', fontSize: 13, color: '#6B7280', padding: 0 }}>
           <ArrowLeft size={15} />
-          Students
+          {tt.studentProfile.backToStudents}
         </button>
         <span style={{ color: '#D1D5DB' }}>/</span>
         <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{profile.name}</span>
         <div className="flex-1" />
-        <NotificationBell />
+        {!hideOwnBellOnDesktop && <NotificationBell />}
       </div>
 
       <div className="px-4 md:px-8 py-6" style={{ maxWidth: 1100, margin: '0 auto' }}>
@@ -1618,13 +1688,13 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
                 {profile.dateOfBirth && (
                   <div className="flex items-center gap-2">
                     <User size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
-                    <span style={{ fontSize: 13, color: '#374151' }}>{age(profile.dateOfBirth)} años · {fmt(profile.dateOfBirth)}</span>
+                    <span style={{ fontSize: 13, color: '#374151' }}>{tt.studentProfile.yearsOld.replace('{n}', String(age(profile.dateOfBirth)))} · {fmt(profile.dateOfBirth)}</span>
                   </div>
                 )}
                 <div className="flex items-center gap-2">
                   <Calendar size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
                   <span style={{ fontSize: 13, color: '#374151' }}>
-                    Desde {profile.joinedAt ? fmt(profile.joinedAt) : fmt(profile.userCreatedAt)}
+                    {tt.studentProfile.memberSince.replace('{date}', profile.joinedAt ? fmt(profile.joinedAt) : fmt(profile.userCreatedAt))}
                   </span>
                 </div>
               </div>
@@ -1634,12 +1704,12 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
                 <button
                   onClick={() => setDrawerOpen(true)}
                   style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px', fontSize: 12, fontWeight: 500, border: '1px solid #E5E7EB', borderRadius: 8, background: '#fff', color: '#374151', cursor: 'pointer' }}>
-                  <Edit2 size={12} /> Editar
+                  <Edit2 size={12} /> {tt.studentProfile.editBtn}
                 </button>
                 <button
                   onClick={() => setEmailModalOpen(true)}
                   style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px', fontSize: 12, fontWeight: 500, border: 'none', borderRadius: 8, background: '#0071E3', color: '#fff', cursor: 'pointer' }}>
-                  <Send size={12} /> Enviar
+                  <Send size={12} /> {tt.studentProfile.sendBtn}
                 </button>
                 <RowMenu trigger={({ onClick }) => (
                   <button
@@ -1661,7 +1731,7 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
                         onMouseEnter={e => (e.currentTarget.style.background = '#F9FAFB')}
                         onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
                         <Send size={13} style={{ color: '#6B7280', flexShrink: 0 }} />
-                        {resending ? 'Reenviando…' : 'Reenviar invitación'}
+                        {resending ? tt.studentProfile.resending : tt.studentProfile.resendInvite}
                       </button>
                     )}
                     <button
@@ -1671,7 +1741,7 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
                       onMouseEnter={e => (e.currentTarget.style.background = '#F9FAFB')}
                       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
                       <Heart size={13} style={{ color: '#6B7280', flexShrink: 0 }} />
-                      Notas médicas
+                      {tt.studentProfile.medicalNotesMenu}
                     </button>
 
                     <button
@@ -1681,7 +1751,7 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
                       onMouseEnter={e => (e.currentTarget.style.background = '#F9FAFB')}
                       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
                       <FileSignature size={13} style={{ color: '#6B7280', flexShrink: 0 }} />
-                      Enviar waiver
+                      {tt.studentProfile.sendWaiverMenu}
                     </button>
 
                     <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
@@ -1694,7 +1764,7 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
                       onMouseEnter={e => (e.currentTarget.style.background = '#F9FAFB')}
                       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
                       <Archive size={13} style={{ color: '#6B7280', flexShrink: 0 }} />
-                      {archiving ? 'Archivando…' : 'Archivar'}
+                      {archiving ? tt.studentProfile.archiving : tt.studentProfile.archiveMenu}
                     </button>
 
                     {!confirmDelete ? (
@@ -1705,22 +1775,22 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
                         onMouseEnter={e => (e.currentTarget.style.background = '#FEF2F2')}
                         onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
                         <Trash2 size={13} style={{ flexShrink: 0 }} />
-                        Eliminar
+                        {tt.studentProfile.deleteMenu}
                       </button>
                     ) : (
                       <div onClick={e => e.stopPropagation()} style={{ padding: '8px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                        <p style={{ margin: 0, fontSize: 12, color: '#DC2626', fontWeight: 600 }}>¿Eliminar permanentemente?</p>
+                        <p style={{ margin: 0, fontSize: 12, color: '#DC2626', fontWeight: 600 }}>{tt.studentProfile.confirmDeleteTitle}</p>
                         <div style={{ display: 'flex', gap: 6 }}>
                           <button
                             onClick={handleDeleteUser}
                             disabled={deleting}
                             style={{ flex: 1, padding: '5px 0', fontSize: 12, fontWeight: 600, background: '#DC2626', color: '#fff', border: 'none', borderRadius: 6, cursor: deleting ? 'not-allowed' : 'pointer' }}>
-                            {deleting ? 'Eliminando…' : 'Sí, eliminar'}
+                            {deleting ? tt.studentProfile.deleting : tt.studentProfile.yesDelete}
                           </button>
                           <button
                             onClick={e => { e.stopPropagation(); setConfirmDelete(false) }}
                             style={{ flex: 1, padding: '5px 0', fontSize: 12, background: '#F3F4F6', color: '#374151', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
-                            Cancelar
+                            {tt.common.cancel}
                           </button>
                         </div>
                       </div>
@@ -1732,17 +1802,17 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
 
             {/* Belt progress */}
             <Card>
-              <CardHeader title="Cinturón & Progreso" action={
+              <CardHeader title={tt.studentProfile.beltProgressTitle} action={
                 <button
                   onClick={() => setDrawerOpen(true)}
                   style={{ fontSize: 12, color: '#0071E3', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <Edit2 size={11} /> Editar
+                  <Edit2 size={11} /> {tt.studentProfile.editBtn}
                 </button>
               } />
               <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
                 <span style={{ fontSize: 13, fontWeight: 600, color: belt.color }}>{profile.belt}</span>
                 <span style={{ fontSize: 12, color: '#9CA3AF' }}>
-                  {profile.beltDegree}/{beltMaxDegrees || 4} grados
+                  {profile.beltDegree}/{beltMaxDegrees || 4} {tt.studentProfile.degreesShort}
                 </span>
               </div>
               {/* Belt bar */}
@@ -1757,11 +1827,11 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
               </div>
               {profile.beltDate && (
                 <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>
-                  Promovido el {fmt(profile.beltDate)}
+                  {tt.studentProfile.promotionDate}: {fmt(profile.beltDate)}
                 </p>
               )}
               <div style={{ marginTop: 14, padding: '10px 12px', background: '#F9FAFB', borderRadius: 10 }}>
-                <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>Próximo cinturón</p>
+                <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>{tt.studentProfile.nextBelt}</p>
                 <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: '2px 0 0' }}>
                   {nextRankName}
                 </p>
@@ -1771,12 +1841,12 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
             {/* Emergency & Medical */}
             {(profile.emergencyContact || profile.medicalNotes) && (
               <Card>
-                <CardHeader title="Contacto & Salud" />
+                <CardHeader title={tt.studentProfile.contactHealth} />
                 {profile.emergencyContact && (
                   <div className="flex gap-2" style={{ marginBottom: 10 }}>
                     <Heart size={13} style={{ color: '#DC2626', flexShrink: 0, marginTop: 2 }} />
                     <div>
-                      <p style={{ fontSize: 11, color: '#9CA3AF', margin: '0 0 2px' }}>Contacto de emergencia</p>
+                      <p style={{ fontSize: 11, color: '#9CA3AF', margin: '0 0 2px' }}>{tt.studentProfile.emergencyContact}</p>
                       <p style={{ fontSize: 13, color: '#374151', margin: 0 }}>{profile.emergencyContact}</p>
                     </div>
                   </div>
@@ -1785,7 +1855,7 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
                   <div className="flex gap-2">
                     <AlertCircle size={13} style={{ color: '#D97706', flexShrink: 0, marginTop: 2 }} />
                     <div>
-                      <p style={{ fontSize: 11, color: '#9CA3AF', margin: '0 0 2px' }}>Notas médicas</p>
+                      <p style={{ fontSize: 11, color: '#9CA3AF', margin: '0 0 2px' }}>{tt.studentProfile.medicalNotesTitle}</p>
                       <p style={{ fontSize: 13, color: '#374151', margin: 0 }}>{profile.medicalNotes}</p>
                     </div>
                   </div>
@@ -1805,15 +1875,15 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2" style={{ marginBottom: 10 }}>
                   <Sparkles size={16} style={{ color: '#7DE7EC' }} />
-                  <span style={{ fontSize: 13, fontWeight: 600 }}>AI Student Summary</span>
-                  <span style={{ fontSize: 10, fontWeight: 600, background: 'rgba(125,231,236,0.2)', color: '#7DE7EC', padding: '2px 8px', borderRadius: 999 }}>PRÓXIMAMENTE</span>
+                  <span style={{ fontSize: 13, fontWeight: 600 }}>{tt.studentProfile.aiSummaryTitle}</span>
+                  <span style={{ fontSize: 10, fontWeight: 600, background: 'rgba(125,231,236,0.2)', color: '#7DE7EC', padding: '2px 8px', borderRadius: 999 }}>{tt.studentProfile.aiSummaryComingSoon}</span>
                 </div>
               </div>
               <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', lineHeight: 1.6, margin: 0 }}>
-                El asistente analizará la asistencia, pagos y progreso de <strong style={{ color: '#fff' }}>{profile.name}</strong> para darte un resumen accionable: alertas de abandono, progreso de cinturón y recomendaciones personalizadas.
+                {tt.studentProfile.aiSummaryDesc.replace('{name}', profile.name)}
               </p>
               <div className="flex gap-2" style={{ marginTop: 14 }}>
-                {['Análisis de asistencia', 'Riesgo de churn', 'Belt readiness'].map(tag => (
+                {[tt.studentProfile.tagAttendanceAnalysis, tt.studentProfile.tagChurnRisk, tt.studentProfile.tagBeltReadiness].map(tag => (
                   <span key={tag} style={{ fontSize: 11, background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.8)', padding: '3px 10px', borderRadius: 999 }}>{tag}</span>
                 ))}
               </div>
@@ -1822,9 +1892,9 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
             {/* Stats row */}
             <div className="grid grid-cols-3 sm:grid-cols-3 gap-3">
               {[
-                { icon: Dumbbell, label: 'Clases totales', value: String(totalClasses), sub: 'histórico' },
-                { icon: TrendingUp, label: 'Asistencia', value: String(attendanceLast30Days), sub: 'últimos 30 días' },
-                { icon: Clock, label: 'Última clase', value: lastClassDate ? fmtShort(lastClassDate) : '—', sub: '' },
+                { icon: Dumbbell, label: tt.studentProfile.totalClassesLabel, value: String(totalClasses), sub: tt.studentProfile.historic },
+                { icon: TrendingUp, label: tt.studentProfile.attendanceLabel, value: String(attendanceLast30Days), sub: tt.studentProfile.last30Days },
+                { icon: Clock, label: tt.studentProfile.lastClassLabel, value: lastClassDate ? fmtShort(lastClassDate) : '—', sub: '' },
               ].map(s => (
                 <Card key={s.label} style={{ padding: '14px 16px' }}>
                   <div className="flex items-center gap-2" style={{ marginBottom: 8 }}>
@@ -1861,6 +1931,9 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
                 setTransactions(prev => prev.map(t => t.id === transactionId ? { ...t, status: 'PAID' } : t))
                 setActiveMembership(prev => prev ? { ...prev, expiresAt: newEndDate, status: 'ACTIVE' } : prev)
               }}
+              onRenewalCancelled={transactionId => {
+                setTransactions(prev => prev.map(t => t.id === transactionId ? { ...t, status: 'CANCELLED' } : t))
+              }}
               onCancelled={membershipId => {
                 setActiveMembership(null)
                 setTransactions(prev => prev.map(t =>
@@ -1874,20 +1947,20 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
 
               {/* Bookings — full list with show more */}
               <Card>
-                <CardHeader title="Historial de clases" action={
+                <CardHeader title={tt.studentProfile.classHistory} action={
                   <button onClick={() => setAttendanceModalOpen(true)}
                     className="flex items-center gap-1"
                     style={{ fontSize: 12, fontWeight: 600, color: '#0071E3', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                    <Calendar size={13} /> Ver asistencia
+                    <Calendar size={13} /> {tt.studentProfile.viewAttendance}
                   </button>
                 } />
                 {bookings.length === 0 ? (
-                  <EmptyState icon={BookOpen} text="Sin clases registradas" />
+                  <EmptyState icon={BookOpen} text={tt.studentProfile.noClassesRecorded} />
                 ) : (
                   <>
                     <div className="flex flex-col">
                       {bookings.slice(0, bookingsShown).map((b, i) => {
-                        const bk = BOOKING_STATUS[b.status] ?? { bg: '#F3F4F6', color: '#6B7280', label: b.status }
+                        const bk = bookingStatusMap[b.status] ?? { bg: '#F3F4F6', color: '#6B7280', label: b.status }
                         const isPast = new Date(b.date) < new Date()
                         return (
                           <div key={b.id} className="flex items-center justify-between"
@@ -1918,7 +1991,9 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
                       <button onClick={() => setBookingsShown(n => n + 10)}
                         style={{ width: '100%', marginTop: 10, padding: '7px 0', fontSize: 12, fontWeight: 600,
                           color: '#0071E3', background: '#EFF6FF', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
-                        Ver {Math.min(10, bookings.length - bookingsShown)} más ({bookings.length - bookingsShown} restantes)
+                        {tt.studentProfile.viewMoreBookings
+                          .replace('{n}', String(Math.min(10, bookings.length - bookingsShown)))
+                          .replace('{remaining}', String(bookings.length - bookingsShown))}
                       </button>
                     )}
                   </>
@@ -1927,13 +2002,13 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
 
               {/* Transactions */}
               <Card>
-                <CardHeader title="Historial de pagos" />
+                <CardHeader title={tt.studentProfile.paymentHistory} />
                 {transactions.length === 0 ? (
-                  <EmptyState icon={CreditCard} text="Sin transacciones" />
+                  <EmptyState icon={CreditCard} text={tt.studentProfile.noTransactionsFound} />
                 ) : (
                   <div className="flex flex-col">
                     {transactions.slice(0, txShown).map((t, i) => {
-                      const ts = TX_STATUS[t.status] ?? { bg: '#F3F4F6', color: '#6B7280', label: t.status }
+                      const ts = txStatusMap[t.status] ?? { bg: '#F3F4F6', color: '#6B7280', label: t.status }
                       return (
                         <div key={t.id} className="flex items-center justify-between"
                           style={{ padding: '10px 0', borderBottom: i < Math.min(transactions.length, txShown) - 1 ? '1px solid #F3F4F6' : 'none' }}>
@@ -1944,12 +2019,20 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
                           <div className="flex flex-col items-end gap-1">
                             <span style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>{fmtPrice(t.amount, t.currency)}</span>
                             {t.status === 'PENDING' ? (
-                              <button onClick={() => handleMarkTxPaid(t.id)} disabled={markingTxId === t.id}
-                                style={{ fontSize: 10, fontWeight: 600, color: '#fff', background: '#D97706', border: 'none',
-                                  padding: '2px 8px', borderRadius: 999, cursor: markingTxId === t.id ? 'not-allowed' : 'pointer',
-                                  opacity: markingTxId === t.id ? 0.6 : 1 }}>
-                                {markingTxId === t.id ? 'Marcando…' : 'Marcar como pagado'}
-                              </button>
+                              <div className="flex items-center gap-1">
+                                <button onClick={() => handleCancelTx(t.id)} disabled={cancellingTxId === t.id || markingTxId === t.id}
+                                  style={{ fontSize: 10, fontWeight: 600, color: '#EF4444', background: '#FEF2F2', border: 'none',
+                                    padding: '2px 8px', borderRadius: 999, cursor: cancellingTxId === t.id ? 'not-allowed' : 'pointer',
+                                    opacity: cancellingTxId === t.id ? 0.6 : 1 }}>
+                                  {cancellingTxId === t.id ? tt.studentProfile.cancelling : tt.studentProfile.cancelBtn}
+                                </button>
+                                <button onClick={() => handleMarkTxPaid(t.id)} disabled={markingTxId === t.id || cancellingTxId === t.id}
+                                  style={{ fontSize: 10, fontWeight: 600, color: '#fff', background: '#D97706', border: 'none',
+                                    padding: '2px 8px', borderRadius: 999, cursor: markingTxId === t.id ? 'not-allowed' : 'pointer',
+                                    opacity: markingTxId === t.id ? 0.6 : 1 }}>
+                                  {markingTxId === t.id ? tt.studentProfile.marking : tt.studentProfile.markAsPaidBtn}
+                                </button>
+                              </div>
                             ) : (
                               <span style={{ fontSize: 10, fontWeight: 600, background: ts.bg, color: ts.color, padding: '1px 6px', borderRadius: 999 }}>{ts.label}</span>
                             )}
@@ -1961,7 +2044,7 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
                       <button onClick={() => setTxShown(n => n + 10)}
                         style={{ width: '100%', marginTop: 10, padding: '7px 0', fontSize: 12, fontWeight: 600,
                           color: '#0071E3', background: '#EFF6FF', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
-                        Ver {Math.min(10, transactions.length - txShown)} más
+                        {tt.studentProfile.viewMorePayments.replace('{n}', String(Math.min(10, transactions.length - txShown)))}
                       </button>
                     )}
                   </div>
@@ -1971,12 +2054,12 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
 
             {/* Admin notes */}
             <Card>
-              <CardHeader title="Notas internas" />
+              <CardHeader title={tt.studentProfile.internalNotes} />
               <textarea
                 value={notesValue}
                 onChange={e => setNotesValue(e.target.value)}
                 onBlur={saveNotes}
-                placeholder="Añade notas privadas sobre este alumno (lesiones, objetivos, conversaciones…)"
+                placeholder={tt.studentProfile.notesTextareaPlaceholder}
                 style={{
                   width: '100%', minHeight: 90, padding: '10px 12px', fontSize: 13, color: '#374151',
                   border: '1px solid #E5E7EB', borderRadius: 10, resize: 'vertical',
@@ -1987,12 +2070,12 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
               />
               <div className="flex items-center justify-between" style={{ marginTop: 8 }}>
                 <span style={{ fontSize: 11, color: '#9CA3AF' }}>
-                  {savingNotes ? 'Guardando…' : 'Se guarda al salir del campo'}
+                  {savingNotes ? tt.studentProfile.saving : tt.studentProfile.savedOnBlur}
                 </span>
                 <div className="flex items-center gap-1.5">
                   <FileText size={11} style={{ color: '#9CA3AF' }} />
                   <Shield size={11} style={{ color: '#9CA3AF' }} />
-                  <span style={{ fontSize: 11, color: '#9CA3AF' }}>Solo visible para el staff</span>
+                  <span style={{ fontSize: 11, color: '#9CA3AF' }}>{tt.studentProfile.staffOnlyVisible}</span>
                 </div>
               </div>
             </Card>
