@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { Search, Users as UsersIcon, ChevronLeft, ChevronRight } from 'lucide-react'
 import NotificationBell from '../../../components/NotificationBell'
+import DashboardLanguageSelector from '../../../components/DashboardLanguageSelector'
 import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { matchesSearch } from '../../../lib/search'
@@ -67,6 +68,7 @@ export default function StudentListPanel({ students }: { students: StudentListIt
               onChange={e => { setSearch(e.target.value); setCurrentPage(1) }}
               style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
           </div>
+          <DashboardLanguageSelector />
           <NotificationBell />
         </div>
         <div className="flex items-center gap-1.5" style={{ overflowX: 'auto' }}>
