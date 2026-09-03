@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, CalendarDays, User,
   LogOut, X, CreditCard, DollarSign, Settings,
-  HelpCircle, Shield, QrCode, Medal,
+  HelpCircle, Shield, QrCode, Medal, Menu,
   PlayCircle, ShoppingBag, Newspaper, Ticket,
   Music, Timer, Award, FileSignature,
 } from 'lucide-react'
@@ -271,6 +271,7 @@ function SidebarContent({ school, onClose }: { school: School; onClose?: () => v
 const TOPBAR_HEIGHT = 52
 
 export default function MyShell({ children, initialSchool }: { children: React.ReactNode; initialSchool: School }) {
+  const [drawerOpen, setDrawerOpen] = useState(false)
   const [logoBroken, setLogoBroken] = useState(false)
   // Resolved server-side (see app/my/layout.tsx) so the sidebar/topbar render
   // the real school branding on first paint — no client fetch, no flash of
@@ -285,15 +286,18 @@ export default function MyShell({ children, initialSchool }: { children: React.R
         <SidebarContent school={school} />
       </aside>
 
-      {/* Mobile topbar — logo, school name, notifications. No hamburger/drawer:
-          every destination that lived there (Curriculum, Store, News, Music,
-          Timer, Waivers, Events, Collectibles, Settings, Help, Privacy, sign
-          out) is reachable from the Perfil tab's menu instead, so removing
-          this doesn't strand any page on mobile. */}
+      {/* Mobile topbar — hamburger, logo, school name, notifications. */}
       <div
-        className="fixed top-0 left-0 right-0 bg-white border-b border-gray-100 flex items-center px-4 z-40 lg:hidden"
+        className="fixed top-0 left-0 right-0 bg-white border-b border-gray-100 flex items-center gap-2 px-3 z-40 lg:hidden"
         style={{ height: `calc(${TOPBAR_HEIGHT}px + env(safe-area-inset-top))`, paddingTop: 'env(safe-area-inset-top)' }}
       >
+        <button
+          onClick={() => setDrawerOpen(true)}
+          className="p-2 text-gray-500 hover:text-[#101828] transition-colors shrink-0"
+          aria-label="Open menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
         <Link href="/my" prefetch={false} className="flex-1 flex items-center gap-2.5 min-w-0">
           {school?.logoUrl && !logoBroken ? (
             <img
@@ -311,6 +315,19 @@ export default function MyShell({ children, initialSchool }: { children: React.R
         </Link>
         <StudentNotificationBell />
       </div>
+
+      {/* Mobile drawer */}
+      {drawerOpen && (
+        <div className="fixed inset-0 z-50 flex lg:hidden">
+          <div className="w-60 h-full shadow-2xl animate-in slide-in-from-left duration-200">
+            <SidebarContent school={school} onClose={() => setDrawerOpen(false)} />
+          </div>
+          <div
+            className="flex-1 bg-black/40 backdrop-blur-[2px]"
+            onClick={() => setDrawerOpen(false)}
+          />
+        </div>
+      )}
 
       {/* Main content — the arbitrary-value class (not an inline style) for
           paddingTop is deliberate: it needs `lg:pt-0` to win at the desktop
