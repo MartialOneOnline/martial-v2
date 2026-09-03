@@ -8,13 +8,15 @@ import MuxPlayer from '@mux/mux-player-react'
 import type MuxPlayerElement from '@mux/mux-player'
 import {
   Calendar, Clock, CalendarCheck, QrCode, CalendarPlus,
-  CreditCard, TrendingUp, ChevronRight, CheckCircle2, Ticket, Users, Info, PlayCircle, X,
+  ChevronRight, CheckCircle2, Ticket, Users, Info, PlayCircle, X,
+  AlertCircle, RotateCw,
 } from 'lucide-react'
 import { fmtPrice } from '../../lib/format'
 import { getBeltImage } from '../../lib/belts'
-import { useT } from '../../lib/i18n/LanguageContext'
+import { useT, useLanguage } from '../../lib/i18n/LanguageContext'
 import { isStudentContextRequired, chooseProfileUrl } from '../../lib/studentContext'
 import { myFetch } from '../../lib/api/myFetch'
+import ClassRow, { type ClassRowState } from '../../components/ClassRow'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -127,10 +129,13 @@ const DISCIPLINE_GRADIENTS: Record<string, string> = {
   muay:       'linear-gradient(180deg, rgba(0,0,0,0) 20%, rgba(0,0,0,.35) 100%), radial-gradient(ellipse at 50% 28%, #7c0000 0%, #2a0000 50%, #0d0000 100%)',
   wrestling:  'linear-gradient(180deg, rgba(0,0,0,0) 20%, rgba(0,0,0,.35) 100%), radial-gradient(ellipse at 50% 28%, #1a4d1a 0%, #0a1f0a 50%, #030803 100%)',
 }
-function classGradient(name: string) {
+function classGradient(name: string): string {
   const lower = name.toLowerCase()
   const key = Object.keys(DISCIPLINE_GRADIENTS).find(k => lower.includes(k))
-  return key ? DISCIPLINE_GRADIENTS[key] : DISCIPLINE_GRADIENTS.bjj
+  // Non-null: 'bjj' is always a real key in DISCIPLINE_GRADIENTS above, so
+  // this expression is never actually undefined — only typed that way
+  // because noUncheckedIndexedAccess can't see the index is provably safe.
+  return (key ? DISCIPLINE_GRADIENTS[key] : DISCIPLINE_GRADIENTS.bjj)!
 }
 
 function fmtDate(iso: string) {
@@ -157,15 +162,6 @@ function daysUntil(iso: string) {
   const day = new Date(iso); day.setHours(0, 0, 0, 0)
   return Math.round((day.getTime() - today.getTime()) / 86400000)
 }
-function fmtDateShortFn(iso: string, todayLabel: string, tomorrowLabel: string) {
-  const d = new Date(iso)
-  const today = new Date(); today.setHours(0, 0, 0, 0)
-  const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1)
-  const day = new Date(iso); day.setHours(0, 0, 0, 0)
-  if (day.getTime() === today.getTime()) return todayLabel
-  if (day.getTime() === tomorrow.getTime()) return tomorrowLabel
-  return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
-}
 function fmtDuration(sec: number | null) {
   if (!sec) return null
   const m = Math.floor(sec / 60)
@@ -182,6 +178,51 @@ function classTypeBadge(name: string) {
   return 'CLASS'
 }
 
+// Occurrence.scheduledAt is a naive-UTC wall-clock value (same convention
+// fmtTime above relies on — no timeZone conversion, just read the UTC
+// components directly), so both the day-strip's own dates and the key used
+// to bucket occurrences by day must read UTC getters, not local ones, or a
+// browser whose local timezone differs from the school's would file classes
+// under the wrong day.
+function dateKey(d: Date) {
+  return `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`
+}
+function occDateKey(iso: string) {
+  return dateKey(new Date(iso))
+}
+
+// App locale → BCP47 tag, for the day-strip's weekday labels (translations.ts
+// only has an internal 'en'|'es'|'pt'|'fr' code, not a full tag).
+const LOCALE_TAG: Record<string, string> = { en: 'en-GB', es: 'es-ES', pt: 'pt-PT', fr: 'fr-FR' }
+
+// ── Date strip — horizontal, scrollable day picker for "Upcoming classes" ───
+
+function DateStrip({ days, selected, onSelect, localeTag }: { days: Date[]; selected: Date; onSelect: (d: Date) => void; localeTag: string }) {
+  const selectedKey = dateKey(selected)
+  return (
+    <div className="flex gap-1.5 overflow-x-auto" style={{ paddingLeft: 16, paddingRight: 16, WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
+      {days.map(d => {
+        const isSelected = dateKey(d) === selectedKey
+        const weekday = new Intl.DateTimeFormat(localeTag, { weekday: 'short', timeZone: 'UTC' }).format(d).replace('.', '').toUpperCase()
+        return (
+          <button
+            key={dateKey(d)}
+            onClick={() => onSelect(d)}
+            className="flex flex-col items-center shrink-0 rounded-2xl transition-colors"
+            style={{
+              width: 52, padding: '8px 0', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+              background: isSelected ? 'rgba(8,112,226,.10)' : 'transparent',
+            }}
+          >
+            <span className="text-[10px] font-semibold" style={{ color: isSelected ? '#0870E2' : '#9CA3AF', letterSpacing: '.3px' }}>{weekday}</span>
+            <span className="text-base font-semibold mt-0.5" style={{ color: isSelected ? '#0870E2' : '#1C1C1E' }}>{d.getUTCDate()}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 // ── Desktop/tablet stat tile ────────────────────────────────────────────────
 
 function StatBox({ label, value, sub }: { label: string; value: string; sub?: string }) {
@@ -194,26 +235,78 @@ function StatBox({ label, value, sub }: { label: string; value: string; sub?: st
   )
 }
 
-// ── Quick actions ─────────────────────────────────────────────────────────────
+// ── Loading skeleton — same dimensions as the real sections below, so the
+// page doesn't jump/reflow once data arrives. ──────────────────────────────
 
-const QUICK_ACTION_KEYS = [
-  { labelKey: 'quickBookClass', href: '/my/classes',   icon: CalendarPlus },
-  { labelKey: 'quickQr',        href: '/my/qr',         icon: QrCode },
-  { labelKey: 'quickMembership',href: '/my/membership', icon: CreditCard },
-  { labelKey: 'quickProgress',  href: '/my/progress',   icon: TrendingUp },
-]
+function Block({ className = '', style }: { className?: string; style?: React.CSSProperties }) {
+  return <div className={`animate-pulse rounded-xl ${className}`} style={{ background: '#E5E7EB', ...style }} />
+}
+
+function HomeSkeleton() {
+  return (
+    <div className="min-h-screen pb-4" style={{ background: '#F2F2F7' }}>
+      <div className="max-w-2xl lg:max-w-[1180px] mx-auto">
+        <div className="px-4 md:px-6 pt-4 md:pt-7 pb-4 md:pb-5">
+          <Block style={{ width: 180, height: 22 }} />
+        </div>
+        <div className="mx-4 md:mx-6 mb-5 rounded-[20px] overflow-hidden">
+          <Block style={{ height: 190, borderRadius: 20 }} />
+        </div>
+        <div className="px-4 md:px-6 mb-3 flex items-center justify-between">
+          <Block style={{ width: 140, height: 18 }} />
+          <Block style={{ width: 70, height: 18 }} />
+        </div>
+        <div className="flex gap-1.5 px-4 mb-3">
+          {[0, 1, 2, 3, 4].map(i => <Block key={i} style={{ width: 52, height: 52, borderRadius: 16 }} />)}
+        </div>
+        <div className="px-4 md:px-6 space-y-1">
+          {[0, 1].map(i => (
+            <div key={i} className="flex items-center gap-3 py-2.5">
+              <Block style={{ width: 84, height: 84, borderRadius: 16 }} />
+              <div className="flex-1 space-y-2">
+                <Block style={{ width: '60%', height: 14 }} />
+                <Block style={{ width: '40%', height: 12 }} />
+              </div>
+              <Block style={{ width: 80, height: 36, borderRadius: 999 }} />
+            </div>
+          ))}
+        </div>
+        <div className="mx-4 md:mx-6 mt-4 rounded-[20px] overflow-hidden">
+          <Block style={{ height: 110, borderRadius: 20 }} />
+        </div>
+      </div>
+    </div>
+  )
+}
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 
+// "Today" as a UTC-anchored midnight instant for the *local* calendar day —
+// built once from local Y/M/D getters, then always read back with UTC
+// getters from there on, so it lines up with occDateKey() (which reads
+// Occurrence.scheduledAt, a naive-UTC wall-clock value, the same way) without
+// either drifting a day depending on the browser's own timezone offset.
+function localTodayUTC() {
+  const now = new Date()
+  return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
+}
+function buildDateStripDays(count: number): Date[] {
+  const today = localTodayUTC()
+  return Array.from({ length: count }, (_, i) => new Date(today.getTime() + i * 86400000))
+}
+
 export default function MyHomePage() {
   const t = useT()
+  const { locale } = useLanguage()
   const router = useRouter()
   const pathname = usePathname()
   const [data, setData]             = useState<UserData | null>(null)
   const [loading, setLoading]       = useState(true)
+  const [loadError, setLoadError]   = useState(false)
   const [occurrences, setOccurrences] = useState<Occurrence[]>([])
+  const [selectedDate, setSelectedDate] = useState<Date>(localTodayUTC)
+  const dateStripDays = buildDateStripDays(14)
   const [bookingId, setBookingId]   = useState<string | null>(null)
-  const [activeDot, setActiveDot]   = useState(0)
   const [activeLessonDot, setActiveLessonDot] = useState(0)
   const [detailOcc, setDetailOcc]   = useState<Occurrence | null>(null)
   const [cancelOcc, setCancelOcc]   = useState<Occurrence | null>(null)
@@ -223,7 +316,6 @@ export default function MyHomePage() {
   const [loadingAttendees, setLoadingAttendees] = useState(true)
   const [curriculumLessons, setCurriculumLessons] = useState<CurriculumLessonPreview[]>([])
   const [playingLesson, setPlayingLesson] = useState<CurriculumLessonPreview | null>(null)
-  const carRef = useRef<HTMLDivElement>(null)
   const lessonCarRef = useRef<HTMLDivElement>(null)
   const markedThisSession = useRef<Set<string>>(new Set())
   const playerRef = useRef<MuxPlayerElement>(null)
@@ -253,9 +345,14 @@ export default function MyHomePage() {
       .finally(() => setLoadingAttendees(false))
   }, [detailOcc])
 
-  useEffect(() => {
+  function loadCore() {
+    setLoading(true)
+    setLoadError(false)
     myFetch('/api/my')
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error(`status ${r.status}`)
+        return r.json()
+      })
       .then(d => {
         // A student in 2+ schools with no resolved active context can't be
         // served here without silently mixing schools — send them to pick
@@ -269,7 +366,7 @@ export default function MyHomePage() {
         }
         setData(d); setLoading(false)
       })
-      .catch(() => setLoading(false))
+      .catch(() => { setLoading(false); setLoadError(true) })
     myFetch('/api/my/school-classes')
       .then(r => r.json())
       .then(d => {
@@ -277,6 +374,10 @@ export default function MyHomePage() {
         setOccurrences(d.occurrences ?? [])
       })
       .catch(() => {})
+  }
+
+  useEffect(() => {
+    loadCore()
     // 403 here just means the school hasn't turned the Curriculum module on
     // (or this student isn't ACTIVE yet) — the section below simply stays
     // hidden in that case, same as every other conditionally-shown card.
@@ -289,27 +390,10 @@ export default function MyHomePage() {
         setCurriculumLessons(groups.flatMap(c => c.lessons).filter(l => l.muxPlaybackId))
       })
       .catch(() => {})
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount; loadCore is redefined each render but only ever (re)invoked here or from the retry button's own onClick
   }, [router, pathname])
 
-  // Carousel dot sync
-  useEffect(() => {
-    const el = carRef.current
-    if (!el) return
-    const handler = () => {
-      const cards = el.querySelectorAll<HTMLElement>('.car-card')
-      let closest = 0, minDist = Infinity
-      const elLeft = el.getBoundingClientRect().left
-      cards.forEach((c, i) => {
-        const dist = Math.abs(c.getBoundingClientRect().left - elLeft)
-        if (dist < minDist) { minDist = dist; closest = i }
-      })
-      setActiveDot(closest)
-    }
-    el.addEventListener('scroll', handler, { passive: true })
-    return () => el.removeEventListener('scroll', handler)
-  }, [occurrences])
-
-  // Curriculum carousel dot sync — same approach as the classes carousel above
+  // Curriculum carousel dot sync
   useEffect(() => {
     const el = lessonCarRef.current
     if (!el) return
@@ -376,12 +460,27 @@ export default function MyHomePage() {
     }
   }
 
-  if (loading) {
+  if (loadError) {
     return (
-      <div className="flex items-center justify-center h-screen" style={{ background: '#F2F2F7' }}>
-        <div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#007AFF', borderTopColor: 'transparent' }} />
+      <div className="min-h-screen flex flex-col items-center justify-center gap-3 px-6 text-center" style={{ background: '#F2F2F7' }}>
+        <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(239,68,68,.08)' }}>
+          <AlertCircle className="w-6 h-6" style={{ color: '#EF4444' }} />
+        </div>
+        <p className="text-sm font-medium" style={{ color: '#1C1C1E' }}>{t.my.couldntLoadDashboard}</p>
+        <button
+          onClick={loadCore}
+          className="mt-1 inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold text-white"
+          style={{ background: '#0870E2', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
+        >
+          <RotateCw className="w-3.5 h-3.5" />
+          {t.common.retry}
+        </button>
       </div>
     )
+  }
+
+  if (loading) {
+    return <HomeSkeleton />
   }
 
   const user              = data?.user
@@ -395,8 +494,14 @@ export default function MyHomePage() {
   const hour              = new Date().getHours()
   const greeting          = hour < 12 ? t.my.goodMorning : hour < 18 ? t.my.goodAfternoon : t.my.goodEvening
   const days              = nextBooking ? daysUntil(nextBooking.scheduledAt) : null
-  const dotCount          = Math.min(occurrences.length, 4)
   const lessonDotCount    = Math.min(curriculumLessons.length, 3)
+
+  // Classes for the selected day strip, excluding whichever occurrence is
+  // already shown as the hero "next booking" card above (spec: don't repeat
+  // it in the list below).
+  const nextBookingKey = nextBooking ? `${nextBooking.class.id}:${nextBooking.scheduledAt}` : null
+  const selectedKey = dateKey(selectedDate)
+  const dayOccurrences = occurrences.filter(o => occDateKey(o.scheduledAt) === selectedKey && `${o.classId}:${o.scheduledAt}` !== nextBookingKey)
 
   // A single "up next" hero slot: whichever of the next class or the next
   // paid event ticket happens sooner wins it, so a confirmed seminar isn't
@@ -425,6 +530,23 @@ export default function MyHomePage() {
 
   const primarySchool: { name: string; slug: string; logoUrl: string | null; coverUrl?: string | null; coverPosY?: number; city?: string | null } | undefined =
     activeMembership?.school ?? pendingMembership?.school ?? primaryMember?.school
+
+  // Check-in window: open from 30 minutes before the class starts through its
+  // scheduled end. Both sides of the comparison are built the same way —
+  // wall-clock digits read straight through as if they were UTC — because
+  // that's the (slightly unusual) convention Occurrence.scheduledAt already
+  // uses (see fmtTime above); comparing a *real* local "now" against it would
+  // drift by exactly the browser's UTC offset.
+  const nowAsWallClockMs = (() => {
+    const n = new Date()
+    return Date.UTC(n.getFullYear(), n.getMonth(), n.getDate(), n.getHours(), n.getMinutes(), n.getSeconds())
+  })()
+  const nextBookingDurationMin = nextBookingOcc?.duration ?? nextBooking?.class.duration ?? 60
+  const checkInOpen = !!nextBooking && (() => {
+    const startMs = new Date(nextBooking.scheduledAt).getTime()
+    const endMs = startMs + nextBookingDurationMin * 60000
+    return nowAsWallClockMs >= startMs - 30 * 60000 && nowAsWallClockMs <= endMs
+  })()
 
   // ── Desktop rail cards — shared between the mobile stacked layout and the
   // lg+ right rail so both stay in sync from one source of markup. ──────────
@@ -552,10 +674,11 @@ export default function MyHomePage() {
     <div className="min-h-screen pb-4" style={{ background: '#F2F2F7', overflowX: 'hidden' }}>
       <div className="max-w-2xl lg:max-w-[1180px] mx-auto">
 
-      {/* ── Greeting ──────────────────────────────────────────────────────── */}
-      <div className="px-4 md:px-6 pt-4 md:pt-7 pb-4 md:pb-5">
-        <p className="text-xs md:text-sm" style={{ color: '#6B6B70' }}>{greeting}</p>
-        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight" style={{ color: '#1C1C1E', letterSpacing: '-0.5px' }}>{firstName}</h1>
+      {/* ── Greeting — one compact line, name carries the weight ──────────── */}
+      <div className="px-4 md:px-6 pt-4 md:pt-6 pb-3 md:pb-4">
+        <p className="text-base md:text-lg" style={{ color: '#1C1C1E' }}>
+          {greeting}, <span className="font-semibold">{firstName}</span>
+        </p>
       </div>
 
       {/* ── Stat row — desktop/tablet only ───────────────────────────────── */}
@@ -636,283 +759,157 @@ export default function MyHomePage() {
           </div>
         </div>
       ) : nextBooking ? (
-        <div className="relative mx-4 md:mx-6 mb-5 md:mb-6 lg:mb-8 rounded-[20px] overflow-hidden" style={{ boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)' }}>
+        <div className="relative mx-4 md:mx-6 mb-5 md:mb-6 lg:mb-8 rounded-[20px] overflow-hidden" style={{ height: 192, boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)' }}>
           {/* Backdrop — the booked class's own cover photo when it has one,
-              else the discipline gradient (same fallback the carousel cards
+              else the discipline gradient (same fallback the class rows
               below use), so the card reads in white text either way. */}
           <div className="absolute inset-0" style={{ background: classGradient(nextBooking.class.name) }} />
           {nextBookingOcc?.coverUrl && (
             <Image src={nextBookingOcc.coverUrl} alt="" fill priority className="object-cover" />
           )}
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,.2) 0%, rgba(0,0,0,.6) 100%)' }} />
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,.2) 0%, rgba(0,0,0,.62) 100%)' }} />
 
-          <div className="relative" style={{ padding: '18px 20px 20px' }}>
-            <div className="flex items-center gap-2 mb-3">
-              <div className="flex items-center justify-center rounded-full shrink-0" style={{ width: 26, height: 26, background: 'rgba(255,255,255,.18)' }}>
-                <Clock className="w-3.5 h-3.5" style={{ color: '#fff' }} />
-              </div>
+          <div className="relative h-full flex flex-col" style={{ padding: '16px 18px 16px' }}>
+            <div className="flex items-center gap-2 mb-2.5">
               <span className="text-[11px] font-semibold uppercase truncate min-w-0" style={{ color: 'rgba(255,255,255,.75)', letterSpacing: '.6px' }}>{t.my.nextClass}</span>
               {days !== null && (
-                <span className="ml-auto text-[11px] font-semibold rounded-full shrink-0 whitespace-nowrap" style={{ background: '#fff', color: '#007AFF', padding: '3px 10px' }}>
+                <span className="ml-auto text-[11px] font-semibold rounded-full shrink-0 whitespace-nowrap" style={{ background: '#fff', color: '#0870E2', padding: '3px 10px' }}>
                   {days === 0 ? t.my.today : days === 1 ? t.my.tomorrow : t.my.inDays.replace('{n}', String(days))}
                 </span>
               )}
             </div>
 
-            <p className="text-base font-semibold mb-0.5" style={{ color: '#fff', letterSpacing: '-0.2px' }}>{nextBooking.class.name}</p>
-            <p className="text-xs mb-3" style={{ color: 'rgba(255,255,255,.7)' }}>{nextBooking.class.school.name}</p>
+            <p className="text-lg font-semibold leading-tight mb-1 truncate" style={{ color: '#fff', letterSpacing: '-0.2px' }}>{nextBooking.class.name}</p>
 
-            <div className="flex items-center gap-2 mb-4">
-              <div className="flex items-center gap-1" style={{ color: 'rgba(255,255,255,.85)' }}>
-                <Calendar className="w-3 h-3" style={{ color: 'rgba(255,255,255,.6)' }} />
-                <span className="text-xs">{fmtDate(nextBooking.scheduledAt)}</span>
-              </div>
-              <span className="text-[10px]" style={{ color: 'rgba(255,255,255,.4)' }}>·</span>
+            <div className="flex items-center gap-2 mb-1">
               <div className="flex items-center gap-1" style={{ color: 'rgba(255,255,255,.85)' }}>
                 <Clock className="w-3 h-3" style={{ color: 'rgba(255,255,255,.6)' }} />
-                <span className="text-xs">{fmtTime(nextBooking.scheduledAt)}</span>
-                {nextBooking.class.duration && (
-                  <span className="text-xs" style={{ color: 'rgba(255,255,255,.7)' }}>· {nextBooking.class.duration}min</span>
-                )}
+                <span className="text-xs">
+                  {days === 0 ? t.my.today : days === 1 ? t.my.tomorrow : fmtDate(nextBooking.scheduledAt)} · {fmtTime(nextBooking.scheduledAt)}
+                  {nextBooking.class.duration && `–${new Date(new Date(nextBooking.scheduledAt).getTime() + nextBooking.class.duration * 60000).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })}`}
+                </span>
               </div>
             </div>
 
-            <div className="flex gap-2">
-              <Link
-                href="/my/classes"
-                prefetch={false}
-                className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold rounded-full"
-                style={{ background: '#fff', color: '#006197', padding: '10px' }}
-              >
-                <CalendarCheck className="w-3.5 h-3.5 shrink-0" />
-                {t.my.viewBooking}
-              </Link>
-              <Link
-                href="/my/qr"
-                prefetch={false}
-                className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium rounded-full"
-                style={{ background: 'rgba(255,255,255,.16)', color: '#fff', padding: '10px', border: '1px solid rgba(255,255,255,.3)' }}
-              >
-                <QrCode className="w-3.5 h-3.5 shrink-0" style={{ opacity: 0.85 }} />
-                {t.my.qrCheckIn}
-              </Link>
+            <span className="inline-flex items-center gap-1 text-xs font-medium mb-3" style={{ color: '#fff' }}>
+              <CheckCircle2 className="w-3.5 h-3.5" style={{ color: '#4ADE80' }} />
+              {t.my.reservedLabel}
+            </span>
+
+            <div className="mt-auto">
+              {checkInOpen ? (
+                <Link
+                  href="/my/qr"
+                  prefetch={false}
+                  className="inline-flex items-center justify-center gap-1.5 text-sm font-semibold rounded-full"
+                  style={{ background: '#fff', color: '#0870E2', padding: '11px 22px' }}
+                >
+                  <QrCode className="w-4 h-4 shrink-0" />
+                  {t.my.doCheckIn}
+                </Link>
+              ) : (
+                <button
+                  onClick={() => nextBookingOcc && setDetailOcc(nextBookingOcc)}
+                  className="inline-flex items-center justify-center gap-1.5 text-sm font-semibold rounded-full"
+                  style={{ background: '#fff', color: '#0870E2', padding: '11px 22px', border: 'none', cursor: nextBookingOcc ? 'pointer' : 'default', fontFamily: 'inherit' }}
+                >
+                  <CalendarCheck className="w-4 h-4 shrink-0" />
+                  {t.my.manageBooking}
+                </button>
+              )}
             </div>
           </div>
         </div>
       ) : (
-        /* No upcoming booking — school cover photo as backdrop, with a dark
-           scrim so the text/CTA stay legible over any photo. Falls back to
-           a plain card when the school has no cover photo set. */
+        /* No upcoming booking — compact empty state, no backdrop photo. */
         <div
-          className="relative mx-4 md:mx-6 mb-5 md:mb-6 rounded-[20px] overflow-hidden"
-          style={{ boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)', padding: '18px 20px 20px' }}
+          className="mx-4 md:mx-6 mb-5 md:mb-6 rounded-[20px] flex items-center gap-4"
+          style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)', padding: '18px 20px' }}
         >
-          {primarySchool?.coverUrl ? (
-            <>
-              <Image
-                src={primarySchool.coverUrl}
-                alt=""
-                fill
-                priority
-                className="object-cover"
-                style={{ objectPosition: `50% ${primarySchool.coverPosY ?? 50}%` }}
-              />
-              <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,.25) 0%, rgba(0,0,0,.62) 100%)' }} />
-            </>
-          ) : (
-            <div className="absolute inset-0" style={{ background: '#fff' }} />
-          )}
-          <div className="relative">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="flex items-center justify-center rounded-full shrink-0" style={{ width: 26, height: 26, background: primarySchool?.coverUrl ? 'rgba(255,255,255,.18)' : 'rgba(0,122,255,.1)' }}>
-                <Calendar className="w-3.5 h-3.5" style={{ color: primarySchool?.coverUrl ? '#fff' : '#007AFF' }} />
-              </div>
-              <span className="text-[11px] font-semibold uppercase" style={{ color: primarySchool?.coverUrl ? 'rgba(255,255,255,.75)' : '#9CA3AF', letterSpacing: '.6px' }}>{t.my.nextClass}</span>
-            </div>
-            <p className="text-sm font-medium mb-3" style={{ color: primarySchool?.coverUrl ? '#fff' : '#1C1C1E' }}>{t.my.noUpcomingClasses}</p>
+          <div className="flex items-center justify-center rounded-2xl shrink-0" style={{ width: 44, height: 44, background: 'rgba(8,112,226,.10)' }}>
+            <CalendarPlus className="w-5 h-5" style={{ color: '#0870E2' }} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium mb-2" style={{ color: '#1C1C1E' }}>{t.my.noBookingYet}</p>
             <Link
               href="/my/classes"
               prefetch={false}
               className="inline-flex items-center gap-1.5 text-xs font-semibold rounded-full"
-              style={{ background: primarySchool?.coverUrl ? '#fff' : '#E8F7FF', color: '#006197', padding: '10px 16px' }}
+              style={{ background: '#E8F7FF', color: '#0870E2', padding: '9px 14px' }}
             >
-              <CalendarPlus className="w-3.5 h-3.5 shrink-0" />
-              {t.my.bookAClass}
+              {t.my.findAClass}
             </Link>
           </div>
         </div>
       )}
-
-      {/* ── Quick actions ──────────────────────────────────────────────────── */}
-      <div className="px-4 md:px-6 mb-5 md:mb-7">
-        <div className="grid grid-cols-4 md:gap-2">
-          {QUICK_ACTION_KEYS.map(qa => (
-            <Link key={qa.href} href={qa.href} prefetch={false} className="flex flex-col items-center gap-2 py-1">
-              <div className="w-[50px] h-[50px] md:w-[56px] md:h-[56px] rounded-full flex items-center justify-center" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.08), 0 0 0 0.5px rgba(0,0,0,.05)' }}>
-                <qa.icon className="w-5 h-5 md:w-6 md:h-6" style={{ color: '#007AFF' }} />
-              </div>
-              <span className="text-[10px] md:text-[11px] font-normal text-center leading-tight" style={{ color: '#6B6B70' }}>{t.my[qa.labelKey as keyof typeof t.my]}</span>
-            </Link>
-          ))}
-        </div>
-      </div>
 
       {/* ── Main column + right rail — rail is desktop/tablet only ─────────── */}
-      {/* minmax(0,1fr) — without it the carousel's flex-row min-content width pushes
-          this column past its track and spills into the rail (clipped by overflow-x:hidden) */}
       <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-6 lg:items-start lg:px-6">
       <div>
-      {/* ── Upcoming classes carousel ──────────────────────────────────────── */}
-      {occurrences.length > 0 && (
-        <div className="mb-2">
-          <div className="flex items-center justify-between px-4 md:px-6 lg:px-0 mb-3">
-            <span className="text-base md:text-lg font-semibold" style={{ color: '#1C1C1E', letterSpacing: '-0.2px' }}>{t.my.upcomingClasses}</span>
-            <Link href="/my/classes" prefetch={false} className="flex items-center text-sm font-normal" style={{ color: '#007AFF' }}>
-              {t.my.viewAll}<ChevronRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-
-          {/* Scrollable cards */}
-          <div
-            ref={carRef}
-            className="flex gap-3 overflow-x-auto pb-1"
-            style={{ scrollSnapType: 'x mandatory', scrollPaddingLeft: 16, paddingLeft: 16, WebkitOverflowScrolling: 'touch' }}
-          >
-
-            {occurrences.slice(0, 4).map(occ => {
-              const isFull     = occ.capacity !== null && occ.booked >= occ.capacity
-              const isBooking  = bookingId === `${occ.classId}:${occ.scheduledAt}`
-              const endTime    = occ.duration
-                ? new Date(new Date(occ.scheduledAt).getTime() + occ.duration * 60000).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
-                : null
-
-              return (
-                <div
-                  key={`${occ.classId}:${occ.scheduledAt}`}
-                  className="car-card flex flex-col shrink-0 rounded-xl overflow-hidden"
-                  style={{ width: 'calc(100vw - 32px)', maxWidth: 420, background: '#fff', border: '1px solid rgba(0,0,0,.07)', boxShadow: '0 1px 4px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04)', scrollSnapAlign: 'start' }}
-                >
-                  {/* Photo — fixed aspect-ratio (not a fixed height) so it scales cleanly
-                      with the card width instead of stretching or cropping oddly. 16:9 keeps
-                      the card shorter overall than a taller 4:3-ish ratio would. */}
-                  <div className="relative shrink-0 overflow-hidden" style={{ aspectRatio: '16 / 9', borderRadius: '8px 8px 0 0', background: occ.cancelled ? '#D1D1D6' : classGradient(occ.className) }}>
-                    {occ.coverUrl && (
-                      <img
-                        src={occ.coverUrl}
-                        alt={occ.className}
-                        className={`absolute inset-0 w-full h-full object-cover transition-all ${occ.cancelled ? 'grayscale opacity-60' : ''}`}
-                        style={{ borderRadius: '8px 8px 0 0' }}
-                      />
-                    )}
-                    {/* Overlay */}
-                    <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,.04) 0%, rgba(0,0,0,.22) 100%)', zIndex: 1 }} />
-                    {/* Badge */}
-                    {occ.cancelled ? (
-                      <span className="absolute top-2 left-2 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide" style={{ zIndex: 2, background: 'rgba(17,17,17,.75)', borderRadius: 999, padding: '3px 8px', color: '#fff', letterSpacing: '.5px' }}>
-                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'rgba(255,255,255,.7)' }} />
-                        {t.my.classCancelledBadge}
-                      </span>
-                    ) : (
-                      <span className="absolute top-2 left-2 text-[10px] font-medium uppercase tracking-wide" style={{ zIndex: 2, background: 'rgba(14,0,0,.45)', border: '0.6px solid rgba(255,255,255,.2)', borderRadius: 4, padding: '3px 7px', color: 'rgba(255,255,255,.95)', letterSpacing: '.5px' }}>
-                        {classTypeBadge(occ.className)}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Body */}
-                  <div className="flex flex-col flex-1" style={{ padding: '10px 12px 11px' }}>
-                    <div className="flex items-start justify-between gap-1.5 mb-1">
-                      <span className="text-sm font-medium leading-tight" style={{ color: occ.cancelled ? '#9E9E9E' : '#061229' }}>{occ.className}</span>
-                      {occ.capacity !== null && (
-                        <span className="text-xs font-normal shrink-0" style={{ color: '#061229' }}>{occ.booked}/{occ.capacity}</span>
-                      )}
-                    </div>
-                    <div className="flex items-center justify-between gap-1.5 mb-3">
-                      <span className="text-[10.5px] font-medium shrink-0 whitespace-nowrap" style={{ color: '#4f4f4f' }}>{classTypeBadge(occ.className)}</span>
-                      <span className="text-[10.5px] font-normal shrink-0 whitespace-nowrap" style={{ color: '#4f4f4f' }}>{fmtDateShortFn(occ.scheduledAt, t.my.today, t.my.tomorrow)}</span>
-                      <span className="text-[10.5px] font-normal text-right shrink-0 whitespace-nowrap" style={{ color: '#4f4f4f' }}>
-                        {fmtTime(occ.scheduledAt)}{endTime ? `–${endTime}` : ''}
-                      </span>
-                    </div>
-                    <div className="flex gap-1.5 mt-auto">
-                      <button
-                        onClick={() => setDetailOcc(occ)}
-                        className="flex-1 text-center text-xs font-medium rounded-lg"
-                        style={{ background: '#ECEAEA', color: '#000', padding: '6px 0', fontSize: 11.5, border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
-                      >
-                        {t.my.details}
-                      </button>
-                      {occ.cancelled ? (
-                        <span
-                          className="flex-1 text-center text-xs font-medium rounded-lg"
-                          style={{ background: '#F5F5F5', color: '#9E9E9E', padding: '6px 0', fontSize: 11.5 }}
-                        >
-                          {t.my.classCancelledBadge}
-                        </span>
-                      ) : occ.alreadyBooked ? (
-                        <button
-                          onClick={() => setCancelOcc(occ)}
-                          className="flex-1 text-center text-xs font-medium rounded-lg"
-                          style={{ background: '#FFEBEE', color: '#C62828', padding: '6px 0', fontSize: 11.5, border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
-                        >
-                          {t.my.cancel}
-                        </button>
-                      ) : !occ.canBook ? (
-                        <Link
-                          href="/my/membership"
-                          prefetch={false}
-                          className="flex-1 text-center text-xs font-medium rounded-lg"
-                          style={{ background: '#FFFBEB', color: '#D97706', padding: '6px 0', fontSize: 11.5, textDecoration: 'none' }}
-                        >
-                          {t.my.activateToBook}
-                        </Link>
-                      ) : isFull ? (
-                        <span
-                          className="flex-1 text-center text-xs font-medium rounded-lg"
-                          style={{ background: '#F5F5F5', color: '#9E9E9E', padding: '6px 0', fontSize: 11.5 }}
-                        >
-                          {t.my.full}
-                        </span>
-                      ) : (
-                        <button
-                          onClick={() => bookClass(occ)}
-                          disabled={!!bookingId}
-                          className="flex-1 text-center text-xs font-medium rounded-lg disabled:opacity-60"
-                          style={{ background: '#E8F7FF', color: '#006197', padding: '6px 0', fontSize: 11.5, border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
-                        >
-                          {isBooking
-                            ? <span className="inline-block w-3 h-3 border-2 border-t-transparent rounded-full animate-spin align-middle" style={{ borderColor: '#006197', borderTopColor: 'transparent' }} />
-                            : t.my.bookNow}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-            {/* Right-edge spacer — paddingRight doesn't work reliably in flex scroll */}
-            <div className="shrink-0" style={{ width: 16 }} />
-          </div>
-
-          {/* Dots */}
-          {dotCount > 1 && (
-            <div className="flex items-center justify-center gap-1.5 pt-2 pb-1">
-              {Array.from({ length: dotCount }).map((_, i) => (
-                <div
-                  key={i}
-                  style={{
-                    width: i === activeDot ? 18 : 6,
-                    height: 6,
-                    borderRadius: i === activeDot ? 4 : '50%',
-                    background: i === activeDot ? '#007AFF' : '#AEAEB2',
-                    transition: 'all .2s',
-                  }}
-                />
-              ))}
-            </div>
-          )}
+      {/* ── Upcoming classes — date strip + vertical list, mirroring the same
+          thumbnail/name/time/availability row language the school side uses
+          for its own class list (see DashboardClient.tsx), adapted to the
+          student's perspective (availability + personal booking state
+          instead of occupancy + management actions). ─────────────────────── */}
+      <div className="mb-2">
+        <div className="flex items-center justify-between px-4 md:px-6 lg:px-0 mb-3">
+          <span className="text-base md:text-lg font-semibold" style={{ color: '#1C1C1E', letterSpacing: '-0.2px' }}>{t.my.upcomingClasses}</span>
+          <Link href="/my/classes" prefetch={false} className="flex items-center text-sm font-normal" style={{ color: '#0870E2' }}>
+            {t.my.viewSchedule}<ChevronRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
-      )}
+
+        <div className="lg:px-0 mb-1">
+          <DateStrip days={dateStripDays} selected={selectedDate} onSelect={setSelectedDate} localeTag={LOCALE_TAG[locale] ?? 'en-GB'} />
+        </div>
+
+        <div className="px-4 md:px-6 lg:px-0">
+          {dayOccurrences.length === 0 ? (
+            <p className="text-sm py-6 text-center" style={{ color: '#9CA3AF' }}>{t.my.noUpcomingClasses}</p>
+          ) : dayOccurrences.slice(0, 6).map((occ, i, arr) => {
+            const state: ClassRowState = occ.cancelled
+              ? 'cancelled'
+              : occ.alreadyBooked
+              ? 'booked'
+              : !occ.canBook
+              ? (occ.capacity !== null && occ.booked >= occ.capacity ? 'full' : 'closed')
+              : 'available'
+            const isBooking = bookingId === `${occ.classId}:${occ.scheduledAt}`
+            const remaining = occ.capacity !== null ? Math.max(0, occ.capacity - occ.booked) : null
+            const availabilityLabel = remaining === null || state === 'full' || state === 'cancelled'
+              ? null
+              : remaining <= 5
+              ? t.my.fewSpotsLeft.replace('{n}', String(remaining))
+              : t.my.spotsAvailable.replace('{n}', String(remaining))
+            const endTime = occ.duration
+              ? new Date(new Date(occ.scheduledAt).getTime() + occ.duration * 60000).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
+              : null
+            const timeLabel = `${fmtTime(occ.scheduledAt)}${endTime ? `–${endTime}` : ''}`
+            const action =
+              state === 'cancelled' ? { label: t.my.classCancelledBadge } :
+              state === 'booked'    ? { label: t.my.reservedLabel } :
+              state === 'full'      ? { label: t.my.full } :
+              state === 'closed'    ? { label: t.my.activateToBook, href: '/my/membership' } :
+              { label: t.my.bookNow, onClick: () => bookClass(occ), loading: isBooking }
+
+            return (
+              <div key={`${occ.classId}:${occ.scheduledAt}`} style={{ borderBottom: i < arr.length - 1 ? '0.5px solid rgba(60,60,67,.08)' : 'none' }}>
+                <ClassRow
+                  photoUrl={occ.coverUrl}
+                  fallbackBackground={classGradient(occ.className)}
+                  badgeLabel={classTypeBadge(occ.className)}
+                  name={occ.className}
+                  timeLabel={timeLabel}
+                  availabilityLabel={availabilityLabel}
+                  state={state}
+                  action={action}
+                  onRowClick={() => setDetailOcc(occ)}
+                />
+              </div>
+            )
+          })}
+        </div>
+      </div>
 
       {/* ── Curriculum preview — technique videos, hidden if the school hasn't
           enabled the module or this student can't see it (see the 403 case
@@ -926,8 +923,8 @@ export default function MyHomePage() {
             </Link>
           </div>
 
-          {/* One lesson per row, lateral scroll — same snap-carousel pattern as
-              the upcoming-classes carousel above (car-card / carRef / dotCount). */}
+          {/* One lesson per row, lateral scroll, snap-carousel with dot sync
+              (lessonCarRef / lessonDotCount below). */}
           <div
             ref={lessonCarRef}
             className="flex gap-3 overflow-x-auto pb-1"
@@ -1013,11 +1010,76 @@ export default function MyHomePage() {
       </aside>
       </div>{/* end lg:grid main+rail */}
 
-      {/* ── Progress + Membership — mobile/tablet stacked, replaced by the rail on lg+ ── */}
-      <div className="md:grid md:grid-cols-2 md:gap-4 md:px-6 md:mb-0 lg:hidden">
-        {primaryMember?.belt && <div className="mx-4 md:mx-0 mb-4">{renderBeltCard()}</div>}
-        {shownMembership && <div className="mx-4 md:mx-0 mb-4">{renderMembershipCard()}</div>}
-      </div>
+      {/* ── Progress + Membership — compact two-column card, mobile/tablet only
+          (replaced by the fuller rail cards on lg+). Progress uses the real
+          stripe-degree scale (see renderBeltCard above) rather than a class
+          count — this school's grading isn't tracked as "N classes toward
+          next belt" (see the comment on MAX_STRIPES below). Membership covers
+          all 5 real statuses instead of just active/pending. ─────────────── */}
+      {(() => {
+        const pausedMembership   = user?.memberships?.find(m => m.status === 'PAUSED')
+        const inactiveMembership = user?.memberships?.find(m => m.status === 'EXPIRED' || m.status === 'CANCELLED')
+        const compactMembership  = activeMembership ?? pendingMembership ?? pausedMembership ?? inactiveMembership
+        const MEMBERSHIP_STYLE: Record<string, { label: string; color: string }> = {
+          ACTIVE:    { label: t.my.statusActive,    color: '#1E8734' },
+          PENDING:   { label: t.my.statusPending,   color: '#D97706' },
+          PAUSED:    { label: t.my.statusPaused,    color: '#3B82F6' },
+          CANCELLED: { label: t.my.statusCancelled, color: '#6B7280' },
+          EXPIRED:   { label: t.my.statusExpired,   color: '#DC2626' },
+        }
+        const membershipStyle = compactMembership ? MEMBERSHIP_STYLE[compactMembership.status] : undefined
+        const MAX_STRIPES = 4
+        const degree = primaryMember?.beltDegree ?? 0
+        const showProgress = !!primaryMember?.belt
+        // "No membership" is only worth a column for someone who actually
+        // belongs to a school — a visitor with no school at all gets the
+        // dedicated empty-state card further down instead of this fallback.
+        const belongsToSchool = (user?.schoolMembers?.length ?? 0) > 0 || !!primarySchool
+        const showMembershipCol = belongsToSchool
+        if (!showProgress && !showMembershipCol) return null
+
+        return (
+          <div className="mx-4 md:mx-6 mb-4 lg:hidden rounded-[20px] overflow-hidden" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)' }}>
+            <div className="flex">
+              {showProgress && (
+                <Link href="/my/progress" prefetch={false} className="flex-1 min-w-0" style={{ padding: '16px 18px' }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold" style={{ color: '#1C1C1E' }}>{t.my.yourProgress}</span>
+                    <ChevronRight className="w-3.5 h-3.5 shrink-0" style={{ color: '#C7C7CC' }} />
+                  </div>
+                  <p className="text-xs mb-2 truncate" style={{ color: '#6B6B70' }}>
+                    {primaryMember?.belt} · {degree}/{MAX_STRIPES} {t.my.stripesLabel}
+                  </p>
+                  <div className="rounded-full overflow-hidden" style={{ height: 6, background: '#EEF0F4' }}>
+                    <div className="h-full rounded-full" style={{ width: `${(degree / MAX_STRIPES) * 100}%`, background: 'linear-gradient(90deg, #0870E2, #3C9DFF)' }} />
+                  </div>
+                </Link>
+              )}
+              {showProgress && showMembershipCol && <div style={{ width: 1, background: 'rgba(60,60,67,.10)' }} />}
+              {showMembershipCol && (
+                <Link href="/my/membership" prefetch={false} className="flex-1 min-w-0" style={{ padding: '16px 18px' }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold" style={{ color: '#1C1C1E' }}>{t.my.navMembership}</span>
+                    <ChevronRight className="w-3.5 h-3.5 shrink-0" style={{ color: '#C7C7CC' }} />
+                  </div>
+                  {compactMembership && membershipStyle ? (
+                    <>
+                      <p className="text-sm font-semibold mb-1" style={{ color: membershipStyle.color }}>{membershipStyle.label}</p>
+                      {compactMembership.status === 'ACTIVE' && compactMembership.endDate && (
+                        <p className="text-xs truncate" style={{ color: '#6B6B70' }}>
+                          {t.my.renews} {new Date(compactMembership.endDate).toLocaleDateString(LOCALE_TAG[locale] ?? 'en-GB', { day: 'numeric', month: 'short' })}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-sm font-medium" style={{ color: '#9CA3AF' }}>{t.my.noMembershipShort}</p>
+                  )}
+                </Link>
+              )}
+            </div>
+          </div>
+        )
+      })()}
 
       {/* ── Empty state (no school / membership) ──────────────────────────── */}
       {!activeMembership && !nextBooking && (user?.schoolMembers?.length ?? 0) === 0 && (

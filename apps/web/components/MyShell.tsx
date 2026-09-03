@@ -7,12 +7,13 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, CalendarDays, User,
   LogOut, X, CreditCard, DollarSign, Settings,
-  HelpCircle, Shield, QrCode, Medal, Menu,
+  HelpCircle, Shield, QrCode, Medal,
   PlayCircle, ShoppingBag, Newspaper, Ticket,
   Music, Timer, Award, FileSignature,
 } from 'lucide-react'
 import { useT } from '../lib/i18n/LanguageContext'
 import type { SchoolModuleKey } from '../lib/school-modules'
+import StudentNotificationBell from './my/StudentNotificationBell'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -263,8 +264,13 @@ function SidebarContent({ school, onClose }: { school: School; onClose?: () => v
 
 // ── Shell ────────────────────────────────────────────────────────────────────
 
+// Fixed part of the mobile topbar's height — the safe-area inset is added on
+// top of this (never folded in), same convention BottomNav uses below, so
+// there's no double-counting between this and the native shell's own inset
+// handling on notched devices.
+const TOPBAR_HEIGHT = 52
+
 export default function MyShell({ children, initialSchool }: { children: React.ReactNode; initialSchool: School }) {
-  const [drawerOpen, setDrawerOpen] = useState(false)
   const [logoBroken, setLogoBroken] = useState(false)
   // Resolved server-side (see app/my/layout.tsx) so the sidebar/topbar render
   // the real school branding on first paint — no client fetch, no flash of
@@ -279,48 +285,38 @@ export default function MyShell({ children, initialSchool }: { children: React.R
         <SidebarContent school={school} />
       </aside>
 
-      {/* Mobile topbar */}
-      <div className="fixed top-0 left-0 right-0 h-12 bg-white border-b border-gray-100 flex items-center px-4 z-40 lg:hidden">
-        <button
-          onClick={() => setDrawerOpen(true)}
-          className="p-2 -ml-2 text-gray-500 hover:text-[#101828] transition-colors"
-          aria-label="Open menu"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
-        <div className="flex-1 flex items-center justify-center gap-2">
+      {/* Mobile topbar — logo, school name, notifications. No hamburger/drawer:
+          every destination that lived there (Curriculum, Store, News, Music,
+          Timer, Waivers, Events, Collectibles, Settings, Help, Privacy, sign
+          out) is reachable from the Perfil tab's menu instead, so removing
+          this doesn't strand any page on mobile. */}
+      <div
+        className="fixed top-0 left-0 right-0 bg-white border-b border-gray-100 flex items-center px-4 z-40 lg:hidden"
+        style={{ height: `calc(${TOPBAR_HEIGHT}px + env(safe-area-inset-top))`, paddingTop: 'env(safe-area-inset-top)' }}
+      >
+        <Link href="/my" prefetch={false} className="flex-1 flex items-center gap-2.5 min-w-0">
           {school?.logoUrl && !logoBroken ? (
             <img
               src={school.logoUrl}
               alt={school.name}
-              className="w-6 h-6 rounded-lg object-cover"
+              className="w-8 h-8 rounded-full object-cover shrink-0"
               onError={() => setLogoBroken(true)}
             />
           ) : (
-            <Image src="/logo.svg" alt="Martial" width={20} height={20} />
+            <Image src="/logo.svg" alt="Martial" width={28} height={28} className="rounded-full shrink-0" />
           )}
-          <span className="text-sm font-bold text-[#101828] truncate max-w-[160px]">
+          <span className="text-[15px] font-semibold text-[#1C1C1E] truncate">
             {school?.name ?? 'Martial'}
           </span>
-        </div>
-        <div className="w-9" />
+        </Link>
+        <StudentNotificationBell />
       </div>
 
-      {/* Mobile drawer */}
-      {drawerOpen && (
-        <div className="fixed inset-0 z-50 flex lg:hidden">
-          <div className="w-60 h-full shadow-2xl animate-in slide-in-from-left duration-200">
-            <SidebarContent school={school} onClose={() => setDrawerOpen(false)} />
-          </div>
-          <div
-            className="flex-1 bg-black/40 backdrop-blur-[2px]"
-            onClick={() => setDrawerOpen(false)}
-          />
-        </div>
-      )}
-
-      {/* Main content */}
-      <main className="flex-1 min-w-0 lg:ml-60 min-h-screen pt-12 lg:pt-0 pb-28 lg:pb-0 overflow-x-hidden">
+      {/* Main content — the arbitrary-value class (not an inline style) for
+          paddingTop is deliberate: it needs `lg:pt-0` to win at the desktop
+          breakpoint, and an inline style would always beat a class no matter
+          the media query. */}
+      <main className="flex-1 min-w-0 lg:ml-60 min-h-screen pt-[calc(52px+env(safe-area-inset-top))] lg:pt-0 pb-28 lg:pb-0 overflow-x-hidden">
         {children}
       </main>
 

@@ -6,12 +6,14 @@ import { useRouter, usePathname } from 'next/navigation'
 import {
   CalendarDays, CreditCard, DollarSign, ChevronRight,
   Camera, LogOut, Medal, Settings, HelpCircle, Shield, QrCode,
+  Ticket, Award, FileSignature, PlayCircle, ShoppingBag, Newspaper, Music, Timer,
 } from 'lucide-react'
 import { getBeltImage } from '../../../lib/belts'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { isStudentContextRequired, chooseProfileUrl } from '../../../lib/studentContext'
 import { myFetch } from '../../../lib/api/myFetch'
 import { usePhoneField, DIAL_CODES, flagEmoji } from '../../../lib/usePhoneField'
+import type { SchoolModuleKey } from '../../../lib/school-modules'
 
 type Profile = {
   name: string | null
@@ -19,23 +21,40 @@ type Profile = {
   phone: string | null
   dateOfBirth: string | null
   avatarUrl: string | null
-  memberships: { status: string; planName: string }[]
+  memberships: { status: string; planName: string; school: { modules?: Record<SchoolModuleKey, boolean> } }[]
   bookings: unknown[]
-  schoolMembers: { belt: string | null; beltDegree: number | null }[]
+  schoolMembers: { belt: string | null; beltDegree: number | null; school: { modules?: Record<SchoolModuleKey, boolean> } }[]
   gradings: unknown[]
 }
 
-type MenuItem = { label: string; href: string; icon: React.ElementType; desc: string; color: string; bg: string }
+type MenuItem = { label: string; href: string; icon: React.ElementType; desc: string; color: string; bg: string; moduleKey?: SchoolModuleKey }
 type MenuSection = { label?: string; items: MenuItem[] }
 
+// Since the mobile topbar's hamburger/drawer was removed in this redesign
+// (see components/MyShell.tsx), this menu is now the *only* way to reach
+// several pages on mobile — module-gated items mirror the same
+// moduleKey filtering the old sidebar drawer used to apply.
 function getMenu(t: ReturnType<typeof useT>): MenuSection[] {
   return [
     {
       items: [
         { label: t.my.myClasses,      href: '/my/classes',    icon: CalendarDays, desc: t.my.upcomingPastBookings,      color: '#007AFF', bg: 'rgba(0,122,255,.10)' },
+        { label: t.my.navEvents,      href: '/my/events',     icon: Ticket,       desc: t.my.upcomingEventLabel,        color: '#FF3B30', bg: 'rgba(255,59,48,.10)' },
         { label: t.my.navMembership,  href: '/my/membership', icon: CreditCard,   desc: t.my.plansSubscriptions,        color: '#34C759', bg: 'rgba(52,199,89,.10)' },
         { label: t.my.navRanking,     href: '/my/progress',   icon: Medal,        desc: t.my.beltGradingHistory,        color: '#FF9500', bg: 'rgba(255,149,0,.10)' },
+        { label: t.my.navMyCollection,href: '/my/collectibles',icon: Award,       desc: t.my.beltGradingHistory,        color: '#5856D6', bg: 'rgba(88,86,214,.10)' },
         { label: t.my.payments,       href: '/my/payments',   icon: DollarSign,   desc: t.my.paymentHistory,            color: '#32ADE6', bg: 'rgba(50,173,230,.10)' },
+        { label: t.my.navWaivers,     href: '/my/waivers',    icon: FileSignature,desc: t.my.waiversSubtitleMy,         color: '#8E8E93', bg: 'rgba(142,142,147,.10)' },
+      ],
+    },
+    {
+      label: t.my.navDashboard,
+      items: [
+        { label: t.my.navCurriculum, href: '/my/curriculum', icon: PlayCircle,  desc: t.my.moduleComingSoonDesc, color: '#007AFF', bg: 'rgba(0,122,255,.10)', moduleKey: 'curriculum' },
+        { label: t.my.navStore,      href: '/my/store',      icon: ShoppingBag, desc: t.my.moduleComingSoonDesc, color: '#34C759', bg: 'rgba(52,199,89,.10)', moduleKey: 'store' },
+        { label: t.my.navNews,       href: '/my/news',       icon: Newspaper,   desc: t.my.moduleComingSoonDesc, color: '#FF9500', bg: 'rgba(255,149,0,.10)', moduleKey: 'news' },
+        { label: t.my.navMusic,      href: '/my/music',      icon: Music,       desc: t.my.moduleComingSoonDesc, color: '#FF2D55', bg: 'rgba(255,45,85,.10)', moduleKey: 'music' },
+        { label: t.my.navTimer,      href: '/my/timer',      icon: Timer,       desc: t.my.moduleComingSoonDesc, color: '#5AC8FA', bg: 'rgba(90,200,250,.10)', moduleKey: 'timer' },
       ],
     },
     {
@@ -124,6 +143,10 @@ export default function MyProfilePage() {
   const totalClasses    = profile?.bookings?.length ?? 0
   const member          = profile?.schoolMembers?.[0]
   const beltImg         = member?.belt ? getBeltImage(member.belt, member.beltDegree ?? 0) : null
+  const schoolModules   = activePlan?.school.modules ?? member?.school.modules
+  const menu            = getMenu(t)
+    .map(section => ({ ...section, items: section.items.filter(item => !item.moduleKey || schoolModules?.[item.moduleKey]) }))
+    .filter(section => section.items.length > 0)
 
   if (loading) {
     return (
@@ -242,7 +265,7 @@ export default function MyProfilePage() {
         </div>
 
         {/* ── Menu sections ── */}
-        {getMenu(t).map((section, si) => (
+        {menu.map((section, si) => (
           <div key={si} className="mb-4">
             {section.label && (
               <p className="px-4 md:px-6 pb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: '#6B6B70' }}>
