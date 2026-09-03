@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import MuxPlayer from '@mux/mux-player-react'
@@ -765,7 +764,19 @@ export default function MyHomePage() {
               below use), so the card reads in white text either way. */}
           <div className="absolute inset-0" style={{ background: classGradient(nextBooking.class.name) }} />
           {nextBookingOcc?.coverUrl && (
-            <Image src={nextBookingOcc.coverUrl} alt="" fill priority className="object-cover" />
+            // Plain <img>, not next/image: class covers can come from any
+            // host a school's storage happens to use (including older V1
+            // imports), and next/image's remotePatterns allowlist would 400
+            // — silently showing the browser's broken-image icon — for any
+            // host not on that list. Every other cover-photo spot in the app
+            // (dashboard thumbnails, ClassRow, the detail modal below) already
+            // uses a plain <img> for the same reason.
+            <img
+              src={nextBookingOcc.coverUrl}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+              onError={e => { e.currentTarget.style.display = 'none' }}
+            />
           )}
           <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,.2) 0%, rgba(0,0,0,.62) 100%)' }} />
 
@@ -1162,8 +1173,13 @@ export default function MyHomePage() {
 
             {/* Photo */}
             {detailOcc.coverUrl && (
-              <div className="mx-4 mt-2 rounded-2xl overflow-hidden" style={{ height: 192 }}>
-                <img src={detailOcc.coverUrl} alt="" className="w-full h-full object-cover" />
+              <div className="mx-4 mt-2 rounded-2xl overflow-hidden" style={{ height: 192, background: classGradient(detailOcc.className) }}>
+                <img
+                  src={detailOcc.coverUrl}
+                  alt=""
+                  className="w-full h-full object-cover"
+                  onError={e => { e.currentTarget.style.display = 'none' }}
+                />
               </div>
             )}
 

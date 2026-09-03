@@ -61,6 +61,7 @@ export default function ClassRow({ photoUrl, fallbackBackground, badgeLabel, nam
             src={photoUrl}
             alt={name}
             className={`absolute inset-0 w-full h-full object-cover ${state === 'cancelled' ? 'grayscale opacity-60' : ''}`}
+            onError={e => { e.currentTarget.style.display = 'none' }}
           />
         )}
       </div>
