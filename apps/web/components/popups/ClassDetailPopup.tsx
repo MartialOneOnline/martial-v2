@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import {
   X, UserPlus, Users, Clock, QrCode,
@@ -52,10 +51,12 @@ const BOOKING_STATUS: Record<string, { label: string; color: string; bg: string 
 }
 
 function Avatar({ name, avatarUrl, size = 42 }: { name: string; avatarUrl: string | null; size?: number }) {
+  const [loadError, setLoadError] = useState(false)
   const initials = (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
-  if (avatarUrl) {
+  if (avatarUrl && !loadError) {
     return <img src={avatarUrl} alt={name} width={size} height={size}
-      style={{ width: size, height: size, objectFit: 'cover', borderRadius: '50%', flexShrink: 0 }} />
+      style={{ width: size, height: size, objectFit: 'cover', borderRadius: '50%', flexShrink: 0 }}
+      onError={() => setLoadError(true)} />
   }
   return (
     <div style={{ width: size, height: size, borderRadius: '50%', flexShrink: 0,
@@ -295,8 +296,11 @@ export default function ClassDetailPopup({ cls, date, onClose }: Props) {
         style={{ background: '#fff', maxHeight: '92vh' }}>
 
         {/* Header image */}
-        <div className="relative shrink-0" style={{ height: 110 }}>
-          <Image src={cls.image ?? '/martial-logo.png'} alt={cls.name} fill className="object-cover" />
+        <div className="relative shrink-0" style={{ height: 110, background: 'linear-gradient(135deg,#0870E2,#7DE7EC)' }}>
+          {cls.image && (
+            <img src={cls.image} alt={cls.name} className="absolute inset-0 w-full h-full object-cover"
+              onError={e => { e.currentTarget.style.display = 'none' }} />
+          )}
           <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.5)' }} />
           <div className="absolute inset-0 flex items-end justify-between px-4 pb-3">
             <div>

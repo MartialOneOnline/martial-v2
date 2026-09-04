@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import Image from 'next/image'
 import { X, UserPlus, Users, Clock, Search, Check, Loader2, ArrowLeft, User, ShieldCheck, ChevronRight } from 'lucide-react'
 import { matchesSearch } from '../../lib/search'
 
@@ -60,8 +59,12 @@ const STATUS_STYLE: Record<string, { label: string; color: string; bg: string }>
 }
 
 function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null }) {
+  const [loadError, setLoadError] = useState(false)
   const initials = (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
-  if (avatarUrl) return <img src={avatarUrl} alt={name} width={42} height={42} style={{ width: 42, height: 42, objectFit: 'cover', borderRadius: '50%' }} />
+  if (avatarUrl && !loadError) {
+    return <img src={avatarUrl} alt={name} width={42} height={42} style={{ width: 42, height: 42, objectFit: 'cover', borderRadius: '50%' }}
+      onError={() => setLoadError(true)} />
+  }
   return (
     <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', color: '#fff', fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       {initials}
@@ -198,8 +201,11 @@ export default function ClassCapacityPopup({ cls, date, onClose }: Props) {
       <div ref={ref} className="w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden flex flex-col" style={{ background: '#fff', maxHeight: '80vh' }}>
 
         {/* Class image header */}
-        <div className="relative shrink-0" style={{ height: 96 }}>
-          <Image src={cls.image ?? '/martial-logo.png'} alt={cls.name} fill className="object-cover" />
+        <div className="relative shrink-0" style={{ height: 96, background: 'linear-gradient(135deg,#0870E2,#7DE7EC)' }}>
+          {cls.image && (
+            <img src={cls.image} alt={cls.name} className="absolute inset-0 w-full h-full object-cover"
+              onError={e => { e.currentTarget.style.display = 'none' }} />
+          )}
           <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.45)' }} />
           <div className="absolute inset-0 flex items-center justify-between px-4">
             <div>
