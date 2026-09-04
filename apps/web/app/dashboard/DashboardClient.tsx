@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
 import Link from 'next/link'
 import {
   Clock, TrendingUp, TrendingDown,
@@ -861,8 +860,11 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                 return (
                   <div key={`${cls.id}-${cls.time}`} className="flex items-center gap-3" style={{ paddingBottom: i < 4 ? 12 : 0, borderBottom: i < 4 ? '1px solid #F9FAFB' : 'none' }}>
                     <button onClick={() => setDetailClass(cls)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', flexShrink: 0 }}>
-                      <div className="rounded-xl overflow-hidden relative" style={{ width: 52, height: 52 }}>
-                        <Image src={cls.image ?? '/martial-logo.png'} alt={cls.name} fill className="object-cover" />
+                      <div className="rounded-xl overflow-hidden relative" style={{ width: 52, height: 52, background: 'linear-gradient(135deg,#0870E2,#7DE7EC)' }}>
+                        {cls.image && (
+                          <img src={cls.image} alt={cls.name} className="absolute inset-0 w-full h-full object-cover"
+                            onError={e => { e.currentTarget.style.display = 'none' }} />
+                        )}
                       </div>
                     </button>
                     {/* Name + time */}
@@ -1323,8 +1325,11 @@ export default function DashboardClient({ userName, userEmail }: Props) {
               return (
                 <div key={`${cls.id}-${cls.time}`} className="flex items-center gap-3"
                   style={{ paddingBottom: i < displayClasses.length - 1 ? 12 : 0, borderBottom: i < displayClasses.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
-                  <div className="shrink-0 rounded-xl overflow-hidden relative" style={{ width: 44, height: 44 }}>
-                    <Image src={cls.image ?? '/martial-logo.png'} alt={cls.name} fill className="object-cover" />
+                  <div className="shrink-0 rounded-xl overflow-hidden relative" style={{ width: 44, height: 44, background: 'linear-gradient(135deg,#0870E2,#7DE7EC)' }}>
+                    {cls.image && (
+                      <img src={cls.image} alt={cls.name} className="absolute inset-0 w-full h-full object-cover"
+                        onError={e => { e.currentTarget.style.display = 'none' }} />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
