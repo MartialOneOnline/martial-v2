@@ -23,6 +23,11 @@ enum Role {
   STUDENT
 }
 
+enum Gender {
+  MALE
+  FEMALE
+}
+
 enum SchoolStatus {
   UNVERIFIED // Imported/seeded, not yet confirmed by owner
   CLAIMED // Owner signed up and confirmed listing
@@ -434,6 +439,7 @@ model User {
   email       String    @unique
   name        String?
   phone       String?
+  gender      Gender?
   dateOfBirth DateTime?
   avatarUrl   String?
 
