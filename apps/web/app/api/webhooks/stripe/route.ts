@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
   const sig = req.headers.get('stripe-signature') ?? ''
 
   // Parse without verification first to read schoolId from metadata
-  let unverified: { type: string; data: { object: Record<string, unknown> } }
+  let unverified: { id?: string; type: string; data: { object: Record<string, unknown> } }
   try {
     unverified = JSON.parse(rawBody)
   } catch {
@@ -116,16 +116,50 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  if (!school?.stripeSecretKey || !school?.stripeWebhookSecret)
-    return NextResponse.json({ error: 'Unable to resolve school for Stripe event' }, { status: 400 })
+  // Verify Stripe signature. A metadata/stripeSubId hit above still has to
+  // clear this — a stale guess (e.g. rotated secret) falls through to the
+  // brute-force resolution below rather than failing outright.
+  let event: ReturnType<Stripe['webhooks']['constructEvent']> | undefined
+  if (school?.stripeSecretKey && school?.stripeWebhookSecret) {
+    try {
+      event = getStripe(school.stripeSecretKey).webhooks.constructEvent(rawBody, sig, school.stripeWebhookSecret)
+    } catch {
+      school = null
+    }
+  }
 
-  // Verify Stripe signature
-  const stripe = getStripe(school.stripeSecretKey)
-  let event: ReturnType<typeof stripe.webhooks.constructEvent>
-  try {
-    event = stripe.webhooks.constructEvent(rawBody, sig, school.stripeWebhookSecret)
-  } catch {
-    return NextResponse.json({ error: 'Signature verification failed' }, { status: 400 })
+  if (!school || !event) {
+    // Last resort: the event carries none of our own metadata and doesn't
+    // match an existing Membership either — e.g. a subscription/Payment Link
+    // created directly in the Stripe Dashboard rather than through our own
+    // /api/my/checkout, which is the only place that stamps metadata.schoolId.
+    // Each connected school has its own webhook signing secret, and only the
+    // correct one can ever produce a valid signature for this exact body —
+    // so trying every connected school's secret in turn is a safe,
+    // unambiguous way to find the right school without trusting anything
+    // unverified in the payload itself.
+    const candidates = await prisma.school.findMany({
+      where: { stripeSecretKey: { not: null }, stripeWebhookSecret: { not: null } },
+      select: { id: true, stripeSecretKey: true, stripeWebhookSecret: true },
+    })
+    for (const candidate of candidates) {
+      try {
+        event = getStripe(candidate.stripeSecretKey!).webhooks.constructEvent(rawBody, sig, candidate.stripeWebhookSecret!)
+        school = candidate
+        break
+      } catch {
+        // Wrong secret for this event — try the next connected school.
+      }
+    }
+  }
+
+  if (!school || !event) {
+    // No StripeWebhookEvent row can be written yet (we have no verified
+    // event.id), so a server log is the only durable trace of this failure —
+    // matches the alerting pattern used elsewhere in this file (see the
+    // ARCHIVED-member cases below) rather than leaving it silent.
+    console.error(`[stripe webhook] unable to resolve school — type=${unverified.type} unverifiedEventId=${unverified.id ?? 'n/a'} objectId=${(obj.id as string | undefined) ?? 'n/a'}. No metadata.schoolId, no matching Membership.stripeSubId, and no connected school's webhook secret verified this signature.`)
+    return NextResponse.json({ error: 'Unable to resolve school for Stripe event' }, { status: 400 })
   }
 
   // Idempotency gate: claim this event by id before touching any business
