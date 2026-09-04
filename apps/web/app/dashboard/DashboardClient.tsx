@@ -374,6 +374,11 @@ export default function DashboardClient({ userName, userEmail }: Props) {
   const [schoolProfile, setSchoolProfile] = useState<{
     logoUrl: string | null; coverUrl: string | null; tagline: string | null
   } | null>(null)
+  // Some School.logoUrl/coverUrl values come from V1 imports on hosts not in
+  // next.config.js's remotePatterns allowlist, which makes next/image fail —
+  // fall back to the initials badge / plain background instead of a broken image.
+  const [logoLoadError, setLogoLoadError] = useState(false)
+  const [avatarLoadErrors, setAvatarLoadErrors] = useState<Set<string>>(new Set())
   // null = not loaded yet (never redirect on this), 0 = confirmed empty.
   const [disciplineCount, setDisciplineCount] = useState<number | null>(null)
   const [bookingsChart, setBookingsChart] = useState<{ date: string; confirmed: number; cancelled: number }[] | null>(null)
@@ -689,13 +694,13 @@ export default function DashboardClient({ userName, userEmail }: Props) {
             <div className="relative overflow-visible" style={{ height: 90 }}>
               <div className="absolute inset-0 overflow-hidden rounded-t-2xl" style={{ background: schoolProfile?.coverUrl ? undefined : '#F3F4F6' }}>
                 {schoolProfile?.coverUrl && (
-                  <Image src={schoolProfile.coverUrl} alt={currentSchool?.schoolName ?? 'Academy cover'} fill className="object-cover" />
+                  <img src={schoolProfile.coverUrl} alt={currentSchool?.schoolName ?? 'Academy cover'} className="absolute inset-0 w-full h-full object-cover" onError={e => { e.currentTarget.style.display = 'none' }} />
                 )}
               </div>
               <div className="absolute left-1/2 -translate-x-1/2 rounded-full overflow-hidden border-[3px] border-white flex items-center justify-center"
-                style={{ width: 64, height: 64, bottom: -32, background: schoolProfile?.logoUrl ? '#fff' : 'linear-gradient(135deg,#0870E2,#7DE7EC)', boxShadow: '0 2px 10px rgba(0,0,0,0.18)', zIndex: 10 }}>
-                {schoolProfile?.logoUrl ? (
-                  <Image src={schoolProfile.logoUrl} alt={currentSchool?.schoolName ?? 'Academy logo'} width={64} height={64} className="object-contain" />
+                style={{ width: 64, height: 64, bottom: -32, background: schoolProfile?.logoUrl && !logoLoadError ? '#fff' : 'linear-gradient(135deg,#0870E2,#7DE7EC)', boxShadow: '0 2px 10px rgba(0,0,0,0.18)', zIndex: 10 }}>
+                {schoolProfile?.logoUrl && !logoLoadError ? (
+                  <img src={schoolProfile.logoUrl} alt={currentSchool?.schoolName ?? 'Academy logo'} className="w-full h-full object-contain" onError={() => setLogoLoadError(true)} />
                 ) : (
                   <span style={{ fontSize: 20, fontWeight: 700, color: '#fff' }}>{schoolInitials}</span>
                 )}
@@ -997,10 +1002,11 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                       className="hover:bg-[#FAFAFA] transition-colors">
                       <td className="px-2 md:px-4 py-4">
                         <div className="flex items-center gap-2" style={{ maxWidth: 150 }}>
-                          {tx.userAvatar ? (
+                          {tx.userAvatar && !avatarLoadErrors.has(tx.id) ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={tx.userAvatar} alt={tx.userName} width={36} height={36}
-                              style={{ width: 36, height: 36, objectFit: 'cover', borderRadius: '50%', border: '1px solid #E5E7EB', flexShrink: 0 }} />
+                              style={{ width: 36, height: 36, objectFit: 'cover', borderRadius: '50%', border: '1px solid #E5E7EB', flexShrink: 0 }}
+                              onError={() => setAvatarLoadErrors(prev => new Set(prev).add(tx.id))} />
                           ) : (
                             <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', color: '#fff', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                               {initials}
@@ -1136,10 +1142,11 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                 return (
                   <div key={tx.id} className="px-4 py-3 flex items-center gap-3"
                     style={{ borderBottom: idx < recentTx.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
-                    {tx.userAvatar ? (
+                    {tx.userAvatar && !avatarLoadErrors.has(tx.id) ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={tx.userAvatar} alt={tx.userName} width={36} height={36}
-                        style={{ width: 36, height: 36, objectFit: 'cover', borderRadius: '50%', border: '1px solid #E5E7EB', flexShrink: 0 }} />
+                        style={{ width: 36, height: 36, objectFit: 'cover', borderRadius: '50%', border: '1px solid #E5E7EB', flexShrink: 0 }}
+                        onError={() => setAvatarLoadErrors(prev => new Set(prev).add(tx.id))} />
                     ) : (
                       <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', color: '#fff', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         {initials}
@@ -1189,13 +1196,13 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           <div className="relative overflow-visible" style={{ height: 80 }}>
             <div className="absolute inset-0 overflow-hidden rounded-t-2xl" style={{ background: schoolProfile?.coverUrl ? undefined : '#F3F4F6' }}>
               {schoolProfile?.coverUrl && (
-                <Image src={schoolProfile.coverUrl} alt={currentSchool?.schoolName ?? 'Academy cover'} fill className="object-cover" />
+                <img src={schoolProfile.coverUrl} alt={currentSchool?.schoolName ?? 'Academy cover'} className="absolute inset-0 w-full h-full object-cover" onError={e => { e.currentTarget.style.display = 'none' }} />
               )}
             </div>
             <div className="absolute left-1/2 -translate-x-1/2 rounded-full overflow-hidden border-[3px] border-white flex items-center justify-center"
-              style={{ width: 60, height: 60, bottom: -30, background: schoolProfile?.logoUrl ? '#fff' : 'linear-gradient(135deg,#0870E2,#7DE7EC)', boxShadow: '0 2px 12px rgba(0,0,0,0.2)', zIndex: 10 }}>
-              {schoolProfile?.logoUrl ? (
-                <Image src={schoolProfile.logoUrl} alt={currentSchool?.schoolName ?? 'Academy logo'} width={60} height={60} className="object-contain" />
+              style={{ width: 60, height: 60, bottom: -30, background: schoolProfile?.logoUrl && !logoLoadError ? '#fff' : 'linear-gradient(135deg,#0870E2,#7DE7EC)', boxShadow: '0 2px 12px rgba(0,0,0,0.2)', zIndex: 10 }}>
+              {schoolProfile?.logoUrl && !logoLoadError ? (
+                <img src={schoolProfile.logoUrl} alt={currentSchool?.schoolName ?? 'Academy logo'} className="w-full h-full object-contain" onError={() => setLogoLoadError(true)} />
               ) : (
                 <span style={{ fontSize: 18, fontWeight: 700, color: '#fff' }}>{schoolInitials}</span>
               )}
