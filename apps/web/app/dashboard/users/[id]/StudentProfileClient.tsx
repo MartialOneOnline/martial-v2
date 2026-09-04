@@ -2024,14 +2024,14 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
                               <div className="flex items-center gap-1">
                                 <button onClick={() => handleCancelTx(t.id)} disabled={cancellingTxId === t.id || markingTxId === t.id}
                                   style={{ fontSize: 10, fontWeight: 600, color: '#EF4444', background: '#FEF2F2', border: 'none',
-                                    padding: '2px 8px', borderRadius: 999, cursor: cancellingTxId === t.id ? 'not-allowed' : 'pointer',
-                                    opacity: cancellingTxId === t.id ? 0.6 : 1 }}>
+                                    padding: '3px 8px', borderRadius: 6, cursor: cancellingTxId === t.id ? 'not-allowed' : 'pointer',
+                                    opacity: cancellingTxId === t.id ? 0.6 : 1, whiteSpace: 'nowrap', flexShrink: 0 }}>
                                   {cancellingTxId === t.id ? tt.studentProfile.cancelling : tt.studentProfile.cancelBtn}
                                 </button>
                                 <button onClick={() => handleMarkTxPaid(t.id)} disabled={markingTxId === t.id || cancellingTxId === t.id}
                                   style={{ fontSize: 10, fontWeight: 600, color: '#fff', background: '#D97706', border: 'none',
-                                    padding: '2px 8px', borderRadius: 999, cursor: markingTxId === t.id ? 'not-allowed' : 'pointer',
-                                    opacity: markingTxId === t.id ? 0.6 : 1 }}>
+                                    padding: '3px 8px', borderRadius: 6, cursor: markingTxId === t.id ? 'not-allowed' : 'pointer',
+                                    opacity: markingTxId === t.id ? 0.6 : 1, whiteSpace: 'nowrap', flexShrink: 0 }}>
                                   {markingTxId === t.id ? tt.studentProfile.marking : tt.studentProfile.markAsPaidBtn}
                                 </button>
                               </div>
