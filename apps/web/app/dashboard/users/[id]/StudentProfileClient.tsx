@@ -24,7 +24,7 @@ type Transaction = {
   membershipId: string | null
   periodStart: string | null; periodEnd: string | null
 }
-type MembershipUpdate = { id: string; endDate: string | null; status: string }
+type MembershipUpdate = { id: string; endDate: string | null; status?: string }
 type MembershipRecord = {
   id: string; planName: string; planType: string; billingCycle: string | null
   price: number; currency: string; status: string
@@ -1052,8 +1052,13 @@ function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
 // (periodEnd set), also lets the admin correct the membership period it
 // covers, which syncs the linked Membership's endDate server-side (see
 // PATCH /api/dashboard/transactions/[id] action:'edit').
-function EditTransactionModal({ tx, onClose, onSaved }: {
+function EditTransactionModal({ tx, membershipEndDate, onClose, onSaved }: {
   tx: Transaction
+  // Current endDate of the membership this transaction is linked to, looked
+  // up by the parent from its `memberships` list — only used to prefill the
+  // expiry field for a founding payment (tx.periodEnd null), which has no
+  // period of its own to edit.
+  membershipEndDate: string | null
   onClose: () => void
   onSaved: (
     txId: string,
@@ -1065,7 +1070,12 @@ function EditTransactionModal({ tx, onClose, onSaved }: {
   const [date, setDate] = useState(tx.date.slice(0, 10))
   const [amount, setAmount] = useState(String(tx.amount))
   const [method, setMethod] = useState(['CASH', 'BANK_TRANSFER', 'STRIPE', 'DIRECT_DEBIT', 'OTHER'].includes(tx.method) ? tx.method : 'CASH')
-  const [periodEnd, setPeriodEnd] = useState(tx.periodEnd ? tx.periodEnd.slice(0, 10) : '')
+  // A renewal payment's expiry lives on the transaction itself (periodEnd);
+  // a founding payment has none, so this falls back to the membership's own
+  // endDate and, on save, goes through the membership's updateDates action
+  // instead — same field to the admin, different plumbing underneath.
+  const initialExpiry = tx.periodEnd ?? membershipEndDate
+  const [expiry, setExpiry] = useState(initialExpiry ? initialExpiry.slice(0, 10) : '')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -1076,7 +1086,7 @@ function EditTransactionModal({ tx, onClose, onSaved }: {
     setError('')
     try {
       const body: Record<string, unknown> = { action: 'edit', date, amount: parseFloat(amount), paymentMethod: method }
-      if (tx.periodEnd) body.periodEnd = periodEnd
+      if (tx.periodEnd) body.periodEnd = expiry
       const res = await fetch(`/api/dashboard/transactions/${tx.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -1084,7 +1094,27 @@ function EditTransactionModal({ tx, onClose, onSaved }: {
       })
       const d = await res.json().catch(() => ({}))
       if (!res.ok) { setError(d.error ?? tt.studentProfile.couldNotEditPayment); return }
-      onSaved(tx.id, { date: d.date, amount: d.amount, paymentMethod: d.paymentMethod, periodEnd: d.periodEnd ?? null }, d.membershipUpdate ?? null)
+
+      let membershipUpdate: MembershipUpdate | null = d.membershipUpdate ?? null
+
+      // Founding payment: no periodEnd to correct on the transaction itself,
+      // so a changed expiry goes straight to the membership's own date field
+      // — the same endpoint/guard the Membership card's pencil-edit uses.
+      if (!tx.periodEnd && tx.membershipId && expiry !== (membershipEndDate ? membershipEndDate.slice(0, 10) : '')) {
+        const mRes = await fetch(`/api/dashboard/memberships/${tx.membershipId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'updateDates', endDate: expiry || null }),
+        })
+        const mData = await mRes.json().catch(() => ({}))
+        if (!mRes.ok) {
+          setError(mData.error ?? tt.studentProfile.couldNotUpdateDates)
+          return
+        }
+        membershipUpdate = { id: mData.id, endDate: mData.endDate ?? null }
+      }
+
+      onSaved(tx.id, { date: d.date, amount: d.amount, paymentMethod: d.paymentMethod, periodEnd: d.periodEnd ?? null }, membershipUpdate)
     } finally {
       setSaving(false)
     }
@@ -1120,9 +1150,9 @@ function EditTransactionModal({ tx, onClose, onSaved }: {
               <option value="OTHER">Other</option>
             </select>
           </Field>
-          {tx.periodEnd && (
+          {tx.membershipId && (
             <Field label={tt.studentProfile.membershipExpiresLabel} hint={tt.studentProfile.membershipExpiresHint}>
-              <input type="date" value={periodEnd} onChange={e => setPeriodEnd(e.target.value)} style={inputStyle} />
+              <input type="date" value={expiry} onChange={e => setExpiry(e.target.value)} style={inputStyle} />
             </Field>
           )}
           {error && <p style={{ fontSize: 12, color: '#EF4444', margin: 0 }}>{error}</p>}
@@ -1688,8 +1718,8 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
   // in sync without a page reload.
   const applyMembershipUpdate = (u: MembershipUpdate | null) => {
     if (!u) return
-    setActiveMembership(prev => prev && prev.id === u.id ? { ...prev, expiresAt: u.endDate, status: u.status } : prev)
-    setMemberships(prev => prev.map(m => m.id === u.id ? { ...m, endDate: u.endDate, status: u.status } : m))
+    setActiveMembership(prev => prev && prev.id === u.id ? { ...prev, expiresAt: u.endDate, status: u.status ?? prev.status } : prev)
+    setMemberships(prev => prev.map(m => m.id === u.id ? { ...m, endDate: u.endDate, status: u.status ?? m.status } : m))
   }
 
   const handleEditTxSaved = (
@@ -1766,6 +1796,7 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
       {editingTx && (
         <EditTransactionModal
           tx={editingTx}
+          membershipEndDate={memberships.find(m => m.id === editingTx.membershipId)?.endDate ?? null}
           onClose={() => setEditingTx(null)}
           onSaved={handleEditTxSaved}
         />

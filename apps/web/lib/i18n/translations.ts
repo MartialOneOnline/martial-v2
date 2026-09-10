@@ -343,7 +343,7 @@ export const translations = {
       couldNotEditPayment: 'Could not update the payment', editPaymentTitle: 'Edit payment',
       enterValidAmount: 'Enter a valid amount', enterValidDate: 'Enter a date',
       membershipExpiresLabel: 'Membership expires',
-      membershipExpiresHint: 'This payment extended the membership to this date — changing it updates the membership too.',
+      membershipExpiresHint: "Changing this also updates the membership's own Expires date.",
     },
 
     // ── Classes / Events / Calendar / Timetable ────────────────────────────────
@@ -1233,7 +1233,7 @@ export const translations = {
       couldNotEditPayment: 'No se pudo actualizar el pago', editPaymentTitle: 'Editar pago',
       enterValidAmount: 'Introduce un importe válido', enterValidDate: 'Introduce una fecha',
       membershipExpiresLabel: 'Vencimiento de la membresía',
-      membershipExpiresHint: 'Este pago extendió la membresía hasta esta fecha — cambiarla también actualiza la membresía.',
+      membershipExpiresHint: 'Cambiar esta fecha también actualiza el vencimiento de la membresía.',
     },
     classes: {
       title: 'Clases', searchPlaceholder: 'Buscar clases…', ofClasses: 'clases',
@@ -2073,7 +2073,7 @@ export const translations = {
       couldNotEditPayment: 'Não foi possível atualizar o pagamento', editPaymentTitle: 'Editar pagamento',
       enterValidAmount: 'Introduz um valor válido', enterValidDate: 'Introduz uma data',
       membershipExpiresLabel: 'Validade do plano',
-      membershipExpiresHint: 'Este pagamento estendeu o plano até esta data — alterá-la também atualiza o plano.',
+      membershipExpiresHint: 'Alterar esta data também atualiza a validade do plano.',
     },
     classes: {
       title: 'Aulas', searchPlaceholder: 'Buscar aulas…', ofClasses: 'aulas',
@@ -2913,7 +2913,7 @@ export const translations = {
       couldNotEditPayment: 'Impossible de mettre à jour le paiement', editPaymentTitle: 'Modifier le paiement',
       enterValidAmount: 'Saisissez un montant valide', enterValidDate: 'Saisissez une date',
       membershipExpiresLabel: "Expiration de l'abonnement",
-      membershipExpiresHint: "Ce paiement a prolongé l'abonnement jusqu'à cette date — la modifier met aussi à jour l'abonnement.",
+      membershipExpiresHint: "Modifier cette date met aussi à jour l'expiration de l'abonnement.",
     },
     classes: {
       title: 'Cours', searchPlaceholder: 'Rechercher des cours…', ofClasses: 'cours',
