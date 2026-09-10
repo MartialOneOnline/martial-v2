@@ -4,7 +4,7 @@ import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 import { notifyPaymentReceived } from '@/lib/notifications/create'
-import { applyPaidMembershipTransaction, revertMembershipForDeletedTransaction } from '@/lib/services/membership'
+import { applyPaidMembershipTransaction, revertMembershipForDeletedTransaction, syncMembershipDatesForEditedTransaction } from '@/lib/services/membership'
 import { fmtPrice } from '@/lib/format'
 
 // The Student Profile page renders the transaction list from a one-time SSR
@@ -124,11 +124,35 @@ export async function PATCH(
       data.paymentMethod = body.paymentMethod
     }
 
+    // periodEnd only exists on renewal-payment transactions (createRenewalPayment
+    // / markRenewalPaid) — it's what drives the linked Membership's endDate, so
+    // correcting it here (instead of just date/amount/method) is what actually
+    // lets "edit that transaction" fix a wrong membership expiry.
+    let periodEnd: Date | undefined
+    if (body.periodEnd !== undefined) {
+      if (!tx.periodEnd) {
+        return NextResponse.json({ error: 'This transaction has no renewal period to edit' }, { status: 400 })
+      }
+      periodEnd = new Date(body.periodEnd)
+      if (isNaN(periodEnd.getTime())) return NextResponse.json({ error: 'Invalid membership expiry date' }, { status: 400 })
+      if (tx.periodStart && periodEnd < tx.periodStart) {
+        return NextResponse.json({ error: 'Membership expiry cannot be before the period start' }, { status: 400 })
+      }
+      data.periodEnd = periodEnd
+    }
+
     if (Object.keys(data).length === 0) {
       return NextResponse.json({ error: 'Nothing to update' }, { status: 400 })
     }
 
-    const updated = await prisma.transaction.update({ where: { id }, data })
+    const oldPeriodEnd = tx.periodEnd
+    const { updated, membershipUpdate } = await prisma.$transaction(async (trx) => {
+      const updated = await trx.transaction.update({ where: { id }, data })
+      const membershipUpdate = periodEnd !== undefined
+        ? await syncMembershipDatesForEditedTransaction(trx, updated, oldPeriodEnd, auth.schoolId)
+        : null
+      return { updated, membershipUpdate }
+    })
     await revalidateStudentProfile(auth.schoolId, tx.userId)
 
     return NextResponse.json({
@@ -136,6 +160,10 @@ export async function PATCH(
       date: updated.date.toISOString(),
       amount: Number(updated.amount),
       paymentMethod: updated.paymentMethod,
+      periodEnd: updated.periodEnd ? updated.periodEnd.toISOString() : null,
+      membershipUpdate: membershipUpdate
+        ? { id: membershipUpdate.id, endDate: membershipUpdate.endDate ? membershipUpdate.endDate.toISOString() : null, status: membershipUpdate.status }
+        : null,
     })
   }
 
@@ -235,13 +263,18 @@ export async function DELETE(
   // paid renewal that pushed the linked Membership's endDate forward, undo
   // that too — otherwise the membership stays "renewed" even though the
   // payment that justified it no longer exists.
-  await prisma.$transaction(async (trx) => {
+  const membershipUpdate = await prisma.$transaction(async (trx) => {
     await trx.transaction.update({
       where: { id },
       data: { deletedAt: new Date(), deletedBy: auth.userId },
     })
-    await revertMembershipForDeletedTransaction(trx, tx, auth.schoolId)
+    return revertMembershipForDeletedTransaction(trx, tx, auth.schoolId)
   })
   await revalidateStudentProfile(auth.schoolId, tx.userId)
-  return NextResponse.json({ ok: true })
+  return NextResponse.json({
+    ok: true,
+    membershipUpdate: membershipUpdate
+      ? { id: membershipUpdate.id, endDate: membershipUpdate.endDate ? membershipUpdate.endDate.toISOString() : null, status: membershipUpdate.status }
+      : null,
+  })
 }

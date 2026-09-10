@@ -786,18 +786,24 @@ export async function markRenewalPaid(input: MarkRenewalPaidInput) {
  * cash renewal flow does), so this only ever reverts what it created.
  * Must run inside the same transaction as the Transaction soft-delete write.
  */
+export interface MembershipDateSyncResult {
+  id: string
+  endDate: Date | null
+  status: MembershipStatus
+}
+
 export async function revertMembershipForDeletedTransaction(
   tx: Prisma.TransactionClient,
   txn: { id: string; membershipId: string | null; status: TransactionStatus; date: Date; periodStart: Date | null; periodEnd: Date | null },
   schoolId: string,
-) {
-  if (!txn.membershipId || txn.status !== TransactionStatus.PAID) return
+): Promise<MembershipDateSyncResult | null> {
+  if (!txn.membershipId || txn.status !== TransactionStatus.PAID) return null
 
   if (txn.periodEnd) {
     // ── Renewal payment (createRenewalPayment / markRenewalPaid) ─────────
     const membership = await tx.membership.findFirst({ where: { id: txn.membershipId, schoolId } })
-    if (!membership || !membership.endDate) return
-    if (membership.endDate.getTime() !== txn.periodEnd.getTime()) return
+    if (!membership || !membership.endDate) return null
+    if (membership.endDate.getTime() !== txn.periodEnd.getTime()) return null
 
     const revertedEndDate = txn.periodStart ?? membership.startDate
     const lapsed = revertedEndDate <= graceCutoff()
@@ -805,14 +811,14 @@ export async function revertMembershipForDeletedTransaction(
       ? (membership.cancelledAt ? MembershipStatus.CANCELLED : MembershipStatus.EXPIRED)
       : MembershipStatus.ACTIVE
 
-    await tx.membership.update({
+    const updated = await tx.membership.update({
       where: { id: membership.id },
       data: { status: newStatus, endDate: revertedEndDate },
     })
     await syncSchoolMemberStatusForMembership(tx, {
       userId: membership.userId, schoolId, membershipStatus: newStatus, excludeMembershipId: membership.id,
     })
-    return
+    return { id: updated.id, endDate: updated.endDate, status: updated.status }
   }
 
   // ── Founding payment (assignPlan — initial assignment or "Change plan") ──
@@ -826,15 +832,15 @@ export async function revertMembershipForDeletedTransaction(
   // touch whatever membership this one may have superseded — reactivating
   // that is a separate, deliberate admin decision.
   const membership = await tx.membership.findFirst({ where: { id: txn.membershipId, schoolId } })
-  if (!membership || membership.status === MembershipStatus.CANCELLED) return
-  if (membership.startDate.getTime() !== txn.date.getTime()) return
+  if (!membership || membership.status === MembershipStatus.CANCELLED) return null
+  if (membership.startDate.getTime() !== txn.date.getTime()) return null
 
   const otherPaidCount = await tx.transaction.count({
     where: { membershipId: membership.id, status: TransactionStatus.PAID, id: { not: txn.id }, deletedAt: null },
   })
-  if (otherPaidCount > 0) return
+  if (otherPaidCount > 0) return null
 
-  await tx.membership.update({
+  const updated = await tx.membership.update({
     where: { id: membership.id },
     data: { status: MembershipStatus.CANCELLED, cancelledAt: new Date() },
   })
@@ -845,6 +851,43 @@ export async function revertMembershipForDeletedTransaction(
   await syncSchoolMemberStatusForMembership(tx, {
     userId: membership.userId, schoolId, membershipStatus: MembershipStatus.CANCELLED, excludeMembershipId: membership.id,
   })
+  return { id: updated.id, endDate: updated.endDate, status: updated.status }
+}
+
+/**
+ * Reciprocal of revertMembershipForDeletedTransaction: when an admin corrects
+ * the periodEnd of an already-PAID renewal transaction (fixing a wrong date
+ * entered by mistake, from the transaction's own Edit flow), push the linked
+ * Membership's endDate to match — but only when this transaction is still the
+ * one driving the membership's current endDate (same exact-match guardrail as
+ * the revert, so a newer renewal on top of this one is never clobbered).
+ * Must run inside the same transaction as the Transaction.periodEnd write.
+ */
+export async function syncMembershipDatesForEditedTransaction(
+  tx: Prisma.TransactionClient,
+  txn: { membershipId: string | null; status: TransactionStatus; periodEnd: Date | null },
+  oldPeriodEnd: Date | null,
+  schoolId: string,
+): Promise<MembershipDateSyncResult | null> {
+  if (!txn.membershipId || txn.status !== TransactionStatus.PAID || !txn.periodEnd || !oldPeriodEnd) return null
+
+  const membership = await tx.membership.findFirst({ where: { id: txn.membershipId, schoolId } })
+  if (!membership || !membership.endDate) return null
+  if (membership.endDate.getTime() !== oldPeriodEnd.getTime()) return null
+
+  const lapsed = txn.periodEnd <= graceCutoff()
+  const newStatus = lapsed
+    ? (membership.cancelledAt ? MembershipStatus.CANCELLED : MembershipStatus.EXPIRED)
+    : MembershipStatus.ACTIVE
+
+  const updated = await tx.membership.update({
+    where: { id: membership.id },
+    data: { status: newStatus, endDate: txn.periodEnd },
+  })
+  await syncSchoolMemberStatusForMembership(tx, {
+    userId: membership.userId, schoolId, membershipStatus: newStatus, excludeMembershipId: membership.id,
+  })
+  return { id: updated.id, endDate: updated.endDate, status: updated.status }
 }
 
 export interface ApplyPaidMembershipTransactionInput {

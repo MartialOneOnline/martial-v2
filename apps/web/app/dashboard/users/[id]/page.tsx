@@ -130,6 +130,8 @@ export default async function StudentProfilePage({
       date: t.date.toISOString(),
       description: t.description ?? t.category ?? '—',
       membershipId: t.membershipId ?? null,
+      periodStart: t.periodStart ? t.periodStart.toISOString() : null,
+      periodEnd: t.periodEnd ? t.periodEnd.toISOString() : null,
     })),
     memberships: memberships.map(m => ({
       id: m.id,

@@ -22,7 +22,9 @@ type Booking = { id: string; className: string; date: string; status: string; at
 type Transaction = {
   id: string; amount: number; currency: string; method: string; status: string; date: string; description: string
   membershipId: string | null
+  periodStart: string | null; periodEnd: string | null
 }
+type MembershipUpdate = { id: string; endDate: string | null; status: string }
 type MembershipRecord = {
   id: string; planName: string; planType: string; billingCycle: string | null
   price: number; currency: string; status: string
@@ -1043,6 +1045,105 @@ function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
   )
 }
 
+// ── Edit Transaction Modal ───────────────────────────────────────────────────
+// Corrects a manually-entered mistake (wrong date/amount/method) on an
+// existing transaction, including PAID ones — mirrors EditPaymentModal on the
+// Payments → Transactions page. When the transaction is a renewal payment
+// (periodEnd set), also lets the admin correct the membership period it
+// covers, which syncs the linked Membership's endDate server-side (see
+// PATCH /api/dashboard/transactions/[id] action:'edit').
+function EditTransactionModal({ tx, onClose, onSaved }: {
+  tx: Transaction
+  onClose: () => void
+  onSaved: (
+    txId: string,
+    updated: { date: string; amount: number; paymentMethod: string | null; periodEnd: string | null },
+    membershipUpdate: MembershipUpdate | null,
+  ) => void
+}) {
+  const tt = useT()
+  const [date, setDate] = useState(tx.date.slice(0, 10))
+  const [amount, setAmount] = useState(String(tx.amount))
+  const [method, setMethod] = useState(['CASH', 'BANK_TRANSFER', 'STRIPE', 'DIRECT_DEBIT', 'OTHER'].includes(tx.method) ? tx.method : 'CASH')
+  const [periodEnd, setPeriodEnd] = useState(tx.periodEnd ? tx.periodEnd.slice(0, 10) : '')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  async function handleSave() {
+    if (!amount || parseFloat(amount) <= 0) { setError(tt.studentProfile.enterValidAmount); return }
+    if (!date) { setError(tt.studentProfile.enterValidDate); return }
+    setSaving(true)
+    setError('')
+    try {
+      const body: Record<string, unknown> = { action: 'edit', date, amount: parseFloat(amount), paymentMethod: method }
+      if (tx.periodEnd) body.periodEnd = periodEnd
+      const res = await fetch(`/api/dashboard/transactions/${tx.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok) { setError(d.error ?? tt.studentProfile.couldNotEditPayment); return }
+      onSaved(tx.id, { date: d.date, amount: d.amount, paymentMethod: d.paymentMethod, periodEnd: d.periodEnd ?? null }, d.membershipUpdate ?? null)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.45)' }}>
+      <div style={{ background: '#fff', borderRadius: 16, width: 420, maxWidth: '95vw', padding: 28, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+        <div className="flex items-center justify-between" style={{ marginBottom: 20 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>{tt.studentProfile.editPaymentTitle}</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF' }}><X size={18} /></button>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <div className="flex gap-3">
+            <div style={{ flex: 1 }}>
+              <Field label={`${tt.common.amount} (${tx.currency})`}>
+                <input type="number" min="0" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} style={inputStyle} />
+              </Field>
+            </div>
+            <div style={{ flex: 1 }}>
+              <Field label={tt.common.date}>
+                <input type="date" value={date} onChange={e => setDate(e.target.value)} style={inputStyle} />
+              </Field>
+            </div>
+          </div>
+          <Field label={tt.studentProfile.paymentMethodLabel}>
+            <select value={method} onChange={e => setMethod(e.target.value)} style={inputStyle}>
+              <option value="CASH">Cash</option>
+              <option value="BANK_TRANSFER">Bank Transfer</option>
+              <option value="STRIPE">Stripe</option>
+              <option value="DIRECT_DEBIT">Direct Debit</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </Field>
+          {tx.periodEnd && (
+            <Field label={tt.studentProfile.membershipExpiresLabel} hint={tt.studentProfile.membershipExpiresHint}>
+              <input type="date" value={periodEnd} onChange={e => setPeriodEnd(e.target.value)} style={inputStyle} />
+            </Field>
+          )}
+          {error && <p style={{ fontSize: 12, color: '#EF4444', margin: 0 }}>{error}</p>}
+        </div>
+
+        <div className="flex gap-3 justify-end" style={{ marginTop: 20 }}>
+          <button onClick={onClose}
+            style={{ padding: '9px 20px', borderRadius: 10, border: '1px solid #E5E7EB', fontSize: 13, fontWeight: 600, color: '#374151', background: '#fff', cursor: 'pointer' }}>
+            {tt.common.cancel}
+          </button>
+          <button onClick={handleSave} disabled={saving}
+            style={{ padding: '9px 24px', borderRadius: 10, border: 'none', fontSize: 13, fontWeight: 600, color: '#fff',
+              background: saving ? '#93C5FD' : '#0071E3', cursor: saving ? 'not-allowed' : 'pointer' }}>
+            {saving ? tt.studentProfile.saving : tt.common.save}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Membership Section ─────────────────────────────────────────────────────────
 function MembershipSection({
   memberId, activeMembership: initialActiveMembership, memberships: initialMemberships, availablePlans,
@@ -1075,6 +1176,14 @@ function MembershipSection({
   const [savingDates, setSavingDates] = useState(false)
   const [dateError, setDateError] = useState<string | null>(null)
 
+  // Editing/deleting a transaction happens in the parent's Payment history
+  // section, outside this component — when it changes the linked
+  // membership's endDate, the parent updates its own activeMembership state
+  // and this re-syncs the local copy (which otherwise only seeds once from
+  // props on mount).
+  useEffect(() => { setActiveMembership(initialActiveMembership) }, [initialActiveMembership])
+  useEffect(() => { setMemberships(initialMemberships) }, [initialMemberships])
+
   const isPastDue = !!(activeMembership?.expiresAt && new Date(activeMembership.expiresAt) < new Date())
 
   async function handleCreateRenewalPayment() {
@@ -1097,6 +1206,8 @@ function MembershipSection({
           date: txn.date,
           description: txn.description ?? '',
           membershipId: txn.membershipId,
+          periodStart: txn.periodStart ?? null,
+          periodEnd: txn.periodEnd ?? null,
         })
       } else {
         const d = await res.json().catch(() => ({}))
@@ -1458,6 +1569,8 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
   const [transactions, setTransactions] = useState(initialProfile.transactions)
   const [markingTxId, setMarkingTxId] = useState<string | null>(null)
   const [cancellingTxId, setCancellingTxId] = useState<string | null>(null)
+  const [deletingTxId, setDeletingTxId] = useState<string | null>(null)
+  const [editingTx, setEditingTx] = useState<Transaction | null>(null)
   const pendingRenewal = activeMembership
     ? transactions.find(t => t.membershipId === activeMembership.id && t.status === 'PENDING') ?? null
     : null
@@ -1569,6 +1682,46 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
     }
   }
 
+  // Applies a membership date/status correction that rode along with a
+  // transaction edit or delete (see syncMembershipDatesForEditedTransaction /
+  // revertMembershipForDeletedTransaction) — keeps the Membership card above
+  // in sync without a page reload.
+  const applyMembershipUpdate = (u: MembershipUpdate | null) => {
+    if (!u) return
+    setActiveMembership(prev => prev && prev.id === u.id ? { ...prev, expiresAt: u.endDate, status: u.status } : prev)
+    setMemberships(prev => prev.map(m => m.id === u.id ? { ...m, endDate: u.endDate, status: u.status } : m))
+  }
+
+  const handleEditTxSaved = (
+    txId: string,
+    updated: { date: string; amount: number; paymentMethod: string | null; periodEnd: string | null },
+    membershipUpdate: MembershipUpdate | null,
+  ) => {
+    setEditingTx(null)
+    setTransactions(prev => prev.map(tx => tx.id === txId
+      ? { ...tx, date: updated.date, amount: updated.amount, method: updated.paymentMethod ?? tx.method, periodEnd: updated.periodEnd }
+      : tx))
+    applyMembershipUpdate(membershipUpdate)
+    showToast(tt.studentProfile.paymentUpdated, 'success')
+  }
+
+  const handleDeleteTx = async (txId: string) => {
+    if (!confirm(tt.studentProfile.deleteTxConfirm)) return
+    setDeletingTxId(txId)
+    try {
+      const res = await fetch(`/api/dashboard/transactions/${txId}`, { method: 'DELETE' })
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(d.error ?? tt.studentProfile.paymentDeleteError)
+      setTransactions(prev => prev.filter(tx => tx.id !== txId))
+      applyMembershipUpdate(d.membershipUpdate ?? null)
+      showToast(tt.studentProfile.paymentDeleted, 'success')
+    } catch (err) {
+      showToast(err instanceof Error && err.message ? err.message : tt.studentProfile.paymentDeleteError, 'error')
+    } finally {
+      setDeletingTxId(null)
+    }
+  }
+
   const handleDeleteUser = async () => {
     setDeleting(true)
     try {
@@ -1607,6 +1760,14 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
           profile={profile}
           onClose={() => setEmailModalOpen(false)}
           showToast={showToast}
+        />
+      )}
+
+      {editingTx && (
+        <EditTransactionModal
+          tx={editingTx}
+          onClose={() => setEditingTx(null)}
+          onSaved={handleEditTxSaved}
         />
       )}
 
@@ -2012,32 +2173,63 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
                     {transactions.slice(0, txShown).map((t, i) => {
                       const ts = txStatusMap[t.status] ?? { bg: '#F3F4F6', color: '#6B7280', label: t.status }
                       return (
-                        <div key={t.id} className="flex items-center justify-between"
+                        <div key={t.id} className="flex items-center justify-between gap-2"
                           style={{ padding: '10px 0', borderBottom: i < Math.min(transactions.length, txShown) - 1 ? '1px solid #F3F4F6' : 'none' }}>
                           <div>
                             <p style={{ fontSize: 13, fontWeight: 500, color: '#111827', margin: 0 }}>{t.description}</p>
                             <p style={{ fontSize: 11, color: '#9CA3AF', margin: '1px 0 0' }}>{fmt(t.date)} · {t.method}</p>
                           </div>
-                          <div className="flex flex-col items-end gap-1">
-                            <span style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>{fmtPrice(t.amount, t.currency)}</span>
-                            {t.status === 'PENDING' ? (
-                              <div className="flex items-center gap-1">
-                                <button onClick={() => handleCancelTx(t.id)} disabled={cancellingTxId === t.id || markingTxId === t.id}
-                                  style={{ fontSize: 10, fontWeight: 600, color: '#EF4444', background: '#FEF2F2', border: 'none',
-                                    padding: '3px 8px', borderRadius: 6, cursor: cancellingTxId === t.id ? 'not-allowed' : 'pointer',
-                                    opacity: cancellingTxId === t.id ? 0.6 : 1, whiteSpace: 'nowrap', flexShrink: 0 }}>
-                                  {cancellingTxId === t.id ? tt.studentProfile.cancelling : tt.studentProfile.cancelBtn}
-                                </button>
-                                <button onClick={() => handleMarkTxPaid(t.id)} disabled={markingTxId === t.id || cancellingTxId === t.id}
-                                  style={{ fontSize: 10, fontWeight: 600, color: '#fff', background: '#D97706', border: 'none',
-                                    padding: '3px 8px', borderRadius: 6, cursor: markingTxId === t.id ? 'not-allowed' : 'pointer',
-                                    opacity: markingTxId === t.id ? 0.6 : 1, whiteSpace: 'nowrap', flexShrink: 0 }}>
-                                  {markingTxId === t.id ? tt.studentProfile.marking : tt.studentProfile.markAsPaidBtn}
+                          <div className="flex items-center gap-1">
+                            <div className="flex flex-col items-end gap-1">
+                              <span style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>{fmtPrice(t.amount, t.currency)}</span>
+                              {t.status === 'PENDING' ? (
+                                <div className="flex items-center gap-1">
+                                  <button onClick={() => handleCancelTx(t.id)} disabled={cancellingTxId === t.id || markingTxId === t.id}
+                                    style={{ fontSize: 10, fontWeight: 600, color: '#EF4444', background: '#FEF2F2', border: 'none',
+                                      padding: '3px 8px', borderRadius: 6, cursor: cancellingTxId === t.id ? 'not-allowed' : 'pointer',
+                                      opacity: cancellingTxId === t.id ? 0.6 : 1, whiteSpace: 'nowrap', flexShrink: 0 }}>
+                                    {cancellingTxId === t.id ? tt.studentProfile.cancelling : tt.studentProfile.cancelBtn}
+                                  </button>
+                                  <button onClick={() => handleMarkTxPaid(t.id)} disabled={markingTxId === t.id || cancellingTxId === t.id}
+                                    style={{ fontSize: 10, fontWeight: 600, color: '#fff', background: '#D97706', border: 'none',
+                                      padding: '3px 8px', borderRadius: 6, cursor: markingTxId === t.id ? 'not-allowed' : 'pointer',
+                                      opacity: markingTxId === t.id ? 0.6 : 1, whiteSpace: 'nowrap', flexShrink: 0 }}>
+                                    {markingTxId === t.id ? tt.studentProfile.marking : tt.studentProfile.markAsPaidBtn}
+                                  </button>
+                                </div>
+                              ) : (
+                                <span style={{ fontSize: 10, fontWeight: 600, background: ts.bg, color: ts.color, padding: '1px 6px', borderRadius: 999 }}>{ts.label}</span>
+                              )}
+                            </div>
+                            <RowMenu trigger={({ onClick }) => (
+                              <button onClick={onClick} disabled={deletingTxId === t.id}
+                                style={{ width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  borderRadius: 6, border: 'none', background: 'transparent', cursor: deletingTxId === t.id ? 'wait' : 'pointer', color: '#9CA3AF', flexShrink: 0 }}>
+                                <MoreHorizontal size={13} />
+                              </button>
+                            )}>
+                              <div style={{ minWidth: 150, background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10,
+                                boxShadow: '0 8px 24px rgba(0,0,0,0.10)', padding: '4px 0' }}>
+                                {t.status !== 'REFUNDED' && (
+                                  <button onClick={() => setEditingTx(t)}
+                                    className="w-full flex items-center gap-2 cursor-pointer"
+                                    style={{ padding: '8px 14px', fontSize: 13, border: 'none', textAlign: 'left', color: '#374151', background: 'transparent' }}
+                                    onMouseEnter={e => (e.currentTarget.style.background = '#F9FAFB')}
+                                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                                    <Edit2 size={13} style={{ color: '#6B7280', flexShrink: 0 }} />
+                                    {tt.common.edit}
+                                  </button>
+                                )}
+                                <button onClick={() => handleDeleteTx(t.id)}
+                                  className="w-full flex items-center gap-2 cursor-pointer"
+                                  style={{ padding: '8px 14px', fontSize: 13, border: 'none', textAlign: 'left', color: '#DC2626', background: 'transparent' }}
+                                  onMouseEnter={e => (e.currentTarget.style.background = '#FEF2F2')}
+                                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                                  <Trash2 size={13} style={{ flexShrink: 0 }} />
+                                  {tt.common.delete}
                                 </button>
                               </div>
-                            ) : (
-                              <span style={{ fontSize: 10, fontWeight: 600, background: ts.bg, color: ts.color, padding: '1px 6px', borderRadius: 999 }}>{ts.label}</span>
-                            )}
+                            </RowMenu>
                           </div>
                         </div>
                       )

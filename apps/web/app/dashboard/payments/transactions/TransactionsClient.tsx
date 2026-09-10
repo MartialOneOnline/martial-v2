@@ -786,11 +786,12 @@ function AddPaymentModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
 function EditPaymentModal({ tx, onClose, onSaved }: {
   tx: TxRow
   onClose: () => void
-  onSaved: (updated: { date: string; amount: number; method: string | null }) => void
+  onSaved: (updated: { date: string; amount: number; method: string | null; periodEnd: string | null }) => void
 }) {
   const [date, setDate] = useState(tx.date.slice(0, 10))
   const [amount, setAmount] = useState(String(tx.amount))
   const [method, setMethod] = useState(tx.method ?? 'CASH')
+  const [periodEnd, setPeriodEnd] = useState(tx.periodEnd ? tx.periodEnd.slice(0, 10) : '')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -798,13 +799,16 @@ function EditPaymentModal({ tx, onClose, onSaved }: {
     if (!amount || parseFloat(amount) <= 0) { setError('Enter a valid amount'); return }
     if (!date) { setError('Enter a date'); return }
     setSaving(true); setError('')
+    const body: Record<string, unknown> = { action: 'edit', date, amount: parseFloat(amount), paymentMethod: method }
+    if (tx.periodEnd) body.periodEnd = periodEnd
     const res = await fetch(`/api/dashboard/transactions/${tx.id}`, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'edit', date, amount: parseFloat(amount), paymentMethod: method }),
+      body: JSON.stringify(body),
     })
+    const d = await res.json().catch(() => ({}))
     setSaving(false)
-    if (!res.ok) { const d = await res.json().catch(() => ({})); setError(d.error ?? 'Error'); return }
-    onSaved({ date, amount: parseFloat(amount), method })
+    if (!res.ok) { setError(d.error ?? 'Error'); return }
+    onSaved({ date, amount: parseFloat(amount), method, periodEnd: d.periodEnd ?? null })
   }
 
   return (
@@ -845,6 +849,15 @@ function EditPaymentModal({ tx, onClose, onSaved }: {
                 <option value="OTHER">Other</option>
               </select>
             </div>
+            {tx.periodEnd && (
+              <div>
+                <label style={MODAL_LBL}>Membership expires</label>
+                <input type="date" value={periodEnd} onChange={e => setPeriodEnd(e.target.value)} style={MODAL_INP} />
+                <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>
+                  This payment extended the membership to this date — changing it updates the membership too.
+                </p>
+              </div>
+            )}
             {error && <p style={{ fontSize: 12, color: '#DC2626', fontWeight: 500 }}>{error}</p>}
           </div>
 
@@ -1017,7 +1030,7 @@ export default function TransactionsClient() {
     }
   }
 
-  function handleEditSaved(id: string, updated: { date: string; amount: number; method: string | null }) {
+  function handleEditSaved(id: string, updated: { date: string; amount: number; method: string | null; periodEnd: string | null }) {
     setEditingTx(null)
     setTransactions(prev => prev.map(tx => tx.id === id ? { ...tx, ...updated } : tx))
     if (selectedTx?.id === id) setSelectedTx(prev => prev ? { ...prev, ...updated } : null)
