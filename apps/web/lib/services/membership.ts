@@ -651,6 +651,9 @@ export async function createRenewalPayment(input: CreateRenewalPaymentInput) {
   if (membership.cancelledAt) {
     throw new Error('Membership is already set to cancel at period end — nothing to renew')
   }
+  if (membership.price <= 0) {
+    throw new Error('Free plans have nothing to collect — nothing to renew')
+  }
 
   const existing = await prisma.transaction.findFirst({
     where: { membershipId, status: TransactionStatus.PENDING, category: TransactionCategory.MEMBERSHIP },
@@ -699,6 +702,7 @@ export async function generateDueRenewalPayments(): Promise<{ createdCount: numb
     where: {
       status: MembershipStatus.ACTIVE, paymentMethod: PaymentMethod.CASH, endDate: { lte: new Date() },
       cancelledAt: null, // already headed for CANCELLED at endDate — nothing to renew
+      price: { gt: 0 }, // free/trial plans lapse naturally — nothing to collect
     },
     select: { id: true, schoolId: true },
   })

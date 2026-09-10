@@ -1363,7 +1363,7 @@ function MembershipSection({
       <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
         <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>{tt.studentProfile.membershipTitle}</p>
         <div className="flex items-center gap-2">
-          {activeMembership && activeMembership.paymentMethod === 'CASH' && !pendingRenewal && (
+          {activeMembership && activeMembership.paymentMethod === 'CASH' && !pendingRenewal && Number(activeMembership.price) > 0 && (
             <button onClick={handleCreateRenewalPayment} disabled={creatingRenewal}
               className="flex items-center gap-1"
               style={{ fontSize: 12, fontWeight: 600, color: '#D97706', background: '#FFFBEB', border: 'none',
