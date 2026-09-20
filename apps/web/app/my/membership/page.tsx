@@ -34,6 +34,7 @@ type Membership = {
   currency: string
   paymentMethod: string
   status: 'PENDING' | 'ACTIVE' | 'PAUSED' | 'CANCELLED' | 'EXPIRED'
+  paymentStatus: string
   startDate: string
   endDate: string | null
   cancelledAt: string | null
@@ -265,6 +266,7 @@ function ActiveMembershipCard({
   const isPending = m.status === 'PENDING'
   const isPaused = m.status === 'PAUSED'
   const isActive = m.status === 'ACTIVE'
+  const paymentOutstanding = m.paymentStatus === 'PAST_DUE' || m.paymentStatus === 'UNPAID'
 
   return (
     <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 20,
@@ -364,8 +366,19 @@ function ActiveMembershipCard({
           </div>
         )}
 
+        {/* Payment failed — student can fix it themselves via the billing portal */}
+        {m.stripeSubId && paymentOutstanding && (m.status === 'ACTIVE' || m.status === 'PAUSED') && (
+          <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10,
+            padding: '10px 12px', marginBottom: 14 }}>
+            <p style={{ fontSize: 12, color: '#B91C1C', margin: '0 0 8px' }}>
+              {m.paymentStatus === 'UNPAID' ? t.my.paymentUnpaidNotice : t.my.paymentFailedNotice}
+            </p>
+            <ManageBillingButton membershipId={m.id} />
+          </div>
+        )}
+
         {/* Stripe-managed badge + portal button */}
-        {m.stripeSubId && m.status === 'ACTIVE' && (
+        {m.stripeSubId && m.status === 'ACTIVE' && !paymentOutstanding && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 11, color: '#635BFF', fontWeight: 600,
               background: '#F0F0FF', borderRadius: 999, padding: '3px 10px', border: '1px solid #C4B5FD' }}>
@@ -459,7 +472,7 @@ function ActiveMembershipCard({
                 {t.my.pause}
               </button>
             )}
-            {isPaused && (
+            {isPaused && !paymentOutstanding && (
               <button onClick={() => onAction(m.id, 'resume')}
                 style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                   padding: '10px 0', borderRadius: 12, border: '1.5px solid #16A34A',

@@ -5240,6 +5240,8 @@ export const MembershipScalarFieldEnum = {
   status: 'status',
   startDate: 'startDate',
   endDate: 'endDate',
+  paymentStatus: 'paymentStatus',
+  paymentStatusAt: 'paymentStatusAt',
   classesUsed: 'classesUsed',
   stripeSubId: 'stripeSubId',
   stripeCustomerId: 'stripeCustomerId',
@@ -6223,6 +6225,20 @@ export type EnumMembershipStatusFieldRefInput<$PrismaModel> = FieldRefInputType<
  * Reference to a field of type 'MembershipStatus[]'
  */
 export type ListEnumMembershipStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MembershipStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'MembershipPaymentStatus'
+ */
+export type EnumMembershipPaymentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MembershipPaymentStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'MembershipPaymentStatus[]'
+ */
+export type ListEnumMembershipPaymentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MembershipPaymentStatus[]'>
     
 
 

@@ -32,6 +32,8 @@ type MembershipRecord = {
 }
 type ActiveMembership = {
   id: string; planName: string; planType: string; status: string; paymentMethod: string
+  // Stripe billing health (Membership.paymentStatus); optional because plans assigned client-side are never past due.
+  paymentStatus?: string
   startDate: string; expiresAt: string | null
   price: number; currency?: string; interval: string | null; consumed: number
 }
@@ -1451,8 +1453,21 @@ function MembershipSection({
                 }}>
                   {isPastDue ? tt.studentProfile.renewalDue : tt.common.active}
                 </span>
+                {activeMembership.paymentStatus === 'PAST_DUE' && (
+                  <span style={{
+                    fontSize: 11, fontWeight: 600, color: '#DC2626', padding: '2px 10px', borderRadius: 999,
+                    background: '#FEF2F2', border: '1px solid #FECACA',
+                  }}>
+                    {tt.studentProfile.paymentFailed}
+                  </span>
+                )}
               </div>
             </div>
+            {activeMembership.paymentStatus === 'PAST_DUE' && (
+              <p style={{ fontSize: 12, color: '#B45309', margin: '10px 0 0' }}>
+                {tt.studentProfile.paymentFailedHint}
+              </p>
+            )}
 
             {/* Usage bar — only for class-pack plans (SINGLE_PASS/TRIAL); a
                 SUBSCRIPTION membership is unlimited, so "classes used" has

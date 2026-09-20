@@ -14,7 +14,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const membership = await prisma.membership.findUnique({
     where: { id },
-    select: { id: true, userId: true, schoolId: true, status: true, planId: true },
+    select: { id: true, userId: true, schoolId: true, status: true, planId: true, paymentStatus: true },
   })
   if (!membership || membership.userId !== dbUser.id)
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -28,6 +28,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
   if (!allowed[action]?.includes(membership.status))
     return NextResponse.json({ error: `Cannot ${action} a ${membership.status} membership` }, { status: 400 })
+
+  // A membership paused because Stripe couldn't collect (or is still failing to)
+  // must not be self-resumable — that would grant access back without paying.
+  // The student fixes their card via the billing portal; a successful retry
+  // restores it automatically. Staff can still resume from the dashboard.
+  if (action === 'resume' && (membership.paymentStatus === 'UNPAID' || membership.paymentStatus === 'PAST_DUE'))
+    return NextResponse.json({ error: 'Payment is outstanding — update your payment method to restore access.' }, { status: 409 })
 
   if (action === 'cancel') {
     // Delegates to service — respects school cancelPolicy + syncs SchoolMember

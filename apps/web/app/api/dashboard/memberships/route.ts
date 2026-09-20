@@ -120,6 +120,7 @@ export async function GET(req: NextRequest) {
       price:         m.price,
       currency:      m.currency,
       status:        m.status,
+      paymentStatus: m.paymentStatus,
       startDate:     m.startDate.toISOString(),
       endDate:       m.endDate?.toISOString() ?? null,
       classesUsed:   m.classesUsed,

@@ -236,6 +236,20 @@ export const TransactionStatus = {
 export type TransactionStatus = (typeof TransactionStatus)[keyof typeof TransactionStatus]
 
 
+export const MembershipPaymentStatus = {
+  TRIALING: 'TRIALING',
+  ACTIVE: 'ACTIVE',
+  INCOMPLETE: 'INCOMPLETE',
+  INCOMPLETE_EXPIRED: 'INCOMPLETE_EXPIRED',
+  PAST_DUE: 'PAST_DUE',
+  UNPAID: 'UNPAID',
+  PAUSED: 'PAUSED',
+  CANCELED: 'CANCELED'
+} as const
+
+export type MembershipPaymentStatus = (typeof MembershipPaymentStatus)[keyof typeof MembershipPaymentStatus]
+
+
 export const SchoolSubscriptionStatus = {
   TRIALING: 'TRIALING',
   ACTIVE: 'ACTIVE',

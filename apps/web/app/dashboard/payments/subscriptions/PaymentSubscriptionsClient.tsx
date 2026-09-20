@@ -35,6 +35,7 @@ interface SubRow {
   startDate: string
   endDate: string | null
   status: MemStatus
+  paymentStatus: string
   consumed: number
   totalLimit: number | null
   pendingTransactionId: string | null
@@ -532,7 +533,7 @@ export default function PaymentSubscriptionsClient() {
         id: string; userId?: string; schoolMemberId?: string | null; userName: string; userEmail?: string; userAvatar?: string;
         belt?: string | null; planName: string; planType?: string; paymentMethod?: string;
         price: number; currency?: string; startDate: string; endDate?: string; status: MemStatus;
-        classesUsed?: number; totalLimit?: number; pendingTransactionId?: string | null;
+        classesUsed?: number; totalLimit?: number; pendingTransactionId?: string | null; paymentStatus?: string;
       }) => ({
         id:            m.id,
         userId:        m.userId ?? m.id,
@@ -552,6 +553,7 @@ export default function PaymentSubscriptionsClient() {
         consumed:    m.classesUsed ?? 0,
         totalLimit:  m.totalLimit ?? null,
         pendingTransactionId: m.pendingTransactionId ?? null,
+        paymentStatus: m.paymentStatus ?? 'ACTIVE',
       }))
       setSubs(rows)
 
@@ -829,6 +831,18 @@ export default function PaymentSubscriptionsClient() {
                               whiteSpace: 'nowrap' }}>
                             <AlertCircle size={9} strokeWidth={2.5} />
                             Pago pendiente
+                          </span>
+                        )}
+                        {(sub.paymentStatus === 'PAST_DUE' || sub.paymentStatus === 'UNPAID') && (
+                          <span className="inline-flex items-center gap-1.5"
+                            title={sub.paymentStatus === 'PAST_DUE'
+                              ? 'Stripe no pudo cobrar y sigue reintentando. El alumno mantiene el acceso mientras tanto.'
+                              : 'Stripe agotó los reintentos sin cobrar. El acceso está pausado.'}
+                            style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999,
+                              background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA',
+                              whiteSpace: 'nowrap' }}>
+                            <AlertCircle size={9} strokeWidth={2.5} />
+                            {sub.paymentStatus === 'PAST_DUE' ? 'Pago fallido' : 'Impagado'}
                           </span>
                         )}
                       </div>

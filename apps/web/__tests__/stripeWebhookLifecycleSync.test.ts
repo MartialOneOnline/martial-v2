@@ -1,8 +1,12 @@
 /**
  * Tests for POST /api/webhooks/stripe — membership lifecycle sync (P1/P2
  * hardening). Covers:
- *  - invoice.payment_failed / invoice.payment_succeeded / customer.subscription.deleted
- *    projecting Membership.status onto SchoolMember.status, and never touching ARCHIVED.
+ *  - invoice.payment_succeeded / customer.subscription.deleted projecting
+ *    Membership.status onto SchoolMember.status, and never touching ARCHIVED.
+ *  - invoice.payment_failed / subscription past_due leaving access alone (Stripe's
+ *    retry window is the grace period) and only moving Membership.paymentStatus;
+ *    'unpaid' being where access is actually cut, and stale events being ignored.
+ *  - school resolution when an event carries no schoolId metadata.
  *  - customer.subscription.updated with cancel_at_period_end=true no longer cutting
  *    access immediately (the pre-fix bug forced Membership.CANCELLED here).
  *  - a payment success for an ARCHIVED SchoolMember not reactivating them or
@@ -17,7 +21,12 @@ import { NextRequest } from 'next/server'
 
 vi.mock('@/lib/stripe', () => ({
   getStripe: () => ({
-    webhooks: { constructEvent: (rawBody: string) => JSON.parse(rawBody) },
+    webhooks: {
+      constructEvent: (rawBody: string, _sig: string, secret: string) => {
+        if (invalidSecrets.has(secret)) throw new Error('No signatures found matching the expected signature')
+        return JSON.parse(rawBody)
+      },
+    },
     refunds: { create: vi.fn().mockResolvedValue({}) },
   }),
 }))
@@ -51,6 +60,7 @@ type TransactionRow = {
   notes?: string | null; description?: string | null; [k: string]: unknown
 }
 
+let invalidSecrets: Set<string>
 let webhookEvents: Record<string, { status: string; updatedAt: number }>
 let memberships: Record<string, Membership>
 let schoolMembers: Record<string, SchoolMember>
@@ -59,6 +69,7 @@ let membershipSeq: number
 let transactionSeq: number
 
 function resetState() {
+  invalidSecrets = new Set()
   webhookEvents = {}
   memberships = {}
   schoolMembers = {}
@@ -68,7 +79,7 @@ function resetState() {
 }
 function smKey(schoolId: string, userId: string) { return `${schoolId}:${userId}` }
 function seedMembership(m: Partial<Membership> & { id: string }) {
-  memberships[m.id] = { userId: 'user-1', schoolId: 'school-1', status: 'ACTIVE', planName: 'Monthly', currency: 'EUR', ...m }
+  memberships[m.id] = { userId: 'user-1', schoolId: 'school-1', status: 'ACTIVE', paymentStatus: 'ACTIVE', paymentStatusAt: null, planName: 'Monthly', currency: 'EUR', ...m }
 }
 function seedSchoolMember(schoolId: string, userId: string, status: string) {
   schoolMembers[smKey(schoolId, userId)] = { userId, schoolId, status }
@@ -81,11 +92,12 @@ function matchesMembershipWhere(m: Membership, where: Record<string, unknown>): 
       if (!or.some(sub => matchesMembershipWhere(m, sub))) return false
       continue
     }
-    const val = (m as Record<string, unknown>)[key]
+    const val = (m as Record<string, unknown>)[key] ?? null
     if (cond && typeof cond === 'object' && !(cond instanceof Date)) {
-      const c = cond as { not?: unknown; in?: unknown[] }
+      const c = cond as { not?: unknown; in?: unknown[]; lte?: Date }
       if ('not' in c && val === c.not) return false
       if ('in' in c && c.in && !c.in.includes(val)) return false
+      if ('lte' in c && c.lte && !(val instanceof Date && val.getTime() <= c.lte.getTime())) return false
     } else if (val !== cond) {
       return false
     }
@@ -94,6 +106,7 @@ function matchesMembershipWhere(m: Membership, where: Record<string, unknown>): 
 }
 
 const mockSchoolFindUnique = vi.fn().mockResolvedValue({ stripeSecretKey: 'sk_test', stripeWebhookSecret: 'whsec_test' })
+const mockSchoolFindMany = vi.fn().mockResolvedValue([])
 
 const mockStripeWebhookEventCreate = vi.fn((args: { data: { eventId: string; type: string; status: string } }) => {
   const { eventId, type, status } = args.data
@@ -189,7 +202,7 @@ const mockTransaction = vi.fn((fn: (tx: unknown) => unknown) => {
 
 vi.mock('@/lib/db', () => ({
   prisma: {
-    school: { findUnique: mockSchoolFindUnique },
+    school: { findUnique: mockSchoolFindUnique, findMany: mockSchoolFindMany },
     stripeWebhookEvent: { create: mockStripeWebhookEventCreate, updateMany: mockStripeWebhookEventUpdateMany, update: mockStripeWebhookEventUpdate },
     membership: { findFirst: mockMembershipFindFirst, findUnique: mockMembershipFindUnique, create: mockMembershipCreate, updateMany: mockMembershipUpdateMany },
     $transaction: mockTransaction,
@@ -210,28 +223,53 @@ beforeEach(() => {
   vi.clearAllMocks()
   resetState()
   mockSchoolFindUnique.mockResolvedValue({ stripeSecretKey: 'sk_test', stripeWebhookSecret: 'whsec_test' })
+  mockSchoolFindMany.mockResolvedValue([])
 })
 
 describe('invoice.payment_failed', () => {
-  it('sets Membership PAUSED and SchoolMember FROZEN', async () => {
+  const failed = (id: string, extra: Record<string, unknown> = {}) =>
+    makeRequest({ id, type: 'invoice.payment_failed', ...extra, data: { object: { subscription: 'sub_1', metadata: { schoolId: 'school-1' } } } })
+
+  it('marks paymentStatus PAST_DUE but leaves Membership and SchoolMember untouched — Stripe retrying is the grace period', async () => {
     seedMembership({ id: 'membership-1', stripeSubId: 'sub_1', status: 'ACTIVE' })
     seedSchoolMember('school-1', 'user-1', 'ACTIVE')
 
-    const res = await POST(makeRequest({ id: 'evt_1', type: 'invoice.payment_failed', data: { object: { subscription: 'sub_1', metadata: { schoolId: 'school-1' } } } }))
+    const res = await POST(failed('evt_1'))
 
     expect(res.status).toBe(200)
-    expect(memberships['membership-1']!.status).toBe('PAUSED')
-    expect(schoolMembers[smKey('school-1', 'user-1')]!.status).toBe('FROZEN')
+    expect(memberships['membership-1']!.paymentStatus).toBe('PAST_DUE')
+    expect(memberships['membership-1']!.status).toBe('ACTIVE')
+    expect(schoolMembers[smKey('school-1', 'user-1')]!.status).toBe('ACTIVE')
   })
 
-  it('does not touch an ARCHIVED SchoolMember', async () => {
+  it('does not touch an ARCHIVED SchoolMember or the membership access status', async () => {
     seedMembership({ id: 'membership-1', stripeSubId: 'sub_1', status: 'ACTIVE' })
     seedSchoolMember('school-1', 'user-1', 'ARCHIVED')
 
-    await POST(makeRequest({ id: 'evt_2', type: 'invoice.payment_failed', data: { object: { subscription: 'sub_1', metadata: { schoolId: 'school-1' } } } }))
+    await POST(failed('evt_2'))
 
-    expect(memberships['membership-1']!.status).toBe('PAUSED') // membership itself still reflects Stripe truth
-    expect(schoolMembers[smKey('school-1', 'user-1')]!.status).toBe('ARCHIVED') // but SchoolMember is untouched
+    expect(memberships['membership-1']!.paymentStatus).toBe('PAST_DUE')
+    expect(memberships['membership-1']!.status).toBe('ACTIVE')
+    expect(schoolMembers[smKey('school-1', 'user-1')]!.status).toBe('ARCHIVED')
+  })
+
+  it('never downgrades a state that is already UNPAID or CANCELED', async () => {
+    seedMembership({ id: 'membership-1', stripeSubId: 'sub_1', status: 'PAUSED', paymentStatus: 'UNPAID' })
+    seedMembership({ id: 'membership-2', stripeSubId: 'sub_2', status: 'CANCELLED', paymentStatus: 'CANCELED' })
+
+    await POST(failed('evt_3'))
+    await POST(makeRequest({ id: 'evt_3b', type: 'invoice.payment_failed', data: { object: { subscription: 'sub_2', metadata: { schoolId: 'school-1' } } } }))
+
+    expect(memberships['membership-1']!.paymentStatus).toBe('UNPAID')
+    expect(memberships['membership-2']!.paymentStatus).toBe('CANCELED')
+  })
+
+  it('does not affect a membership on a different subscription', async () => {
+    seedMembership({ id: 'membership-1', stripeSubId: 'sub_other', status: 'ACTIVE' })
+
+    await POST(failed('evt_4'))
+
+    expect(memberships['membership-1']!.paymentStatus).toBe('ACTIVE')
   })
 })
 
@@ -248,6 +286,19 @@ describe('invoice.payment_succeeded (renewal)', () => {
     expect(res.status).toBe(200)
     expect(memberships['membership-1']!.status).toBe('ACTIVE')
     expect(schoolMembers[smKey('school-1', 'user-1')]!.status).toBe('ACTIVE')
+  })
+
+  it('a successful renewal after past_due resets paymentStatus to ACTIVE', async () => {
+    seedMembership({ id: 'membership-1', stripeSubId: 'sub_1', status: 'ACTIVE', paymentStatus: 'PAST_DUE', paymentStatusAt: new Date(1_000_000 * 1000), stripeInvoiceId: null })
+    seedSchoolMember('school-1', 'user-1', 'ACTIVE')
+
+    await POST(makeRequest({
+      id: 'evt_rec', type: 'invoice.payment_succeeded', created: 2_000_000,
+      data: { object: { subscription: 'sub_1', id: 'in_rec', billing_reason: 'subscription_cycle', amount_paid: 6500, metadata: { schoolId: 'school-1' } } },
+    }))
+
+    expect(memberships['membership-1']!.paymentStatus).toBe('ACTIVE')
+    expect(memberships['membership-1']!.status).toBe('ACTIVE')
   })
 
   it('reactivates an ARCHIVED SchoolMember on renewal — a paid subscription is itself a reactivation signal', async () => {
@@ -272,6 +323,7 @@ describe('customer.subscription.deleted', () => {
 
     expect(res.status).toBe(200)
     expect(memberships['membership-1']!.status).toBe('CANCELLED')
+    expect(memberships['membership-1']!.paymentStatus).toBe('CANCELED')
     expect(schoolMembers[smKey('school-1', 'user-1')]!.status).toBe('INACTIVE')
   })
 
@@ -314,6 +366,84 @@ describe('customer.subscription.updated', () => {
 
     expect(memberships['membership-1']!.status).toBe('CANCELLED')
     expect(schoolMembers[smKey('school-1', 'user-1')]!.status).toBe('INACTIVE')
+  })
+
+  it('status=past_due sets paymentStatus PAST_DUE and leaves access untouched', async () => {
+    seedMembership({ id: 'membership-1', stripeSubId: 'sub_1', status: 'ACTIVE' })
+    seedSchoolMember('school-1', 'user-1', 'ACTIVE')
+
+    const res = await POST(makeRequest({
+      id: 'evt_pd', type: 'customer.subscription.updated',
+      data: { object: { id: 'sub_1', status: 'past_due', metadata: { schoolId: 'school-1' } } },
+    }))
+
+    expect(res.status).toBe(200)
+    expect(memberships['membership-1']!.paymentStatus).toBe('PAST_DUE')
+    expect(memberships['membership-1']!.status).toBe('ACTIVE')
+    expect(schoolMembers[smKey('school-1', 'user-1')]!.status).toBe('ACTIVE')
+  })
+
+  it('status=unpaid (Stripe gave up retrying) sets UNPAID and cuts access: Membership PAUSED, SchoolMember FROZEN', async () => {
+    seedMembership({ id: 'membership-1', stripeSubId: 'sub_1', status: 'ACTIVE', paymentStatus: 'PAST_DUE' })
+    seedSchoolMember('school-1', 'user-1', 'ACTIVE')
+
+    await POST(makeRequest({
+      id: 'evt_unpaid', type: 'customer.subscription.updated',
+      data: { object: { id: 'sub_1', status: 'unpaid', metadata: { schoolId: 'school-1' } } },
+    }))
+
+    expect(memberships['membership-1']!.paymentStatus).toBe('UNPAID')
+    expect(memberships['membership-1']!.status).toBe('PAUSED')
+    expect(schoolMembers[smKey('school-1', 'user-1')]!.status).toBe('FROZEN')
+  })
+
+  it('a stale unpaid delivered after a newer recovery is ignored — does not freeze someone who already paid', async () => {
+    seedMembership({ id: 'membership-1', stripeSubId: 'sub_1', status: 'ACTIVE', paymentStatus: 'ACTIVE', paymentStatusAt: new Date(2_000_000 * 1000) })
+    seedSchoolMember('school-1', 'user-1', 'ACTIVE')
+
+    await POST(makeRequest({
+      id: 'evt_stale', type: 'customer.subscription.updated', created: 1_000_000,
+      data: { object: { id: 'sub_1', status: 'unpaid', metadata: { schoolId: 'school-1' } } },
+    }))
+
+    expect(memberships['membership-1']!.paymentStatus).toBe('ACTIVE')
+    expect(memberships['membership-1']!.status).toBe('ACTIVE')
+    expect(schoolMembers[smKey('school-1', 'user-1')]!.status).toBe('ACTIVE')
+  })
+
+  it('a stale past_due delivered after a newer recovery does not overwrite paymentStatus', async () => {
+    seedMembership({ id: 'membership-1', stripeSubId: 'sub_1', status: 'ACTIVE', paymentStatus: 'ACTIVE', paymentStatusAt: new Date(2_000_000 * 1000) })
+
+    await POST(makeRequest({
+      id: 'evt_stale2', type: 'customer.subscription.updated', created: 1_000_000,
+      data: { object: { id: 'sub_1', status: 'past_due', metadata: { schoolId: 'school-1' } } },
+    }))
+
+    expect(memberships['membership-1']!.paymentStatus).toBe('ACTIVE')
+  })
+
+  it('unpaid does not resurrect a CANCELLED membership into PAUSED', async () => {
+    seedMembership({ id: 'membership-1', stripeSubId: 'sub_1', status: 'CANCELLED', paymentStatus: 'CANCELED' })
+    seedSchoolMember('school-1', 'user-1', 'INACTIVE')
+
+    await POST(makeRequest({
+      id: 'evt_unpaid_c', type: 'customer.subscription.updated',
+      data: { object: { id: 'sub_1', status: 'unpaid', metadata: { schoolId: 'school-1' } } },
+    }))
+
+    expect(memberships['membership-1']!.status).toBe('CANCELLED')
+    expect(schoolMembers[smKey('school-1', 'user-1')]!.status).toBe('INACTIVE')
+  })
+
+  it('status=active after past_due restores paymentStatus ACTIVE', async () => {
+    seedMembership({ id: 'membership-1', stripeSubId: 'sub_1', status: 'ACTIVE', paymentStatus: 'PAST_DUE', paymentStatusAt: new Date(1_000_000 * 1000) })
+
+    await POST(makeRequest({
+      id: 'evt_back', type: 'customer.subscription.updated', created: 2_000_000,
+      data: { object: { id: 'sub_1', status: 'active', metadata: { schoolId: 'school-1' } } },
+    }))
+
+    expect(memberships['membership-1']!.paymentStatus).toBe('ACTIVE')
   })
 
   it('uses current_period_end to update endDate when present', async () => {
@@ -426,5 +556,62 @@ describe('checkout.session.completed — ARCHIVED member payment success', () =>
     expect(Object.values(memberships)).toHaveLength(1)
     expect(schoolMembers[smKey('school-1', 'user-1')]!.status).toBe('ACTIVE')
     expect(Object.values(transactions)).toHaveLength(0) // no review case
+  })
+})
+
+
+describe('school resolution when the event carries no schoolId metadata', () => {
+  const noMeta = (id: string) => makeRequest({
+    id, type: 'invoice.payment_failed',
+    data: { object: { subscription: 'sub_1' } },
+  })
+
+  it('falls back to the school whose webhook secret verifies the signature', async () => {
+    seedMembership({ id: 'membership-1', stripeSubId: null, status: 'ACTIVE' })
+    invalidSecrets.add('whsec_wrong')
+    mockSchoolFindMany.mockResolvedValue([
+      { id: 'school-x', stripeSecretKey: 'sk_x', stripeWebhookSecret: 'whsec_wrong' },
+      { id: 'school-1', stripeSecretKey: 'sk_1', stripeWebhookSecret: 'whsec_right' },
+    ])
+    seedMembership({ id: 'membership-2', stripeSubId: 'sub_1', status: 'ACTIVE' })
+    // membership-2 is found by subId only if resolution gets past the school step;
+    // make the subId lookup itself miss so the fallback path is what resolves it.
+    mockMembershipFindFirst.mockImplementationOnce(() => Promise.resolve(null))
+
+    const res = await POST(noMeta('evt_fb'))
+
+    expect(res.status).toBe(200)
+    expect(mockSchoolFindMany).toHaveBeenCalled()
+    expect(webhookEvents['evt_fb']?.status).toBe('PROCESSED')
+    expect(memberships['membership-2']!.paymentStatus).toBe('PAST_DUE')
+  })
+
+  it('returns 400 and does not claim the event when no connected school verifies the signature', async () => {
+    invalidSecrets.add('whsec_wrong')
+    mockMembershipFindFirst.mockImplementationOnce(() => Promise.resolve(null))
+    mockSchoolFindMany.mockResolvedValue([{ id: 'school-x', stripeSecretKey: 'sk_x', stripeWebhookSecret: 'whsec_wrong' }])
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    const res = await POST(noMeta('evt_none'))
+
+    expect(res.status).toBe(400)
+    expect(webhookEvents['evt_none']).toBeUndefined()
+    expect(errSpy).toHaveBeenCalledWith(expect.stringContaining('unable to resolve school'))
+    errSpy.mockRestore()
+  })
+
+  it('rejects a forged event whose metadata names a real school but whose signature does not verify', async () => {
+    invalidSecrets.add('whsec_test')
+    mockSchoolFindMany.mockResolvedValue([])
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    const res = await POST(makeRequest({
+      id: 'evt_forged', type: 'invoice.payment_failed',
+      data: { object: { subscription: 'sub_1', metadata: { schoolId: 'school-1' } } },
+    }))
+
+    expect(res.status).toBe(400)
+    expect(webhookEvents['evt_forged']).toBeUndefined()
+    errSpy.mockRestore()
   })
 })

@@ -3,12 +3,13 @@ import type Stripe from 'stripe'
 import { prisma } from '@/lib/db'
 import { getStripe } from '@/lib/stripe'
 import { MembershipStatus } from '@/lib/prisma-client/client'
+import type { Prisma } from '@/lib/prisma-client/client'
 import { sendMembershipReceiptEmail, sendEventTicketConfirmationEmail, sendEventTicketRefundedEmail } from '@/lib/email/sendEmails'
 import { checkEventCapacity } from '@/lib/services/eventCapacity'
 import { recordOnlinePayment, recordFlaggedPayment } from '@/lib/services/transactions'
 import { syncSchoolMemberStatusForMembership, isSchoolMemberArchived } from '@/lib/services/membership'
 import { convertLeadOnMembershipActivation } from '@/lib/leads'
-import { PaymentMethod, TransactionCategory, StripeWebhookEventStatus } from '@/lib/prisma-client/enums'
+import { PaymentMethod, TransactionCategory, StripeWebhookEventStatus, MembershipPaymentStatus } from '@/lib/prisma-client/enums'
 import { notifyPaymentReceived } from '@/lib/notifications/create'
 import { fmtPrice } from '@/lib/format'
 import { fulfillCollectibleCheckout } from '@/lib/services/collectibles/checkoutFulfillment'
@@ -189,7 +190,45 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ received: true })
 }
 
+// Mirrors Stripe's Subscription.status 1:1 onto Membership.paymentStatus
+// (same mapping the platform-billing webhook uses for SchoolSubscription).
+// Unknown/future statuses return undefined so the stored value is left alone.
+function mapMembershipPaymentStatus(status: string): MembershipPaymentStatus | undefined {
+  switch (status) {
+    case 'trialing':           return MembershipPaymentStatus.TRIALING
+    case 'active':             return MembershipPaymentStatus.ACTIVE
+    case 'incomplete':         return MembershipPaymentStatus.INCOMPLETE
+    case 'incomplete_expired': return MembershipPaymentStatus.INCOMPLETE_EXPIRED
+    case 'past_due':           return MembershipPaymentStatus.PAST_DUE
+    case 'unpaid':             return MembershipPaymentStatus.UNPAID
+    case 'paused':             return MembershipPaymentStatus.PAUSED
+    case 'canceled':           return MembershipPaymentStatus.CANCELED
+    default:                   return undefined
+  }
+}
+
+// Writes Membership.paymentStatus only if this event is not older than the
+// last one applied: Stripe doesn't guarantee delivery order, so a stale
+// past_due/unpaid arriving after a successful retry must not overwrite the
+// newer state. Equal timestamps are allowed through (Stripe emits e.g.
+// invoice.payment_failed and subscription.updated in the same second).
+// Returns whether the write applied, so callers can gate access changes on it.
+async function applyPaymentStatus(
+  tx: Prisma.TransactionClient,
+  where: Prisma.MembershipWhereInput,
+  paymentStatus: MembershipPaymentStatus,
+  eventAt: Date,
+): Promise<boolean> {
+  const result = await tx.membership.updateMany({
+    where: { ...where, OR: [{ paymentStatusAt: null }, { paymentStatusAt: { lte: eventAt } }] },
+    data: { paymentStatus, paymentStatusAt: eventAt },
+  })
+  return result.count > 0
+}
+
 async function handleStripeEvent(event: Stripe.Event) {
+  const eventAt = new Date((event.created ?? Math.floor(Date.now() / 1000)) * 1000)
+
   switch (event.type) {
 
     // ── One-time payment OR subscription first payment ─────────────────────────
@@ -559,6 +598,10 @@ async function handleStripeEvent(event: Stripe.Event) {
         })
         if (result.count === 0) return false
 
+        // Recovered from a past_due/unpaid state (or simply confirming a
+        // healthy renewal) — payment health is back to ACTIVE.
+        await applyPaymentStatus(tx, { id: membership.id }, MembershipPaymentStatus.ACTIVE, eventAt)
+
         await recordOnlinePayment(tx, {
           schoolId:      membership.schoolId,
           userId:        membership.userId,
@@ -591,20 +634,21 @@ async function handleStripeEvent(event: Stripe.Event) {
       const invoice = event.data.object as { subscription?: string }
       if (!invoice.subscription) break
 
-      const membership = await prisma.membership.findFirst({
-        where: { stripeSubId: invoice.subscription },
-        select: { id: true, userId: true, schoolId: true },
-      })
-      if (!membership) break
-
+      // A failed attempt is not a revocation: Stripe keeps retrying on its own
+      // schedule and that retry window is the grace period, so access
+      // (Membership.status / SchoolMember.status) is deliberately left alone.
+      // Only the payment-health signal moves. Access is cut later, if Stripe
+      // gives up — see 'unpaid' / 'canceled' in customer.subscription.updated
+      // and customer.subscription.deleted. Only ever flips a healthy state to
+      // PAST_DUE, so a same-second UNPAID/CANCELED from the subscription event
+      // is never downgraded by this one.
       await prisma.$transaction(async (tx) => {
-        await tx.membership.updateMany({
-          where:  { stripeSubId: invoice.subscription },
-          data:   { status: MembershipStatus.PAUSED },
-        })
-        await syncSchoolMemberStatusForMembership(tx, {
-          userId: membership.userId, schoolId: membership.schoolId, membershipStatus: MembershipStatus.PAUSED,
-        })
+        await applyPaymentStatus(
+          tx,
+          { stripeSubId: invoice.subscription, paymentStatus: { in: [MembershipPaymentStatus.ACTIVE, MembershipPaymentStatus.TRIALING] } },
+          MembershipPaymentStatus.PAST_DUE,
+          eventAt,
+        )
       })
       break
     }
@@ -622,7 +666,10 @@ async function handleStripeEvent(event: Stripe.Event) {
       await prisma.$transaction(async (tx) => {
         await tx.membership.updateMany({
           where: { stripeSubId: sub.id },
-          data:  { status: MembershipStatus.CANCELLED, cancelledAt: new Date() },
+          data:  {
+            status: MembershipStatus.CANCELLED, cancelledAt: new Date(),
+            paymentStatus: MembershipPaymentStatus.CANCELED, paymentStatusAt: eventAt,
+          },
         })
         await syncSchoolMemberStatusForMembership(tx, {
           userId: membership.userId, schoolId: membership.schoolId, membershipStatus: MembershipStatus.CANCELLED, excludeMembershipId: membership.id,
@@ -643,9 +690,13 @@ async function handleStripeEvent(event: Stripe.Event) {
 
       const membership = await prisma.membership.findFirst({
         where: { stripeSubId: sub.id },
-        select: { id: true, userId: true, schoolId: true, endDate: true },
+        select: { id: true, userId: true, schoolId: true, endDate: true, status: true },
       })
       if (!membership) break
+
+      // Payment-health mirror of Stripe's own status (past_due, unpaid, ...),
+      // kept separate from the access status below.
+      const paymentStatus = mapMembershipPaymentStatus(sub.status)
 
       // sub.status is Stripe's actual current state — trust it as-is.
       // cancel_at_period_end is a *separate* flag meaning "will cancel later"
@@ -676,17 +727,31 @@ async function handleStripeEvent(event: Stripe.Event) {
         periodEndDate = undefined
       }
 
-      if (!newStatus && cancelledAt === undefined && !periodEndDate) break // nothing to sync
+      if (!newStatus && !paymentStatus && cancelledAt === undefined && !periodEndDate) break // nothing to sync
 
       await prisma.$transaction(async (tx) => {
-        await tx.membership.updateMany({
-          where: { stripeSubId: sub.id },
-          data: {
-            ...(newStatus && { status: newStatus }),
-            ...(cancelledAt !== undefined && { cancelledAt }),
-            ...(periodEndDate && { endDate: periodEndDate }),
-          },
-        })
+        const paymentStatusApplied = paymentStatus
+          ? await applyPaymentStatus(tx, { stripeSubId: sub.id }, paymentStatus, eventAt)
+          : false
+
+        // past_due leaves access untouched (Stripe is still retrying — that
+        // window is the grace period). 'unpaid' is Stripe giving up without
+        // cancelling, so that is where access is cut, same as a pause. Gated
+        // on paymentStatusApplied so a stale unpaid delivered after a
+        // successful retry can't freeze someone who has already paid, and on
+        // ACTIVE so it never resurrects a cancelled/expired membership.
+        if (!newStatus && sub.status === 'unpaid' && paymentStatusApplied && membership.status === MembershipStatus.ACTIVE) {
+          newStatus = MembershipStatus.PAUSED
+        }
+
+        const data = {
+          ...(newStatus && { status: newStatus }),
+          ...(cancelledAt !== undefined && { cancelledAt }),
+          ...(periodEndDate && { endDate: periodEndDate }),
+        }
+        if (Object.keys(data).length > 0) {
+          await tx.membership.updateMany({ where: { stripeSubId: sub.id }, data })
+        }
         if (newStatus) {
           await syncSchoolMemberStatusForMembership(tx, {
             userId: membership.userId, schoolId: membership.schoolId, membershipStatus: newStatus, excludeMembershipId: membership.id,

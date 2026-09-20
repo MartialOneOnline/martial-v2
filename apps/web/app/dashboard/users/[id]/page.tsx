@@ -150,6 +150,7 @@ export default async function StudentProfilePage({
       planName: activeMembership.plan?.name ?? activeMembership.planName,
       planType: activeMembership.plan?.planType ?? 'SUBSCRIPTION',
       status: activeMembership.status,
+      paymentStatus: activeMembership.paymentStatus,
       paymentMethod: activeMembership.paymentMethod,
       startDate: activeMembership.startDate.toISOString(),
       expiresAt: activeMembership.endDate?.toISOString() ?? null,

@@ -189,6 +189,23 @@ enum TransactionStatus {
   FLAGGED
 }
 
+// Payment health of a member's Stripe-billed Membership, mirrors Stripe's
+// real Subscription.status values 1:1 (same shape as SchoolSubscriptionStatus
+// below). Deliberately separate from Membership.status: that one answers
+// "can this person book/attend", this one answers "what does Stripe say about
+// the billing" — Stripe's own retry schedule for PAST_DUE is the grace period,
+// so PAST_DUE alone never revokes access.
+enum MembershipPaymentStatus {
+  TRIALING
+  ACTIVE
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+  PAST_DUE
+  UNPAID
+  PAUSED
+  CANCELED
+}
+
 // Martial's own SaaS subscription status for a school (schools paying
 // Martial), mirrors Stripe's real Subscription.status values so webhook
 // handlers can map 1:1 without inventing intermediate states.
@@ -1035,6 +1052,14 @@ model Membership {
   status        MembershipStatus @default(ACTIVE)
   startDate     DateTime
   endDate       DateTime?
+
+  // Stripe billing health, kept in sync by the Stripe webhook. Only ever
+  // moves off ACTIVE for Stripe-billed memberships; CASH/other stay ACTIVE.
+  paymentStatus MembershipPaymentStatus @default(ACTIVE)
+  // Stripe event time of the last paymentStatus write. Stripe doesn't
+  // guarantee delivery order, so an older event arriving late must not
+  // overwrite a newer state (e.g. a stale past_due after a successful retry).
+  paymentStatusAt DateTime?
 
   // Usage tracking — computed from bookings count, but cached here for perf
   classesUsed Int @default(0)

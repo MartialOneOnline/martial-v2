@@ -596,6 +596,13 @@ export type EnumMembershipStatusFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumMembershipStatusFilter<$PrismaModel> | $Enums.MembershipStatus
 }
 
+export type EnumMembershipPaymentStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.MembershipPaymentStatus | Prisma.EnumMembershipPaymentStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.MembershipPaymentStatus[] | Prisma.ListEnumMembershipPaymentStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MembershipPaymentStatus[] | Prisma.ListEnumMembershipPaymentStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMembershipPaymentStatusFilter<$PrismaModel> | $Enums.MembershipPaymentStatus
+}
+
 export type EnumMembershipStatusWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.MembershipStatus | Prisma.EnumMembershipStatusFieldRefInput<$PrismaModel>
   in?: $Enums.MembershipStatus[] | Prisma.ListEnumMembershipStatusFieldRefInput<$PrismaModel>
@@ -604,6 +611,16 @@ export type EnumMembershipStatusWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumMembershipStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumMembershipStatusFilter<$PrismaModel>
+}
+
+export type EnumMembershipPaymentStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.MembershipPaymentStatus | Prisma.EnumMembershipPaymentStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.MembershipPaymentStatus[] | Prisma.ListEnumMembershipPaymentStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MembershipPaymentStatus[] | Prisma.ListEnumMembershipPaymentStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMembershipPaymentStatusWithAggregatesFilter<$PrismaModel> | $Enums.MembershipPaymentStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumMembershipPaymentStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumMembershipPaymentStatusFilter<$PrismaModel>
 }
 
 export type EnumSchoolMemberRoleFilter<$PrismaModel = never> = {
@@ -1531,6 +1548,13 @@ export type NestedEnumMembershipStatusFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumMembershipStatusFilter<$PrismaModel> | $Enums.MembershipStatus
 }
 
+export type NestedEnumMembershipPaymentStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.MembershipPaymentStatus | Prisma.EnumMembershipPaymentStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.MembershipPaymentStatus[] | Prisma.ListEnumMembershipPaymentStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MembershipPaymentStatus[] | Prisma.ListEnumMembershipPaymentStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMembershipPaymentStatusFilter<$PrismaModel> | $Enums.MembershipPaymentStatus
+}
+
 export type NestedEnumMembershipStatusWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.MembershipStatus | Prisma.EnumMembershipStatusFieldRefInput<$PrismaModel>
   in?: $Enums.MembershipStatus[] | Prisma.ListEnumMembershipStatusFieldRefInput<$PrismaModel>
@@ -1539,6 +1563,16 @@ export type NestedEnumMembershipStatusWithAggregatesFilter<$PrismaModel = never>
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumMembershipStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumMembershipStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumMembershipPaymentStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.MembershipPaymentStatus | Prisma.EnumMembershipPaymentStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.MembershipPaymentStatus[] | Prisma.ListEnumMembershipPaymentStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MembershipPaymentStatus[] | Prisma.ListEnumMembershipPaymentStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMembershipPaymentStatusWithAggregatesFilter<$PrismaModel> | $Enums.MembershipPaymentStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumMembershipPaymentStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumMembershipPaymentStatusFilter<$PrismaModel>
 }
 
 export type NestedEnumSchoolMemberRoleFilter<$PrismaModel = never> = {

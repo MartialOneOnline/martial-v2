@@ -92,6 +92,7 @@ export async function GET() {
         currency: m.currency,
         paymentMethod: m.paymentMethod,
         status: m.status,
+        paymentStatus: m.paymentStatus,
         startDate: m.startDate.toISOString(),
         endDate: m.endDate?.toISOString() ?? null,
         cancelledAt: m.cancelledAt?.toISOString() ?? null,
