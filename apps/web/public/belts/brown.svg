@@ -4,7 +4,7 @@
 <path d="M159.5 0.5H0.5V16.0451H159.5V0.5Z" fill="var(--fill-0, #994221)"/>
 <path d="M159.5 0.5H0.5V16.0451H159.5V0.5Z" stroke="var(--stroke-0, #010101)" stroke-miterlimit="10"/>
 </g>
-<path id="Vector_2" d="M69.358 0.207821H16.3735V16.0254H69.358V0.207821Z" fill="var(--fill-0, #231F20)"/>
+<path id="Vector_2" d="M50.5 0.207821H16.3735V16.0254H50.5V0.207821Z" fill="var(--fill-0, #231F20)"/>
 </g>
 <defs>
 <filter id="filter0_d_0_4" x="0" y="0" width="160.83" height="17.3751" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
