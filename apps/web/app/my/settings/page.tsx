@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Bell, Globe, Moon, ChevronRight } from 'lucide-react'
+import { Bell, Globe, Moon, ChevronRight, Lock } from 'lucide-react'
 import { useLanguage } from '../../../lib/i18n/LanguageContext'
 import type { Locale } from '../../../lib/i18n/translations'
 import { myFetch } from '../../../lib/api/myFetch'
+import { createClient } from '../../../lib/supabase/client'
 
 function Toggle({ on, onChange, disabled = false }: { on: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
   return (
@@ -48,6 +49,28 @@ export default function MySettingsPage() {
   const [showLangPicker,  setShowLangPicker]   = useState(false)
   const [preferencesError, setPreferencesError] = useState(false)
   const [pendingKeys, setPendingKeys] = useState<Set<string>>(new Set())
+
+  const [showPasswordForm, setShowPasswordForm] = useState(false)
+  const [newPassword,      setNewPassword]      = useState('')
+  const [confirmPassword,  setConfirmPassword]  = useState('')
+  const [passwordSaving,   setPasswordSaving]   = useState(false)
+  const [passwordError,    setPasswordError]    = useState('')
+  const [passwordSuccess,  setPasswordSuccess]  = useState(false)
+
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault()
+    setPasswordError('')
+    setPasswordSuccess(false)
+    if (newPassword.length < 8) { setPasswordError(t.my.passwordMinLength); return }
+    if (newPassword !== confirmPassword) { setPasswordError(t.my.passwordMismatch); return }
+    setPasswordSaving(true)
+    const { error } = await createClient().auth.updateUser({ password: newPassword })
+    setPasswordSaving(false)
+    if (error) { setPasswordError(error.message); return }
+    setNewPassword('')
+    setConfirmPassword('')
+    setPasswordSuccess(true)
+  }
 
   // Load persisted prefs on mount
   useEffect(() => {
@@ -180,6 +203,61 @@ export default function MySettingsPage() {
                 </button>
               ))}
             </div>
+          )}
+        </div>
+
+        {/* Security */}
+        <p className="px-4 md:px-6 pb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: '#6B6B70' }}>{t.my.settingsSecurity}</p>
+        <div className="mx-4 md:mx-6 mb-4 rounded-2xl overflow-hidden" style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)' }}>
+          <button
+            onClick={() => { setShowPasswordForm(v => !v); setPasswordError(''); setPasswordSuccess(false) }}
+            className="w-full flex items-center justify-between px-4 py-3.5"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(255,59,48,.10)' }}>
+                <Lock className="w-4 h-4" style={{ color: '#FF3B30' }} />
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-medium" style={{ color: '#1C1C1E' }}>{t.my.settingsChangePassword}</p>
+                <p className="text-[11px]" style={{ color: '#6B6B70' }}>{t.my.settingsChangePasswordSub}</p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4" style={{ color: '#C7C7CC', transform: showPasswordForm ? 'rotate(90deg)' : 'none', transition: 'transform .2s' }} />
+          </button>
+
+          {showPasswordForm && (
+            <form onSubmit={handleChangePassword} className="px-4 pb-4" style={{ borderTop: '0.5px solid rgba(60,60,67,.12)' }}>
+              <div className="pt-3.5 flex flex-col gap-2.5">
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)}
+                  placeholder={t.my.newPasswordLabel}
+                  className="w-full text-sm outline-none"
+                  style={{ padding: '10px 12px', borderRadius: 10, border: '1px solid rgba(60,60,67,.16)', color: '#1C1C1E' }}
+                />
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                  placeholder={t.my.confirmPasswordLabel}
+                  className="w-full text-sm outline-none"
+                  style={{ padding: '10px 12px', borderRadius: 10, border: '1px solid rgba(60,60,67,.16)', color: '#1C1C1E' }}
+                />
+                {passwordError && <p className="text-xs" style={{ color: '#FF3B30' }}>{passwordError}</p>}
+                {passwordSuccess && <p className="text-xs font-medium" style={{ color: '#34C759' }}>{t.my.passwordUpdated}</p>}
+                <button
+                  type="submit"
+                  disabled={passwordSaving}
+                  className="w-full text-sm font-semibold"
+                  style={{
+                    padding: '10px', borderRadius: 10, border: 'none', color: '#fff',
+                    background: passwordSaving ? '#93C5FD' : '#007AFF', cursor: passwordSaving ? 'not-allowed' : 'pointer',
+                  }}>
+                  {passwordSaving ? '…' : t.common.save}
+                </button>
+              </div>
+            </form>
           )}
         </div>
 
