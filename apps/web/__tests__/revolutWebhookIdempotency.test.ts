@@ -41,11 +41,14 @@ vi.mock('@/lib/services/eventCapacity', () => ({ checkEventCapacity: (...args: u
 // ── In-memory "DB" shared across mocks, reset per test ──────────────────────
 let memberships: Record<string, Record<string, unknown>>
 let eventBookings: Record<string, Record<string, unknown>>
+let schoolMembers: Record<string, { id: string; userId: string; schoolId: string; status: string }>
 
 function resetState() {
   memberships = {}
   eventBookings = {}
+  schoolMembers = {}
 }
+function smKey(schoolId: string, userId: string) { return `${schoolId}:${userId}` }
 
 const mockMembershipFindFirst = vi.fn((args: { where: { revolutOrderId: string } }) => {
   const m = Object.values(memberships).find(x => x.revolutOrderId === args.where.revolutOrderId)
@@ -66,9 +69,37 @@ const mockMembershipFindUnique = vi.fn((args: { where: { id: string } }) => {
     school: { name: 'Academy', city: 'City', language: 'en' },
   })
 })
-const mockSchoolMemberCreate = vi.fn().mockResolvedValue({})
-const mockSchoolMemberUpdateMany = vi.fn().mockResolvedValue({ count: 0 })
-const mockSchoolMemberFindUnique = vi.fn().mockResolvedValue(null) // no existing row -> never ARCHIVED
+// Real in-memory behaviour (not a trivial always-succeed stub): a create()
+// for a (schoolId, userId) pair that's already seeded rejects with the same
+// P2002 shape Postgres/Prisma raise on the real unique constraint, so tests
+// below can exercise the actual check-then-write path instead of assuming it.
+const mockSchoolMemberCreate = vi.fn((args: { data: { schoolId: string; userId: string; status: string } }) => {
+  const key = smKey(args.data.schoolId, args.data.userId)
+  if (schoolMembers[key]) return Promise.reject(Object.assign(new Error('Unique constraint failed'), { code: 'P2002' }))
+  schoolMembers[key] = { id: key, userId: args.data.userId, schoolId: args.data.schoolId, status: args.data.status }
+  return Promise.resolve(schoolMembers[key])
+})
+const mockSchoolMemberUpdateMany = vi.fn((args: { where: { userId?: string; schoolId?: string; status?: { not?: string } }; data: { status: string } }) => {
+  let count = 0
+  for (const sm of Object.values(schoolMembers)) {
+    if (args.where.userId && sm.userId !== args.where.userId) continue
+    if (args.where.schoolId && sm.schoolId !== args.where.schoolId) continue
+    if (args.where.status?.not && sm.status === args.where.status.not) continue
+    sm.status = args.data.status
+    count++
+  }
+  return Promise.resolve({ count })
+})
+const mockSchoolMemberUpdate = vi.fn((args: { where: { id: string }; data: { status: string } }) => {
+  const sm = Object.values(schoolMembers).find(s => s.id === args.where.id)
+  if (!sm) return Promise.reject(new Error('Record to update not found'))
+  Object.assign(sm, args.data)
+  return Promise.resolve({ ...sm })
+})
+const mockSchoolMemberFindUnique = vi.fn((args: { where: { schoolId_userId: { schoolId: string; userId: string } } }) => {
+  const sm = schoolMembers[smKey(args.where.schoolId_userId.schoolId, args.where.schoolId_userId.userId)]
+  return Promise.resolve(sm ? { ...sm } : null)
+})
 
 const mockEventBookingFindFirst = vi.fn((args: { where: { revolutOrderId: string } }) => {
   const b = Object.values(eventBookings).find(x => x.revolutOrderId === args.where.revolutOrderId)
@@ -86,11 +117,27 @@ const mockEventBookingUpdate = vi.fn((args: { where: { id: string }; data: Recor
   return Promise.resolve(b)
 })
 
+// Reproduces real Postgres semantics for an explicit multi-statement
+// transaction: once ANY statement errors, the whole transaction is aborted
+// and every later statement fails too, even if the original error was caught
+// in JS — see stripeWebhookLifecycleSync.test.ts for the real incident this
+// exists to catch (create-then-catch-P2002 on schoolMember silently rolling
+// back a membership + payment already written earlier in the same tx).
 const mockTransaction = vi.fn((fn: (tx: unknown) => unknown) => {
+  let aborted = false
+  const guard = <A extends unknown[], R>(impl: (...args: A) => Promise<R>) => async (...args: A): Promise<R> => {
+    if (aborted) throw Object.assign(new Error('current transaction is aborted, commands ignored until end of transaction block'), { code: '25P02' })
+    try {
+      return await impl(...args)
+    } catch (err) {
+      aborted = true
+      throw err
+    }
+  }
   const tx = {
-    membership: { updateMany: mockMembershipUpdateMany },
-    schoolMember: { create: mockSchoolMemberCreate, updateMany: mockSchoolMemberUpdateMany, findUnique: mockSchoolMemberFindUnique },
-    eventBooking: { updateMany: mockEventBookingUpdateMany, update: mockEventBookingUpdate },
+    membership: { updateMany: guard(mockMembershipUpdateMany) },
+    schoolMember: { create: guard(mockSchoolMemberCreate), updateMany: guard(mockSchoolMemberUpdateMany), update: guard(mockSchoolMemberUpdate), findUnique: guard(mockSchoolMemberFindUnique) },
+    eventBooking: { updateMany: guard(mockEventBookingUpdateMany), update: guard(mockEventBookingUpdate) },
   }
   return fn(tx)
 })
@@ -154,6 +201,20 @@ describe('POST /api/webhooks/revolut — membership ORDER_COMPLETED idempotency'
     expect(memberships['membership-1']!.status).toBe('ACTIVE')
     expect(mockRecordOnlinePayment).toHaveBeenCalledTimes(1)
     expect(mockMembershipUpdateMany).toHaveBeenCalledTimes(2) // both attempted the claim, only one matched a row
+  })
+
+  it('a PENDING SchoolMember from an earlier trial does not abort the transaction (same real incident class as the Stripe webhook, 2026-09-17/25)', async () => {
+    schoolMembers[smKey('school-1', 'user-1')] = { id: smKey('school-1', 'user-1'), userId: 'user-1', schoolId: 'school-1', status: 'PENDING' }
+    const body = { event: 'ORDER_COMPLETED', order_id: 'ord_1' }
+
+    const res = await POST(makeRequest(body))
+
+    expect(res.status).toBe(200)
+    expect(memberships['membership-1']!.status).toBe('ACTIVE')
+    expect(schoolMembers[smKey('school-1', 'user-1')]!.status).toBe('ACTIVE')
+    expect(mockRecordOnlinePayment).toHaveBeenCalledTimes(1)
+    expect(mockSchoolMemberCreate).not.toHaveBeenCalled()
+    expect(mockSchoolMemberUpdate).toHaveBeenCalledWith({ where: { id: smKey('school-1', 'user-1') }, data: { status: 'ACTIVE' } })
   })
 })
 

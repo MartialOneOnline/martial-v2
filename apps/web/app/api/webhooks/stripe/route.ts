@@ -463,20 +463,31 @@ async function handleStripeEvent(event: Stripe.Event) {
             ...(session.customer     && { stripeCustomerId: String(session.customer) }),
           },
         })
-        // Try to create first (race-safe via the (schoolId, userId) unique
-        // constraint — a plain findFirst-then-create would let two concurrent
-        // webhook deliveries both create a row). The ARCHIVED case is already
-        // handled above, so a P2002 here just means the row already exists
-        // as PENDING/LEAD/ACTIVE/FROZEN/INACTIVE — promote it.
-        try {
+        // Check-then-write rather than create-then-catch-P2002: a real unique
+        // violation aborts the whole Postgres transaction at the DB level
+        // even once the JS exception is caught, which silently rolls back the
+        // Membership just created above and the payment record that follows
+        // below — losing a real Stripe payment with no trace beyond a FAILED
+        // StripeWebhookEvent row. This hits anyone who already has a
+        // SchoolMember row when they buy a plan (e.g. tried a trial class
+        // first) — not a rare race. The ARCHIVED case is already handled
+        // above, so an existing row here just means PENDING/LEAD/ACTIVE/
+        // FROZEN/INACTIVE — promote it. A genuine concurrent-create race
+        // (two first-ever purchases for the same user+school landing at the
+        // same instant) still throws on the create() below, but that just
+        // fails this delivery for Stripe to retry — the retry's findUnique
+        // then finds the row and takes the update branch.
+        const existingSchoolMember = await tx.schoolMember.findUnique({
+          where: { schoolId_userId: { schoolId, userId } },
+        })
+        if (existingSchoolMember) {
+          await tx.schoolMember.update({
+            where: { id: existingSchoolMember.id },
+            data: { status: 'ACTIVE' },
+          })
+        } else {
           await tx.schoolMember.create({
             data: { userId, schoolId, role: 'STUDENT', status: 'ACTIVE', joinedAt: new Date() },
-          })
-        } catch (err: unknown) {
-          if ((err as { code?: string }).code !== 'P2002') throw err
-          await tx.schoolMember.updateMany({
-            where: { schoolId, userId, status: { not: 'ARCHIVED' } },
-            data: { status: 'ACTIVE' },
           })
         }
         await recordOnlinePayment(tx, {

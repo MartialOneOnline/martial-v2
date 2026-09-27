@@ -58,7 +58,7 @@ type TransactionRow = {
 
 let memberships: Record<string, Membership>
 let eventBookings: Record<string, EventBooking>
-let schoolMembers: Record<string, { userId: string; schoolId: string; status: string }>
+let schoolMembers: Record<string, { id: string; userId: string; schoolId: string; status: string }>
 let transactions: Record<string, TransactionRow>
 let transactionSeq: number
 
@@ -98,8 +98,14 @@ const mockSchoolMemberFindUnique = vi.fn((args: { where: { schoolId_userId: { sc
 const mockSchoolMemberCreate = vi.fn((args: { data: { schoolId: string; userId: string; status: string } }) => {
   const key = smKey(args.data.schoolId, args.data.userId)
   if (schoolMembers[key]) return Promise.reject(Object.assign(new Error('Unique constraint failed'), { code: 'P2002' }))
-  schoolMembers[key] = { userId: args.data.userId, schoolId: args.data.schoolId, status: args.data.status }
+  schoolMembers[key] = { id: key, userId: args.data.userId, schoolId: args.data.schoolId, status: args.data.status }
   return Promise.resolve(schoolMembers[key])
+})
+const mockSchoolMemberUpdate = vi.fn((args: { where: { id: string }; data: { status: string } }) => {
+  const sm = Object.values(schoolMembers).find(s => s.id === args.where.id)
+  if (!sm) return Promise.reject(new Error('Record to update not found'))
+  Object.assign(sm, args.data)
+  return Promise.resolve({ ...sm })
 })
 const mockSchoolMemberUpdateMany = vi.fn((args: { where: { userId?: string; schoolId?: string; status?: { not?: string } }; data: { status: string } }) => {
   let count = 0
@@ -150,12 +156,28 @@ const mockTransactionCreate = vi.fn((args: { data: Record<string, unknown> }) =>
   return Promise.resolve(row)
 })
 
+// Reproduces real Postgres semantics for an explicit multi-statement
+// transaction: once ANY statement errors, the whole transaction is aborted
+// and every later statement fails too, even if caught in JS — see
+// stripeWebhookLifecycleSync.test.ts for the real incident this guards
+// against (create-then-catch-P2002 on schoolMember silently rolling back a
+// membership/payment already written earlier in the same tx).
 const mockTransaction = vi.fn((fn: (tx: unknown) => unknown) => {
+  let aborted = false
+  const guard = <A extends unknown[], R>(impl: (...args: A) => Promise<R>) => async (...args: A): Promise<R> => {
+    if (aborted) throw Object.assign(new Error('current transaction is aborted, commands ignored until end of transaction block'), { code: '25P02' })
+    try {
+      return await impl(...args)
+    } catch (err) {
+      aborted = true
+      throw err
+    }
+  }
   const tx = {
-    membership: { updateMany: mockMembershipUpdateMany },
-    schoolMember: { create: mockSchoolMemberCreate, updateMany: mockSchoolMemberUpdateMany, findUnique: mockSchoolMemberFindUnique },
-    eventBooking: { updateMany: mockEventBookingUpdateMany, update: mockEventBookingUpdate },
-    transaction: { findFirst: mockTransactionFindFirst, create: mockTransactionCreate },
+    membership: { updateMany: guard(mockMembershipUpdateMany) },
+    schoolMember: { create: guard(mockSchoolMemberCreate), updateMany: guard(mockSchoolMemberUpdateMany), update: guard(mockSchoolMemberUpdate), findUnique: guard(mockSchoolMemberFindUnique) },
+    eventBooking: { updateMany: guard(mockEventBookingUpdateMany), update: guard(mockEventBookingUpdate) },
+    transaction: { findFirst: guard(mockTransactionFindFirst), create: guard(mockTransactionCreate) },
   }
   return fn(tx)
 })
@@ -187,7 +209,7 @@ function seedMembership(overrides: Partial<Membership> & { id: string; revolutOr
   }
 }
 function seedSchoolMember(schoolId: string, userId: string, status: string) {
-  schoolMembers[smKey(schoolId, userId)] = { userId, schoolId, status }
+  schoolMembers[smKey(schoolId, userId)] = { id: smKey(schoolId, userId), userId, schoolId, status }
 }
 function seedEventBooking(overrides: Partial<EventBooking> & { id: string; revolutOrderId: string }) {
   eventBookings[overrides.id] = {
