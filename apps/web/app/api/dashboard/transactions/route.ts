@@ -83,7 +83,12 @@ export async function GET(req: NextRequest) {
     prisma.transaction.findMany({
       where,
       include: {
-        user: { select: { name: true, email: true, avatarUrl: true } },
+        user: { select: {
+          name: true, email: true, avatarUrl: true,
+          // SchoolMember id in this school — the dashboard profile route
+          // (/dashboard/users/[id]) is keyed by it, not by User.id.
+          schoolMembers: { where: { schoolId: auth.schoolId }, select: { id: true }, take: 1 },
+        } },
         resolvedByUser: { select: { name: true, email: true } },
       },
       orderBy: { date: 'desc' },
@@ -126,6 +131,7 @@ export async function GET(req: NextRequest) {
       userName:    t.user?.name ?? '—',
       userEmail:   t.user?.email ?? null,
       userAvatar:  t.user?.avatarUrl ?? null,
+      memberId:    t.user?.schoolMembers[0]?.id ?? null,
       description:   (t.description && t.description !== 'NULL') ? t.description : null,
       method:        t.paymentMethod ?? null,
       category:      t.category,

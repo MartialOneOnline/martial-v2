@@ -272,6 +272,14 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 > Nota: entre la Sesión 77 (2026-08-06) y esta hay commits en `main` no documentados aquí sesión a sesión (`0fe131e` i18n, `d7c2139` fix migración Prisma, `b20b1bd`/`839f3c5` cancelación de ocurrencias de clase) — no reconstruidos retroactivamente, ver `git log` para el detalle.
 
+### Sesión 79 — 2026-10-02 (rama `claude/dashboard-tx-profile-link`, PR pendiente de Codex Project Audit)
+
+**Ver perfil del alumno desde "Latest transactions" del dashboard.** La tabla de transacciones recientes de `/dashboard` no permitía ir al perfil del alumno.
+
+- `GET /api/dashboard/transactions` ahora devuelve `memberId` (id del `SchoolMember` en la escuela actual, filtrado por `auth.schoolId`) — la ruta de perfil `/dashboard/users/[id]` va por `SchoolMember.id`, no por `User.id`.
+- `DashboardClient.tsx`: foto + nombre enlazan al perfil (escritorio y móvil) vía helper local `ProfileLink`; nueva acción "Ver perfil" como primera opción del menú `...` (ambos layouts). Sin `memberId` (transacción sin usuario o usuario fuera de la escuela) no hay link ni acción — evita 404.
+- i18n: `dashboard.viewProfile` en EN/ES/PT/FR.
+
 ### Sesión 78 — 2026-08-15 (rama `main`, commit `4568a77`, pusheado directo — sin PR)
 
 **Login con Google mostraba el dominio de Supabase en vez del de Martial.** El selector de cuenta de Google decía "Ir a fixipigqxebxferfxlsv.supabase.co" en vez de "Ir a Martial App" porque `supabase.auth.signInWithOAuth('google')` redirige a través del callback propio de Supabase (`https://fixipigqxebxferfxlsv.supabase.co/auth/v1/callback`) antes de volver a la app.
