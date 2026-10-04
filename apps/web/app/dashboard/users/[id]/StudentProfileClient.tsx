@@ -1463,14 +1463,6 @@ function MembershipSection({
                 }}>
                   {isPastDue ? tt.studentProfile.renewalDue : tt.common.active}
                 </span>
-                {activeMembership.cancelledAt && activeMembership.expiresAt && (
-                  <span style={{
-                    fontSize: 11, fontWeight: 600, color: '#B45309', padding: '2px 10px', borderRadius: 999,
-                    background: '#FFFBEB', border: '1px solid #FDE68A',
-                  }}>
-                    {tt.studentProfile.cancelsOn} {new Date(activeMembership.expiresAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                  </span>
-                )}
                 {activeMembership.paymentStatus === 'PAST_DUE' && (
                   <span style={{
                     fontSize: 11, fontWeight: 600, color: '#DC2626', padding: '2px 10px', borderRadius: 999,
@@ -1485,6 +1477,20 @@ function MembershipSection({
               <p style={{ fontSize: 12, color: '#B45309', margin: '10px 0 0' }}>
                 {tt.studentProfile.paymentFailedHint}
               </p>
+            )}
+
+            {/* Scheduled cancellation — access continues until the period ends */}
+            {activeMembership.cancelledAt && activeMembership.expiresAt && (
+              <div className="flex items-center gap-2" style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #BBF7D0' }}>
+                <Clock size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
+                <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>
+                  {tt.studentProfile.cancelsOn}{' '}
+                  <span style={{ fontWeight: 600, color: '#111827' }}>
+                    {new Date(activeMembership.expiresAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                  </span>
+                  {' · '}{tt.studentProfile.accessUntilThen}
+                </p>
+              </div>
             )}
 
             {/* Usage bar — only for class-pack plans (SINGLE_PASS/TRIAL); a
