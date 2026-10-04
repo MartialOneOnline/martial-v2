@@ -1411,8 +1411,8 @@ function MembershipSection({
             border: `1px solid ${isPastDue ? '#FDE68A' : '#BBF7D0'}`,
             borderRadius: 12, padding: '14px 16px', marginBottom: 12,
           }}>
-            <div className="flex items-start justify-between">
-              <div>
+            <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
+              <div style={{ minWidth: 0 }}>
                 <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: '0 0 2px' }}>{activeMembership.planName}</p>
                 {editingDates ? (
                   <div style={{ marginTop: 4 }}>
@@ -1440,9 +1440,16 @@ function MembershipSection({
                     {dateError && <p style={{ fontSize: 11, color: '#EF4444', margin: '4px 0 0' }}>{dateError}</p>}
                   </div>
                 ) : (
-                  <p className="flex items-center gap-1.5" style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>
-                    {tt.studentProfile.started} {new Date(activeMembership.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                    {activeMembership.expiresAt && ` · ${tt.studentProfile.expiresLabel} ${new Date(activeMembership.expiresAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`}
+                  <p className="flex flex-wrap items-center gap-x-1.5" style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>
+                    <span style={{ whiteSpace: 'nowrap' }}>
+                      {tt.studentProfile.started} {new Date(activeMembership.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      {activeMembership.expiresAt && ' ·'}
+                    </span>
+                    {activeMembership.expiresAt && (
+                      <span style={{ whiteSpace: 'nowrap' }}>
+                        {tt.studentProfile.expiresLabel} {new Date(activeMembership.expiresAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      </span>
+                    )}
                     {activeMembership.paymentMethod === 'CASH' && (
                       <button onClick={openDateEdit} title={tt.studentProfile.editDatesTitle}
                         style={{ display: 'inline-flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: '#9CA3AF' }}>
@@ -1877,7 +1884,7 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
       </div>
 
       <div className="px-4 md:px-8 py-6" style={{ maxWidth: 1100, margin: '0 auto' }}>
-        <div className="grid gap-5 grid-cols-1 md:grid-cols-[300px_1fr]">
+        <div className="grid gap-5 grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)]">
 
           {/* ── Left column ── */}
           <div className="flex flex-col gap-4">
@@ -2176,7 +2183,7 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
             />
 
             {/* Bookings + Transactions side by side */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
 
               {/* Bookings — full list with show more */}
               <Card>
