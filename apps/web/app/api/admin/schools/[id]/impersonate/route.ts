@@ -50,7 +50,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const result = await supabase.auth.admin.generateLink({
       type: 'magiclink',
       email: owner.user.email,
-      options: { redirectTo: `${APP_URL}/dashboard` },
+      // Through /auth/confirm (same as every other magic link in the app),
+      // not straight to /dashboard: that page redeems the #access_token hash
+      // client-side and sets the currentSchoolId cookie for the owner's
+      // school. Landing on /dashboard directly rendered with whatever session
+      // the browser already had (the superadmin's) and no school context,
+      // i.e. the "No school connected yet" empty state.
+      options: { redirectTo: `${APP_URL}/auth/confirm` },
     })
     data = result.data
     errorMessage = result.error?.message ?? null
