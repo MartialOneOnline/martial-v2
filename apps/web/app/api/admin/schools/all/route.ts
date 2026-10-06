@@ -80,6 +80,15 @@ export async function GET(req: NextRequest) {
   })
   const staffCountBySchool = new Map(staffCounts.map(c => [c.schoolId, c._count]))
 
+  // "Log in as owner" is driven by an ACTIVE OWNER SchoolMember (that's what
+  // /api/admin/schools/[id]/impersonate looks up), not by School.claimedById —
+  // schools set up by hand/scripts can have an owner without claimedById.
+  const activeOwners = await prisma.schoolMember.findMany({
+    where: { schoolId: { in: schools.map(s => s.id) }, role: 'OWNER', status: 'ACTIVE' },
+    select: { schoolId: true },
+  })
+  const schoolsWithOwner = new Set(activeOwners.map(o => o.schoolId))
+
   // Setup completeness — mirrors the school-facing Getting Started checklist
   // (see /api/dashboard/stats) but adds staff + waivers, which that checklist
   // doesn't track, for a super-admin-facing view of what's still missing.
@@ -110,7 +119,7 @@ export async function GET(req: NextRequest) {
       defaultBookingSettings: _dbs,
       ...rest
     } = s
-    return { ...rest, setup }
+    return { ...rest, setup, hasActiveOwner: schoolsWithOwner.has(s.id) }
   })
 
   return NextResponse.json({

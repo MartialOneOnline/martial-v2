@@ -7,7 +7,7 @@ import {
   Building2, Search, MapPin, ChevronLeft, ChevronRight,
   ExternalLink, RefreshCw, Filter, Users, Plus, X, Loader2,
   MoreHorizontal, Pencil, Trash2, ShieldCheck, ShieldOff, Send, LogIn,
-  AlertCircle, CheckCircle2, Circle, Archive, ArchiveRestore, Lock, Camera, Menu,
+  AlertCircle, CheckCircle2, Circle, Archive, ArchiveRestore, Lock, Camera, Menu, Eye,
 } from 'lucide-react'
 import { adminFetch } from '@/lib/api/adminFetch'
 import { useAdminShell } from '../../AdminLayoutClient'
@@ -24,6 +24,7 @@ type School = {
   country: string | null
   email: string | null
   claimedById: string | null
+  hasActiveOwner: boolean
   createdAt: string
   _count: { members: number }
   subscription: { status: string } | null
@@ -1009,8 +1010,9 @@ export default function AllSchoolsClient() {
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {schools.map(school => {
-                  const canResendInvite = !school.claimedById && school.status !== 'SUSPENDED' && school.status !== 'ARCHIVED'
-                  const canImpersonate = !!school.claimedById && school.status !== 'ARCHIVED'
+                  const hasOwner = !!school.claimedById || school.hasActiveOwner
+                  const canResendInvite = !hasOwner && school.status !== 'SUSPENDED' && school.status !== 'ARCHIVED'
+                  const canImpersonate = school.hasActiveOwner && school.status !== 'ARCHIVED'
                   const busy = actionId === school.id
                   return (
                   <tr key={school.id} className="hover:bg-gray-50/50 transition-colors group">
@@ -1020,7 +1022,7 @@ export default function AllSchoolsClient() {
                           <Building2 className="w-4 h-4 text-[#0870E2]" />
                         </div>
                         <div>
-                          <p className="text-xs font-semibold text-[#101828]">{school.name}</p>
+                          <Link href={`/admin/schools/${school.id}`} className="text-xs font-semibold text-[#101828] hover:text-[#0870E2]">{school.name}</Link>
                           {school.email && <p className="text-[11px] text-gray-400">{school.email}</p>}
                         </div>
                       </div>
@@ -1074,6 +1076,12 @@ export default function AllSchoolsClient() {
                             className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
                           >
                             <ExternalLink size={13} /> View profile
+                          </Link>
+                          <Link
+                            href={`/admin/schools/${school.id}`}
+                            className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                          >
+                            <Eye size={13} /> View activity
                           </Link>
                           <button
                             onClick={() => setEditSchoolId(school.id)}
