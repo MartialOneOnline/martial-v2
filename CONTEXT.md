@@ -272,11 +272,19 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 > Nota: entre la Sesión 77 (2026-08-06) y esta hay commits en `main` no documentados aquí sesión a sesión (`0fe131e` i18n, `d7c2139` fix migración Prisma, `b20b1bd`/`839f3c5` cancelación de ocurrencias de clase) — no reconstruidos retroactivamente, ver `git log` para el detalle.
 
-### Sesión 79 — 2026-10-06 (rama `claude/admin-school-overview`, pendiente de Project Audit)
+### Sesión 80 — 2026-10-06 (rama `claude/admin-school-overview`, pendiente de Project Audit)
 
 **Super admin: ver la actividad de una escuela sin impersonar.**
 - **Bug "Log in as owner" oculto:** el menú de `/admin/schools/all` lo condicionaba a `School.claimedById`, pero `/api/admin/schools/[id]/impersonate` busca un `SchoolMember` OWNER ACTIVE. Escuelas montadas a mano (p.ej. KongJitsu vía `scripts/fix-colin-leigh-claim-kongjitsu.mjs`) tienen owner sin `claimedById` → no salía la opción y sí "Resend claim invitation". Fix: `GET /api/admin/schools/all` devuelve `hasActiveOwner`; el menú usa eso para impersonar y `claimedById || hasActiveOwner` para ocultar el reenvío del claim. `claimedById` sigue sin rellenarse en esas escuelas (no se tocó la BD).
 - **Nueva vista `/admin/schools/[id]`** (`SchoolOverviewClient.tsx`) + `GET /api/admin/schools/[id]/overview` (solo lectura, `guardSuperadmin`, sin claves de proveedor): KPIs (alumnos por estado, membresías, clases activas, reservas 30d + check-ins, ingresos del mes por moneda) y tabs Students (membresía actual, pago, cinturón, check-ins 30d, búsqueda + filtro estado) / Classes (horario, instructor, reservas 30d) / Bookings (próximos 14d / últimos 30d) / Payments (30 últimas transacciones no borradas) / Staff. Enlazada desde el nombre de la escuela y "View activity" en el menú. Admin sigue en inglés sin i18n, como el resto de `/admin`.
+
+### Sesión 79 — 2026-10-02 (rama `claude/dashboard-tx-profile-link`, PR pendiente de Codex Project Audit)
+
+**Ver perfil del alumno desde "Latest transactions" del dashboard.** La tabla de transacciones recientes de `/dashboard` no permitía ir al perfil del alumno.
+
+- `GET /api/dashboard/transactions` ahora devuelve `memberId` (id del `SchoolMember` en la escuela actual, filtrado por `auth.schoolId`) — la ruta de perfil `/dashboard/users/[id]` va por `SchoolMember.id`, no por `User.id`.
+- `DashboardClient.tsx`: foto + nombre enlazan al perfil (escritorio y móvil) vía helper local `ProfileLink`; nueva acción "Ver perfil" como primera opción del menú `...` (ambos layouts). Sin `memberId` (transacción sin usuario o usuario fuera de la escuela) no hay link ni acción — evita 404.
+- i18n: `dashboard.viewProfile` en EN/ES/PT/FR.
 
 ### Sesión 78 — 2026-08-15 (rama `main`, commit `4568a77`, pusheado directo — sin PR)
 

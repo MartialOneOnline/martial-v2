@@ -34,6 +34,8 @@ type ActiveMembership = {
   id: string; planName: string; planType: string; status: string; paymentMethod: string
   // Stripe billing health (Membership.paymentStatus); optional because plans assigned client-side are never past due.
   paymentStatus?: string
+  // Set when cancellation is scheduled for period end: access continues until expiresAt.
+  cancelledAt?: string | null
   startDate: string; expiresAt: string | null
   price: number; currency?: string; interval: string | null; consumed: number
 }
@@ -1190,7 +1192,7 @@ function MembershipSection({
   onRenewalCreated: (t: Transaction) => void
   onRenewalPaid: (transactionId: string, newEndDate: string | null) => void
   onRenewalCancelled: (transactionId: string) => void
-  onCancelled: (membershipId: string) => void
+  onCancelled: (membershipId: string, deferredCancelledAt?: string) => void
 }) {
   const tt = useT()
   const memStatusMap = getMemStatusMap(tt)
@@ -1339,6 +1341,14 @@ function MembershipSection({
         body: JSON.stringify({ membershipId: activeMembership.id, action: 'cancel' }),
       })
       if (res.ok) {
+        // The school's cancel policy decides: UNTIL_END_OF_PERIOD keeps the
+        // membership ACTIVE (access continues, Stripe is scheduled to cancel at
+        // period end) — only an immediate cancellation empties the card.
+        const result = await res.json().catch(() => null) as { status?: string; cancelledAt?: string } | null
+        if (result?.status === 'ACTIVE') {
+          onCancelled(activeMembership.id, result.cancelledAt ?? new Date().toISOString())
+          return
+        }
         const updated: MembershipRecord = {
           id: activeMembership.id,
           planName: activeMembership.planName,
@@ -1374,7 +1384,7 @@ function MembershipSection({
               {creatingRenewal ? tt.studentProfile.adding : tt.studentProfile.paymentBtn}
             </button>
           )}
-          {activeMembership && (
+          {activeMembership && !activeMembership.cancelledAt && (
             <button onClick={handleCancel} disabled={cancelling}
               className="flex items-center gap-1"
               style={{ fontSize: 12, fontWeight: 600, color: '#EF4444', background: '#FEF2F2', border: 'none',
@@ -1467,6 +1477,20 @@ function MembershipSection({
               <p style={{ fontSize: 12, color: '#B45309', margin: '10px 0 0' }}>
                 {tt.studentProfile.paymentFailedHint}
               </p>
+            )}
+
+            {/* Scheduled cancellation — access continues until the period ends */}
+            {activeMembership.cancelledAt && activeMembership.expiresAt && (
+              <div className="flex items-center gap-2" style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #BBF7D0' }}>
+                <Clock size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
+                <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>
+                  {tt.studentProfile.cancelsOn}{' '}
+                  <span style={{ fontWeight: 600, color: '#111827' }}>
+                    {new Date(activeMembership.expiresAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                  </span>
+                  {' · '}{tt.studentProfile.accessUntilThen}
+                </p>
+              </div>
             )}
 
             {/* Usage bar — only for class-pack plans (SINGLE_PASS/TRIAL); a
@@ -2143,8 +2167,8 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
               onRenewalCancelled={transactionId => {
                 setTransactions(prev => prev.map(t => t.id === transactionId ? { ...t, status: 'CANCELLED' } : t))
               }}
-              onCancelled={membershipId => {
-                setActiveMembership(null)
+              onCancelled={(membershipId, deferredCancelledAt) => {
+                setActiveMembership(prev => deferredCancelledAt && prev ? { ...prev, cancelledAt: deferredCancelledAt } : null)
                 setTransactions(prev => prev.map(t =>
                   t.membershipId === membershipId && t.status === 'PENDING' ? { ...t, status: 'CANCELLED' } : t
                 ))
