@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { APP_URL } from '@/lib/email/resend'
 import { sendConfirmEmail } from '@/lib/email/sendConfirmEmail'
 import { safeConfirmRedirect } from '@/lib/authConfirmRedirect'
+import { buildEmailConfirmUrl } from '@/lib/auth/emailConfirmLink'
 import { isRateLimited } from '@/lib/rateLimit'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -71,15 +72,13 @@ export async function POST(req: NextRequest) {
       if (getErr) {
         console.error('[resend-confirmation] getUserById failed:', getErr)
       } else if (authUserRes?.user && !authUserRes.user.email_confirmed_at) {
-        const redirectTo = redirect
-          ? `${APP_URL}/auth/confirm?redirect=${encodeURIComponent(redirect)}`
-          : `${APP_URL}/auth/confirm`
-        const { data, error } = await admin.auth.admin.generateLink({
-          type: 'magiclink',
-          email,
-          options: { redirectTo },
-        })
-        const confirmUrl = data?.properties?.action_link
+        // No redirectTo / action_link: the link is built from hashed_token and
+        // redeemed server-side by /auth/confirm/verify — see lib/auth/emailConfirmLink.ts.
+        const { data, error } = await admin.auth.admin.generateLink({ type: 'magiclink', email })
+        const hashedToken = data?.properties?.hashed_token
+        const confirmUrl = hashedToken
+          ? buildEmailConfirmUrl({ appUrl: APP_URL, hashedToken, verificationType: data?.properties?.verification_type, redirect })
+          : null
         if (error || !confirmUrl) {
           console.error('[resend-confirmation] generateLink failed:', error)
         } else {
