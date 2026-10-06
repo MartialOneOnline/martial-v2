@@ -272,7 +272,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 > Nota: entre la Sesión 77 (2026-08-06) y esta hay commits en `main` no documentados aquí sesión a sesión (`0fe131e` i18n, `d7c2139` fix migración Prisma, `b20b1bd`/`839f3c5` cancelación de ocurrencias de clase) — no reconstruidos retroactivamente, ver `git log` para el detalle.
 
-### Sesión 80 — 2026-10-06 (rama `claude/admin-school-overview`, pendiente de Project Audit)
+### Sesión 80 — 2026-10-06 ✅ (PR [#26](https://github.com/MartialOneOnline/martial-v2/pull/26), mergeado a `main` en `6670f1b` sin Project Audit — aceptado explícitamente por el usuario; no probado en navegador por Claude)
 
 **Super admin: ver la actividad de una escuela sin impersonar.**
 - **Bug "Log in as owner" oculto:** el menú de `/admin/schools/all` lo condicionaba a `School.claimedById`, pero `/api/admin/schools/[id]/impersonate` busca un `SchoolMember` OWNER ACTIVE. Escuelas montadas a mano (p.ej. KongJitsu vía `scripts/fix-colin-leigh-claim-kongjitsu.mjs`) tienen owner sin `claimedById` → no salía la opción y sí "Resend claim invitation". Fix: `GET /api/admin/schools/all` devuelve `hasActiveOwner`; el menú usa eso para impersonar y `claimedById || hasActiveOwner` para ocultar el reenvío del claim. `claimedById` sigue sin rellenarse en esas escuelas (no se tocó la BD).
