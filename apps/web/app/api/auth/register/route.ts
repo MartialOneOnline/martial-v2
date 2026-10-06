@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { APP_URL } from '@/lib/email/resend'
 import { sendConfirmEmail } from '@/lib/email/sendConfirmEmail'
 import { safeConfirmRedirect } from '@/lib/authConfirmRedirect'
+import { buildEmailConfirmUrl } from '@/lib/auth/emailConfirmLink'
 
 // POST /api/auth/register — single entry point for self-serve signup.
 //
@@ -75,15 +76,13 @@ async function sendConfirmationLink(
   lang: string | undefined,
 ): Promise<{ sent: boolean }> {
   try {
-    const redirectTo = redirect
-      ? `${APP_URL}/auth/confirm?redirect=${encodeURIComponent(redirect)}`
-      : `${APP_URL}/auth/confirm`
-    const { data, error } = await admin.auth.admin.generateLink({
-      type: 'magiclink',
-      email,
-      options: { redirectTo },
-    })
-    const confirmUrl = data?.properties?.action_link
+    // No redirectTo / action_link: the link is built from hashed_token and
+    // redeemed server-side by /auth/confirm/verify — see lib/auth/emailConfirmLink.ts.
+    const { data, error } = await admin.auth.admin.generateLink({ type: 'magiclink', email })
+    const hashedToken = data?.properties?.hashed_token
+    const confirmUrl = hashedToken
+      ? buildEmailConfirmUrl({ appUrl: APP_URL, hashedToken, verificationType: data?.properties?.verification_type, redirect })
+      : null
     if (error || !confirmUrl) {
       console.error('[register] generateLink failed:', error)
       return { sent: false }
