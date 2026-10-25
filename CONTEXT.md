@@ -274,7 +274,22 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 > Nota: hay un salto largo sin documentar entre la Sesión 78 (2026-08-15) y esta — incluye, entre otras cosas, el trabajo de Stripe de las Sesiones sin numerar del 2026-09-08 (fix del webhook endpoint sin `checkout.session.completed`/`invoice.payment_failed` suscritos) y 2026-09-17/20 (separación de `Membership.paymentStatus` del acceso, PR mergeado en `9881ca1`) — no reconstruidas retroactivamente aquí, ver `git log`.
 
-### Sesión — 2026-09-27 (rama `fix/webhook-schoolmember-transaction-abort`, PR [#21](https://github.com/MartialOneOnline/martial-v2/pull/21), pendiente de Codex Project Audit)
+### Sesión 80 — 2026-10-06 ✅ (PR [#26](https://github.com/MartialOneOnline/martial-v2/pull/26), mergeado a `main` en `6670f1b` sin Project Audit — aceptado explícitamente por el usuario; no probado en navegador por Claude)
+
+**Super admin: ver la actividad de una escuela sin impersonar.**
+- **Bug "Log in as owner" oculto:** el menú de `/admin/schools/all` lo condicionaba a `School.claimedById`, pero `/api/admin/schools/[id]/impersonate` busca un `SchoolMember` OWNER ACTIVE. Escuelas montadas a mano (p.ej. KongJitsu vía `scripts/fix-colin-leigh-claim-kongjitsu.mjs`) tienen owner sin `claimedById` → no salía la opción y sí "Resend claim invitation". Fix: `GET /api/admin/schools/all` devuelve `hasActiveOwner`; el menú usa eso para impersonar y `claimedById || hasActiveOwner` para ocultar el reenvío del claim. `claimedById` sigue sin rellenarse en esas escuelas (no se tocó la BD).
+- **Nueva vista `/admin/schools/[id]`** (`SchoolOverviewClient.tsx`) + `GET /api/admin/schools/[id]/overview` (solo lectura, `guardSuperadmin`, sin claves de proveedor): KPIs (alumnos por estado, membresías, clases activas, reservas 30d + check-ins, ingresos del mes por moneda) y tabs Students (membresía actual, pago, cinturón, check-ins 30d, búsqueda + filtro estado) / Classes (horario, instructor, reservas 30d) / Bookings (próximos 14d / últimos 30d) / Payments (30 últimas transacciones no borradas) / Staff. Enlazada desde el nombre de la escuela y "View activity" en el menú. Admin sigue en inglés sin i18n, como el resto de `/admin`.
+- **"Log in as owner" aterrizaba en "No school connected yet"** (PRs #28 + siguiente): el magic link de `generateLink` vuelve con la sesión en el `#hash` (flujo implícito), que el cliente de navegador (PKCE, `@supabase/ssr`) rechaza — la sesión de superadmin seguía activa. Ahora `/api/admin/schools/[id]/impersonate` devuelve `/auth/impersonate?token_hash=…&school=…` (relativo) y la nueva ruta `app/auth/impersonate/route.ts` canjea en servidor con `verifyOtp({type:'magiclink'})` (mismo patrón que `auth/callback`), fija `currentSchoolId` y redirige a `/dashboard`. Ojo: `/auth/confirm` (registro) tiene el mismo problema hash-vs-PKCE — la cuenta queda confirmada pero no logueada; no tocado.
+
+### Sesión 79 — 2026-10-02 (rama `claude/dashboard-tx-profile-link`, PR pendiente de Codex Project Audit)
+
+**Ver perfil del alumno desde "Latest transactions" del dashboard.** La tabla de transacciones recientes de `/dashboard` no permitía ir al perfil del alumno.
+
+- `GET /api/dashboard/transactions` ahora devuelve `memberId` (id del `SchoolMember` en la escuela actual, filtrado por `auth.schoolId`) — la ruta de perfil `/dashboard/users/[id]` va por `SchoolMember.id`, no por `User.id`.
+- `DashboardClient.tsx`: foto + nombre enlazan al perfil (escritorio y móvil) vía helper local `ProfileLink`; nueva acción "Ver perfil" como primera opción del menú `...` (ambos layouts). Sin `memberId` (transacción sin usuario o usuario fuera de la escuela) no hay link ni acción — evita 404.
+- i18n: `dashboard.viewProfile` en EN/ES/PT/FR.
+
+### Sesión — 2026-09-27 / 2026-10-25 ✅ (rama `fix/webhook-schoolmember-transaction-abort`, PR [#21](https://github.com/MartialOneOnline/martial-v2/pull/21), mergeado a `main` el 2026-10-25 sin Project Audit — aceptado explícitamente por el usuario)
 
 **Bug real de datos reportado por el usuario:** "un alumno pagó y no aparecía el pago en Martial". Investigando el log de `StripeWebhookEvent`, encontrado un evento `checkout.session.completed` en estado `FAILED` (17 sept, usuario Ramiro Tello) con error `current transaction is aborted, commands ignored until end of transaction block` — el mismo patrón de error de Postgres que ya había diagnosticado antes en un script propio. Un segundo caso (Alex Furman, 25 sept) mostró el mismo bug pero "enmascarado": el evento webhook quedó en `PROCESSED` sin error solo porque el staff ya había añadido el pago a mano una hora antes de que Stripe reintentara — el hueco entre `createdAt` (15:05) y `processedAt` (16:06) delató el fallo real de la primera entrega.
 
@@ -286,7 +301,9 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 **Reconciliado el pago perdido de Ramiro Tello** (`scripts/reconcile-ramiro-tello-stripe-checkout.ts`, dry-run revisado antes de `--live`) — el de Alex Furman ya lo había corregido el usuario a mano antes de esta sesión.
 
-**Pendiente:** aprobación de Codex Project Audit sobre el PR #21 antes de dar la tarea por cerrada, per `AGENTS.md`.
+**Segundo incidente, mismo bug, por no haber mergeado a tiempo (2026-10-23):** Juanma Dominguez (`LEAD` con membresía gratuita "Access") pagó 180 € de Trimestral por Stripe; `checkout.session.completed` quedó `FAILED` con el mismo error y no se creó membresía ni transacción. Auditoría de alcance del log de eventos: solo 2 `FAILED` (Ramiro y Juanma) y 3 casos "enmascarados" (evento `PROCESSED` horas después porque un reintento de Stripe llegó cuando el staff ya había metido el pago a mano — se detecta por el hueco `createdAt`→`processedAt`): Alex Furman (membresía manual **sin `stripeSubId`**, así que sus renovaciones y su cancelación no se sincronizan con Stripe) y Andrej Rybin (dos checkouts de "Pase 1 Semana" con 20 min de diferencia, una sola membresía en efectivo: posible doble cobro). Al mergear, Stripe aún estaba reintentando el evento de Juanma (ventana de ~3 días) y `claimStripeEvent` reclama los `FAILED`, así que el reintento debería crear la membresía por sí solo.
+
+**Pendiente:** verificar que Juanma se curó solo (o reconciliar a mano), enlazar la suscripción de Alex, comprobar el posible doble cobro de Rybin y añadir alerta/panel para eventos `StripeWebhookEvent` en `FAILED`.
 
 ### Sesión 78 — 2026-08-15 (rama `main`, commit `4568a77`, pusheado directo — sin PR)
 
