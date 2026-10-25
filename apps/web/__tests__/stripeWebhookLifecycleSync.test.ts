@@ -45,6 +45,8 @@ vi.mock('@/lib/email/sendEmails', () => ({
   sendEventTicketRefundedEmail: vi.fn().mockResolvedValue(undefined),
 }))
 vi.mock('@/lib/notifications/create', () => ({ notifyPaymentReceived: vi.fn() }))
+const mockAlertWebhookFailure = vi.fn().mockResolvedValue(undefined)
+vi.mock('@/lib/alerts/webhookFailure', () => ({ alertWebhookFailure: (...args: unknown[]) => mockAlertWebhookFailure(...args) }))
 // recordOnlinePayment is mocked away (not the focus of these tests), but
 // recordFlaggedPayment is left as the REAL implementation — its own
 // idempotency guard (pre-check + unique-constraint catch against the fake
@@ -123,7 +125,13 @@ const mockStripeWebhookEventCreate = vi.fn((args: { data: { eventId: string; typ
   webhookEvents[eventId] = { status, updatedAt: Date.now() }
   return Promise.resolve({ id: `we_${eventId}`, eventId, type, status })
 })
-const mockStripeWebhookEventUpdateMany = vi.fn(() => Promise.resolve({ count: 0 }))
+// Mirrors claimStripeEvent's reclaim: a FAILED row flips back to PROCESSING
+// (count 1); anything else is owned by another delivery (count 0).
+const mockStripeWebhookEventUpdateMany = vi.fn((args: { where: { eventId: string } }) => {
+  const row = webhookEvents[args.where.eventId]
+  if (row?.status === 'FAILED') { row.status = 'PROCESSING'; return Promise.resolve({ count: 1 }) }
+  return Promise.resolve({ count: 0 })
+})
 const mockStripeWebhookEventUpdate = vi.fn((args: { where: { eventId: string }; data: { status: string } }) => {
   const row = webhookEvents[args.where.eventId]
   if (row) row.status = args.data.status
@@ -667,5 +675,65 @@ describe('school resolution when the event carries no schoolId metadata', () => 
     expect(res.status).toBe(400)
     expect(webhookEvents['evt_forged']).toBeUndefined()
     errSpy.mockRestore()
+  })
+})
+
+
+describe('failure alert', () => {
+  // A checkout for a user whose membership insert blows up inside the transaction.
+  const checkout = (id: string) => makeRequest({
+    id, type: 'checkout.session.completed',
+    data: {
+      object: {
+        payment_status: 'paid', payment_intent: 'pi_alert', subscription: 'sub_alert',
+        customer_details: { email: 'student@test.com' }, amount_total: 18000, currency: 'eur',
+        metadata: { schoolId: 'school-1', userId: 'user-1', planId: 'plan-1', planName: 'Trimestral', price: '180', currency: 'EUR' },
+      },
+    },
+  })
+  const breakMembershipCreate = () => mockMembershipCreate.mockImplementationOnce(() => Promise.reject(new Error('boom: db down')))
+
+  it('alerts once, with the event and payment context, when the first delivery fails', async () => {
+    breakMembershipCreate()
+
+    await expect(POST(checkout('evt_fail1'))).rejects.toThrow('boom: db down')
+
+    expect(webhookEvents['evt_fail1']?.status).toBe('FAILED')
+    expect(mockAlertWebhookFailure).toHaveBeenCalledTimes(1)
+    expect(mockAlertWebhookFailure).toHaveBeenCalledWith(expect.objectContaining({
+      provider: 'Stripe', eventId: 'evt_fail1', eventType: 'checkout.session.completed', error: 'boom: db down',
+      details: expect.objectContaining({ Customer: 'student@test.com', Amount: '180.00 EUR', Plan: 'Trimestral', Subscription: 'sub_alert' }),
+    }))
+  })
+
+  it('does not alert again when Stripe retries the same failed event', async () => {
+    breakMembershipCreate()
+    await expect(POST(checkout('evt_fail2'))).rejects.toThrow()
+    expect(mockAlertWebhookFailure).toHaveBeenCalledTimes(1)
+
+    breakMembershipCreate()
+    await expect(POST(checkout('evt_fail2'))).rejects.toThrow() // retry fails again
+    expect(mockAlertWebhookFailure).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not alert when the event processes fine, or on a retry that succeeds', async () => {
+    breakMembershipCreate()
+    await expect(POST(checkout('evt_ok'))).rejects.toThrow()
+    mockAlertWebhookFailure.mockClear()
+
+    const res = await POST(checkout('evt_ok')) // retry heals
+    expect(res.status).toBe(200)
+    expect(webhookEvents['evt_ok']?.status).toBe('PROCESSED')
+    expect(Object.values(memberships)).toHaveLength(1) // actually reprocessed, not a no-op
+    expect(mockAlertWebhookFailure).not.toHaveBeenCalled()
+  })
+
+  it('still propagates the original error if the alert itself rejects', async () => {
+    // The real helper never throws, but the route must not depend on that for the status it returns.
+    breakMembershipCreate()
+    mockAlertWebhookFailure.mockRejectedValueOnce(new Error('resend down'))
+
+    await expect(POST(checkout('evt_fail3'))).rejects.toThrow()
+    expect(webhookEvents['evt_fail3']?.status).toBe('FAILED')
   })
 })

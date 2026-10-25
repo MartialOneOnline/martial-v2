@@ -13,6 +13,7 @@ import { PaymentMethod, TransactionCategory, StripeWebhookEventStatus, Membershi
 import { notifyPaymentReceived } from '@/lib/notifications/create'
 import { fmtPrice } from '@/lib/format'
 import { fulfillCollectibleCheckout } from '@/lib/services/collectibles/checkoutFulfillment'
+import { alertWebhookFailure } from '@/lib/alerts/webhookFailure'
 
 // A row still PROCESSING past this long was orphaned by a request that
 // crashed before ever reaching the PROCESSED/FAILED update at the bottom of
@@ -27,12 +28,16 @@ const STALE_PROCESSING_MS = 5 * 60_000
 // the eventId unique constraint means only one create() can ever succeed
 // for a given event, and Postgres serializes concurrent inserts on the same
 // key, so a racing duplicate simply sees the row already there and skips.
-async function claimStripeEvent(eventId: string, type: string): Promise<boolean> {
+// Returns 'new' for a first delivery, 'retry' when it reclaimed a FAILED /
+// stale row, or null when another delivery owns it (caller no-ops). The
+// new/retry split lets the failure alert fire once per event, not once per
+// Stripe retry.
+async function claimStripeEvent(eventId: string, type: string): Promise<'new' | 'retry' | null> {
   try {
     await prisma.stripeWebhookEvent.create({
       data: { eventId, type, status: StripeWebhookEventStatus.PROCESSING },
     })
-    return true
+    return 'new'
   } catch (err: unknown) {
     if ((err as { code?: string }).code !== 'P2002') throw err
   }
@@ -51,7 +56,7 @@ async function claimStripeEvent(eventId: string, type: string): Promise<boolean>
     },
     data: { status: StripeWebhookEventStatus.PROCESSING, error: null },
   })
-  return reclaimed.count === 1
+  return reclaimed.count === 1 ? 'retry' : null
 }
 
 // POST /api/webhooks/stripe
@@ -167,7 +172,8 @@ export async function POST(req: NextRequest) {
   // logic. A retried delivery of an event we already finished — the common
   // case, Stripe redelivers on timeout even after we've succeeded — or a
   // concurrent duplicate delivery short-circuits here to a plain 200.
-  if (!(await claimStripeEvent(event.id, event.type)))
+  const claim = await claimStripeEvent(event.id, event.type)
+  if (!claim)
     return NextResponse.json({ received: true })
 
   try {
@@ -184,6 +190,26 @@ export async function POST(req: NextRequest) {
       where: { eventId: event.id },
       data: { status: StripeWebhookEventStatus.FAILED, error: err instanceof Error ? err.message : String(err) },
     }).catch(() => {}) // best-effort — don't mask the original error if this write itself fails
+
+    // Alert once, on the first failed delivery — a persistent failure would
+    // otherwise email on every Stripe retry. Awaited (it never throws) because
+    // the serverless instance can be frozen as soon as the 500 goes out.
+    if (claim === 'new') {
+      const obj = event.data.object as { customer_details?: { email?: string | null }; customer_email?: string | null; amount_total?: number | null; currency?: string | null; metadata?: Record<string, string> | null; subscription?: string | null; id?: string }
+      await alertWebhookFailure({
+        provider: 'Stripe',
+        eventId: event.id,
+        eventType: event.type,
+        error: err instanceof Error ? err.message : String(err),
+        details: {
+          Customer: obj.customer_details?.email ?? obj.customer_email,
+          Amount: obj.amount_total != null ? `${(obj.amount_total / 100).toFixed(2)} ${(obj.currency ?? '').toUpperCase()}`.trim() : null,
+          Plan: obj.metadata?.planName,
+          Subscription: typeof obj.subscription === 'string' ? obj.subscription : null,
+          School: obj.metadata?.schoolId,
+        },
+      })
+    }
     throw err
   }
 

@@ -274,6 +274,14 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 > Nota: hay un salto largo sin documentar entre la Sesión 78 (2026-08-15) y esta — incluye, entre otras cosas, el trabajo de Stripe de las Sesiones sin numerar del 2026-09-08 (fix del webhook endpoint sin `checkout.session.completed`/`invoice.payment_failed` suscritos) y 2026-09-17/20 (separación de `Membership.paymentStatus` del acceso, PR mergeado en `9881ca1`) — no reconstruidas retroactivamente aquí, ver `git log`.
 
+### Sesión — 2026-10-25 (rama `feat/webhook-failure-alert`, PR pendiente de Codex Project Audit)
+
+**Alerta por email cuando falla un webhook de Stripe.** Los dos incidentes de pagos perdidos (17 sept y 23 oct) estuvieron días sin detectarse porque nadie miraba las filas `StripeWebhookEvent` en `FAILED`. Ahora, cuando `handleStripeEvent` lanza, `apps/web/app/api/webhooks/stripe/route.ts` llama a `alertWebhookFailure()` (`lib/alerts/webhookFailure.ts`), que escribe por Resend al `PlatformSettings.superAdminEmail` (fallback `support@martialapp.com`) con id del evento (enlace al dashboard de Stripe), tipo, error y contexto del pago (cliente, importe, plan, suscripción). **Solo en la primera entrega fallida:** `claimStripeEvent` ahora devuelve `'new' | 'retry' | null`, así que los reintentos de Stripe (hasta ~3 días) no repiten el email. El helper nunca lanza. Sin cambios de schema.
+
+- **Fuera de alcance, a propósito:** el 400 previo a reclamar el evento (no se pudo resolver la escuela) solo hace `console.error` — no hay fila ni `event.id` verificado, y alertar ahí abriría la puerta a spam desde escáneres; y el webhook de Revolut, que no tiene tabla de eventos que sirva de dedupe.
+- Tests: 4 en `stripeWebhookLifecycleSync.test.ts` (una vez, no en reintento, no si el reintento cura, el error original se propaga) y 5 en `alertWebhookFailure.test.ts`. Mutation testing en ambas direcciones de la condición. El mock de reclaim de `StripeWebhookEvent.updateMany` devolvía siempre `count: 0`; ahora refleja el reclaim real de un `FAILED`.
+- Cerrado en esta sesión (hecho a mano por el usuario): suscripción de Alex Furman añadida, doble cobro de Rybin cancelado.
+
 ### Sesión 80 — 2026-10-06 ✅ (PR [#26](https://github.com/MartialOneOnline/martial-v2/pull/26), mergeado a `main` en `6670f1b` sin Project Audit — aceptado explícitamente por el usuario; no probado en navegador por Claude)
 
 **Super admin: ver la actividad de una escuela sin impersonar.**
