@@ -120,18 +120,26 @@ export async function POST(req: NextRequest) {
         })
         if (claim.count === 0) return { claimed: false }
 
-        // Try to create first (race-safe via the (schoolId, userId) unique
-        // constraint). The ARCHIVED case is already handled above, so a
-        // P2002 here just means the row already exists — promote it.
-        try {
+        // Check-then-write rather than create-then-catch-P2002: a real unique
+        // violation aborts the whole Postgres transaction at the DB level
+        // even once the JS exception is caught, silently rolling back the
+        // membership claim above and the payment record that follows below —
+        // the same bug fixed in the Stripe webhook (see its comment for the
+        // real incident this caused). Hits anyone who already has a
+        // SchoolMember row (e.g. tried a trial class first), not a rare
+        // race. The ARCHIVED case is already handled above, so an existing
+        // row here just means PENDING/LEAD/ACTIVE/FROZEN/INACTIVE — promote it.
+        const existingSchoolMember = await tx.schoolMember.findUnique({
+          where: { schoolId_userId: { schoolId: membership.schoolId, userId: membership.userId } },
+        })
+        if (existingSchoolMember) {
+          await tx.schoolMember.update({
+            where: { id: existingSchoolMember.id },
+            data: { status: 'ACTIVE' },
+          })
+        } else {
           await tx.schoolMember.create({
             data: { userId: membership.userId, schoolId: membership.schoolId, role: 'STUDENT', status: 'ACTIVE', joinedAt: new Date() },
-          })
-        } catch (err: unknown) {
-          if ((err as { code?: string }).code !== 'P2002') throw err
-          await tx.schoolMember.updateMany({
-            where: { schoolId: membership.schoolId, userId: membership.userId, status: { not: 'ARCHIVED' } },
-            data: { status: 'ACTIVE' },
           })
         }
         await recordOnlinePayment(tx, {

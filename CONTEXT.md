@@ -272,6 +272,8 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 > Nota: entre la Sesión 77 (2026-08-06) y esta hay commits en `main` no documentados aquí sesión a sesión (`0fe131e` i18n, `d7c2139` fix migración Prisma, `b20b1bd`/`839f3c5` cancelación de ocurrencias de clase) — no reconstruidos retroactivamente, ver `git log` para el detalle.
 
+> Nota: hay un salto largo sin documentar entre la Sesión 78 (2026-08-15) y esta — incluye, entre otras cosas, el trabajo de Stripe de las Sesiones sin numerar del 2026-09-08 (fix del webhook endpoint sin `checkout.session.completed`/`invoice.payment_failed` suscritos) y 2026-09-17/20 (separación de `Membership.paymentStatus` del acceso, PR mergeado en `9881ca1`) — no reconstruidas retroactivamente aquí, ver `git log`.
+
 ### Sesión 80 — 2026-10-06 ✅ (PR [#26](https://github.com/MartialOneOnline/martial-v2/pull/26), mergeado a `main` en `6670f1b` sin Project Audit — aceptado explícitamente por el usuario; no probado en navegador por Claude)
 
 **Super admin: ver la actividad de una escuela sin impersonar.**
@@ -286,6 +288,22 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 - `GET /api/dashboard/transactions` ahora devuelve `memberId` (id del `SchoolMember` en la escuela actual, filtrado por `auth.schoolId`) — la ruta de perfil `/dashboard/users/[id]` va por `SchoolMember.id`, no por `User.id`.
 - `DashboardClient.tsx`: foto + nombre enlazan al perfil (escritorio y móvil) vía helper local `ProfileLink`; nueva acción "Ver perfil" como primera opción del menú `...` (ambos layouts). Sin `memberId` (transacción sin usuario o usuario fuera de la escuela) no hay link ni acción — evita 404.
 - i18n: `dashboard.viewProfile` en EN/ES/PT/FR.
+
+### Sesión — 2026-09-27 / 2026-10-25 ✅ (rama `fix/webhook-schoolmember-transaction-abort`, PR [#21](https://github.com/MartialOneOnline/martial-v2/pull/21), mergeado a `main` el 2026-10-25 sin Project Audit — aceptado explícitamente por el usuario)
+
+**Bug real de datos reportado por el usuario:** "un alumno pagó y no aparecía el pago en Martial". Investigando el log de `StripeWebhookEvent`, encontrado un evento `checkout.session.completed` en estado `FAILED` (17 sept, usuario Ramiro Tello) con error `current transaction is aborted, commands ignored until end of transaction block` — el mismo patrón de error de Postgres que ya había diagnosticado antes en un script propio. Un segundo caso (Alex Furman, 25 sept) mostró el mismo bug pero "enmascarado": el evento webhook quedó en `PROCESSED` sin error solo porque el staff ya había añadido el pago a mano una hora antes de que Stripe reintentara — el hueco entre `createdAt` (15:05) y `processedAt` (16:06) delató el fallo real de la primera entrega.
+
+**Causa raíz:** tanto `checkout.session.completed` (Stripe) como `ORDER_COMPLETED` (Revolut) intentaban `tx.schoolMember.create()` sin comprobar antes si ya existía, capturando `P2002` para "promover" el registro existente. Pero una violación real de constraint única aborta toda la transacción de Postgres a nivel de motor, incluso si el error se captura en JS — así que la `Membership` y el `Transaction` ya escritos antes en la misma transacción se revertían en silencio. Afecta a **cualquier alumno que ya tuviera una fila `SchoolMember`** al pagar (p. ej. probó una clase de prueba antes) — no es una condición de carrera rara.
+
+**Fix:** en ambos webhooks (`apps/web/app/api/webhooks/stripe/route.ts`, `apps/web/app/api/webhooks/revolut/route.ts`), sustituido el patrón create-then-catch-P2002 por check-then-write (`findUnique` y luego `create` o `update`), igual que ya se hacía en los scripts de reconciliación manual de sesiones anteriores.
+
+**Los tests existentes no detectaban esto** porque el mock de `$transaction` dejaba que cada llamada `tx.*` tuviera éxito o fallara de forma independiente, sin reproducir el comportamiento real de Postgres. Añadido un guard "poison-on-error" al mock de transacción en los 3 ficheros de test afectados (`stripeWebhookLifecycleSync.test.ts`, `revolutWebhookIdempotency.test.ts`, `revolutWebhookArchivedMemberReview.test.ts`) + un test de regresión por webhook que reproduce el incidente exacto. Confirmado por mutation testing (revirtiendo el fix temporalmente) que los tests nuevos fallan sin el fix y pasan con él. Suite completa diffed contra `origin/main` limpio: mismo conjunto de 12 ficheros con fallos preexistentes (no relacionados), sin regresiones.
+
+**Reconciliado el pago perdido de Ramiro Tello** (`scripts/reconcile-ramiro-tello-stripe-checkout.ts`, dry-run revisado antes de `--live`) — el de Alex Furman ya lo había corregido el usuario a mano antes de esta sesión.
+
+**Segundo incidente, mismo bug, por no haber mergeado a tiempo (2026-10-23):** Juanma Dominguez (`LEAD` con membresía gratuita "Access") pagó 180 € de Trimestral por Stripe; `checkout.session.completed` quedó `FAILED` con el mismo error y no se creó membresía ni transacción. Auditoría de alcance del log de eventos: solo 2 `FAILED` (Ramiro y Juanma) y 3 casos "enmascarados" (evento `PROCESSED` horas después porque un reintento de Stripe llegó cuando el staff ya había metido el pago a mano — se detecta por el hueco `createdAt`→`processedAt`): Alex Furman (membresía manual **sin `stripeSubId`**, así que sus renovaciones y su cancelación no se sincronizan con Stripe) y Andrej Rybin (dos checkouts de "Pase 1 Semana" con 20 min de diferencia, una sola membresía en efectivo: posible doble cobro). Al mergear, Stripe aún estaba reintentando el evento de Juanma (ventana de ~3 días) y `claimStripeEvent` reclama los `FAILED`, así que el reintento debería crear la membresía por sí solo.
+
+**Pendiente:** verificar que Juanma se curó solo (o reconciliar a mano), enlazar la suscripción de Alex, comprobar el posible doble cobro de Rybin y añadir alerta/panel para eventos `StripeWebhookEvent` en `FAILED`.
 
 ### Sesión 78 — 2026-08-15 (rama `main`, commit `4568a77`, pusheado directo — sin PR)
 
