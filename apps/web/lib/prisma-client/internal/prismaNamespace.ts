@@ -5413,6 +5413,7 @@ export const BeltRankScalarFieldEnum = {
   minAge: 'minAge',
   minMonthsAtPrevious: 'minMonthsAtPrevious',
   totalClassesRequired: 'totalClassesRequired',
+  classesByDegree: 'classesByDegree',
   classesPerPeriod: 'classesPerPeriod',
   periodType: 'periodType',
   classTypeIds: 'classTypeIds',

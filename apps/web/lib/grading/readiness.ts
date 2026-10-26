@@ -1,11 +1,12 @@
 // Grading readiness — what grading a student is due, based on attendance.
 //
-// Rule semantics (confirmed with the school owner, 2026-10-26): a rank's
-// `totalClassesRequired` is "classes per grading while at this belt". From
-// the last grading on, every N attended classes earns the next stripe; after
-// the rank's last stripe, the next N earn the belt change. A student who
-// hasn't been graded in a while can therefore be due several stripes at once
-// (e.g. 30 classes at 8/stripe → 3 stripes).
+// Rule semantics (confirmed with the school owner, 2026-10-26, mirrors V1):
+// each grading at a belt has its own class count, counted from the previous
+// grading. `classesByDegree[i]` = classes from stripe i to stripe i+1, and
+// `[maxDegrees]` = from the last stripe to the next belt (RGM Blanco =
+// [8, 16, 24, 24, 24]). Missing entries fall back to `totalClassesRequired`.
+// A student who hasn't been graded in a while can be due several stripes at
+// once (e.g. 50 classes at Blanco 0 → 8+16+24 → 3 stripes).
 //
 // We never go past the next belt: a belt is the instructor's call, so the
 // count stops there. The belt step also needs the NEXT rank's minAge and
@@ -52,6 +53,7 @@ export interface RankRules {
   minAge: number | null
   minMonthsAtPrevious: number | null
   totalClassesRequired: number | null
+  classesByDegree: number[]
   classesPerPeriod: number | null
   periodType: string | null
   classTypeIds: string[]
@@ -93,7 +95,8 @@ export interface Readiness {
   /** Exam / competition for the belt — not tracked in the app, the instructor checks them */
   manualChecks: Array<'EXAM' | 'COMPETITION'>
   classesSince: number
-  classesPerStep: number | null
+  /** Classes the very next grading needs (from the current stripe) */
+  classesForFirstStep: number | null
   countSince: string | null
 }
 
@@ -134,7 +137,7 @@ export function computeReadiness(input: ReadinessInput): Readiness {
 
   const result = (r: Partial<Readiness> & { status: ReadinessStatus }): Readiness => ({
     percent: null, due: null, next: null, steps: [], requirements: [], manualChecks: [],
-    classesSince: 0, classesPerStep: null, countSince: since ? since.toISOString() : null, ...r,
+    classesSince: 0, classesForFirstStep: null, countSince: since ? since.toISOString() : null, ...r,
   })
 
   if (!current) return result({ status: 'NO_RULES' })
@@ -146,7 +149,12 @@ export function computeReadiness(input: ReadinessInput): Readiness {
   const counted = input.attended.filter(c =>
     c.scheduledAt <= now && (!since || c.scheduledAt >= since) && classCounts(current, c))
   const classesSince = counted.length
-  const perStep = current.totalClassesRequired && current.totalClassesRequired > 0 ? current.totalClassesRequired : null
+  /** Classes needed to go from stripe `d` to the next step at this belt — null = not a rule */
+  const requiredFrom = (d: number): number | null => {
+    // 0 / missing = not set for this stripe → use the belt's default
+    const v = current.classesByDegree[d] || current.totalClassesRequired
+    return v && v > 0 ? v : null
+  }
 
   const requirements: Requirement[] = []
 
@@ -169,21 +177,29 @@ export function computeReadiness(input: ReadinessInput): Readiness {
 
   // ── Steps: remaining stripes, then the next belt ──────────────────────────
   const steps: GradingStep[] = []
-  let i = 0
-  const pushStep = (kind: 'DEGREE' | 'BELT', rank: RankRules, deg: number) => {
-    i++
-    const classes = perStep ? Math.max(0, Math.min(perStep, classesSince - (i - 1) * perStep)) : null
-    const enoughClasses = perStep ? classesSince >= i * perStep : true
+  let used = 0 // classes consumed by earlier steps
+  const pushStep = (kind: 'DEGREE' | 'BELT', rank: RankRules, deg: number, required: number | null) => {
+    const classes = required ? Math.max(0, Math.min(required, classesSince - used)) : null
+    const enoughClasses = required ? classesSince >= used + required : true
+    if (required) used += required
     const gates = kind === 'BELT' ? blockedBy : []
     steps.push({
       kind, rankId: rank.id, rankName: rank.name, rankColor: rank.color, degree: deg,
-      classes, required: perStep, earned: enoughClasses && gates.length === 0,
+      classes, required, earned: enoughClasses && gates.length === 0,
       blockedBy: enoughClasses ? gates : [],
     })
   }
-  // Without a classes rule there is nothing to measure stripes by.
-  if (perStep) for (let d = degree + 1; d <= current.maxDegrees; d++) pushStep('DEGREE', current, d)
-  if (nextRank && (perStep || beltGates.length)) pushStep('BELT', nextRank, 0)
+  // Stripes need a classes rule to be measured — stop at the first one without.
+  for (let d = degree; d < current.maxDegrees; d++) {
+    const req = requiredFrom(d)
+    if (!req) break
+    pushStep('DEGREE', current, d + 1, req)
+  }
+  // The belt follows the stripes when they're all measurable, or directly when
+  // stripes have no classes rule at all (time/age-only systems).
+  const allStripesListed = steps.length === current.maxDegrees - degree || steps.length === 0
+  const beltReq = requiredFrom(current.maxDegrees)
+  if (nextRank && allStripesListed && (beltReq || beltGates.length)) pushStep('BELT', nextRank, 0, beltReq)
 
   // ── Frequency (information only) ──────────────────────────────────────────
   if (current.classesPerPeriod && current.classesPerPeriod > 0 && (current.periodType === 'WEEK' || current.periodType === 'MONTH')) {
@@ -206,7 +222,7 @@ export function computeReadiness(input: ReadinessInput): Readiness {
   if (nextRank?.requireExam) manualChecks.push('EXAM')
   if (nextRank?.requireCompetition) manualChecks.push('COMPETITION')
 
-  const base = { steps, requirements, manualChecks, classesSince, classesPerStep: perStep }
+  const base = { steps, requirements, manualChecks, classesSince, classesForFirstStep: steps[0]?.required ?? null }
   if (!steps.length) return result({ status: 'NO_RULES', ...base })
 
   // Steps are earned in order — a blocked belt doesn't hide earned stripes.

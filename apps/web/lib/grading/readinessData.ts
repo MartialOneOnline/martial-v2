@@ -24,7 +24,7 @@ export const ATTENDED_WHERE = {
 
 const RANK_SELECT = {
   id: true, name: true, color: true, order: true, maxDegrees: true, minAge: true,
-  minMonthsAtPrevious: true, totalClassesRequired: true, classesPerPeriod: true,
+  minMonthsAtPrevious: true, totalClassesRequired: true, classesByDegree: true, classesPerPeriod: true,
   periodType: true, classTypeIds: true, requireExam: true, requireCompetition: true, systemId: true,
 } as const
 

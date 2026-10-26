@@ -3,11 +3,12 @@ export type Locale = 'en' | 'es' | 'pt' | 'fr'
 export const translations = {
   en: {
     readiness: {
+      perStripeLabel: 'Classes for each grading', perStripeHint: 'Counted from the previous grading. Leave blank to use Total classes.', toStripe: '→ Stripe {n}', toNextBelt: '→ {belt}',
       cardTitle: 'Attendance & grading', due: 'Due now', dueStripes: '+{n} stripe(s) → {belt} {deg}', dueStripe: '+1 stripe → {belt} {deg}', dueBelt: 'Promote to {belt}',
       nothingDue: 'Nothing due yet', classesToNext: '{n} classes to {step}', stripeN: 'Stripe {n}', beltStep: '{belt} belt',
       classesSinceGrading: 'Classes since last grading', lastGrading: 'Last grading', never: 'Never',
       blockedAge: 'Classes done — waiting on age ({current}/{required})', blockedMonths: 'Classes done — waiting on time at belt ({current}/{required} mo)',
-      frequencyLow: 'Training below the {required}{unit} target', perStep: '{n} classes per grading',
+      frequencyLow: 'Training below the {required}{unit} target',
       gradeBtn: 'Grade', gradeConfirm: 'Award {target} to {name}?', graded: 'Graded', gradeError: 'Could not save the grading',
       dueCol: 'Due', classesCol: 'Classes', lastCol: 'Last grading', viewAttendance: 'View attendance', beltFilter: 'Belt',
       title: 'Grading readiness', subtitle: 'How close each student is to their next grading, based on attendance and your belt rules',
@@ -955,11 +956,12 @@ export const translations = {
   // ── ESPAÑOL ────────────────────────────────────────────────────────────────
   es: {
     readiness: {
+      perStripeLabel: 'Clases para cada graduación', perStripeHint: 'Se cuentan desde la graduación anterior. En blanco = usa Total classes.', toStripe: '→ Grado {n}', toNextBelt: '→ {belt}',
       cardTitle: 'Asistencia y graduación', due: 'Le corresponde', dueStripes: '+{n} grados → {belt} {deg}', dueStripe: '+1 grado → {belt} {deg}', dueBelt: 'Subir a {belt}',
       nothingDue: 'Aún no le corresponde nada', classesToNext: '{n} clases para {step}', stripeN: 'Grado {n}', beltStep: 'Cinturón {belt}',
       classesSinceGrading: 'Clases desde la última graduación', lastGrading: 'Última graduación', never: 'Nunca',
       blockedAge: 'Clases cumplidas — falta la edad ({current}/{required})', blockedMonths: 'Clases cumplidas — falta tiempo en el cinturón ({current}/{required} meses)',
-      frequencyLow: 'Entrena por debajo del objetivo de {required}{unit}', perStep: '{n} clases por graduación',
+      frequencyLow: 'Entrena por debajo del objetivo de {required}{unit}',
       gradeBtn: 'Graduar', gradeConfirm: '¿Otorgar {target} a {name}?', graded: 'Graduado', gradeError: 'No se pudo guardar la graduación',
       dueCol: 'Le corresponde', classesCol: 'Clases', lastCol: 'Última graduación', viewAttendance: 'Ver asistencia', beltFilter: 'Cinturón',
       title: 'Preparación para graduar', subtitle: 'Qué tan cerca está cada alumno de su próxima graduación, según asistencia y tus reglas de cinturón',
@@ -1821,11 +1823,12 @@ export const translations = {
   // ── PORTUGUÊS ──────────────────────────────────────────────────────────────
   pt: {
     readiness: {
+      perStripeLabel: 'Aulas para cada graduação', perStripeHint: 'Contadas desde a graduação anterior. Em branco = usa Total classes.', toStripe: '→ Grau {n}', toNextBelt: '→ {belt}',
       cardTitle: 'Frequência e graduação', due: 'Tem direito a', dueStripes: '+{n} graus → {belt} {deg}', dueStripe: '+1 grau → {belt} {deg}', dueBelt: 'Subir para {belt}',
       nothingDue: 'Ainda nada pendente', classesToNext: '{n} aulas para {step}', stripeN: 'Grau {n}', beltStep: 'Faixa {belt}',
       classesSinceGrading: 'Aulas desde a última graduação', lastGrading: 'Última graduação', never: 'Nunca',
       blockedAge: 'Aulas cumpridas — falta a idade ({current}/{required})', blockedMonths: 'Aulas cumpridas — falta tempo na faixa ({current}/{required} meses)',
-      frequencyLow: 'Treina abaixo do objetivo de {required}{unit}', perStep: '{n} aulas por graduação',
+      frequencyLow: 'Treina abaixo do objetivo de {required}{unit}',
       gradeBtn: 'Graduar', gradeConfirm: 'Atribuir {target} a {name}?', graded: 'Graduado', gradeError: 'Não foi possível guardar a graduação',
       dueCol: 'Tem direito a', classesCol: 'Aulas', lastCol: 'Última graduação', viewAttendance: 'Ver frequência', beltFilter: 'Faixa',
       title: 'Prontidão para graduar', subtitle: 'Quão perto cada aluno está da próxima graduação, com base na frequência e nas regras de faixa',
@@ -2687,11 +2690,12 @@ export const translations = {
   // ── FRANÇAIS ───────────────────────────────────────────────────────────────
   fr: {
     readiness: {
+      perStripeLabel: 'Cours pour chaque passage', perStripeHint: 'Comptés depuis le passage précédent. Vide = utilise Total classes.', toStripe: '→ Barrette {n}', toNextBelt: '→ {belt}',
       cardTitle: 'Présence et passage de grade', due: 'Dû maintenant', dueStripes: '+{n} barrettes → {belt} {deg}', dueStripe: '+1 barrette → {belt} {deg}', dueBelt: 'Passer à {belt}',
       nothingDue: 'Rien de dû pour l’instant', classesToNext: '{n} cours avant {step}', stripeN: 'Barrette {n}', beltStep: 'Ceinture {belt}',
       classesSinceGrading: 'Cours depuis le dernier passage', lastGrading: 'Dernier passage', never: 'Jamais',
       blockedAge: 'Cours validés — âge requis ({current}/{required})', blockedMonths: 'Cours validés — temps à la ceinture requis ({current}/{required} mois)',
-      frequencyLow: 'Entraînement sous l’objectif de {required}{unit}', perStep: '{n} cours par passage',
+      frequencyLow: 'Entraînement sous l’objectif de {required}{unit}',
       gradeBtn: 'Graduer', gradeConfirm: 'Attribuer {target} à {name} ?', graded: 'Gradué', gradeError: 'Impossible d’enregistrer le passage',
       dueCol: 'Dû', classesCol: 'Cours', lastCol: 'Dernier passage', viewAttendance: 'Voir la présence', beltFilter: 'Ceinture',
       title: 'Préparation au passage de grade', subtitle: 'À quel point chaque élève est proche de son prochain passage, selon sa présence et vos règles de ceinture',

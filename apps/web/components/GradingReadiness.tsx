@@ -206,9 +206,6 @@ export function AttendanceGradingCard({ readiness, lastGradedAt, target, onGrade
       {/* Punch card: one row per remaining stripe + next belt */}
       {readiness.steps.length > 0 && (
         <div className="flex flex-col gap-2" style={{ background: '#fff', border: '1px solid #F3F4F6', borderRadius: 10, padding: '10px 12px' }}>
-          {readiness.classesPerStep && (
-            <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0 }}>{rt.perStep.replace('{n}', String(readiness.classesPerStep))}</p>
-          )}
           {readiness.steps.map(s => <StepRow key={`${s.kind}-${s.degree}`} step={s} rt={rt} />)}
         </div>
       )}

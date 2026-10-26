@@ -164,7 +164,6 @@ export default function ReadinessSection({ onGraded }: { onGraded?: () => void }
                   </td>
                   <td className="px-4 py-3">
                     <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{r.classesSince}</span>
-                    {r.classesPerStep && <span style={{ fontSize: 11, color: '#9CA3AF' }}> / {r.classesPerStep}</span>}
                   </td>
                   <td className="px-4 py-3">
                     <span style={{ fontSize: 12, color: '#6B7280', whiteSpace: 'nowrap' }}>{s.lastGradedAt ? fmt(s.lastGradedAt) : rt.never}</span>

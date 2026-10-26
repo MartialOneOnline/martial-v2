@@ -1437,6 +1437,7 @@ interface BeltRank {
   minAge: number | null; minMonthsAtPrevious: number | null
   totalClassesRequired: number | null; classesPerPeriod: number | null; periodType: string | null
   classTypeIds: string[]
+  classesByDegree: number[]
 }
 interface GradingSystem {
   id: string; name: string; activity: string | null; isDefault: boolean
@@ -1459,13 +1460,15 @@ const COLOR_PRESETS = [
 ]
 
 function RankRow({
-  rank, systemId, onUpdate, onDelete, isLast,
+  rank, systemId, onUpdate, onDelete, isLast, nextRankName,
 }: {
   rank: BeltRank; systemId: string
   onUpdate: (r: BeltRank) => void; onDelete: () => void; isLast: boolean
+  nextRankName: string | null
 }) {
+  const rt = useT().readiness
   const [open, setOpen] = useState(false)
-  const [form, setForm] = useState(rank)
+  const [form, setForm] = useState({ ...rank, classesByDegree: rank.classesByDegree ?? [] })
   const [saving, setSaving] = useState(false)
 
   function set<K extends keyof BeltRank>(k: K, v: BeltRank[K]) {
@@ -1475,7 +1478,9 @@ function RankRow({
   async function save() {
     setSaving(true)
     const res = await fetch(`/api/dashboard/grading-systems/${systemId}/ranks/${rank.id}`, {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form),
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      // One entry per grading at this belt: each stripe, then the next belt.
+      body: JSON.stringify({ ...form, classesByDegree: form.classesByDegree.slice(0, form.maxDegrees + 1) }),
     })
     setSaving(false)
     if (!res.ok) return
@@ -1499,11 +1504,15 @@ function RankRow({
         {form.maxDegrees > 0 && (
           <span style={{ fontSize: 11, color: '#9CA3AF' }}>{form.maxDegrees} stripes</span>
         )}
-        {form.totalClassesRequired && (
+        {form.classesByDegree.some(n => n > 0) ? (
+          <span style={{ fontSize: 11, color: '#6B7280', background: '#F3F4F6', padding: '2px 8px', borderRadius: 999 }}>
+            {Array.from({ length: form.maxDegrees + 1 }, (_, i) => form.classesByDegree[i] || form.totalClassesRequired || '—').join(' · ')}
+          </span>
+        ) : form.totalClassesRequired ? (
           <span style={{ fontSize: 11, color: '#6B7280', background: '#F3F4F6', padding: '2px 8px', borderRadius: 999 }}>
             {form.totalClassesRequired} classes
           </span>
-        )}
+        ) : null}
         {form.minMonthsAtPrevious && (
           <span style={{ fontSize: 11, color: '#6B7280', background: '#F3F4F6', padding: '2px 8px', borderRadius: 999 }}>
             {form.minMonthsAtPrevious} mo
@@ -1588,8 +1597,35 @@ function RankRow({
             </div>
           </div>
 
+          {/* Classes for each grading at this belt (V1 "Total Classes" per row) */}
+          <div>
+            <label style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 2 }}>{rt.perStripeLabel}</label>
+            <p style={{ fontSize: 11, color: '#9CA3AF', margin: '0 0 6px' }}>{rt.perStripeHint}</p>
+            <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(form.maxDegrees + 1, 5)}, minmax(0, 1fr))` }}>
+              {Array.from({ length: form.maxDegrees + 1 }, (_, i) => (
+                <div key={i}>
+                  <span style={{ fontSize: 10, color: '#9CA3AF', display: 'block', marginBottom: 2 }} className="truncate">
+                    {i < form.maxDegrees
+                      ? rt.toStripe.replace('{n}', String(i + 1))
+                      : rt.toNextBelt.replace('{belt}', nextRankName ?? '—')}
+                  </span>
+                  <input type="number" min={0} value={form.classesByDegree[i] || ''}
+                    placeholder={form.totalClassesRequired ? String(form.totalClassesRequired) : '—'}
+                    onChange={e => {
+                      const next = [...form.classesByDegree]
+                      while (next.length <= i) next.push(0)
+                      next[i] = e.target.value ? Math.max(0, Number(e.target.value)) : 0
+                      // Trailing blanks fall back to "Total classes".
+                      while (next.length && !next[next.length - 1]) next.pop()
+                      set('classesByDegree', next)
+                    }} style={INP} />
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="flex gap-2 justify-end">
-            <button onClick={() => { setForm(rank); setOpen(false) }}
+            <button onClick={() => { setForm({ ...rank, classesByDegree: rank.classesByDegree ?? [] }); setOpen(false) }}
               style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', color: '#374151', fontSize: 13, cursor: 'pointer' }}>
               Cancel
             </button>
@@ -1742,7 +1778,8 @@ function SystemEditor({ system, onUpdate, onDelete }: {
               system.ranks.map((rank, idx) => (
                 <RankRow key={rank.id} rank={rank} systemId={system.id}
                   onUpdate={updateRank} onDelete={() => deleteRank(rank.id)}
-                  isLast={idx === system.ranks.length - 1} />
+                  isLast={idx === system.ranks.length - 1}
+                  nextRankName={system.ranks[idx + 1]?.name ?? null} />
               ))
             )}
           </div>

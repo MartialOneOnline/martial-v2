@@ -7,14 +7,14 @@ const DAY = 24 * 60 * 60 * 1000
 function rank(p: Partial<RankRules> & { id: string; order: number }): RankRules {
   return {
     name: p.id, color: '#fff', maxDegrees: 4, minAge: null, minMonthsAtPrevious: null,
-    totalClassesRequired: null, classesPerPeriod: null, periodType: null, classTypeIds: [],
+    totalClassesRequired: null, classesByDegree: [], classesPerPeriod: null, periodType: null, classTypeIds: [],
     requireExam: false, requireCompetition: false, ...p,
   }
 }
 
-// Mirrors Roger Gracie Málaga's real configuration.
+// Mirrors Roger Gracie Málaga's V1 configuration: Blanco needs 8 → 16 → 24 → 24 → 24 (to Azul).
 const RGM = [
-  rank({ id: 'blanco', order: 0, totalClassesRequired: 8, classesPerPeriod: 2, periodType: 'WEEK' }),
+  rank({ id: 'blanco', order: 0, totalClassesRequired: 8, classesByDegree: [8, 16, 24, 24, 24], classesPerPeriod: 2, periodType: 'WEEK' }),
   rank({ id: 'azul', order: 1, totalClassesRequired: 30, classesPerPeriod: 2, periodType: 'WEEK', minAge: 16 }),
   rank({ id: 'negro', order: 2, totalClassesRequired: 120, minAge: 19 }),
 ]
@@ -32,8 +32,8 @@ describe('computeReadiness()', () => {
   it('nothing due yet: progress toward the next stripe', () => {
     const r = computeReadiness({ ...base, currentRankId: 'blanco', currentDegree: 1, attended: classes(4) })
     expect(r.due).toBeNull()
-    expect(r.next).toMatchObject({ kind: 'DEGREE', degree: 2, classes: 4, required: 8 })
-    expect(r.percent).toBe(50)
+    expect(r.next).toMatchObject({ kind: 'DEGREE', degree: 2, classes: 4, required: 16 })
+    expect(r.percent).toBe(25)
     expect(r.status).toBe('NOT_READY')
   })
 
@@ -47,14 +47,29 @@ describe('computeReadiness()', () => {
     const r = computeReadiness({ ...base, currentRankId: 'blanco', currentDegree: 0, attended: classes(9) })
     expect(r.status).toBe('READY')
     expect(r.due).toMatchObject({ kind: 'DEGREE', degree: 1, count: 1 })
-    expect(r.next).toMatchObject({ degree: 2, classes: 1, required: 8 })
+    expect(r.next).toMatchObject({ degree: 2, classes: 1, required: 16 })
   })
 
-  it('accumulates several stripes when the student hasn\'t been graded in a while', () => {
-    const r = computeReadiness({ ...base, currentRankId: 'blanco', currentDegree: 0, attended: classes(30, 2) })
+  it('accumulates several stripes, each with its own class count', () => {
+    // 8 + 16 + 24 = 48 → 3 stripes, 2 classes into the 4th (needs 24)
+    const r = computeReadiness({ ...base, currentRankId: 'blanco', currentDegree: 0, attended: classes(50, 1) })
     expect(r.due).toMatchObject({ kind: 'DEGREE', rankName: 'blanco', degree: 3, count: 3 })
-    expect(r.steps.map(s => s.earned)).toEqual([true, true, true, false, false])
-    expect(r.steps[3]).toMatchObject({ degree: 4, classes: 6, required: 8 })
+    expect(r.steps.map(s => [s.required, s.classes, s.earned])).toEqual([
+      [8, 8, true], [16, 16, true], [24, 24, true], [24, 2, false], [24, 0, false],
+    ])
+    expect(r.classesForFirstStep).toBe(8)
+  })
+
+  it('uses the stripe the student is on: Blanco 3 needs 24 for the 4th', () => {
+    const r = computeReadiness({ ...base, currentRankId: 'blanco', currentDegree: 3, attended: classes(23, 1) })
+    expect(r.next).toMatchObject({ degree: 4, classes: 23, required: 24 })
+    expect(r.status).toBe('ALMOST_READY')
+  })
+
+  it('falls back to totalClassesRequired for missing per-stripe entries', () => {
+    const ranks = [rank({ id: 'a', order: 0, maxDegrees: 2, totalClassesRequired: 10, classesByDegree: [5] }), rank({ id: 'b', order: 1 })]
+    const r = computeReadiness({ ...base, ranks, currentRankId: 'a', currentDegree: 0, attended: [] })
+    expect(r.steps.map(s => s.required)).toEqual([5, 10, 10])
   })
 
   it('reaches the next belt after the last stripe, and never goes past it', () => {
@@ -66,7 +81,7 @@ describe('computeReadiness()', () => {
 
   it('a belt blocked by age still leaves the earned stripes due', () => {
     const r = computeReadiness({
-      ...base, currentRankId: 'blanco', currentDegree: 3, attended: classes(20, 2), dateOfBirth: new Date('2011-01-01'),
+      ...base, currentRankId: 'blanco', currentDegree: 3, attended: classes(50, 1), dateOfBirth: new Date('2011-01-01'),
     })
     expect(r.due).toMatchObject({ kind: 'DEGREE', degree: 4, count: 1 })
     expect(r.next).toMatchObject({ kind: 'BELT', earned: false, blockedBy: ['AGE'] })
@@ -74,7 +89,7 @@ describe('computeReadiness()', () => {
   })
 
   it('skips the age rule when the birth date is unknown', () => {
-    const r = computeReadiness({ ...base, currentRankId: 'blanco', currentDegree: 4, attended: classes(9) })
+    const r = computeReadiness({ ...base, currentRankId: 'blanco', currentDegree: 4, attended: classes(25, 1) })
     expect(r.requirements.some(q => q.kind === 'AGE')).toBe(false)
     expect(r.due).toMatchObject({ kind: 'BELT', rankName: 'azul' })
   })
