@@ -292,7 +292,8 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 - `scripts/set-rgm-classes-by-degree.mjs`: pone Blanco de RGM a `[8,16,24,24,24]` (dry run por defecto, `--apply` para escribir). Requiere la migración aplicada.
 - Tests: `__tests__/gradingReadiness.test.ts` (17). Suite: los 55 fallos son los mismos que en `main` limpio (mocks preexistentes).
 - Dato real (lectura, RGM, ACTIVE/FROZEN, 130), **antes** de las cifras por grado: 82 con algo pendiente (41 de cinturón, 37 de ellos Blanco→Azul). Con `[8,16,24,24,24]` todo el blanco pasa de 40 a 96 clases. Hay que re-medirlo tras aplicar la migración y el script.
-- **Antes de mergear:** aplicar la migración `20261026120000_belt_rank_classes_by_degree` en la BD (el build de Vercel no ejecuta migraciones). Si no, el cliente Prisma pide una columna que no existe.
+- **Aplicado en la BD (producción, 2026-10-26)** con el OK del usuario: solo el SQL de `20261026120000_belt_rank_classes_by_degree`, vía `prisma db execute` + `migrate resolve --applied` (no `migrate deploy`, para no tocar `20260907082248_add_invite_tokens` de otra sesión, que ya estaba en la BD pero sin commitear en `main`). `migrate status` → up to date. Script RGM aplicado: solo Blanco → `[8,16,24,24,24]`. **Mergear este PR pronto**: mientras tanto `main` no tiene el archivo de migración y un `migrate dev` desde `main` verá drift — no aceptar el reset.
+- Re-medido tras aplicar (RGM, 130 ACTIVE/FROZEN): 73 con algo pendiente (36 +1 grado, 17 +2, 5 +3, 2 +4, 13 de cinturón — Blanco→Azul bajó de 37 a 9), 14 casi, 40 no, 3 sin reglas.
 
 **Pendientes / a revisar:** Editar el cinturón desde el editor del perfil no crea registro `Grading`. 14 alumnos RGM sin graduación/`beltDate`/`joinedAt` cuentan todo su historial. `/my/profile` "Mis clases" sigue mostrando ≤5 reservas futuras (lado alumno, fuera de alcance). `classTypeIds` no editable en la UI. UI no verificada en navegador (el usuario prueba en local).
 
