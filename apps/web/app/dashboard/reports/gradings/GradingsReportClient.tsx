@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Menu, Search, ChevronRight, ChevronLeft, Download } from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import { downloadCsv } from '../../../../lib/csvExport'
+import ReadinessSection from './ReadinessSection'
 import {
   BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -179,6 +180,8 @@ export default function GradingsReportClient() {
           <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>{t.reports.gradingsTitle}</h1>
           <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>Belt promotions and grading history</p>
         </div>
+
+        <ReadinessSection onGraded={fetchGradings} />
 
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
           {STATS.map(stat => (

@@ -25,7 +25,7 @@ export const getStudentsForSchool = cache(async (schoolId: string) => {
     }),
     prisma.booking.groupBy({
       by: ['userId'],
-      where: { userId: { in: userIds }, status: 'COMPLETED' },
+      where: { userId: { in: userIds }, status: 'COMPLETED', class: { schoolId } },
       _max: { scheduledAt: true },
     }),
   ])

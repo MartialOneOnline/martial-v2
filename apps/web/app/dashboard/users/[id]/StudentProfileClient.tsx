@@ -16,6 +16,8 @@ import RowMenu from '../../../../components/RowMenu'
 import SendWaiverModal from '../../../../components/SendWaiverModal'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import type { Translations } from '../../../../lib/i18n/translations'
+import type { Readiness } from '../../../../lib/grading/readiness'
+import { AttendanceGradingCard } from '../../../../components/GradingReadiness'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type Booking = { id: string; className: string; date: string; status: string; attendedAt: string | null }
@@ -1589,7 +1591,15 @@ function MembershipSection({
 }
 
 // ── Main component ─────────────────────────────────────────────────────────────
-export default function StudentProfileClient({ profile: initialProfile, ranks }: { profile: Profile; ranks: BeltRankInfo[] }) {
+interface AttendanceStats { totalClasses: number; last30Days: number; lastClassDate: string | null }
+
+export default function StudentProfileClient({ profile: initialProfile, ranks, attendanceStats, readiness, lastGradedAt }: {
+  profile: Profile
+  ranks: BeltRankInfo[]
+  attendanceStats: AttendanceStats
+  readiness: Readiness | null
+  lastGradedAt: string | null
+}) {
   const tt = useT()
   const statusMap = getStatusMap(tt)
   const txStatusMap = getTxStatusMap(tt)
@@ -1621,16 +1631,10 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
     : null
   const [bookingsShown, setBookingsShown] = useState(10)
 
-  // bookings arrives sorted desc by date (see page.tsx), so filtering preserves order
-  const attendedBookings = bookings.filter(b => b.status === 'COMPLETED')
-  const totalClasses = attendedBookings.length
-  const now = new Date()
-  // Rolling 30-day window rather than calendar month — a calendar-month count
-  // reads as "0" (looks broken) for the first days of a new month even when
-  // the student trains regularly.
-  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-  const attendanceLast30Days = attendedBookings.filter(b => new Date(b.date) >= thirtyDaysAgo).length
-  const lastClassDate = attendedBookings[0]?.date ?? null
+  // Counted server-side over the full history at this school (page.tsx) —
+  // the bookings list is capped at 50 rows. Last 30 days is a rolling
+  // window, not a calendar month, so it doesn't read "0" on the 1st.
+  const { totalClasses, last30Days: attendanceLast30Days, lastClassDate } = attendanceStats
   const [txShown, setTxShown] = useState(10)
 
   const hasRanks = ranks.length > 0
@@ -1640,14 +1644,14 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
   const beltIdx = hasRanks
     ? (currentRank ? currentRank.order : -1)
     : BELT_ORDER.indexOf(profile.belt)
-  const beltCount = hasRanks ? ranks.length : BELT_ORDER.length
   const beltMaxDegrees = currentRank ? currentRank.maxDegrees : 4
-  const beltProgress = beltIdx >= 0 ? ((beltIdx + (profile.beltDegree / (beltMaxDegrees || 4))) / beltCount) * 100 : 0
   const nextRankName = hasRanks
     ? (ranks.find(r => r.order === beltIdx + 1)?.name ?? tt.studentProfile.lastBeltPlaceholder)
     : (BELT_ORDER[beltIdx + 1] ?? tt.studentProfile.lastBeltPlaceholder)
   const handleSaved = (updates: Partial<Profile>) => {
     setProfile(prev => ({ ...prev, ...updates }))
+    // Readiness depends on belt/stripe — recompute it on the server.
+    router.refresh()
   }
 
   const saveNotes = async () => {
@@ -2024,10 +2028,6 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
                   {profile.beltDegree}/{beltMaxDegrees || 4} {tt.studentProfile.degreesShort}
                 </span>
               </div>
-              {/* Belt bar */}
-              <div style={{ height: 8, background: '#F3F4F6', borderRadius: 999, overflow: 'hidden', marginBottom: 12 }}>
-                <div style={{ height: '100%', width: `${beltProgress}%`, background: belt.bar, borderRadius: 999, transition: 'width .5s' }} />
-              </div>
               {/* Stripes */}
               <div className="flex gap-1.5" style={{ marginBottom: 12 }}>
                 {Array.from({ length: beltMaxDegrees || 4 }, (_, i) => i).map(i => (
@@ -2075,6 +2075,24 @@ export default function StudentProfileClient({ profile: initialProfile, ranks }:
 
           {/* ── Right column ── */}
           <div className="flex flex-col gap-4">
+
+            {/* Attendance & grading — what the student is due, from attendance and the belt rules */}
+            {readiness && (
+              <Card>
+                <CardHeader title={tt.readiness.cardTitle} />
+                <AttendanceGradingCard
+                  readiness={readiness}
+                  lastGradedAt={lastGradedAt}
+                  target={{ userId: profile.userId, name: profile.name, fromBelt: profile.belt, fromBeltRankId: profile.beltRankId }}
+                  onGraded={() => {
+                    const due = readiness.due
+                    if (due) setProfile(prev => ({ ...prev, belt: due.rankName, beltRankId: due.rankId, beltDegree: due.degree, beltDate: new Date().toISOString() }))
+                    router.refresh()
+                  }}
+                  onViewAttendance={() => setAttendanceModalOpen(true)}
+                />
+              </Card>
+            )}
 
             {/* AI Summary — placeholder */}
             <div style={{

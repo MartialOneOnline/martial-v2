@@ -17,7 +17,7 @@ async function authorise() {
       return { error: 'Forbidden', status: 403 }
     }
   }
-  return { schoolId }
+  return { schoolId, userId: user.id }
 }
 
 // GET /api/dashboard/gradings
@@ -112,6 +112,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
 
+  // The graded student must belong to this school.
+  const student = await prisma.schoolMember.findFirst({ where: { userId, schoolId: auth.schoolId }, select: { id: true } })
+  if (!student) return NextResponse.json({ error: 'Member not found' }, { status: 404 })
+
   // Optional FK enrichment — validate the rank belongs to this school before
   // trusting it, and derive the freeform display text from it when the
   // caller didn't send one explicitly (freeform remains the source of truth
@@ -162,6 +166,7 @@ export async function POST(req: NextRequest) {
       gradedAt:       new Date(gradedAt),
       notes:          notes ?? null,
       isPublic:       true,
+      promotedById:   auth.userId,
     },
     include: {
       user:       { select: { name: true, avatarUrl: true } },

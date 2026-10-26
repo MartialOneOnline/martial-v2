@@ -272,6 +272,27 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 > Nota: entre la Sesión 77 (2026-08-06) y esta hay commits en `main` no documentados aquí sesión a sesión (`0fe131e` i18n, `d7c2139` fix migración Prisma, `b20b1bd`/`839f3c5` cancelación de ocurrencias de clase) — no reconstruidos retroactivamente, ver `git log` para el detalle.
 
+### Sesión — 2026-10-26: Grading readiness / tarjeta de asistencia (rama `claude/grading-readiness`, pendiente de Project Audit)
+
+**Problema:** las reglas de cada cinturón (`BeltRank.totalClassesRequired`, `classesPerPeriod`/`periodType`, `minMonthsAtPrevious`, `minAge`, `requireExam`/`requireCompetition`) se guardaban en Settings → Grading pero ningún código las evaluaba. La barra "Belt progress" del perfil era la posición del cinturón en la lista, no asistencia. "Total clases (histórico)" del perfil contaba solo entre las últimas 50 reservas y sin filtrar por escuela.
+
+**Objetivo (usuario):** herramienta de gestión de graduaciones para la escuela. Ver la asistencia y **qué le corresponde** a cada alumno: +1/+2/+3/+4 grados o el siguiente cinturón.
+
+**Semántica confirmada:** `totalClassesRequired` = **clases por graduación** estando en ese cinturón. Desde la última graduación, cada N clases asistidas = siguiente grado; tras el último grado, las siguientes N = cambio de cinturón. Se acumulan pasos (30 clases a 8/grado → +3 grados). **Nunca se pasa del siguiente cinturón.** El paso de cinturón exige además `minAge`/`minMonthsAtPrevious` del rango siguiente; si falla, los grados ganados siguen debiéndose y el cinturón sale "bloqueado". Frecuencia (`classesPerPeriod`) es **informativa, no bloquea** (aviso si va por debajo). Examen/competición = checks manuales. Edad solo si hay `dateOfBirth`.
+
+**Hecho:**
+- `lib/grading/readiness.ts` (puro): `computeReadiness()` → `due` (paso más alto ganado + nº de pasos), `next`, `steps[]` (cada grado restante + siguiente cinturón, con clases X/N, `earned`, `blockedBy`), estado `READY` (algo pendiente) / `ALMOST_READY` (≥75% del siguiente paso) / `NOT_READY` / `NO_RULES` / `TOP_RANK`. Sistemas solo-por-tiempo (sin regla de clases) evalúan solo el cinturón.
+- `lib/grading/readinessData.ts`: `getReadinessForSchool(schoolId, { memberIds? })`. Asistencia = `COMPLETED` o `attendedAt`, solo clases de la escuela. Contador desde la más reciente entre última `Grading` y `beltDate`, si no `joinedAt`. Rango por `beltRankId` o por nombre en el sistema por defecto. Devuelve también `lastGradedAt`, `rankId`, `maxDegrees`.
+- `components/GradingReadiness.tsx`: `AttendanceGradingCard` (le corresponde + botón Graduar, clases desde la última graduación, fecha, "tarjeta" con un punto por clase por grado — barra si >20 —, avisos de bloqueo/frecuencia, enlace al calendario de asistencia), `GradeButton`/`awardDueGrading` (POST `/api/dashboard/gradings` con `toBeltRankId` + `toDegree`), badges. Strings `t.readiness.*` en EN/ES/PT/FR.
+- Perfil del alumno: nueva tarjeta "Asistencia y graduación" arriba de la columna derecha. Stats (total, 30 días, última clase) con `count` sobre todo el historial de la escuela. Lista de reservas filtrada por escuela.
+- Grading report: sección "Grading readiness" arriba — contadores clicables, filtro por cinturón, columnas Le corresponde / Clases (desde graduación / por grado) / Última graduación / botón Graduar. Ordenado por más pasos pendientes. API `GET /api/dashboard/reports/grading-readiness` (`requireDashboardAccess`).
+- `POST /api/dashboard/gradings`: ahora valida que el alumno pertenece a la escuela (404) y guarda `promotedById`.
+- Filtro por escuela en el calendario de asistencia (`/api/dashboard/members/[id]/attendance`) y en "last seen" de la lista de miembros.
+- Tests: `__tests__/gradingReadiness.test.ts` (15). Suite: los 55 fallos son los mismos que en `main` limpio (mocks preexistentes).
+- Dato real (lectura, RGM, ACTIVE/FROZEN, 130): 82 con algo pendiente (15 +1 grado, 17 +2, 4 +3, 5 +4, 41 cinturón — 37 de ellos Blanco→Azul), 9 casi, 36 no, 3 sin reglas.
+
+**Pendientes / a revisar:** con las reglas actuales de RGM (8 clases/grado en Blanco) todo el cinturón blanco son 40 clases → 37 blancos salen "listos para Azul"; puede que la escuela quiera subir esa cifra. Editar el cinturón desde el editor del perfil no crea registro `Grading`. 14 alumnos RGM sin graduación/`beltDate`/`joinedAt` cuentan todo su historial. `/my/profile` "Mis clases" sigue mostrando ≤5 reservas futuras (lado alumno, fuera de alcance). `classTypeIds` no editable en la UI. UI no verificada en navegador (el usuario prueba en local).
+
 ### Sesión 78 — 2026-08-15 (rama `main`, commit `4568a77`, pusheado directo — sin PR)
 
 **Login con Google mostraba el dominio de Supabase en vez del de Martial.** El selector de cuenta de Google decía "Ir a fixipigqxebxferfxlsv.supabase.co" en vez de "Ir a Martial App" porque `supabase.auth.signInWithOAuth('google')` redirige a través del callback propio de Supabase (`https://fixipigqxebxferfxlsv.supabase.co/auth/v1/callback`) antes de volver a la app.
