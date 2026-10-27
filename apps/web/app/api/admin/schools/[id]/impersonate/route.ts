@@ -50,6 +50,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const result = await supabase.auth.admin.generateLink({
       type: 'magiclink',
       email: owner.user.email,
+      // Only hashed_token is used (see below) — the action_link itself is
+      // never handed out, so this redirect is never actually followed.
       options: { redirectTo: `${APP_URL}/dashboard` },
     })
     data = result.data
@@ -58,7 +60,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     errorMessage = e instanceof Error ? e.message : 'Failed to generate login link'
   }
 
-  const actionLink = data?.properties?.action_link
+  // Not Supabase's own action_link: that one redirects back with the session
+  // in the URL #hash (implicit flow), which the app's browser client (PKCE)
+  // rejects — so the superadmin's existing session stayed in place and
+  // /dashboard rendered "No school connected yet". /auth/impersonate instead
+  // redeems the token server-side with verifyOtp, writes the owner's session
+  // cookies and the currentSchoolId for this school, then goes to /dashboard.
+  // Relative so it stays on whichever origin the admin is using.
+  const hashedToken = data?.properties?.hashed_token
+  const actionLink = hashedToken
+    ? `/auth/impersonate?token_hash=${encodeURIComponent(hashedToken)}&school=${encodeURIComponent(id)}`
+    : null
   const targetFields = { targetUserId: owner.user.id, targetEmail: owner.user.email }
 
   if (errorMessage || !actionLink) {

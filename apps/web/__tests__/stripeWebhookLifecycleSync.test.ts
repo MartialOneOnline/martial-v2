@@ -11,6 +11,15 @@
  *    access immediately (the pre-fix bug forced Membership.CANCELLED here).
  *  - a payment success for an ARCHIVED SchoolMember not reactivating them or
  *    granting a new Membership.
+ *  - checkout.session.completed for a user who already has a non-ARCHIVED
+ *    SchoolMember row (e.g. tried a trial class first) not aborting the whole
+ *    transaction — a real incident: create-then-catch-P2002 poisons the
+ *    Postgres transaction even once the JS error is caught, silently rolling
+ *    back the Membership + payment already written earlier in the same tx.
+ *    The shared $transaction mock below reproduces that exact Postgres
+ *    behaviour (any error poisons the rest of the transaction) so this class
+ *    of bug fails loudly here instead of passing against a mock that's nicer
+ *    than the real database.
  *
  * Mocks hold real in-memory shared state (memberships / schoolMembers keyed
  * tables) so the route's actual conditional queries (updateMany WHERE
@@ -36,6 +45,8 @@ vi.mock('@/lib/email/sendEmails', () => ({
   sendEventTicketRefundedEmail: vi.fn().mockResolvedValue(undefined),
 }))
 vi.mock('@/lib/notifications/create', () => ({ notifyPaymentReceived: vi.fn() }))
+const mockAlertWebhookFailure = vi.fn().mockResolvedValue(undefined)
+vi.mock('@/lib/alerts/webhookFailure', () => ({ alertWebhookFailure: (...args: unknown[]) => mockAlertWebhookFailure(...args) }))
 // recordOnlinePayment is mocked away (not the focus of these tests), but
 // recordFlaggedPayment is left as the REAL implementation — its own
 // idempotency guard (pre-check + unique-constraint catch against the fake
@@ -52,7 +63,7 @@ type Membership = {
   stripeSubId?: string | null; stripeInvoiceId?: string | null; cancelledAt?: Date | null; endDate?: Date | null
   planName?: string; currency?: string; [k: string]: unknown
 }
-type SchoolMember = { userId: string; schoolId: string; status: string }
+type SchoolMember = { id: string; userId: string; schoolId: string; status: string }
 
 type TransactionRow = {
   id: string; schoolId: string; userId: string; status: string; amount: number
@@ -82,7 +93,7 @@ function seedMembership(m: Partial<Membership> & { id: string }) {
   memberships[m.id] = { userId: 'user-1', schoolId: 'school-1', status: 'ACTIVE', paymentStatus: 'ACTIVE', paymentStatusAt: null, planName: 'Monthly', currency: 'EUR', ...m }
 }
 function seedSchoolMember(schoolId: string, userId: string, status: string) {
-  schoolMembers[smKey(schoolId, userId)] = { userId, schoolId, status }
+  schoolMembers[smKey(schoolId, userId)] = { id: smKey(schoolId, userId), userId, schoolId, status }
 }
 
 function matchesMembershipWhere(m: Membership, where: Record<string, unknown>): boolean {
@@ -114,7 +125,13 @@ const mockStripeWebhookEventCreate = vi.fn((args: { data: { eventId: string; typ
   webhookEvents[eventId] = { status, updatedAt: Date.now() }
   return Promise.resolve({ id: `we_${eventId}`, eventId, type, status })
 })
-const mockStripeWebhookEventUpdateMany = vi.fn(() => Promise.resolve({ count: 0 }))
+// Mirrors claimStripeEvent's reclaim: a FAILED row flips back to PROCESSING
+// (count 1); anything else is owned by another delivery (count 0).
+const mockStripeWebhookEventUpdateMany = vi.fn((args: { where: { eventId: string } }) => {
+  const row = webhookEvents[args.where.eventId]
+  if (row?.status === 'FAILED') { row.status = 'PROCESSING'; return Promise.resolve({ count: 1 }) }
+  return Promise.resolve({ count: 0 })
+})
 const mockStripeWebhookEventUpdate = vi.fn((args: { where: { eventId: string }; data: { status: string } }) => {
   const row = webhookEvents[args.where.eventId]
   if (row) row.status = args.data.status
@@ -164,8 +181,14 @@ const mockSchoolMemberUpdateMany = vi.fn((args: { where: { userId?: string; scho
 const mockSchoolMemberCreate = vi.fn((args: { data: { schoolId: string; userId: string; status: string } }) => {
   const key = smKey(args.data.schoolId, args.data.userId)
   if (schoolMembers[key]) return Promise.reject(Object.assign(new Error('Unique constraint failed'), { code: 'P2002' }))
-  schoolMembers[key] = { userId: args.data.userId, schoolId: args.data.schoolId, status: args.data.status }
+  schoolMembers[key] = { id: key, userId: args.data.userId, schoolId: args.data.schoolId, status: args.data.status }
   return Promise.resolve(schoolMembers[key])
+})
+const mockSchoolMemberUpdate = vi.fn((args: { where: { id: string }; data: { status: string } }) => {
+  const sm = Object.values(schoolMembers).find(s => s.id === args.where.id)
+  if (!sm) return Promise.reject(new Error('Record to update not found'))
+  Object.assign(sm, args.data)
+  return Promise.resolve({ ...sm })
 })
 
 // Mirrors the real Postgres unique constraint on
@@ -191,11 +214,27 @@ const mockTransactionCreate = vi.fn((args: { data: Record<string, unknown> }) =>
   return Promise.resolve(row)
 })
 
+// Reproduces real Postgres semantics for an explicit multi-statement
+// transaction: once ANY statement errors, the whole transaction is aborted
+// and every subsequent statement fails with "current transaction is aborted"
+// even if the original error was caught in JS — a plain mock that lets each
+// call succeed/fail independently would hide exactly the class of bug this
+// file exists to catch (see header note).
 const mockTransaction = vi.fn((fn: (tx: unknown) => unknown) => {
+  let aborted = false
+  const guard = <A extends unknown[], R>(impl: (...args: A) => Promise<R>) => async (...args: A): Promise<R> => {
+    if (aborted) throw Object.assign(new Error('current transaction is aborted, commands ignored until end of transaction block'), { code: '25P02' })
+    try {
+      return await impl(...args)
+    } catch (err) {
+      aborted = true
+      throw err
+    }
+  }
   const tx = {
-    membership: { findFirst: mockMembershipFindFirst, create: mockMembershipCreate, updateMany: mockMembershipUpdateMany },
-    schoolMember: { findUnique: mockSchoolMemberFindUnique, updateMany: mockSchoolMemberUpdateMany, create: mockSchoolMemberCreate },
-    transaction: { findFirst: mockTransactionFindFirst, create: mockTransactionCreate },
+    membership: { findFirst: guard(mockMembershipFindFirst), create: guard(mockMembershipCreate), updateMany: guard(mockMembershipUpdateMany) },
+    schoolMember: { findUnique: guard(mockSchoolMemberFindUnique), updateMany: guard(mockSchoolMemberUpdateMany), create: guard(mockSchoolMemberCreate), update: guard(mockSchoolMemberUpdate) },
+    transaction: { findFirst: guard(mockTransactionFindFirst), create: guard(mockTransactionCreate) },
   }
   return fn(tx)
 })
@@ -205,6 +244,7 @@ vi.mock('@/lib/db', () => ({
     school: { findUnique: mockSchoolFindUnique, findMany: mockSchoolFindMany },
     stripeWebhookEvent: { create: mockStripeWebhookEventCreate, updateMany: mockStripeWebhookEventUpdateMany, update: mockStripeWebhookEventUpdate },
     membership: { findFirst: mockMembershipFindFirst, findUnique: mockMembershipFindUnique, create: mockMembershipCreate, updateMany: mockMembershipUpdateMany },
+    schoolMember: { findUnique: mockSchoolMemberFindUnique, update: mockSchoolMemberUpdate },
     $transaction: mockTransaction,
   },
 }))
@@ -557,6 +597,28 @@ describe('checkout.session.completed — ARCHIVED member payment success', () =>
     expect(schoolMembers[smKey('school-1', 'user-1')]!.status).toBe('ACTIVE')
     expect(Object.values(transactions)).toHaveLength(0) // no review case
   })
+
+  it('a PENDING SchoolMember from an earlier trial does not abort the transaction (real incident, 2026-09-17: a paid Stripe checkout for a returning trial user rolled back with no trace beyond a FAILED StripeWebhookEvent row)', async () => {
+    seedSchoolMember('school-1', 'user-1', 'PENDING')
+
+    const res = await POST(makeRequest({
+      id: 'evt_trial', type: 'checkout.session.completed',
+      data: {
+        object: {
+          payment_status: 'paid', payment_intent: 'pi_trial', subscription: 'sub_trial',
+          metadata: { schoolId: 'school-1', userId: 'user-1', planId: 'plan-1', planName: 'Jiu Jitsu Mensual', price: '65', currency: 'EUR' },
+        },
+      },
+    }))
+
+    expect(res.status).toBe(200)
+    expect(webhookEvents['evt_trial']?.status).toBe('PROCESSED')
+    expect(Object.values(memberships)).toHaveLength(1)
+    expect(memberships[Object.keys(memberships)[0]!]!.stripeSubId).toBe('sub_trial')
+    expect(schoolMembers[smKey('school-1', 'user-1')]!.status).toBe('ACTIVE')
+    expect(mockSchoolMemberCreate).not.toHaveBeenCalled()
+    expect(mockSchoolMemberUpdate).toHaveBeenCalledWith({ where: { id: smKey('school-1', 'user-1') }, data: { status: 'ACTIVE' } })
+  })
 })
 
 
@@ -613,5 +675,65 @@ describe('school resolution when the event carries no schoolId metadata', () => 
     expect(res.status).toBe(400)
     expect(webhookEvents['evt_forged']).toBeUndefined()
     errSpy.mockRestore()
+  })
+})
+
+
+describe('failure alert', () => {
+  // A checkout for a user whose membership insert blows up inside the transaction.
+  const checkout = (id: string) => makeRequest({
+    id, type: 'checkout.session.completed',
+    data: {
+      object: {
+        payment_status: 'paid', payment_intent: 'pi_alert', subscription: 'sub_alert',
+        customer_details: { email: 'student@test.com' }, amount_total: 18000, currency: 'eur',
+        metadata: { schoolId: 'school-1', userId: 'user-1', planId: 'plan-1', planName: 'Trimestral', price: '180', currency: 'EUR' },
+      },
+    },
+  })
+  const breakMembershipCreate = () => mockMembershipCreate.mockImplementationOnce(() => Promise.reject(new Error('boom: db down')))
+
+  it('alerts once, with the event and payment context, when the first delivery fails', async () => {
+    breakMembershipCreate()
+
+    await expect(POST(checkout('evt_fail1'))).rejects.toThrow('boom: db down')
+
+    expect(webhookEvents['evt_fail1']?.status).toBe('FAILED')
+    expect(mockAlertWebhookFailure).toHaveBeenCalledTimes(1)
+    expect(mockAlertWebhookFailure).toHaveBeenCalledWith(expect.objectContaining({
+      provider: 'Stripe', eventId: 'evt_fail1', eventType: 'checkout.session.completed', error: 'boom: db down',
+      details: expect.objectContaining({ Customer: 'student@test.com', Amount: '180.00 EUR', Plan: 'Trimestral', Subscription: 'sub_alert' }),
+    }))
+  })
+
+  it('does not alert again when Stripe retries the same failed event', async () => {
+    breakMembershipCreate()
+    await expect(POST(checkout('evt_fail2'))).rejects.toThrow()
+    expect(mockAlertWebhookFailure).toHaveBeenCalledTimes(1)
+
+    breakMembershipCreate()
+    await expect(POST(checkout('evt_fail2'))).rejects.toThrow() // retry fails again
+    expect(mockAlertWebhookFailure).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not alert when the event processes fine, or on a retry that succeeds', async () => {
+    breakMembershipCreate()
+    await expect(POST(checkout('evt_ok'))).rejects.toThrow()
+    mockAlertWebhookFailure.mockClear()
+
+    const res = await POST(checkout('evt_ok')) // retry heals
+    expect(res.status).toBe(200)
+    expect(webhookEvents['evt_ok']?.status).toBe('PROCESSED')
+    expect(Object.values(memberships)).toHaveLength(1) // actually reprocessed, not a no-op
+    expect(mockAlertWebhookFailure).not.toHaveBeenCalled()
+  })
+
+  it('still propagates the original error if the alert itself rejects', async () => {
+    // The real helper never throws, but the route must not depend on that for the status it returns.
+    breakMembershipCreate()
+    mockAlertWebhookFailure.mockRejectedValueOnce(new Error('resend down'))
+
+    await expect(POST(checkout('evt_fail3'))).rejects.toThrow()
+    expect(webhookEvents['evt_fail3']?.status).toBe('FAILED')
   })
 })

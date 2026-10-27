@@ -36,6 +36,8 @@ type ActiveMembership = {
   id: string; planName: string; planType: string; status: string; paymentMethod: string
   // Stripe billing health (Membership.paymentStatus); optional because plans assigned client-side are never past due.
   paymentStatus?: string
+  // Set when cancellation is scheduled for period end: access continues until expiresAt.
+  cancelledAt?: string | null
   startDate: string; expiresAt: string | null
   price: number; currency?: string; interval: string | null; consumed: number
 }
@@ -1192,7 +1194,7 @@ function MembershipSection({
   onRenewalCreated: (t: Transaction) => void
   onRenewalPaid: (transactionId: string, newEndDate: string | null) => void
   onRenewalCancelled: (transactionId: string) => void
-  onCancelled: (membershipId: string) => void
+  onCancelled: (membershipId: string, deferredCancelledAt?: string) => void
 }) {
   const tt = useT()
   const memStatusMap = getMemStatusMap(tt)
@@ -1341,6 +1343,14 @@ function MembershipSection({
         body: JSON.stringify({ membershipId: activeMembership.id, action: 'cancel' }),
       })
       if (res.ok) {
+        // The school's cancel policy decides: UNTIL_END_OF_PERIOD keeps the
+        // membership ACTIVE (access continues, Stripe is scheduled to cancel at
+        // period end) — only an immediate cancellation empties the card.
+        const result = await res.json().catch(() => null) as { status?: string; cancelledAt?: string } | null
+        if (result?.status === 'ACTIVE') {
+          onCancelled(activeMembership.id, result.cancelledAt ?? new Date().toISOString())
+          return
+        }
         const updated: MembershipRecord = {
           id: activeMembership.id,
           planName: activeMembership.planName,
@@ -1376,7 +1386,7 @@ function MembershipSection({
               {creatingRenewal ? tt.studentProfile.adding : tt.studentProfile.paymentBtn}
             </button>
           )}
-          {activeMembership && (
+          {activeMembership && !activeMembership.cancelledAt && (
             <button onClick={handleCancel} disabled={cancelling}
               className="flex items-center gap-1"
               style={{ fontSize: 12, fontWeight: 600, color: '#EF4444', background: '#FEF2F2', border: 'none',
@@ -1403,8 +1413,8 @@ function MembershipSection({
             border: `1px solid ${isPastDue ? '#FDE68A' : '#BBF7D0'}`,
             borderRadius: 12, padding: '14px 16px', marginBottom: 12,
           }}>
-            <div className="flex items-start justify-between">
-              <div>
+            <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
+              <div style={{ minWidth: 0 }}>
                 <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: '0 0 2px' }}>{activeMembership.planName}</p>
                 {editingDates ? (
                   <div style={{ marginTop: 4 }}>
@@ -1432,9 +1442,16 @@ function MembershipSection({
                     {dateError && <p style={{ fontSize: 11, color: '#EF4444', margin: '4px 0 0' }}>{dateError}</p>}
                   </div>
                 ) : (
-                  <p className="flex items-center gap-1.5" style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>
-                    {tt.studentProfile.started} {new Date(activeMembership.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                    {activeMembership.expiresAt && ` · ${tt.studentProfile.expiresLabel} ${new Date(activeMembership.expiresAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`}
+                  <p className="flex flex-wrap items-center gap-x-1.5" style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>
+                    <span style={{ whiteSpace: 'nowrap' }}>
+                      {tt.studentProfile.started} {new Date(activeMembership.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      {activeMembership.expiresAt && ' ·'}
+                    </span>
+                    {activeMembership.expiresAt && (
+                      <span style={{ whiteSpace: 'nowrap' }}>
+                        {tt.studentProfile.expiresLabel} {new Date(activeMembership.expiresAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      </span>
+                    )}
                     {activeMembership.paymentMethod === 'CASH' && (
                       <button onClick={openDateEdit} title={tt.studentProfile.editDatesTitle}
                         style={{ display: 'inline-flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: '#9CA3AF' }}>
@@ -1469,6 +1486,20 @@ function MembershipSection({
               <p style={{ fontSize: 12, color: '#B45309', margin: '10px 0 0' }}>
                 {tt.studentProfile.paymentFailedHint}
               </p>
+            )}
+
+            {/* Scheduled cancellation — access continues until the period ends */}
+            {activeMembership.cancelledAt && activeMembership.expiresAt && (
+              <div className="flex items-center gap-2" style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #BBF7D0' }}>
+                <Clock size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
+                <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>
+                  {tt.studentProfile.cancelsOn}{' '}
+                  <span style={{ fontWeight: 600, color: '#111827' }}>
+                    {new Date(activeMembership.expiresAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                  </span>
+                  {' · '}{tt.studentProfile.accessUntilThen}
+                </p>
+              </div>
             )}
 
             {/* Usage bar — only for class-pack plans (SINGLE_PASS/TRIAL); a
@@ -1857,7 +1888,7 @@ export default function StudentProfileClient({ profile: initialProfile, ranks, a
       </div>
 
       <div className="px-4 md:px-8 py-6" style={{ maxWidth: 1100, margin: '0 auto' }}>
-        <div className="grid gap-5 grid-cols-1 md:grid-cols-[300px_1fr]">
+        <div className="grid gap-5 grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)]">
 
           {/* ── Left column ── */}
           <div className="flex flex-col gap-4">
@@ -2161,8 +2192,8 @@ export default function StudentProfileClient({ profile: initialProfile, ranks, a
               onRenewalCancelled={transactionId => {
                 setTransactions(prev => prev.map(t => t.id === transactionId ? { ...t, status: 'CANCELLED' } : t))
               }}
-              onCancelled={membershipId => {
-                setActiveMembership(null)
+              onCancelled={(membershipId, deferredCancelledAt) => {
+                setActiveMembership(prev => deferredCancelledAt && prev ? { ...prev, cancelledAt: deferredCancelledAt } : null)
                 setTransactions(prev => prev.map(t =>
                   t.membershipId === membershipId && t.status === 'PENDING' ? { ...t, status: 'CANCELLED' } : t
                 ))
@@ -2170,7 +2201,7 @@ export default function StudentProfileClient({ profile: initialProfile, ranks, a
             />
 
             {/* Bookings + Transactions side by side */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
 
               {/* Bookings — full list with show more */}
               <Card>

@@ -88,6 +88,13 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 - Momento: migración de V2 a `martialapp.com`.
 - Criterio futuro: configuración Supabase/proveedor, callback de dominio final, login/cancelación/error, vinculación de cuenta existente y prueba end-to-end por proveedor.
 
+### Lote E — Grading readiness / tarjeta de asistencia (PR #33)
+
+- Estado: **`APROBADO CON PENDIENTES`** (Codex sobre `9dd32a5`).
+- Historial: `RECHAZADO` sobre `83d6045` (P1 meses desde `joinedAt`, P1 huecos en `classesByDegree`, P2 `TOP_RANK` sin clases, P2 sección del report desaparecía con error) → corregido en `67710f9`. Reauditoría `RECHAZADO` (P1 cinturón homónimo de otro sistema, P2 grado sin `fromBelt` como cambio de cinturón) → corregido en `9dd32a5`.
+- Confirmado por Codex: 32/32 tests del lote + 4 pruebas propias del cargador, TypeScript/ESLint/`git diff --check`, suite 821 pasan / 55 preexistentes idénticos, UI del report validada en Chromium con API simulada (error → reintento, graduar → fallo de refresco → aviso).
+- Pendiente: recorrido autenticado con persistencia real en BD (graduar desde perfil/report y comprobar el registro `Grading`). La migración `20261026120000_belt_rank_classes_by_degree` ya está aplicada en la BD compartida — mergear pronto para evitar drift.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.
