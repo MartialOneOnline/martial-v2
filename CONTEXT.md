@@ -302,6 +302,11 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 - P2 un error del GET hacía desaparecer la sección del report → estado de error traducido con "Reintentar"; si falla el refresco tras graduar, aviso de datos desactualizados.
 - Tests: 27 + 2 (loader). Suite 818 pasan / mismos 55 preexistentes. RGM re-medido: sin cambios (no usa meses ni tiene huecos).
 
+**Project Audit — reauditoría `RECHAZADO` sobre `67710f9`** (1 P1 + 1 P2, ambos en `pickBeltSince()`), corregido en el commit siguiente:
+- P1 cinturón homónimo de otro sistema ("White" en A y B) coincidía por nombre aunque su `toBeltRankId` apuntara a otro rango → la identidad estructurada manda: si el registro y el miembro tienen rank id, solo cuenta la igualdad de ids; el nombre solo se usa para registros legacy sin `toBeltRankId`.
+- P2 un grado (>0) con `fromBelt=null` se trataba como cambio de cinturón → solo hay cambio con evidencia positiva: grado 0/null, o `fromBelt` conocido y distinto. Grados con origen desconocido son solo cota inferior (el más antiguo).
+- 3 tests nuevos (dos sistemas con nombres compartidos + cálculo completo bloqueado, legacy por nombre, grados sin origen). Suite 821 pasan / mismos 55.
+
 **Pendientes / a revisar:** Editar el cinturón desde el editor del perfil no crea registro `Grading`. 14 alumnos RGM sin graduación/`beltDate`/`joinedAt` cuentan todo su historial. `/my/profile` "Mis clases" sigue mostrando ≤5 reservas futuras (lado alumno, fuera de alcance). `classTypeIds` no editable en la UI. UI no verificada en navegador (el usuario prueba en local).
 
 ### Sesión 78 — 2026-08-15 (rama `main`, commit `4568a77`, pusheado directo — sin PR)

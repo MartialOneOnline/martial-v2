@@ -115,7 +115,7 @@ export interface GradingRecord {
 /**
  * Date the student's CURRENT belt was awarded, for "months at belt".
  * Never uses the school join date, and never mistakes a stripe for a belt:
- *  1. latest grading INTO the current belt from another belt (or to degree 0)
+ *  1. latest grading INTO the current belt from a known other belt, or to degree 0
  *  2. else the earliest stripe grading at the current belt — the belt is at
  *     least that old, so it's a safe lower bound
  *  3. else member.beltDate (import / profile editor "promotion date")
@@ -128,10 +128,19 @@ export function pickBeltSince(input: {
   beltDate: Date | null
 }): Date | null {
   const names = input.beltNames.map(n => n.trim().toLowerCase()).filter(Boolean)
-  const atCurrent = (g: GradingRecord) =>
-    (input.rankId && g.toBeltRankId === input.rankId) || names.includes(g.toBelt.trim().toLowerCase())
+  // Structured identity wins: a record whose FK names another rank never
+  // matches by name (two systems can both have a "White"). Name matching is
+  // only for legacy records without toBeltRankId.
+  const atCurrent = (g: GradingRecord) => {
+    if (g.toBeltRankId && input.rankId) return g.toBeltRankId === input.rankId
+    return names.includes(g.toBelt.trim().toLowerCase())
+  }
+  // Only positive evidence counts as a belt change: landing on the plain belt
+  // (degree 0/null), or a known origin belt that differs. A stripe with an
+  // unknown origin is not one — it only proves the belt was already held.
   const isBeltChange = (g: GradingRecord) =>
-    !g.toDegree || !g.fromBelt || g.fromBelt.trim().toLowerCase() !== g.toBelt.trim().toLowerCase()
+    !g.toDegree ||
+    (!!g.fromBelt && g.fromBelt.trim().toLowerCase() !== g.toBelt.trim().toLowerCase())
 
   const here = input.gradings.filter(atCurrent).sort((a, b) => a.gradedAt.getTime() - b.gradedAt.getTime())
   const beltChanges = here.filter(isBeltChange)

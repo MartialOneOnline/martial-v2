@@ -234,6 +234,43 @@ describe('pickBeltSince()', () => {
     expect(d?.toISOString().slice(0, 10)).toBe('2025-05-05')
   })
 
+  it('audit r2: a same-named belt from another system never matches when the FK points elsewhere', () => {
+    const beltSince = pickBeltSince({
+      gradings: [g({ gradedAt: '2020-01-01', fromBelt: null, toBelt: 'White', toBeltRankId: 'system-A-white', toDegree: 0 })],
+      rankId: 'system-B-white', beltNames: ['White'], beltDate: new Date('2026-10-01T00:00:00Z'),
+    })
+    expect(beltSince?.toISOString().slice(0, 10)).toBe('2026-10-01')
+    const ranks = [
+      rank({ id: 'system-B-white', order: 0, maxDegrees: 0, totalClassesRequired: 1 }),
+      rank({ id: 'system-B-blue', order: 1, minMonthsAtPrevious: 6 }),
+    ]
+    const r = computeReadiness({
+      ...base, ranks, currentRankId: 'system-B-white', currentDegree: 0, beltSince,
+      now: new Date('2026-10-27T12:00:00Z'), attended: [{ scheduledAt: new Date('2026-10-20T10:00:00Z'), classId: 'c', disciplineId: null }],
+    })
+    expect(r.requirements.find(q => q.kind === 'MONTHS')).toMatchObject({ current: 0, met: false })
+    expect(r.status).not.toBe('READY')
+  })
+
+  it('still matches legacy records without a rank id by name', () => {
+    const d = pickBeltSince({
+      gradings: [g({ gradedAt: '2024-02-02', fromBelt: 'Blanco', toBelt: 'azul ', toBeltRankId: null, toDegree: 0 })],
+      rankId: 'azul-id', beltNames: ['Azul'], beltDate: null,
+    })
+    expect(d?.toISOString().slice(0, 10)).toBe('2024-02-02')
+  })
+
+  it('audit r2: stripes with an unknown origin belt are not belt changes → earliest is the lower bound', () => {
+    const d = pickBeltSince({
+      gradings: [
+        g({ gradedAt: '2025-01-15', fromBelt: null, toBelt: 'Azul', toBeltRankId: 'azul-id', toDegree: 1 }),
+        g({ gradedAt: '2026-10-15', fromBelt: null, toBelt: 'Azul', toBeltRankId: 'azul-id', toDegree: 2 }),
+      ],
+      rankId: 'azul-id', beltNames: ['Azul'], beltDate: null,
+    })
+    expect(d?.toISOString().slice(0, 10)).toBe('2025-01-15')
+  })
+
   it('returns null when nothing is known (never the join date)', () => {
     expect(pickBeltSince({ gradings: [], rankId: 'x', beltNames: ['Azul'], beltDate: null })).toBeNull()
   })
