@@ -6,7 +6,7 @@ import { useLanguage } from '../../../../lib/i18n/LanguageContext'
 import type { ReadinessStatus } from '../../../../lib/grading/readiness'
 import type { MemberReadiness } from '../../../../lib/grading/readinessData'
 import {
-  READINESS_STYLE, ReadinessBadge, ReadinessBar, GradeButton, dueLabel, readinessLabel, toNextLabel,
+  READINESS_STYLE, ReadinessBadge, ReadinessBar, GradeButton, dueLabel, incompleteLabel, readinessLabel, toNextLabel,
 } from '../../../../components/GradingReadiness'
 
 type Counts = Record<ReadinessStatus, number>
@@ -25,6 +25,8 @@ export default function ReadinessSection({ onGraded }: { onGraded?: () => void }
   const [students, setStudents] = useState<MemberReadiness[]>([])
   const [counts, setCounts] = useState<Counts | null>(null)
   const [loading, setLoading] = useState(true)
+  /** 'load' = never loaded (show error + retry); 'refresh' = showing older data that failed to refresh */
+  const [error, setError] = useState<null | 'load' | 'refresh'>(null)
   const [filter, setFilter] = useState<Filter>('READY')
   const [belt, setBelt] = useState('ALL')
   const [shown, setShown] = useState(PAGE)
@@ -32,17 +34,23 @@ export default function ReadinessSection({ onGraded }: { onGraded?: () => void }
 
   const load = useCallback(() => {
     fetch('/api/dashboard/reports/grading-readiness')
-      .then(r => (r.ok ? r.json() : null))
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`)
+        return r.json()
+      })
       .then(d => {
-        if (!d) return
+        setError(null)
         setStudents(d.students)
         setCounts(d.counts)
         // First open: land on the most useful non-empty group.
         if (firstLoad.current && !d.counts.READY) setFilter(d.counts.ALMOST_READY ? 'ALMOST_READY' : 'ALL')
         firstLoad.current = false
       })
+      .catch(() => setError(firstLoad.current ? 'load' : 'refresh'))
       .finally(() => setLoading(false))
   }, [])
+
+  const retry = () => { setLoading(true); setError(null); load() }
 
   useEffect(() => { load() }, [load])
 
@@ -52,7 +60,23 @@ export default function ReadinessSection({ onGraded }: { onGraded?: () => void }
     return [...seen.entries()]
   }, [students])
 
-  if (!loading && (!counts || counts.READY + counts.ALMOST_READY + counts.NOT_READY === 0)) return null
+  if (error === 'load') {
+    return (
+      <div className="rounded-2xl px-5 py-5 flex items-center justify-between gap-3" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+        <div>
+          <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0 }}>{rt.title}</p>
+          <p style={{ fontSize: 13, color: '#DC2626', margin: '4px 0 0' }}>{rt.loadError}</p>
+        </div>
+        <button onClick={retry} disabled={loading} className="cursor-pointer shrink-0"
+          style={{ fontSize: 13, fontWeight: 600, padding: '7px 14px', borderRadius: 999, border: '1px solid #E5E7EB', background: '#fff', color: '#111827' }}>
+          {loading ? '…' : rt.retry}
+        </button>
+      </div>
+    )
+  }
+
+  // Loaded fine but the school has no grading rules / no students to track.
+  if (!loading && counts && counts.READY + counts.ALMOST_READY + counts.NOT_READY === 0) return null
 
   const visible = students.filter(s =>
     (filter === 'ALL' || s.readiness.status === filter) && (belt === 'ALL' || s.rankName === belt))
@@ -64,6 +88,13 @@ export default function ReadinessSection({ onGraded }: { onGraded?: () => void }
       <div className="px-5 pt-5 pb-4">
         <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0 }}>{rt.title}</p>
         <p style={{ fontSize: 12, color: '#9CA3AF', margin: '2px 0 0' }}>{rt.subtitle}</p>
+        {error === 'refresh' && (
+          <div className="flex items-center justify-between gap-3 rounded-xl" style={{ marginTop: 12, padding: '8px 12px', background: '#FEF3C7', border: '1px solid #FDE68A' }}>
+            <span style={{ fontSize: 12, color: '#92400E' }}>{rt.staleWarning}</span>
+            <button onClick={retry} className="cursor-pointer shrink-0"
+              style={{ fontSize: 12, fontWeight: 600, color: '#92400E', background: 'none', border: 'none', padding: 0 }}>{rt.retry}</button>
+          </div>
+        )}
 
         <div className="grid grid-cols-3 gap-3" style={{ marginTop: 16 }}>
           {(['READY', 'ALMOST_READY', 'NOT_READY'] as const).map(st => {
@@ -150,6 +181,8 @@ export default function ReadinessSection({ onGraded }: { onGraded?: () => void }
                   <td className="px-4 py-3" style={{ minWidth: 190 }}>
                     {due ? (
                       <span style={{ fontSize: 13, fontWeight: 600, color: '#15803D' }}>{due}</span>
+                    ) : r.status === 'NO_RULES' && r.incompleteRules ? (
+                      <span style={{ fontSize: 11, color: '#B45309' }}>{incompleteLabel(r, rt)}</span>
                     ) : r.status === 'NO_RULES' || r.status === 'TOP_RANK' ? (
                       <ReadinessBadge status={r.status} />
                     ) : (

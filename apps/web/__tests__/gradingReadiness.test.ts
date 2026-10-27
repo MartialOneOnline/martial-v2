@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { computeReadiness, type RankRules, type AttendedClass } from '../lib/grading/readiness'
+import { computeReadiness, pickBeltSince, type RankRules, type AttendedClass, type GradingRecord } from '../lib/grading/readiness'
 
 const NOW = new Date('2026-10-26T12:00:00Z')
 const DAY = 24 * 60 * 60 * 1000
@@ -142,5 +142,99 @@ describe('computeReadiness()', () => {
   it('lists exam / competition for the next belt as manual checks', () => {
     const ranks = [rank({ id: 'a', order: 0, totalClassesRequired: 1 }), rank({ id: 'b', order: 1, requireExam: true })]
     expect(computeReadiness({ ...base, ranks, currentRankId: 'a', currentDegree: 4, attended: classes(1) }).manualChecks).toEqual(['EXAM'])
+  })
+
+  // ── Project Audit PR #33 regressions ────────────────────────────────────
+
+  it('top rank keeps the real attendance count', () => {
+    const r = computeReadiness({ ...base, currentRankId: 'negro', currentDegree: 4, attended: classes(7) })
+    expect(r.status).toBe('TOP_RANK')
+    expect(r.classesSince).toBe(7)
+  })
+
+  it('a leading gap without fallback stops the walk — the belt is never offered', () => {
+    const ranks = [rank({ id: 'a', order: 0, maxDegrees: 2, classesByDegree: [0, 16, 24] }), rank({ id: 'b', order: 1 })]
+    const r = computeReadiness({ ...base, ranks, currentRankId: 'a', currentDegree: 0, attended: classes(24, 1) })
+    expect(r.steps).toEqual([])
+    expect(r.due).toBeNull()
+    expect(r.status).toBe('NO_RULES')
+    expect(r.incompleteRules).toEqual({ kind: 'DEGREE', degree: 1, rankName: 'a' })
+  })
+
+  it('an intermediate gap keeps earned stripes but evaluates nothing past it', () => {
+    const ranks = [rank({ id: 'a', order: 0, maxDegrees: 2, classesByDegree: [8, 0, 24] }), rank({ id: 'b', order: 1 })]
+    const r = computeReadiness({ ...base, ranks, currentRankId: 'a', currentDegree: 0, attended: classes(100, 1) })
+    expect(r.steps.map(s => s.degree)).toEqual([1])
+    expect(r.due).toMatchObject({ kind: 'DEGREE', degree: 1, count: 1 })
+    expect(r.incompleteRules).toMatchObject({ kind: 'DEGREE', degree: 2 })
+  })
+
+  it('a missing belt count without fallback never offers the belt', () => {
+    const ranks = [rank({ id: 'a', order: 0, maxDegrees: 2, classesByDegree: [8, 16] }), rank({ id: 'b', order: 1 })]
+    const r = computeReadiness({ ...base, ranks, currentRankId: 'a', currentDegree: 2, attended: classes(100, 1) })
+    expect(r.steps).toEqual([])
+    expect(r.incompleteRules).toMatchObject({ kind: 'BELT', rankName: 'b' })
+  })
+
+  it('unknown belt date blocks a months rule instead of passing it', () => {
+    const ranks = [rank({ id: 'a', order: 0, maxDegrees: 0, totalClassesRequired: 2 }), rank({ id: 'b', order: 1, minMonthsAtPrevious: 6 })]
+    const r = computeReadiness({ ...base, ranks, currentRankId: 'a', currentDegree: 0, beltSince: null, attended: classes(5) })
+    expect(r.requirements.find(q => q.kind === 'MONTHS')).toMatchObject({ met: false, unknown: true })
+    expect(r.due).toBeNull()
+    expect(r.next).toMatchObject({ kind: 'BELT', blockedBy: ['MONTHS'] })
+  })
+})
+
+describe('pickBeltSince()', () => {
+  const g = (p: Partial<Omit<GradingRecord, 'gradedAt'>> & { gradedAt: string }): GradingRecord =>
+    ({ fromBelt: null, toBelt: 'Azul', toBeltRankId: null, toDegree: 0, ...p, gradedAt: new Date(p.gradedAt) })
+
+  it('audit case: no gradings, joined 2020, belt awarded 2026-10-01 → belt date, still blocked at 6 months', () => {
+    const beltSince = pickBeltSince({ gradings: [], rankId: 'b', beltNames: ['b'], beltDate: new Date('2026-10-01T00:00:00Z') })
+    expect(beltSince?.toISOString().slice(0, 10)).toBe('2026-10-01')
+    const ranks = [rank({ id: 'a', order: 0, maxDegrees: 0, totalClassesRequired: 2 }), rank({ id: 'b', order: 1 }), rank({ id: 'c', order: 2, minMonthsAtPrevious: 6 })]
+    const r = computeReadiness({
+      ...base, ranks, currentRankId: 'b', currentDegree: 4, beltSince,
+      now: new Date('2026-10-27T12:00:00Z'), attended: [],
+    })
+    expect(r.requirements.find(q => q.kind === 'MONTHS')).toMatchObject({ current: 0, met: false })
+    expect(r.due).toBeNull()
+  })
+
+  it('uses the latest belt change into the current belt, not a later stripe', () => {
+    const d = pickBeltSince({
+      gradings: [
+        g({ gradedAt: '2025-01-10', fromBelt: 'Blanco', toBelt: 'Azul', toDegree: 0 }),
+        g({ gradedAt: '2025-09-01', fromBelt: 'Azul', toBelt: 'Azul', toDegree: 1 }),
+      ],
+      rankId: 'azul-id', beltNames: ['Azul'], beltDate: new Date('2025-09-01'),
+    })
+    expect(d?.toISOString().slice(0, 10)).toBe('2025-01-10')
+  })
+
+  it('with only stripe gradings at the current belt, uses the earliest as a lower bound', () => {
+    const d = pickBeltSince({
+      gradings: [
+        g({ gradedAt: '2025-09-01', fromBelt: 'Azul', toBelt: 'Azul', toDegree: 2 }),
+        g({ gradedAt: '2025-03-01', fromBelt: 'Azul', toBelt: 'Azul', toDegree: 1 }),
+      ],
+      rankId: null, beltNames: ['azul'], beltDate: new Date('2025-09-01'),
+    })
+    expect(d?.toISOString().slice(0, 10)).toBe('2025-03-01')
+  })
+
+  it('ignores gradings to other belts and matches by rank id', () => {
+    const d = pickBeltSince({
+      gradings: [
+        g({ gradedAt: '2024-01-01', fromBelt: null, toBelt: 'Blanco', toDegree: 0 }),
+        g({ gradedAt: '2025-05-05', fromBelt: 'Blanco', toBelt: 'Blue', toBeltRankId: 'azul-id', toDegree: 0 }),
+      ],
+      rankId: 'azul-id', beltNames: ['Azul'], beltDate: null,
+    })
+    expect(d?.toISOString().slice(0, 10)).toBe('2025-05-05')
+  })
+
+  it('returns null when nothing is known (never the join date)', () => {
+    expect(pickBeltSince({ gradings: [], rankId: 'x', beltNames: ['Azul'], beltDate: null })).toBeNull()
   })
 })

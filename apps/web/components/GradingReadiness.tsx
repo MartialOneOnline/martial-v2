@@ -31,8 +31,13 @@ export function dueLabel(r: Readiness, rt: RT): string | null {
     .replace('{n}', String(d.count)).replace('{belt}', d.rankName).replace('{deg}', String(d.degree))
 }
 
-export function stepLabel(s: GradingStep, rt: RT): string {
+export function stepLabel(s: Pick<GradingStep, 'kind' | 'rankName' | 'degree'>, rt: RT): string {
   return s.kind === 'BELT' ? rt.beltStep.replace('{belt}', s.rankName) : rt.stripeN.replace('{n}', String(s.degree))
+}
+
+/** "Rules incomplete: no class count for Stripe 2" — null when the config is complete */
+export function incompleteLabel(r: Readiness, rt: RT): string | null {
+  return r.incompleteRules ? rt.incompleteRules.replace('{step}', stepLabel(r.incompleteRules, rt)) : null
 }
 
 /** "6 classes to Stripe 4" — null when the next step isn't measured in classes */
@@ -166,8 +171,11 @@ export function AttendanceGradingCard({ readiness, lastGradedAt, target, onGrade
   const fmt = (iso: string) => new Date(iso).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })
 
   if (readiness.status === 'TOP_RANK') return <ReadinessBadge status="TOP_RANK" />
+  const incomplete = incompleteLabel(readiness, rt)
   if (readiness.status === 'NO_RULES') {
-    return <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>{rt.noRulesHint}</p>
+    return incomplete
+      ? <p className="flex items-center gap-1.5" style={{ fontSize: 12, color: '#B45309', margin: 0 }}><AlertTriangle size={12} /> {incomplete}</p>
+      : <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>{rt.noRulesHint}</p>
   }
 
   const due = dueLabel(readiness, rt)
@@ -214,14 +222,22 @@ export function AttendanceGradingCard({ readiness, lastGradedAt, target, onGrade
         const gate = blockedStep.blockedBy[0]!
         const q = readiness.requirements.find(r => r.kind === gate)
         if (!q) return null
-        const text = (gate === 'AGE' ? rt.blockedAge : rt.blockedMonths)
-          .replace('{current}', String(q.current)).replace('{required}', String(q.required))
+        const text = q.unknown
+          ? rt.beltDateUnknown
+          : (gate === 'AGE' ? rt.blockedAge : rt.blockedMonths)
+              .replace('{current}', String(q.current)).replace('{required}', String(q.required))
         return (
           <p className="flex items-center gap-1.5" style={{ fontSize: 12, color: '#B45309', margin: 0 }}>
             <Lock size={12} /> {text}
           </p>
         )
       })()}
+
+      {incomplete && (
+        <p className="flex items-center gap-1.5" style={{ fontSize: 12, color: '#B45309', margin: 0 }}>
+          <AlertTriangle size={12} /> {incomplete}
+        </p>
+      )}
 
       {freq && !freq.met && (
         <p className="flex items-center gap-1.5" style={{ fontSize: 12, color: '#B45309', margin: 0 }}>

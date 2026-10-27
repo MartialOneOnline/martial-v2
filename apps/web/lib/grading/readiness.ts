@@ -26,6 +26,8 @@ export interface Requirement {
   met: boolean
   /** FREQUENCY only */
   periodType?: 'WEEK' | 'MONTH'
+  /** MONTHS only: the current belt's award date isn't known — treated as not met */
+  unknown?: boolean
 }
 
 export interface GradingStep {
@@ -74,7 +76,7 @@ export interface ReadinessInput {
   currentDegree: number
   /** Start of the count: last grading, else belt date, else join date */
   countSince: Date | null
-  /** When the current belt (not stripe) was awarded — for months-at-belt */
+  /** When the current belt (not stripe) was awarded — see pickBeltSince(). null = unknown */
   beltSince: Date | null
   dateOfBirth: Date | null
   attended: AttendedClass[]
@@ -97,7 +99,45 @@ export interface Readiness {
   classesSince: number
   /** Classes the very next grading needs (from the current stripe) */
   classesForFirstStep: number | null
+  /** The belt has class rules but this grading has no count and no fallback — nothing past it is evaluated */
+  incompleteRules: { kind: 'DEGREE' | 'BELT'; degree: number; rankName: string } | null
   countSince: string | null
+}
+
+export interface GradingRecord {
+  gradedAt: Date
+  fromBelt: string | null
+  toBelt: string
+  toBeltRankId: string | null
+  toDegree: number | null
+}
+
+/**
+ * Date the student's CURRENT belt was awarded, for "months at belt".
+ * Never uses the school join date, and never mistakes a stripe for a belt:
+ *  1. latest grading INTO the current belt from another belt (or to degree 0)
+ *  2. else the earliest stripe grading at the current belt — the belt is at
+ *     least that old, so it's a safe lower bound
+ *  3. else member.beltDate (import / profile editor "promotion date")
+ *  4. else null → unknown, and the months rule counts as not met
+ */
+export function pickBeltSince(input: {
+  gradings: GradingRecord[]
+  rankId: string | null
+  beltNames: string[]
+  beltDate: Date | null
+}): Date | null {
+  const names = input.beltNames.map(n => n.trim().toLowerCase()).filter(Boolean)
+  const atCurrent = (g: GradingRecord) =>
+    (input.rankId && g.toBeltRankId === input.rankId) || names.includes(g.toBelt.trim().toLowerCase())
+  const isBeltChange = (g: GradingRecord) =>
+    !g.toDegree || !g.fromBelt || g.fromBelt.trim().toLowerCase() !== g.toBelt.trim().toLowerCase()
+
+  const here = input.gradings.filter(atCurrent).sort((a, b) => a.gradedAt.getTime() - b.gradedAt.getTime())
+  const beltChanges = here.filter(isBeltChange)
+  if (beltChanges.length) return beltChanges[beltChanges.length - 1]!.gradedAt
+  if (here.length) return here[0]!.gradedAt
+  return input.beltDate
 }
 
 export const ALMOST_READY_THRESHOLD = 75
@@ -137,18 +177,20 @@ export function computeReadiness(input: ReadinessInput): Readiness {
 
   const result = (r: Partial<Readiness> & { status: ReadinessStatus }): Readiness => ({
     percent: null, due: null, next: null, steps: [], requirements: [], manualChecks: [],
-    classesSince: 0, classesForFirstStep: null, countSince: since ? since.toISOString() : null, ...r,
+    classesSince: 0, classesForFirstStep: null, incompleteRules: null, countSince: since ? since.toISOString() : null, ...r,
   })
 
   if (!current) return result({ status: 'NO_RULES' })
 
   const nextRank = ranks.find(r => r.order > current.order) ?? null
   const degree = Math.min(input.currentDegree, current.maxDegrees)
-  if (degree >= current.maxDegrees && !nextRank) return result({ status: 'TOP_RANK' })
 
   const counted = input.attended.filter(c =>
     c.scheduledAt <= now && (!since || c.scheduledAt >= since) && classCounts(current, c))
   const classesSince = counted.length
+
+  // Nothing left to grade — but the attendance count is still real.
+  if (degree >= current.maxDegrees && !nextRank) return result({ status: 'TOP_RANK', classesSince })
   /** Classes needed to go from stripe `d` to the next step at this belt — null = not a rule */
   const requiredFrom = (d: number): number | null => {
     // 0 / missing = not set for this stripe → use the belt's default
@@ -161,10 +203,15 @@ export function computeReadiness(input: ReadinessInput): Readiness {
   // ── Belt gates (next rank) ────────────────────────────────────────────────
   const blockedBy: Array<'AGE' | 'MONTHS'> = []
   if (nextRank?.minMonthsAtPrevious && nextRank.minMonthsAtPrevious > 0) {
+    // Unknown belt date → can't prove the time at belt, so it doesn't pass.
+    const unknown = !input.beltSince
     const months = input.beltSince ? wholeMonthsBetween(input.beltSince, now) : 0
-    const met = months >= nextRank.minMonthsAtPrevious
+    const met = !unknown && months >= nextRank.minMonthsAtPrevious
     if (!met) blockedBy.push('MONTHS')
-    requirements.push({ kind: 'MONTHS', current: months, required: nextRank.minMonthsAtPrevious, percent: pct(months, nextRank.minMonthsAtPrevious), met })
+    requirements.push({
+      kind: 'MONTHS', current: months, required: nextRank.minMonthsAtPrevious,
+      percent: unknown ? 0 : pct(months, nextRank.minMonthsAtPrevious), met, ...(unknown && { unknown: true }),
+    })
   }
   // An unknown birth date doesn't block — many schools never collected it.
   if (nextRank?.minAge && nextRank.minAge > 0 && input.dateOfBirth) {
@@ -189,17 +236,27 @@ export function computeReadiness(input: ReadinessInput): Readiness {
       blockedBy: enoughClasses ? gates : [],
     })
   }
-  // Stripes need a classes rule to be measured — stop at the first one without.
-  for (let d = degree; d < current.maxDegrees; d++) {
-    const req = requiredFrom(d)
-    if (!req) break
-    pushStep('DEGREE', current, d + 1, req)
+  // A belt either uses classes (any count set) or doesn't (time/age-only).
+  // With classes, every grading up to the next belt needs a count: a gap
+  // stops the walk there, so later requirements can never be skipped.
+  const usesClasses = (current.totalClassesRequired ?? 0) > 0 || current.classesByDegree.some(v => v > 0)
+  let incompleteRules: Readiness['incompleteRules'] = null
+  if (usesClasses) {
+    for (let d = degree; d <= current.maxDegrees; d++) {
+      const isBelt = d === current.maxDegrees
+      if (isBelt && !nextRank) break
+      const rank = isBelt ? nextRank! : current
+      const target = isBelt ? 0 : d + 1
+      const req = requiredFrom(d)
+      if (!req) {
+        incompleteRules = { kind: isBelt ? 'BELT' : 'DEGREE', degree: target, rankName: rank.name }
+        break
+      }
+      pushStep(isBelt ? 'BELT' : 'DEGREE', rank, target, req)
+    }
+  } else if (nextRank && beltGates.length) {
+    pushStep('BELT', nextRank, 0, null)
   }
-  // The belt follows the stripes when they're all measurable, or directly when
-  // stripes have no classes rule at all (time/age-only systems).
-  const allStripesListed = steps.length === current.maxDegrees - degree || steps.length === 0
-  const beltReq = requiredFrom(current.maxDegrees)
-  if (nextRank && allStripesListed && (beltReq || beltGates.length)) pushStep('BELT', nextRank, 0, beltReq)
 
   // ── Frequency (information only) ──────────────────────────────────────────
   if (current.classesPerPeriod && current.classesPerPeriod > 0 && (current.periodType === 'WEEK' || current.periodType === 'MONTH')) {
@@ -222,7 +279,7 @@ export function computeReadiness(input: ReadinessInput): Readiness {
   if (nextRank?.requireExam) manualChecks.push('EXAM')
   if (nextRank?.requireCompetition) manualChecks.push('COMPETITION')
 
-  const base = { steps, requirements, manualChecks, classesSince, classesForFirstStep: steps[0]?.required ?? null }
+  const base = { steps, requirements, manualChecks, classesSince, classesForFirstStep: steps[0]?.required ?? null, incompleteRules }
   if (!steps.length) return result({ status: 'NO_RULES', ...base })
 
   // Steps are earned in order — a blocked belt doesn't hide earned stripes.

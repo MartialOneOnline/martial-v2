@@ -3,6 +3,7 @@ export type Locale = 'en' | 'es' | 'pt' | 'fr'
 export const translations = {
   en: {
     readiness: {
+      incompleteRules: 'Rules incomplete: no class count for {step} (Settings → Grading)', beltDateUnknown: 'Belt date unknown — record the promotion date to check time at belt', loadError: 'Could not load grading readiness.', retry: 'Retry', staleWarning: 'Couldn’t refresh — the list may be out of date.',
       perStripeLabel: 'Classes for each grading', perStripeHint: 'Counted from the previous grading. Leave blank to use Total classes.', toStripe: '→ Stripe {n}', toNextBelt: '→ {belt}',
       cardTitle: 'Attendance & grading', due: 'Due now', dueStripes: '+{n} stripe(s) → {belt} {deg}', dueStripe: '+1 stripe → {belt} {deg}', dueBelt: 'Promote to {belt}',
       nothingDue: 'Nothing due yet', classesToNext: '{n} classes to {step}', stripeN: 'Stripe {n}', beltStep: '{belt} belt',
@@ -956,6 +957,7 @@ export const translations = {
   // ── ESPAÑOL ────────────────────────────────────────────────────────────────
   es: {
     readiness: {
+      incompleteRules: 'Reglas incompletas: falta la cifra de clases para {step} (Ajustes → Grading)', beltDateUnknown: 'Fecha del cinturón desconocida — registra la fecha de promoción para comprobar el tiempo en el cinturón', loadError: 'No se pudo cargar la preparación para graduar.', retry: 'Reintentar', staleWarning: 'No se pudo actualizar — la lista puede estar desactualizada.',
       perStripeLabel: 'Clases para cada graduación', perStripeHint: 'Se cuentan desde la graduación anterior. En blanco = usa Total classes.', toStripe: '→ Grado {n}', toNextBelt: '→ {belt}',
       cardTitle: 'Asistencia y graduación', due: 'Le corresponde', dueStripes: '+{n} grados → {belt} {deg}', dueStripe: '+1 grado → {belt} {deg}', dueBelt: 'Subir a {belt}',
       nothingDue: 'Aún no le corresponde nada', classesToNext: '{n} clases para {step}', stripeN: 'Grado {n}', beltStep: 'Cinturón {belt}',
@@ -1823,6 +1825,7 @@ export const translations = {
   // ── PORTUGUÊS ──────────────────────────────────────────────────────────────
   pt: {
     readiness: {
+      incompleteRules: 'Regras incompletas: falta o número de aulas para {step} (Definições → Grading)', beltDateUnknown: 'Data da faixa desconhecida — registe a data de promoção para verificar o tempo na faixa', loadError: 'Não foi possível carregar a prontidão para graduar.', retry: 'Tentar de novo', staleWarning: 'Não foi possível atualizar — a lista pode estar desatualizada.',
       perStripeLabel: 'Aulas para cada graduação', perStripeHint: 'Contadas desde a graduação anterior. Em branco = usa Total classes.', toStripe: '→ Grau {n}', toNextBelt: '→ {belt}',
       cardTitle: 'Frequência e graduação', due: 'Tem direito a', dueStripes: '+{n} graus → {belt} {deg}', dueStripe: '+1 grau → {belt} {deg}', dueBelt: 'Subir para {belt}',
       nothingDue: 'Ainda nada pendente', classesToNext: '{n} aulas para {step}', stripeN: 'Grau {n}', beltStep: 'Faixa {belt}',
@@ -2690,6 +2693,7 @@ export const translations = {
   // ── FRANÇAIS ───────────────────────────────────────────────────────────────
   fr: {
     readiness: {
+      incompleteRules: 'Règles incomplètes : nombre de cours manquant pour {step} (Paramètres → Grading)', beltDateUnknown: 'Date de ceinture inconnue — enregistrez la date de passage pour vérifier le temps à la ceinture', loadError: 'Impossible de charger la préparation au passage.', retry: 'Réessayer', staleWarning: 'Actualisation impossible — la liste peut être obsolète.',
       perStripeLabel: 'Cours pour chaque passage', perStripeHint: 'Comptés depuis le passage précédent. Vide = utilise Total classes.', toStripe: '→ Barrette {n}', toNextBelt: '→ {belt}',
       cardTitle: 'Présence et passage de grade', due: 'Dû maintenant', dueStripes: '+{n} barrettes → {belt} {deg}', dueStripe: '+1 barrette → {belt} {deg}', dueBelt: 'Passer à {belt}',
       nothingDue: 'Rien de dû pour l’instant', classesToNext: '{n} cours avant {step}', stripeN: 'Barrette {n}', beltStep: 'Ceinture {belt}',

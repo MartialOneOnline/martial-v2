@@ -295,6 +295,13 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 - **Aplicado en la BD (producción, 2026-10-26)** con el OK del usuario: solo el SQL de `20261026120000_belt_rank_classes_by_degree`, vía `prisma db execute` + `migrate resolve --applied` (no `migrate deploy`, para no tocar `20260907082248_add_invite_tokens` de otra sesión, que ya estaba en la BD pero sin commitear en `main`). `migrate status` → up to date. Script RGM aplicado: solo Blanco → `[8,16,24,24,24]`. **Mergear este PR pronto**: mientras tanto `main` no tiene el archivo de migración y un `migrate dev` desde `main` verá drift — no aceptar el reset.
 - Re-medido tras aplicar (RGM, 130 ACTIVE/FROZEN): 73 con algo pendiente (36 +1 grado, 17 +2, 5 +3, 2 +4, 13 de cinturón — Blanco→Azul bajó de 37 a 9), 14 casi, 40 no, 3 sin reglas.
 
+**Project Audit — `RECHAZADO` sobre `83d6045`** (2 P1 + 2 P2), corregido en el commit siguiente:
+- P1 meses en cinturón contados desde `joinedAt` → nuevo `pickBeltSince()` (puro): última graduación de cambio de cinturón al cinturón actual; si no, la graduación de grado más antigua en ese cinturón (cota inferior); si no, `beltDate`; si no, `null` = desconocido → la regla de meses **no** se cumple (`unknown: true`, aviso "fecha del cinturón desconocida"). Nunca `joinedAt`. Además del test puro, test del loader con el ejemplo de Codex (`gradingReadinessLoader.test.ts`).
+- P1 hueco en `classesByDegree` sin fallback permitía saltar al cinturón → si el cinturón usa clases, cada graduación hasta el siguiente cinturón necesita cifra. Un hueco corta ahí: nada posterior se evalúa y se expone `incompleteRules` (aviso "Reglas incompletas: falta la cifra para Grado X"). Los sistemas solo por tiempo/edad siguen evaluando únicamente el cinturón.
+- P2 `TOP_RANK` devolvía `classesSince=0` → ahora conserva el conteo real.
+- P2 un error del GET hacía desaparecer la sección del report → estado de error traducido con "Reintentar"; si falla el refresco tras graduar, aviso de datos desactualizados.
+- Tests: 27 + 2 (loader). Suite 818 pasan / mismos 55 preexistentes. RGM re-medido: sin cambios (no usa meses ni tiene huecos).
+
 **Pendientes / a revisar:** Editar el cinturón desde el editor del perfil no crea registro `Grading`. 14 alumnos RGM sin graduación/`beltDate`/`joinedAt` cuentan todo su historial. `/my/profile` "Mis clases" sigue mostrando ≤5 reservas futuras (lado alumno, fuera de alcance). `classTypeIds` no editable en la UI. UI no verificada en navegador (el usuario prueba en local).
 
 ### Sesión 78 — 2026-08-15 (rama `main`, commit `4568a77`, pusheado directo — sin PR)

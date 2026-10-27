@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db'
-import { computeReadiness, type AttendedClass, type RankRules, type Readiness } from './readiness'
+import { computeReadiness, pickBeltSince, type AttendedClass, type GradingRecord, type RankRules, type Readiness } from './readiness'
 
 export interface MemberReadiness {
   memberId: string
@@ -73,15 +73,16 @@ export async function getReadinessForSchool(
 
   const gradings = await prisma.grading.findMany({
     where: { schoolId, userId: { in: userIds } },
-    select: { userId: true, gradedAt: true, fromBelt: true, toBelt: true, toDegree: true },
+    select: { userId: true, gradedAt: true, fromBelt: true, toBelt: true, toBeltRankId: true, toDegree: true },
     orderBy: { gradedAt: 'desc' },
   })
   const lastGrading = new Map<string, Date>()
-  const lastBeltChange = new Map<string, Date>()
+  const gradingsByUser = new Map<string, GradingRecord[]>()
   for (const g of gradings) {
     if (!lastGrading.has(g.userId)) lastGrading.set(g.userId, g.gradedAt)
-    const beltChanged = !g.fromBelt || g.fromBelt !== g.toBelt || !g.toDegree
-    if (beltChanged && !lastBeltChange.has(g.userId)) lastBeltChange.set(g.userId, g.gradedAt)
+    const list = gradingsByUser.get(g.userId) ?? []
+    list.push(g)
+    gradingsByUser.set(g.userId, list)
   }
 
   const starts = new Map<string, Date | null>()
@@ -125,7 +126,12 @@ export async function getReadinessForSchool(
       currentRankId: rankId,
       currentDegree: m.beltDegree ?? 0,
       countSince: starts.get(m.id) ?? null,
-      beltSince: lastBeltChange.get(m.userId) ?? m.joinedAt ?? null,
+      beltSince: pickBeltSince({
+        gradings: gradingsByUser.get(m.userId) ?? [],
+        rankId,
+        beltNames: [rank?.name, m.belt].filter((n): n is string => !!n),
+        beltDate: m.beltDate,
+      }),
       dateOfBirth: m.user.dateOfBirth,
       attended: attendedByUser.get(m.userId) ?? [],
     })
