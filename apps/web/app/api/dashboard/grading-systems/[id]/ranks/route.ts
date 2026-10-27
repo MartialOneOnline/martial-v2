@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { parseClassesByDegree } from '@/lib/grading/rules'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 import { memberHasPermission } from '@/lib/auth/customRoles'
@@ -49,6 +50,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       minAge:               body.minAge ?? null,
       minMonthsAtPrevious:  body.minMonthsAtPrevious ?? null,
       totalClassesRequired: body.totalClassesRequired ?? null,
+      classesByDegree:      parseClassesByDegree(body.classesByDegree),
       classesPerPeriod:     body.classesPerPeriod ?? null,
       periodType:           body.periodType ?? null,
       classTypeIds:         body.classTypeIds ?? [],

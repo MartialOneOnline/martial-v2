@@ -45,7 +45,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const [bookings, gradings, earliestBooking, earliestGrading, lastGrading] = await Promise.all([
     prisma.booking.findMany({
-      where: { userId: member.userId, scheduledAt: { gte: yearStart, lt: yearEnd } },
+      // Only this school's classes — a student training at two schools
+      // must not show the other school's attendance here.
+      where: { userId: member.userId, class: { schoolId }, scheduledAt: { gte: yearStart, lt: yearEnd } },
       select: { scheduledAt: true, status: true, attendedAt: true },
     }),
     prisma.grading.findMany({
@@ -53,7 +55,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       select: { gradedAt: true },
     }),
     prisma.booking.findFirst({
-      where: { userId: member.userId },
+      where: { userId: member.userId, class: { schoolId } },
       orderBy: { scheduledAt: 'asc' },
       select: { scheduledAt: true },
     }),
