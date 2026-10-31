@@ -27,4 +27,10 @@ describe('buildCsv()', () => {
   it('only converts numbers — text containing dots or separators is escaped, not rewritten', () => {
     expect(buildCsv(['a'], [['v1.2; "x"']], { locale: 'es' })).toBe('"a"\n"v1.2; ""x"""')
   })
+
+  // Audit PR #36 (P2): a known zero count must not become an empty cell
+  it('writes 0 as 0 and only null/undefined as empty', () => {
+    expect(buildCsv(['n', 'pct'], [[0, null], [0, undefined]], { locale: 'es' })).toBe('"n";"pct"\n"0";""\n"0";""')
+    expect(buildCsv(['n'], [[0]])).toBe('"n"\n"0"')
+  })
 })

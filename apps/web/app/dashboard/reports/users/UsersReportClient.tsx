@@ -262,9 +262,11 @@ export default function UsersReportClient() {
     setComposerAudience([...selected.values()].map(m => ({ id: m.id, name: m.name, email: m.email, belt: m.belt, status: m.status, avatarUrl: m.avatarUrl })))
   }
 
+  // Throws on HTTP or network errors — an empty list would otherwise export
+  // an empty file or wipe the selection without saying anything.
   async function fetchAllMembers(): Promise<MemberRow[]> {
     const res = await fetch(`/api/dashboard/reports/users?${buildParams(1, 1000)}`)
-    if (!res.ok) return []
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
     return ((await res.json()) as ReportData).members
   }
 
@@ -281,11 +283,21 @@ export default function UsersReportClient() {
     downloadCsv(name, headers, rows)
   }
 
-  async function handleExport() { exportMembers(await fetchAllMembers()) }
+  // Which export is running (buttons disabled meanwhile; re-enabled on error so it can be retried)
+  const [exporting, setExporting] = useState<null | 'members' | 'history'>(null)
+
+  async function handleExport() {
+    setExporting('members')
+    try { exportMembers(await fetchAllMembers()) }
+    catch { showToast(r.usersExportError) }
+    finally { setExporting(null) }
+  }
 
   async function selectAllInGroup() {
     const token = selGuard.begin()
-    const all = await fetchAllMembers()
+    let all: MemberRow[]
+    try { all = await fetchAllMembers() }
+    catch { if (selGuard.isCurrent(token)) showToast(r.usersLoadError); return }
     if (!selGuard.isCurrent(token)) return
     setSelected(new Map(all.map(m => [m.id, m])))
   }
@@ -321,7 +333,8 @@ export default function UsersReportClient() {
       return [
         m.month, m.active,
         m.new, m.newPct, m.returning, m.returningPct, m.lost, m.churnPct,
-        m.growthPct, m.activeYearAgo || null, m.yoyPct,
+        // 0 is a real count (nobody a year earlier) — only % with a 0 denominator are empty
+        m.growthPct, m.activeYearAgo, m.yoyPct,
         ...COHORT_OFFSETS.map(k => c?.retained[k] ?? null),
       ]
     })
@@ -329,10 +342,17 @@ export default function UsersReportClient() {
   }
   function handleExportMonthly() { if (data) exportMonthly(data.monthly, data.cohorts, 'members-monthly') }
   async function handleExportHistory() {
-    const res = await fetch('/api/dashboard/reports/users?view=history')
-    if (!res.ok) return
-    const h: { monthly: MonthStats[]; cohorts: CohortStats[] } = await res.json()
-    exportMonthly(h.monthly, h.cohorts, 'members-monthly-history')
+    setExporting('history')
+    try {
+      const res = await fetch('/api/dashboard/reports/users?view=history')
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const h: { monthly: MonthStats[]; cohorts: CohortStats[] } = await res.json()
+      exportMonthly(h.monthly, h.cohorts, 'members-monthly-history')
+    } catch {
+      showToast(r.usersExportError)
+    } finally {
+      setExporting(null)
+    }
   }
 
   async function setMemberStatus(memberId: string, status: string) {
@@ -404,7 +424,7 @@ export default function UsersReportClient() {
               style={{ height: 30, padding: '0 8px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, color: '#111827', outline: 'none' }} />
           </div>
         )}
-        <button onClick={handleExport}
+        <button onClick={handleExport} disabled={exporting === 'members'}
           className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
           style={{ background: '#fff', border: '1px solid #E5E7EB', color: '#374151', fontSize: 13, fontWeight: 500 }}>
           <Download size={14} /> Export
@@ -507,7 +527,7 @@ export default function UsersReportClient() {
                 style={{ background: '#fff', border: '1px solid #E5E7EB', color: '#374151', fontSize: 12, fontWeight: 500 }}>
                 <Download size={13} /> {r.usersExportMonthly}
               </button>
-              <button onClick={handleExportHistory}
+              <button onClick={handleExportHistory} disabled={exporting === 'history'}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer"
                 style={{ background: '#fff', border: '1px solid #E5E7EB', color: '#374151', fontSize: 12, fontWeight: 500 }}>
                 <Download size={13} /> {r.usersExportHistory}
