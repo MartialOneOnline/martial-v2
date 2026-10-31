@@ -248,3 +248,70 @@ export function summarisePeriod(rows: ActivityRow[], fromMonth: MonthKey, toMont
 }
 
 function round1(n: number) { return Math.round(n * 10) / 10 }
+
+// ── Who (not just how many) ──────────────────────────────────────────────────
+// Same definitions as computeMonthlyActivity, returning the students so the
+// school can see and contact them.
+
+export type ActivitySegment = 'NEW' | 'LOST' | 'RETURNING' | 'AT_RISK'
+export const ACTIVITY_SEGMENTS: ActivitySegment[] = ['NEW', 'LOST', 'RETURNING', 'AT_RISK']
+
+/** A student counts as at risk after this many days without attending. */
+export const AT_RISK_DAYS = 21
+
+export interface UserActivity {
+  /** Distinct months seen, ascending */
+  months: MonthKey[]
+  first: MonthKey
+  last: MonthKey
+}
+
+export function activityByUser(rows: ActivityRow[]): Map<string, UserActivity> {
+  const sets = new Map<string, Set<MonthKey>>()
+  for (const r of rows) {
+    let s = sets.get(r.userId)
+    if (!s) { s = new Set(); sets.set(r.userId, s) }
+    s.add(r.month)
+  }
+  const out = new Map<string, UserActivity>()
+  for (const [userId, s] of sets) {
+    const months = [...s].sort()
+    out.set(userId, { months, first: months[0]!, last: months[months.length - 1]! })
+  }
+  return out
+}
+
+function activeIn(a: UserActivity, month: MonthKey, grace = GRACE_MONTHS): boolean {
+  for (let i = 0; i <= grace; i++) if (a.months.includes(addMonths(month, -i))) return true
+  return false
+}
+
+/** Students who were new / lost / came back in `month`. */
+export function segmentUsers(byUser: Map<string, UserActivity>, month: MonthKey, segment: Exclude<ActivitySegment, 'AT_RISK'>, grace = GRACE_MONTHS): string[] {
+  const prev = addMonths(month, -1)
+  const out: string[] = []
+  for (const [userId, a] of byUser) {
+    const now = activeIn(a, month, grace)
+    const before = activeIn(a, prev, grace)
+    if (segment === 'LOST' && before && !now) out.push(userId)
+    else if (segment === 'NEW' && now && !before && a.first === month) out.push(userId)
+    else if (segment === 'RETURNING' && now && !before && a.first < month) out.push(userId)
+  }
+  return out
+}
+
+/**
+ * Students still counted as active this month but who haven't attended a
+ * class in AT_RISK_DAYS (or never have — paying without coming). These are
+ * the ones to contact *before* they become lost.
+ */
+export function atRiskUsers(byUser: Map<string, UserActivity>, lastAttended: Map<string, Date>, now: Date, currentMonth: MonthKey, days = AT_RISK_DAYS, grace = GRACE_MONTHS): string[] {
+  const cutoff = now.getTime() - days * 86_400_000
+  const out: string[] = []
+  for (const [userId, a] of byUser) {
+    if (!activeIn(a, currentMonth, grace)) continue
+    const last = lastAttended.get(userId)
+    if (!last || last.getTime() < cutoff) out.push(userId)
+  }
+  return out
+}

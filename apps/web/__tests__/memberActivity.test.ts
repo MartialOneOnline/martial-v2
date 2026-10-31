@@ -7,7 +7,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   addMonths, monthRange, monthKeyInTz, schoolTimeZone,
-  computeMonthlyActivity, summarisePeriod, reportMonths, zonedRangeBounds, civilDateInTz, type ActivityRow,
+  computeMonthlyActivity, summarisePeriod, reportMonths, zonedRangeBounds, civilDateInTz, activityByUser, segmentUsers, atRiskUsers, type ActivityRow,
 } from '@/lib/memberActivity'
 
 const rows = (userId: string, ...months: string[]): ActivityRow[] => months.map(month => ({ userId, month }))
@@ -164,5 +164,42 @@ describe('zonedRangeBounds() at midnight DST transitions', () => {
       expect(civilDateInTz(new Date(from.getTime() - 1), tz)).not.toBe(day)
       expect(civilDateInTz(new Date(to.getTime() + 1), tz)).not.toBe(day)
     }
+  })
+})
+
+describe('segmentUsers() / atRiskUsers()', () => {
+  const data = [
+    ...rows('veteran', '2025-01', '2026-01', '2026-02', '2026-03', '2026-04'),
+    ...rows('gone', '2026-01', '2026-02'),          // lost in April
+    ...rows('fresh', '2026-04'),                    // new in April
+    ...rows('back', '2025-06', '2026-04'),          // came back in April
+  ]
+  const byUser = activityByUser(data)
+
+  it('lists exactly the students behind each monthly count', () => {
+    const [april] = computeMonthlyActivity(data, ['2026-04'])
+    const lost = segmentUsers(byUser, '2026-04', 'LOST')
+    const nw = segmentUsers(byUser, '2026-04', 'NEW')
+    const back = segmentUsers(byUser, '2026-04', 'RETURNING')
+    expect(lost).toEqual(['gone'])
+    expect(nw).toEqual(['fresh'])
+    expect(back).toEqual(['back'])
+    expect([lost.length, nw.length, back.length]).toEqual([april!.lost, april!.new, april!.returning])
+  })
+
+  it('summarises first/last month per student', () => {
+    expect(byUser.get('veteran')).toMatchObject({ first: '2025-01', last: '2026-04' })
+    expect(byUser.get('veteran')!.months).toHaveLength(5)
+  })
+
+  it('flags active students with no class in 21 days, including payers who never attend', () => {
+    const now = new Date('2026-04-30T12:00:00Z')
+    const last = new Map<string, Date>([
+      ['veteran', new Date('2026-04-25')], // came recently → fine
+      ['fresh', new Date('2026-04-02')],   // 28 days ago → at risk
+      // 'back' never attended (paid only) → at risk
+      ['gone', new Date('2026-02-10')],    // already lost → not "at risk"
+    ])
+    expect(atRiskUsers(byUser, last, now, '2026-04').sort()).toEqual(['back', 'fresh'])
   })
 })
