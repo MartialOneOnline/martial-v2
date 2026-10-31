@@ -270,7 +270,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-01 (rama `claude/users-report-percentages`, PR [#36](https://github.com/MartialOneOnline/martial-v2/pull/36) — `APROBADO CON PENDIENTES` en `ae4fd49` y `9bc57c1`; P3 final corregido, pendiente de confirmación)
+### Sesión — 2026-11-01 (rama `claude/users-report-percentages`, PR [#36](https://github.com/MartialOneOnline/martial-v2/pull/36) — `APROBADO CON PENDIENTES` en `ae4fd49` y `9bc57c1` → **`APROBADO`** por Codex Project Audit en `5d7013e`; falta prueba de UI con sesión real)
 
 **Informe de Usuarios: porcentajes, interanual, retención de nuevos y CSV legible en Excel.**
 - `lib/memberActivity.ts`: `MonthStats` añade `newPct`, `returningPct` (sobre activos del mes anterior), `activeYearAgo` y `yoyPct` (vs mismo mes del año anterior). Nuevo `cohortRetention()` (de los nuevos de cada mes, % activos a 2, 3 y 6 meses; null si ese mes aún no ha llegado; se omite +1 mes porque con la gracia siempre es 100%) y `averageRetention()` (media ponderada). +7 tests.
