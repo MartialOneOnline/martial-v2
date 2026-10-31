@@ -131,7 +131,7 @@ generated/prisma/
 | Reports / Payments | `/dashboard/reports/payments` | ✅ Live |
 | Reports / Balance | `/dashboard/reports/balance` | ✅ Live |
 | Reports / Absents | `/dashboard/reports/absents` | ✅ Live |
-| Reports / Users | `/dashboard/reports/users` | ✅ Live |
+| Reports / Users | `/dashboard/reports/users` | ✅ Live — vista mensual activos/nuevos/vuelven/perdidos (2026-10-31) |
 | Settings | `/dashboard/settings` | ✅ Live |
 | Notifications | `/dashboard/notifications` | ✅ Live |
 | Subscription | `/dashboard/subscription` | ✅ Live |
@@ -269,6 +269,15 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 ---
 
 ## Historial de sesiones
+
+### Sesión — 2026-10-31 (rama `claude/users-report-monthly`, pendiente de Project Audit)
+
+**Informe de Usuarios: activos / nuevos / perdidos por mes.** Pedido para Roger Gracie Málaga. Antes, "Member Growth" era el acumulado de todos los alumnos que se unieron alguna vez (≈806, nunca bajaba) y "Retention Rate" era `ACTIVE / (ACTIVE+INACTIVE)` de hoy.
+- `SchoolMember.status` no tiene historial y las memberships V1 solo llegan bien desde jul-2026, así que el histórico se reconstruye desde **actividad**: cuota pagada (`Transaction` MEMBERSHIP/PAID) o clase asistida (`Booking.attendedAt`), por mes en la zona horaria del colegio (derivada de `School.country`; las columnas son `timestamp without time zone` en UTC → doble `AT TIME ZONE`).
+- Definición (`apps/web/lib/memberActivity.ts`, 10 tests): activo(M) = visto en M o M-1 (1 mes de gracia, absorbe cuotas trimestrales/efectivo tardío); nuevo = primer mes visto; vuelve = activo tras ≥1 mes fuera; perdido = activo en M-1 y no en M. Siempre cuadra activo(M) = activo(M-1) + nuevos + vuelven − perdidos. Se excluyen miembros con rol no-STUDENT.
+- UI: tarjetas Activos (status actual) / Nuevos / Perdidos / Crecimiento % (+ retención) comparando mes base del periodo vs último mes; gráfica línea activos + barras nuevos (↑) y perdidos (↓) de los últimos 12 meses (o el rango custom); tabla mensual exportable a CSV. Textos en EN/ES/PT/FR.
+- Verificado contra datos reales RGM (solo lectura): oct-2026 = 132 activos (status ACTIVE = 131); nov-25→oct-26: 109→132 (+21,1%), 130 nuevos, 69 vuelven, 176 perdidos, ~15%/mes de bajas.
+- Pendiente/conocido: la pestaña "New" de la tabla de miembros sigue usando `joinedAt` (últimos 30 días), no la definición por actividad. Suite Vitest: 55 fallos preexistentes en `main` (bookingRace, cancelMembership, …), ninguno nuevo; se añadió `$queryRaw` al mock de `dashboardReportAuthGuards.test.ts`.
 
 > Nota: entre la Sesión 77 (2026-08-06) y esta hay commits en `main` no documentados aquí sesión a sesión (`0fe131e` i18n, `d7c2139` fix migración Prisma, `b20b1bd`/`839f3c5` cancelación de ocurrencias de clase) — no reconstruidos retroactivamente, ver `git log` para el detalle.
 
