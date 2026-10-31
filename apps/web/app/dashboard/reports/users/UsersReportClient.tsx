@@ -8,7 +8,7 @@ import { useT, useLanguage } from '../../../../lib/i18n/LanguageContext'
 import SharedRowMenu from '../../../../components/RowMenu'
 import { downloadCsv } from '../../../../lib/csvExport'
 import { fmtPrice } from '../../../../lib/format'
-import CampaignComposerModal from '../../users/CampaignComposerModal'
+import CampaignComposerModal, { type ComposerStudent } from '../../users/CampaignComposerModal'
 import { segmentMonthOptions, createRequestGuard } from '../../../../lib/reportSelection'
 import {
   ComposedChart, Line, Bar, PieChart, Pie, Cell, Legend,
@@ -187,7 +187,10 @@ export default function UsersReportClient() {
   const [segMonth,  setSegMonth]  = useState('')
   // Selected students, kept across pages, for "Send campaign" / export
   const [selected,  setSelected]  = useState<Map<string, MemberRow>>(new Map())
-  const [showComposer, setShowComposer] = useState(false)
+  // Audience frozen when the composer opens: the campaign, its summary and
+  // its counts belong to exactly these students, whatever the live selection
+  // does afterwards (e.g. a slow "Select all" resolving).
+  const [composerAudience, setComposerAudience] = useState<ComposerStudent[] | null>(null)
   const campaignSent = useRef(false)
   // Drop responses that belong to an older tab / month / filter — the list on
   // screen and the selected audience must always be the current group.
@@ -243,6 +246,11 @@ export default function UsersReportClient() {
     if (isSegment(key) && !segMonth && data) setSegMonth(data.currentMonth)
   }
   function clearSelection() { selGuard.invalidate(); setSelected(new Map()) }
+
+  function openComposer() {
+    selGuard.invalidate() // a pending "Select all" must not change the audience now
+    setComposerAudience([...selected.values()].map(m => ({ id: m.id, name: m.name, email: m.email, belt: m.belt, status: m.status, avatarUrl: m.avatarUrl })))
+  }
 
   async function fetchAllMembers(): Promise<MemberRow[]> {
     const res = await fetch(`/api/dashboard/reports/users?${buildParams(1, 1000)}`)
@@ -582,7 +590,7 @@ export default function UsersReportClient() {
                 </button>
               )}
               <div className="flex-1" />
-              <button onClick={() => setShowComposer(true)} className="flex items-center gap-1.5 cursor-pointer"
+              <button onClick={openComposer} className="flex items-center gap-1.5 cursor-pointer"
                 style={{ fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 8, background: '#0870E2', color: '#fff', border: 'none' }}>
                 <Send size={13} /> {r.usersSendCampaign}
               </button>
@@ -742,14 +750,12 @@ export default function UsersReportClient() {
           </div>
         </div>
       </div>
-      {showComposer && (
+      {composerAudience && (
         <CampaignComposerModal
-          preselectedStudents={[...selected.values()].map(m => ({ id: m.id, name: m.name, email: m.email, belt: m.belt, status: m.status, avatarUrl: m.avatarUrl }))}
+          preselectedStudents={composerAudience}
           schoolName={data?.schoolName || 'Your school'}
           onClose={() => {
-            setShowComposer(false)
-            // Clear only once the summary is closed — the modal still reads
-            // the selection for its "N students" header while it's open.
+            setComposerAudience(null)
             if (campaignSent.current) { campaignSent.current = false; clearSelection() }
           }}
           onSaved={kind => {

@@ -270,7 +270,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-10-31 (b) (rama `claude/users-report-recovery`, PR [#35](https://github.com/MartialOneOnline/martial-v2/pull/35) — `RECHAZADO` en `d495cee` → `APROBADO CON PENDIENTES` en `b7233af`; el P3 restante corregido, pendiente de confirmación)
+### Sesión — 2026-10-31 (b) (rama `claude/users-report-recovery`, PR [#35](https://github.com/MartialOneOnline/martial-v2/pull/35) — `RECHAZADO` en `d495cee` → `APROBADO CON PENDIENTES` en `b7233af` y en `3fce59e`; P3 final corregido, pendiente de confirmación)
 
 **Informe de Usuarios: ver y contactar a los alumnos nuevos / perdidos / que vuelven / en riesgo.** Sigue al PR #34 (vista mensual). El objetivo es recuperar alumnos: saber quiénes son, cómo contactarles y actuar.
 - **Quiénes:** `lib/memberActivity.ts` añade `activityByUser`, `segmentUsers` (NEW/LOST/RETURNING de un mes, misma definición que los números mensuales) y `atRiskUsers` (activos este mes sin clase en 21 días, o que pagan sin venir). +3 tests.
@@ -285,6 +285,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
   - P2 — WhatsApp con reglas nacionales a mano (Italia perdía el 0, Suiza sin prefijo): `whatsappNumber` usa `libphonenumber-js` (ya instalado) y devuelve null si el número no es válido. RGM: 310 de 324 teléfonos con WhatsApp; los 14 inválidos siguen visibles para llamar/copiar.
   - Tests: `reportSelection.test.ts` (7) + 2 casos nuevos en `phone.test.ts`. 50/50 en UTC y Madrid; suite 882 pasan / 55 preexistentes.
 - **Ronda 2 (`APROBADO CON PENDIENTES` sobre `b7233af`)**: P3 — tras enviar, la cabecera del resumen del modal decía "0 students" porque la selección (que alimenta `preselectedStudents`) se limpiaba en `onSaved('sent')`. Ahora se marca y se limpia al cerrar el modal. Pendiente declarado y aceptado por Codex: `/dashboard/users` muestra "¡Campaña enviada!" al guardar un borrador (fallo preexistente; arreglo de una línea con el nuevo `onSaved(kind)`).
+- **Ronda 3 (`APROBADO CON PENDIENTES` sobre `3fce59e`)**: P3 — un "Seleccionar los N" que terminaba con el resumen abierto cambiaba su recuento (1 → 2 students con 1 enviado). Ahora, al abrir el compositor, la audiencia se congela en `composerAudience` (copia) y se invalida cualquier selección pendiente; el modal ya no lee la selección en vivo.
 - **No probado en navegador** (lo prueba el usuario). Incidente durante el desarrollo: `lib/phone.ts` ya existía y se sobrescribió por error; restaurado desde HEAD antes de commitear (el diff solo añade).
 
 ### Sesión — 2026-10-31 (rama `claude/users-report-monthly`, PR [#34](https://github.com/MartialOneOnline/martial-v2/pull/34) — `RECHAZADO` en `b954b64` → `APROBADO CON PENDIENTES` en `d3b5df8` → **`APROBADO`** por Codex Project Audit en `69c0603`; falta prueba de UI con sesión real antes de mergear)
