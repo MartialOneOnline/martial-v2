@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId, requireDashboardAccess } from '@/lib/auth/server'
-import { periodBounds } from '@/lib/reportPeriods'
+import {
+  addMonths, monthRange, schoolTimeZone, reportMonths, zonedRangeBounds,
+  computeMonthlyActivity, summarisePeriod, type ActivityRow,
+} from '@/lib/memberActivity'
 
 // requireDashboardAccess() bypasses this for SUPERADMIN and otherwise
 // requires an ACTIVE SchoolMember with a staff-facing role — a STUDENT must
@@ -30,14 +33,19 @@ export async function GET(req: NextRequest) {
   const dateFrom = searchParams.get('dateFrom')
   const dateTo   = searchParams.get('dateTo')
 
-  // Single time window shared by the growth chart and the "new in period"
-  // stat — a 'custom' period (with dateFrom/dateTo) or a preset both flow
-  // through here. Unlike the other reports, the member list itself is a
-  // roster (not a per-period event log), so the 7d/30d/90d/12m presets don't
-  // narrow it — only an explicit 'custom' range does, replacing what used to
-  // be a separate, disconnected "Joined date range" filter.
-  const { from, to, points } = periodBounds(period, dateFrom, dateTo)
+  // Period → months (stats + custom chart) and, for a custom range, the
+  // member-list bounds — all in the school's timezone from the civil dates
+  // picked, never via server-local Dates (see reportMonths). Unlike the other
+  // reports, the member list itself is a roster (not a per-period event log),
+  // so the 7d/30d/90d/12m presets don't narrow it — only an explicit 'custom'
+  // range does, replacing what used to be a separate, disconnected "Joined
+  // date range" filter.
+  const school = await prisma.school.findUnique({ where: { id: auth.schoolId }, select: { country: true } })
+  const tz = schoolTimeZone(school?.country)
   const now = new Date()
+  const isCustom = period === 'custom' && !!dateFrom && /^\d{4}-\d{2}-\d{2}$/.test(dateFrom)
+  const { fromMonth, toMonth } = reportMonths(period, dateFrom, dateTo, now, tz)
+  const nowMonth = reportMonths('12m', null, null, now, tz).toMonth
   const newThreshold = new Date(now); newThreshold.setDate(now.getDate() - 30)
 
   // ── Member list ──────────────────────────────────────────────────────────────
@@ -60,7 +68,10 @@ export async function GET(req: NextRequest) {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const andConditions: any[] = []
-  if (period === 'custom') andConditions.push(dateRangeFilter(from, to))
+  if (isCustom) {
+    const { from, to } = zonedRangeBounds(dateFrom!, dateTo, now, tz)
+    andConditions.push(dateRangeFilter(from, to))
+  }
   if (status === 'NEW') {
     andConditions.push({ status: 'ACTIVE' })
     andConditions.push(dateRangeFilter(newThreshold))
@@ -135,36 +146,61 @@ export async function GET(req: NextRequest) {
     })
     .map(([name, value]) => ({ name, value }))
 
-  // ── Growth chart + "new in period" ───────────────────────────────────────────
-  // Computed in memory from a single fetch (rather than one `joinedAt: {
-  // lte }` count per chart point) so the same joinedAt-else-createdAt
-  // fallback applies here too — a plain DB-side `lte` filter would never
-  // match a null joinedAt, so members with no recovered join date would
-  // never appear at any point on the chart and the final point would never
-  // reach the true student count.
-  const dateRows = await prisma.schoolMember.findMany({
-    where: { schoolId: auth.schoolId, role: 'STUDENT' },
-    select: { status: true, joinedAt: true, createdAt: true },
-  })
-  const effectiveJoinedAt = (r: { joinedAt: Date | null; createdAt: Date }) => r.joinedAt ?? r.createdAt
+  // ── Monthly active / new / lost ──────────────────────────────────────────────
+  // Rebuilt from activity (paid membership fee or attended class) because
+  // SchoolMember.status has no history — see lib/memberActivity.ts for the
+  // exact definitions. One row per (student, local month) over the school's
+  // whole history, so "new" vs "returning" is right for any window. Columns
+  // are `timestamp without time zone` holding UTC, hence the double AT TIME
+  // ZONE (UTC → school-local) before bucketing by month.
+  const activity = await prisma.$queryRaw<ActivityRow[]>`
+    SELECT DISTINCT a."userId", a.month FROM (
+      SELECT t."userId", to_char((t.date AT TIME ZONE 'UTC') AT TIME ZONE ${tz}, 'YYYY-MM') AS month
+      FROM transactions t
+      WHERE t."schoolId" = ${auth.schoolId} AND t.category = 'MEMBERSHIP' AND t.status = 'PAID'
+        AND t."deletedAt" IS NULL AND t."userId" IS NOT NULL
+      UNION
+      SELECT b."userId", to_char((b."attendedAt" AT TIME ZONE 'UTC') AT TIME ZONE ${tz}, 'YYYY-MM')
+      FROM bookings b JOIN classes c ON c.id = b."classId"
+      WHERE c."schoolId" = ${auth.schoolId} AND b."attendedAt" IS NOT NULL AND b.status <> 'CANCELLED'
+    ) a
+    WHERE NOT EXISTS (
+      SELECT 1 FROM school_members sm
+      WHERE sm."userId" = a."userId" AND sm."schoolId" = ${auth.schoolId} AND sm.role <> 'STUDENT'
+    )`
 
-  const growthData = points.map(pt => ({
-    date: pt.label,
-    members: dateRows.filter(r => effectiveJoinedAt(r) <= pt.to).length,
-  }))
+  const summary = summarisePeriod(activity, fromMonth, toMonth)
+
+  // Chart + table: monthly granularity only makes sense over several months,
+  // so presets always show the last 12; a custom range shows its own months
+  // (at least 2, at most 36).
+  let chartFrom = addMonths(nowMonth, -11)
+  let chartTo = nowMonth
+  if (isCustom) {
+    chartTo = toMonth
+    chartFrom = fromMonth < chartTo ? fromMonth : addMonths(chartTo, -1)
+    if (monthRange(chartFrom, chartTo).length > 36) chartFrom = addMonths(chartTo, -35)
+  }
+  const monthly = computeMonthlyActivity(activity, monthRange(chartFrom, chartTo))
 
   // ── Stats ─────────────────────────────────────────────────────────────────────
-  const [totalActive, totalInactive] = await Promise.all([
-    prisma.schoolMember.count({ where: { schoolId: auth.schoolId, role: 'STUDENT', status: 'ACTIVE' } }),
-    prisma.schoolMember.count({ where: { schoolId: auth.schoolId, role: 'STUDENT', status: { in: ['INACTIVE', 'FROZEN'] } } }),
-  ])
-  const newInPeriod = dateRows.filter(r => r.status === 'ACTIVE' && effectiveJoinedAt(r) >= from && effectiveJoinedAt(r) <= to).length
-  const totalAll = totalActive + totalInactive
-  const retentionRate = totalAll > 0 ? Math.round((totalActive / totalAll) * 100) : 0
+  const totalActive = await prisma.schoolMember.count({ where: { schoolId: auth.schoolId, role: 'STUDENT', status: 'ACTIVE' } })
 
   return NextResponse.json({
-    stats: { totalActive, newInPeriod, totalInactive, retentionRate },
-    growthData,
+    stats: {
+      totalActive,
+      newInPeriod: summary.new,
+      returningInPeriod: summary.returning,
+      lostInPeriod: summary.lost,
+      growthPct: summary.growthPct,
+      retentionPct: summary.retentionPct,
+      baseMonth: summary.baseMonth,
+      endMonth: summary.endMonth,
+      baseActive: summary.baseActive,
+      endActive: summary.endActive,
+    },
+    monthly,
+    currentMonth: nowMonth,
     beltDist,
     members: members.map(m => ({
       id:        m.id,

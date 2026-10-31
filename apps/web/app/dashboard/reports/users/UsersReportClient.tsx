@@ -4,11 +4,11 @@ import { useDashboard } from '../../../../components/DashboardShell'
 import NotificationBell from '../../../../components/NotificationBell'
 import { useState, useEffect, useCallback } from 'react'
 import { Menu, Search, ChevronLeft, ChevronRight, Filter, MoreVertical, Download } from 'lucide-react'
-import { useT } from '../../../../lib/i18n/LanguageContext'
+import { useT, useLanguage } from '../../../../lib/i18n/LanguageContext'
 import SharedRowMenu from '../../../../components/RowMenu'
 import { downloadCsv } from '../../../../lib/csvExport'
 import {
-  AreaChart, Area, PieChart, Pie, Cell,
+  ComposedChart, Line, Bar, PieChart, Pie, Cell, Legend,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
 
@@ -137,9 +137,18 @@ interface MemberRow {
   belt: string; plan: string; status: string; joinedAt: string; isNew: boolean
   lastAttendedAt: string | null
 }
+interface MonthStats {
+  month: string; active: number; new: number; returning: number; lost: number
+  growthPct: number | null; churnPct: number | null
+}
 interface ReportData {
-  stats: { totalActive: number; newInPeriod: number; totalInactive: number; retentionRate: number }
-  growthData: { date: string; members: number }[]
+  stats: {
+    totalActive: number; newInPeriod: number; returningInPeriod: number; lostInPeriod: number
+    growthPct: number | null; retentionPct: number | null
+    baseMonth: string; endMonth: string; baseActive: number; endActive: number
+  }
+  monthly:      MonthStats[]
+  currentMonth: string
   beltDist:   { name: string; value: number }[]
   members:    MemberRow[]
   total:      number
@@ -148,6 +157,13 @@ interface ReportData {
 export default function UsersReportClient() {
   const { setMenuOpen } = useDashboard()
   const t = useT()
+  const { locale } = useLanguage()
+  const r = t.reports
+  const fmtMonth = (m: string, long = false) => {
+    const [y, mo] = m.split('-').map(Number) as [number, number]
+    return new Date(y, mo - 1, 1).toLocaleDateString(locale, long ? { month: 'long', year: 'numeric' } : { month: 'short', year: '2-digit' })
+  }
+  const fmtPct = (n: number | null, signed = true) => n === null ? '—' : `${signed && n > 0 ? '+' : ''}${n.toLocaleString(locale)}%`
 
   const [period,     setPeriod]     = useState<'7d' | '30d' | '90d' | '12m' | 'custom'>('30d')
   const [customFrom, setCustomFrom] = useState('')
@@ -192,6 +208,13 @@ export default function UsersReportClient() {
     downloadCsv('members-report', headers, rows)
   }
 
+  function handleExportMonthly() {
+    if (!data) return
+    const headers = [r.usersMonth, r.usersColActive, r.usersColNew, r.usersColReturning, r.usersColLost, r.usersColGrowth, r.usersColChurn]
+    const rows = data.monthly.map(m => [m.month, m.active, m.new, m.returning, m.lost, m.growthPct ?? '', m.churnPct ?? ''])
+    downloadCsv('members-monthly', headers, rows)
+  }
+
   async function setMemberStatus(memberId: string, status: string) {
     await fetch(`/api/dashboard/members/${memberId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) })
     showToast(`Status updated to ${status.toLowerCase()}`)
@@ -203,12 +226,20 @@ export default function UsersReportClient() {
   const stats = data?.stats
   const totalBelt = (data?.beltDist ?? []).reduce((s, b) => s + b.value, 0)
 
+  // New/lost/growth compare the period's baseline month with its last month
+  // (see summarisePeriod in lib/memberActivity.ts), so the sub-label names it.
+  const vsBase = stats ? r.usersVsMonth.replace('{m}', fmtMonth(stats.baseMonth)) : ''
   const STAT_CARDS = [
-    { label: 'Active Members',  value: stats?.totalActive   ?? '—', sub: 'currently active', color: '#0870E2' },
-    { label: 'New This Period', value: stats?.newInPeriod   ?? '—', sub: 'joined',            color: '#16A34A' },
-    { label: 'Inactive',        value: stats?.totalInactive ?? '—', sub: 'not active',        color: '#DC2626' },
-    { label: 'Retention Rate',  value: stats ? stats.retentionRate + '%' : '—', sub: 'active vs total', color: '#6D28D9' },
+    { label: r.usersActive, value: stats?.totalActive ?? '—', sub: r.usersActiveSub, color: '#0870E2', note: '' },
+    { label: r.usersNew, value: stats?.newInPeriod ?? '—', sub: vsBase, color: '#16A34A',
+      note: stats?.returningInPeriod ? r.usersReturning.replace('{n}', String(stats.returningInPeriod)) : '' },
+    { label: r.usersLost, value: stats?.lostInPeriod ?? '—', sub: vsBase, color: '#DC2626', note: '' },
+    { label: r.usersGrowth, value: stats ? fmtPct(stats.growthPct) : '—',
+      sub: stats ? `${stats.baseActive} → ${stats.endActive}` : '', color: '#6D28D9',
+      note: stats?.retentionPct != null ? r.usersRetention.replace('{n}', stats.retentionPct.toLocaleString(locale)) : '' },
   ]
+  const chartData = (data?.monthly ?? []).map(m => ({ ...m, label: fmtMonth(m.month), lostNeg: -m.lost }))
+  const monthlyDesc = [...(data?.monthly ?? [])].reverse()
 
   return (
     <main style={{ flex: 1, minWidth: 0, width: '100%', overflow: 'auto' }}>
@@ -278,22 +309,32 @@ export default function UsersReportClient() {
                 {loading ? '…' : stat.value}
               </p>
               <p style={{ fontSize: 12, fontWeight: 500, color: '#6B7280' }}>{stat.label}</p>
+              {stat.note && !loading && <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>{stat.note}</p>}
             </div>
           ))}
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           <div className="rounded-2xl p-5" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 16 }}>Member Growth</p>
+            <div className="flex items-baseline justify-between" style={{ marginBottom: 16 }}>
+              <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{r.usersMonthlyChart}</p>
+              {period !== 'custom' && <span style={{ fontSize: 11, color: '#9CA3AF' }}>{r.usersLast12}</span>}
+            </div>
             {loading ? <div style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</p></div> : (
               <ResponsiveContainer width="100%" height={260}>
-                <AreaChart data={data?.growthData ?? []}>
+                {/* Active on the left axis; new (up) and lost (down) bars share the right axis so they stay readable next to a ~100+ line */}
+                <ComposedChart data={chartData} stackOffset="sign">
                   <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
-                  <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12 }} />
-                  <Area type="monotone" dataKey="members" name="Members" stroke="#0870E2" fill="#0870E2" fillOpacity={0.12} strokeWidth={2} />
-                </AreaChart>
+                  <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
+                  <YAxis yAxisId="active" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
+                  <YAxis yAxisId="flow" orientation="right" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} tickFormatter={v => String(Math.abs(v))} />
+                  <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12 }}
+                    formatter={(v, name) => [Math.abs(Number(v)), name]} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} iconSize={8} />
+                  <Bar yAxisId="flow" dataKey="new" name={r.usersColNew} fill="#22C55E" stackId="flow" radius={[3, 3, 0, 0]} maxBarSize={18} />
+                  <Bar yAxisId="flow" dataKey="lostNeg" name={r.usersColLost} fill="#E11D48" stackId="flow" radius={[3, 3, 0, 0]} maxBarSize={18} />
+                  <Line yAxisId="active" type="monotone" dataKey="active" name={r.usersColActive} stroke="#0870E2" strokeWidth={2} dot={{ r: 3 }} />
+                </ComposedChart>
               </ResponsiveContainer>
             )}
           </div>
@@ -330,6 +371,54 @@ export default function UsersReportClient() {
                 </div>
               </>
             )}
+          </div>
+        </div>
+
+        {/* Monthly breakdown */}
+        <div className="rounded-2xl overflow-hidden" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+          <div className="flex items-center justify-between gap-3 px-5 py-4 flex-wrap" style={{ borderBottom: '1px solid #F3F4F6' }}>
+            <div>
+              <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{r.usersMonthlyTable}</p>
+              <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2, maxWidth: 640 }}>{r.usersDefinition}</p>
+            </div>
+            <button onClick={handleExportMonthly} disabled={!data}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer"
+              style={{ background: '#fff', border: '1px solid #E5E7EB', color: '#374151', fontSize: 12, fontWeight: 500 }}>
+              <Download size={13} /> {r.usersExportMonthly}
+            </button>
+          </div>
+          <div style={{ overflowX: 'auto' }}>
+            <table className="w-full" style={{ minWidth: 560 }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
+                  {[r.usersMonth, r.usersColActive, r.usersColNew, r.usersColReturning, r.usersColLost, r.usersColGrowth, r.usersColChurn].map((h, i) => (
+                    <th key={h} className={`px-5 py-3 ${i === 0 ? 'text-left' : 'text-right'}`}
+                      style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr><td colSpan={7} className="px-5 py-8 text-center" style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</td></tr>
+                ) : monthlyDesc.map((m, idx) => {
+                  const cell = { fontSize: 13, color: '#374151', fontVariantNumeric: 'tabular-nums' } as const
+                  return (
+                    <tr key={m.month} style={{ borderBottom: idx < monthlyDesc.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
+                      <td className="px-5 py-2.5" style={{ fontSize: 13, fontWeight: 500, color: '#111827', textTransform: 'capitalize' }}>
+                        {fmtMonth(m.month, true)}
+                        {m.month === data?.currentMonth && <span style={{ fontSize: 11, fontWeight: 400, color: '#9CA3AF', marginLeft: 6, textTransform: 'none' }}>({r.usersInProgress})</span>}
+                      </td>
+                      <td className="px-5 py-2.5 text-right" style={{ ...cell, fontWeight: 600, color: '#111827' }}>{m.active}</td>
+                      <td className="px-5 py-2.5 text-right" style={{ ...cell, color: m.new ? '#16A34A' : '#D1D5DB' }}>{m.new ? '+' + m.new : 0}</td>
+                      <td className="px-5 py-2.5 text-right" style={{ ...cell, color: m.returning ? '#0870E2' : '#D1D5DB' }}>{m.returning ? '+' + m.returning : 0}</td>
+                      <td className="px-5 py-2.5 text-right" style={{ ...cell, color: m.lost ? '#E11D48' : '#D1D5DB' }}>{m.lost ? '−' + m.lost : 0}</td>
+                      <td className="px-5 py-2.5 text-right" style={{ ...cell, color: m.growthPct == null ? '#D1D5DB' : m.growthPct > 0 ? '#16A34A' : m.growthPct < 0 ? '#E11D48' : '#6B7280' }}>{fmtPct(m.growthPct)}</td>
+                      <td className="px-5 py-2.5 text-right" style={cell}>{fmtPct(m.churnPct, false)}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
 

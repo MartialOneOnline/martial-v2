@@ -34,14 +34,16 @@ export function periodBounds(period: string, dateFrom?: string | null, dateTo?: 
     }
   } else if (period === '90d') {
     for (let i = 2; i >= 0; i--) {
-      const d = new Date(now); d.setMonth(d.getMonth() - i)
+      // Day 1, not `now` — setMonth() on the 29th–31st overflows into the
+      // next month (31 Oct − 11 months = "31 Nov" = 1 Dec).
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
       const from = new Date(d.getFullYear(), d.getMonth(), 1)
       const to   = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999)
       points.push({ label: d.toLocaleDateString('en-US', { month: 'short' }), from, to })
     }
   } else {
     for (let i = 11; i >= 0; i--) {
-      const d = new Date(now); d.setMonth(d.getMonth() - i)
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
       const from = new Date(d.getFullYear(), d.getMonth(), 1)
       const to   = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999)
       points.push({ label: d.toLocaleDateString('en-US', { month: 'short' }), from, to })
