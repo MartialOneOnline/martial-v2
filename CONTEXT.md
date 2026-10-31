@@ -270,6 +270,16 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
+### Sesión — 2026-10-31 (b) (rama `claude/users-report-recovery`, pendiente de Project Audit)
+
+**Informe de Usuarios: ver y contactar a los alumnos nuevos / perdidos / que vuelven / en riesgo.** Sigue al PR #34 (vista mensual). El objetivo es recuperar alumnos: saber quiénes son, cómo contactarles y actuar.
+- **Quiénes:** `lib/memberActivity.ts` añade `activityByUser`, `segmentUsers` (NEW/LOST/RETURNING de un mes, misma definición que los números mensuales) y `atRiskUsers` (activos este mes sin clase en 21 días, o que pagan sin venir). +3 tests.
+- **API** (`/api/dashboard/reports/users`): `segment` + `month` filtran la lista a esos alumnos (sustituye a la antigua pestaña "New" por `joinedAt`, cerrando ese pendiente). Devuelve `segmentCounts`, teléfono limpio + número WhatsApp, meses con nosotros, nº de clases, última clase y último pago. La búsqueda también busca por teléfono. La lista solo incluye alumnos que siguen en el roster; `segmentRemoved` indica cuántos del número mensual tenían la cuenta eliminada (en RGM, octubre: 20 perdidos, 17 contactables).
+- **Teléfonos:** `lib/phone.ts` añade `cleanPhone` (el import V1 guardó ~425 teléfonos como el texto "NULL" en RGM) y `whatsappNumber` (añade el prefijo del país del colegio a números nacionales; 138 en RGM no lo tenían). `normalizePhone` (anti-abuso de trials) sin cambios. 6 tests.
+- **UI:** los números de la tabla mensual son clicables y filtran la lista a esos alumnos; pestañas Nuevos/Perdidos/Vuelven/En riesgo con contador y selector de mes; columnas contacto (llamar/WhatsApp/email), cinturón, plan, con nosotros, última clase, clases, último pago; selección múltiple (también "seleccionar los N" del grupo entero) → **Enviar campaña** con el `CampaignComposerModal` existente (que ya mide conversiones) o exportar CSV. Textos en EN/ES/PT/FR.
+- Verificado contra la DB real de RGM (solo lectura): segmentos de octubre = números mensuales (12 nuevos, 20 perdidos, 8 vuelven) y 28 en riesgo; 15 de los 17 perdidos contactables tienen WhatsApp. tsc 0 errores, eslint limpio, Vitest: 55 fallos preexistentes, ninguno nuevo.
+- **No probado en navegador** (lo prueba el usuario). Incidente durante el desarrollo: `lib/phone.ts` ya existía y se sobrescribió por error; restaurado desde HEAD antes de commitear (el diff solo añade).
+
 ### Sesión — 2026-10-31 (rama `claude/users-report-monthly`, PR [#34](https://github.com/MartialOneOnline/martial-v2/pull/34) — `RECHAZADO` en `b954b64` → `APROBADO CON PENDIENTES` en `d3b5df8` → **`APROBADO`** por Codex Project Audit en `69c0603`; falta prueba de UI con sesión real antes de mergear)
 
 **Informe de Usuarios: activos / nuevos / perdidos por mes.** Pedido para Roger Gracie Málaga. Antes, "Member Growth" era el acumulado de todos los alumnos que se unieron alguna vez (≈806, nunca bajaba) y "Retention Rate" era `ACTIVE / (ACTIVE+INACTIVE)` de hoy.

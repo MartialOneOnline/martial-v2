@@ -3,8 +3,10 @@ import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId, requireDashboardAccess } from '@/lib/auth/server'
 import {
   addMonths, monthRange, schoolTimeZone, reportMonths, zonedRangeBounds,
-  computeMonthlyActivity, summarisePeriod, type ActivityRow,
+  computeMonthlyActivity, summarisePeriod, activityByUser, segmentUsers, atRiskUsers,
+  ACTIVITY_SEGMENTS, type ActivityRow, type ActivitySegment,
 } from '@/lib/memberActivity'
+import { cleanPhone, whatsappNumber } from '@/lib/phone'
 
 // requireDashboardAccess() bypasses this for SUPERADMIN and otherwise
 // requires an ACTIVE SchoolMember with a staff-facing role — a STUDENT must
@@ -40,13 +42,77 @@ export async function GET(req: NextRequest) {
   // so the 7d/30d/90d/12m presets don't narrow it — only an explicit 'custom'
   // range does, replacing what used to be a separate, disconnected "Joined
   // date range" filter.
-  const school = await prisma.school.findUnique({ where: { id: auth.schoolId }, select: { country: true } })
+  const school = await prisma.school.findUnique({ where: { id: auth.schoolId }, select: { country: true, name: true } })
   const tz = schoolTimeZone(school?.country)
   const now = new Date()
   const isCustom = period === 'custom' && !!dateFrom && /^\d{4}-\d{2}-\d{2}$/.test(dateFrom)
   const { fromMonth, toMonth } = reportMonths(period, dateFrom, dateTo, now, tz)
   const nowMonth = reportMonths('12m', null, null, now, tz).toMonth
-  const newThreshold = new Date(now); newThreshold.setDate(now.getDate() - 30)
+
+  // Who-filter for the member list: students who were new / lost / came back
+  // in `month`, or are at risk right now (see lib/memberActivity.ts). When
+  // set it replaces the status tab and the custom joined-date filter — the
+  // list is then exactly the students behind the monthly numbers.
+  const segmentParam = searchParams.get('segment')
+  const segment = ACTIVITY_SEGMENTS.find(s => s === segmentParam) ?? null
+  const monthParam = searchParams.get('month')
+  const segmentMonth = monthParam && /^\d{4}-(0[1-9]|1[0-2])$/.test(monthParam) && monthParam <= nowMonth ? monthParam : nowMonth
+
+  // ── Activity history ─────────────────────────────────────────────────────────
+  // Rebuilt from activity (paid membership fee or attended class) because
+  // SchoolMember.status has no history — see lib/memberActivity.ts for the
+  // exact definitions. One row per (student, local month) over the school's
+  // whole history, so "new" vs "returning" is right for any window. Columns
+  // are `timestamp without time zone` holding UTC, hence the double AT TIME
+  // ZONE (UTC → school-local) before bucketing by month.
+  const [activity, attendance] = await Promise.all([
+    prisma.$queryRaw<ActivityRow[]>`
+      SELECT DISTINCT a."userId", a.month FROM (
+        SELECT t."userId", to_char((t.date AT TIME ZONE 'UTC') AT TIME ZONE ${tz}, 'YYYY-MM') AS month
+        FROM transactions t
+        WHERE t."schoolId" = ${auth.schoolId} AND t.category = 'MEMBERSHIP' AND t.status = 'PAID'
+          AND t."deletedAt" IS NULL AND t."userId" IS NOT NULL
+        UNION
+        SELECT b."userId", to_char((b."attendedAt" AT TIME ZONE 'UTC') AT TIME ZONE ${tz}, 'YYYY-MM')
+        FROM bookings b JOIN classes c ON c.id = b."classId"
+        WHERE c."schoolId" = ${auth.schoolId} AND b."attendedAt" IS NOT NULL AND b.status <> 'CANCELLED'
+      ) a
+      WHERE NOT EXISTS (
+        SELECT 1 FROM school_members sm
+        WHERE sm."userId" = a."userId" AND sm."schoolId" = ${auth.schoolId} AND sm.role <> 'STUDENT'
+      )`,
+    // Last class + total classes per student (for "at risk" and the list columns)
+    prisma.booking.groupBy({
+      by: ['userId'],
+      where: { class: { schoolId: auth.schoolId }, attendedAt: { not: null }, status: { not: 'CANCELLED' } },
+      _max: { attendedAt: true },
+      _count: { _all: true },
+    }),
+  ])
+  const byUser = activityByUser(activity)
+  const lastAttended = new Map<string, Date>()
+  const classCount = new Map<string, number>()
+  for (const a of attendance) {
+    if (a._max.attendedAt) lastAttended.set(a.userId, a._max.attendedAt)
+    classCount.set(a.userId, a._count._all)
+  }
+
+  const segmentAll: Record<ActivitySegment, string[]> = {
+    NEW:       segmentUsers(byUser, segmentMonth, 'NEW'),
+    LOST:      segmentUsers(byUser, segmentMonth, 'LOST'),
+    RETURNING: segmentUsers(byUser, segmentMonth, 'RETURNING'),
+    AT_RISK:   atRiskUsers(byUser, lastAttended, now, nowMonth),
+  }
+  // The monthly numbers keep students whose account was later removed from
+  // the school (they were real students then), but those can't be listed or
+  // contacted — so the list and its tab counts only include students still on
+  // the roster, and `segmentRemoved` says how many were left out.
+  const rosterUserIds = new Set((await prisma.schoolMember.findMany({
+    where: { schoolId: auth.schoolId, role: 'STUDENT' }, select: { userId: true },
+  })).map(m => m.userId))
+  const segmentIds = Object.fromEntries(
+    ACTIVITY_SEGMENTS.map(seg => [seg, segmentAll[seg].filter(id => rosterUserIds.has(id))]),
+  ) as Record<ActivitySegment, string[]>
 
   // ── Member list ──────────────────────────────────────────────────────────────
   const belt = searchParams.get('belt') ?? ''
@@ -68,13 +134,9 @@ export async function GET(req: NextRequest) {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const andConditions: any[] = []
-  if (isCustom) {
+  if (isCustom && !segment) {
     const { from, to } = zonedRangeBounds(dateFrom!, dateTo, now, tz)
     andConditions.push(dateRangeFilter(from, to))
-  }
-  if (status === 'NEW') {
-    andConditions.push({ status: 'ACTIVE' })
-    andConditions.push(dateRangeFilter(newThreshold))
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -85,37 +147,51 @@ export async function GET(req: NextRequest) {
       user: { OR: [
         { name:  { contains: search, mode: 'insensitive' } },
         { email: { contains: search, mode: 'insensitive' } },
+        { phone: { contains: search.replace(/\s/g, '') } },
       ]},
     } : {}),
     ...(belt ? { belt } : {}),
-    ...(status === 'ACTIVE'   ? { status: 'ACTIVE' } : {}),
-    ...(status === 'INACTIVE' ? { status: { in: ['INACTIVE', 'FROZEN', 'LEAD'] } } : {}),
+    ...(segment ? { userId: { in: segmentIds[segment] } } : {}),
+    ...(!segment && status === 'ACTIVE'   ? { status: 'ACTIVE' } : {}),
+    ...(!segment && status === 'INACTIVE' ? { status: { in: ['INACTIVE', 'FROZEN', 'LEAD'] } } : {}),
     ...(andConditions.length ? { AND: andConditions } : {}),
   }
 
-  const [members, total] = await Promise.all([
-    prisma.schoolMember.findMany({
-      where,
-      include: { user: { select: { name: true, email: true, avatarUrl: true } } },
-      orderBy: { joinedAt: { sort: 'desc', nulls: 'last' } },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    }),
-    prisma.schoolMember.count({ where }),
-  ])
+  const memberInclude = { user: { select: { name: true, email: true, phone: true, avatarUrl: true } } } as const
+  let members, total
+  if (segment) {
+    // Segments are small (tens of students), so sort in memory by most
+    // recent class — the freshest contacts first — then paginate.
+    const all = await prisma.schoolMember.findMany({ where, include: memberInclude })
+    const t = (userId: string) => lastAttended.get(userId)?.getTime() ?? 0
+    all.sort((a, b) => t(b.userId) - t(a.userId))
+    total = all.length
+    members = all.slice((page - 1) * pageSize, page * pageSize)
+  } else {
+    ;[members, total] = await Promise.all([
+      prisma.schoolMember.findMany({
+        where,
+        include: memberInclude,
+        orderBy: { joinedAt: { sort: 'desc', nulls: 'last' } },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      prisma.schoolMember.count({ where }),
+    ])
+  }
 
-  // Fetch active membership plan names + last attended class for these users
+  // Active plan + last membership payment for the listed students
   const userIds = members.map(m => m.userId)
-  const [activeMemberships, lastAttended] = await Promise.all([
+  const [activeMemberships, lastPayments] = await Promise.all([
     prisma.membership.findMany({
       where: { userId: { in: userIds }, schoolId: auth.schoolId, status: 'ACTIVE' },
       select: { userId: true, planName: true },
       orderBy: { startDate: 'desc' },
     }),
-    prisma.booking.findMany({
-      where: { userId: { in: userIds }, attendedAt: { not: null }, class: { schoolId: auth.schoolId } },
-      select: { userId: true, attendedAt: true },
-      orderBy: { attendedAt: 'desc' },
+    prisma.transaction.findMany({
+      where: { userId: { in: userIds }, schoolId: auth.schoolId, category: 'MEMBERSHIP', status: 'PAID', deletedAt: null },
+      select: { userId: true, date: true, amount: true, currency: true },
+      orderBy: { date: 'desc' },
       distinct: ['userId'],
     }),
   ])
@@ -123,10 +199,7 @@ export async function GET(req: NextRequest) {
   for (const mem of activeMemberships) {
     if (!planByUser[mem.userId]) planByUser[mem.userId] = mem.planName
   }
-  const lastAttendedByUser: Record<string, string> = {}
-  for (const b of lastAttended) {
-    if (b.attendedAt) lastAttendedByUser[b.userId] = b.attendedAt.toISOString()
-  }
+  const lastPaymentByUser = new Map(lastPayments.map(p => [p.userId!, p]))
 
   // ── Belt distribution ────────────────────────────────────────────────────────
   const allActive = await prisma.schoolMember.findMany({
@@ -146,29 +219,7 @@ export async function GET(req: NextRequest) {
     })
     .map(([name, value]) => ({ name, value }))
 
-  // ── Monthly active / new / lost ──────────────────────────────────────────────
-  // Rebuilt from activity (paid membership fee or attended class) because
-  // SchoolMember.status has no history — see lib/memberActivity.ts for the
-  // exact definitions. One row per (student, local month) over the school's
-  // whole history, so "new" vs "returning" is right for any window. Columns
-  // are `timestamp without time zone` holding UTC, hence the double AT TIME
-  // ZONE (UTC → school-local) before bucketing by month.
-  const activity = await prisma.$queryRaw<ActivityRow[]>`
-    SELECT DISTINCT a."userId", a.month FROM (
-      SELECT t."userId", to_char((t.date AT TIME ZONE 'UTC') AT TIME ZONE ${tz}, 'YYYY-MM') AS month
-      FROM transactions t
-      WHERE t."schoolId" = ${auth.schoolId} AND t.category = 'MEMBERSHIP' AND t.status = 'PAID'
-        AND t."deletedAt" IS NULL AND t."userId" IS NOT NULL
-      UNION
-      SELECT b."userId", to_char((b."attendedAt" AT TIME ZONE 'UTC') AT TIME ZONE ${tz}, 'YYYY-MM')
-      FROM bookings b JOIN classes c ON c.id = b."classId"
-      WHERE c."schoolId" = ${auth.schoolId} AND b."attendedAt" IS NOT NULL AND b.status <> 'CANCELLED'
-    ) a
-    WHERE NOT EXISTS (
-      SELECT 1 FROM school_members sm
-      WHERE sm."userId" = a."userId" AND sm."schoolId" = ${auth.schoolId} AND sm.role <> 'STUDENT'
-    )`
-
+  // ── Monthly series + period summary ──────────────────────────────────────────
   const summary = summarisePeriod(activity, fromMonth, toMonth)
 
   // Chart + table: monthly granularity only makes sense over several months,
@@ -201,19 +252,38 @@ export async function GET(req: NextRequest) {
     },
     monthly,
     currentMonth: nowMonth,
+    schoolName: school?.name ?? '',
+    segment,
+    segmentMonth,
+    segmentRemoved: segment ? segmentAll[segment].length - segmentIds[segment].length : 0,
+    segmentCounts: {
+      NEW: segmentIds.NEW.length, LOST: segmentIds.LOST.length,
+      RETURNING: segmentIds.RETURNING.length, AT_RISK: segmentIds.AT_RISK.length,
+    },
     beltDist,
-    members: members.map(m => ({
-      id:        m.id,
-      name:      m.user?.name     ?? '—',
-      email:     m.user?.email    ?? '—',
-      avatarUrl: m.user?.avatarUrl ?? null,
-      belt:      m.belt           ?? '—',
-      plan:      planByUser[m.userId] ?? '—',
-      status:        m.status,
-      joinedAt:      (m.joinedAt ?? m.createdAt).toISOString(),
-      isNew:         (m.joinedAt ?? m.createdAt) >= newThreshold,
-      lastAttendedAt: lastAttendedByUser[m.userId] ?? null,
-    })),
+    members: members.map(m => {
+      const act = byUser.get(m.userId)
+      const pay = lastPaymentByUser.get(m.userId)
+      return {
+        id:        m.id,
+        name:      m.user?.name     ?? '—',
+        email:     m.user?.email    ?? '—',
+        phone:     cleanPhone(m.user?.phone),
+        whatsapp:  whatsappNumber(m.user?.phone, school?.country),
+        avatarUrl: m.user?.avatarUrl ?? null,
+        belt:      m.belt           ?? '—',
+        plan:      planByUser[m.userId] ?? '—',
+        status:    m.status,
+        joinedAt:  (m.joinedAt ?? m.createdAt).toISOString(),
+        isNew:     act?.first === nowMonth,
+        firstMonth:   act?.first ?? null,
+        lastMonth:    act?.last ?? null,
+        monthsActive: act?.months.length ?? 0,
+        classes:      classCount.get(m.userId) ?? 0,
+        lastAttendedAt: lastAttended.get(m.userId)?.toISOString() ?? null,
+        lastPayment: pay ? { date: pay.date.toISOString(), amount: pay.amount, currency: pay.currency } : null,
+      }
+    }),
     total,
     page,
     pageSize,
