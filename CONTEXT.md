@@ -270,7 +270,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-10-31 (rama `claude/users-report-monthly`, PR [#34](https://github.com/MartialOneOnline/martial-v2/pull/34) — `RECHAZADO` en `b954b64` → `APROBADO CON PENDIENTES` en `d3b5df8`; pendiente P2 de DST también corregido, pendiente de confirmación)
+### Sesión — 2026-10-31 (rama `claude/users-report-monthly`, PR [#34](https://github.com/MartialOneOnline/martial-v2/pull/34) — `RECHAZADO` en `b954b64` → `APROBADO CON PENDIENTES` en `d3b5df8` → **`APROBADO`** por Codex Project Audit en `69c0603`; falta prueba de UI con sesión real antes de mergear)
 
 **Informe de Usuarios: activos / nuevos / perdidos por mes.** Pedido para Roger Gracie Málaga. Antes, "Member Growth" era el acumulado de todos los alumnos que se unieron alguna vez (≈806, nunca bajaba) y "Retention Rate" era `ACTIVE / (ACTIVE+INACTIVE)` de hoy.
 - `SchoolMember.status` no tiene historial y las memberships V1 solo llegan bien desde jul-2026, así que el histórico se reconstruye desde **actividad**: cuota pagada (`Transaction` MEMBERSHIP/PAID) o clase asistida (`Booking.attendedAt`), por mes en la zona horaria del colegio (derivada de `School.country`; las columnas son `timestamp without time zone` en UTC → doble `AT TIME ZONE`).
