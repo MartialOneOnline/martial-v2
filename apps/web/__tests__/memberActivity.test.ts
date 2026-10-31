@@ -7,7 +7,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   addMonths, monthRange, monthKeyInTz, schoolTimeZone,
-  computeMonthlyActivity, summarisePeriod, reportMonths, zonedRangeBounds, civilDateInTz, activityByUser, segmentUsers, atRiskUsers, type ActivityRow,
+  computeMonthlyActivity, summarisePeriod, reportMonths, zonedRangeBounds, civilDateInTz, activityByUser, segmentUsers, atRiskUsers, cohortRetention, averageRetention, type ActivityRow,
 } from '@/lib/memberActivity'
 
 const rows = (userId: string, ...months: string[]): ActivityRow[] => months.map(month => ({ userId, month }))
@@ -201,5 +201,55 @@ describe('segmentUsers() / atRiskUsers()', () => {
       ['gone', new Date('2026-02-10')],    // already lost → not "at risk"
     ])
     expect(atRiskUsers(byUser, last, now, '2026-04').sort()).toEqual(['back', 'fresh'])
+  })
+})
+
+describe('percentages and year-on-year', () => {
+  const data = [
+    ...rows('a', '2025-03', '2026-02', '2026-03'),
+    ...rows('b', '2026-02'),             // lost in April
+    ...rows('c', '2026-03'),             // new in March
+    ...rows('d', '2025-03', '2026-03'),  // came back in March
+  ]
+  it('expresses new / returning / lost as % of last month\'s active', () => {
+    const [mar] = computeMonthlyActivity(data, ['2026-03'])
+    // Feb active = a, b (2); March: c new, d back, nobody lost
+    expect(mar).toMatchObject({ active: 4, new: 1, returning: 1, lost: 0, newPct: 50, returningPct: 50, churnPct: 0, growthPct: 100 })
+  })
+  it('compares with the same month a year earlier', () => {
+    const [mar] = computeMonthlyActivity(data, ['2026-03'])
+    // March 2025 active = a, d
+    expect(mar).toMatchObject({ activeYearAgo: 2, yoyPct: 100 })
+  })
+  it('gives null year-on-year when there was nobody a year earlier', () => {
+    const [m] = computeMonthlyActivity(rows('x', '2026-03'), ['2026-03'])
+    expect(m).toMatchObject({ activeYearAgo: 0, yoyPct: null, newPct: null })
+  })
+})
+
+describe('cohortRetention()', () => {
+  const data = [
+    ...rows('stays', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07'),
+    ...rows('quits', '2026-01'),                      // gone by March
+    ...rows('late', '2026-01', '2026-03'),            // still active at +2 and +3 (grace), gone by +6
+  ]
+  it('measures how many of a month\'s new students are still active 2, 3 and 6 months later', () => {
+    const [jan] = cohortRetention(data, ['2026-01'], '2026-10')
+    expect(jan!.started).toBe(3)
+    expect(jan!.retained).toEqual({ 2: 66.7, 3: 66.7, 6: 33.3 })
+    expect(jan!.retainedCount).toEqual({ 2: 2, 3: 2, 6: 1 })
+  })
+  it('leaves offsets that have not happened yet empty', () => {
+    const [jan] = cohortRetention(data, ['2026-01'], '2026-04')
+    expect(jan!.retained).toEqual({ 2: 66.7, 3: 66.7, 6: null })
+  })
+  it('handles months where nobody started', () => {
+    const [feb] = cohortRetention(data, ['2026-02'], '2026-10')
+    expect(feb).toMatchObject({ started: 0, retained: { 2: null, 3: null, 6: null } })
+  })
+  it('averages retention weighted by cohort size', () => {
+    const cohorts = cohortRetention([...data, ...rows('solo', '2026-02', '2026-05')], ['2026-01', '2026-02'], '2026-10')
+    // Jan: 2 of 3 at +3; Feb: 1 of 1 at +3 (May) → 3 of 4
+    expect(averageRetention(cohorts, 3)).toBe(75)
   })
 })

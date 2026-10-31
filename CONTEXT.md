@@ -270,6 +270,17 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
+### Sesión — 2026-11-01 (rama `claude/users-report-percentages`, pendiente de Project Audit)
+
+**Informe de Usuarios: porcentajes, interanual, retención de nuevos y CSV legible en Excel.**
+- `lib/memberActivity.ts`: `MonthStats` añade `newPct`, `returningPct` (sobre activos del mes anterior), `activeYearAgo` y `yoyPct` (vs mismo mes del año anterior). Nuevo `cohortRetention()` (de los nuevos de cada mes, % activos a 2, 3 y 6 meses; null si ese mes aún no ha llegado; se omite +1 mes porque con la gracia siempre es 100%) y `averageRetention()` (media ponderada). +7 tests.
+- `lib/csvExport.ts`: `buildCsv()` puro + `downloadCsv(..., { locale })`. Con locale es/pt/fr (y de/it/nl) usa `;` y coma decimal para que Excel lo abra en columnas con números; sin locale el formato es idéntico al anterior (las otras 12 exportaciones no cambian). 4 tests.
+- API: `cohorts` en la respuesta; `?view=history` devuelve serie mensual + cohortes desde el primer mes con actividad (RGM: feb-2022 → hoy, 58 meses, ~120 ms de cálculo), sin lista de miembros.
+- UI: cada Nuevos/Vuelven/Perdidos muestra su %; la columna "% bajas" pasa a "Interanual" (tooltip con los activos de hace un año); bloque nuevo "Retención de nuevos" (tabla por mes + frase con la media a 3 meses; "Empezaron" abre la lista de esos nuevos); CSV mensual con todos los % y retención, y botón "Historial completo". Textos EN/ES/PT/FR.
+- RGM: media de nuevos que siguen a 3 meses 33%, a 6 meses 24% (últimas 12 cohortes); interanual oct-26 +18,9%.
+- Observado (no cambiado): el mes en curso se calcula en vivo; el 1 de noviembre aparece con 115 activos y −12,9% hasta que la gente pague/venga. Ya va marcado "(en curso)".
+- tsc 0 errores, eslint limpio, Vitest 893 pasan / 55 preexistentes. No probado en navegador.
+
 ### Sesión — 2026-10-31 (b) (rama `claude/users-report-recovery`, PR [#35](https://github.com/MartialOneOnline/martial-v2/pull/35) — `RECHAZADO` en `d495cee` → `APROBADO CON PENDIENTES` en `b7233af` y `3fce59e` → **`APROBADO`** por Codex Project Audit en `9b2b42f`; falta prueba de UI con sesión real. Pendiente declarado fuera de este lote: toast falso de borrador en `/dashboard/users`)
 
 **Informe de Usuarios: ver y contactar a los alumnos nuevos / perdidos / que vuelven / en riesgo.** Sigue al PR #34 (vista mensual). El objetivo es recuperar alumnos: saber quiénes son, cómo contactarles y actuar.

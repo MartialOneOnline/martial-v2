@@ -10,6 +10,7 @@ import { downloadCsv } from '../../../../lib/csvExport'
 import { fmtPrice } from '../../../../lib/format'
 import CampaignComposerModal, { type ComposerStudent } from '../../users/CampaignComposerModal'
 import { segmentMonthOptions, createRequestGuard } from '../../../../lib/reportSelection'
+import { averageRetention } from '../../../../lib/memberActivity'
 import {
   ComposedChart, Line, Bar, PieChart, Pie, Cell, Legend,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -150,6 +151,14 @@ const isSegment = (t: ListTab): t is Segment => (SEGMENTS as string[]).includes(
 interface MonthStats {
   month: string; active: number; new: number; returning: number; lost: number
   growthPct: number | null; churnPct: number | null
+  newPct: number | null; returningPct: number | null
+  activeYearAgo: number; yoyPct: number | null
+}
+const COHORT_OFFSETS = [2, 3, 6] as const
+interface CohortStats {
+  month: string; started: number
+  retained: Record<2 | 3 | 6, number | null>
+  retainedCount: Record<2 | 3 | 6, number | null>
 }
 interface ReportData {
   stats: {
@@ -158,6 +167,7 @@ interface ReportData {
     baseMonth: string; endMonth: string; baseActive: number; endActive: number
   }
   monthly:      MonthStats[]
+  cohorts:      CohortStats[]
   currentMonth: string
   schoolName:   string
   segmentMonth: string
@@ -295,11 +305,34 @@ export default function UsersReportClient() {
 
   function copy(text: string) { navigator.clipboard.writeText(text); showToast(r.usersCopied) }
 
-  function handleExportMonthly() {
-    if (!data) return
-    const headers = [r.usersMonth, r.usersColActive, r.usersColNew, r.usersColReturning, r.usersColLost, r.usersColGrowth, r.usersColChurn]
-    const rows = data.monthly.map(m => [m.month, m.active, m.new, m.returning, m.lost, m.growthPct ?? '', m.churnPct ?? ''])
-    downloadCsv('members-monthly', headers, rows)
+  // Monthly CSV: counts + every percentage + new-student retention, one row
+  // per month. Locale-aware so Spanish/Portuguese/French Excel opens it in
+  // columns with real numbers (";" separator, decimal comma).
+  function exportMonthly(monthly: MonthStats[], cohorts: CohortStats[], name: string) {
+    const byMonth = new Map(cohorts.map(c => [c.month, c]))
+    const headers = [
+      r.usersMonth, r.usersColActive,
+      r.usersColNew, r.usersCsvPctNew, r.usersColReturning, r.usersCsvPctReturning, r.usersColLost, r.usersColChurn,
+      r.usersCsvGrowth, r.usersCsvYearAgo, r.usersCsvYoy,
+      ...COHORT_OFFSETS.map(k => r.usersCsvRetained.replace('{n}', String(k))),
+    ]
+    const rows = monthly.map(m => {
+      const c = byMonth.get(m.month)
+      return [
+        m.month, m.active,
+        m.new, m.newPct, m.returning, m.returningPct, m.lost, m.churnPct,
+        m.growthPct, m.activeYearAgo || null, m.yoyPct,
+        ...COHORT_OFFSETS.map(k => c?.retained[k] ?? null),
+      ]
+    })
+    downloadCsv(name, headers, rows, { locale })
+  }
+  function handleExportMonthly() { if (data) exportMonthly(data.monthly, data.cohorts, 'members-monthly') }
+  async function handleExportHistory() {
+    const res = await fetch('/api/dashboard/reports/users?view=history')
+    if (!res.ok) return
+    const h: { monthly: MonthStats[]; cohorts: CohortStats[] } = await res.json()
+    exportMonthly(h.monthly, h.cohorts, 'members-monthly-history')
   }
 
   async function setMemberStatus(memberId: string, status: string) {
@@ -468,17 +501,24 @@ export default function UsersReportClient() {
               <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{r.usersMonthlyTable}</p>
               <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2, maxWidth: 640 }}>{r.usersDefinition}</p>
             </div>
-            <button onClick={handleExportMonthly} disabled={!data}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer"
-              style={{ background: '#fff', border: '1px solid #E5E7EB', color: '#374151', fontSize: 12, fontWeight: 500 }}>
-              <Download size={13} /> {r.usersExportMonthly}
-            </button>
+            <div className="flex items-center gap-2">
+              <button onClick={handleExportMonthly} disabled={!data}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer"
+                style={{ background: '#fff', border: '1px solid #E5E7EB', color: '#374151', fontSize: 12, fontWeight: 500 }}>
+                <Download size={13} /> {r.usersExportMonthly}
+              </button>
+              <button onClick={handleExportHistory}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer"
+                style={{ background: '#fff', border: '1px solid #E5E7EB', color: '#374151', fontSize: 12, fontWeight: 500 }}>
+                <Download size={13} /> {r.usersExportHistory}
+              </button>
+            </div>
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table className="w-full" style={{ minWidth: 560 }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
-                  {[r.usersMonth, r.usersColActive, r.usersColNew, r.usersColReturning, r.usersColLost, r.usersColGrowth, r.usersColChurn].map((h, i) => (
+                  {[r.usersMonth, r.usersColActive, r.usersColNew, r.usersColReturning, r.usersColLost, r.usersColGrowth, r.usersColYoy].map((h, i) => (
                     <th key={h} className={`px-5 py-3 ${i === 0 ? 'text-left' : 'text-right'}`}
                       style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</th>
                   ))}
@@ -496,18 +536,20 @@ export default function UsersReportClient() {
                         {m.month === data?.currentMonth && <span style={{ fontSize: 11, fontWeight: 400, color: '#9CA3AF', marginLeft: 6, textTransform: 'none' }}>({r.usersInProgress})</span>}
                       </td>
                       <td className="px-5 py-2.5 text-right" style={{ ...cell, fontWeight: 600, color: '#111827' }}>{m.active}</td>
-                      {([['NEW', m.new, '+', '#16A34A'], ['RETURNING', m.returning, '+', '#0870E2'], ['LOST', m.lost, '−', '#E11D48']] as const).map(([seg, n, sign, color]) => (
-                        <td key={seg} className="px-5 py-2.5 text-right" style={cell}>
+                      {([['NEW', m.new, m.newPct, '+', '#16A34A'], ['RETURNING', m.returning, m.returningPct, '+', '#0870E2'], ['LOST', m.lost, m.churnPct, '−', '#E11D48']] as const).map(([seg, n, pct, sign, color]) => (
+                        <td key={seg} className="px-5 py-2.5 text-right" style={{ ...cell, whiteSpace: 'nowrap' }}>
                           {n ? (
                             <button onClick={() => openSegment(seg, m.month)} className="cursor-pointer hover:underline"
                               style={{ ...cell, color, fontWeight: 600, background: 'none', border: 'none', padding: 0 }}>
                               {sign}{n}
                             </button>
                           ) : <span style={{ color: '#D1D5DB' }}>0</span>}
+                          {pct != null && <span style={{ fontSize: 11, color: '#9CA3AF', marginLeft: 6 }}>{fmtPct(pct, false)}</span>}
                         </td>
                       ))}
                       <td className="px-5 py-2.5 text-right" style={{ ...cell, color: m.growthPct == null ? '#D1D5DB' : m.growthPct > 0 ? '#16A34A' : m.growthPct < 0 ? '#E11D48' : '#6B7280' }}>{fmtPct(m.growthPct)}</td>
-                      <td className="px-5 py-2.5 text-right" style={cell}>{fmtPct(m.churnPct, false)}</td>
+                      <td className="px-5 py-2.5 text-right" title={m.activeYearAgo ? `${fmtMonth(addMonth(m.month, -12), true)}: ${m.activeYearAgo}` : undefined}
+                        style={{ ...cell, color: m.yoyPct == null ? '#D1D5DB' : m.yoyPct > 0 ? '#16A34A' : m.yoyPct < 0 ? '#E11D48' : '#6B7280' }}>{fmtPct(m.yoyPct)}</td>
                     </tr>
                   )
                 })}
@@ -515,6 +557,68 @@ export default function UsersReportClient() {
             </table>
           </div>
         </div>
+
+        {/* New-student retention (cohorts) */}
+        {(() => {
+          const cohorts = [...(data?.cohorts ?? [])].reverse()
+          const avg3 = averageRetention(data?.cohorts ?? [], 3)
+          const tone = (p: number) => p >= 50 ? '#16A34A' : p >= 25 ? '#D97706' : '#E11D48'
+          return (
+            <div className="rounded-2xl overflow-hidden" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+              <div className="px-5 py-4" style={{ borderBottom: '1px solid #F3F4F6' }}>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{r.usersCohortTitle}</p>
+                <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2, maxWidth: 640 }}>{r.usersCohortDesc}</p>
+                {!loading && avg3 != null && (
+                  <p style={{ fontSize: 12, fontWeight: 600, color: tone(avg3), marginTop: 6 }}>
+                    {r.usersCohortAvg.replace('{p}', avg3.toLocaleString(locale))}
+                  </p>
+                )}
+              </div>
+              <div style={{ overflowX: 'auto' }}>
+                <table className="w-full" style={{ minWidth: 520 }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
+                      {[r.usersMonth, r.usersCohortStarted, ...COHORT_OFFSETS.map(k => r.usersCohortAfter.replace('{n}', String(k)))].map((h, i) => (
+                        <th key={h} className={`px-5 py-3 ${i === 0 ? 'text-left' : 'text-right'}`}
+                          style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loading ? (
+                      <tr><td colSpan={5} className="px-5 py-8 text-center" style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</td></tr>
+                    ) : cohorts.map((c, idx) => (
+                      <tr key={c.month} style={{ borderBottom: idx < cohorts.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
+                        <td className="px-5 py-2.5" style={{ fontSize: 13, fontWeight: 500, color: '#111827', textTransform: 'capitalize' }}>{fmtMonth(c.month, true)}</td>
+                        <td className="px-5 py-2.5 text-right" style={{ fontSize: 13, color: '#374151', fontVariantNumeric: 'tabular-nums' }}>
+                          {c.started ? (
+                            <button onClick={() => openSegment('NEW', c.month)} className="cursor-pointer hover:underline"
+                              style={{ fontSize: 13, fontWeight: 600, color: '#16A34A', background: 'none', border: 'none', padding: 0 }}>{c.started}</button>
+                          ) : <span style={{ color: '#D1D5DB' }}>0</span>}
+                        </td>
+                        {COHORT_OFFSETS.map(k => {
+                          const p = c.retained[k]
+                          return (
+                            <td key={k} className="px-5 py-2.5 text-right" style={{ fontSize: 13, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+                              {p == null ? (
+                                <span style={{ fontSize: 11, color: '#D1D5DB' }}>{c.started ? r.usersCohortNotYet : '—'}</span>
+                              ) : (
+                                <>
+                                  <span style={{ fontWeight: 600, color: tone(p) }}>{fmtPct(p, false)}</span>
+                                  <span style={{ fontSize: 11, color: '#9CA3AF', marginLeft: 6 }}>{c.retainedCount[k]}/{c.started}</span>
+                                </>
+                              )}
+                            </td>
+                          )
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )
+        })()}
 
         {/* Member list — status tabs + who-filters (new / lost / came back / at risk) */}
         <div ref={listRef} style={{ scrollMarginTop: 72 }}>
