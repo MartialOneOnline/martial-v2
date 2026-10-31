@@ -4,7 +4,7 @@ import { getAuthUser, getCurrentSchoolId, requireDashboardAccess } from '@/lib/a
 import {
   addMonths, monthRange, schoolTimeZone, reportMonths, zonedRangeBounds,
   computeMonthlyActivity, summarisePeriod, activityByUser, segmentUsers, atRiskUsers,
-  ACTIVITY_SEGMENTS, type ActivityRow, type ActivitySegment,
+  ACTIVITY_SEGMENTS, cohortRetention, type ActivityRow, type ActivitySegment,
 } from '@/lib/memberActivity'
 import { cleanPhone, whatsappNumber } from '@/lib/phone'
 
@@ -95,6 +95,18 @@ export async function GET(req: NextRequest) {
   for (const a of attendance) {
     if (a._max.attendedAt) lastAttended.set(a.userId, a._max.attendedAt)
     classCount.set(a.userId, a._count._all)
+  }
+
+  // Full history for the monthly CSV ("Export full history"): every month
+  // from the school's first recorded activity, without the member list.
+  if (searchParams.get('view') === 'history') {
+    const firstMonth = activity.reduce((min, r) => (r.month < min ? r.month : min), nowMonth)
+    const months = monthRange(firstMonth, nowMonth)
+    return NextResponse.json({
+      currentMonth: nowMonth,
+      monthly: computeMonthlyActivity(activity, months),
+      cohorts: cohortRetention(activity, months, nowMonth),
+    })
   }
 
   const segmentAll: Record<ActivitySegment, string[]> = {
@@ -233,6 +245,7 @@ export async function GET(req: NextRequest) {
     if (monthRange(chartFrom, chartTo).length > 36) chartFrom = addMonths(chartTo, -35)
   }
   const monthly = computeMonthlyActivity(activity, monthRange(chartFrom, chartTo))
+  const cohorts = cohortRetention(activity, monthRange(chartFrom, chartTo), nowMonth)
 
   // ── Stats ─────────────────────────────────────────────────────────────────────
   const totalActive = await prisma.schoolMember.count({ where: { schoolId: auth.schoolId, role: 'STUDENT', status: 'ACTIVE' } })
@@ -251,6 +264,7 @@ export async function GET(req: NextRequest) {
       endActive: summary.endActive,
     },
     monthly,
+    cohorts,
     currentMonth: nowMonth,
     schoolName: school?.name ?? '',
     segment,

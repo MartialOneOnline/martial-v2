@@ -32,6 +32,14 @@ export interface MonthStats {
   growthPct: number | null
   /** lost / active(previous month) as %; null when previous month had 0 */
   churnPct: number | null
+  /** new / active(previous month) as %; null when previous month had 0 */
+  newPct: number | null
+  /** returning / active(previous month) as %; null when previous month had 0 */
+  returningPct: number | null
+  /** active in the same month a year earlier (0 if none) */
+  activeYearAgo: number
+  /** % change in active vs the same month a year earlier; null when that was 0 */
+  yoyPct: number | null
 }
 
 export function addMonths(month: MonthKey, n: number): MonthKey {
@@ -172,12 +180,14 @@ export function computeMonthlyActivity(rows: ActivityRow[], months: MonthKey[], 
   const out: MonthStats[] = []
   for (const month of months) {
     const prev = addMonths(month, -1)
-    let active = 0, prevActive = 0, isNew = 0, returning = 0, lost = 0
+    const yearAgo = addMonths(month, -12)
+    let active = 0, prevActive = 0, isNew = 0, returning = 0, lost = 0, activeYearAgo = 0
     for (const userId of seen.keys()) {
       const now = isActive(userId, month)
       const before = isActive(userId, prev)
       if (now) active++
       if (before) prevActive++
+      if (isActive(userId, yearAgo)) activeYearAgo++
       if (before && !now) lost++
       if (now && !before) {
         if (firstSeen.get(userId) === month) isNew++
@@ -188,6 +198,10 @@ export function computeMonthlyActivity(rows: ActivityRow[], months: MonthKey[], 
       month, active, new: isNew, returning, lost,
       growthPct: prevActive > 0 ? round1(((active - prevActive) / prevActive) * 100) : null,
       churnPct:  prevActive > 0 ? round1((lost / prevActive) * 100) : null,
+      newPct:       prevActive > 0 ? round1((isNew / prevActive) * 100) : null,
+      returningPct: prevActive > 0 ? round1((returning / prevActive) * 100) : null,
+      activeYearAgo,
+      yoyPct: activeYearAgo > 0 ? round1(((active - activeYearAgo) / activeYearAgo) * 100) : null,
     })
   }
   return out
@@ -314,4 +328,49 @@ export function atRiskUsers(byUser: Map<string, UserActivity>, lastAttended: Map
     if (!last || last.getTime() < cutoff) out.push(userId)
   }
   return out
+}
+
+// ── New-student retention (cohorts) ──────────────────────────────────────────
+// Of the students who started in a month, how many are still active k months
+// later. k = 1 is left out on purpose: with the 1-month grace every new
+// student is still "active" the month after they start, so it's always 100%.
+
+export const COHORT_OFFSETS = [2, 3, 6] as const
+export type CohortOffset = typeof COHORT_OFFSETS[number]
+
+export interface CohortStats {
+  month: MonthKey
+  started: number
+  /** % still active k months later; null when that month hasn't happened yet or nobody started */
+  retained: Record<CohortOffset, number | null>
+  /** absolute counts behind `retained` (for weighted averages) */
+  retainedCount: Record<CohortOffset, number | null>
+}
+
+export function cohortRetention(rows: ActivityRow[], months: MonthKey[], currentMonth: MonthKey, grace = GRACE_MONTHS): CohortStats[] {
+  const byUser = activityByUser(rows)
+  return months.map(month => {
+    const cohort = segmentUsers(byUser, month, 'NEW', grace)
+    const retained = {} as Record<CohortOffset, number | null>
+    const retainedCount = {} as Record<CohortOffset, number | null>
+    for (const k of COHORT_OFFSETS) {
+      const target = addMonths(month, k)
+      if (target > currentMonth || cohort.length === 0) { retained[k] = null; retainedCount[k] = null; continue }
+      const n = cohort.filter(u => activeIn(byUser.get(u)!, target, grace)).length
+      retainedCount[k] = n
+      retained[k] = round1((n / cohort.length) * 100)
+    }
+    return { month, started: cohort.length, retained, retainedCount }
+  })
+}
+
+/** Weighted % still active k months later across the given cohorts (null if none measurable). */
+export function averageRetention(cohorts: CohortStats[], k: CohortOffset): number | null {
+  let started = 0, kept = 0
+  for (const c of cohorts) {
+    const n = c.retainedCount[k]
+    if (n === null) continue
+    started += c.started; kept += n
+  }
+  return started > 0 ? round1((kept / started) * 100) : null
 }
