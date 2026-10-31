@@ -188,6 +188,7 @@ export default function UsersReportClient() {
   // Selected students, kept across pages, for "Send campaign" / export
   const [selected,  setSelected]  = useState<Map<string, MemberRow>>(new Map())
   const [showComposer, setShowComposer] = useState(false)
+  const campaignSent = useRef(false)
   // Drop responses that belong to an older tab / month / filter — the list on
   // screen and the selected audience must always be the current group.
   const [loadGuard] = useState(createRequestGuard)
@@ -745,12 +746,17 @@ export default function UsersReportClient() {
         <CampaignComposerModal
           preselectedStudents={[...selected.values()].map(m => ({ id: m.id, name: m.name, email: m.email, belt: m.belt, status: m.status, avatarUrl: m.avatarUrl }))}
           schoolName={data?.schoolName || 'Your school'}
-          onClose={() => setShowComposer(false)}
+          onClose={() => {
+            setShowComposer(false)
+            // Clear only once the summary is closed — the modal still reads
+            // the selection for its "N students" header while it's open.
+            if (campaignSent.current) { campaignSent.current = false; clearSelection() }
+          }}
           onSaved={kind => {
             // Draft: the modal closes itself and nothing was sent — keep the
             // selection and say so. Sent: the modal shows its own summary.
             if (kind === 'draft') showToast(r.usersDraftSaved)
-            else clearSelection()
+            else campaignSent.current = true
           }}
         />
       )}
