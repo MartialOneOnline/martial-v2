@@ -270,7 +270,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-10-31 (b) (rama `claude/users-report-recovery`, PR [#35](https://github.com/MartialOneOnline/martial-v2/pull/35) — `RECHAZADO` en `d495cee` → `APROBADO CON PENDIENTES` en `b7233af` y en `3fce59e`; P3 final corregido, pendiente de confirmación)
+### Sesión — 2026-10-31 (b) (rama `claude/users-report-recovery`, PR [#35](https://github.com/MartialOneOnline/martial-v2/pull/35) — `RECHAZADO` en `d495cee` → `APROBADO CON PENDIENTES` en `b7233af` y `3fce59e` → **`APROBADO`** por Codex Project Audit en `9b2b42f`; falta prueba de UI con sesión real. Pendiente declarado fuera de este lote: toast falso de borrador en `/dashboard/users`)
 
 **Informe de Usuarios: ver y contactar a los alumnos nuevos / perdidos / que vuelven / en riesgo.** Sigue al PR #34 (vista mensual). El objetivo es recuperar alumnos: saber quiénes son, cómo contactarles y actuar.
 - **Quiénes:** `lib/memberActivity.ts` añade `activityByUser`, `segmentUsers` (NEW/LOST/RETURNING de un mes, misma definición que los números mensuales) y `atRiskUsers` (activos este mes sin clase en 21 días, o que pagan sin venir). +3 tests.
