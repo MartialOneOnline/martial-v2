@@ -66,7 +66,8 @@ export default function CampaignComposerModal({ preselectedStudents, campaignId,
   campaignId?: string
   schoolName: string
   onClose: () => void
-  onSaved: () => void
+  /** 'draft' = saved without sending; 'sent' = the send finished (summary is shown) */
+  onSaved: (kind: 'draft' | 'sent') => void
 }) {
   const t = useT()
   const { locale } = useLanguage()
@@ -208,7 +209,7 @@ export default function CampaignComposerModal({ preselectedStudents, campaignId,
       }
 
       if (action === 'draft') {
-        onSaved()
+        onSaved('draft')
         onClose()
         return
       }
@@ -233,7 +234,7 @@ export default function CampaignComposerModal({ preselectedStudents, campaignId,
 
       setSummary({ sent: totalSent, failed: totalFailed, skipped, campaignId: finalCampaignId })
       setStep('summary')
-      onSaved()
+      onSaved('sent')
     } catch (e: unknown) {
       setError(e instanceof Error && e.message ? e.message : 'Error')
       setStep('review')

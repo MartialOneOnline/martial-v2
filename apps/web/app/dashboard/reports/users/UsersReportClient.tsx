@@ -9,6 +9,7 @@ import SharedRowMenu from '../../../../components/RowMenu'
 import { downloadCsv } from '../../../../lib/csvExport'
 import { fmtPrice } from '../../../../lib/format'
 import CampaignComposerModal from '../../users/CampaignComposerModal'
+import { segmentMonthOptions, createRequestGuard } from '../../../../lib/reportSelection'
 import {
   ComposedChart, Line, Bar, PieChart, Pie, Cell, Legend,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -187,6 +188,10 @@ export default function UsersReportClient() {
   // Selected students, kept across pages, for "Send campaign" / export
   const [selected,  setSelected]  = useState<Map<string, MemberRow>>(new Map())
   const [showComposer, setShowComposer] = useState(false)
+  // Drop responses that belong to an older tab / month / filter — the list on
+  // screen and the selected audience must always be the current group.
+  const [loadGuard] = useState(createRequestGuard)
+  const [selGuard]  = useState(createRequestGuard)
   const listRef = useRef<HTMLDivElement>(null)
   const [search,    setSearch]    = useState('')
   const [page,      setPage]      = useState(1)
@@ -201,7 +206,7 @@ export default function UsersReportClient() {
     const params = new URLSearchParams({ period, search, page: String(p) })
     if (isSegment(filterTab)) {
       params.set('segment', filterTab)
-      if (segMonth) params.set('month', segMonth)
+      if (segMonth) params.set('month', segMonth)  // explicit whenever known, see selectTab
     } else params.set('status', filterTab)
     if (pageSize) params.set('pageSize', String(pageSize))
     if (filters.belt)     params.set('belt', filters.belt)
@@ -211,16 +216,32 @@ export default function UsersReportClient() {
   }, [period, filterTab, segMonth, search, filters, customFrom, customTo])
 
   const load = useCallback(async () => {
+    const token = loadGuard.begin()
     setLoading(true)
     const res = await fetch(`/api/dashboard/reports/users?${buildParams(page)}`)
-    if (res.ok) setData(await res.json())
+    const json: ReportData | null = res.ok ? await res.json() : null
+    if (!loadGuard.isCurrent(token)) return
+    if (json) {
+      setData(json)
+      // Keep the picker on the month the server actually used (the default
+      // current month, or a clamped one) so picker, request and list agree.
+      if (isSegment(filterTab) && json.segmentMonth !== segMonth) setSegMonth(json.segmentMonth)
+    }
     setLoading(false)
-  }, [buildParams, page])
+  }, [buildParams, page, filterTab, segMonth, loadGuard])
 
   useEffect(() => { load() }, [load])
   useEffect(() => { setPage(1) }, [period, filterTab, segMonth, search, filters, customFrom, customTo])
-  // A new group means a new audience — don't carry a selection across it
-  useEffect(() => { setSelected(new Map()) }, [filterTab, segMonth])
+  // A new group means a new audience — don't carry a selection across it,
+  // and any pending "Select all" for the old context must not land later.
+  useEffect(() => { selGuard.invalidate() }, [buildParams, selGuard])
+  useEffect(() => { selGuard.invalidate(); setSelected(new Map()) }, [filterTab, segMonth, selGuard])
+
+  function selectTab(key: ListTab) {
+    setFilterTab(key)
+    if (isSegment(key) && !segMonth && data) setSegMonth(data.currentMonth)
+  }
+  function clearSelection() { selGuard.invalidate(); setSelected(new Map()) }
 
   async function fetchAllMembers(): Promise<MemberRow[]> {
     const res = await fetch(`/api/dashboard/reports/users?${buildParams(1, 1000)}`)
@@ -244,7 +265,9 @@ export default function UsersReportClient() {
   async function handleExport() { exportMembers(await fetchAllMembers()) }
 
   async function selectAllInGroup() {
+    const token = selGuard.begin()
     const all = await fetchAllMembers()
+    if (!selGuard.isCurrent(token)) return
     setSelected(new Map(all.map(m => [m.id, m])))
   }
   function toggleOne(m: MemberRow) {
@@ -493,7 +516,7 @@ export default function UsersReportClient() {
             ] as const).map(tab => {
               const isOn = filterTab === tab.key
               return (
-                <button key={tab.key} onClick={() => setFilterTab(tab.key)} className="cursor-pointer"
+                <button key={tab.key} onClick={() => selectTab(tab.key)} className="cursor-pointer"
                   style={{ fontSize: 12, fontWeight: isOn ? 600 : 400, padding: '5px 14px', borderRadius: 8,
                     background: isOn ? '#111827' : '#fff', color: isOn ? '#fff' : '#6B7280',
                     border: isOn ? '1.5px solid #111827' : '1.5px solid #E5E7EB' }}>
@@ -512,7 +535,7 @@ export default function UsersReportClient() {
               const isOn = filterTab === tab.key
               const n = data?.segmentCounts?.[tab.key]
               return (
-                <button key={tab.key} onClick={() => setFilterTab(tab.key)} className="cursor-pointer flex items-center gap-1.5"
+                <button key={tab.key} onClick={() => selectTab(tab.key)} className="cursor-pointer flex items-center gap-1.5"
                   style={{ fontSize: 12, fontWeight: isOn ? 600 : 500, padding: '5px 12px', borderRadius: 8,
                     background: isOn ? tab.color : '#fff', color: isOn ? '#fff' : tab.color,
                     border: `1.5px solid ${isOn ? tab.color : '#E5E7EB'}` }}>
@@ -522,11 +545,11 @@ export default function UsersReportClient() {
               )
             })}
             {isSegment(filterTab) && filterTab !== 'AT_RISK' && (
-              <select value={segMonth || data?.segmentMonth || ''} onChange={e => setSegMonth(e.target.value)}
+              <select value={segMonth} onChange={e => setSegMonth(e.target.value)} disabled={!segMonth}
                 aria-label={r.usersMonth}
                 style={{ height: 30, padding: '0 8px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, color: '#111827', textTransform: 'capitalize' }}>
-                {[...(data?.monthly ?? [])].reverse().map(m => (
-                  <option key={m.month} value={m.month}>{fmtMonth(m.month, true)}</option>
+                {data && segmentMonthOptions(data.currentMonth, data.monthly.map(m => m.month), segMonth).map(m => (
+                  <option key={m} value={m}>{fmtMonth(m, true)}</option>
                 ))}
               </select>
             )}
@@ -535,7 +558,7 @@ export default function UsersReportClient() {
             </div>
           </div>
 
-          {isSegment(filterTab) && data && (
+          {isSegment(filterTab) && data && !loading && (
             <p style={{ fontSize: 12, color: '#6B7280', marginBottom: 12 }}>
               {filterTab === 'NEW' && r.usersHintNew.replace('{m}', fmtMonth(data.segmentMonth, true))}
               {filterTab === 'RETURNING' && r.usersHintReturning.replace('{m}', fmtMonth(data.segmentMonth, true))}
@@ -566,7 +589,7 @@ export default function UsersReportClient() {
                 style={{ fontSize: 12, fontWeight: 500, padding: '6px 12px', borderRadius: 8, background: 'transparent', color: '#fff', border: '1px solid #4B5563' }}>
                 <Download size={13} /> {r.usersExportSelected}
               </button>
-              <button onClick={() => setSelected(new Map())} className="flex items-center gap-1 cursor-pointer"
+              <button onClick={clearSelection} className="flex items-center gap-1 cursor-pointer"
                 style={{ fontSize: 12, padding: '6px 8px', borderRadius: 8, background: 'transparent', color: '#9CA3AF', border: 'none' }}>
                 <X size={13} /> {r.usersClearSelection}
               </button>
@@ -723,7 +746,12 @@ export default function UsersReportClient() {
           preselectedStudents={[...selected.values()].map(m => ({ id: m.id, name: m.name, email: m.email, belt: m.belt, status: m.status, avatarUrl: m.avatarUrl }))}
           schoolName={data?.schoolName || 'Your school'}
           onClose={() => setShowComposer(false)}
-          onSaved={() => { setShowComposer(false); setSelected(new Map()); showToast(t.campaigns.summaryHeading) }}
+          onSaved={kind => {
+            // Draft: the modal closes itself and nothing was sent — keep the
+            // selection and say so. Sent: the modal shows its own summary.
+            if (kind === 'draft') showToast(r.usersDraftSaved)
+            else clearSelection()
+          }}
         />
       )}
     </main>
