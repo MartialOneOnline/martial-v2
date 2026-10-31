@@ -4,7 +4,7 @@ import { getAuthUser, getCurrentSchoolId, requireDashboardAccess } from '@/lib/a
 import {
   addMonths, monthRange, schoolTimeZone, reportMonths, zonedRangeBounds,
   computeMonthlyActivity, summarisePeriod, activityByUser, segmentUsers, atRiskUsers,
-  ACTIVITY_SEGMENTS, cohortRetention, type ActivityRow, type ActivitySegment,
+  ACTIVITY_SEGMENTS, cohortRetention, closedPeriodMonths, markProvisional, type ActivityRow, type ActivitySegment,
 } from '@/lib/memberActivity'
 import { cleanPhone, whatsappNumber } from '@/lib/phone'
 
@@ -104,7 +104,7 @@ export async function GET(req: NextRequest) {
     const months = monthRange(firstMonth, nowMonth)
     return NextResponse.json({
       currentMonth: nowMonth,
-      monthly: computeMonthlyActivity(activity, months),
+      monthly: markProvisional(computeMonthlyActivity(activity, months), nowMonth),
       cohorts: cohortRetention(activity, months, nowMonth),
     })
   }
@@ -232,7 +232,10 @@ export async function GET(req: NextRequest) {
     .map(([name, value]) => ({ name, value }))
 
   // ── Monthly series + period summary ──────────────────────────────────────────
-  const summary = summarisePeriod(activity, fromMonth, toMonth)
+  // Cards compare closed months only — the month in progress would read as a
+  // big drop every 1st (see closedPeriodMonths in lib/memberActivity.ts).
+  const closedPeriod = closedPeriodMonths(fromMonth, toMonth, nowMonth, !isCustom)
+  const summary = summarisePeriod(activity, closedPeriod.fromMonth, closedPeriod.toMonth)
 
   // Chart + table: monthly granularity only makes sense over several months,
   // so presets always show the last 12; a custom range shows its own months
@@ -244,7 +247,7 @@ export async function GET(req: NextRequest) {
     chartFrom = fromMonth < chartTo ? fromMonth : addMonths(chartTo, -1)
     if (monthRange(chartFrom, chartTo).length > 36) chartFrom = addMonths(chartTo, -35)
   }
-  const monthly = computeMonthlyActivity(activity, monthRange(chartFrom, chartTo))
+  const monthly = markProvisional(computeMonthlyActivity(activity, monthRange(chartFrom, chartTo)), nowMonth)
   const cohorts = cohortRetention(activity, monthRange(chartFrom, chartTo), nowMonth)
 
   // ── Stats ─────────────────────────────────────────────────────────────────────
