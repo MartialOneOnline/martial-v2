@@ -7,7 +7,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   addMonths, monthRange, monthKeyInTz, schoolTimeZone,
-  computeMonthlyActivity, summarisePeriod, type ActivityRow,
+  computeMonthlyActivity, summarisePeriod, reportMonths, zonedRangeBounds, type ActivityRow,
 } from '@/lib/memberActivity'
 
 const rows = (userId: string, ...months: string[]): ActivityRow[] => months.map(month => ({ userId, month }))
@@ -88,5 +88,52 @@ describe('summarisePeriod()', () => {
   it('falls back to the previous month when the period sits inside one month', () => {
     const p = summarisePeriod(data, '2025-12', '2025-12')
     expect(p).toMatchObject({ baseMonth: '2025-11', endMonth: '2025-12', new: 1, lost: 1 })
+  })
+})
+
+// Audit PR #34 (P1): a custom range must cover exactly the picked months,
+// whatever the server's timezone — the school's civil dates are the input.
+describe('reportMonths()', () => {
+  const now = new Date('2026-10-31T12:00:00Z')
+
+  it('keeps a custom August range inside August (east of UTC)', () => {
+    expect(reportMonths('custom', '2026-08-01', '2026-08-31', now, 'Europe/Madrid')).toEqual({ fromMonth: '2026-08', toMonth: '2026-08' })
+  })
+  it('keeps a custom August range inside August (west of UTC)', () => {
+    expect(reportMonths('custom', '2026-08-01', '2026-08-31', now, 'America/New_York')).toEqual({ fromMonth: '2026-08', toMonth: '2026-08' })
+  })
+  it('clamps a custom range ending in the future to the current month', () => {
+    expect(reportMonths('custom', '2026-09-15', '2027-02-01', now, 'Europe/Madrid')).toEqual({ fromMonth: '2026-09', toMonth: '2026-10' })
+  })
+  it('uses today in the school timezone, not the server one', () => {
+    // 31 Oct 23:30 UTC is already 1 Nov in Madrid, still 31 Oct in New York
+    const late = new Date('2026-10-31T23:30:00Z')
+    expect(reportMonths('90d', null, null, late, 'Europe/Madrid')).toEqual({ fromMonth: '2026-09', toMonth: '2026-11' })
+    expect(reportMonths('90d', null, null, late, 'America/New_York')).toEqual({ fromMonth: '2026-08', toMonth: '2026-10' })
+  })
+
+  // Audit PR #34 (P2): 12M on the 29th–31st must start 11 months back, not overflow
+  it.each(['2026-10-29', '2026-10-30', '2026-10-31', '2026-03-31', '2026-05-31'])('12m from %s spans exactly 12 months', day => {
+    const r = reportMonths('12m', null, null, new Date(`${day}T12:00:00Z`), 'Europe/Madrid')
+    expect(monthRange(r.fromMonth, r.toMonth)).toHaveLength(12)
+    expect(r.toMonth).toBe(day.slice(0, 7))
+  })
+})
+
+describe('zonedRangeBounds()', () => {
+  const now = new Date('2026-10-31T12:00:00Z')
+  it('builds the custom list bounds at local midnight in the school timezone', () => {
+    const madrid = zonedRangeBounds('2026-08-01', '2026-08-31', now, 'Europe/Madrid')
+    expect(madrid.from.toISOString()).toBe('2026-07-31T22:00:00.000Z')
+    expect(madrid.to.toISOString()).toBe('2026-08-31T21:59:59.999Z')
+    const ny = zonedRangeBounds('2026-08-01', '2026-08-31', now, 'America/New_York')
+    expect(ny.from.toISOString()).toBe('2026-08-01T04:00:00.000Z')
+    expect(ny.to.toISOString()).toBe('2026-09-01T03:59:59.999Z')
+  })
+  it('handles a range that crosses a DST change', () => {
+    // Madrid leaves summer time on 25 Oct 2026
+    const r = zonedRangeBounds('2026-10-01', '2026-10-31', now, 'Europe/Madrid')
+    expect(r.from.toISOString()).toBe('2026-09-30T22:00:00.000Z')
+    expect(r.to.toISOString()).toBe('2026-10-31T22:59:59.999Z')
   })
 })

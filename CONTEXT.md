@@ -270,13 +270,17 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-10-31 (rama `claude/users-report-monthly`, pendiente de Project Audit)
+### Sesión — 2026-10-31 (rama `claude/users-report-monthly`, PR [#34](https://github.com/MartialOneOnline/martial-v2/pull/34) — `RECHAZADO` por Codex en `b954b64`, corregido, pendiente de re-auditoría)
 
 **Informe de Usuarios: activos / nuevos / perdidos por mes.** Pedido para Roger Gracie Málaga. Antes, "Member Growth" era el acumulado de todos los alumnos que se unieron alguna vez (≈806, nunca bajaba) y "Retention Rate" era `ACTIVE / (ACTIVE+INACTIVE)` de hoy.
 - `SchoolMember.status` no tiene historial y las memberships V1 solo llegan bien desde jul-2026, así que el histórico se reconstruye desde **actividad**: cuota pagada (`Transaction` MEMBERSHIP/PAID) o clase asistida (`Booking.attendedAt`), por mes en la zona horaria del colegio (derivada de `School.country`; las columnas son `timestamp without time zone` en UTC → doble `AT TIME ZONE`).
 - Definición (`apps/web/lib/memberActivity.ts`, 10 tests): activo(M) = visto en M o M-1 (1 mes de gracia, absorbe cuotas trimestrales/efectivo tardío); nuevo = primer mes visto; vuelve = activo tras ≥1 mes fuera; perdido = activo en M-1 y no en M. Siempre cuadra activo(M) = activo(M-1) + nuevos + vuelven − perdidos. Se excluyen miembros con rol no-STUDENT.
 - UI: tarjetas Activos (status actual) / Nuevos / Perdidos / Crecimiento % (+ retención) comparando mes base del periodo vs último mes; gráfica línea activos + barras nuevos (↑) y perdidos (↓) de los últimos 12 meses (o el rango custom); tabla mensual exportable a CSV. Textos en EN/ES/PT/FR.
 - Verificado contra datos reales RGM (solo lectura): oct-2026 = 132 activos (status ACTIVE = 131); nov-25→oct-26: 109→132 (+21,1%), 130 nuevos, 69 vuelven, 176 perdidos, ~15%/mes de bajas.
+- **Re-entrega tras `RECHAZADO` (Codex sobre `b954b64`):**
+  - P1 — Custom podía incluir el mes siguiente: `periodBounds()` cierra el rango a las 23:59 *del servidor* y al pasarlo a Madrid ya era 1-sep. Ahora `reportMonths()` deriva los meses de las fechas civiles elegidas (o de "hoy" en la zona del colegio) sin pasar por Dates del servidor, y `zonedRangeBounds()` construye los límites del filtro Custom de la lista en la zona del colegio (DST incluido). Custom 1–31 ago → base jul, fin ago.
+  - P2 — `periodBounds()` (helper compartido) hacía `setMonth()` sobre el día actual: el 31-oct, "−11 meses" = 31-nov = 1-dic, así que 12M empezaba un mes tarde (y 90D podía repetir mes). Ahora usa el día 1. Arregla también Bookings/Payments/Absents, que usan el mismo helper.
+  - Tests: +11 en `memberActivity.test.ts` (Custom este/oeste de UTC, clamp a mes actual, "hoy" en zona del colegio, 12M días 29–31, límites DST) y nuevo `reportPeriods.test.ts` (8; fallan 8/8 con el código anterior). 29/29 pasan con el servidor en UTC, Los Angeles, Tokio y Madrid.
 - Pendiente/conocido: la pestaña "New" de la tabla de miembros sigue usando `joinedAt` (últimos 30 días), no la definición por actividad. Suite Vitest: 55 fallos preexistentes en `main` (bookingRace, cancelMembership, …), ninguno nuevo; se añadió `$queryRaw` al mock de `dashboardReportAuthGuards.test.ts`.
 
 > Nota: entre la Sesión 77 (2026-08-06) y esta hay commits en `main` no documentados aquí sesión a sesión (`0fe131e` i18n, `d7c2139` fix migración Prisma, `b20b1bd`/`839f3c5` cancelación de ocurrencias de clase) — no reconstruidos retroactivamente, ver `git log` para el detalle.

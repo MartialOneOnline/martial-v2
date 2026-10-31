@@ -55,6 +55,76 @@ export function monthKeyInTz(date: Date, timeZone: string): MonthKey {
   return `${y}-${m}`
 }
 
+/** Civil date 'YYYY-MM-DD' of an instant in the given IANA timezone. */
+export function civilDateInTz(date: Date, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(date)
+  const get = (t: string) => parts.find(p => p.type === t)?.value
+  return `${get('year')}-${get('month')}-${get('day')}`
+}
+
+/** Adds days to a civil date without any timezone involved. */
+export function addDaysCivil(ymd: string, n: number): string {
+  const [y, m, d] = ymd.split('-').map(Number) as [number, number, number]
+  return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10)
+}
+
+function tzOffsetMs(date: Date, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+  }).formatToParts(date)
+  const get = (t: string) => Number(parts.find(p => p.type === t)?.value)
+  const asUtc = Date.UTC(get('year'), get('month') - 1, get('day'), get('hour'), get('minute'), get('second'))
+  return asUtc - Math.floor(date.getTime() / 1000) * 1000
+}
+
+/** The UTC instant of a wall-clock time on a civil date in `timeZone`. */
+export function zonedTimeToUtc(ymd: string, timeZone: string, endOfDay = false): Date {
+  const [y, m, d] = ymd.split('-').map(Number) as [number, number, number]
+  const wall = endOfDay ? Date.UTC(y, m - 1, d, 23, 59, 59, 999) : Date.UTC(y, m - 1, d)
+  // Two passes so a DST change between the guess and the answer is handled
+  const off1 = tzOffsetMs(new Date(wall), timeZone)
+  const off2 = tzOffsetMs(new Date(wall - off1), timeZone)
+  return new Date(wall - off2)
+}
+
+const YMD = /^\d{4}-\d{2}-\d{2}$/
+
+/**
+ * Months covered by a report period, from the civil dates the user picked
+ * (custom) or "today" in the school's timezone (presets). Deliberately never
+ * goes through server-local Date objects: a custom range ending 31 Aug at
+ * 23:59 server time is already 1 Sep in Madrid when the server runs in UTC.
+ * toMonth is clamped to the current month.
+ */
+export function reportMonths(period: string, dateFrom: string | null | undefined, dateTo: string | null | undefined, now: Date, timeZone: string): { fromMonth: MonthKey; toMonth: MonthKey } {
+  const today = civilDateInTz(now, timeZone)
+  const nowMonth = today.slice(0, 7)
+  let fromMonth: MonthKey
+  let toMonth: MonthKey = nowMonth
+  if (period === 'custom' && dateFrom && YMD.test(dateFrom)) {
+    fromMonth = dateFrom.slice(0, 7)
+    if (dateTo && YMD.test(dateTo)) toMonth = dateTo.slice(0, 7)
+  } else if (period === '7d') {
+    fromMonth = addDaysCivil(today, -6).slice(0, 7)
+  } else if (period === '30d') {
+    fromMonth = addDaysCivil(today, -29).slice(0, 7)
+  } else if (period === '90d') {
+    fromMonth = addMonths(nowMonth, -2)
+  } else {
+    fromMonth = addMonths(nowMonth, -11)
+  }
+  if (toMonth > nowMonth) toMonth = nowMonth
+  if (fromMonth > toMonth) fromMonth = toMonth
+  return { fromMonth, toMonth }
+}
+
+/** UTC bounds of a custom civil-date range (inclusive days) in the school's timezone. */
+export function zonedRangeBounds(dateFrom: string, dateTo: string | null | undefined, now: Date, timeZone: string): { from: Date; to: Date } {
+  const end = dateTo && YMD.test(dateTo) ? dateTo : civilDateInTz(now, timeZone)
+  return { from: zonedTimeToUtc(dateFrom, timeZone), to: zonedTimeToUtc(end, timeZone, true) }
+}
+
 // Cash payments are stored at local midnight, which is 22:00/23:00 UTC the
 // previous day — a fee paid on the 1st would land in the previous month if
 // bucketed in UTC. School has no timezone field, so derive it from country.

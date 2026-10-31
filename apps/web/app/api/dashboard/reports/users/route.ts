@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId, requireDashboardAccess } from '@/lib/auth/server'
-import { periodBounds } from '@/lib/reportPeriods'
 import {
-  addMonths, monthRange, monthKeyInTz, schoolTimeZone,
+  addMonths, monthRange, schoolTimeZone, reportMonths, zonedRangeBounds,
   computeMonthlyActivity, summarisePeriod, type ActivityRow,
 } from '@/lib/memberActivity'
 
@@ -34,14 +33,19 @@ export async function GET(req: NextRequest) {
   const dateFrom = searchParams.get('dateFrom')
   const dateTo   = searchParams.get('dateTo')
 
-  // Single time window shared by the new/lost/growth stats and (for a
-  // custom range) the monthly chart — a 'custom' period (with dateFrom/dateTo) or a preset both flow
-  // through here. Unlike the other reports, the member list itself is a
-  // roster (not a per-period event log), so the 7d/30d/90d/12m presets don't
-  // narrow it — only an explicit 'custom' range does, replacing what used to
-  // be a separate, disconnected "Joined date range" filter.
-  const { from, to } = periodBounds(period, dateFrom, dateTo)
+  // Period → months (stats + custom chart) and, for a custom range, the
+  // member-list bounds — all in the school's timezone from the civil dates
+  // picked, never via server-local Dates (see reportMonths). Unlike the other
+  // reports, the member list itself is a roster (not a per-period event log),
+  // so the 7d/30d/90d/12m presets don't narrow it — only an explicit 'custom'
+  // range does, replacing what used to be a separate, disconnected "Joined
+  // date range" filter.
+  const school = await prisma.school.findUnique({ where: { id: auth.schoolId }, select: { country: true } })
+  const tz = schoolTimeZone(school?.country)
   const now = new Date()
+  const isCustom = period === 'custom' && !!dateFrom && /^\d{4}-\d{2}-\d{2}$/.test(dateFrom)
+  const { fromMonth, toMonth } = reportMonths(period, dateFrom, dateTo, now, tz)
+  const nowMonth = reportMonths('12m', null, null, now, tz).toMonth
   const newThreshold = new Date(now); newThreshold.setDate(now.getDate() - 30)
 
   // ── Member list ──────────────────────────────────────────────────────────────
@@ -64,7 +68,10 @@ export async function GET(req: NextRequest) {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const andConditions: any[] = []
-  if (period === 'custom') andConditions.push(dateRangeFilter(from, to))
+  if (isCustom) {
+    const { from, to } = zonedRangeBounds(dateFrom!, dateTo, now, tz)
+    andConditions.push(dateRangeFilter(from, to))
+  }
   if (status === 'NEW') {
     andConditions.push({ status: 'ACTIVE' })
     andConditions.push(dateRangeFilter(newThreshold))
@@ -146,8 +153,6 @@ export async function GET(req: NextRequest) {
   // whole history, so "new" vs "returning" is right for any window. Columns
   // are `timestamp without time zone` holding UTC, hence the double AT TIME
   // ZONE (UTC → school-local) before bucketing by month.
-  const school = await prisma.school.findUnique({ where: { id: auth.schoolId }, select: { country: true } })
-  const tz = schoolTimeZone(school?.country)
   const activity = await prisma.$queryRaw<ActivityRow[]>`
     SELECT DISTINCT a."userId", a.month FROM (
       SELECT t."userId", to_char((t.date AT TIME ZONE 'UTC') AT TIME ZONE ${tz}, 'YYYY-MM') AS month
@@ -164,9 +169,6 @@ export async function GET(req: NextRequest) {
       WHERE sm."userId" = a."userId" AND sm."schoolId" = ${auth.schoolId} AND sm.role <> 'STUDENT'
     )`
 
-  const nowMonth = monthKeyInTz(now, tz)
-  const fromMonth = monthKeyInTz(from, tz)
-  const toMonth = [monthKeyInTz(to, tz), nowMonth].sort()[0]!
   const summary = summarisePeriod(activity, fromMonth, toMonth)
 
   // Chart + table: monthly granularity only makes sense over several months,
@@ -174,7 +176,7 @@ export async function GET(req: NextRequest) {
   // (at least 2, at most 36).
   let chartFrom = addMonths(nowMonth, -11)
   let chartTo = nowMonth
-  if (period === 'custom' && dateFrom) {
+  if (isCustom) {
     chartTo = toMonth
     chartFrom = fromMonth < chartTo ? fromMonth : addMonths(chartTo, -1)
     if (monthRange(chartFrom, chartTo).length > 36) chartFrom = addMonths(chartTo, -35)
