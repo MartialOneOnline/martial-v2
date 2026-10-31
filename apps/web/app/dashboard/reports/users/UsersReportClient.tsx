@@ -283,14 +283,16 @@ export default function UsersReportClient() {
     downloadCsv(name, headers, rows)
   }
 
-  // Which export is running (buttons disabled meanwhile; re-enabled on error so it can be retried)
-  const [exporting, setExporting] = useState<null | 'members' | 'history'>(null)
+  // One flag per export so overlapping exports don't re-enable each other's
+  // button early; each re-enables when its own request ends (incl. errors, to retry).
+  const [exportingMembers, setExportingMembers] = useState(false)
+  const [exportingHistory, setExportingHistory] = useState(false)
 
   async function handleExport() {
-    setExporting('members')
+    setExportingMembers(true)
     try { exportMembers(await fetchAllMembers()) }
     catch { showToast(r.usersExportError) }
-    finally { setExporting(null) }
+    finally { setExportingMembers(false) }
   }
 
   async function selectAllInGroup() {
@@ -342,7 +344,7 @@ export default function UsersReportClient() {
   }
   function handleExportMonthly() { if (data) exportMonthly(data.monthly, data.cohorts, 'members-monthly') }
   async function handleExportHistory() {
-    setExporting('history')
+    setExportingHistory(true)
     try {
       const res = await fetch('/api/dashboard/reports/users?view=history')
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -351,7 +353,7 @@ export default function UsersReportClient() {
     } catch {
       showToast(r.usersExportError)
     } finally {
-      setExporting(null)
+      setExportingHistory(false)
     }
   }
 
@@ -424,7 +426,7 @@ export default function UsersReportClient() {
               style={{ height: 30, padding: '0 8px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, color: '#111827', outline: 'none' }} />
           </div>
         )}
-        <button onClick={handleExport} disabled={exporting === 'members'}
+        <button onClick={handleExport} disabled={exportingMembers}
           className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
           style={{ background: '#fff', border: '1px solid #E5E7EB', color: '#374151', fontSize: 13, fontWeight: 500 }}>
           <Download size={14} /> Export
@@ -527,7 +529,7 @@ export default function UsersReportClient() {
                 style={{ background: '#fff', border: '1px solid #E5E7EB', color: '#374151', fontSize: 12, fontWeight: 500 }}>
                 <Download size={13} /> {r.usersExportMonthly}
               </button>
-              <button onClick={handleExportHistory} disabled={exporting === 'history'}
+              <button onClick={handleExportHistory} disabled={exportingHistory}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer"
                 style={{ background: '#fff', border: '1px solid #E5E7EB', color: '#374151', fontSize: 12, fontWeight: 500 }}>
                 <Download size={13} /> {r.usersExportHistory}

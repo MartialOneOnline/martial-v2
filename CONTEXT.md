@@ -270,7 +270,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-01 (rama `claude/users-report-percentages`, PR [#36](https://github.com/MartialOneOnline/martial-v2/pull/36) — `APROBADO CON PENDIENTES` por Codex en `ae4fd49`, P2 corregidos, pendiente de confirmación)
+### Sesión — 2026-11-01 (rama `claude/users-report-percentages`, PR [#36](https://github.com/MartialOneOnline/martial-v2/pull/36) — `APROBADO CON PENDIENTES` en `ae4fd49` y `9bc57c1`; P3 final corregido, pendiente de confirmación)
 
 **Informe de Usuarios: porcentajes, interanual, retención de nuevos y CSV legible en Excel.**
 - `lib/memberActivity.ts`: `MonthStats` añade `newPct`, `returningPct` (sobre activos del mes anterior), `activeYearAgo` y `yoyPct` (vs mismo mes del año anterior). Nuevo `cohortRetention()` (de los nuevos de cada mes, % activos a 2, 3 y 6 meses; null si ese mes aún no ha llegado; se omite +1 mes porque con la gracia siempre es 100%) y `averageRetention()` (media ponderada). +7 tests.
@@ -279,6 +279,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 - UI: cada Nuevos/Vuelven/Perdidos muestra su %; la columna "% bajas" pasa a "Interanual" (tooltip con los activos de hace un año); bloque nuevo "Retención de nuevos" (tabla por mes + frase con la media a 3 meses; "Empezaron" abre la lista de esos nuevos); CSV mensual con todos los % y retención, y botón "Historial completo". Textos EN/ES/PT/FR.
 - RGM: media de nuevos que siguen a 3 meses 33%, a 6 meses 24% (últimas 12 cohortes); interanual oct-26 +18,9%.
 - **Pendientes de Codex sobre `ae4fd49` (P2 ×2):** (1) "Activos hace un año" exportaba `0` como celda vacía (`|| null`) → ahora `0` literal; solo los % con denominador 0 quedan vacíos. (2) "Historial completo" fallaba en silencio ante HTTP 500/red → toast traducido y botón desactivado solo mientras exporta (reintentable). Mismo patrón aplicado a la exportación de alumnos (antes descargaba un CSV vacío ante un error) y a "Seleccionar los N" (antes vaciaba la selección en silencio) — `fetchAllMembers` ahora lanza error. +1 test CSV.
+- **Ronda 2 (`APROBADO CON PENDIENTES` sobre `9bc57c1`)**: P3 — con un único estado `exporting`, solapar "Historial completo" y "Exportar" reactivaba antes de tiempo el botón del primero. Ahora hay un flag por exportación (`exportingMembers` / `exportingHistory`).
 - Observado (no cambiado): el mes en curso se calcula en vivo; el 1 de noviembre aparece con 115 activos y −12,9% hasta que la gente pague/venga. Ya va marcado "(en curso)".
 - tsc 0 errores, eslint limpio, Vitest 893 pasan / 55 preexistentes. No probado en navegador.
 
