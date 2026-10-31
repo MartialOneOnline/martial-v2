@@ -10,7 +10,7 @@ import {
   Sparkles, Send,
   Calendar,
   Menu, UserPlus, QrCode, Pencil,
-  MoreHorizontal, Eye, Check, AlertCircle,
+  MoreHorizontal, Eye, Check, AlertCircle, UserRound,
 } from 'lucide-react'
 import { useDashboard } from '../../components/DashboardShell'
 import { useSchoolContext } from '../../lib/auth/useSchoolContext'
@@ -177,6 +177,15 @@ const ACADEMY_ACTIONS = [
 type Period = 'All time' | '12 months' | '30 days' | '7 days'
 
 // ── Status badge ───────────────────────────────────────────────────────────────
+
+// Links to the member profile when we know the SchoolMember id; plain wrapper otherwise
+// (e.g. transactions with no linked user, or users no longer in this school).
+function ProfileLink({ href, className, style, children }: {
+  href: string | null; className?: string; style?: React.CSSProperties; children: React.ReactNode
+}) {
+  if (!href) return <div className={className} style={style}>{children}</div>
+  return <Link href={href} className={`no-underline ${className ?? ''}`} style={style}>{children}</Link>
+}
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { bg: string; color: string }> = {
@@ -366,7 +375,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
   const [todayClasses, setTodayClasses] = useState<TodayClass[]>([])
   const [classesLoaded, setClassesLoaded] = useState(false)
   const [recentTx, setRecentTx]     = useState<{
-    id: string; userName: string; userAvatar: string | null
+    id: string; userName: string; userAvatar: string | null; memberId: string | null
     method: string; amount: number; currency: string
     date: string; status: string; description: string | null
   }[]>([])
@@ -998,12 +1007,13 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                 ) : recentTx.map((tx, idx) => {
                   const initials = (tx.userName || '?').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
                   const ss = statusStyle[tx.status] ?? { bg: '#F3F4F6', color: '#6B7280' }
+                  const profileHref = tx.memberId ? `/dashboard/users/${tx.memberId}` : null
                   return (
                     <tr key={tx.id}
                       style={{ borderBottom: idx < recentTx.length - 1 ? '1px solid #F9FAFB' : 'none' }}
                       className="hover:bg-[#FAFAFA] transition-colors">
                       <td className="px-2 md:px-4 py-4">
-                        <div className="flex items-center gap-2" style={{ maxWidth: 150 }}>
+                        <ProfileLink href={profileHref} className="group flex items-center gap-2" style={{ maxWidth: 150 }}>
                           {tx.userAvatar && !avatarLoadErrors.has(tx.id) ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={tx.userAvatar} alt={tx.userName} width={36} height={36}
@@ -1014,9 +1024,10 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                               {initials}
                             </div>
                           )}
-                          <span style={{ fontSize: 13, color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                          <span className={profileHref ? 'group-hover:underline' : undefined}
+                            style={{ fontSize: 13, color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
                             title={tx.userName}>{tx.userName}</span>
-                        </div>
+                        </ProfileLink>
                       </td>
                       <td className="px-2 md:px-4 py-4" style={{ maxWidth: 110 }}>
                         <span style={{ fontSize: 12, color: '#374151', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
@@ -1054,6 +1065,16 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                         )}>
                           <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12,
                             boxShadow: '0 4px 16px rgba(0,0,0,0.10)', minWidth: 170, padding: '4px 0', overflow: 'hidden' }}>
+                            {profileHref && (
+                              <Link href={profileHref} className="no-underline"
+                                style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
+                                  fontWeight: 500, color: '#374151', background: 'transparent', border: 'none', cursor: 'pointer',
+                                  display: 'flex', alignItems: 'center', gap: 8 }}
+                                onMouseEnter={e => (e.currentTarget.style.background = '#F9FAFB')}
+                                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                                <UserRound size={13} /> {t.dashboard.viewProfile}
+                              </Link>
+                            )}
                             <Link href="/dashboard/payments/transactions" className="no-underline"
                               style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
                                 fontWeight: 500, color: '#374151', background: 'transparent', border: 'none', cursor: 'pointer',
@@ -1098,6 +1119,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
               ) : recentTx.map((tx, idx) => {
                 const initials = (tx.userName || '?').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
                 const ss = statusStyle[tx.status] ?? { bg: '#F3F4F6', color: '#6B7280' }
+                const profileHref = tx.memberId ? `/dashboard/users/${tx.memberId}` : null
                 const menu = (
                   <RowMenu trigger={({ onClick }) => (
                     <button onClick={onClick}
@@ -1110,6 +1132,16 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                   )}>
                     <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12,
                       boxShadow: '0 4px 16px rgba(0,0,0,0.10)', minWidth: 170, padding: '4px 0', overflow: 'hidden' }}>
+                      {profileHref && (
+                        <Link href={profileHref} className="no-underline"
+                          style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
+                            fontWeight: 500, color: '#374151', background: 'transparent', border: 'none', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', gap: 8 }}
+                          onMouseEnter={e => (e.currentTarget.style.background = '#F9FAFB')}
+                          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                          <UserRound size={13} /> {t.dashboard.viewProfile}
+                        </Link>
+                      )}
                       <Link href="/dashboard/payments/transactions" className="no-underline"
                         style={{ width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13,
                           fontWeight: 500, color: '#374151', background: 'transparent', border: 'none', cursor: 'pointer',
@@ -1144,6 +1176,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                 return (
                   <div key={tx.id} className="px-4 py-3 flex items-center gap-3"
                     style={{ borderBottom: idx < recentTx.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
+                    <ProfileLink href={profileHref} style={{ flexShrink: 0 }}>
                     {tx.userAvatar && !avatarLoadErrors.has(tx.id) ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={tx.userAvatar} alt={tx.userName} width={36} height={36}
@@ -1154,9 +1187,12 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                         {initials}
                       </div>
                     )}
+                    </ProfileLink>
                     <div className="flex-1 min-w-0">
-                      <span style={{ display: 'block', fontSize: 13, color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
-                        title={tx.userName}>{tx.userName}</span>
+                      <ProfileLink href={profileHref}>
+                        <span style={{ display: 'block', fontSize: 13, color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                          title={tx.userName}>{tx.userName}</span>
+                      </ProfileLink>
                       <span style={{ display: 'block', fontSize: 12, color: '#9CA3AF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: 2 }}
                         title={tx.description ?? undefined}>{tx.description?.split(' — ')[0] ?? '—'}</span>
                     </div>

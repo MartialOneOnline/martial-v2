@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { parseClassesByDegree } from '@/lib/grading/rules'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 import { memberHasPermission } from '@/lib/auth/customRoles'
@@ -38,6 +39,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       ...(body.minAge !== undefined              && { minAge: body.minAge }),
       ...(body.minMonthsAtPrevious !== undefined && { minMonthsAtPrevious: body.minMonthsAtPrevious }),
       ...(body.totalClassesRequired !== undefined && { totalClassesRequired: body.totalClassesRequired }),
+      ...(body.classesByDegree !== undefined     && { classesByDegree: parseClassesByDegree(body.classesByDegree) }),
       ...(body.classesPerPeriod !== undefined    && { classesPerPeriod: body.classesPerPeriod }),
       ...(body.periodType !== undefined          && { periodType: body.periodType }),
       ...(body.classTypeIds !== undefined        && { classTypeIds: body.classTypeIds }),

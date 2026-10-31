@@ -32,6 +32,7 @@ export type BeltRankAvgAggregateOutputType = {
   minAge: number | null
   minMonthsAtPrevious: number | null
   totalClassesRequired: number | null
+  classesByDegree: number | null
   classesPerPeriod: number | null
 }
 
@@ -41,6 +42,7 @@ export type BeltRankSumAggregateOutputType = {
   minAge: number | null
   minMonthsAtPrevious: number | null
   totalClassesRequired: number | null
+  classesByDegree: number[]
   classesPerPeriod: number | null
 }
 
@@ -90,6 +92,7 @@ export type BeltRankCountAggregateOutputType = {
   minAge: number
   minMonthsAtPrevious: number
   totalClassesRequired: number
+  classesByDegree: number
   classesPerPeriod: number
   periodType: number
   classTypeIds: number
@@ -107,6 +110,7 @@ export type BeltRankAvgAggregateInputType = {
   minAge?: true
   minMonthsAtPrevious?: true
   totalClassesRequired?: true
+  classesByDegree?: true
   classesPerPeriod?: true
 }
 
@@ -116,6 +120,7 @@ export type BeltRankSumAggregateInputType = {
   minAge?: true
   minMonthsAtPrevious?: true
   totalClassesRequired?: true
+  classesByDegree?: true
   classesPerPeriod?: true
 }
 
@@ -165,6 +170,7 @@ export type BeltRankCountAggregateInputType = {
   minAge?: true
   minMonthsAtPrevious?: true
   totalClassesRequired?: true
+  classesByDegree?: true
   classesPerPeriod?: true
   periodType?: true
   classTypeIds?: true
@@ -271,6 +277,7 @@ export type BeltRankGroupByOutputType = {
   minAge: number | null
   minMonthsAtPrevious: number | null
   totalClassesRequired: number | null
+  classesByDegree: number[]
   classesPerPeriod: number | null
   periodType: string | null
   classTypeIds: string[]
@@ -313,6 +320,7 @@ export type BeltRankWhereInput = {
   minAge?: Prisma.IntNullableFilter<"BeltRank"> | number | null
   minMonthsAtPrevious?: Prisma.IntNullableFilter<"BeltRank"> | number | null
   totalClassesRequired?: Prisma.IntNullableFilter<"BeltRank"> | number | null
+  classesByDegree?: Prisma.IntNullableListFilter<"BeltRank">
   classesPerPeriod?: Prisma.IntNullableFilter<"BeltRank"> | number | null
   periodType?: Prisma.StringNullableFilter<"BeltRank"> | string | null
   classTypeIds?: Prisma.StringNullableListFilter<"BeltRank">
@@ -336,6 +344,7 @@ export type BeltRankOrderByWithRelationInput = {
   minAge?: Prisma.SortOrderInput | Prisma.SortOrder
   minMonthsAtPrevious?: Prisma.SortOrderInput | Prisma.SortOrder
   totalClassesRequired?: Prisma.SortOrderInput | Prisma.SortOrder
+  classesByDegree?: Prisma.SortOrder
   classesPerPeriod?: Prisma.SortOrderInput | Prisma.SortOrder
   periodType?: Prisma.SortOrderInput | Prisma.SortOrder
   classTypeIds?: Prisma.SortOrder
@@ -362,6 +371,7 @@ export type BeltRankWhereUniqueInput = Prisma.AtLeast<{
   minAge?: Prisma.IntNullableFilter<"BeltRank"> | number | null
   minMonthsAtPrevious?: Prisma.IntNullableFilter<"BeltRank"> | number | null
   totalClassesRequired?: Prisma.IntNullableFilter<"BeltRank"> | number | null
+  classesByDegree?: Prisma.IntNullableListFilter<"BeltRank">
   classesPerPeriod?: Prisma.IntNullableFilter<"BeltRank"> | number | null
   periodType?: Prisma.StringNullableFilter<"BeltRank"> | string | null
   classTypeIds?: Prisma.StringNullableListFilter<"BeltRank">
@@ -385,6 +395,7 @@ export type BeltRankOrderByWithAggregationInput = {
   minAge?: Prisma.SortOrderInput | Prisma.SortOrder
   minMonthsAtPrevious?: Prisma.SortOrderInput | Prisma.SortOrder
   totalClassesRequired?: Prisma.SortOrderInput | Prisma.SortOrder
+  classesByDegree?: Prisma.SortOrder
   classesPerPeriod?: Prisma.SortOrderInput | Prisma.SortOrder
   periodType?: Prisma.SortOrderInput | Prisma.SortOrder
   classTypeIds?: Prisma.SortOrder
@@ -412,6 +423,7 @@ export type BeltRankScalarWhereWithAggregatesInput = {
   minAge?: Prisma.IntNullableWithAggregatesFilter<"BeltRank"> | number | null
   minMonthsAtPrevious?: Prisma.IntNullableWithAggregatesFilter<"BeltRank"> | number | null
   totalClassesRequired?: Prisma.IntNullableWithAggregatesFilter<"BeltRank"> | number | null
+  classesByDegree?: Prisma.IntNullableListFilter<"BeltRank">
   classesPerPeriod?: Prisma.IntNullableWithAggregatesFilter<"BeltRank"> | number | null
   periodType?: Prisma.StringNullableWithAggregatesFilter<"BeltRank"> | string | null
   classTypeIds?: Prisma.StringNullableListFilter<"BeltRank">
@@ -430,6 +442,7 @@ export type BeltRankCreateInput = {
   minAge?: number | null
   minMonthsAtPrevious?: number | null
   totalClassesRequired?: number | null
+  classesByDegree?: Prisma.BeltRankCreateclassesByDegreeInput | number[]
   classesPerPeriod?: number | null
   periodType?: string | null
   classTypeIds?: Prisma.BeltRankCreateclassTypeIdsInput | string[]
@@ -453,6 +466,7 @@ export type BeltRankUncheckedCreateInput = {
   minAge?: number | null
   minMonthsAtPrevious?: number | null
   totalClassesRequired?: number | null
+  classesByDegree?: Prisma.BeltRankCreateclassesByDegreeInput | number[]
   classesPerPeriod?: number | null
   periodType?: string | null
   classTypeIds?: Prisma.BeltRankCreateclassTypeIdsInput | string[]
@@ -474,6 +488,7 @@ export type BeltRankUpdateInput = {
   minAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   minMonthsAtPrevious?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalClassesRequired?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  classesByDegree?: Prisma.BeltRankUpdateclassesByDegreeInput | number[]
   classesPerPeriod?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   periodType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   classTypeIds?: Prisma.BeltRankUpdateclassTypeIdsInput | string[]
@@ -497,6 +512,7 @@ export type BeltRankUncheckedUpdateInput = {
   minAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   minMonthsAtPrevious?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalClassesRequired?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  classesByDegree?: Prisma.BeltRankUpdateclassesByDegreeInput | number[]
   classesPerPeriod?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   periodType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   classTypeIds?: Prisma.BeltRankUpdateclassTypeIdsInput | string[]
@@ -519,6 +535,7 @@ export type BeltRankCreateManyInput = {
   minAge?: number | null
   minMonthsAtPrevious?: number | null
   totalClassesRequired?: number | null
+  classesByDegree?: Prisma.BeltRankCreateclassesByDegreeInput | number[]
   classesPerPeriod?: number | null
   periodType?: string | null
   classTypeIds?: Prisma.BeltRankCreateclassTypeIdsInput | string[]
@@ -537,6 +554,7 @@ export type BeltRankUpdateManyMutationInput = {
   minAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   minMonthsAtPrevious?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalClassesRequired?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  classesByDegree?: Prisma.BeltRankUpdateclassesByDegreeInput | number[]
   classesPerPeriod?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   periodType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   classTypeIds?: Prisma.BeltRankUpdateclassTypeIdsInput | string[]
@@ -556,6 +574,7 @@ export type BeltRankUncheckedUpdateManyInput = {
   minAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   minMonthsAtPrevious?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalClassesRequired?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  classesByDegree?: Prisma.BeltRankUpdateclassesByDegreeInput | number[]
   classesPerPeriod?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   periodType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   classTypeIds?: Prisma.BeltRankUpdateclassTypeIdsInput | string[]
@@ -580,6 +599,14 @@ export type BeltRankOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type IntNullableListFilter<$PrismaModel = never> = {
+  equals?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel> | null
+  has?: number | Prisma.IntFieldRefInput<$PrismaModel> | null
+  hasEvery?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
+  hasSome?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
+  isEmpty?: boolean
+}
+
 export type BeltRankCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   systemId?: Prisma.SortOrder
@@ -590,6 +617,7 @@ export type BeltRankCountOrderByAggregateInput = {
   minAge?: Prisma.SortOrder
   minMonthsAtPrevious?: Prisma.SortOrder
   totalClassesRequired?: Prisma.SortOrder
+  classesByDegree?: Prisma.SortOrder
   classesPerPeriod?: Prisma.SortOrder
   periodType?: Prisma.SortOrder
   classTypeIds?: Prisma.SortOrder
@@ -605,6 +633,7 @@ export type BeltRankAvgOrderByAggregateInput = {
   minAge?: Prisma.SortOrder
   minMonthsAtPrevious?: Prisma.SortOrder
   totalClassesRequired?: Prisma.SortOrder
+  classesByDegree?: Prisma.SortOrder
   classesPerPeriod?: Prisma.SortOrder
 }
 
@@ -650,6 +679,7 @@ export type BeltRankSumOrderByAggregateInput = {
   minAge?: Prisma.SortOrder
   minMonthsAtPrevious?: Prisma.SortOrder
   totalClassesRequired?: Prisma.SortOrder
+  classesByDegree?: Prisma.SortOrder
   classesPerPeriod?: Prisma.SortOrder
 }
 
@@ -711,8 +741,17 @@ export type BeltRankUncheckedUpdateManyWithoutSystemNestedInput = {
   deleteMany?: Prisma.BeltRankScalarWhereInput | Prisma.BeltRankScalarWhereInput[]
 }
 
+export type BeltRankCreateclassesByDegreeInput = {
+  set: number[]
+}
+
 export type BeltRankCreateclassTypeIdsInput = {
   set: string[]
+}
+
+export type BeltRankUpdateclassesByDegreeInput = {
+  set?: number[]
+  push?: number | number[]
 }
 
 export type BeltRankUpdateclassTypeIdsInput = {
@@ -761,6 +800,7 @@ export type BeltRankCreateWithoutMembersInput = {
   minAge?: number | null
   minMonthsAtPrevious?: number | null
   totalClassesRequired?: number | null
+  classesByDegree?: Prisma.BeltRankCreateclassesByDegreeInput | number[]
   classesPerPeriod?: number | null
   periodType?: string | null
   classTypeIds?: Prisma.BeltRankCreateclassTypeIdsInput | string[]
@@ -783,6 +823,7 @@ export type BeltRankUncheckedCreateWithoutMembersInput = {
   minAge?: number | null
   minMonthsAtPrevious?: number | null
   totalClassesRequired?: number | null
+  classesByDegree?: Prisma.BeltRankCreateclassesByDegreeInput | number[]
   classesPerPeriod?: number | null
   periodType?: string | null
   classTypeIds?: Prisma.BeltRankCreateclassTypeIdsInput | string[]
@@ -819,6 +860,7 @@ export type BeltRankUpdateWithoutMembersInput = {
   minAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   minMonthsAtPrevious?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalClassesRequired?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  classesByDegree?: Prisma.BeltRankUpdateclassesByDegreeInput | number[]
   classesPerPeriod?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   periodType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   classTypeIds?: Prisma.BeltRankUpdateclassTypeIdsInput | string[]
@@ -841,6 +883,7 @@ export type BeltRankUncheckedUpdateWithoutMembersInput = {
   minAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   minMonthsAtPrevious?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalClassesRequired?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  classesByDegree?: Prisma.BeltRankUpdateclassesByDegreeInput | number[]
   classesPerPeriod?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   periodType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   classTypeIds?: Prisma.BeltRankUpdateclassTypeIdsInput | string[]
@@ -861,6 +904,7 @@ export type BeltRankCreateWithoutSystemInput = {
   minAge?: number | null
   minMonthsAtPrevious?: number | null
   totalClassesRequired?: number | null
+  classesByDegree?: Prisma.BeltRankCreateclassesByDegreeInput | number[]
   classesPerPeriod?: number | null
   periodType?: string | null
   classTypeIds?: Prisma.BeltRankCreateclassTypeIdsInput | string[]
@@ -882,6 +926,7 @@ export type BeltRankUncheckedCreateWithoutSystemInput = {
   minAge?: number | null
   minMonthsAtPrevious?: number | null
   totalClassesRequired?: number | null
+  classesByDegree?: Prisma.BeltRankCreateclassesByDegreeInput | number[]
   classesPerPeriod?: number | null
   periodType?: string | null
   classTypeIds?: Prisma.BeltRankCreateclassTypeIdsInput | string[]
@@ -933,6 +978,7 @@ export type BeltRankScalarWhereInput = {
   minAge?: Prisma.IntNullableFilter<"BeltRank"> | number | null
   minMonthsAtPrevious?: Prisma.IntNullableFilter<"BeltRank"> | number | null
   totalClassesRequired?: Prisma.IntNullableFilter<"BeltRank"> | number | null
+  classesByDegree?: Prisma.IntNullableListFilter<"BeltRank">
   classesPerPeriod?: Prisma.IntNullableFilter<"BeltRank"> | number | null
   periodType?: Prisma.StringNullableFilter<"BeltRank"> | string | null
   classTypeIds?: Prisma.StringNullableListFilter<"BeltRank">
@@ -951,6 +997,7 @@ export type BeltRankCreateWithoutGradingsFromInput = {
   minAge?: number | null
   minMonthsAtPrevious?: number | null
   totalClassesRequired?: number | null
+  classesByDegree?: Prisma.BeltRankCreateclassesByDegreeInput | number[]
   classesPerPeriod?: number | null
   periodType?: string | null
   classTypeIds?: Prisma.BeltRankCreateclassTypeIdsInput | string[]
@@ -973,6 +1020,7 @@ export type BeltRankUncheckedCreateWithoutGradingsFromInput = {
   minAge?: number | null
   minMonthsAtPrevious?: number | null
   totalClassesRequired?: number | null
+  classesByDegree?: Prisma.BeltRankCreateclassesByDegreeInput | number[]
   classesPerPeriod?: number | null
   periodType?: string | null
   classTypeIds?: Prisma.BeltRankCreateclassTypeIdsInput | string[]
@@ -998,6 +1046,7 @@ export type BeltRankCreateWithoutGradingsToInput = {
   minAge?: number | null
   minMonthsAtPrevious?: number | null
   totalClassesRequired?: number | null
+  classesByDegree?: Prisma.BeltRankCreateclassesByDegreeInput | number[]
   classesPerPeriod?: number | null
   periodType?: string | null
   classTypeIds?: Prisma.BeltRankCreateclassTypeIdsInput | string[]
@@ -1020,6 +1069,7 @@ export type BeltRankUncheckedCreateWithoutGradingsToInput = {
   minAge?: number | null
   minMonthsAtPrevious?: number | null
   totalClassesRequired?: number | null
+  classesByDegree?: Prisma.BeltRankCreateclassesByDegreeInput | number[]
   classesPerPeriod?: number | null
   periodType?: string | null
   classTypeIds?: Prisma.BeltRankCreateclassTypeIdsInput | string[]
@@ -1056,6 +1106,7 @@ export type BeltRankUpdateWithoutGradingsFromInput = {
   minAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   minMonthsAtPrevious?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalClassesRequired?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  classesByDegree?: Prisma.BeltRankUpdateclassesByDegreeInput | number[]
   classesPerPeriod?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   periodType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   classTypeIds?: Prisma.BeltRankUpdateclassTypeIdsInput | string[]
@@ -1078,6 +1129,7 @@ export type BeltRankUncheckedUpdateWithoutGradingsFromInput = {
   minAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   minMonthsAtPrevious?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalClassesRequired?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  classesByDegree?: Prisma.BeltRankUpdateclassesByDegreeInput | number[]
   classesPerPeriod?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   periodType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   classTypeIds?: Prisma.BeltRankUpdateclassTypeIdsInput | string[]
@@ -1109,6 +1161,7 @@ export type BeltRankUpdateWithoutGradingsToInput = {
   minAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   minMonthsAtPrevious?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalClassesRequired?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  classesByDegree?: Prisma.BeltRankUpdateclassesByDegreeInput | number[]
   classesPerPeriod?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   periodType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   classTypeIds?: Prisma.BeltRankUpdateclassTypeIdsInput | string[]
@@ -1131,6 +1184,7 @@ export type BeltRankUncheckedUpdateWithoutGradingsToInput = {
   minAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   minMonthsAtPrevious?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalClassesRequired?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  classesByDegree?: Prisma.BeltRankUpdateclassesByDegreeInput | number[]
   classesPerPeriod?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   periodType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   classTypeIds?: Prisma.BeltRankUpdateclassTypeIdsInput | string[]
@@ -1151,6 +1205,7 @@ export type BeltRankCreateManySystemInput = {
   minAge?: number | null
   minMonthsAtPrevious?: number | null
   totalClassesRequired?: number | null
+  classesByDegree?: Prisma.BeltRankCreateclassesByDegreeInput | number[]
   classesPerPeriod?: number | null
   periodType?: string | null
   classTypeIds?: Prisma.BeltRankCreateclassTypeIdsInput | string[]
@@ -1169,6 +1224,7 @@ export type BeltRankUpdateWithoutSystemInput = {
   minAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   minMonthsAtPrevious?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalClassesRequired?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  classesByDegree?: Prisma.BeltRankUpdateclassesByDegreeInput | number[]
   classesPerPeriod?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   periodType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   classTypeIds?: Prisma.BeltRankUpdateclassTypeIdsInput | string[]
@@ -1190,6 +1246,7 @@ export type BeltRankUncheckedUpdateWithoutSystemInput = {
   minAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   minMonthsAtPrevious?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalClassesRequired?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  classesByDegree?: Prisma.BeltRankUpdateclassesByDegreeInput | number[]
   classesPerPeriod?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   periodType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   classTypeIds?: Prisma.BeltRankUpdateclassTypeIdsInput | string[]
@@ -1211,6 +1268,7 @@ export type BeltRankUncheckedUpdateManyWithoutSystemInput = {
   minAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   minMonthsAtPrevious?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   totalClassesRequired?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  classesByDegree?: Prisma.BeltRankUpdateclassesByDegreeInput | number[]
   classesPerPeriod?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   periodType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   classTypeIds?: Prisma.BeltRankUpdateclassTypeIdsInput | string[]
@@ -1279,6 +1337,7 @@ export type BeltRankSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   minAge?: boolean
   minMonthsAtPrevious?: boolean
   totalClassesRequired?: boolean
+  classesByDegree?: boolean
   classesPerPeriod?: boolean
   periodType?: boolean
   classTypeIds?: boolean
@@ -1303,6 +1362,7 @@ export type BeltRankSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   minAge?: boolean
   minMonthsAtPrevious?: boolean
   totalClassesRequired?: boolean
+  classesByDegree?: boolean
   classesPerPeriod?: boolean
   periodType?: boolean
   classTypeIds?: boolean
@@ -1323,6 +1383,7 @@ export type BeltRankSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   minAge?: boolean
   minMonthsAtPrevious?: boolean
   totalClassesRequired?: boolean
+  classesByDegree?: boolean
   classesPerPeriod?: boolean
   periodType?: boolean
   classTypeIds?: boolean
@@ -1343,6 +1404,7 @@ export type BeltRankSelectScalar = {
   minAge?: boolean
   minMonthsAtPrevious?: boolean
   totalClassesRequired?: boolean
+  classesByDegree?: boolean
   classesPerPeriod?: boolean
   periodType?: boolean
   classTypeIds?: boolean
@@ -1352,7 +1414,7 @@ export type BeltRankSelectScalar = {
   updatedAt?: boolean
 }
 
-export type BeltRankOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "systemId" | "order" | "name" | "color" | "maxDegrees" | "minAge" | "minMonthsAtPrevious" | "totalClassesRequired" | "classesPerPeriod" | "periodType" | "classTypeIds" | "requireCompetition" | "requireExam" | "createdAt" | "updatedAt", ExtArgs["result"]["beltRank"]>
+export type BeltRankOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "systemId" | "order" | "name" | "color" | "maxDegrees" | "minAge" | "minMonthsAtPrevious" | "totalClassesRequired" | "classesByDegree" | "classesPerPeriod" | "periodType" | "classTypeIds" | "requireCompetition" | "requireExam" | "createdAt" | "updatedAt", ExtArgs["result"]["beltRank"]>
 export type BeltRankInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   system?: boolean | Prisma.GradingSystemDefaultArgs<ExtArgs>
   members?: boolean | Prisma.BeltRank$membersArgs<ExtArgs>
@@ -1385,6 +1447,7 @@ export type $BeltRankPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     minAge: number | null
     minMonthsAtPrevious: number | null
     totalClassesRequired: number | null
+    classesByDegree: number[]
     classesPerPeriod: number | null
     periodType: string | null
     classTypeIds: string[]
@@ -1828,6 +1891,7 @@ export interface BeltRankFieldRefs {
   readonly minAge: Prisma.FieldRef<"BeltRank", 'Int'>
   readonly minMonthsAtPrevious: Prisma.FieldRef<"BeltRank", 'Int'>
   readonly totalClassesRequired: Prisma.FieldRef<"BeltRank", 'Int'>
+  readonly classesByDegree: Prisma.FieldRef<"BeltRank", 'Int[]'>
   readonly classesPerPeriod: Prisma.FieldRef<"BeltRank", 'Int'>
   readonly periodType: Prisma.FieldRef<"BeltRank", 'String'>
   readonly classTypeIds: Prisma.FieldRef<"BeltRank", 'String[]'>

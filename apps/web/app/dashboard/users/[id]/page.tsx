@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 import StudentProfileClient from './StudentProfileClient'
+import { getReadinessForSchool, ATTENDED_WHERE } from '@/lib/grading/readinessData'
 
 export default async function StudentProfilePage({
   params,
@@ -49,7 +50,7 @@ export default async function StudentProfilePage({
   // Recent bookings
   const [bookings, transactions, memberships, membershipPlans] = await Promise.all([
     prisma.booking.findMany({
-      where: { userId: member.userId },
+      where: { userId: member.userId, class: { schoolId: member.schoolId } },
       orderBy: { scheduledAt: 'desc' },
       take: 50,
       include: { class: { select: { name: true } } },
@@ -70,6 +71,26 @@ export default async function StudentProfilePage({
       orderBy: { sortOrder: 'asc' },
     }).catch(() => []),
   ])
+
+  // Attendance stats over the full history at this school — the bookings
+  // list above is capped at 50 rows, so counting it would undercount.
+  const now = new Date()
+  const attendedHere = { userId: member.userId, class: { schoolId: member.schoolId }, scheduledAt: { lte: now }, ...ATTENDED_WHERE }
+  const [totalClasses, last30Days, lastAttended, readinessRows] = await Promise.all([
+    prisma.booking.count({ where: attendedHere }).catch(() => 0),
+    prisma.booking.count({
+      where: { ...attendedHere, scheduledAt: { gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000), lte: now } },
+    }).catch(() => 0),
+    prisma.booking.findFirst({ where: attendedHere, orderBy: { scheduledAt: 'desc' }, select: { scheduledAt: true } }).catch(() => null),
+    getReadinessForSchool(member.schoolId, { memberIds: [member.id] }).catch(() => []),
+  ])
+  const attendanceStats = {
+    totalClasses,
+    last30Days,
+    lastClassDate: lastAttended?.scheduledAt.toISOString() ?? null,
+  }
+  const readiness = readinessRows[0]?.readiness ?? null
+  const lastGradedAt = readinessRows[0]?.lastGradedAt ?? null
 
   const gradingSystems = await prisma.gradingSystem.findMany({
     where: { schoolId: member.schoolId, isActive: true },
@@ -151,6 +172,7 @@ export default async function StudentProfilePage({
       planType: activeMembership.plan?.planType ?? 'SUBSCRIPTION',
       status: activeMembership.status,
       paymentStatus: activeMembership.paymentStatus,
+      cancelledAt: activeMembership.cancelledAt?.toISOString() ?? null,
       paymentMethod: activeMembership.paymentMethod,
       startDate: activeMembership.startDate.toISOString(),
       expiresAt: activeMembership.endDate?.toISOString() ?? null,
@@ -169,5 +191,5 @@ export default async function StudentProfilePage({
     })),
   }
 
-  return <StudentProfileClient profile={profile} ranks={beltRanks} />
+  return <StudentProfileClient profile={profile} ranks={beltRanks} attendanceStats={attendanceStats} readiness={readiness} lastGradedAt={lastGradedAt} />
 }

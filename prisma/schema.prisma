@@ -1367,7 +1367,12 @@ model BeltRank {
   // Requirements to REACH this rank
   minAge               Int? // minimum age
   minMonthsAtPrevious  Int? // months at previous rank before eligible
-  totalClassesRequired Int? // total class count required
+  totalClassesRequired Int? // classes per grading at this belt (fallback when classesByDegree is empty)
+  // Classes needed for each grading while at this belt, since the previous one:
+  // [i] = from stripe i to stripe i+1; [maxDegrees] = from the last stripe to
+  // the next belt. e.g. RGM Blanco = [8, 16, 24, 24, 24]. Missing entries fall
+  // back to totalClassesRequired.
+  classesByDegree      Int[]    @default([])
   classesPerPeriod     Int? // min classes per period
   periodType           String? // "WEEK" | "MONTH"
   classTypeIds         String[] // which class types count (empty = all)

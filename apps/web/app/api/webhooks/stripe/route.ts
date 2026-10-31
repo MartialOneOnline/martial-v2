@@ -13,6 +13,7 @@ import { PaymentMethod, TransactionCategory, StripeWebhookEventStatus, Membershi
 import { notifyPaymentReceived } from '@/lib/notifications/create'
 import { fmtPrice } from '@/lib/format'
 import { fulfillCollectibleCheckout } from '@/lib/services/collectibles/checkoutFulfillment'
+import { alertWebhookFailure } from '@/lib/alerts/webhookFailure'
 
 // A row still PROCESSING past this long was orphaned by a request that
 // crashed before ever reaching the PROCESSED/FAILED update at the bottom of
@@ -27,12 +28,16 @@ const STALE_PROCESSING_MS = 5 * 60_000
 // the eventId unique constraint means only one create() can ever succeed
 // for a given event, and Postgres serializes concurrent inserts on the same
 // key, so a racing duplicate simply sees the row already there and skips.
-async function claimStripeEvent(eventId: string, type: string): Promise<boolean> {
+// Returns 'new' for a first delivery, 'retry' when it reclaimed a FAILED /
+// stale row, or null when another delivery owns it (caller no-ops). The
+// new/retry split lets the failure alert fire once per event, not once per
+// Stripe retry.
+async function claimStripeEvent(eventId: string, type: string): Promise<'new' | 'retry' | null> {
   try {
     await prisma.stripeWebhookEvent.create({
       data: { eventId, type, status: StripeWebhookEventStatus.PROCESSING },
     })
-    return true
+    return 'new'
   } catch (err: unknown) {
     if ((err as { code?: string }).code !== 'P2002') throw err
   }
@@ -51,7 +56,7 @@ async function claimStripeEvent(eventId: string, type: string): Promise<boolean>
     },
     data: { status: StripeWebhookEventStatus.PROCESSING, error: null },
   })
-  return reclaimed.count === 1
+  return reclaimed.count === 1 ? 'retry' : null
 }
 
 // POST /api/webhooks/stripe
@@ -167,7 +172,8 @@ export async function POST(req: NextRequest) {
   // logic. A retried delivery of an event we already finished — the common
   // case, Stripe redelivers on timeout even after we've succeeded — or a
   // concurrent duplicate delivery short-circuits here to a plain 200.
-  if (!(await claimStripeEvent(event.id, event.type)))
+  const claim = await claimStripeEvent(event.id, event.type)
+  if (!claim)
     return NextResponse.json({ received: true })
 
   try {
@@ -184,6 +190,26 @@ export async function POST(req: NextRequest) {
       where: { eventId: event.id },
       data: { status: StripeWebhookEventStatus.FAILED, error: err instanceof Error ? err.message : String(err) },
     }).catch(() => {}) // best-effort — don't mask the original error if this write itself fails
+
+    // Alert once, on the first failed delivery — a persistent failure would
+    // otherwise email on every Stripe retry. Awaited (it never throws) because
+    // the serverless instance can be frozen as soon as the 500 goes out.
+    if (claim === 'new') {
+      const obj = event.data.object as { customer_details?: { email?: string | null }; customer_email?: string | null; amount_total?: number | null; currency?: string | null; metadata?: Record<string, string> | null; subscription?: string | null; id?: string }
+      await alertWebhookFailure({
+        provider: 'Stripe',
+        eventId: event.id,
+        eventType: event.type,
+        error: err instanceof Error ? err.message : String(err),
+        details: {
+          Customer: obj.customer_details?.email ?? obj.customer_email,
+          Amount: obj.amount_total != null ? `${(obj.amount_total / 100).toFixed(2)} ${(obj.currency ?? '').toUpperCase()}`.trim() : null,
+          Plan: obj.metadata?.planName,
+          Subscription: typeof obj.subscription === 'string' ? obj.subscription : null,
+          School: obj.metadata?.schoolId,
+        },
+      })
+    }
     throw err
   }
 
@@ -463,20 +489,31 @@ async function handleStripeEvent(event: Stripe.Event) {
             ...(session.customer     && { stripeCustomerId: String(session.customer) }),
           },
         })
-        // Try to create first (race-safe via the (schoolId, userId) unique
-        // constraint — a plain findFirst-then-create would let two concurrent
-        // webhook deliveries both create a row). The ARCHIVED case is already
-        // handled above, so a P2002 here just means the row already exists
-        // as PENDING/LEAD/ACTIVE/FROZEN/INACTIVE — promote it.
-        try {
+        // Check-then-write rather than create-then-catch-P2002: a real unique
+        // violation aborts the whole Postgres transaction at the DB level
+        // even once the JS exception is caught, which silently rolls back the
+        // Membership just created above and the payment record that follows
+        // below — losing a real Stripe payment with no trace beyond a FAILED
+        // StripeWebhookEvent row. This hits anyone who already has a
+        // SchoolMember row when they buy a plan (e.g. tried a trial class
+        // first) — not a rare race. The ARCHIVED case is already handled
+        // above, so an existing row here just means PENDING/LEAD/ACTIVE/
+        // FROZEN/INACTIVE — promote it. A genuine concurrent-create race
+        // (two first-ever purchases for the same user+school landing at the
+        // same instant) still throws on the create() below, but that just
+        // fails this delivery for Stripe to retry — the retry's findUnique
+        // then finds the row and takes the update branch.
+        const existingSchoolMember = await tx.schoolMember.findUnique({
+          where: { schoolId_userId: { schoolId, userId } },
+        })
+        if (existingSchoolMember) {
+          await tx.schoolMember.update({
+            where: { id: existingSchoolMember.id },
+            data: { status: 'ACTIVE' },
+          })
+        } else {
           await tx.schoolMember.create({
             data: { userId, schoolId, role: 'STUDENT', status: 'ACTIVE', joinedAt: new Date() },
-          })
-        } catch (err: unknown) {
-          if ((err as { code?: string }).code !== 'P2002') throw err
-          await tx.schoolMember.updateMany({
-            where: { schoolId, userId, status: { not: 'ARCHIVED' } },
-            data: { status: 'ACTIVE' },
           })
         }
         await recordOnlinePayment(tx, {
