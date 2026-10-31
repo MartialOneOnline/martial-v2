@@ -331,3 +331,8 @@ export type SchoolSubscription = Prisma.SchoolSubscriptionModel
  * 
  */
 export type StripeWebhookEvent = Prisma.StripeWebhookEventModel
+/**
+ * Model InviteToken
+ * 
+ */
+export type InviteToken = Prisma.InviteTokenModel

@@ -2283,3 +2283,25 @@ model StripeWebhookEvent {
 
   @@map("stripe_webhook_events")
 }
+
+// Our own long-lived invite/activation link, decoupled from Supabase's
+// shared Email OTP expiry (which also gates magic-link login and password
+// reset — bumping that globally would weaken those too). The email only
+// ever carries this token; a real Supabase sign-in link is minted from
+// admin.generateLink() at redeem time (see /api/auth/invite/[token]), so
+// Supabase's own short OTP window only has to survive a few seconds.
+// Deliberately has no "used" gate — corporate email scanners (e.g. Outlook
+// Safe Links) GET-fetch links before the user ever clicks, which would
+// burn a single-use token instantly. expiresAt is the only guard.
+model InviteToken {
+  id         String   @id @default(cuid())
+  token      String   @unique
+  email      String
+  schoolId   String
+  redirectTo String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([email])
+  @@map("invite_tokens")
+}

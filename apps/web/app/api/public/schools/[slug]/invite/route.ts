@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { createAdminClient } from '@/lib/supabase/admin'
 import { getResend, FROM, APP_URL } from '@/lib/email/resend'
 import { buildInviteStudentEmail, detectLang, getInviteSubject } from '@/lib/email/templates/inviteStudent'
+import { createInviteUrl } from '@/lib/invites'
 import { assignPlan } from '@/lib/services/membership'
 import { PaymentMethod, LeadSource, LeadStatus } from '@/lib/prisma-client/enums'
 import { upsertProspectLead } from '@/lib/leads'
@@ -48,27 +48,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
   if (Object.keys(errors).length)
     return NextResponse.json({ success: false, message: 'Validation failed', errors }, { status: 400 })
 
-  // Generate invite link via Supabase (does NOT send email — we handle that)
+  // Our own token (see lib/invites.ts) — the real Supabase sign-in link is
+  // only minted when this redeems, decoupling its expiry from Supabase's
+  // shared Email OTP expiry.
   const redirectTo = `${APP_URL}/auth/accept-invite?schoolId=${encodeURIComponent(school.id)}`
-  const supabase = createAdminClient()
-  const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
-    type: 'invite',
-    email: email!,
-    options: { redirectTo },
-  })
-
-  let inviteUrl = linkData?.properties?.action_link
-  if (linkError || !inviteUrl) {
-    // User may already exist in auth — fall back to magic link
-    const { data: magicData, error: magicError } = await supabase.auth.admin.generateLink({
-      type: 'magiclink',
-      email: email!,
-      options: { redirectTo },
-    })
-    inviteUrl = magicData?.properties?.action_link
-    if (magicError || !inviteUrl)
-      return NextResponse.json({ success: false, message: linkError?.message ?? magicError?.message ?? 'Could not generate invite link' }, { status: 500 })
-  }
+  const inviteUrl = await createInviteUrl({ email: email!, schoolId: school.id, redirectTo })
 
   // Upsert user record
   const dbUser = await prisma.user.upsert({

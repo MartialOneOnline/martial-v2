@@ -1,22 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 import { memberHasPermission } from '@/lib/auth/customRoles'
 import { getResend, FROM, APP_URL } from '@/lib/email/resend'
 import { buildInviteStudentEmail, detectLang, getInviteSubject } from '@/lib/email/templates/inviteStudent'
+import { createInviteUrl } from '@/lib/invites'
 import { assignPlan } from '@/lib/services/membership'
 import { PaymentMethod, LeadSource, LeadStatus } from '@/lib/prisma-client/enums'
 import { upsertProspectLead } from '@/lib/leads'
-
-function getAdminSupabase() {
-  const key = process.env.SUPABASE_SECRET_KEY
-  if (!key) throw new Error('Supabase service key not configured')
-  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, key, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  })
-}
 
 // POST /api/dashboard/members/invite — send custom Resend email + create PENDING member
 export async function POST(req: NextRequest) {
@@ -74,36 +66,14 @@ export async function POST(req: NextRequest) {
       })
     : null
 
-  // Generate invite link via Supabase (does NOT send email — we handle that)
+  // Our own token (see lib/invites.ts) — the real Supabase sign-in link is
+  // only minted when this redeems, so its expiry is ours to control (7
+  // days), not Supabase's shared Email OTP expiry.
   // schoolId travels as a query param (not hash) so activate-member can scope
   // the PENDING->LEAD transition to this school instead of all of the user's
   // pending invites — see /auth/set-password and /api/auth/activate-member.
   const redirectTo = `${APP_URL}/auth/accept-invite?schoolId=${encodeURIComponent(schoolId)}`
-  const supabase = getAdminSupabase()
-  const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
-    type: 'invite',
-    email: normalizedEmail,
-    options: { redirectTo },
-  })
-
-  if (linkError) {
-    // User may already exist in auth — fall back to magic link
-    const { data: magicData, error: magicError } = await supabase.auth.admin.generateLink({
-      type: 'magiclink',
-      email: normalizedEmail,
-      options: { redirectTo },
-    })
-    if (magicError || !magicData?.properties?.action_link) {
-      return NextResponse.json({ error: linkError.message }, { status: 400 })
-    }
-    // continue with magic link
-    Object.assign(linkData ?? {}, magicData)
-  }
-
-  const inviteUrl = (linkData as { properties?: { action_link?: string } })?.properties?.action_link
-  if (!inviteUrl) {
-    return NextResponse.json({ error: 'Could not generate invite link' }, { status: 500 })
-  }
+  const inviteUrl = await createInviteUrl({ email: normalizedEmail, schoolId, redirectTo })
 
   // Upsert user record
   const dbUser = await prisma.user.upsert({

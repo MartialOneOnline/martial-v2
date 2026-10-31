@@ -441,7 +441,8 @@ export const ModelName = {
   PlatformSettings: 'PlatformSettings',
   ClaimRequest: 'ClaimRequest',
   SchoolSubscription: 'SchoolSubscription',
-  StripeWebhookEvent: 'StripeWebhookEvent'
+  StripeWebhookEvent: 'StripeWebhookEvent',
+  InviteToken: 'InviteToken'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -457,7 +458,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "curriculum" | "curriculumLesson" | "curriculumLessonView" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "classCancellation" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "staffRole" | "campaign" | "campaignRecipient" | "schoolClaim" | "gradingSystem" | "beltRank" | "grading" | "lead" | "leadNote" | "affiliate" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "impersonationLog" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "limitedCollection" | "limitedCollectionTier" | "collectibleUnit" | "collectibleOwnership" | "partner" | "notification" | "platformSettings" | "claimRequest" | "schoolSubscription" | "stripeWebhookEvent"
+    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "curriculum" | "curriculumLesson" | "curriculumLessonView" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "classCancellation" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "staffRole" | "campaign" | "campaignRecipient" | "schoolClaim" | "gradingSystem" | "beltRank" | "grading" | "lead" | "leadNote" | "affiliate" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "impersonationLog" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "limitedCollection" | "limitedCollectionTier" | "collectibleUnit" | "collectibleOwnership" | "partner" | "notification" | "platformSettings" | "claimRequest" | "schoolSubscription" | "stripeWebhookEvent" | "inviteToken"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -4753,6 +4754,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    InviteToken: {
+      payload: Prisma.$InviteTokenPayload<ExtArgs>
+      fields: Prisma.InviteTokenFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.InviteTokenFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InviteTokenPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.InviteTokenFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InviteTokenPayload>
+        }
+        findFirst: {
+          args: Prisma.InviteTokenFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InviteTokenPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.InviteTokenFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InviteTokenPayload>
+        }
+        findMany: {
+          args: Prisma.InviteTokenFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InviteTokenPayload>[]
+        }
+        create: {
+          args: Prisma.InviteTokenCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InviteTokenPayload>
+        }
+        createMany: {
+          args: Prisma.InviteTokenCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.InviteTokenCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InviteTokenPayload>[]
+        }
+        delete: {
+          args: Prisma.InviteTokenDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InviteTokenPayload>
+        }
+        update: {
+          args: Prisma.InviteTokenUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InviteTokenPayload>
+        }
+        deleteMany: {
+          args: Prisma.InviteTokenDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.InviteTokenUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.InviteTokenUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InviteTokenPayload>[]
+        }
+        upsert: {
+          args: Prisma.InviteTokenUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InviteTokenPayload>
+        }
+        aggregate: {
+          args: Prisma.InviteTokenAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateInviteToken>
+        }
+        groupBy: {
+          args: Prisma.InviteTokenGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.InviteTokenGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.InviteTokenCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.InviteTokenCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -5915,6 +5990,19 @@ export const StripeWebhookEventScalarFieldEnum = {
 export type StripeWebhookEventScalarFieldEnum = (typeof StripeWebhookEventScalarFieldEnum)[keyof typeof StripeWebhookEventScalarFieldEnum]
 
 
+export const InviteTokenScalarFieldEnum = {
+  id: 'id',
+  token: 'token',
+  email: 'email',
+  schoolId: 'schoolId',
+  redirectTo: 'redirectTo',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt'
+} as const
+
+export type InviteTokenScalarFieldEnum = (typeof InviteTokenScalarFieldEnum)[keyof typeof InviteTokenScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -6717,6 +6805,7 @@ export type GlobalOmitConfig = {
   claimRequest?: Prisma.ClaimRequestOmit
   schoolSubscription?: Prisma.SchoolSubscriptionOmit
   stripeWebhookEvent?: Prisma.StripeWebhookEventOmit
+  inviteToken?: Prisma.InviteTokenOmit
 }
 
 /* Types for Logging */

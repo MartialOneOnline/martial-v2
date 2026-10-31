@@ -1,19 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 import { memberHasPermission } from '@/lib/auth/customRoles'
 import { getResend, FROM, APP_URL } from '@/lib/email/resend'
 import { buildInviteStudentEmail, detectLang, getInviteSubject } from '@/lib/email/templates/inviteStudent'
-
-function getAdminSupabase() {
-  const key = process.env.SUPABASE_SECRET_KEY
-  if (!key) throw new Error('Supabase service key not configured')
-  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, key, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  })
-}
+import { createInviteUrl } from '@/lib/invites'
 
 // POST /api/dashboard/members/[id]/resend-invite
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -47,20 +39,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     select: { name: true, city: true, country: true, language: true },
   })
 
-  const supabase = getAdminSupabase()
-
-  // Always use magiclink for resend — invite type is only valid for brand-new Supabase users
-  // schoolId travels as a query param so activate-member can scope the
-  // PENDING->LEAD transition to this school — see members/invite/route.ts.
-  const { data: magicData, error: magicError } = await supabase.auth.admin.generateLink({
-    type: 'magiclink',
+  // Our own token (see lib/invites.ts) — the redeem route tries 'invite'
+  // then falls back to 'magiclink' itself, so this no longer needs to care
+  // which one applies. schoolId travels as a query param so activate-member
+  // can scope the PENDING->LEAD transition to this school — see
+  // members/invite/route.ts.
+  const inviteUrl = await createInviteUrl({
     email: member.user.email,
-    options: { redirectTo: `${APP_URL}/auth/accept-invite?schoolId=${encodeURIComponent(schoolId)}` },
+    schoolId,
+    redirectTo: `${APP_URL}/auth/accept-invite?schoolId=${encodeURIComponent(schoolId)}`,
   })
-  if (magicError) console.error('[resend-invite] generateLink error:', magicError)
-  const inviteUrl = magicData?.properties?.action_link
-
-  if (!inviteUrl) return NextResponse.json({ error: 'Could not generate invite link' }, { status: 500 })
 
   const lang = detectLang(school?.language ?? school?.country)
   const html = buildInviteStudentEmail({

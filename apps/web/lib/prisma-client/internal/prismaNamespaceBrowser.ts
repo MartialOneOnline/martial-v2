@@ -108,7 +108,8 @@ export const ModelName = {
   PlatformSettings: 'PlatformSettings',
   ClaimRequest: 'ClaimRequest',
   SchoolSubscription: 'SchoolSubscription',
-  StripeWebhookEvent: 'StripeWebhookEvent'
+  StripeWebhookEvent: 'StripeWebhookEvent',
+  InviteToken: 'InviteToken'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1248,6 +1249,19 @@ export const StripeWebhookEventScalarFieldEnum = {
 } as const
 
 export type StripeWebhookEventScalarFieldEnum = (typeof StripeWebhookEventScalarFieldEnum)[keyof typeof StripeWebhookEventScalarFieldEnum]
+
+
+export const InviteTokenScalarFieldEnum = {
+  id: 'id',
+  token: 'token',
+  email: 'email',
+  schoolId: 'schoolId',
+  redirectTo: 'redirectTo',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt'
+} as const
+
+export type InviteTokenScalarFieldEnum = (typeof InviteTokenScalarFieldEnum)[keyof typeof InviteTokenScalarFieldEnum]
 
 
 export const SortOrder = {
