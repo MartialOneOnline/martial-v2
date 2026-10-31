@@ -104,6 +104,7 @@ function ProfileTab() {
   const [saved, setSaved]     = useState(false)
   const [error, setError]     = useState('')
   const [uploading, setUploading] = useState(false)
+  const [avatarLoadError, setAvatarLoadError] = useState(false)
 
   useEffect(() => {
     fetch('/api/dashboard/profile').then(r => r.json()).then(d => {
@@ -123,6 +124,7 @@ function ProfileTab() {
     const { url } = await res.json()
     await fetch('/api/dashboard/profile', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ avatarUrl: url }) })
     setForm(p => ({ ...p, avatarUrl: url }))
+    setAvatarLoadError(false)
     setUploading(false); setSaved(true); setTimeout(() => setSaved(false), 2500)
   }
 
@@ -147,8 +149,8 @@ function ProfileTab() {
             style={{ background: 'linear-gradient(135deg,#0870E2,#7DE7EC)' }}>
             {uploading
               ? <RefreshCw size={22} style={{ color: '#fff' }} className="animate-spin" />
-              : form.avatarUrl
-                ? <Image src={form.avatarUrl} alt={form.name} fill sizes="80px" className="object-cover" />
+              : form.avatarUrl && !avatarLoadError
+                ? <Image src={form.avatarUrl} alt={form.name} fill sizes="80px" className="object-cover" onError={() => setAvatarLoadError(true)} />
                 : <span style={{ fontSize: 28, fontWeight: 700, color: '#fff' }}>{initials}</span>
             }
           </div>
@@ -225,6 +227,8 @@ function SchoolTab() {
   const [error,      setError]      = useState('')
   const [uploading,  setUploading]  = useState(false)
   const [uploadingCover, setUploadingCover] = useState(false)
+  const [logoLoadError, setLogoLoadError] = useState(false)
+  const [coverLoadError, setCoverLoadError] = useState(false)
 
   // Facebook-style cover reposition — dragged locally, persisted separately
   // from the rest of the form so it can save on its own "Save position" click.
@@ -272,6 +276,7 @@ function SchoolTab() {
     const { url } = await res.json()
     await fetch('/api/dashboard/school', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ logoUrl: url }) })
     setForm(p => ({ ...p, logoUrl: url }))
+    setLogoLoadError(false)
     setUploading(false); setSaved(true); setTimeout(() => setSaved(false), 2500)
   }
 
@@ -287,7 +292,7 @@ function SchoolTab() {
     const { url } = await res.json()
     await fetch('/api/dashboard/school', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ coverUrl: url, coverPosY: 50 }) })
     setForm(p => ({ ...p, coverUrl: url }))
-    setCoverPosY(50); setCoverPosDirty(false)
+    setCoverPosY(50); setCoverPosDirty(false); setCoverLoadError(false)
     setUploadingCover(false); setSaved(true); setTimeout(() => setSaved(false), 2500)
   }
 
@@ -336,8 +341,8 @@ function SchoolTab() {
                 style={{ background: '#F3F4F6', border: '2px dashed #D1D5DB' }}>
                 {uploading
                   ? <RefreshCw size={20} style={{ color: '#9CA3AF' }} className="animate-spin" />
-                  : form.logoUrl
-                    ? <Image src={form.logoUrl} alt="logo" fill sizes="72px" className="object-cover" />
+                  : form.logoUrl && !logoLoadError
+                    ? <Image src={form.logoUrl} alt="logo" fill sizes="72px" className="object-cover" onError={() => setLogoLoadError(true)} />
                     : <Upload size={20} style={{ color: '#9CA3AF' }} />
                 }
               </div>
@@ -372,7 +377,7 @@ function SchoolTab() {
             Recommended: landscape, ratio between 16:9 and 2:1 (e.g. 1600×800px) — very wide panoramic photos get cropped tightly on the Explore card.
           </p>
 
-          {!form.coverUrl ? (
+          {!form.coverUrl || coverLoadError ? (
             <label className="block relative cursor-pointer group w-full" style={{ height: 140 }}>
               <div className="w-full h-full rounded-2xl overflow-hidden flex items-center justify-center relative"
                 style={{ background: '#F3F4F6', border: '2px dashed #D1D5DB' }}>
@@ -407,6 +412,7 @@ function SchoolTab() {
                     src={form.coverUrl} alt="cover" fill draggable={false}
                     sizes="(max-width: 768px) 100vw, 600px" className="object-cover pointer-events-none"
                     style={{ objectPosition: `50% ${coverPosY}%` }}
+                    onError={() => setCoverLoadError(true)}
                   />
                 )}
               </div>

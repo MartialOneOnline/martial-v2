@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
+import ImageWithFallback from '@/components/ImageWithFallback'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/db'
 import { getBookedCounts } from '@/lib/services/eventCapacity'
@@ -137,7 +138,10 @@ export default async function EventProfile(
 
       {/* ── Hero ─────────────────────────────────────────── */}
       <div className="relative h-72 md:h-[440px] bg-[#101828] overflow-hidden">
-        <Image src={cover} alt={event.title} fill className="object-cover opacity-80" priority />
+        <ImageWithFallback src={cover} alt={event.title} fill className="object-cover opacity-80" priority
+          fallback={cover !== FALLBACK && (
+            <Image src={FALLBACK} alt={event.title} fill priority className="object-cover opacity-80" />
+          )} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/20" />
 
         <div className="absolute top-4 left-4 z-10">
@@ -194,7 +198,8 @@ export default async function EventProfile(
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-[#0870E2]/10 flex items-center justify-center text-[#0870E2] font-bold shrink-0 overflow-hidden">
                     {event.instructor.photoUrl
-                      ? <Image src={event.instructor.photoUrl} alt={event.instructor.name} width={48} height={48} className="object-cover w-full h-full" />
+                      ? <ImageWithFallback src={event.instructor.photoUrl} alt={event.instructor.name} width={48} height={48} className="object-cover w-full h-full"
+                          fallback={event.instructor.name.charAt(0)} />
                       : event.instructor.name.charAt(0)}
                   </div>
                   <div className="min-w-0">
@@ -258,7 +263,8 @@ export default async function EventProfile(
             >
               <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 bg-[#0870E2]/10 flex items-center justify-center text-[#0870E2] font-bold text-sm">
                 {event.school.logoUrl
-                  ? <Image src={event.school.logoUrl} alt={event.school.name} width={40} height={40} className="object-cover w-full h-full" />
+                  ? <ImageWithFallback src={event.school.logoUrl} alt={event.school.name} width={40} height={40} className="object-cover w-full h-full"
+                      fallback={event.school.name.charAt(0)} />
                   : event.school.name.charAt(0)}
               </div>
               <div className="min-w-0">

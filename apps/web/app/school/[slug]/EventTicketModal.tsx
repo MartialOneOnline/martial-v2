@@ -34,6 +34,7 @@ const SUPPORTED_METHODS = ['STRIPE', 'REVOLUT', 'CASH']
 export default function EventTicketModal({ event, schoolSlug, redirectPath, onClose }: Props) {
   const router = useRouter()
   const backTo = redirectPath ?? `/school/${schoolSlug}#events`
+  const [coverError, setCoverError] = useState(false)
   const [auth, setAuth] = useState<AuthStatus>('loading')
   const [bookingState, setBookingState] = useState<BookingState>('idle')
   const [errorMsg, setErrorMsg] = useState('')
@@ -96,7 +97,7 @@ export default function EventTicketModal({ event, schoolSlug, redirectPath, onCl
 
         {/* Hero */}
         <div className="relative h-24">
-          <Image src={event.coverUrl ?? FALLBACK_HERO} alt={event.title} fill className="object-cover" />
+          <Image src={coverError ? FALLBACK_HERO : (event.coverUrl ?? FALLBACK_HERO)} alt={event.title} fill className="object-cover" onError={() => setCoverError(true)} />
           <div className="absolute inset-0 bg-gradient-to-b from-black/5 to-black/60" />
           <button onClick={onClose} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/45 hover:bg-black/60 flex items-center justify-center transition-colors">
             <X className="w-4 h-4 text-white" />

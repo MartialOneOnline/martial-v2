@@ -762,12 +762,12 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           </div>
 
           {/* 3. Stat cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
             {STATS.map(stat => (
               <button
                 key={stat.label}
                 onClick={() => router.push(stat.href)}
-                className="rounded-2xl text-left transition-colors hover:border-[#0071E3] cursor-pointer w-full"
+                className="rounded-2xl text-left transition-colors hover:border-[#0071E3] cursor-pointer w-full min-w-0 overflow-hidden"
                 style={{ background: '#fff', border: '1px solid #E5E7EB', padding: '14px 14px 12px' }}
               >
                 {/* Label + trend */}
@@ -789,7 +789,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
 
                 {/* Value */}
                 {stat.value !== null ? (
-                  <p className="text-3xl lg:text-4xl" style={{ fontWeight: 700, color: '#111827', letterSpacing: '-0.03em', lineHeight: 1 }}>
+                  <p className="text-3xl lg:text-4xl" style={{ fontWeight: 700, color: '#111827', letterSpacing: '-0.03em', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {stat.value}
                   </p>
                 ) : (

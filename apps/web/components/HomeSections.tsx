@@ -42,6 +42,7 @@ const FALLBACK = 'https://images.unsplash.com/photo-1555597673-b21d5c935865?w=80
 
 export function TrySomethingNew() {
   const [plan, setPlan] = useState<FeaturedPlan | null>(null)
+  const [coverError, setCoverError] = useState(false)
 
   useEffect(() => {
     fetch('/api/schools')
@@ -89,10 +90,11 @@ export function TrySomethingNew() {
           {/* Photo */}
           <div className="relative w-full sm:w-56 h-48 sm:h-auto shrink-0 overflow-hidden">
             <Image
-              src={plan.school.coverUrl ?? FALLBACK}
+              src={coverError ? FALLBACK : (plan.school.coverUrl ?? FALLBACK)}
               alt={plan.school.name}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-500"
+              onError={() => setCoverError(true)}
             />
           </div>
 

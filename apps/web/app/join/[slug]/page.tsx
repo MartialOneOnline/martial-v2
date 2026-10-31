@@ -31,6 +31,7 @@ function JoinPageInner() {
   const [notFound, setNotFound] = useState(false)
   const [session, setSession] = useState<SessionState>({ state: 'loading' })
   const [confirming, setConfirming] = useState(false)
+  const [logoError, setLogoError] = useState(false)
   const [confirmError, setConfirmError] = useState('')
 
   useEffect(() => {
@@ -95,8 +96,8 @@ function JoinPageInner() {
 
   const header = (
     <div style={{ background: '#fff', borderBottom: '1px solid #F3F4F6', padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 14 }}>
-      {school.logoUrl ? (
-        <Image src={school.logoUrl} alt={school.name} width={44} height={44} style={{ borderRadius: 12, objectFit: 'cover' }} />
+      {school.logoUrl && !logoError ? (
+        <Image src={school.logoUrl} alt={school.name} width={44} height={44} style={{ borderRadius: 12, objectFit: 'cover' }} onError={() => setLogoError(true)} />
       ) : (
         <div style={{ width: 44, height: 44, borderRadius: 12, background: '#0870E2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 18 }}>
           {school.name.charAt(0)}

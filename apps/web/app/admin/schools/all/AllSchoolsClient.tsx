@@ -361,6 +361,8 @@ function AdminEditSchoolModal({ schoolId, onClose, onSaved }: {
   const [error, setError] = useState('')
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [uploadingCover, setUploadingCover] = useState(false)
+  const [logoLoadError, setLogoLoadError] = useState(false)
+  const [coverLoadError, setCoverLoadError] = useState(false)
   const [disciplineOptions, setDisciplineOptions] = useState<{ slug: string; label: string }[]>([])
 
   useEffect(() => {
@@ -408,6 +410,7 @@ function AdminEditSchoolModal({ schoolId, onClose, onSaved }: {
     setUploading(false)
     if (!res.ok) { setError(data.error || 'Upload failed'); return }
     setForm(f => f && ({ ...f, [type === 'logo' ? 'logoUrl' : 'coverUrl']: data.url }))
+    if (type === 'logo') setLogoLoadError(false); else setCoverLoadError(false)
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -477,8 +480,8 @@ function AdminEditSchoolModal({ schoolId, onClose, onSaved }: {
                   <label className="relative block w-20 h-20 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center cursor-pointer hover:border-[#0870E2]/50 hover:bg-[#F0F7FB] transition-colors overflow-hidden">
                     {uploadingLogo ? (
                       <Loader2 className="w-5 h-5 animate-spin text-gray-300" />
-                    ) : form.logoUrl ? (
-                      <Image src={form.logoUrl} alt="Logo" fill sizes="80px" className="object-cover" />
+                    ) : form.logoUrl && !logoLoadError ? (
+                      <Image src={form.logoUrl} alt="Logo" fill sizes="80px" className="object-cover" onError={() => setLogoLoadError(true)} />
                     ) : (
                       <Camera className="w-6 h-6 text-gray-300" />
                     )}
@@ -491,8 +494,8 @@ function AdminEditSchoolModal({ schoolId, onClose, onSaved }: {
                   <label className="relative block h-20 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center cursor-pointer hover:border-[#0870E2]/50 hover:bg-[#F0F7FB] transition-colors overflow-hidden">
                     {uploadingCover ? (
                       <Loader2 className="w-5 h-5 animate-spin text-gray-300" />
-                    ) : form.coverUrl ? (
-                      <Image src={form.coverUrl} alt="Cover" fill sizes="320px" className="object-cover" />
+                    ) : form.coverUrl && !coverLoadError ? (
+                      <Image src={form.coverUrl} alt="Cover" fill sizes="320px" className="object-cover" onError={() => setCoverLoadError(true)} />
                     ) : (
                       <Camera className="w-6 h-6 text-gray-300" />
                     )}

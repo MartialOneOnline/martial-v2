@@ -221,6 +221,7 @@ function SchoolCard({ school, onClick }: { school: DbSchool; onClick: () => void
   const initials = school.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
 
   const [imgError, setImgError] = useState(false)
+  const [logoError, setLogoError] = useState(false)
 
   // Deterministic gradient per school (based on name)
   const gradients = [
@@ -275,8 +276,8 @@ function SchoolCard({ school, onClick }: { school: DbSchool; onClick: () => void
 
       {/* School logo bottom-left, straddling photo/info boundary */}
       <div className="absolute left-4 top-48 -translate-y-1/2 z-10 w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-md bg-white shrink-0">
-        {school.logoUrl ? (
-          <Image src={school.logoUrl} alt="" width={48} height={48} className="object-cover w-full h-full" />
+        {school.logoUrl && !logoError ? (
+          <Image src={school.logoUrl} alt="" width={48} height={48} className="object-cover w-full h-full" onError={() => setLogoError(true)} />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-sm font-bold text-white" style={{ background: BLUE }}>
             {initials}
@@ -335,14 +336,15 @@ function ClassCard({ cls, onClick, dayOfWeek }: { cls: DbClass; onClick: () => v
     ? (cls.schedule ?? []).find(s => s.dayOfWeek === dayOfWeek)
     : null
   const nextSlot = daySlot ? daySlot.startTime : getNextSlot(cls.schedule)
-  const hasCover = !!cls.school.coverUrl
+  const [imgError, setImgError] = useState(false)
+  const hasCover = !!cls.school.coverUrl && !imgError
 
   return (
     <button
       onClick={onClick}
       className={`group relative w-full text-left rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 h-56 ${!hasCover ? 'bg-gradient-to-br from-[#0E3A7A] to-[#0870E2]' : ''}`}
     >
-      {hasCover && <Image src={cls.school.coverUrl!} alt={cls.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />}
+      {hasCover && <Image src={cls.school.coverUrl!} alt={cls.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" onError={() => setImgError(true)} />}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/10" />
 
       {/* Top */}
@@ -392,7 +394,8 @@ function formatEventType(type: string) {
 }
 
 function EventCard({ event, onClick }: { event: DbEvent; onClick: () => void }) {
-  const hasCover = !!event.coverUrl
+  const [imgError, setImgError] = useState(false)
+  const hasCover = !!event.coverUrl && !imgError
   const minPrice = event.tickets.length > 0 ? Math.min(...event.tickets.map(t => t.price)) : null
   const dateLabel = new Date(event.startAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'Europe/Madrid' })
 
@@ -401,7 +404,7 @@ function EventCard({ event, onClick }: { event: DbEvent; onClick: () => void }) 
       onClick={onClick}
       className={`group relative w-full text-left rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 h-56 ${!hasCover ? 'bg-gradient-to-br from-[#3B2F63] to-[#7E22CE]' : ''}`}
     >
-      {hasCover && <Image src={event.coverUrl!} alt={event.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />}
+      {hasCover && <Image src={event.coverUrl!} alt={event.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" onError={() => setImgError(true)} />}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/10" />
 
       {/* Top */}
@@ -452,7 +455,8 @@ function SchoolQuickView({
   // plan count from /api/schools.
   const hasPlans = school.hasPublicPlans
   const [idx, setIdx] = useState(0)
-  const imgs = school.coverUrl ? [school.coverUrl] : []
+  const [imgError, setImgError] = useState(false)
+  const imgs = school.coverUrl && !imgError ? [school.coverUrl] : []
   const disciplines = school.disciplines.map(d => d.discipline.name.toUpperCase())
   const headInstructor = school.instructors.find(i => i.isHead)
 
@@ -486,7 +490,7 @@ function SchoolQuickView({
         <div className="relative w-full h-52 md:h-64 bg-gradient-to-br from-[#0E3A7A] to-[#0870E2] overflow-hidden">
           {/* Drag handle (mobile) */}
           <div className="md:hidden absolute top-2 left-1/2 -translate-x-1/2 z-20 w-10 h-1.5 rounded-full bg-white/70" />
-          {imgs[idx] && <Image src={imgs[idx]} alt={school.name} fill className="object-cover" />}
+          {imgs[idx] && <Image src={imgs[idx]} alt={school.name} fill className="object-cover" onError={() => setImgError(true)} />}
           {imgs.length > 1 && (
             <>
               <button onClick={() => setIdx(i => (i - 1 + imgs.length) % imgs.length)} className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-white shadow flex items-center justify-center">
@@ -963,7 +967,7 @@ export default function ExplorePage() {
 
           {/* Controls */}
           <div className="flex items-center justify-between gap-3 flex-wrap">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               {/* Mode toggle */}
               <div className="inline-flex p-1 rounded-full bg-[#F9FAFB] border border-[#E5E7EB]">
                 {([

@@ -4,7 +4,6 @@ import { useDashboard } from '../../../../components/DashboardShell'
 import NotificationBell from '../../../../components/NotificationBell'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
 import {Users, Calendar, CreditCard, BarChart2, Settings, ChevronRight, ChevronDown, Menu, Plus, ChevronLeft, Clock, CalendarDays, LayoutList, MoreHorizontal, Pencil, Copy, Trash2, Eye, Check, CheckCircle, XCircle, Loader2} from 'lucide-react'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import type { Translations } from '../../../../lib/i18n/translations'
@@ -162,6 +161,7 @@ function ClassPopup({ slot, date, onClose, onDeleted }: {
   }[]>([])
   const [loadingStudents, setLoadingStudents] = useState(false)
   const [attendingId, setAttendingId] = useState<string | null>(null)
+  const [avatarLoadErrors, setAvatarLoadErrors] = useState<Set<string>>(new Set())
 
   useEffect(() => { loadStudents() }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -273,8 +273,9 @@ function ClassPopup({ slot, date, onClose, onDeleted }: {
                   style={{ borderBottom: isLast ? 'none' : '1px solid #F3F4F6', opacity: noShow ? 0.5 : 1 }}>
                   {/* Avatar */}
                   <div className="shrink-0 relative">
-                    {s.avatarUrl
-                      ? <img src={s.avatarUrl} alt={s.name} width={42} height={42} style={{ width: 42, height: 42, borderRadius: '50%', objectFit: 'cover' }} />
+                    {s.avatarUrl && !avatarLoadErrors.has(s.id)
+                      ? <img src={s.avatarUrl} alt={s.name} width={42} height={42} style={{ width: 42, height: 42, borderRadius: '50%', objectFit: 'cover' }}
+                          onError={() => setAvatarLoadErrors(prev => new Set(prev).add(s.id))} />
                       : <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 13, fontWeight: 700 }}>
                           {(s.name?.[0] ?? '?').toUpperCase()}
                         </div>

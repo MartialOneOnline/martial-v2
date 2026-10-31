@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
+import ImageWithFallback from '@/components/ImageWithFallback'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/db'
 import WeeklyTimetable from './WeeklyTimetable'
@@ -153,10 +154,13 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
 
       {/* ── Hero ─────────────────────────────────────────── */}
       <div className="relative h-72 md:h-[420px] bg-[#101828] overflow-hidden">
-        <Image
+        <ImageWithFallback
           src={cover} alt={school.name} fill priority
           className="object-cover opacity-80"
           style={{ objectPosition: `50% ${school.coverPosY}%` }}
+          fallback={cover !== FALLBACK && (
+            <Image src={FALLBACK} alt={school.name} fill priority className="object-cover opacity-80" />
+          )}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/20" />
 
@@ -285,7 +289,8 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
                       >
                         <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden shrink-0 bg-[#0E3A7A] flex items-center justify-center">
                           {ev.coverUrl ? (
-                            <Image src={ev.coverUrl} alt={ev.title} width={56} height={56} className="object-cover w-full h-full" />
+                            <ImageWithFallback src={ev.coverUrl} alt={ev.title} width={56} height={56} className="object-cover w-full h-full"
+                              fallback={<Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-white/60" />} />
                           ) : (
                             <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-white/60" />
                           )}

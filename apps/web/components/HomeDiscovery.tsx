@@ -25,13 +25,15 @@ const FALLBACK = 'https://images.unsplash.com/photo-1555597673-b21d5c935865?w=80
 
 function SchoolCard({ school }: { school: School }) {
   const disciplines = school.disciplines.map(d => d.discipline.name)
+  const [coverError, setCoverError] = useState(false)
   return (
     <Link href={`/school/${school.slug}`} className="group relative block rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 h-60">
       <Image
-        src={school.coverUrl ?? FALLBACK}
+        src={coverError ? FALLBACK : (school.coverUrl ?? FALLBACK)}
         alt={school.name}
         fill
         className="object-cover group-hover:scale-105 transition-transform duration-500"
+        onError={() => setCoverError(true)}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/10" />
 
