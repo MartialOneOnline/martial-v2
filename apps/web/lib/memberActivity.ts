@@ -68,24 +68,33 @@ export function addDaysCivil(ymd: string, n: number): string {
   return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10)
 }
 
-function tzOffsetMs(date: Date, timeZone: string): number {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', second: '2-digit',
-  }).formatToParts(date)
-  const get = (t: string) => Number(parts.find(p => p.type === t)?.value)
-  const asUtc = Date.UTC(get('year'), get('month') - 1, get('day'), get('hour'), get('minute'), get('second'))
-  return asUtc - Math.floor(date.getTime() / 1000) * 1000
+/**
+ * First instant (UTC) whose civil date in `timeZone` is `ymd`. Found by binary
+ * search rather than offset arithmetic so DST jumps at midnight resolve
+ * correctly: where 00:00 doesn't exist (e.g. São Paulo 2018-11-04) the day
+ * starts at the first valid local instant, 01:00.
+ */
+export function startOfCivilDayUtc(ymd: string, timeZone: string): Date {
+  const [y, m, d] = ymd.split('-').map(Number) as [number, number, number]
+  const utcMidnight = Date.UTC(y, m - 1, d)
+  // Every real offset is within ±14h, so the answer is in this window.
+  let lo = utcMidnight - 15 * 3_600_000
+  let hi = utcMidnight + 15 * 3_600_000
+  while (hi - lo > 1) {
+    const mid = Math.floor((lo + hi) / 2)
+    if (civilDateInTz(new Date(mid), timeZone) >= ymd) hi = mid
+    else lo = mid
+  }
+  return new Date(hi)
 }
 
-/** The UTC instant of a wall-clock time on a civil date in `timeZone`. */
-export function zonedTimeToUtc(ymd: string, timeZone: string, endOfDay = false): Date {
-  const [y, m, d] = ymd.split('-').map(Number) as [number, number, number]
-  const wall = endOfDay ? Date.UTC(y, m - 1, d, 23, 59, 59, 999) : Date.UTC(y, m - 1, d)
-  // Two passes so a DST change between the guess and the answer is handled
-  const off1 = tzOffsetMs(new Date(wall), timeZone)
-  const off2 = tzOffsetMs(new Date(wall - off1), timeZone)
-  return new Date(wall - off2)
+/**
+ * Last instant (UTC) of civil day `ymd` in `timeZone` — 1 ms before the next
+ * day starts, so a repeated hour at the end of the day (DST ending at
+ * midnight, e.g. São Paulo 2019-02-16) is included.
+ */
+export function endOfCivilDayUtc(ymd: string, timeZone: string): Date {
+  return new Date(startOfCivilDayUtc(addDaysCivil(ymd, 1), timeZone).getTime() - 1)
 }
 
 const YMD = /^\d{4}-\d{2}-\d{2}$/
@@ -122,7 +131,7 @@ export function reportMonths(period: string, dateFrom: string | null | undefined
 /** UTC bounds of a custom civil-date range (inclusive days) in the school's timezone. */
 export function zonedRangeBounds(dateFrom: string, dateTo: string | null | undefined, now: Date, timeZone: string): { from: Date; to: Date } {
   const end = dateTo && YMD.test(dateTo) ? dateTo : civilDateInTz(now, timeZone)
-  return { from: zonedTimeToUtc(dateFrom, timeZone), to: zonedTimeToUtc(end, timeZone, true) }
+  return { from: startOfCivilDayUtc(dateFrom, timeZone), to: endOfCivilDayUtc(end, timeZone) }
 }
 
 // Cash payments are stored at local midnight, which is 22:00/23:00 UTC the

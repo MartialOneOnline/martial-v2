@@ -7,7 +7,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   addMonths, monthRange, monthKeyInTz, schoolTimeZone,
-  computeMonthlyActivity, summarisePeriod, reportMonths, zonedRangeBounds, type ActivityRow,
+  computeMonthlyActivity, summarisePeriod, reportMonths, zonedRangeBounds, civilDateInTz, type ActivityRow,
 } from '@/lib/memberActivity'
 
 const rows = (userId: string, ...months: string[]): ActivityRow[] => months.map(month => ({ userId, month }))
@@ -135,5 +135,34 @@ describe('zonedRangeBounds()', () => {
     const r = zonedRangeBounds('2026-10-01', '2026-10-31', now, 'Europe/Madrid')
     expect(r.from.toISOString()).toBe('2026-09-30T22:00:00.000Z')
     expect(r.to.toISOString()).toBe('2026-10-31T22:59:59.999Z')
+  })
+})
+
+// Audit PR #34 round 2 (P2): DST transitions that happen exactly at midnight.
+describe('zonedRangeBounds() at midnight DST transitions', () => {
+  const now = new Date('2026-10-31T12:00:00Z')
+
+  it('starts a day whose midnight does not exist at its first valid instant (São Paulo 2018-11-04)', () => {
+    // 00:00 -03 jumped to 01:00 -02 → the day starts at 01:00 local = 03:00Z
+    const r = zonedRangeBounds('2018-11-04', '2018-11-04', now, 'America/Sao_Paulo')
+    expect(r.from.toISOString()).toBe('2018-11-04T03:00:00.000Z')
+    expect(r.to.toISOString()).toBe('2018-11-05T01:59:59.999Z') // already -02 on the 5th
+  })
+
+  it('ends a day with a repeated last hour after the repeat (São Paulo 2019-02-16)', () => {
+    // 17 Feb 00:00 -02 went back to 16 Feb 23:00 -03 → 16 Feb ends at 03:00Z on the 17th
+    const r = zonedRangeBounds('2019-02-16', '2019-02-16', now, 'America/Sao_Paulo')
+    expect(r.from.toISOString()).toBe('2019-02-16T02:00:00.000Z')
+    expect(r.to.toISOString()).toBe('2019-02-17T02:59:59.999Z')
+  })
+
+  it('every bound lands on the requested civil day, and one ms outside does not', () => {
+    for (const [tz, day] of [['America/Sao_Paulo', '2018-11-04'], ['America/Sao_Paulo', '2019-02-16'], ['Europe/Madrid', '2026-03-29'], ['America/New_York', '2026-11-01']] as const) {
+      const { from, to } = zonedRangeBounds(day, day, now, tz)
+      expect(civilDateInTz(from, tz)).toBe(day)
+      expect(civilDateInTz(to, tz)).toBe(day)
+      expect(civilDateInTz(new Date(from.getTime() - 1), tz)).not.toBe(day)
+      expect(civilDateInTz(new Date(to.getTime() + 1), tz)).not.toBe(day)
+    }
   })
 })
