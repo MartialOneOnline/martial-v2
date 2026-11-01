@@ -1,5 +1,6 @@
 import { cache } from 'react'
 import { prisma } from '@/lib/db'
+import { buildBeltIndex, normalizeBeltName } from '@/lib/beltGroups'
 
 // Shared by page.tsx (list route) and layout.tsx (split-view list panel) —
 // wrapped in React's cache() so both call sites within the same request
@@ -69,3 +70,21 @@ export const getStudentsForSchool = cache(async (schoolId: string) => {
 })
 
 export type StudentListItem = Awaited<ReturnType<typeof getStudentsForSchool>>[number]
+
+// Belt names of the school's grading catalog, in progression order (default
+// system first) — the choices for "Change belt" / add / edit student. Empty
+// when the school has no catalog yet (the client then falls back to BJJ adult).
+export const getSchoolBeltNames = cache(async (schoolId: string): Promise<string[]> => {
+  const systems = await prisma.gradingSystem.findMany({
+    where: { schoolId, isActive: true },
+    select: { id: true, name: true, isDefault: true, ranks: { select: { id: true, name: true, color: true, order: true, maxDegrees: true } } },
+    orderBy: { createdAt: 'asc' },
+  })
+  const seen = new Set<string>()
+  const names: string[] = []
+  for (const r of buildBeltIndex(systems).ranks) {
+    const norm = normalizeBeltName(r.name)
+    if (!seen.has(norm)) { seen.add(norm); names.push(r.name) }
+  }
+  return names
+})

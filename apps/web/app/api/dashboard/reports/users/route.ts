@@ -7,6 +7,7 @@ import {
   ACTIVITY_SEGMENTS, cohortRetention, closedPeriodMonths, markProvisional, type ActivityRow, type ActivitySegment,
 } from '@/lib/memberActivity'
 import { cleanPhone, whatsappNumber } from '@/lib/phone'
+import { buildBeltIndex, beltKey, beltOptions, beltColor, resolveBeltRank, matchesBeltFilter, parseBeltFilter } from '@/lib/beltGroups'
 
 // requireDashboardAccess() bypasses this for SUPERADMIN and otherwise
 // requires an ACTIVE SchoolMember with a staff-facing role — a STUDENT must
@@ -119,15 +120,31 @@ export async function GET(req: NextRequest) {
   // the school (they were real students then), but those can't be listed or
   // contacted — so the list and its tab counts only include students still on
   // the roster, and `segmentRemoved` says how many were left out.
-  const rosterUserIds = new Set((await prisma.schoolMember.findMany({
-    where: { schoolId: auth.schoolId, role: 'STUDENT' }, select: { userId: true },
-  })).map(m => m.userId))
+  const [roster, gradingSystems] = await Promise.all([
+    prisma.schoolMember.findMany({
+      where: { schoolId: auth.schoolId, role: 'STUDENT' },
+      select: { id: true, userId: true, belt: true, beltRankId: true, beltDegree: true, status: true },
+    }),
+    prisma.gradingSystem.findMany({
+      where: { schoolId: auth.schoolId, isActive: true },
+      select: { id: true, name: true, isDefault: true, ranks: { select: { id: true, name: true, color: true, order: true, maxDegrees: true } } },
+      orderBy: { createdAt: 'asc' },
+    }),
+  ])
+  const rosterUserIds = new Set(roster.map(m => m.userId))
   const segmentIds = Object.fromEntries(
     ACTIVITY_SEGMENTS.map(seg => [seg, segmentAll[seg].filter(id => rosterUserIds.has(id))]),
   ) as Record<ActivitySegment, string[]>
 
   // ── Member list ──────────────────────────────────────────────────────────────
-  const belt = searchParams.get('belt') ?? ''
+  // Belt filter: one belt key per `belt` param (see lib/beltGroups.ts), stripes
+  // per `degree`. Belt names are free text ("Marron", "Marrón", "Brown
+  // Belt"…), so matching happens here on the resolved key, not in SQL.
+  const beltIndex = buildBeltIndex(gradingSystems)
+  const beltFilter = parseBeltFilter(searchParams.getAll('belt'), searchParams.getAll('degree'), beltIndex)
+  const beltFilterIds = beltFilter.belts.length || beltFilter.degrees.length
+    ? roster.filter(m => matchesBeltFilter(m, beltFilter, beltIndex)).map(m => m.id)
+    : null
 
   // Many members still have a null joinedAt (no real join date recovered
   // yet — see backfill-joined-at-from-v1.mjs / -from-activity.mjs) and fall
@@ -162,7 +179,7 @@ export async function GET(req: NextRequest) {
         { phone: { contains: search.replace(/\s/g, '') } },
       ]},
     } : {}),
-    ...(belt ? { belt } : {}),
+    ...(beltFilterIds ? { id: { in: beltFilterIds } } : {}),
     ...(segment ? { userId: { in: segmentIds[segment] } } : {}),
     ...(!segment && status === 'ACTIVE'   ? { status: 'ACTIVE' } : {}),
     ...(!segment && status === 'INACTIVE' ? { status: { in: ['INACTIVE', 'FROZEN', 'LEAD'] } } : {}),
@@ -213,23 +230,11 @@ export async function GET(req: NextRequest) {
   }
   const lastPaymentByUser = new Map(lastPayments.map(p => [p.userId!, p]))
 
-  // ── Belt distribution ────────────────────────────────────────────────────────
-  const allActive = await prisma.schoolMember.findMany({
-    where: { schoolId: auth.schoolId, role: 'STUDENT', status: 'ACTIVE' },
-    select: { belt: true },
-  })
-  const beltMap: Record<string, number> = {}
-  for (const m of allActive) {
-    const b = m.belt ?? 'Unknown'
-    beltMap[b] = (beltMap[b] ?? 0) + 1
-  }
-  const BELT_ORDER = ['Blanco', 'White', 'Azul', 'Blue', 'Morado', 'Purple', 'Marrón', 'Brown', 'Negro', 'Black']
-  const beltDist = Object.entries(beltMap)
-    .sort(([a], [b]) => {
-      const ai = BELT_ORDER.indexOf(a); const bi = BELT_ORDER.indexOf(b)
-      return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi)
-    })
-    .map(([name, value]) => ({ name, value }))
+  // ── Belt distribution (active students) + filter options (whole roster) ───
+  const options = beltOptions(roster, beltIndex)
+  const beltDist = options
+    .filter(o => o.activeCount > 0)
+    .map(o => ({ key: o.key, name: o.name, color: o.color, value: o.activeCount }))
 
   // ── Monthly series + period summary ──────────────────────────────────────────
   // Cards compare closed months only — the month in progress would read as a
@@ -278,7 +283,10 @@ export async function GET(req: NextRequest) {
       RETURNING: segmentIds.RETURNING.length, AT_RISK: segmentIds.AT_RISK.length,
     },
     beltDist,
+    beltOptions: options,
+    beltFilter,
     members: members.map(m => {
+      const rank = resolveBeltRank(m.belt, m.beltRankId, beltIndex)
       const act = byUser.get(m.userId)
       const pay = lastPaymentByUser.get(m.userId)
       return {
@@ -288,7 +296,10 @@ export async function GET(req: NextRequest) {
         phone:     cleanPhone(m.user?.phone),
         whatsapp:  whatsappNumber(m.user?.phone, school?.country),
         avatarUrl: m.user?.avatarUrl ?? null,
-        belt:      m.belt           ?? '—',
+        belt:      m.belt?.trim() || rank?.name || '—',
+        beltKey:   beltKey(m, beltIndex),
+        beltColor: beltColor(m.belt || rank?.name, rank),
+        beltDegree: m.beltDegree ?? 0,
         plan:      planByUser[m.userId] ?? '—',
         status:    m.status,
         joinedAt:  (m.joinedAt ?? m.createdAt).toISOString(),

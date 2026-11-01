@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, createContext, useContext } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   Bell, Menu, Search, Plus, MoreHorizontal,
@@ -21,6 +21,7 @@ import { memberStatusColors } from '../../../lib/design/tokens'
 import { submitMemberStatusChange, applyOptimisticStatus } from '../../../lib/memberStatus'
 import { downloadCsv } from '../../../lib/csvExport'
 import { matchesSearch } from '../../../lib/search'
+import { normalizeBeltName } from '../../../lib/beltGroups'
 import { fmtPrice } from '../../../lib/format'
 import CampaignComposerModal from './CampaignComposerModal'
 import SendWaiverModal from '../../../components/SendWaiverModal'
@@ -127,6 +128,20 @@ const BELT_COLORS: Record<string, { bg: string; color: string; dot: string }> = 
 
 
 const BELTS = ['Blanco', 'Azul', 'Morado', 'Marron', 'Negro']
+// The school's own belt catalog (Settings → Grading); BJJ adult when it has none
+const BeltNamesContext = createContext<string[]>(BELTS)
+const sameBelt = (a: string, b: string) => normalizeBeltName(a) === normalizeBeltName(b)
+/**
+ * Catalog belts with `current` spelled exactly as stored (it takes the place
+ * of its catalog equivalent, "Marron" for "Marrón", or is appended), so a
+ * <select> always has an option matching its value and saving changes nothing.
+ */
+function useBeltNames(current?: string): string[] {
+  const names = useContext(BeltNamesContext)
+  if (!current || names.includes(current)) return names
+  const i = names.findIndex(n => sameBelt(n, current))
+  return i < 0 ? [...names, current] : names.map((n, j) => (j === i ? current : n))
+}
 const STATUSES: Array<{ value: string; label: string }> = [
   { value: 'ACTIVE',   label: 'Active'   },
   { value: 'INACTIVE', label: 'Inactive' },
@@ -194,6 +209,7 @@ function ActionsMenu({
 
   const currentDisplay = STATUS_DISPLAY[student.status] ?? student.status
   const currentBelt = student.belt ?? 'Blanco'
+  const beltNames = useBeltNames(currentBelt)
 
   // Items call their action directly and let the click bubble to RowMenu's
   // content wrapper, which closes the portal on any click. Submenu toggles and
@@ -324,9 +340,9 @@ function ActionsMenu({
               background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10,
               boxShadow: '0 8px 24px rgba(0,0,0,0.10)', padding: '4px 0', marginRight: 4,
             }}>
-              {BELTS.map(b => {
-                const isActive = b === currentBelt
-                const col = BELT_COLORS[b] ?? { dot: '#9CA3AF' }
+              {beltNames.map(b => {
+                const isActive = sameBelt(b, currentBelt)
+                const col = BELT_COLORS[BELT_DISPLAY[b]?.colorKey ?? b] ?? { dot: '#9CA3AF' }
                 return (
                   <button
                     key={b}
@@ -436,6 +452,7 @@ function EditStudentModal({ student, onClose, onSaved }: {
   onSaved: (updated: Partial<Student>) => void
 }) {
   const [belt, setBelt]         = useState(student.belt ?? 'Blanco')
+  const beltNames = useBeltNames(student.belt ?? undefined)
   const [degree, setDegree]     = useState(student.beltDegree ?? 0)
   const [status, setStatus]     = useState(student.status)
   const [saving, setSaving]     = useState(false)
@@ -488,7 +505,7 @@ function EditStudentModal({ student, onClose, onSaved }: {
             <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Cinturón</label>
             <select value={belt} onChange={e => setBelt(e.target.value)}
               style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #E5E7EB', fontSize: 13, color: '#111827', background: '#fff', outline: 'none' }}>
-              {BELTS.map(b => <option key={b} value={b}>{BELT_DISPLAY[b]?.label ?? b}</option>)}
+              {beltNames.map(b => <option key={b} value={b}>{BELT_DISPLAY[b]?.label ?? b}</option>)}
             </select>
           </div>
           {/* Belt degree */}
@@ -1109,7 +1126,8 @@ function InviteTab({ onClose, onCreated, schoolSlug }: { onClose: () => void; on
 
 // ── Create tab ─────────────────────────────────────────────────────────────────
 function CreateTab({ onClose, onCreated }: { onClose: () => void; onCreated: (s: Student[]) => void }) {
-  const [form, setForm] = useState({ name: '', email: '', phone: '', belt: 'Blanco', beltDegree: 0, status: 'ACTIVE' })
+  const beltNames = useBeltNames()
+  const [form, setForm] = useState({ name: '', email: '', phone: '', belt: beltNames[0] ?? 'Blanco', beltDegree: 0, status: 'ACTIVE' })
   const [sendInvite, setSendInvite] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -1166,7 +1184,7 @@ function CreateTab({ onClose, onCreated }: { onClose: () => void; onCreated: (s:
         <div style={{ flex: 2 }}>
           <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Cinturón</label>
           <select value={form.belt} onChange={e => setForm(f => ({ ...f, belt: e.target.value }))} style={fieldInput}>
-            {BELTS.map(b => <option key={b} value={b}>{BELT_DISPLAY[b]?.label ?? b}</option>)}
+            {beltNames.map(b => <option key={b} value={b}>{BELT_DISPLAY[b]?.label ?? b}</option>)}
           </select>
         </div>
         <div style={{ flex: 1 }}>
@@ -1621,7 +1639,7 @@ function MarkAsPaidModal({
 // ── Main component ─────────────────────────────────────────────────────────────
 type DriftedMember = { id: string; name: string; status: string }
 
-export default function UsersClient({ students: initialStudents, driftedMembers = [] }: { students: Student[]; driftedMembers?: DriftedMember[] }) {
+export default function UsersClient({ students: initialStudents, driftedMembers = [], beltNames = [] }: { students: Student[]; driftedMembers?: DriftedMember[]; beltNames?: string[] }) {
   const { menuOpen, setMenuOpen } = useDashboard()
   const t = useT()
   const router = useRouter()
@@ -1806,7 +1824,7 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
   }
 
   return (
-    <>
+    <BeltNamesContext.Provider value={beltNames.length ? beltNames : BELTS}>
     <main style={{ flex: 1, minWidth: 0 }}>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
 
@@ -2254,6 +2272,6 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
         }}
       />
     )}
-    </>
+    </BeltNamesContext.Provider>
   )
 }

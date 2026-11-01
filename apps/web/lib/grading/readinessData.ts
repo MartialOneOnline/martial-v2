@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db'
 import { schoolTimeZone } from '@/lib/memberActivity'
 import { NEW_STUDENT_MONTHS, daysSince, monthsWithSchool } from './overdue'
 import { cleanPhone } from '@/lib/phone'
+import { buildBeltIndex, resolveBeltRank } from '@/lib/beltGroups'
 import { computeReadiness, pickBeltSince, pickStepSince, type AttendedClass, type GradingRecord, type RankRules, type Readiness } from './readiness'
 
 export interface MemberReadiness {
@@ -48,7 +49,7 @@ function laterOf(a: Date | null | undefined, b: Date | null | undefined): Date |
 
 /**
  * Readiness for every student of a school (or just `memberIds`).
- * Members without a structured rank are matched to one by belt name.
+ * Belts resolve to a rank like the users report does (resolveBeltRank).
  */
 export async function getReadinessForSchool(
   schoolId: string,
@@ -58,7 +59,7 @@ export async function getReadinessForSchool(
     prisma.school.findUnique({ where: { id: schoolId }, select: { country: true } }),
     prisma.gradingSystem.findMany({
     where: { schoolId, isActive: true },
-    select: { id: true, isDefault: true, createdAt: true, ranks: { select: RANK_SELECT } },
+    select: { id: true, name: true, isDefault: true, createdAt: true, ranks: { select: RANK_SELECT } },
     orderBy: { createdAt: 'asc' },
     }),
   ])
@@ -67,9 +68,8 @@ export async function getReadinessForSchool(
 
   const rankById = new Map<string, RankRules & { systemId: string }>()
   for (const s of systems) for (const r of s.ranks) rankById.set(r.id, r)
-  const defaultSystem = systems.find(s => s.isDefault) ?? systems[0]!
-  const rankByName = new Map<string, string>()
-  for (const r of defaultSystem.ranks) rankByName.set(r.name.trim().toLowerCase(), r.id)
+  // Same belt → rank rule as the users report, so both agree on every student
+  const beltIndex = buildBeltIndex(systems)
 
   const members = await prisma.schoolMember.findMany({
     where: {
@@ -132,9 +132,8 @@ export async function getReadinessForSchool(
 
   const now = new Date()
   return members.map(m => {
-    const rankId = (m.beltRankId && rankById.has(m.beltRankId))
-      ? m.beltRankId
-      : (m.belt ? rankByName.get(m.belt.trim().toLowerCase()) ?? null : null)
+    const resolvedId = resolveBeltRank(m.belt, m.beltRankId, beltIndex)?.id ?? null
+    const rankId = resolvedId && rankById.has(resolvedId) ? resolvedId : null
     const rank = rankId ? rankById.get(rankId)! : null
     const systemRanks = rank ? [...rankById.values()].filter(r => r.systemId === rank.systemId) : []
     // "Months since the previous grading" needs evidence for the current

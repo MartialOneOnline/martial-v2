@@ -68,6 +68,8 @@ const mockPrisma = {
   instructor: makeModel(),
   schoolDiscipline: makeModel(),
   membershipPlan: makeModel(),
+  // users report: belt catalog (lib/beltGroups.ts)
+  gradingSystem: makeModel(),
   // users report: monthly activity rows (lib/memberActivity.ts)
   $queryRaw: vi.fn().mockResolvedValue([]),
 }
