@@ -54,3 +54,13 @@ export function mergeSchoolModules(current: unknown, incoming: unknown, opts: Sc
 export function isGradingEnabled(raw: unknown, activeGradingSystems: number): boolean {
   return getSchoolModules(raw, { activeGradingSystems }).grading
 }
+
+/**
+ * Client-side module state: the shared dashboard context once it has loaded
+ * (so a change made in Settings wins, both ways), the value the server
+ * rendered the page with until then (stable first paint), else unknown.
+ */
+export function resolveGradingEnabled(context: boolean | null, server: boolean | null | undefined): boolean | null {
+  if (context !== null) return context
+  return server ?? null
+}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useDashboard, useGradingEnabled, GradingEnabledProvider } from '../../../../components/DashboardShell'
+import { resolveGradingEnabled } from '../../../../lib/school-modules'
 import NotificationBell from '../../../../components/NotificationBell'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Menu, Search, ChevronLeft, ChevronRight, Filter, MoreVertical, Download, Phone, MessageCircle, Mail, Send, X } from 'lucide-react'
@@ -225,10 +226,9 @@ interface ReportData {
 }
 
 export default function UsersReportClient({ initialFilters = EMPTY_FILTERS, gradingEnabled: gradingFromServer }: { initialFilters?: FiltersState; gradingEnabled?: boolean }) {
-  // Resolved on the server when possible, so the chart, column and exports
-  // never change shape after the page has loaded
-  const gradingContext = useGradingEnabled()
-  const gradingState = gradingFromServer ?? gradingContext
+  // Starts from the server's value so the chart, column and exports don't
+  // shift while loading; a later context update (Settings change) wins
+  const gradingState = resolveGradingEnabled(useGradingEnabled(), gradingFromServer)
   const gradingEnabled = gradingState === true
   const { setMenuOpen } = useDashboard()
   const t = useT()

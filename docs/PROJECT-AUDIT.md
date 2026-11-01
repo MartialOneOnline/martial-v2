@@ -141,7 +141,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote K — Módulo "Cinturones y graduaciones" (rama `claude/grading-module`)
 
-- Estado: `APROBADO CON PENDIENTES` en `4770d80` (4 P2) → correcciones entregadas, **pendiente de re-auditoría**. Sin migración (vive en `School.modules`).
+- Estado: `APROBADO CON PENDIENTES` en `4770d80` (4 P2) → `APROBADO CON PENDIENTES` en `24c3312` (los 4 corregidos; 1 P2 nuevo) → corrección entregada, **pendiente de re-auditoría**. Sin migración (vive en `School.modules`).
 - Pedido del usuario (2026-11-01): una escuela de boxeo no tiene cinturones, y una de BJJ puede no querer usarlos. Antes el portal /my ya lo respetaba (sin sistema → sin "Progreso"), pero el dashboard mostraba cinturones y graduaciones siempre.
 - Criterios: interruptor en Settings → Modules; valor inicial = activado si la escuela ya tiene un sistema de grados activo (RGM no nota nada), desactivado si no; un guardado que no envía `grading` no lo apaga (`mergeSchoolModules`); con el módulo apagado desaparece todo lo de cinturones del dashboard y de /my, sin borrar datos; enlaces directos a páginas de graduación muestran un estado "desactivado" con enlace a Módulos; el formulario de staff ya no exige cinturón si el módulo está apagado; textos nuevos en EN/ES/PT/FR.
 - Superficies: menú (School → Gradings, Reports → Gradings), Settings (pestaña Grading + interruptor), ficha del alumno (insignia, Belt & Progress, Attendance & grading, editor), lista de alumnos (columna, filtro, alta, importación, CSV), informe de alumnos (gráfico, filtro, columna, CSV), pagos y suscripciones (filtro, insignia, CSV), staff (campo y columna), calendario/horario (cinturón de asistentes), campañas (tipo "Belt progress"), /my (tarjeta y estadística de cinturón, perfil, asistentes de clase vía API).
@@ -152,6 +152,8 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
   3. P2 — `?belt=` antiguo con el módulo apagado: la API del informe ignora belt/degree y devuelve el filtro vacío; la página ya no pasa el filtro inicial; el cliente vacía filtros y URL solo cuando el módulo está confirmado apagado (nunca con `null`).
   4. P2 — estado desconocido tratado como apagado: Users e informe de alumnos reciben `gradingEnabled` resuelto en el servidor (`lib/grading/moduleServer.ts`) y lo reparten con `GradingEnabledProvider` (lo lee `useGradingEnabled()` antes que el contexto), así tabla y CSV no cambian de forma; si aun así no se conoce, los botones de exportar quedan deshabilitados.
 - Tests nuevos: `myGradingsModuleFilter` (2). Suite 1036 pasan / 55 preexistentes; tsc 0; eslint 0 errores.
+- Hallazgo de Codex en `24c3312` y corrección:
+  5. P2 — el valor del servidor (props) se imponía al contexto ya actualizado: tras apagar el módulo, volver a Users con props cacheadas devolvía la columna y el CSV de cinturón. Nuevo `resolveGradingEnabled(context, server)` en `lib/school-modules.ts`: el contexto, una vez cargado, manda (en los dos sentidos); el valor del servidor solo cubre el arranque mientras el contexto carga. Lo usan `useGradingEnabled()`, UsersClient y UsersReportClient. Tests: 4 casos en `schoolModulesGrading` (arranque, apagado después, encendido después, desconocido). Suite 1040 / 55 preexistentes.
 
 ## Próxima entrega de Claude
 

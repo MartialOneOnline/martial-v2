@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import DashboardSidebar from './DashboardSidebar'
 import { useSchoolContext } from '../lib/auth/useSchoolContext'
+import { resolveGradingEnabled } from '../lib/school-modules'
 
 const SIDEBAR_COLLAPSED_KEY = 'dashboard-sidebar-collapsed'
 
@@ -36,15 +37,15 @@ export function useDashboard() {
  * never sees them flash in, and one with belts doesn't see them flash out.
  */
 export function useGradingEnabled(): boolean | null {
-  const known = useContext(GradingEnabledContext)
+  const fromServer = useContext(GradingEnabledContext)
   const { school } = useContext(DashboardContext)
-  if (known !== null) return known
-  if (!school || school.loading) return null
-  return school.currentSchool?.gradingEnabled ?? false
+  const fromContext = !school || school.loading ? null : (school.currentSchool?.gradingEnabled ?? false)
+  return resolveGradingEnabled(fromContext, fromServer)
 }
 
 // A page that already knows the answer from the server (Users, Users report)
 // wraps itself in this, so its table and exports never see the loading state.
+// Only a starting value: once the shared context loads it takes over.
 const GradingEnabledContext = createContext<boolean | null>(null)
 
 export function GradingEnabledProvider({ value, children }: { value: boolean | null | undefined; children: React.ReactNode }) {

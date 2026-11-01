@@ -12,6 +12,7 @@ import {
   Megaphone,
 } from 'lucide-react'
 import { useDashboard, useGradingEnabled, GradingEnabledProvider } from '../../../components/DashboardShell'
+import { resolveGradingEnabled } from '../../../lib/school-modules'
 import NotificationBell from '../../../components/NotificationBell'
 import RowMenu from '../../../components/RowMenu'
 import DashboardLanguageSelector from '../../../components/DashboardLanguageSelector'
@@ -1649,9 +1650,9 @@ function MarkAsPaidModal({
 type DriftedMember = { id: string; name: string; status: string }
 
 export default function UsersClient({ students: initialStudents, driftedMembers = [], beltNames = [], gradingEnabled: gradingFromServer }: { students: Student[]; driftedMembers?: DriftedMember[]; beltNames?: string[]; gradingEnabled?: boolean }) {
-  // The server already resolved the module, so columns and CSV never depend on load timing
-  const gradingContext = useGradingEnabled()
-  const gradingEnabled = gradingFromServer ?? gradingContext === true
+  // Starts from the server's value (no load-timing shift); a later context update wins
+  const gradingState = resolveGradingEnabled(useGradingEnabled(), gradingFromServer)
+  const gradingEnabled = gradingState === true
   const { menuOpen, setMenuOpen } = useDashboard()
   const t = useT()
   const router = useRouter()
@@ -1813,7 +1814,7 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
   }
 
   // Columns depend on the module — wait until it's known rather than export the wrong shape
-  const gradingKnown = gradingFromServer !== undefined || gradingContext !== null
+  const gradingKnown = gradingState !== null
 
   const handleExport = () => {
     if (!gradingKnown) return

@@ -46,3 +46,27 @@ describe('mergeSchoolModules() — saving settings', () => {
       .toEqual({ store: true, curriculum: false, news: false, music: false, timer: false, grading: false })
   })
 })
+
+describe('resolveGradingEnabled (client: server start value vs live context)', () => {
+  it('uses the server value while the context is still loading', async () => {
+    const { resolveGradingEnabled } = await import('@/lib/school-modules')
+    expect(resolveGradingEnabled(null, true)).toBe(true)
+    expect(resolveGradingEnabled(null, false)).toBe(false)
+  })
+
+  it('lets a later context update win — turned off in Settings after the page loaded', async () => {
+    const { resolveGradingEnabled } = await import('@/lib/school-modules')
+    expect(resolveGradingEnabled(false, true)).toBe(false)
+  })
+
+  it('and the reverse — turned on after the page loaded', async () => {
+    const { resolveGradingEnabled } = await import('@/lib/school-modules')
+    expect(resolveGradingEnabled(true, false)).toBe(true)
+  })
+
+  it('is unknown only when neither side knows', async () => {
+    const { resolveGradingEnabled } = await import('@/lib/school-modules')
+    expect(resolveGradingEnabled(null, undefined)).toBeNull()
+    expect(resolveGradingEnabled(null, null)).toBeNull()
+  })
+})
