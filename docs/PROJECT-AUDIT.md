@@ -118,9 +118,10 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote I — Filtro por cinturón en el informe de alumnos (rama `claude/report-belt-filter`)
 
-- Estado: pendiente de auditoría.
+- Estado: `APROBADO CON PENDIENTES` sobre `fe771a2` (5 P2 + 1 P3). Re-entrega con los 6 corregidos, pendiente de reauditoría.
 - Objetivo: en Reports → Users, listar a los alumnos de uno o varios cinturones (y grados), también desde el gráfico, sin que tildes o idiomas del texto libre dejen a nadie fuera.
 - Criterios: "Marrón"/"Marron"/"Brown Belt" son el mismo cinturón; opciones = catálogo de la escuela + nombres fuera de catálogo + "sin cinturón", con recuentos; varios cinturones = O, cinturón + grado = Y; la lista, la paginación, el CSV y "Seleccionar todos" respetan el filtro; el gráfico filtra y muestra activos; la URL conserva el filtro; enlaces viejos `?belt=Marrón` siguen funcionando; cambiar el cinturón como texto no deja `beltRankId` viejo; textos EN/ES/PT/FR.
+- Correcciones de la re-entrega: borrar el cinturón desenlaza el rango; el gráfico quita grados, búsqueda y rango Custom; el editor de Users conserva el valor guardado exacto; los enlaces antiguos adoptan la clave resuelta; la preparación para graduación usa `resolveBeltRank` como el informe, y el PATCH guarda el enlace que resuelve el texto; mock `gradingSystem` en `dashboardReportAuthGuards.test.ts`. Nuevo `memberBeltLink.test.ts`.
 - No verificado: navegador y recorrido autenticado.
 
 ## Próxima entrega de Claude

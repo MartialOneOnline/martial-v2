@@ -53,17 +53,23 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (!rank) return NextResponse.json({ error: 'Invalid beltRankId for this school' }, { status: 400 })
   }
 
-  // Belt changed as text only ("Change belt" menu): re-link it to the
-  // catalog by name, or unlink it, so the old rank link can't keep the
-  // student on their previous belt in reports and grading readiness.
+  // When the belt text changes, store the link the text resolves to (same
+  // rule as reports and grading readiness — see resolveBeltRank), so a stale
+  // or conflicting link can't keep the student on another belt. Clearing the
+  // belt clears the link too, unless a link is sent with it.
   let linkedRankId: string | null | undefined = beltRankId
-  if (belt !== undefined && beltRankId === undefined) {
-    const systems = await prisma.gradingSystem.findMany({
-      where: { schoolId, isActive: true },
-      select: { id: true, name: true, isDefault: true, ranks: { select: { id: true, name: true, color: true, order: true, maxDegrees: true } } },
-      orderBy: { createdAt: 'asc' },
-    })
-    linkedRankId = resolveBeltRank(typeof belt === 'string' ? belt : null, existing.beltRankId, buildBeltIndex(systems))?.id ?? null
+  if (belt !== undefined) {
+    const text = typeof belt === 'string' ? belt.trim() : ''
+    if (!text) {
+      linkedRankId = beltRankId || null
+    } else {
+      const systems = await prisma.gradingSystem.findMany({
+        where: { schoolId, isActive: true },
+        select: { id: true, name: true, isDefault: true, ranks: { select: { id: true, name: true, color: true, order: true, maxDegrees: true } } },
+        orderBy: { createdAt: 'asc' },
+      })
+      linkedRankId = resolveBeltRank(text, beltRankId ?? existing.beltRankId, buildBeltIndex(systems))?.id ?? null
+    }
   }
 
   const updated = await prisma.schoolMember.update({

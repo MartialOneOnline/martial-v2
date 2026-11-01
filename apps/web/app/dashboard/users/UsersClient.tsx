@@ -131,10 +131,16 @@ const BELTS = ['Blanco', 'Azul', 'Morado', 'Marron', 'Negro']
 // The school's own belt catalog (Settings → Grading); BJJ adult when it has none
 const BeltNamesContext = createContext<string[]>(BELTS)
 const sameBelt = (a: string, b: string) => normalizeBeltName(a) === normalizeBeltName(b)
-/** Catalog belts, plus `current` when it isn't one, so it's never silently replaced */
+/**
+ * Catalog belts with `current` spelled exactly as stored (it takes the place
+ * of its catalog equivalent, "Marron" for "Marrón", or is appended), so a
+ * <select> always has an option matching its value and saving changes nothing.
+ */
 function useBeltNames(current?: string): string[] {
   const names = useContext(BeltNamesContext)
-  return current && !names.some(n => sameBelt(n, current)) ? [...names, current] : names
+  if (!current || names.includes(current)) return names
+  const i = names.findIndex(n => sameBelt(n, current))
+  return i < 0 ? [...names, current] : names.map((n, j) => (j === i ? current : n))
 }
 const STATUSES: Array<{ value: string; label: string }> = [
   { value: 'ACTIVE',   label: 'Active'   },

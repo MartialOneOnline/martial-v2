@@ -270,7 +270,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-01 (f) (rama `claude/report-belt-filter` — pendiente de Codex Project Audit; sin migración)
+### Sesión — 2026-11-01 (f) (rama `claude/report-belt-filter`, PR [#41](https://github.com/MartialOneOnline/martial-v2/pull/41) — `APROBADO CON PENDIENTES` en `fe771a2` → re-entrega pendiente de reauditoría; sin migración)
 
 **Filtro por cinturón en el informe de alumnos (Reports → Users).** El filtro ya existía pero era una lista fija de 5 cinturones con coincidencia exacta de texto: "Marrón" (con tilde) no encontraba a los 6 "Marron" de RGM, no había "Sin cinturón", ni varios a la vez, ni grados, y el gráfico no se podía pulsar.
 - **`lib/beltGroups.ts`** (puro, nuevo — `lib/belts.ts` es otra cosa: imágenes SVG del portal `/my`, no tocar): cada alumno se resuelve a una *clave de cinturón* — `r:<beltRankId>` (catálogo), `n:<nombre normalizado>` (fuera de catálogo) o `none`. `normalizeBeltName` ignora tildes/mayúsculas/la palabra "belt/cinturón/faixa/ceinture" y unifica colores entre idiomas ("Blue Belt" = "Azul"), pero solo si el nombre entero es un color ("Gris-Blanco" queda aparte). `resolveBeltRank`: el texto manda; un `beltRankId` se usa si nombra el mismo cinturón (distingue el "Blanco" de Kids del de Adultos) y se ignora si quedó viejo. Con dos sistemas, el nombre resuelve al sistema por defecto. `beltOptions` (todas las del catálogo en orden, aunque tengan 0, luego otros nombres por tamaño, luego "sin cinturón"; con recuento total y activos), `parseBeltFilter` (acepta claves y, por compatibilidad, nombres sueltos `?belt=Marrón`), `matchesBeltFilter` (cualquiera de los cinturones + cualquiera de los grados; grado nulo = 0).
@@ -281,6 +281,14 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 - Verificado con datos reales (solo lectura): RGM Marrón → 6 (antes 0), "Blue Belt" se agrupa con Azul (68), 3 sin cinturón; KongJitsu sin catálogo agrupa por nombre.
 - Tests: `beltGroups.test.ts` (13). Suite: mismos 12 archivos fallando que en `main` (preexistentes). tsc 0, eslint sin avisos nuevos. **No probado en navegador.**
 - Pendiente aparte (no hecho): limpieza de datos — enlazar al catálogo los ~120 alumnos de RGM sin `beltRankId` y normalizar el "Blue Belt" a "Azul".
+- **Re-entrega tras `APROBADO CON PENDIENTES` (Codex sobre `fe771a2`, 5 P2 + 1 P3):**
+  - P2 — borrar el cinturón (`belt: null`/`""`) conservaba el enlace. Ahora deja `beltRankId = null`, salvo que se envíe un enlace con él.
+  - P2 — pulsar el gráfico mantenía grados, búsqueda y fechas Custom, y la lista no cuadraba con el número. Ahora se quitan los grados y la búsqueda, y un rango Custom vuelve a 30 días.
+  - P2 — el editor de Users mostraba "Blanco" para un alumno "Marron" con un catálogo que tiene "Marrón". `useBeltNames` pone el valor guardado tal cual en el lugar de su equivalente.
+  - P2 — con los enlaces `?belt=Marrón`, el panel no marcaba la opción. El cliente adopta el `beltFilter` que resuelve la API y reescribe la URL a la clave.
+  - P2 — el informe y la preparación para graduación podían ver cinturones distintos. Ahora `readinessData.ts` usa `resolveBeltRank`/`buildBeltIndex` (misma regla: manda el texto). Además, el PATCH guarda siempre el enlace que resuelve el texto, también si llega un `beltRankId` que nombra otro cinturón (se sigue validando que sea de la escuela).
+  - P3 — en el mock de `dashboardReportAuthGuards.test.ts` faltaba `gradingSystem`. Ya está y la prueba OWNER → informe de usuarios vuelve a pasar.
+  - Tests: nuevo `memberBeltLink.test.ts` (7). Suite 990 pasan / 55 fallan / 1 pendiente; los 55 son los mismos que en main (970 / 55). tsc 0; eslint sin avisos nuevos.
 
 ### Sesión — 2026-11-01 (e) (rama `claude/overdue-gradings`, PR [#40](https://github.com/MartialOneOnline/martial-v2/pull/40) — `RECHAZADO` en `89115a2` → **`APROBADO CON PENDIENTES`** por Codex Project Audit en `23d92d4`; sin migración; pendiente: recorrido autenticado con datos reales)
 

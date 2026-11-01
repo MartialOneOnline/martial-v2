@@ -73,6 +73,8 @@ const SEC: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: '#9CA3A
 
 type FiltersState = BeltFilter
 const EMPTY_FILTERS: FiltersState = { belts: [], degrees: [] }
+const sameList = <T,>(a: T[], b: T[]) => a.length === b.length && [...a].sort().join('|') === [...b].sort().join('|')
+const sameFilters = (a: FiltersState, b: FiltersState) => sameList(a.belts, b.belts) && sameList(a.degrees, b.degrees)
 const toggleIn = <T,>(list: T[], v: T) => (list.includes(v) ? list.filter(x => x !== v) : [...list, v])
 
 type ReportLabels = ReturnType<typeof useT>['reports']
@@ -285,9 +287,12 @@ export default function UsersReportClient({ initialFilters = EMPTY_FILTERS }: { 
       // Keep the picker on the month the server actually used (the default
       // current month, or a clamped one) so picker, request and list agree.
       if (isSegment(filterTab) && json.segmentMonth !== segMonth) setSegMonth(json.segmentMonth)
+      // Same for belts: an old ?belt=Marrón link comes back as its key, so
+      // the panel shows it selected and the URL is rewritten to the key.
+      if (json.beltFilter && !sameFilters(json.beltFilter, filters)) setFilters(json.beltFilter)
     }
     setLoading(false)
-  }, [buildParams, page, filterTab, segMonth, loadGuard])
+  }, [buildParams, page, filterTab, segMonth, filters, loadGuard])
 
   useEffect(() => { load() }, [load])
   // Keep the belt filter in the address bar so the view can be shared or bookmarked
@@ -372,10 +377,14 @@ export default function UsersReportClient({ initialFilters = EMPTY_FILTERS }: { 
 
   // From the belt chart: list that belt's active students (the chart counts
   // active ones, so the list matches it); clicking it again clears the filter.
+  // The chart counts every active student, so stripes, search and a custom
+  // join-date range are dropped too — otherwise the list wouldn't match it.
   function showBelt(key: string) {
-    const only = filters.belts.length === 1 && filters.belts[0] === key
-    setFilters(f => ({ ...f, belts: only ? [] : [key] }))
+    const only = filters.belts.length === 1 && filters.belts[0] === key && !filters.degrees.length
+    setFilters({ belts: only ? [] : [key], degrees: [] })
     if (!only) {
+      setSearch('')
+      if (period === 'custom') { setPeriod('30d'); setCustomFrom(''); setCustomTo('') }
       selectTab('ACTIVE')
       setTimeout(() => listRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
     }
