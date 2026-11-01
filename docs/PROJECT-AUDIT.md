@@ -141,11 +141,17 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote K — Módulo "Cinturones y graduaciones" (rama `claude/grading-module`)
 
-- Estado: entregado por Claude, **pendiente de auditoría**. Sin migración (vive en `School.modules`).
+- Estado: `APROBADO CON PENDIENTES` en `4770d80` (4 P2) → correcciones entregadas, **pendiente de re-auditoría**. Sin migración (vive en `School.modules`).
 - Pedido del usuario (2026-11-01): una escuela de boxeo no tiene cinturones, y una de BJJ puede no querer usarlos. Antes el portal /my ya lo respetaba (sin sistema → sin "Progreso"), pero el dashboard mostraba cinturones y graduaciones siempre.
 - Criterios: interruptor en Settings → Modules; valor inicial = activado si la escuela ya tiene un sistema de grados activo (RGM no nota nada), desactivado si no; un guardado que no envía `grading` no lo apaga (`mergeSchoolModules`); con el módulo apagado desaparece todo lo de cinturones del dashboard y de /my, sin borrar datos; enlaces directos a páginas de graduación muestran un estado "desactivado" con enlace a Módulos; el formulario de staff ya no exige cinturón si el módulo está apagado; textos nuevos en EN/ES/PT/FR.
 - Superficies: menú (School → Gradings, Reports → Gradings), Settings (pestaña Grading + interruptor), ficha del alumno (insignia, Belt & Progress, Attendance & grading, editor), lista de alumnos (columna, filtro, alta, importación, CSV), informe de alumnos (gráfico, filtro, columna, CSV), pagos y suscripciones (filtro, insignia, CSV), staff (campo y columna), calendario/horario (cinturón de asistentes), campañas (tipo "Belt progress"), /my (tarjeta y estadística de cinturón, perfil, asistentes de clase vía API).
 - No verificado: navegador y datos reales.
+- Hallazgos de Codex en `4770d80` y corrección:
+  1. P2 — fallo de `/api/auth/me` tras guardar dejaba "Saving…" para siempre. `refresh()` ya no lanza (devuelve true/false); `save()` con `try/finally`; si el PATCH falla → "No se pudo guardar…"; si guarda pero el contexto no se refresca → aviso "Guardado. El menú aún no se ha actualizado" con botón Reintentar (4 idiomas).
+  2. P2 — superficies olvidadas: "Cambiar cinturón" del menú de fila (UsersClient), cinturón en Settings → Staff, e historial global de /my/progress. Las dos primeras se condicionan; `/api/my` filtra `gradings` en el servidor a escuelas con módulo encendido y sistema activo (pide 50, devuelve 10, sin exponer `modules`).
+  3. P2 — `?belt=` antiguo con el módulo apagado: la API del informe ignora belt/degree y devuelve el filtro vacío; la página ya no pasa el filtro inicial; el cliente vacía filtros y URL solo cuando el módulo está confirmado apagado (nunca con `null`).
+  4. P2 — estado desconocido tratado como apagado: Users e informe de alumnos reciben `gradingEnabled` resuelto en el servidor (`lib/grading/moduleServer.ts`) y lo reparten con `GradingEnabledProvider` (lo lee `useGradingEnabled()` antes que el contexto), así tabla y CSV no cambian de forma; si aun así no se conoce, los botones de exportar quedan deshabilitados.
+- Tests nuevos: `myGradingsModuleFilter` (2). Suite 1036 pasan / 55 preexistentes; tsc 0; eslint 0 errores.
 
 ## Próxima entrega de Claude
 

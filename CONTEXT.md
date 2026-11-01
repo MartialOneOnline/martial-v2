@@ -271,7 +271,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-01 (h) (rama `claude/grading-module` — pendiente de auditoría; sin migración)
+### Sesión — 2026-11-01 (h) (rama `claude/grading-module`, PR [#45](https://github.com/MartialOneOnline/martial-v2/pull/45) — `APROBADO CON PENDIENTES` en `4770d80` (4 P2) → corregidos, pendiente de re-auditoría; sin migración)
 
 **"Cinturones y graduaciones" pasa a ser un módulo de la escuela** (Settings → Modules). Pedido del usuario: el sistema de grados depende de si la escuela lo usa (boxeo no; un BJJ puede no querer).
 - `lib/school-modules.ts`: nueva clave `grading`. Sin valor guardado, vale `true` si la escuela tiene algún sistema de grados activo (RGM y demás no notan el cambio) y `false` si no. `mergeSchoolModules()` en el PATCH de `/api/dashboard/school`: una clave que no llega conserva su valor (un cliente antiguo no puede apagar grading por omisión). `isGradingEnabled(modules, activeSystems)`.
@@ -279,6 +279,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 - UI: interruptor con aviso al apagar ("se ocultará… no se borra nada") y, si se enciende sin sistema, botón "Configurar cinturones" → pestaña Grading. `components/grading/GradingModuleGate.tsx` envuelve `/dashboard/reports/gradings` y `/dashboard/school/gradings` (estado "desactivado" + enlace a Módulos). Ocultado con el módulo apagado: ver Lote K en `docs/PROJECT-AUDIT.md`. /my: `hasGrading` = módulo encendido Y sistema activo; la API de asistentes de clase devuelve `belt: null`.
 - Textos nuevos `t.gradingModule` en EN/ES/PT/FR (la pestaña Modules sigue con sus textos antiguos en inglés).
 - Tests: `schoolModulesGrading` (7), `myClassAttendeesBelts` (3). Suite 1034 pasan / 55 preexistentes; tsc 0; eslint sin avisos en líneas tocadas.
+- **4 P2 de Codex corregidos:** guardado de Módulos robusto ante fallo de red (aviso + Reintentar); "Cambiar cinturón" del menú de fila y cinturón de Settings → Staff ocultos; `/api/my` filtra el historial de graduaciones por escuelas con el módulo; la API del informe de alumnos ignora `?belt=` con el módulo apagado; Users e informe de alumnos reciben `gradingEnabled` del servidor (`GradingEnabledProvider`) para que tabla y CSV no dependan del momento de carga. Suite 1036 / 55 preexistentes.
 
 ### Sesión — 2026-11-01 (g) (rama `claude/grading-weekly-count`, PR [#44](https://github.com/MartialOneOnline/martial-v2/pull/44) — `APROBADO CON PENDIENTES` en `d8582b7` (1 P3 de textos) → **`APROBADO CON PENDIENTES`** en `c06bd82`, sin hallazgos abiertos; sin migración; pendiente: sesión autenticada con datos reales)
 

@@ -36,9 +36,19 @@ export function useDashboard() {
  * never sees them flash in, and one with belts doesn't see them flash out.
  */
 export function useGradingEnabled(): boolean | null {
+  const known = useContext(GradingEnabledContext)
   const { school } = useContext(DashboardContext)
+  if (known !== null) return known
   if (!school || school.loading) return null
   return school.currentSchool?.gradingEnabled ?? false
+}
+
+// A page that already knows the answer from the server (Users, Users report)
+// wraps itself in this, so its table and exports never see the loading state.
+const GradingEnabledContext = createContext<boolean | null>(null)
+
+export function GradingEnabledProvider({ value, children }: { value: boolean | null | undefined; children: React.ReactNode }) {
+  return <GradingEnabledContext.Provider value={value ?? null}>{children}</GradingEnabledContext.Provider>
 }
 
 // ── Shell ──────────────────────────────────────────────────────────────────────

@@ -52,10 +52,17 @@ export function useSchoolContext() {
     if (res.ok) setData(await res.json())
   }
 
-  // Re-read after a settings change that affects the context (e.g. modules)
-  const refresh = async () => {
-    const res = await fetch('/api/auth/me')
-    if (res.ok) setData(await res.json())
+  // Re-read after a settings change that affects the context (e.g. modules).
+  // Never throws: resolves true when the context was updated, false otherwise.
+  const refresh = async (): Promise<boolean> => {
+    try {
+      const res = await fetch('/api/auth/me')
+      if (!res.ok) return false
+      setData(await res.json())
+      return true
+    } catch {
+      return false
+    }
   }
 
   return {

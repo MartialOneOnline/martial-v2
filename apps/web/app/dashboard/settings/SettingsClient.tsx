@@ -579,6 +579,9 @@ function ModulesTab({ onOpenGrading }: { onOpenGrading: () => void }) {
   const [saving,  setSaving]  = useState(false)
   const [saved,   setSaved]   = useState(false)
   const [error,   setError]   = useState('')
+  // Saved on the server, but the menu/tabs couldn't pick it up yet
+  const [syncFailed, setSyncFailed] = useState(false)
+  const [syncing,    setSyncing]    = useState(false)
 
   useEffect(() => {
     fetch('/api/dashboard/school').then(r => r.json()).then(d => {
@@ -594,17 +597,33 @@ function ModulesTab({ onOpenGrading }: { onOpenGrading: () => void }) {
     setModules(p => ({ ...p, [key]: value }))
   }
 
-  async function save() {
-    setSaving(true); setError('')
-    const res = await fetch('/api/dashboard/school', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ modules }) })
-    if (!res.ok) { setSaving(false); setError('Error saving'); return }
-    const d = await res.json().catch(() => null)
-    if (d?.school?.modules) setModules(d.school.modules)
-    setSavedGrading(!!(d?.school?.modules?.grading ?? modules.grading))
+  async function syncContext() {
     // The sidebar and the Grading tab follow the module — refresh the shared context
-    await school?.refresh()
-    setSaving(false)
-    setSaved(true); setTimeout(() => setSaved(false), 2500)
+    const ok = (await school?.refresh()) ?? true
+    setSyncFailed(!ok)
+    return ok
+  }
+
+  async function save() {
+    setSaving(true); setError(''); setSyncFailed(false)
+    try {
+      const res = await fetch('/api/dashboard/school', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ modules }) })
+      if (!res.ok) { setError(gm.saveFailed); return }
+      const d = await res.json().catch(() => null)
+      if (d?.school?.modules) setModules(d.school.modules)
+      setSavedGrading(!!(d?.school?.modules?.grading ?? modules.grading))
+      await syncContext()
+      setSaved(true); setTimeout(() => setSaved(false), 2500)
+    } catch {
+      setError(gm.saveFailed)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function retrySync() {
+    setSyncing(true)
+    try { await syncContext() } finally { setSyncing(false) }
   }
 
   if (loading) return <p style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</p>
@@ -650,7 +669,17 @@ function ModulesTab({ onOpenGrading }: { onOpenGrading: () => void }) {
           value={modules.timer} onChange={v => set('timer', v)} />
       </div>
 
-      {error && <p style={{ fontSize: 13, color: '#E11D48' }}>{error}</p>}
+      {error && <p role="alert" style={{ fontSize: 13, color: '#E11D48' }}>{error}</p>}
+      {syncFailed && (
+        <div role="alert" className="flex items-center justify-between gap-3 flex-wrap"
+          style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10, padding: '10px 12px' }}>
+          <p style={{ fontSize: 13, color: '#92400E', margin: 0, flex: '1 1 220px' }}>{gm.syncFailed}</p>
+          <button onClick={retrySync} disabled={syncing}
+            style={{ padding: '7px 14px', borderRadius: 999, border: '1px solid #FCD34D', background: '#fff', color: '#92400E', fontSize: 13, fontWeight: 600, cursor: syncing ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
+            {syncing ? '…' : gm.syncRetry}
+          </button>
+        </div>
+      )}
 
       <div>
         <button onClick={save} disabled={saving}
@@ -674,6 +703,7 @@ function GradingOffState({ onOpenModules }: { onOpenModules: () => void }) {
 interface StaffOverviewRow { name: string; role: string; belt: string; status: 'Active' | 'Inactive' }
 
 function StaffTab() {
+  const gradingEnabled = useGradingEnabled() === true
   const [staff, setStaff]     = useState<StaffOverviewRow[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -710,7 +740,7 @@ function StaffTab() {
                 </div>
                 <p style={{ fontSize: 14, fontWeight: 600, color: '#111827', flex: 1 }}>{s.name}</p>
                 <span style={{ fontSize: 12, fontWeight: 600, color: ROLE_COLOR[s.role] ?? '#374151', minWidth: 110 }}>{s.role}</span>
-                <span style={{ fontSize: 12, fontWeight: 600, color: BELT_COLOR[s.belt] ?? '#374151', minWidth: 60 }}>{s.belt}</span>
+                {gradingEnabled && <span style={{ fontSize: 12, fontWeight: 600, color: BELT_COLOR[s.belt] ?? '#374151', minWidth: 60 }}>{s.belt}</span>}
                 <span style={{ fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 999,
                   background: s.status === 'Active' ? '#F0FDF4' : '#FFFBEB',
                   color: s.status === 'Active' ? '#16A34A' : '#D97706',

@@ -754,6 +754,9 @@ export const translations = {
       offTitle: 'Belts & gradings is turned off',
       offBody: 'Turn it on in Settings → Modules to track belts, stripes and who is due for a grading.',
       offAction: 'Go to Modules',
+      saveFailed: 'Couldn’t save. Check your connection and try again.',
+      syncFailed: 'Saved. The menu hasn’t updated yet — retry or reload the page.',
+      syncRetry: 'Retry',
     },
     settings: {
       title: 'Settings', subtitle: 'Manage your academy profile and preferences',
@@ -1754,6 +1757,9 @@ export const translations = {
       offTitle: 'Cinturones y graduaciones está desactivado',
       offBody: 'Actívalo en Ajustes → Módulos para llevar cinturones, grados y quién está listo para graduar.',
       offAction: 'Ir a Módulos',
+      saveFailed: 'No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.',
+      syncFailed: 'Guardado. El menú aún no se ha actualizado: reintenta o recarga la página.',
+      syncRetry: 'Reintentar',
     },
     settings: {
       title: 'Configuración', subtitle: 'Gestiona el perfil y las preferencias de tu academia',
@@ -2734,6 +2740,9 @@ export const translations = {
       offTitle: 'Faixas e graduações está desativado',
       offBody: 'Ative em Configurações → Módulos para acompanhar faixas, graus e quem está pronto para graduar.',
       offAction: 'Ir para Módulos',
+      saveFailed: 'Não foi possível guardar. Verifica a ligação e tenta novamente.',
+      syncFailed: 'Guardado. O menu ainda não foi atualizado: tenta de novo ou recarrega a página.',
+      syncRetry: 'Tentar novamente',
     },
     settings: {
       title: 'Configurações', subtitle: 'Gerencie o perfil e as preferências da sua academia',
@@ -3714,6 +3723,9 @@ export const translations = {
       offTitle: 'Ceintures et passages de grade est désactivé',
       offBody: 'Activez-le dans Paramètres → Modules pour suivre les ceintures, les barrettes et qui est prêt pour un passage de grade.',
       offAction: 'Aller aux modules',
+      saveFailed: 'Enregistrement impossible. Vérifiez votre connexion et réessayez.',
+      syncFailed: 'Enregistré. Le menu n’est pas encore à jour : réessayez ou rechargez la page.',
+      syncRetry: 'Réessayer',
     },
     settings: {
       title: 'Paramètres', subtitle: 'Gérez le profil et les préférences de votre académie',

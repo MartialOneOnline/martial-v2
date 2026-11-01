@@ -26,6 +26,7 @@ vi.mock('@/lib/db', () => ({
 
 vi.mock('@/lib/school-modules', () => ({
   getSchoolModules: (m: unknown) => m,
+  isGradingEnabled: () => true,
 }))
 
 const mockHasDashboardAccess = vi.fn()

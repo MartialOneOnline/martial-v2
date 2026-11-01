@@ -11,7 +11,7 @@ import {
   QrCode, Pencil, MessageSquare, RefreshCw, CreditCard, Receipt, Globe,
   Megaphone,
 } from 'lucide-react'
-import { useDashboard, useGradingEnabled } from '../../../components/DashboardShell'
+import { useDashboard, useGradingEnabled, GradingEnabledProvider } from '../../../components/DashboardShell'
 import NotificationBell from '../../../components/NotificationBell'
 import RowMenu from '../../../components/RowMenu'
 import DashboardLanguageSelector from '../../../components/DashboardLanguageSelector'
@@ -203,6 +203,7 @@ function ActionsMenu({
   showToast: (msg: string, type?: 'success' | 'error' | 'info') => void
 }) {
   const router = useRouter()
+  const gradingEnabled = useGradingEnabled() === true
   const [statusOpen, setStatusOpen] = useState(false)
   const [beltOpen, setBeltOpen] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -319,8 +320,8 @@ function ActionsMenu({
           )}
         </div>
 
-        {/* Change belt submenu */}
-        <div style={{ position: 'relative' }}>
+        {/* Change belt submenu — only when the school uses belts */}
+        {gradingEnabled && <div style={{ position: 'relative' }}>
           <button
             onClick={e => { e.stopPropagation(); setBeltOpen(o => !o); setStatusOpen(false) }}
             className="w-full flex items-center justify-between cursor-pointer"
@@ -363,7 +364,7 @@ function ActionsMenu({
               })}
             </div>
           )}
-        </div>
+        </div>}
 
         <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
 
@@ -1647,8 +1648,10 @@ function MarkAsPaidModal({
 // ── Main component ─────────────────────────────────────────────────────────────
 type DriftedMember = { id: string; name: string; status: string }
 
-export default function UsersClient({ students: initialStudents, driftedMembers = [], beltNames = [] }: { students: Student[]; driftedMembers?: DriftedMember[]; beltNames?: string[] }) {
-  const gradingEnabled = useGradingEnabled() === true
+export default function UsersClient({ students: initialStudents, driftedMembers = [], beltNames = [], gradingEnabled: gradingFromServer }: { students: Student[]; driftedMembers?: DriftedMember[]; beltNames?: string[]; gradingEnabled?: boolean }) {
+  // The server already resolved the module, so columns and CSV never depend on load timing
+  const gradingContext = useGradingEnabled()
+  const gradingEnabled = gradingFromServer ?? gradingContext === true
   const { menuOpen, setMenuOpen } = useDashboard()
   const t = useT()
   const router = useRouter()
@@ -1809,7 +1812,11 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
     // onSent callback fires toast from parent
   }
 
+  // Columns depend on the module — wait until it's known rather than export the wrong shape
+  const gradingKnown = gradingFromServer !== undefined || gradingContext !== null
+
   const handleExport = () => {
+    if (!gradingKnown) return
     const headers = ['Nombre', 'Email', ...(gradingEnabled ? ['Cinturón', 'Grados'] : []), 'Estado', 'Rol', 'Plan', 'Estado Membresía', 'Inicio Membresía', 'Fin Membresía', 'Alta']
     const rows = filtered.map(s => [
       s.name,
@@ -1832,6 +1839,7 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
   }
 
   return (
+    <GradingEnabledProvider value={gradingFromServer}>
     <BeltNamesContext.Provider value={beltNames.length ? beltNames : BELTS}>
     <main style={{ flex: 1, minWidth: 0 }}>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
@@ -1925,7 +1933,7 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
               {filtered.length} {t.common.of} {students.length} {t.users.ofMembers}
             </p>
           </div>
-          <button onClick={handleExport} className="hidden sm:flex items-center gap-2 cursor-pointer"
+          <button onClick={handleExport} disabled={!gradingKnown} className="hidden sm:flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-default"
             style={{ fontSize: 13, fontWeight: 500, color: '#374151', background: '#fff',
               border: '1px solid #E5E7EB', borderRadius: 8, padding: '7px 14px' }}>
             <Download size={13} style={{ color: '#6B7280' }} />
@@ -2283,5 +2291,6 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
       />
     )}
     </BeltNamesContext.Provider>
+    </GradingEnabledProvider>
   )
 }
