@@ -271,7 +271,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-01 (f) (rama `claude/leads-report`, PR [#43](https://github.com/MartialOneOnline/martial-v2/pull/43) — `RECHAZADO` en `0fd0d00` → `APROBADO CON PENDIENTES` en `674b1ac` → P2 de la ficha corregido, pendiente de reauditoría; sin migración)
+### Sesión — 2026-11-01 (f) (rama `claude/leads-report`, PR [#43](https://github.com/MartialOneOnline/martial-v2/pull/43) — `RECHAZADO` en `0fd0d00` → `APROBADO CON PENDIENTES` en `674b1ac` → **`APROBADO CON PENDIENTES`** en `d1aa1a3`, sin hallazgos abiertos; sin migración; pendiente: sesión autenticada con datos reales)
 
 **Informe de Leads** (`/dashboard/reports/leads`, menú Informes → Leads). Pedido del usuario: los leads son alumnos potenciales que a veces no llegan a probar la clase; les falta un pequeño empujón.
 - **Problema de datos:** el estado del CRM casi nunca se mueve a mano y un `Lead` no está enlazado a sus reservas. `lib/leads/funnel.ts` (puro) calcula la etapa con evidencia: lead → usuario por `convertedUserId` o email (sin distinguir mayúsculas, `$queryRaw … lower(email) = ANY(...)`) → reservas en la escuela y primer pago de cuota PAID. Etapas: NUEVO → CONTACTADO (estado ≠ NEW, nota o reserva) → RESERVÓ PRUEBA (reserva no cancelada o estado TRIAL_BOOKED) → VINO A PROBAR (asistencia) → SE APUNTÓ (CONVERTED o cuota pagada). LOST = cerrado (sale de las listas salvo que haya pagado).
