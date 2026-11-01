@@ -223,6 +223,9 @@ export function AttendanceGradingCard({ readiness, lastGradedAt, target, onGrade
           {dueDays !== null && readiness.dueSince && (
             <p style={{ fontSize: 12, margin: '2px 0 0', fontWeight: dueDays >= OVERDUE_DAYS ? 600 : 400, color: dueDays >= OVERDUE_DAYS ? '#B91C1C' : '#6B7280' }}>
               {dueDays === 0 ? rt.dueToday : rt.dueForDays.replace('{n}', String(dueDays)).replace('{date}', fmt(readiness.dueSince))}
+              {readiness.dueSinceEstimated && (
+                <span title={rt.estimatedHint} style={{ fontWeight: 400, color: '#9CA3AF', cursor: 'help' }}> · {rt.estimatedTag}</span>
+              )}
             </p>
           )}
           {toNext && <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>{toNext}</p>}

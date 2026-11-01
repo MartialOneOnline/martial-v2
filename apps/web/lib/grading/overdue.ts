@@ -54,3 +54,16 @@ export function compareGradingQueue(a: GradingQueueRow, b: GradingQueueRow): num
 export function isOverdue(row: Pick<GradingQueueRow, 'daysOverdue' | 'readiness'>): boolean {
   return row.readiness.status === 'READY' && (row.daysOverdue ?? 0) >= OVERDUE_DAYS
 }
+
+/**
+ * Counts for the "Overdue" and "New students due" chips over the rows the
+ * other filters (belt) leave — so each count matches the list its chip opens.
+ */
+export function focusCounts<T extends Pick<GradingQueueRow, 'isNew' | 'daysOverdue' | 'readiness'>>(rows: T[]): { overdue: number; newDue: number } {
+  let overdue = 0, newDue = 0
+  for (const r of rows) {
+    if (isOverdue(r)) overdue++
+    if (r.isNew && r.readiness.status === 'READY') newDue++
+  }
+  return { overdue, newDue }
+}

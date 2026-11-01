@@ -270,7 +270,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-01 (e) (rama `claude/overdue-gradings` — pendiente de Project Audit; sin migración)
+### Sesión — 2026-11-01 (e) (rama `claude/overdue-gradings`, PR [#40](https://github.com/MartialOneOnline/martial-v2/pull/40) — `RECHAZADO` en `89115a2` → corregido, pendiente de reauditoría; sin migración)
 
 **Informe de graduaciones atrasadas.** Tercer paso del plan (tras #38 reglas y #39 plantillas). Idea del usuario: no graduar a tiempo, sobre todo al principio, desmotiva y hace que el alumno se vaya (RGM: solo el 33% de los nuevos sigue a los 3 meses).
 - **Motor** (`lib/grading/readiness.ts`): cada paso ganado tiene `earnedAt` = cuándo se cumplió la última de sus reglas (día de la clase N tras el tope, meses desde la graduación, edad, tiempo/edad del cinturón); nunca antes del paso anterior ni en el futuro. `Readiness.dueSince` = `earnedAt` del primer paso que se le debe. La frecuencia no tiene fecha (es un estado).
@@ -278,6 +278,12 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 - **Cargador:** `joinedAt`, `monthsWithSchool`, `isNew`, `daysOverdue`, `phone` (`cleanPhone`). **API** `grading-readiness`: orden por prioridad, `overdue`, `newDue`, `overdueDays`.
 - **Informe → Graduaciones → "Le corresponde":** chips "Atrasados · más de 14 días" y "Nuevos con grado pendiente" con contador (filtran la lista); "Le toca desde hace N días · fecha" bajo cada pendiente (rojo si ≥14 días); etiqueta "Nuevo · N meses"; **Exportar lista de graduación** (CSV con teléfono, cinturón, grado, qué le toca, desde cuándo, días, meses con nosotros, nuevo, clases, última graduación; `;` y coma decimal en es/pt/fr). La tarjeta del perfil muestra también "Le toca desde hace N días". Textos EN/ES/PT/FR.
 - Tests: +6 motor (`dueSince`), `gradingOverdue.test.ts` (4), +1 cargador, `gradingReadinessRoute.test.ts` (2). Suite 963 pasan / 55 preexistentes. tsc 0, eslint sin avisos nuevos. **No probado en navegador.**
+- **Re-entrega tras `RECHAZADO` (Codex sobre `89115a2`, 1 P1 + 2 P2 + 1 P3):**
+  - P1 — el atraso podía empezar antes de llegar al grado actual (graduado al cinturón el 20-oct, siguiente cinturón solo exige 16 años, nacido en 1990 → "debido desde 2006"). Ahora ningún paso se fecha antes del inicio del grado actual (`stepSince`, si no `countSince`). Si ese inicio no consta (`stepSince` desconocido), `dueSinceEstimated: true` y el informe, la ficha y el CSV lo marcan como "estimado".
+  - P2 — las fechas de meses/edad recortaban a fin de mes (31-ene + 1 mes = 28-feb) mientras el motor da la regla por cumplida el 1-mar. `monthsMetAt()` / `ageMetAt()` devuelven el primer día en que `wholeMonthsBetween` / `ageAt` se cumplen (también cumpleaños del 29-feb).
+  - P2 — los contadores de los chips no respetaban el filtro de cinturón. `focusCounts()` (puro) se calcula sobre las filas del cinturón elegido.
+  - P3 — "más de 14 días" → "14 días o más" (ES/PT/FR).
+  - Tests: +5 motor, +1 cargador (repro de Codex), +1 `focusCounts`. Suite 970 pasan / 55 preexistentes; tsc 0; eslint sin avisos nuevos.
 - Pendiente (siguiente lote si el usuario lo quiere): comprobar con datos históricos que los nuevos graduados a tiempo se quedan más (retención con/sin primer grado a tiempo). Después: informe de Leads.
 
 ### Sesión — 2026-11-01 (d) (rama `claude/grading-templates`, PR [#39](https://github.com/MartialOneOnline/martial-v2/pull/39) — `APROBADO CON PENDIENTES` en `0ef8f2a` (3 P2 + 1 P3) → **`APROBADO CON PENDIENTES`** en `6afcbe9` (los 4 cerrados, sin hallazgos nuevos); migración **aplicada en la BD** 2026-11-01 con el OK del usuario; pendiente: comprobar persistencia con sesión real)

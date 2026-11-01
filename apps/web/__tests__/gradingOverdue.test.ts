@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { OVERDUE_DAYS, compareGradingQueue, daysSince, isOverdue, monthsWithSchool, type GradingQueueRow } from '../lib/grading/overdue'
+import { OVERDUE_DAYS, compareGradingQueue, daysSince, focusCounts, isOverdue, monthsWithSchool, type GradingQueueRow } from '../lib/grading/overdue'
 
 const NOW = new Date('2026-11-01T12:00:00Z')
 
@@ -41,5 +41,17 @@ describe('overdue gradings', () => {
     expect(rows.sort(compareGradingQueue).map(r => r.name)).toEqual([
       'new-40d', 'new-3d', 'old-60d-2steps', 'old-60d', 'old-5d', 'almost', 'not',
     ])
+  })
+
+  it('P2 (PR #40 audit): chip counts are computed over the belt-filtered rows', () => {
+    const rows = [
+      { ...row('blue-new', { isNew: true, daysOverdue: 2 }), belt: 'Blue' },
+      { ...row('white-old', { daysOverdue: 30 }), belt: 'White' },
+      { ...row('white-new-late', { isNew: true, daysOverdue: 20 }), belt: 'White' },
+      { ...row('white-almost', { isNew: true, status: 'ALMOST_READY' }), belt: 'White' },
+    ]
+    expect(focusCounts(rows)).toEqual({ overdue: 2, newDue: 2 })
+    expect(focusCounts(rows.filter(r => r.belt === 'Blue'))).toEqual({ overdue: 0, newDue: 1 })
+    expect(focusCounts(rows.filter(r => r.belt === 'White'))).toEqual({ overdue: 2, newDue: 1 })
   })
 })
