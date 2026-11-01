@@ -270,7 +270,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-01 (d) (rama `claude/grading-templates` — pendiente de Project Audit; migración **sin aplicar** en la BD)
+### Sesión — 2026-11-01 (d) (rama `claude/grading-templates`, PR [#39](https://github.com/MartialOneOnline/martial-v2/pull/39) — `APROBADO CON PENDIENTES` en `0ef8f2a` (3 P2 + 1 P3) → corregido, pendiente de reauditoría; migración **sin aplicar** en la BD)
 
 **Plantillas de graduación del super admin.** Segundo paso del plan de informes (tras el PR #38). Decisión del usuario: las plantillas (p.ej. IBJJF) las crea el **super admin**; en V2 no hay ninguna plantilla de V1, así que no se siembra ninguna cifra.
 - **Schema** (`20261101180000_grading_templates`): nuevo `GradingTemplate` (global: `name`, `activity`, `description`, `isPublished`, `ranks Json`, `createdById`) y `GradingSystem.templateId` (informativo, `onDelete: SetNull`). Las reglas de cada cinturón van en JSON con la forma de `BeltRank`, sin `classTypeIds` (son ids de clases de cada escuela).
@@ -279,6 +279,12 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 - **Editor compartido:** los campos del cinturón salen de `SettingsClient.RankRow` a `components/grading/RankRulesFields.tsx` (`RankRulesFields`, `frequencyError`, `trimRankLists`, `COLOR_PRESETS`, `setStepValue`); Ajustes y super admin usan el mismo.
 - **Escuela** (Ajustes → Graduaciones → "Usar plantilla"): lista las plantillas publicadas con cinturones (`GET /api/dashboard/grading-templates`, permiso `school.gradings.manage`); "Usar plantilla" → `POST /api/dashboard/grading-systems { templateId }` crea en una transacción el sistema propio de la escuela con sus cinturones copiados (la primera de la escuela queda por defecto) y lo abre para revisar. Editar o borrar la plantilla después **no** cambia las copias. Textos EN/ES/PT/FR (panel admin en inglés, como el resto del admin).
 - Tests: `gradingTemplates.test.ts` (10) + `gradingTemplateRoutes.test.ts` (10: guard super admin en los 5 handlers, publicar vacío, borrador/desconocida → 404, permiso, copia y por defecto). Suite 948 pasan / 55 preexistentes. tsc 0, eslint sin avisos nuevos. **No probado en navegador.**
+- **Correcciones tras `APROBADO CON PENDIENTES` (Codex sobre `0ef8f2a`):**
+  - P2 — el editor admin perdía cambios hechos mientras se guardaba (la respuesta restauraba lo enviado y mostraba "Saved"). Ahora el formulario queda en solo lectura (`<fieldset disabled>`) durante el guardado, y Borrar también.
+  - P2 — dos copias simultáneas de una plantilla podían dejar dos sistemas por defecto. La transacción bloquea primero la fila de la escuela (`SELECT … FROM "schools" … FOR UPDATE`), así que la segunda espera y ve el primer sistema. Test de concurrencia con BD en memoria (falla sin el bloqueo, comprobado). El POST de sistema vacío (preexistente) no se ha tocado.
+  - P2 — cerrar y reabrir el selector quitaba el bloqueo de una creación pendiente. El estado de creación vive en `GradingTab` (+ guard síncrono con `useRef`); el botón "Usar plantilla" muestra "Creando…"; al terminar se puede crear otra copia a propósito.
+  - P3 — el editor admin mezclaba inglés con el idioma del usuario. `RankRulesFields` acepta `labels`; el admin pasa siempre `translations.en.readiness`.
+  - Suite 950 pasan / 55 preexistentes; tsc 0; eslint sin avisos nuevos.
 - **Antes de desplegar:** aplicar la migración. Ojo: `include: { ranks }` de `gradingSystem` lee todas las columnas, así que sin `templateId` en la BD fallaría también Ajustes → Graduaciones existente.
 - Siguiente del plan: informe de graduaciones atrasadas.
 

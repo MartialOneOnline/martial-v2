@@ -68,12 +68,15 @@ const INP: React.CSSProperties = {
 const LBL: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }
 const SUB: React.CSSProperties = { fontSize: 10, color: '#9CA3AF', display: 'block', marginBottom: 2 }
 
-export function RankRulesFields<T extends RankRulesValue>({ value: form, onChange: set, nextRankName }: {
+export function RankRulesFields<T extends RankRulesValue>({ value: form, onChange: set, nextRankName, labels }: {
   value: T
   onChange: <K extends keyof RankRulesValue>(key: K, v: RankRulesValue[K]) => void
   nextRankName: string | null
+  /** Fixed labels instead of the viewer's language — the admin panel is English-only */
+  labels?: Translations['readiness']
 }) {
-  const rt = useT().readiness
+  const viewerLabels = useT().readiness
+  const rt = labels ?? viewerLabels
   return (
     <>
       <div className="grid grid-cols-2 gap-3">

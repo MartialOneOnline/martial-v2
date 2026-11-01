@@ -8,7 +8,10 @@ import { useAdminShell } from '../../AdminLayoutClient'
 import {
   COLOR_PRESETS, RankRulesFields, frequencyError, trimRankLists, type RankRulesValue,
 } from '@/components/grading/RankRulesFields'
-import { useT } from '@/lib/i18n/LanguageContext'
+import { translations } from '@/lib/i18n/translations'
+
+// The admin panel is English-only, whatever language the viewer picked
+const rt = translations.en.readiness
 
 interface TemplateRank extends RankRulesValue {
   requireExam: boolean
@@ -183,7 +186,6 @@ function TemplateCard({ template, open, onToggle, onSaved, onDelete }: {
   onSaved: (t: Template) => void
   onDelete: () => void
 }) {
-  const rt = useT().readiness
   const [name, setName] = useState(template.name)
   const [activity, setActivity] = useState(template.activity ?? '')
   const [description, setDescription] = useState(template.description ?? '')
@@ -281,8 +283,8 @@ function TemplateCard({ template, open, onToggle, onSaved, onDelete }: {
             {template.ranks.length} rank{template.ranks.length === 1 ? '' : 's'} · used by {template._count.systems} school system{template._count.systems === 1 ? '' : 's'}
           </p>
         </div>
-        <button onClick={onDelete} title="Delete"
-          className="w-7 h-7 rounded-lg text-gray-400 flex items-center justify-center hover:bg-red-50 hover:text-red-500 cursor-pointer">
+        <button onClick={onDelete} title="Delete" disabled={saving}
+          className="disabled:opacity-30 w-7 h-7 rounded-lg text-gray-400 flex items-center justify-center hover:bg-red-50 hover:text-red-500 cursor-pointer">
           <Trash2 className="w-3.5 h-3.5" />
         </button>
         <button onClick={onToggle}
@@ -294,6 +296,8 @@ function TemplateCard({ template, open, onToggle, onSaved, onDelete }: {
 
       {open && (
         <div className="border-t border-gray-100 px-4 py-4 flex flex-col gap-4">
+          {/* Read-only while saving: edits made after the request was sent would be overwritten by its response */}
+          <fieldset disabled={saving} className="flex flex-col gap-4" style={{ border: 0, padding: 0, margin: 0, minWidth: 0, opacity: saving ? 0.7 : 1 }}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label className="text-[11px] font-semibold text-gray-500">Name
               <input value={name} onChange={e => { setName(e.target.value); touch() }}
@@ -343,7 +347,7 @@ function TemplateCard({ template, open, onToggle, onSaved, onDelete }: {
                 </div>
                 {openRank === r.key && (
                   <div className="mb-3 p-4 rounded-xl flex flex-col gap-4" style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-                    <RankRulesFields value={r} nextRankName={ranks[i + 1]?.name ?? null}
+                    <RankRulesFields value={r} nextRankName={ranks[i + 1]?.name ?? null} labels={rt}
                       onChange={(k, v) => updateRank(r.key, { [k]: v } as Partial<TemplateRank>)} />
                     <div className="flex flex-wrap gap-4">
                       <label className="flex items-center gap-2 text-xs text-gray-600">
@@ -375,6 +379,8 @@ function TemplateCard({ template, open, onToggle, onSaved, onDelete }: {
               </button>
             </div>
           </div>
+
+          </fieldset>
 
           {error && <p className="text-xs text-red-600">{error}</p>}
           <div className="flex items-center justify-end gap-3">

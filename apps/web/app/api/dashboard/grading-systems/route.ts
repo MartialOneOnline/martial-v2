@@ -77,6 +77,10 @@ async function createFromTemplate(
 
   const name = typeof body.name === 'string' && body.name.trim() ? body.name.trim() : template.name
   const system = await prisma.$transaction(async tx => {
+    // Lock this school's row first: two simultaneous copies (double click,
+    // two tabs) then run one after the other, so only the first one sees
+    // "no systems yet" and becomes the default (Project Audit PR #39 P2).
+    await tx.$queryRaw`SELECT id FROM "schools" WHERE id = ${schoolId} FOR UPDATE`
     // First system of the school becomes the default, like a new empty one
     const existing = await tx.gradingSystem.count({ where: { schoolId, isActive: true } })
     const isDefault = body.isDefault === true || existing === 0

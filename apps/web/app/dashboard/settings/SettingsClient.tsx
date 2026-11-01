@@ -1784,13 +1784,20 @@ interface TemplateOption {
   ranks: Array<{ name: string; color: string; maxDegrees: number }>
 }
 
-/** Published platform templates (super admin) — applying one creates the school's own copy. */
-function TemplatePicker({ onCreated, onClose }: { onCreated: (s: GradingSystem) => void; onClose: () => void }) {
+/**
+ * Published platform templates (super admin) — applying one creates the
+ * school's own copy. The "creating" state lives in GradingTab, not here, so
+ * closing and reopening the picker mid-request keeps it locked (PR #39 P2).
+ */
+function TemplatePicker({ applyingId, applyError, onApply, onClose }: {
+  applyingId: string | null
+  applyError: string | null
+  onApply: (t: TemplateOption) => void
+  onClose: () => void
+}) {
   const rt = useT().readiness
   const [templates, setTemplates] = useState<TemplateOption[] | null>(null)
   const [loadError, setLoadError] = useState(false)
-  const [applyingId, setApplyingId] = useState<string | null>(null)
-  const [applyError, setApplyError] = useState<string | null>(null)
 
   const load = useCallback(() => {
     setLoadError(false)
@@ -1800,23 +1807,6 @@ function TemplatePicker({ onCreated, onClose }: { onCreated: (s: GradingSystem) 
       .catch(() => setLoadError(true))
   }, [])
   useEffect(load, [load])
-
-  async function apply(t: TemplateOption) {
-    setApplyingId(t.id); setApplyError(null)
-    try {
-      const res = await fetch('/api/dashboard/grading-systems', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ templateId: t.id }),
-      })
-      if (!res.ok) { setApplyError(t.id); return }
-      const { system } = await res.json()
-      onCreated(system)
-    } catch {
-      setApplyError(t.id)
-    } finally {
-      setApplyingId(null)
-    }
-  }
 
   return (
     <div className="flex flex-col gap-3 p-4 rounded-2xl" style={{ background: '#F9FAFB', border: '1.5px solid #E5E7EB' }}>
@@ -1859,7 +1849,7 @@ function TemplatePicker({ onCreated, onClose }: { onCreated: (s: GradingSystem) 
             </div>
             {applyError === t.id && <p style={{ fontSize: 12, color: '#DC2626', margin: '6px 0 0' }}>{rt.applyError}</p>}
           </div>
-          <button onClick={() => apply(t)} disabled={applyingId !== null}
+          <button onClick={() => onApply(t)} disabled={applyingId !== null}
             style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: '#0870E2', color: '#fff', fontSize: 13, fontWeight: 600,
               cursor: 'pointer', opacity: applyingId !== null ? 0.6 : 1, whiteSpace: 'nowrap' }}>
             {applyingId === t.id ? rt.applying : rt.applyTemplate}
@@ -1874,6 +1864,35 @@ function GradingTab() {
   const rt = useT().readiness
   const [showTemplates, setShowTemplates] = useState(false)
   const [createdId, setCreatedId] = useState<string | null>(null)
+  const [applyingId, setApplyingId] = useState<string | null>(null)
+  const [applyError, setApplyError] = useState<string | null>(null)
+  // Synchronous guard: a second click before React re-renders can't start another copy.
+  const applyingRef = useRef(false)
+
+  async function applyTemplate(t: TemplateOption) {
+    if (applyingRef.current) return
+    applyingRef.current = true
+    setApplyingId(t.id); setApplyError(null)
+    try {
+      const res = await fetch('/api/dashboard/grading-systems', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ templateId: t.id }),
+      })
+      if (!res.ok) { setApplyError(t.id); setShowTemplates(true); return }
+      const { system } = await res.json() as { system: GradingSystem }
+      setSystems(prev => [
+        ...prev.map(s => (system.isDefault ? { ...s, isDefault: false } : s)),
+        system,
+      ])
+      setCreatedId(system.id)
+      setShowTemplates(false)
+    } catch {
+      setApplyError(t.id); setShowTemplates(true)
+    } finally {
+      applyingRef.current = false
+      setApplyingId(null)
+    }
+  }
   const [systems, setSystems]   = useState<GradingSystem[]>([])
   const [loading, setLoading]   = useState(true)
   const [adding,  setAdding]    = useState(false)
@@ -1937,7 +1956,7 @@ function GradingTab() {
           <button onClick={() => setShowTemplates(v => !v)}
             className="flex items-center gap-2 cursor-pointer"
             style={{ padding: '9px 14px', borderRadius: 10, border: '1px solid #BFDBFE', background: '#F0F7FF', color: '#0870E2', fontSize: 13, fontWeight: 600 }}>
-            <Award size={14} /> {rt.useTemplate}
+            <Award size={14} /> {applyingId ? rt.applying : rt.useTemplate}
           </button>
           <button onClick={() => setAdding(true)}
             className="flex items-center gap-2 cursor-pointer"
@@ -1948,14 +1967,8 @@ function GradingTab() {
       </div>
 
       {showTemplates && (
-        <TemplatePicker onClose={() => setShowTemplates(false)} onCreated={system => {
-          setSystems(prev => [
-            ...prev.map(s => (system.isDefault ? { ...s, isDefault: false } : s)),
-            system,
-          ])
-          setCreatedId(system.id)
-          setShowTemplates(false)
-        }} />
+        <TemplatePicker applyingId={applyingId} applyError={applyError} onApply={applyTemplate}
+          onClose={() => setShowTemplates(false)} />
       )}
 
       {createdId && (() => {

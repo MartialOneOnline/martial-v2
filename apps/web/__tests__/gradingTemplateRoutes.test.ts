@@ -5,14 +5,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest, NextResponse } from 'next/server'
 
-const { guardSuperadmin, guardSuperadminUser, getAuthUser, getCurrentSchoolId, requireSchoolAccess, memberHasPermission, tpl, tx } = vi.hoisted(() => ({
+const { guardSuperadmin, guardSuperadminUser, getAuthUser, getCurrentSchoolId, requireSchoolAccess, memberHasPermission, tpl, tx, db } = vi.hoisted(() => ({
   guardSuperadmin: vi.fn(), guardSuperadminUser: vi.fn(), getAuthUser: vi.fn(), getCurrentSchoolId: vi.fn(),
   requireSchoolAccess: vi.fn(), memberHasPermission: vi.fn(),
   tpl: { findMany: vi.fn(), findUnique: vi.fn(), findFirst: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn() },
   tx: {
+    $queryRaw: vi.fn(),
     gradingSystem: { count: vi.fn(), updateMany: vi.fn(), create: vi.fn(), findUniqueOrThrow: vi.fn() },
     beltRank: { createMany: vi.fn() },
   },
+  // Tests can swap how $transaction runs (e.g. an in-memory DB with real locking)
+  db: { transaction: null as null | ((fn: (t: unknown) => unknown) => unknown) },
 }))
 vi.mock('@/lib/auth/server', () => ({ guardSuperadmin, guardSuperadminUser, getAuthUser, getCurrentSchoolId }))
 vi.mock('@/lib/auth/contexts', () => ({ requireSchoolAccess }))
@@ -21,7 +24,7 @@ vi.mock('@/lib/db', () => ({
   prisma: {
     gradingTemplate: tpl,
     gradingSystem: { findMany: vi.fn(), updateMany: vi.fn(), create: vi.fn() },
-    $transaction: (fn: (t: typeof tx) => unknown) => fn(tx),
+    $transaction: (fn: (t: typeof tx) => unknown) => (db.transaction ? db.transaction(fn as (t: unknown) => unknown) : fn(tx)),
   },
 }))
 
@@ -38,6 +41,7 @@ const params = (id: string) => ({ params: Promise.resolve({ id }) })
 
 beforeEach(() => {
   vi.clearAllMocks()
+  db.transaction = null
   guardSuperadmin.mockResolvedValue(null)
   guardSuperadminUser.mockResolvedValue({ id: 'admin1', email: 'a@x.test' })
   getAuthUser.mockResolvedValue({ id: 'u1', role: 'USER' })
@@ -142,5 +146,50 @@ describe('school: templates and creating a system from one', () => {
     await schoolSystems.POST(req({ templateId: 't1' }))
     expect(tx.gradingSystem.create.mock.calls[0]![0].data.isDefault).toBe(false)
     expect(tx.gradingSystem.updateMany).not.toHaveBeenCalled()
+  })
+
+  it('P2 (PR #39 audit): two simultaneous copies leave exactly one default', async () => {
+    tpl.findFirst.mockResolvedValue({ id: 't1', name: 'IBJJF', activity: null, ranks: [{ name: 'White' }] })
+    // In-memory grading_systems + a per-school row lock like SELECT … FOR UPDATE.
+    // Every query yields, so without the lock both requests read count = 0.
+    const systems: Array<{ isDefault: boolean }> = []
+    const tick = () => new Promise(r => setTimeout(r, 0))
+    let lock: Promise<void> = Promise.resolve()
+    db.transaction = async fn => {
+      let release: (() => void) | undefined
+      const t = {
+        $queryRaw: async () => {
+          const prev = lock
+          lock = new Promise<void>(r => { release = r })
+          await prev
+        },
+        gradingSystem: {
+          count: async () => { await tick(); return systems.length },
+          updateMany: async () => { await tick(); systems.forEach(s => { s.isDefault = false }) },
+          create: async ({ data }: { data: { isDefault: boolean } }) => { await tick(); systems.push({ isDefault: data.isDefault }); return { id: `s${systems.length}` } },
+          findUniqueOrThrow: async () => ({ id: 'x', ranks: [] }),
+        },
+        beltRank: { createMany: async () => { await tick() } },
+      }
+      try { return await fn(t) } finally { release?.() }
+    }
+    const [a, b] = await Promise.all([
+      schoolSystems.POST(req({ templateId: 't1' })),
+      schoolSystems.POST(req({ templateId: 't1' })),
+    ])
+    expect([a.status, b.status]).toEqual([201, 201])
+    expect(systems).toHaveLength(2)
+    expect(systems.filter(s => s.isDefault)).toHaveLength(1)
+  })
+
+  it('locks the school row before deciding the default', async () => {
+    tpl.findFirst.mockResolvedValue({ id: 't1', name: 'IBJJF', activity: null, ranks: [{ name: 'White' }] })
+    tx.gradingSystem.count.mockResolvedValue(0)
+    tx.gradingSystem.create.mockResolvedValue({ id: 'sys9' })
+    tx.gradingSystem.findUniqueOrThrow.mockResolvedValue({ id: 'sys9', ranks: [] })
+    await schoolSystems.POST(req({ templateId: 't1' }))
+    const sql = (tx.$queryRaw.mock.calls[0]![0] as TemplateStringsArray).join('?')
+    expect(sql).toContain('FOR UPDATE')
+    expect(tx.$queryRaw.mock.invocationCallOrder[0]).toBeLessThan(tx.gradingSystem.count.mock.invocationCallOrder[0]!)
   })
 })
