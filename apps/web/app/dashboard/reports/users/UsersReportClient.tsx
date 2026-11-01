@@ -326,7 +326,7 @@ export default function UsersReportClient() {
   function exportMonthly(monthly: MonthStats[], cohorts: CohortStats[], name: string) {
     const byMonth = new Map(cohorts.map(c => [c.month, c]))
     const headers = [
-      r.usersMonth, r.usersColActive,
+      r.usersMonth, r.usersCsvStatus, r.usersColActive,
       r.usersColNew, r.usersCsvPctNew, r.usersColReturning, r.usersCsvPctReturning, r.usersColLost, r.usersColChurn,
       r.usersCsvGrowth, r.usersCsvYearAgo, r.usersCsvYoy,
       ...COHORT_OFFSETS.map(k => r.usersCsvRetained.replace('{n}', String(k))),
@@ -334,7 +334,8 @@ export default function UsersReportClient() {
     const rows = monthly.map(m => {
       const c = byMonth.get(m.month)
       return [
-        m.month, m.active,
+        // Explicit so the month in progress stays recognisable outside the app
+        m.month, m.provisional ? r.usersCsvProvisional : r.usersCsvClosed, m.active,
         m.new, m.newPct, m.returning, m.returningPct, m.lost, m.churnPct,
         // 0 is a real count (nobody a year earlier) — only % with a 0 denominator are empty
         m.growthPct, m.activeYearAgo, m.yoyPct,
