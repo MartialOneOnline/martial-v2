@@ -8,6 +8,7 @@ import {
 import { useDashboard } from '../../../../components/DashboardShell'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import RowMenu from '../../../../components/RowMenu'
+import { loadLeadDetail } from '../../../../lib/leads/detailLoad'
 
 type FilterTab = 'OPEN' | 'ALL' | 'NEW' | 'INVITED' | 'CONTACTED' | 'TRIAL_BOOKED' | 'CONVERTED' | 'LOST'
 
@@ -262,6 +263,7 @@ function LeadDetailDrawer({ leadId, onClose, onChanged, onRequestDelete, onReque
   const open = leadId !== null
   const [lead, setLead] = useState<LeadDetail | null>(null)
   const [loading, setLoading] = useState(false)
+  const [loadError, setLoadError] = useState(false)
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({ name: '', email: '', phone: '', source: 'OTHER' })
   const [saving, setSaving] = useState(false)
@@ -272,17 +274,18 @@ function LeadDetailDrawer({ leadId, onClose, onChanged, onRequestDelete, onReque
   const [savingReminder, setSavingReminder] = useState(false)
 
   useEffect(() => {
-    if (!leadId) { setLead(null); setEditing(false); return }
+    if (!leadId) { setLead(null); setEditing(false); setLoadError(false); return }
     setLoading(true)
-    fetch(`/api/dashboard/leads/${leadId}`)
-      .then(res => (res.ok ? res.json() : null))
-      .then(data => {
-        if (data?.lead) {
-          setLead(data.lead)
-          setReminderDraft(data.lead.reminderAt ? data.lead.reminderAt.slice(0, 10) : '')
-        }
-      })
-      .finally(() => setLoading(false))
+    setLoadError(false)
+    // Cancelled on close/switch, so a late response can't replace this lead
+    return loadLeadDetail<LeadDetail>(leadId, {
+      onLoaded: l => {
+        setLead(l)
+        setReminderDraft(l.reminderAt ? l.reminderAt.slice(0, 10) : '')
+      },
+      onError: () => { setLead(null); setLoadError(true) },
+      onSettled: () => setLoading(false),
+    })
   }, [leadId])
 
   async function saveReminder(value: string) {
@@ -392,7 +395,9 @@ function LeadDetailDrawer({ leadId, onClose, onChanged, onRequestDelete, onReque
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-6">
-          {loading || !lead ? (
+          {loadError && !loading ? (
+            <p style={{ fontSize: 13, color: '#DC2626', textAlign: 'center', padding: '40px 0' }}>{t.leadsReport.detailLoadError}</p>
+          ) : loading || !lead ? (
             <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: '40px 0' }}>…</p>
           ) : (
             <>
@@ -705,7 +710,7 @@ function getPaginationPages(current: number, total: number): (number | '...')[] 
   return [1, '...', current - 1, current, current + 1, '...', total]
 }
 
-export default function LeadsClient() {
+export default function LeadsClient({ initialLeadId = null }: { initialLeadId?: string | null } = {}) {
   const { menuOpen, setMenuOpen } = useDashboard()
   const t = useT()
 
@@ -725,7 +730,7 @@ export default function LeadsClient() {
   const [deleteToast, setDeleteToast]   = useState<number | null>(null)
   const [emailTarget, setEmailTarget]   = useState<{ ids: string[]; skipped: number } | null>(null)
   const [emailToast, setEmailToast]     = useState<number | null>(null)
-  const [detailLeadId, setDetailLeadId] = useState<string | null>(null)
+  const [detailLeadId, setDetailLeadId] = useState<string | null>(initialLeadId)
 
   const fetchLeads = useCallback(async () => {
     setLoading(true)

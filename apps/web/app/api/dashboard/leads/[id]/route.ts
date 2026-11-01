@@ -3,9 +3,11 @@ import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 import { memberHasPermission } from '@/lib/auth/customRoles'
+import type { Permission } from '@/lib/auth/permissions'
 import { LeadStatus, LeadSource } from '@/lib/prisma-client/enums'
 
-async function authorise() {
+// Reading a lead needs leads.view (the Leads report links here); changing it needs leads.manage
+async function authorise(permission: Permission) {
   const user = await getAuthUser()
   if (!user) return { error: 'Unauthorized', status: 401 }
   const schoolId = await getCurrentSchoolId()
@@ -13,7 +15,7 @@ async function authorise() {
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!await memberHasPermission(member, 'school.leads.manage')) return { error: 'Forbidden', status: 403 }
+      if (!await memberHasPermission(member, permission)) return { error: 'Forbidden', status: 403 }
     } catch {
       return { error: 'Forbidden', status: 403 }
     }
@@ -26,7 +28,7 @@ const VALID_SOURCES: string[] = Object.values(LeadSource)
 
 // GET /api/dashboard/leads/[id] — full detail for the drawer, including notes
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await authorise()
+  const auth = await authorise('school.leads.view')
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const { id } = await params
@@ -43,7 +45,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
 // PATCH /api/dashboard/leads/[id] — update status and/or profile fields
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await authorise()
+  const auth = await authorise('school.leads.manage')
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const { id } = await params
@@ -88,7 +90,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 // DELETE /api/dashboard/leads/[id]
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await authorise()
+  const auth = await authorise('school.leads.manage')
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const { id } = await params
