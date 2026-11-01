@@ -12,10 +12,10 @@ import {
 } from 'lucide-react'
 import { useDashboard, useGradingEnabled, useSchoolContextFailure } from '../../../components/DashboardShell'
 import { GradingOffCard, GradingLoadError, offActionStyle } from '../../../components/grading/GradingModuleGate'
+import GradingSystemSettings, { type SchoolClassOption } from '../../../components/grading/GradingSystemSettings'
 import NotificationBell from '../../../components/NotificationBell'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../lib/format'
-import { COLOR_PRESETS, RankRulesFields, frequencyError, trimRankLists, type RankRulesValue } from '../../../components/grading/RankRulesFields'
 
 // ── Shared styles ─────────────────────────────────────────────────────────────
 const INP: React.CSSProperties = {
@@ -1521,126 +1521,13 @@ interface BeltRank {
   classesByDegree: number[]
   monthsByDegree: number[]
   minAgeByDegree: number[]
+  requireExam: boolean
+  requireCompetition: boolean
 }
 interface GradingSystem {
   id: string; name: string; activity: string | null; isDefault: boolean
   requireApproval: boolean; gradingFee: number; notifyStudent: boolean; notifyInstructor: boolean
   ranks: BeltRank[]
-}
-
-function rankForm(rank: BeltRank): BeltRank {
-  return {
-    ...rank,
-    classesByDegree: rank.classesByDegree ?? [],
-    monthsByDegree: rank.monthsByDegree ?? [],
-    minAgeByDegree: rank.minAgeByDegree ?? [],
-    maxClassesPerPeriod: rank.maxClassesPerPeriod ?? null,
-  }
-}
-
-
-function RankRow({
-  rank, systemId, onUpdate, onDelete, isLast, nextRankName,
-}: {
-  rank: BeltRank; systemId: string
-  onUpdate: (r: BeltRank) => void; onDelete: () => void; isLast: boolean
-  nextRankName: string | null
-}) {
-  const rt = useT().readiness
-  const [open, setOpen] = useState(false)
-  const [form, setForm] = useState(() => rankForm(rank))
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  function set<K extends keyof RankRulesValue>(k: K, v: RankRulesValue[K]) {
-    setForm(p => ({ ...p, [k]: v }))
-  }
-
-  async function save() {
-    const freqErr = frequencyError(form, rt)
-    if (freqErr) { setError(freqErr); return }
-    setError(null)
-    setSaving(true)
-    try {
-      const res = await fetch(`/api/dashboard/grading-systems/${systemId}/ranks/${rank.id}`, {
-        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-        // One entry per grading at this belt: each stripe, then the next belt.
-        // Ages are per stripe only — the next belt's age lives on that belt.
-        body: JSON.stringify(trimRankLists(form)),
-      })
-      if (!res.ok) { setError(rt.saveError); return }
-      const { rank: updated } = await res.json()
-      onUpdate(updated)
-      setForm(rankForm(updated))
-      setOpen(false)
-    } catch {
-      setError(rt.saveError)
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  return (
-    <div style={{ borderBottom: isLast ? 'none' : '1px solid #F3F4F6' }}>
-      {/* Rank header row */}
-      <div className="flex items-center gap-3 py-3 px-1">
-        <div className="w-5 h-5 rounded-full shrink-0 border-2 border-white shadow-sm"
-          style={{ background: form.color }} />
-        <p style={{ fontSize: 14, fontWeight: 500, color: '#111827', flex: 1, margin: 0 }}>{form.name}</p>
-        {form.maxDegrees > 0 && (
-          <span style={{ fontSize: 11, color: '#9CA3AF' }}>{rt.rankNStripes.replace('{n}', String(form.maxDegrees))}</span>
-        )}
-        {form.classesByDegree.some(n => n > 0) ? (
-          <span style={{ fontSize: 11, color: '#6B7280', background: '#F3F4F6', padding: '2px 8px', borderRadius: 999 }}>
-            {Array.from({ length: form.maxDegrees + 1 }, (_, i) => form.classesByDegree[i] || form.totalClassesRequired || '—').join(' · ')}
-          </span>
-        ) : form.totalClassesRequired ? (
-          <span style={{ fontSize: 11, color: '#6B7280', background: '#F3F4F6', padding: '2px 8px', borderRadius: 999 }}>
-            {form.totalClassesRequired} {rt.colClasses.toLowerCase()}
-          </span>
-        ) : null}
-        {form.minMonthsAtPrevious && (
-          <span style={{ fontSize: 11, color: '#6B7280', background: '#F3F4F6', padding: '2px 8px', borderRadius: 999 }}>
-            {form.minMonthsAtPrevious} mo
-          </span>
-        )}
-        <button onClick={() => setOpen(o => !o)}
-          className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
-          style={{ background: open ? '#F3F4F6' : 'transparent', border: 'none', color: '#6B7280' }}>
-          <Edit2 size={13} />
-        </button>
-        <button onClick={onDelete}
-          className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
-          style={{ background: 'transparent', border: 'none', color: '#D1D5DB' }}
-          onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#DC2626'}
-          onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#D1D5DB'}>
-          <Trash2 size={13} />
-        </button>
-      </div>
-
-      {/* Expandable edit form */}
-      {open && (
-        <div className="mx-1 mb-3 p-4 rounded-xl flex flex-col gap-4"
-          style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-
-          <RankRulesFields value={form} onChange={set} nextRankName={nextRankName} />
-
-          {error && <p style={{ fontSize: 12, color: '#DC2626', margin: 0 }}>{error}</p>}
-
-          <div className="flex gap-2 justify-end">
-            <button onClick={() => { setForm(rankForm(rank)); setError(null); setOpen(false) }}
-              style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', color: '#374151', fontSize: 13, cursor: 'pointer' }}>
-              {rt.cancel}
-            </button>
-            <button onClick={save} disabled={saving}
-              style={{ padding: '7px 16px', borderRadius: 8, border: 'none', background: '#0870E2', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-              {saving ? rt.saving : rt.saveRank}
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  )
 }
 
 function SystemEditor({ system, onUpdate, onDelete, initiallyExpanded = false }: {
@@ -1649,11 +1536,8 @@ function SystemEditor({ system, onUpdate, onDelete, initiallyExpanded = false }:
   onDelete: () => void
   initiallyExpanded?: boolean
 }) {
+  const g = useT().gradingSettings
   const [expanded, setExpanded]   = useState(initiallyExpanded)
-  const [addingRank, setAddingRank] = useState(false)
-  const [newRankName, setNewRankName] = useState('')
-  const [newRankColor, setNewRankColor] = useState('#9CA3AF')
-  const [saving, setSaving]       = useState(false)
   const [editName, setEditName]   = useState(false)
   const [nameVal, setNameVal]     = useState(system.name)
   const [actVal, setActVal]       = useState(system.activity ?? '')
@@ -1677,29 +1561,6 @@ function SystemEditor({ system, onUpdate, onDelete, initiallyExpanded = false }:
     if (!res.ok) return
     const { system: s } = await res.json()
     onUpdate(s)
-  }
-
-  async function addRank() {
-    if (!newRankName.trim()) return
-    setSaving(true)
-    const res = await fetch(`/api/dashboard/grading-systems/${system.id}/ranks`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: newRankName, color: newRankColor }),
-    })
-    setSaving(false)
-    if (!res.ok) return
-    const { rank } = await res.json()
-    onUpdate({ ...system, ranks: [...system.ranks, rank] })
-    setNewRankName(''); setNewRankColor('#9CA3AF'); setAddingRank(false)
-  }
-
-  async function deleteRank(rankId: string) {
-    await fetch(`/api/dashboard/grading-systems/${system.id}/ranks/${rankId}`, { method: 'DELETE' })
-    onUpdate({ ...system, ranks: system.ranks.filter(r => r.id !== rankId) })
-  }
-
-  function updateRank(updated: BeltRank) {
-    onUpdate({ ...system, ranks: system.ranks.map(r => r.id === updated.id ? updated : r) })
   }
 
   const INP: React.CSSProperties = {
@@ -1756,7 +1617,6 @@ function SystemEditor({ system, onUpdate, onDelete, initiallyExpanded = false }:
             </div>
           )}
         </div>
-        <span style={{ fontSize: 12, color: '#9CA3AF' }}>{system.ranks.length} ranks</span>
         <button onClick={onDelete}
           style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#D1D5DB', padding: 4 }}
           onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#DC2626'}
@@ -1766,61 +1626,12 @@ function SystemEditor({ system, onUpdate, onDelete, initiallyExpanded = false }:
         <button onClick={() => setExpanded(o => !o)}
           style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 8, cursor: 'pointer', padding: '6px 10px', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#374151' }}>
           {expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-          {expanded ? 'Collapse' : 'Edit ranks'}
+          {expanded ? g.systemSettingsHide : g.systemSettings}
         </button>
       </div>
 
       {expanded && (
         <div className="px-5 pb-4">
-          {/* Ranks list */}
-          <div className="mt-2">
-            {system.ranks.length === 0 ? (
-              <p style={{ fontSize: 13, color: '#9CA3AF', padding: '16px 0', textAlign: 'center' }}>
-                No ranks yet. Add the first rank below.
-              </p>
-            ) : (
-              system.ranks.map((rank, idx) => (
-                <RankRow key={rank.id} rank={rank} systemId={system.id}
-                  onUpdate={updateRank} onDelete={() => deleteRank(rank.id)}
-                  isLast={idx === system.ranks.length - 1}
-                  nextRankName={system.ranks[idx + 1]?.name ?? null} />
-              ))
-            )}
-          </div>
-
-          {/* Add rank */}
-          {addingRank ? (
-            <div className="flex items-center gap-2 mt-3 p-3 rounded-xl" style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-              <input value={newRankName} onChange={e => setNewRankName(e.target.value)}
-                placeholder="Rank name (e.g. Azul)" autoFocus
-                style={{ flex: 1, border: '1.5px solid #E5E7EB', borderRadius: 8, padding: '7px 10px', fontSize: 13, outline: 'none' }}
-                onKeyDown={e => e.key === 'Enter' && addRank()} />
-              <div className="flex gap-1">
-                {COLOR_PRESETS.slice(0, 6).map(c => (
-                  <button key={c} onClick={() => setNewRankColor(c)}
-                    style={{ width: 20, height: 20, borderRadius: '50%', background: c,
-                      border: newRankColor === c ? '2.5px solid #0870E2' : '2px solid transparent', cursor: 'pointer' }} />
-                ))}
-              </div>
-              <button onClick={addRank} disabled={saving || !newRankName.trim()}
-                style={{ padding: '7px 14px', borderRadius: 8, border: 'none', background: '#0870E2', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-                {saving ? '…' : 'Add'}
-              </button>
-              <button onClick={() => setAddingRank(false)}
-                style={{ padding: '7px 10px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', fontSize: 13, cursor: 'pointer' }}>
-                <X size={13} style={{ color: '#9CA3AF' }} />
-              </button>
-            </div>
-          ) : (
-            <button onClick={() => setAddingRank(true)}
-              className="flex items-center gap-2 mt-3 cursor-pointer"
-              style={{ fontSize: 13, color: '#0870E2', fontWeight: 500, background: 'transparent', border: 'none', padding: '4px 0' }}>
-              <Plus size={14} /> Add rank
-            </button>
-          )}
-
-          <hr style={{ border: 'none', borderTop: '1px solid #F3F4F6', margin: '16px 0' }} />
-
           {/* System-level rules */}
           <p style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 12 }}>Rules for this system</p>
           <div className="flex flex-col">
@@ -1966,19 +1777,42 @@ function GradingTab() {
       setApplyingId(null)
     }
   }
+  const g = useT().gradingSettings
   const [systems, setSystems]   = useState<GradingSystem[]>([])
+  const [classes, setClasses]   = useState<SchoolClassOption[]>([])
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [beltsDirty, setBeltsDirty] = useState(false)
   const [loading, setLoading]   = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [adding,  setAdding]    = useState(false)
   const [newName, setNewName]   = useState('')
   const [newAct,  setNewAct]    = useState('')
   const [saving,  setSaving]    = useState(false)
 
-  useEffect(() => {
-    fetch('/api/dashboard/grading-systems').then(r => r.json()).then(d => {
-      setSystems(d.systems ?? [])
-      setLoading(false)
-    })
+  const load = useCallback(() => {
+    setLoading(true); setLoadError(false)
+    fetch('/api/dashboard/grading-systems')
+      .then(r => { if (!r.ok) throw new Error(); return r.json() })
+      .then(d => {
+        const list: GradingSystem[] = d.systems ?? []
+        setSystems(list)
+        setClasses(d.classes ?? [])
+        setSelectedId(cur => cur && list.some(s => s.id === cur) ? cur : (list.find(s => s.isDefault) ?? list[0])?.id ?? null)
+      })
+      .catch(() => setLoadError(true))
+      .finally(() => setLoading(false))
   }, [])
+  useEffect(load, [load])
+
+  // A system created from a template opens straight away
+  useEffect(() => { if (createdId) setSelectedId(createdId) }, [createdId])
+
+  function selectSystem(id: string) {
+    if (id === selectedId) return
+    if (beltsDirty && !confirm(g.leaveConfirm)) return
+    setBeltsDirty(false)
+    setSelectedId(id)
+  }
 
   async function createSystem() {
     if (!newName.trim()) return
@@ -1991,50 +1825,53 @@ function GradingTab() {
     if (!res.ok) return
     const { system } = await res.json()
     setSystems(prev => [...prev, system])
+    setSelectedId(system.id); setBeltsDirty(false)
     setNewName(''); setNewAct(''); setAdding(false)
   }
 
   async function deleteSystem(id: string) {
-    if (!confirm('Delete this grading system?')) return
-    await fetch(`/api/dashboard/grading-systems/${id}`, { method: 'DELETE' })
-    setSystems(prev => prev.filter(s => s.id !== id))
+    if (!confirm(g.deleteSystemConfirm)) return
+    const res = await fetch(`/api/dashboard/grading-systems/${id}`, { method: 'DELETE' })
+    if (!res.ok) return
+    setSystems(prev => {
+      const rest = prev.filter(s => s.id !== id)
+      setSelectedId((rest.find(s => s.isDefault) ?? rest[0])?.id ?? null)
+      return rest
+    })
+    setBeltsDirty(false)
   }
 
   function updateSystem(updated: GradingSystem) {
     setSystems(prev => prev.map(s => s.id === updated.id ? updated : s))
   }
 
-  return (
-    <div className="flex flex-col gap-6" style={{ maxWidth: 700 }}>
-      {/* Link to Gradings module */}
-      <div className="flex items-center justify-between p-4 rounded-2xl" style={{ background: '#F0F7FF', border: '1px solid #BFDBFE' }}>
-        <div>
-          <p style={{ fontSize: 14, fontWeight: 600, color: '#1E40AF', margin: 0 }}>Grading events &amp; history</p>
-          <p style={{ fontSize: 13, color: '#3B82F6', marginTop: 2 }}>Record promotions and view full history in the Gradings module.</p>
-        </div>
-        <a href="/dashboard/school/gradings"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', borderRadius: 10,
-            background: '#0870E2', color: '#fff', fontSize: 13, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>
-          Go to Gradings <ArrowRight size={13} />
-        </a>
-      </div>
+  const selected = systems.find(s => s.id === selectedId) ?? null
 
+  return (
+    <div className="flex flex-col" style={{ gap: 24, maxWidth: 860, paddingBottom: 96 }}>
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <p style={SECTION_TITLE}>Grading Systems</p>
-          <p style={SECTION_SUB}>One system per activity (BJJ, Judo, Karate…). Each system has its own belt progression and rules.</p>
+      <div className="flex flex-wrap items-end justify-between" style={{ gap: 16 }}>
+        <div className="flex flex-col" style={{ gap: 6 }}>
+          <p style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: '-0.02em', color: '#111827' }}>{g.title}</p>
+          <p style={{ margin: 0, fontSize: 15, color: '#4B5563', maxWidth: 520, lineHeight: 1.5 }}>{g.subtitle}</p>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <button onClick={() => setShowTemplates(v => !v)}
-            className="flex items-center gap-2 cursor-pointer"
-            style={{ padding: '9px 14px', borderRadius: 10, border: '1px solid #BFDBFE', background: '#F0F7FF', color: '#0870E2', fontSize: 13, fontWeight: 600 }}>
-            <Award size={14} /> {applyingId ? rt.applying : rt.useTemplate}
+        <div className="flex flex-wrap items-center" style={{ gap: 8 }}>
+          {systems.length > 1 && (
+            <label className="flex items-center" style={{ gap: 8 }}>
+              <span className="sr-only">{g.system}</span>
+              <select value={selectedId ?? ''} onChange={e => selectSystem(e.target.value)}
+                style={{ minHeight: 44, padding: '0 12px', borderRadius: 12, border: '1px solid #E5E7EB', background: '#fff', fontSize: 14, fontWeight: 600, color: '#111827', cursor: 'pointer' }}>
+                {systems.map(s => <option key={s.id} value={s.id}>{s.name}{s.isDefault ? ` · ${g.default}` : ''}</option>)}
+              </select>
+            </label>
+          )}
+          <button onClick={() => setShowTemplates(v => !v)} className="flex items-center gap-2 cursor-pointer"
+            style={{ minHeight: 44, padding: '0 14px', borderRadius: 12, border: '1px solid #E5E7EB', background: '#fff', color: '#374151', fontSize: 14, fontWeight: 500 }}>
+            <Award size={15} aria-hidden /> {applyingId ? rt.applying : rt.useTemplate}
           </button>
-          <button onClick={() => setAdding(true)}
-            className="flex items-center gap-2 cursor-pointer"
-            style={{ padding: '9px 16px', borderRadius: 10, border: 'none', background: '#0870E2', color: '#fff', fontSize: 13, fontWeight: 600 }}>
-            <Plus size={14} /> New system
+          <button onClick={() => setAdding(true)} className="flex items-center gap-2 cursor-pointer"
+            style={{ minHeight: 44, padding: '0 14px', borderRadius: 12, border: '1px solid #E5E7EB', background: '#fff', color: '#374151', fontSize: 14, fontWeight: 500 }}>
+            <Plus size={15} aria-hidden /> {g.newSystem}
           </button>
         </div>
       </div>
@@ -2053,43 +1890,59 @@ function GradingTab() {
 
       {/* New system form */}
       {adding && (
-        <div className="flex items-center gap-3 p-4 rounded-2xl" style={{ background: '#F9FAFB', border: '1.5px solid #E5E7EB' }}>
-          <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="System name (e.g. BJJ Adultos)"
-            autoFocus style={{ flex: 2, border: '1.5px solid #E5E7EB', borderRadius: 8, padding: '8px 12px', fontSize: 13, outline: 'none' }}
+        <div className="flex flex-wrap items-center gap-3 p-4 rounded-2xl" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+          <input value={newName} onChange={e => setNewName(e.target.value)} placeholder={g.systemNamePlaceholder} aria-label={g.systemName}
+            autoFocus style={{ flex: '2 1 180px', border: '1px solid #E5E7EB', borderRadius: 10, height: 40, padding: '0 12px', fontSize: 14, outline: 'none' }}
             onKeyDown={e => e.key === 'Enter' && createSystem()} />
-          <input value={newAct} onChange={e => setNewAct(e.target.value)} placeholder="Activity (BJJ, Judo…)"
-            style={{ flex: 1, border: '1.5px solid #E5E7EB', borderRadius: 8, padding: '8px 12px', fontSize: 13, outline: 'none' }} />
+          <input value={newAct} onChange={e => setNewAct(e.target.value)} placeholder={g.activityPlaceholder} aria-label={g.activity}
+            style={{ flex: '1 1 120px', border: '1px solid #E5E7EB', borderRadius: 10, height: 40, padding: '0 12px', fontSize: 14, outline: 'none' }} />
           <button onClick={createSystem} disabled={saving || !newName.trim()}
-            style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: '#0870E2', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-            {saving ? '…' : 'Create'}
+            style={{ minHeight: 40, padding: '0 18px', borderRadius: 10, border: 'none', background: '#0870E2', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer', opacity: saving || !newName.trim() ? 0.5 : 1 }}>
+            {saving ? '…' : g.create}
           </button>
-          <button onClick={() => setAdding(false)}
-            style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', cursor: 'pointer' }}>
-            <X size={14} style={{ color: '#9CA3AF' }} />
+          <button onClick={() => setAdding(false)} aria-label={g.cancel}
+            style={{ minHeight: 40, padding: '0 10px', borderRadius: 10, border: 'none', background: 'transparent', cursor: 'pointer' }}>
+            <X size={16} style={{ color: '#6B7280' }} />
           </button>
         </div>
       )}
 
-      {/* Systems list */}
       {loading ? (
-        <p style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</p>
-      ) : systems.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 py-12" style={{ border: '2px dashed #E5E7EB', borderRadius: 16 }}>
-          <Award size={28} style={{ color: '#D1D5DB' }} />
-          <p style={{ fontSize: 14, color: '#9CA3AF', margin: 0 }}>No grading systems yet</p>
-          <button onClick={() => setAdding(true)}
-            style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: '#0870E2', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-            Create first system
-          </button>
+        <p style={{ fontSize: 13, color: '#6B7280' }}>{rt.loading}</p>
+      ) : loadError ? (
+        <p role="alert" style={{ fontSize: 13, color: '#B91C1C', margin: 0 }}>
+          {g.loadError}{' '}
+          <button onClick={load} style={{ color: '#0870E2', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 600 }}>{rt.retry}</button>
+        </p>
+      ) : !selected ? (
+        <div className="flex flex-col items-center gap-3 py-12" style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 18 }}>
+          <Award size={28} style={{ color: '#9CA3AF' }} aria-hidden />
+          <p style={{ fontSize: 15, fontWeight: 600, color: '#111827', margin: 0 }}>{g.emptyTitle}</p>
+          <p style={{ fontSize: 14, color: '#4B5563', margin: 0, textAlign: 'center', maxWidth: 360 }}>{g.emptyBody}</p>
+          <div className="flex flex-wrap justify-center gap-2">
+            <button onClick={() => setShowTemplates(true)}
+              style={{ minHeight: 40, padding: '0 18px', borderRadius: 999, border: 'none', background: '#0870E2', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+              {rt.useTemplate}
+            </button>
+            <button onClick={() => setAdding(true)}
+              style={{ minHeight: 40, padding: '0 18px', borderRadius: 999, border: '1px solid #E5E7EB', background: '#fff', color: '#374151', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+              {g.fromScratch}
+            </button>
+          </div>
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
-          {systems.map(s => (
-            <SystemEditor key={s.id} system={s} onUpdate={updateSystem} onDelete={() => deleteSystem(s.id)}
-              initiallyExpanded={s.id === createdId} />
-          ))}
-        </div>
+        <>
+          <GradingSystemSettings key={selected.id} systemId={selected.id} ranks={selected.ranks} classes={classes}
+            onDirtyChange={setBeltsDirty}
+            onRanksChange={ranks => updateSystem({ ...selected, ranks: ranks as BeltRank[] })} />
+          <SystemEditor key={`sys-${selected.id}`} system={selected} onUpdate={updateSystem} onDelete={() => deleteSystem(selected.id)} />
+        </>
       )}
+
+      <a href="/dashboard/school/gradings" className="flex items-center gap-1 self-start"
+        style={{ fontSize: 14, fontWeight: 500, color: '#0870E2', textDecoration: 'none' }}>
+        {g.historyLink} <ArrowRight size={14} aria-hidden />
+      </a>
     </div>
   )
 }
