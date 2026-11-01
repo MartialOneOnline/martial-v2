@@ -73,7 +73,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   mockCreateUser.mockResolvedValue({ data: { user: { id: 'auth-1' } }, error: null })
   mockDeleteUser.mockResolvedValue({ error: null })
-  mockGenerateLink.mockResolvedValue({ data: { properties: { action_link: 'https://supabase.example/verify?token=abc&type=magiclink' } }, error: null })
+  mockGenerateLink.mockResolvedValue({ data: { properties: { hashed_token: 'abc', verification_type: 'signup' } }, error: null })
   mockSendConfirmEmail.mockResolvedValue({ success: true, emailId: 'email-1' })
   mockUserFindFirst.mockResolvedValue(null)
   mockUserCreate.mockResolvedValue({ id: 'user-1' })
@@ -103,9 +103,9 @@ describe('POST /api/auth/register — unconfirmed by default, no auto-login', ()
   it('school: confirmation link always points at /onboarding/school, ignoring any client redirect', async () => {
     await POST(postRequest({ ...schoolBody, redirect: '/my/events' }))
 
-    const call = mockGenerateLink.mock.calls[0]![0]
-    expect(call.options.redirectTo).toContain(encodeURIComponent('/onboarding/school'))
-    expect(call.options.redirectTo).not.toContain(encodeURIComponent('/my/events'))
+    const confirmUrl: string = mockSendConfirmEmail.mock.calls[0]![0].confirmUrl
+    expect(confirmUrl).toContain(encodeURIComponent('/onboarding/school'))
+    expect(confirmUrl).not.toContain(encodeURIComponent('/my/events'))
   })
 
   it('propagates lang through to sendConfirmEmail', async () => {
@@ -145,24 +145,24 @@ describe('POST /api/auth/register — ?redirect= preservation', () => {
   it('embeds a sanitized redirect in the confirmation link', async () => {
     await POST(postRequest({ ...studentBody, redirect: '/my/events' }))
 
-    const call = mockGenerateLink.mock.calls[0]![0]
-    expect(call.options.redirectTo).toContain('/auth/confirm?redirect=')
-    expect(call.options.redirectTo).toContain(encodeURIComponent('/my/events'))
+    const confirmUrl: string = mockSendConfirmEmail.mock.calls[0]![0].confirmUrl
+    expect(confirmUrl).toContain('/auth/confirm/verify?token_hash=abc&type=signup&redirect=')
+    expect(confirmUrl).toContain(encodeURIComponent('/my/events'))
   })
 
   it('never trusts the client redirect blindly — an external URL is dropped server-side', async () => {
     await POST(postRequest({ ...studentBody, redirect: 'https://evil.com' }))
 
-    const call = mockGenerateLink.mock.calls[0]![0]
-    expect(call.options.redirectTo).not.toContain('evil.com')
-    expect(call.options.redirectTo).not.toContain('redirect=')
+    const confirmUrl: string = mockSendConfirmEmail.mock.calls[0]![0].confirmUrl
+    expect(confirmUrl).not.toContain('evil.com')
+    expect(confirmUrl).not.toContain('redirect=')
   })
 
   it('drops a looping redirect back into /auth/**', async () => {
     await POST(postRequest({ ...studentBody, redirect: '/auth/verify-pending' }))
 
-    const call = mockGenerateLink.mock.calls[0]![0]
-    expect(call.options.redirectTo).not.toContain('redirect=')
+    const confirmUrl: string = mockSendConfirmEmail.mock.calls[0]![0].confirmUrl
+    expect(confirmUrl).not.toContain('redirect=')
   })
 })
 
