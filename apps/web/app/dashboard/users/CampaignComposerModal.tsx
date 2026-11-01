@@ -1,5 +1,6 @@
 'use client'
 
+import { useGradingEnabled } from '../../../components/DashboardShell'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { X, Bell, Percent, Award, Sun, Gift, Pencil, ChevronLeft, Send, CheckCircle } from 'lucide-react'
@@ -128,6 +129,8 @@ export default function CampaignComposerModal({ preselectedStudents, campaignId,
     Invited: t.common.invited, Inactive: t.common.inactive, Archived: t.common.archived,
   }
 
+  // No belts module → no "belt progress" campaigns
+  const gradingEnabled = useGradingEnabled() === true
   const TYPE_LABELS: Record<CampaignType, string> = {
     REMINDER: t.campaigns.typeReminder,
     DISCOUNT_OFFER: t.campaigns.typeDiscountOffer,
@@ -329,7 +332,7 @@ export default function CampaignComposerModal({ preselectedStudents, campaignId,
             <div>
               <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 10 }}>{t.campaigns.chooseContentType}</p>
               <div className="grid grid-cols-3 gap-2" style={{ marginBottom: 18 }}>
-                {(Object.keys(TYPE_LABELS) as CampaignType[]).map(ct => {
+                {(Object.keys(TYPE_LABELS) as CampaignType[]).filter(ct => ct !== 'BELT_PROGRESS' || gradingEnabled).map(ct => {
                   const Icon = TYPE_ICONS[ct]
                   const selected = type === ct
                   return (

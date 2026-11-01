@@ -2,15 +2,20 @@
 
 import { createContext, useContext, useState, useEffect } from 'react'
 import DashboardSidebar from './DashboardSidebar'
+import { useSchoolContext } from '../lib/auth/useSchoolContext'
 
 const SIDEBAR_COLLAPSED_KEY = 'dashboard-sidebar-collapsed'
 
 // ── Context ────────────────────────────────────────────────────────────────────
+type SchoolCtx = ReturnType<typeof useSchoolContext>
+
 interface DashboardCtx {
   menuOpen: boolean
   setMenuOpen: (v: boolean) => void
   collapsed: boolean
   setCollapsed: (v: boolean) => void
+  /** The signed-in user's school context, fetched once for the whole dashboard */
+  school: SchoolCtx | null
 }
 
 const DashboardContext = createContext<DashboardCtx>({
@@ -18,16 +23,29 @@ const DashboardContext = createContext<DashboardCtx>({
   setMenuOpen: () => {},
   collapsed: false,
   setCollapsed: () => {},
+  school: null,
 })
 
 export function useDashboard() {
   return useContext(DashboardContext)
 }
 
+/**
+ * Belts & gradings module for the current school: true / false, or null while
+ * it's still loading — callers render nothing then, so a school without belts
+ * never sees them flash in, and one with belts doesn't see them flash out.
+ */
+export function useGradingEnabled(): boolean | null {
+  const { school } = useContext(DashboardContext)
+  if (!school || school.loading) return null
+  return school.currentSchool?.gradingEnabled ?? false
+}
+
 // ── Shell ──────────────────────────────────────────────────────────────────────
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [collapsed, setCollapsedState] = useState(false)
+  const school = useSchoolContext()
 
   useEffect(() => {
     setCollapsedState(localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1')
@@ -39,7 +57,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   }
 
   return (
-    <DashboardContext.Provider value={{ menuOpen, setMenuOpen, collapsed, setCollapsed }}>
+    <DashboardContext.Provider value={{ menuOpen, setMenuOpen, collapsed, setCollapsed, school }}>
       <div
         className="min-h-screen flex"
         style={{
@@ -50,7 +68,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       >
         <style>{`@media (min-width: 768px) { .dashboard-content { margin-left: var(--sidebar-width); transition: margin-left 0.2s ease; } }`}</style>
 
-        <DashboardSidebar menuOpen={menuOpen} setMenuOpen={setMenuOpen} collapsed={collapsed} setCollapsed={setCollapsed} />
+        <DashboardSidebar menuOpen={menuOpen} setMenuOpen={setMenuOpen} collapsed={collapsed} setCollapsed={setCollapsed} school={school} />
 
         {/* Main content — offset by sidebar width on desktop/tablet */}
         <div className="dashboard-content flex flex-1 min-w-0">

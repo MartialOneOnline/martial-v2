@@ -1,6 +1,6 @@
 'use client'
 
-import { useDashboard } from '../../../../components/DashboardShell'
+import { useDashboard, useGradingEnabled } from '../../../../components/DashboardShell'
 import NotificationBell from '../../../../components/NotificationBell'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
@@ -148,6 +148,7 @@ type NavItem = {
 function ClassPopup({ slot, date, onClose, onDeleted }: {
   slot: ClassSlot; date: Date; onClose: () => void; onDeleted: (classId: string) => void
 }) {
+  const gradingEnabled = useGradingEnabled() === true
   const t = useT()
   const router = useRouter()
   const colors = ACTIVITY_COLORS[slot.activity] ?? ACTIVITY_COLORS['Open Mat']!
@@ -291,7 +292,7 @@ function ClassPopup({ slot, date, onClose, onDeleted }: {
                     <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</p>
                     <div className="flex items-center gap-2 mt-1">
                       {/* Belt image */}
-                      {s.belt && (
+                      {gradingEnabled && s.belt && (
                         <img src={beltImg} alt={s.belt} style={{ height: 10, width: 48, objectFit: 'cover', borderRadius: 2 }} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
                       )}
                       {/* Membership status */}

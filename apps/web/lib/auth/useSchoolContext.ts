@@ -52,6 +52,12 @@ export function useSchoolContext() {
     if (res.ok) setData(await res.json())
   }
 
+  // Re-read after a settings change that affects the context (e.g. modules)
+  const refresh = async () => {
+    const res = await fetch('/api/auth/me')
+    if (res.ok) setData(await res.json())
+  }
+
   return {
     loading,
     user: data?.user ?? null,
@@ -59,5 +65,6 @@ export function useSchoolContext() {
     schools: data?.contexts.schools ?? [],
     currentSchool,
     switchSchool,
+    refresh,
   }
 }

@@ -139,6 +139,14 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 - Criterios: semanas lunes–domingo en la zona horaria del colegio; la semana en curso por debajo del mínimo queda "pendiente" (no perdida); una clase cuenta desde el día en que su semana alcanza el mínimo (afecta a `earnedAt`/"le toca desde"); ya no existe el bloqueo `FREQUENCY`; avisos en ficha e informe (máximo, semanas por debajo, semana en curso) en EN/ES/PT/FR.
 - No verificado: navegador y datos reales.
 
+### Lote K — Módulo "Cinturones y graduaciones" (rama `claude/grading-module`)
+
+- Estado: entregado por Claude, **pendiente de auditoría**. Sin migración (vive en `School.modules`).
+- Pedido del usuario (2026-11-01): una escuela de boxeo no tiene cinturones, y una de BJJ puede no querer usarlos. Antes el portal /my ya lo respetaba (sin sistema → sin "Progreso"), pero el dashboard mostraba cinturones y graduaciones siempre.
+- Criterios: interruptor en Settings → Modules; valor inicial = activado si la escuela ya tiene un sistema de grados activo (RGM no nota nada), desactivado si no; un guardado que no envía `grading` no lo apaga (`mergeSchoolModules`); con el módulo apagado desaparece todo lo de cinturones del dashboard y de /my, sin borrar datos; enlaces directos a páginas de graduación muestran un estado "desactivado" con enlace a Módulos; el formulario de staff ya no exige cinturón si el módulo está apagado; textos nuevos en EN/ES/PT/FR.
+- Superficies: menú (School → Gradings, Reports → Gradings), Settings (pestaña Grading + interruptor), ficha del alumno (insignia, Belt & Progress, Attendance & grading, editor), lista de alumnos (columna, filtro, alta, importación, CSV), informe de alumnos (gráfico, filtro, columna, CSV), pagos y suscripciones (filtro, insignia, CSV), staff (campo y columna), calendario/horario (cinturón de asistentes), campañas (tipo "Belt progress"), /my (tarjeta y estadística de cinturón, perfil, asistentes de clase vía API).
+- No verificado: navegador y datos reales.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.

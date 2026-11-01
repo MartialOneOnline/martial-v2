@@ -8,9 +8,10 @@ import {
   Trash2, AlertTriangle,
   RefreshCw,
   ChevronDown, CreditCard, Award, ArrowRight,
-  ChevronUp, Edit2,
+  ChevronUp, Edit2, Info,
 } from 'lucide-react'
-import { useDashboard } from '../../../components/DashboardShell'
+import { useDashboard, useGradingEnabled } from '../../../components/DashboardShell'
+import { GradingOffCard, offActionStyle } from '../../../components/grading/GradingModuleGate'
 import NotificationBell from '../../../components/NotificationBell'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../lib/format'
@@ -566,8 +567,14 @@ function SchoolTab() {
 }
 
 // ── Modules Tab ───────────────────────────────────────────────────────────────
-function ModulesTab() {
-  const [modules, setModules] = useState({ store: false, curriculum: false, news: false, music: false, timer: false })
+function ModulesTab({ onOpenGrading }: { onOpenGrading: () => void }) {
+  const t = useT()
+  const gm = t.gradingModule
+  const { school } = useDashboard()
+  const [modules, setModules] = useState({ store: false, curriculum: false, news: false, music: false, timer: false, grading: false })
+  // What's saved — the "will be hidden" note and the setup prompt compare against it
+  const [savedGrading, setSavedGrading] = useState(false)
+  const [gradingSystems, setGradingSystems] = useState(0)
   const [loading, setLoading] = useState(true)
   const [saving,  setSaving]  = useState(false)
   const [saved,   setSaved]   = useState(false)
@@ -575,7 +582,11 @@ function ModulesTab() {
 
   useEffect(() => {
     fetch('/api/dashboard/school').then(r => r.json()).then(d => {
-      if (d.school?.modules) setModules(d.school.modules)
+      if (d.school?.modules) {
+        setModules(d.school.modules)
+        setSavedGrading(!!d.school.modules.grading)
+      }
+      setGradingSystems(d.school?.activeGradingSystems ?? 0)
     }).finally(() => setLoading(false))
   }, [])
 
@@ -586,12 +597,20 @@ function ModulesTab() {
   async function save() {
     setSaving(true); setError('')
     const res = await fetch('/api/dashboard/school', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ modules }) })
+    if (!res.ok) { setSaving(false); setError('Error saving'); return }
+    const d = await res.json().catch(() => null)
+    if (d?.school?.modules) setModules(d.school.modules)
+    setSavedGrading(!!(d?.school?.modules?.grading ?? modules.grading))
+    // The sidebar and the Grading tab follow the module — refresh the shared context
+    await school?.refresh()
     setSaving(false)
-    if (!res.ok) { setError('Error saving'); return }
     setSaved(true); setTimeout(() => setSaved(false), 2500)
   }
 
   if (loading) return <p style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</p>
+
+  const turningOff = savedGrading && !modules.grading
+  const needsSetup = savedGrading && modules.grading && gradingSystems === 0
 
   return (
     <div className="flex flex-col gap-4" style={{ maxWidth: 560 }}>
@@ -601,6 +620,24 @@ function ModulesTab() {
       </div>
 
       <div>
+        <ToggleRow label={gm.label} description={gm.desc}
+          value={modules.grading} onChange={v => set('grading', v)} />
+        {turningOff && (
+          <p role="status" className="flex items-start gap-2"
+            style={{ fontSize: 13, color: '#92400E', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10, padding: '10px 12px', margin: '12px 0 4px' }}>
+            <Info size={14} style={{ flexShrink: 0, marginTop: 2 }} /> {gm.offNote}
+          </p>
+        )}
+        {needsSetup && (
+          <div className="flex items-center justify-between gap-3 flex-wrap"
+            style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 10, padding: '10px 12px', margin: '12px 0 4px' }}>
+            <p style={{ fontSize: 13, color: '#1E3A8A', margin: 0, flex: '1 1 220px' }}>{gm.setupHint}</p>
+            <button onClick={onOpenGrading}
+              style={{ padding: '7px 14px', borderRadius: 999, border: 'none', background: '#0870E2', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              {gm.setupCta} →
+            </button>
+          </div>
+        )}
         <ToggleRow label="Store" description="Let members buy gear, uniforms and merchandise from your academy."
           value={modules.store} onChange={v => set('store', v)} />
         <ToggleRow label="Curriculum" description="Share belt-by-belt technique videos and lesson plans with your students."
@@ -625,6 +662,12 @@ function ModulesTab() {
       <SaveToast show={saved} text="Modules saved" />
     </div>
   )
+}
+
+/** Shown on the Grading tab (deep link) when the school doesn't use belts */
+function GradingOffState({ onOpenModules }: { onOpenModules: () => void }) {
+  const gm = useT().gradingModule
+  return <GradingOffCard action={<button onClick={onOpenModules} style={offActionStyle}>{gm.offAction}</button>} />
 }
 
 // ── Staff Tab ─────────────────────────────────────────────────────────────────
@@ -2198,6 +2241,7 @@ const TABS: { id: TabId; label: string; danger?: boolean }[] = [
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function SettingsClient() {
   const { menuOpen, setMenuOpen } = useDashboard()
+  const gradingEnabled = useGradingEnabled()
   const t = useT()
   const searchParams = useSearchParams()
   const tabParam = searchParams.get('tab')
@@ -2208,12 +2252,14 @@ export default function SettingsClient() {
   const content: Record<TabId, React.ReactNode> = {
     profile:    <ProfileTab />,
     school:     <SchoolTab />,
-    modules:    <ModulesTab />,
+    modules:    <ModulesTab onOpenGrading={() => setActiveTab('grading')} />,
     staff:      <StaffTab />,
     staffRoles: <StaffRolesTab />,
     payments:   <PaymentsTab />,
     billing:    <BillingTab />,
-    grading:    <GradingTab />,
+    grading:    gradingEnabled === null
+      ? <p style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</p>
+      : gradingEnabled ? <GradingTab /> : <GradingOffState onOpenModules={() => setActiveTab('modules')} />,
     password:   <PasswordTab />,
     delete:     <DeleteTab />,
   }
@@ -2245,7 +2291,7 @@ export default function SettingsClient() {
         {/* Pill tabs */}
         <div className="flex items-center gap-1 overflow-x-auto"
           style={{ background: '#F3F4F6', padding: 4, borderRadius: 12, width: 'fit-content' }}>
-          {TABS.map(tab => {
+          {TABS.filter(tab => tab.id !== 'grading' || gradingEnabled === true || activeTab === 'grading').map(tab => {
             const isActive = activeTab === tab.id
             return (
               <button key={tab.id} onClick={() => setActiveTab(tab.id)}

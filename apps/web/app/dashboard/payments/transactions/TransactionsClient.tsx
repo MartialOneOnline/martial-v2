@@ -7,7 +7,7 @@ import {
   CreditCard, Banknote, Building2, Landmark, TrendingUp, TrendingDown,
   LayoutList, Eye, MoreHorizontal, Trash2, Flag, Pencil,
 } from 'lucide-react'
-import { useDashboard } from '../../../../components/DashboardShell'
+import { useDashboard, useGradingEnabled } from '../../../../components/DashboardShell'
 import NotificationBell from '../../../../components/NotificationBell'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../../lib/format'
@@ -164,6 +164,7 @@ function FiltersPanel({ filters, onChange }: {
   filters: FiltersState
   onChange: (f: FiltersState) => void
 }) {
+  const gradingEnabled = useGradingEnabled() === true
   const [local, setLocal] = useState<FiltersState>(filters)
 
   useEffect(() => { setLocal(filters) }, [filters])
@@ -235,7 +236,7 @@ function FiltersPanel({ filters, onChange }: {
             </div>
 
             {/* Belt */}
-            <div style={{ marginBottom: 16 }}>
+            {gradingEnabled && <div style={{ marginBottom: 16 }}>
               <span style={sectionLabel}>Belt</span>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 <button onClick={() => setLocal(p => ({ ...p, belt: '' }))}
@@ -259,7 +260,7 @@ function FiltersPanel({ filters, onChange }: {
                   )
                 })}
               </div>
-            </div>
+            </div>}
 
             {/* Method */}
             <div style={{ marginBottom: 16 }}>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser } from '@/lib/auth/server'
+import { isGradingEnabled } from '@/lib/school-modules'
 
 // Read-only roster for a single class occurrence, visible to any student in
 // the class's school (not just staff) — this is the "who's coming" list
@@ -19,7 +20,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ clas
     return NextResponse.json({ error: 'scheduledAt required' }, { status: 400 })
   }
 
-  const cls = await prisma.class.findUnique({ where: { id: classId }, select: { id: true, schoolId: true } })
+  const cls = await prisma.class.findUnique({
+    where: { id: classId },
+    select: { id: true, schoolId: true, school: { select: { modules: true, _count: { select: { gradingSystems: { where: { isActive: true } } } } } } },
+  })
   if (!cls) return NextResponse.json({ error: 'Class not found' }, { status: 404 })
 
   const member = await prisma.schoolMember.findFirst({
@@ -48,6 +52,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ clas
     take: 100,
   })
 
+  // A school without the belts module shows no belts (Settings → Modules)
+  const showBelts = isGradingEnabled(cls.school.modules, cls.school._count.gradingSystems)
   return NextResponse.json({
     attendees: bookings.map(b => {
       const m = b.user?.schoolMembers?.[0]
@@ -55,8 +61,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ clas
         id: b.id,
         name: b.user?.name ?? '—',
         avatarUrl: b.user?.avatarUrl ?? null,
-        belt: m?.belt ?? null,
-        beltDegree: m?.beltDegree ?? 0,
+        belt: showBelts ? (m?.belt ?? null) : null,
+        beltDegree: showBelts ? (m?.beltDegree ?? 0) : 0,
       }
     }),
   })

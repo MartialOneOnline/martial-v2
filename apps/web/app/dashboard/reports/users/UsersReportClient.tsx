@@ -1,6 +1,6 @@
 'use client'
 
-import { useDashboard } from '../../../../components/DashboardShell'
+import { useDashboard, useGradingEnabled } from '../../../../components/DashboardShell'
 import NotificationBell from '../../../../components/NotificationBell'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Menu, Search, ChevronLeft, ChevronRight, Filter, MoreVertical, Download, Phone, MessageCircle, Mail, Send, X } from 'lucide-react'
@@ -225,6 +225,7 @@ interface ReportData {
 }
 
 export default function UsersReportClient({ initialFilters = EMPTY_FILTERS }: { initialFilters?: FiltersState }) {
+  const gradingEnabled = useGradingEnabled() === true
   const { setMenuOpen } = useDashboard()
   const t = useT()
   const { locale } = useLanguage()
@@ -329,10 +330,10 @@ export default function UsersReportClient({ initialFilters = EMPTY_FILTERS }: { 
   }
 
   function exportMembers(list: MemberRow[]) {
-    const headers = [r.usersColMember, 'Email', 'Phone', r.usersColBelt, r.usersColDegree, r.usersColPlan, r.usersColStatus,
+    const headers = [r.usersColMember, 'Email', 'Phone', ...(gradingEnabled ? [r.usersColBelt, r.usersColDegree] : []), r.usersColPlan, r.usersColStatus,
       r.usersColWithUs, r.usersColClasses, r.usersColLastClass, r.usersColLastPayment]
     const rows = list.map(m => [
-      m.name, m.email, m.phone ?? '', m.belt, m.beltDegree, m.plan, STATUS_STYLES[m.status]?.label ?? m.status,
+      m.name, m.email, m.phone ?? '', ...(gradingEnabled ? [m.belt, m.beltDegree] : []), m.plan, STATUS_STYLES[m.status]?.label ?? m.status,
       m.firstMonth ? `${m.firstMonth} (${m.monthsActive})` : fmtDate(m.joinedAt), m.classes,
       m.lastAttendedAt ? fmtDate(m.lastAttendedAt) : '',
       m.lastPayment ? `${fmtDate(m.lastPayment.date)} ${fmtPrice(m.lastPayment.amount, m.lastPayment.currency)}` : '',
@@ -535,7 +536,7 @@ export default function UsersReportClient({ initialFilters = EMPTY_FILTERS }: { 
           ))}
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <div className={`grid grid-cols-1 ${gradingEnabled ? 'xl:grid-cols-2' : ''} gap-4`}>
           <div className="rounded-2xl p-5" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
             <div className="flex items-baseline justify-between" style={{ marginBottom: 16 }}>
               <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{r.usersMonthlyChart}</p>
@@ -566,6 +567,7 @@ export default function UsersReportClient({ initialFilters = EMPTY_FILTERS }: { 
               <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 8 }}>{r.usersProvisionalNote.replace('{m}', fmtMonth(provisionalMonth, true))}</p>
             )}
           </div>
+          {gradingEnabled && (
           <div className="rounded-2xl p-5" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
             <div className="flex items-baseline justify-between gap-2 flex-wrap" style={{ marginBottom: 16 }}>
               <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{r.usersBeltChart}</p>
@@ -613,6 +615,7 @@ export default function UsersReportClient({ initialFilters = EMPTY_FILTERS }: { 
               )
             })()}
           </div>
+          )}
         </div>
 
         {/* Monthly breakdown */}
@@ -788,7 +791,7 @@ export default function UsersReportClient({ initialFilters = EMPTY_FILTERS }: { 
               </select>
             )}
             <div style={{ marginLeft: 'auto' }}>
-              <FiltersPanel filters={filters} onChange={f => { setFilters(f); setPage(1) }} options={data?.beltOptions ?? []} r={r} />
+              {gradingEnabled && <FiltersPanel filters={filters} onChange={f => { setFilters(f); setPage(1) }} options={data?.beltOptions ?? []} r={r} />}
             </div>
           </div>
 
@@ -876,7 +879,7 @@ export default function UsersReportClient({ initialFilters = EMPTY_FILTERS }: { 
                         onChange={e => togglePage(list, e.target.checked)} style={{ cursor: 'pointer' }} />
                     })()}
                   </th>
-                  {[r.usersColMember, r.usersColBelt, r.usersColPlan, r.usersColWithUs, r.usersColLastClass, r.usersColClasses, r.usersColLastPayment, r.usersColStatus, ''].map((h, i) => (
+                  {[r.usersColMember, ...(gradingEnabled ? [r.usersColBelt] : []), r.usersColPlan, r.usersColWithUs, r.usersColLastClass, r.usersColClasses, r.usersColLastPayment, r.usersColStatus, ''].map((h, i) => (
                     <th key={h || i} className="px-4 py-3 text-left"
                       style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
                       {h}
@@ -926,7 +929,7 @@ export default function UsersReportClient({ initialFilters = EMPTY_FILTERS }: { 
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3">
+                        {gradingEnabled && <td className="px-4 py-3">
                           {m.beltKey === NO_BELT_KEY ? <span style={{ fontSize: 12, color: '#D1D5DB' }}>—</span> : (
                             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
                               <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 999, ...beltChipStyle(m.belt, m.beltColor) }}>
@@ -941,7 +944,7 @@ export default function UsersReportClient({ initialFilters = EMPTY_FILTERS }: { 
                               )}
                             </span>
                           )}
-                        </td>
+                        </td>}
                         <td className="px-4 py-3"><span style={{ fontSize: 12, color: '#6B7280' }}>{m.plan}</span></td>
                         <td className="px-4 py-3" style={{ whiteSpace: 'nowrap' }}>
                           {m.firstMonth ? (

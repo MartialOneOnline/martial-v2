@@ -745,6 +745,16 @@ export const translations = {
     },
 
     // ── Settings ───────────────────────────────────────────────────────────────
+    gradingModule: {
+      label: 'Belts & gradings',
+      desc: 'Belts, stripes, grading readiness and the gradings report. Turn it off for disciplines without belts, like boxing or fitness.',
+      offNote: 'Belts and gradings will be hidden for your team and your students. Nothing is deleted — turn it back on anytime and everything is still there.',
+      setupCta: 'Set up your belts',
+      setupHint: 'Belts & gradings is on. Pick a template or create your belt system to start.',
+      offTitle: 'Belts & gradings is turned off',
+      offBody: 'Turn it on in Settings → Modules to track belts, stripes and who is due for a grading.',
+      offAction: 'Go to Modules',
+    },
     settings: {
       title: 'Settings', subtitle: 'Manage your academy profile and preferences',
       tabGeneral: 'General', tabProfile: 'Profile', tabBilling: 'Billing', tabTeam: 'Team',
@@ -1735,6 +1745,16 @@ export const translations = {
       noData: 'No hay datos disponibles', dateRange: 'Rango de Fechas', last7Days: 'Últimos 7 días',
       last30Days: 'Últimos 30 días', last90Days: 'Últimos 90 días', lastYear: 'Último año',
     },
+    gradingModule: {
+      label: 'Cinturones y graduaciones',
+      desc: 'Cinturones, grados, preparación para graduar y el informe de graduaciones. Desactívalo en disciplinas sin cinturones, como boxeo o fitness.',
+      offNote: 'Los cinturones y las graduaciones se ocultarán para tu equipo y tus alumnos. No se borra nada: si lo vuelves a activar, todo seguirá ahí.',
+      setupCta: 'Configurar cinturones',
+      setupHint: 'Cinturones y graduaciones está activado. Elige una plantilla o crea tu sistema de cinturones para empezar.',
+      offTitle: 'Cinturones y graduaciones está desactivado',
+      offBody: 'Actívalo en Ajustes → Módulos para llevar cinturones, grados y quién está listo para graduar.',
+      offAction: 'Ir a Módulos',
+    },
     settings: {
       title: 'Configuración', subtitle: 'Gestiona el perfil y las preferencias de tu academia',
       tabGeneral: 'General', tabProfile: 'Perfil', tabBilling: 'Facturación', tabTeam: 'Equipo',
@@ -2705,6 +2725,16 @@ export const translations = {
       noData: 'Nenhum dado disponível', dateRange: 'Intervalo de Datas', last7Days: 'Últimos 7 dias',
       last30Days: 'Últimos 30 dias', last90Days: 'Últimos 90 dias', lastYear: 'Último ano',
     },
+    gradingModule: {
+      label: 'Faixas e graduações',
+      desc: 'Faixas, graus, prontidão para graduar e o relatório de graduações. Desative em modalidades sem faixas, como boxe ou fitness.',
+      offNote: 'As faixas e graduações ficarão ocultas para a sua equipa e os seus alunos. Nada é apagado: se voltar a ativar, tudo continua lá.',
+      setupCta: 'Configurar faixas',
+      setupHint: 'Faixas e graduações está ativado. Escolha um modelo ou crie o seu sistema de faixas para começar.',
+      offTitle: 'Faixas e graduações está desativado',
+      offBody: 'Ative em Configurações → Módulos para acompanhar faixas, graus e quem está pronto para graduar.',
+      offAction: 'Ir para Módulos',
+    },
     settings: {
       title: 'Configurações', subtitle: 'Gerencie o perfil e as preferências da sua academia',
       tabGeneral: 'Geral', tabProfile: 'Perfil', tabBilling: 'Cobrança', tabTeam: 'Equipe',
@@ -3674,6 +3704,16 @@ export const translations = {
       totalAbsent: 'Total des Absents', newMembers: 'Nouveaux Membres', churnedMembers: 'Désabonnés',
       noData: 'Aucune donnée disponible', dateRange: 'Plage de Dates', last7Days: '7 derniers jours',
       last30Days: '30 derniers jours', last90Days: '90 derniers jours', lastYear: 'Année dernière',
+    },
+    gradingModule: {
+      label: 'Ceintures et passages de grade',
+      desc: 'Ceintures, barrettes, préparation aux passages de grade et le rapport des passages. Désactivez-le pour les disciplines sans ceintures, comme la boxe ou le fitness.',
+      offNote: 'Les ceintures et les passages de grade seront masqués pour votre équipe et vos élèves. Rien n’est supprimé : réactivez-le à tout moment et tout sera toujours là.',
+      setupCta: 'Configurer les ceintures',
+      setupHint: 'Ceintures et passages de grade est activé. Choisissez un modèle ou créez votre système de ceintures pour commencer.',
+      offTitle: 'Ceintures et passages de grade est désactivé',
+      offBody: 'Activez-le dans Paramètres → Modules pour suivre les ceintures, les barrettes et qui est prêt pour un passage de grade.',
+      offAction: 'Aller aux modules',
     },
     settings: {
       title: 'Paramètres', subtitle: 'Gérez le profil et les préférences de votre académie',

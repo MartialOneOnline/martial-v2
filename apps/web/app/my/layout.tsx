@@ -87,8 +87,9 @@ export default async function MyLayout({ children }: { children: React.ReactNode
   const initialSchool = rawSchool && {
     name: rawSchool.name,
     logoUrl: rawSchool.logoUrl,
-    modules: getSchoolModules(rawSchool.modules),
-    hasGrading: rawSchool._count.gradingSystems > 0,
+    modules: getSchoolModules(rawSchool.modules, { activeGradingSystems: rawSchool._count.gradingSystems }),
+    // Belts module on AND a system to grade against
+    hasGrading: rawSchool._count.gradingSystems > 0 && getSchoolModules(rawSchool.modules, { activeGradingSystems: rawSchool._count.gradingSystems }).grading,
   }
 
   return <MyShell initialSchool={initialSchool ?? null}>{children}</MyShell>

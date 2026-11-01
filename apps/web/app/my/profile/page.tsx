@@ -23,7 +23,7 @@ type Profile = {
   avatarUrl: string | null
   memberships: { status: string; planName: string; school: { modules?: Record<SchoolModuleKey, boolean> } }[]
   bookings: unknown[]
-  schoolMembers: { belt: string | null; beltDegree: number | null; school: { modules?: Record<SchoolModuleKey, boolean> } }[]
+  schoolMembers: { belt: string | null; beltDegree: number | null; school: { modules?: Record<SchoolModuleKey, boolean>; hasGrading?: boolean } }[]
   gradings: unknown[]
 }
 
@@ -143,6 +143,8 @@ export default function MyProfilePage() {
   const totalClasses    = profile?.bookings?.length ?? 0
   const member          = profile?.schoolMembers?.[0]
   const beltImg         = member?.belt ? getBeltImage(member.belt, member.beltDegree ?? 0) : null
+  // Belts & gradings module of the student's school — off: no belt tile
+  const gradingOn       = !!member?.school.hasGrading
   const schoolModules   = activePlan?.school.modules ?? member?.school.modules
   const menu            = getMenu(t)
     .map(section => ({ ...section, items: section.items.filter(item => !item.moduleKey || schoolModules?.[item.moduleKey]) }))
@@ -244,15 +246,15 @@ export default function MyProfilePage() {
           </div>
 
           {/* Belt + stats row */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="rounded-xl p-3 text-center" style={{ background: '#F2F2F7' }}>
+          <div className={`grid ${gradingOn ? 'grid-cols-3' : 'grid-cols-2'} gap-3`}>
+            {gradingOn && <div className="rounded-xl p-3 text-center" style={{ background: '#F2F2F7' }}>
               {beltImg ? (
                 <img src={beltImg} alt={member?.belt ?? ''} className="h-4 w-auto mx-auto mb-1 object-contain" />
               ) : (
                 <p className="text-lg font-semibold mb-1" style={{ color: '#1C1C1E' }}>—</p>
               )}
               <p className="text-[10px]" style={{ color: '#6B6B70' }}>{t.my.currentBelt}</p>
-            </div>
+            </div>}
             <Link href="/my/classes" className="rounded-xl p-3 text-center" style={{ background: '#F2F2F7' }}>
               <p className="text-lg font-semibold mb-1" style={{ color: '#1C1C1E' }}>{totalClasses}</p>
               <p className="text-[10px]" style={{ color: '#6B6B70' }}>{t.my.myClasses}</p>

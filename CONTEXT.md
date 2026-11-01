@@ -271,6 +271,15 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
+### Sesión — 2026-11-01 (h) (rama `claude/grading-module` — pendiente de auditoría; sin migración)
+
+**"Cinturones y graduaciones" pasa a ser un módulo de la escuela** (Settings → Modules). Pedido del usuario: el sistema de grados depende de si la escuela lo usa (boxeo no; un BJJ puede no querer).
+- `lib/school-modules.ts`: nueva clave `grading`. Sin valor guardado, vale `true` si la escuela tiene algún sistema de grados activo (RGM y demás no notan el cambio) y `false` si no. `mergeSchoolModules()` en el PATCH de `/api/dashboard/school`: una clave que no llega conserva su valor (un cliente antiguo no puede apagar grading por omisión). `isGradingEnabled(modules, activeSystems)`.
+- Contexto compartido: `SchoolContext.gradingEnabled` (`lib/auth/contexts.ts`); `DashboardShell` llama a `useSchoolContext()` una vez y lo reparte (`useDashboard().school`, `useGradingEnabled()` → true/false/null mientras carga; la barra lateral y `DashboardClient` ya no hacen su propio fetch). `useSchoolContext().refresh()` tras guardar módulos.
+- UI: interruptor con aviso al apagar ("se ocultará… no se borra nada") y, si se enciende sin sistema, botón "Configurar cinturones" → pestaña Grading. `components/grading/GradingModuleGate.tsx` envuelve `/dashboard/reports/gradings` y `/dashboard/school/gradings` (estado "desactivado" + enlace a Módulos). Ocultado con el módulo apagado: ver Lote K en `docs/PROJECT-AUDIT.md`. /my: `hasGrading` = módulo encendido Y sistema activo; la API de asistentes de clase devuelve `belt: null`.
+- Textos nuevos `t.gradingModule` en EN/ES/PT/FR (la pestaña Modules sigue con sus textos antiguos en inglés).
+- Tests: `schoolModulesGrading` (7), `myClassAttendeesBelts` (3). Suite 1034 pasan / 55 preexistentes; tsc 0; eslint sin avisos en líneas tocadas.
+
 ### Sesión — 2026-11-01 (g) (rama `claude/grading-weekly-count`, PR [#44](https://github.com/MartialOneOnline/martial-v2/pull/44) — `APROBADO CON PENDIENTES` en `d8582b7` (1 P3 de textos) → **`APROBADO CON PENDIENTES`** en `c06bd82`, sin hallazgos abiertos; sin migración; pendiente: sesión autenticada con datos reales)
 
 **Frecuencia de graduación = contabilidad de clases, no media.** Caso Rafa (RGM, Blanco mín. 2 / máx. — por semana): con una media salía 6/8 "casi listo" en 12 días. Decisión del usuario: mín. 2 y máx. 2, y "esa semana no cuenta" si no llega al mínimo.

@@ -5,7 +5,7 @@ import {
   Menu, X, Search, Check, TrendingUp,
   MoreHorizontal, Eye, Plus, Users, Award,
 } from 'lucide-react'
-import { useDashboard } from '../../../../components/DashboardShell'
+import { useDashboard, useGradingEnabled } from '../../../../components/DashboardShell'
 import NotificationBell from '../../../../components/NotificationBell'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import RowMenu from '../../../../components/RowMenu'
@@ -76,6 +76,7 @@ const STATUS_MAP: Record<StaffStatus, { bg: string; color: string; border: strin
 }
 
 function AddStaffDrawer({ open, onClose, onSuccess, members, roleOptions }: { open: boolean; onClose: () => void; onSuccess: () => void; members: MemberOption[]; roleOptions: RoleOption[] }) {
+  const gradingEnabled = useGradingEnabled() === true
   const [mode, setMode]                     = useState<'existing' | 'new'>('existing')
   const [memberQuery, setMemberQuery]       = useState('')
   const [selectedMember, setSelectedMember] = useState<MemberOption | null>(null)
@@ -123,7 +124,8 @@ function AddStaffDrawer({ open, onClose, onSuccess, members, roleOptions }: { op
     reset(); onSuccess()
   }
 
-  const canSubmit = !!selectedRole && belt && startDate && !saving && (
+  // No belts module (e.g. boxing) → belt isn't asked for
+  const canSubmit = !!selectedRole && (belt || !gradingEnabled) && startDate && !saving && (
     mode === 'existing' ? !!selectedMember : newName.trim() && (!invite || newEmail.trim())
   )
 
@@ -263,7 +265,7 @@ function AddStaffDrawer({ open, onClose, onSuccess, members, roleOptions }: { op
                 ))}
               </select>
             </div>
-            <div>
+            {gradingEnabled && <div>
               <label style={labelStyle}>Belt</label>
               <select value={belt} onChange={e => setBelt(e.target.value)} style={inputStyle}>
                 <option value="">Select belt…</option>
@@ -271,7 +273,7 @@ function AddStaffDrawer({ open, onClose, onSuccess, members, roleOptions }: { op
                   <option key={b} value={b}>{b}</option>
                 ))}
               </select>
-            </div>
+            </div>}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -332,6 +334,7 @@ function getPaginationPages(current: number, total: number): (number | '...')[] 
 }
 
 export default function StaffClient() {
+  const gradingEnabled = useGradingEnabled() === true
   const { menuOpen, setMenuOpen } = useDashboard()
   const t = useT()
   const [activeFilter, setActiveFilter] = useState<Filter>('All')
@@ -476,7 +479,7 @@ export default function StaffClient() {
                     {[
                       { label: t.common.member,       cls: '',                     pad: 'px-3 sm:px-5' },
                       { label: t.school.colRole,      cls: 'hidden sm:table-cell', pad: 'px-5' },
-                      { label: 'Belt',                cls: 'hidden sm:table-cell', pad: 'px-5' },
+                      ...(gradingEnabled ? [{ label: 'Belt', cls: 'hidden sm:table-cell', pad: 'px-5' }] : []),
                       { label: t.school.colClasses,   cls: 'hidden lg:table-cell', pad: 'px-5' },
                       { label: t.common.startDate,    cls: 'hidden md:table-cell', pad: 'px-5' },
                       { label: t.common.status,       cls: '',                     pad: 'px-2 sm:px-5' },
@@ -512,14 +515,14 @@ export default function StaffClient() {
                             {member.role}
                           </span>
                         </td>
-                        <td className="hidden sm:table-cell px-5 py-3">
+                        {gradingEnabled && <td className="hidden sm:table-cell px-5 py-3">
                           {member.belt ? (
                             <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999,
                               background: beltc.bg, color: beltc.color }}>
                               {member.belt}
                             </span>
                           ) : <span style={{ fontSize: 11, color: '#9CA3AF' }}>—</span>}
-                        </td>
+                        </td>}
                         <td className="hidden lg:table-cell px-5 py-3">
                           <div className="flex items-center gap-1 flex-wrap">
                             {member.classes.slice(0,2).map(cls => (

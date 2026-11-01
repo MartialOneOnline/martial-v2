@@ -154,7 +154,7 @@ export async function GET() {
     const { _count, ...school } = m.school ?? {}
     return {
       ...m,
-      school: m.school && { ...school, modules: getSchoolModules(m.school.modules), hasGrading: (_count?.gradingSystems ?? 0) > 0 },
+      school: m.school && { ...school, modules: getSchoolModules(m.school.modules, { activeGradingSystems: _count?.gradingSystems ?? 0 }), hasGrading: (_count?.gradingSystems ?? 0) > 0 && getSchoolModules(m.school.modules, { activeGradingSystems: _count?.gradingSystems ?? 0 }).grading },
     }
   })
 
@@ -162,7 +162,7 @@ export async function GET() {
     const { _count, ...school } = sm.school ?? {}
     return {
       ...sm,
-      school: sm.school && { ...school, modules: getSchoolModules(sm.school.modules), hasGrading: (_count?.gradingSystems ?? 0) > 0 },
+      school: sm.school && { ...school, modules: getSchoolModules(sm.school.modules, { activeGradingSystems: _count?.gradingSystems ?? 0 }), hasGrading: (_count?.gradingSystems ?? 0) > 0 && getSchoolModules(sm.school.modules, { activeGradingSystems: _count?.gradingSystems ?? 0 }).grading },
     }
   })
 

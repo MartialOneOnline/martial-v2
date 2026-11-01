@@ -12,7 +12,7 @@ import {
   Megaphone, PanelLeftClose, PanelLeftOpen,
 } from 'lucide-react'
 import { useT } from '../lib/i18n/LanguageContext'
-import { useSchoolContext } from '../lib/auth/useSchoolContext'
+import type { useSchoolContext } from '../lib/auth/useSchoolContext'
 import type { Permission } from '../lib/auth/permissions'
 
 type NavItem = {
@@ -21,7 +21,7 @@ type NavItem = {
   href?: string
   badge?: number
   permission?: Permission
-  children?: { label: string; href: string; permission?: Permission }[]
+  children?: { label: string; href: string; permission?: Permission; grading?: boolean }[]
 }
 
 function NavGroup({
@@ -150,11 +150,13 @@ interface Props {
   setMenuOpen: (v: boolean) => void
   collapsed: boolean
   setCollapsed: (v: boolean) => void
+  /** School context, fetched once by DashboardShell */
+  school: ReturnType<typeof useSchoolContext>
 }
 
-export default function DashboardSidebar({ menuOpen, setMenuOpen, collapsed, setCollapsed }: Props) {
+export default function DashboardSidebar({ menuOpen, setMenuOpen, collapsed, setCollapsed, school }: Props) {
   const router = useRouter()
-  const { currentSchool, schools, switchSchool, isAdmin, loading: ctxLoading } = useSchoolContext()
+  const { currentSchool, schools, switchSchool, isAdmin, loading: ctxLoading } = school
   const [switcherOpen, setSwitcherOpen] = useState(false)
   const [pendingTransactions, setPendingTransactions] = useState(0)
   const t = useT()
@@ -204,11 +206,11 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen, collapsed, set
       { label: t.sidebar.affiliates, href: '/dashboard/school/affiliates', permission: 'school.affiliates.view' },
       { label: t.sidebar.staff,      href: '/dashboard/school/staff', permission: 'school.staff.view' },
       { label: t.sidebar.waivers,    href: '/dashboard/school/waivers', permission: 'school.waivers.manage' },
-      { label: t.sidebar.gradings,   href: '/dashboard/school/gradings', permission: 'school.gradings.manage' },
+      { label: t.sidebar.gradings,   href: '/dashboard/school/gradings', permission: 'school.gradings.manage', grading: true },
     ]},
     { label: t.sidebar.reports,     icon: BarChart2,  children: [
       { label: t.sidebar.bookings, href: '/dashboard/reports/bookings', permission: 'school.analytics.view' },
-      { label: t.sidebar.gradings, href: '/dashboard/reports/gradings', permission: 'school.analytics.view' },
+      { label: t.sidebar.gradings, href: '/dashboard/reports/gradings', permission: 'school.analytics.view', grading: true },
       { label: t.sidebar.payments, href: '/dashboard/reports/payments', permission: 'school.analytics.view' },
       { label: t.sidebar.balance,  href: '/dashboard/reports/balance', permission: 'school.analytics.view' },
       { label: t.sidebar.absents,  href: '/dashboard/reports/absents', permission: 'school.analytics.view' },
@@ -224,7 +226,8 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen, collapsed, set
   const perms = currentSchool?.permissions ?? []
   const can = (p?: Permission) => !p || isAdmin || ctxLoading || perms.includes(p)
   const visibleNavMain = NAV_MAIN
-    .map(item => item.children ? { ...item, children: item.children.filter(c => can(c.permission)) } : item)
+    // Belts & gradings is a module: hidden (also while loading) unless the school uses it
+    .map(item => item.children ? { ...item, children: item.children.filter(c => can(c.permission) && (!c.grading || currentSchool?.gradingEnabled === true)) } : item)
     .filter(item => can(item.permission) && (!item.children || item.children.length > 0))
 
   const NAV_BOTTOM: NavItem[] = [

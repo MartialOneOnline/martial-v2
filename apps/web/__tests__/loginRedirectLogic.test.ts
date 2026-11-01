@@ -56,6 +56,7 @@ function schoolContext(overrides: Partial<SchoolContext> = {}): SchoolContext {
     schoolSlug: 'legacy-school',
     role: 'OWNER',
     permissions: [],
+    gradingEnabled: true,
     ...overrides,
   }
 }
