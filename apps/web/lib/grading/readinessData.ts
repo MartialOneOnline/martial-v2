@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db'
-import { computeReadiness, pickBeltSince, type AttendedClass, type GradingRecord, type RankRules, type Readiness } from './readiness'
+import { schoolTimeZone } from '@/lib/memberActivity'
+import { computeReadiness, pickBeltSince, pickStepSince, type AttendedClass, type GradingRecord, type RankRules, type Readiness } from './readiness'
 
 export interface MemberReadiness {
   memberId: string
@@ -43,12 +44,16 @@ export async function getReadinessForSchool(
   schoolId: string,
   opts: { memberIds?: string[]; includeInactive?: boolean } = {},
 ): Promise<MemberReadiness[]> {
-  const systems = await prisma.gradingSystem.findMany({
+  const [school, systems] = await Promise.all([
+    prisma.school.findUnique({ where: { id: schoolId }, select: { country: true } }),
+    prisma.gradingSystem.findMany({
     where: { schoolId, isActive: true },
     select: { id: true, isDefault: true, createdAt: true, ranks: { select: RANK_SELECT } },
     orderBy: { createdAt: 'asc' },
-  })
+    }),
+  ])
   if (!systems.length) return []
+  const timeZone = schoolTimeZone(school?.country)
 
   const rankById = new Map<string, RankRules & { systemId: string }>()
   for (const s of systems) for (const r of s.ranks) rankById.set(r.id, r)
@@ -121,11 +126,19 @@ export async function getReadinessForSchool(
       : (m.belt ? rankByName.get(m.belt.trim().toLowerCase()) ?? null : null)
     const rank = rankId ? rankById.get(rankId)! : null
     const systemRanks = rank ? [...rankById.values()].filter(r => r.systemId === rank.systemId) : []
-    // "Months since the previous grading" needs a real grading/promotion date.
-    // The join date only works for someone still at the very first grade of
-    // the system — they started there. Otherwise unknown → the rule isn't met.
-    const isFirstGrade = !!rank && (m.beltDegree ?? 0) === 0 && systemRanks.every(r => r.order >= rank.order)
-    const stepSince = laterOf(lastGrading.get(m.userId), m.beltDate) ?? (isFirstGrade ? m.joinedAt : null)
+    // "Months since the previous grading" needs evidence for the current
+    // rank AND degree — see pickStepSince(). Unknown → the rule isn't met.
+    const degree = m.beltDegree ?? 0
+    const beltNames = [rank?.name, m.belt].filter((n): n is string => !!n)
+    const stepSince = pickStepSince({
+      gradings: gradingsByUser.get(m.userId) ?? [],
+      rankId,
+      beltNames,
+      degree,
+      beltDate: m.beltDate,
+      joinedAt: m.joinedAt,
+      isFirstGrade: !!rank && degree === 0 && systemRanks.every(r => r.order >= rank.order),
+    })
 
     const readiness = computeReadiness({
       ranks: systemRanks,
@@ -136,11 +149,12 @@ export async function getReadinessForSchool(
       beltSince: pickBeltSince({
         gradings: gradingsByUser.get(m.userId) ?? [],
         rankId,
-        beltNames: [rank?.name, m.belt].filter((n): n is string => !!n),
+        beltNames,
         beltDate: m.beltDate,
       }),
       dateOfBirth: m.user.dateOfBirth,
       attended: attendedByUser.get(m.userId) ?? [],
+      timeZone,
     })
 
     return {

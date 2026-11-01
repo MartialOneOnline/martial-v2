@@ -22,6 +22,8 @@
 //    week/month don't count toward grading.
 // A rule left blank doesn't apply.
 
+import { civilDateInTz } from '../memberActivity'
+
 export type ReadinessStatus = 'READY' | 'ALMOST_READY' | 'NOT_READY' | 'NO_RULES' | 'TOP_RANK'
 
 /** MONTHS = time at the current belt (next rank's minMonthsAtPrevious); GRADING_MONTHS = since the previous grading */
@@ -99,6 +101,8 @@ export interface ReadinessInput {
   dateOfBirth: Date | null
   attended: AttendedClass[]
   now?: Date
+  /** School IANA timezone, for the week/month of the max-per-period cap. Default UTC. */
+  timeZone?: string
 }
 
 export interface Readiness {
@@ -151,14 +155,7 @@ export function pickBeltSince(input: {
   beltNames: string[]
   beltDate: Date | null
 }): Date | null {
-  const names = input.beltNames.map(n => n.trim().toLowerCase()).filter(Boolean)
-  // Structured identity wins: a record whose FK names another rank never
-  // matches by name (two systems can both have a "White"). Name matching is
-  // only for legacy records without toBeltRankId.
-  const atCurrent = (g: GradingRecord) => {
-    if (g.toBeltRankId && input.rankId) return g.toBeltRankId === input.rankId
-    return names.includes(g.toBelt.trim().toLowerCase())
-  }
+  const atCurrent = landsAtRank(input.rankId, input.beltNames)
   // Only positive evidence counts as a belt change: landing on the plain belt
   // (degree 0/null), or a known origin belt that differs. A stripe with an
   // unknown origin is not one — it only proves the belt was already held.
@@ -171,6 +168,47 @@ export function pickBeltSince(input: {
   if (beltChanges.length) return beltChanges[beltChanges.length - 1]!.gradedAt
   if (here.length) return here[0]!.gradedAt
   return input.beltDate
+}
+
+/**
+ * Whether a grading landed on the given rank. Structured identity wins: a
+ * record whose FK names another rank never matches by name (two systems can
+ * both have a "White"). Name matching is only for legacy records without
+ * toBeltRankId.
+ */
+function landsAtRank(rankId: string | null, beltNames: string[]) {
+  const names = beltNames.map(n => n.trim().toLowerCase()).filter(Boolean)
+  return (g: GradingRecord) => {
+    if (g.toBeltRankId && rankId) return g.toBeltRankId === rankId
+    return names.includes(g.toBelt.trim().toLowerCase())
+  }
+}
+
+/**
+ * Start of "months since the previous grading" — the date the student reached
+ * their CURRENT rank and degree. Only evidence for that exact grade counts:
+ *  1. latest grading that landed on the current rank AND degree
+ *  2. else, at degree 0, member.beltDate (the belt's award date)
+ *  3. else, at the very first grade of the system, the join date (they started there)
+ *  4. else null → unknown, and the time rule counts as not met
+ * A grading at another rank or system never resolves it (Project Audit PR #38 P1).
+ */
+export function pickStepSince(input: {
+  gradings: GradingRecord[]
+  rankId: string | null
+  beltNames: string[]
+  degree: number
+  beltDate: Date | null
+  joinedAt: Date | null
+  isFirstGrade: boolean
+}): Date | null {
+  const atRank = landsAtRank(input.rankId, input.beltNames)
+  const here = input.gradings
+    .filter(g => atRank(g) && (g.toDegree ?? 0) === input.degree)
+    .sort((a, b) => b.gradedAt.getTime() - a.gradedAt.getTime())
+  if (here.length) return here[0]!.gradedAt
+  if (input.degree === 0 && input.beltDate) return input.beltDate
+  return input.isFirstGrade ? input.joinedAt : null
 }
 
 export const ALMOST_READY_THRESHOLD = 75
@@ -197,25 +235,38 @@ function ageAt(dob: Date, at: Date): number {
   return age
 }
 
-/** Week (Monday start) or calendar month bucket, in UTC like the rest of this module */
-function periodKey(d: Date, type: 'WEEK' | 'MONTH'): number {
-  if (type === 'MONTH') return d.getUTCFullYear() * 12 + d.getUTCMonth()
-  const day = (d.getUTCDay() + 6) % 7
-  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - day)
+/**
+ * Week (Monday start) or calendar month of an instant, on the school's local
+ * calendar — a 00:15 Tuesday class in Madrid is 23:15 Monday UTC.
+ */
+function periodKey(d: Date, type: 'WEEK' | 'MONTH', timeZone: string): number {
+  const [y, m, day] = civilDateInTz(d, timeZone).split('-').map(Number) as [number, number, number]
+  if (type === 'MONTH') return y * 12 + (m - 1)
+  const civil = Date.UTC(y, m - 1, day)
+  const sinceMonday = (new Date(civil).getUTCDay() + 6) % 7
+  return civil - sinceMonday * DAY_MS
 }
 
-/** Keeps at most `max` classes per week/month, earliest first. */
-export function capPerPeriod(classes: AttendedClass[], max: number, type: 'WEEK' | 'MONTH'): AttendedClass[] {
+/** Keeps at most `max` classes per week/month (school calendar), earliest first. */
+export function capPerPeriod(classes: AttendedClass[], max: number, type: 'WEEK' | 'MONTH', timeZone = 'UTC'): AttendedClass[] {
   const perPeriod = new Map<number, number>()
   return [...classes]
     .sort((a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime())
     .filter(c => {
-      const k = periodKey(c.scheduledAt, type)
+      const k = periodKey(c.scheduledAt, type, timeZone)
       const n = perPeriod.get(k) ?? 0
       if (n >= max) return false
       perPeriod.set(k, n + 1)
       return true
     })
+}
+
+/** Same instant `months` calendar months earlier, clamped to the month's last day (31 May − 3 → 28/29 Feb, not 3 Mar). */
+function monthsBefore(d: Date, months: number): Date {
+  const first = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() - months, 1))
+  const lastDay = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate()
+  return new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth(), Math.min(d.getUTCDate(), lastDay),
+    d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds(), d.getUTCMilliseconds()))
 }
 
 function positive(v: number | null | undefined): number | null {
@@ -249,7 +300,7 @@ export function computeReadiness(input: ReadinessInput): Readiness {
   const maxPerPeriod = period ? positive(current.maxClassesPerPeriod) : null
   const classCap = maxPerPeriod && period ? { max: maxPerPeriod, periodType: period } : null
   const classesAttended = counted.length
-  const classesSince = classCap ? capPerPeriod(counted, classCap.max, classCap.periodType).length : classesAttended
+  const classesSince = classCap ? capPerPeriod(counted, classCap.max, classCap.periodType, input.timeZone ?? 'UTC').length : classesAttended
   const classCounters = { classesSince, classesAttended, classesOverCap: classesAttended - classesSince, classCap }
 
   // Nothing left to grade — but the attendance count is still real.
@@ -289,15 +340,19 @@ export function computeReadiness(input: ReadinessInput): Readiness {
     const isWeek = period === 'WEEK'
     const windowStart = isWeek
       ? new Date(now.getTime() - FREQUENCY_WINDOW_WEEKS * 7 * DAY_MS)
-      : new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - FREQUENCY_WINDOW_MONTHS, now.getUTCDate()))
+      : monthsBefore(now, FREQUENCY_WINDOW_MONTHS)
     // Start of the count (or, unknown, the first class in the window) so a
     // student who started three weeks ago isn't averaged over twelve.
     const firstInWindow = counted.filter(c => c.scheduledAt >= windowStart)
       .reduce<Date | null>((min, c) => (!min || c.scheduledAt < min ? c.scheduledAt : min), null)
     const start = since ?? firstInWindow
     const from = start && start > windowStart ? start : windowStart
+    // The full window is exactly 12 weeks / 3 calendar months; a shorter one
+    // (graded or started recently) is measured in days, at least one week.
     const spanDays = Math.max(7, (now.getTime() - from.getTime()) / DAY_MS)
-    const periods = isWeek ? spanDays / 7 : spanDays / 30.44
+    const periods = from === windowStart
+      ? (isWeek ? FREQUENCY_WINDOW_WEEKS : FREQUENCY_WINDOW_MONTHS)
+      : (isWeek ? spanDays / 7 : spanDays / 30.44)
     // Real attendance (before the cap): the student did train that much.
     const avg = Math.round((counted.filter(c => c.scheduledAt >= from).length / periods) * 10) / 10
     frequency = {

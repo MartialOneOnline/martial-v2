@@ -6,8 +6,9 @@ import { useLanguage } from '../../../../lib/i18n/LanguageContext'
 import type { ReadinessStatus } from '../../../../lib/grading/readiness'
 import type { MemberReadiness } from '../../../../lib/grading/readinessData'
 import {
-  READINESS_STYLE, ReadinessBadge, ReadinessBar, GradeButton, dueLabel, incompleteLabel, readinessLabel, toNextLabel,
+  READINESS_STYLE, ReadinessBadge, ReadinessBar, GradeButton, blockReasons, dueLabel, incompleteLabel, overCapLabel, readinessLabel, toNextLabel,
 } from '../../../../components/GradingReadiness'
+import { Lock } from 'lucide-react'
 
 type Counts = Record<ReadinessStatus, number>
 type Filter = 'ALL' | 'READY' | 'ALMOST_READY' | 'NOT_READY'
@@ -154,6 +155,8 @@ export default function ReadinessSection({ onGraded }: { onGraded?: () => void }
               const r = s.readiness
               const due = dueLabel(r, rt)
               const toNext = toNextLabel(r, rt)
+              const reasons = blockReasons(r, rt)
+              const overCap = overCapLabel(r, rt)
               return (
                 <tr key={s.memberId} className="hover:bg-[#FAFAFA] transition-colors" style={{ borderBottom: '1px solid #F9FAFB' }}>
                   <td className="px-4 py-3">
@@ -194,9 +197,15 @@ export default function ReadinessSection({ onGraded }: { onGraded?: () => void }
                         {toNext && <p style={{ fontSize: 11, color: '#9CA3AF', margin: '3px 0 0' }}>{toNext}</p>}
                       </div>
                     )}
+                    {reasons.map(text => (
+                      <p key={text} className="flex items-center gap-1" style={{ fontSize: 11, color: '#B45309', margin: '3px 0 0' }}>
+                        <Lock size={10} className="shrink-0" /> {text}
+                      </p>
+                    ))}
                   </td>
                   <td className="px-4 py-3">
                     <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{r.classesSince}</span>
+                    {overCap && <p style={{ fontSize: 11, color: '#6B7280', margin: '2px 0 0', whiteSpace: 'nowrap' }}>{overCap}</p>}
                   </td>
                   <td className="px-4 py-3">
                     <span style={{ fontSize: 12, color: '#6B7280', whiteSpace: 'nowrap' }}>{s.lastGradedAt ? fmt(s.lastGradedAt) : rt.never}</span>

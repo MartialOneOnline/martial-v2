@@ -270,7 +270,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-01 (c) (rama `claude/grading-step-rules` — pendiente de Project Audit; migración **sin aplicar** en la BD)
+### Sesión — 2026-11-01 (c) (rama `claude/grading-step-rules`, PR [#38](https://github.com/MartialOneOnline/martial-v2/pull/38) — `RECHAZADO` en `268b9d2` → re-entregado, pendiente de reauditoría; migración **sin aplicar** en la BD, se aplica tras `APROBADO` con el OK del usuario)
 
 **Reglas de graduación por grado: tiempo, edad y frecuencia mín./máx.** Primer paso del plan de informes (Graduaciones → plantillas de super admin → informe de graduaciones atrasadas → Leads → Ausencias → Pagos → Balance → Reservas). Principio acordado con el usuario: las reglas las pone **cada escuela** en Ajustes → Graduaciones, y MartialApp no es solo BJJ (karate kyu/dan, judo…); IBJJF es un caso más (edad mínima, tiempo en cinturón, grados del negro por tiempo).
 - **Decisiones del usuario:** (1) la frecuencia máxima es el **tope de clases que cuentan** por semana/mes; (2) la frecuencia mínima **bloquea** (antes solo avisaba); (3) las plantillas (p.ej. IBJJF) las crea el **super admin**. En el repo de V2 no hay ninguna plantilla de V1.
@@ -280,7 +280,13 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 - **API ranks** (POST/PATCH): `parseMonthsByDegree`, `parseMinAgeByDegree`, `parseFrequency` (mín./máx. exigen periodo, máx. ≥ mín. → 400; el PATCH valida contra los valores guardados).
 - **Ajustes → Graduaciones:** editor del cinturón traducido (EN/ES/PT/FR, antes en inglés fijo), hasta 10 grados (antes 4), bloque de frecuencia (mín./máx./periodo) y tabla por graduación con Clases / Meses mín. / Edad mín. Guardar ya no falla en silencio.
 - **Tarjeta de asistencia:** mensajes de bloqueo por frecuencia, tiempo desde la última graduación y fecha desconocida; aviso de clases que no cuentan por el tope.
-- Tests: +9 motor, +1 cargador, +5 parsers (`gradingRules.test.ts`); 1 test reescrito (la frecuencia ahora bloquea). Suite 915 pasan / 55 preexistentes. tsc 0 errores, eslint sin nuevos avisos. **No probado en navegador.**
+- Tests: +9 motor, +1 cargador, +5 parsers (`gradingRules.test.ts`); 1 test reescrito (la frecuencia ahora bloquea). Suite 915 pasan / 55 preexistentes. tsc 0 errores, eslint sin nuevos avisos. **No probado en navegador** (Codex probó el editor en Chromium: errores visibles, corrección y reintento funcionan).
+- **Re-entrega tras `RECHAZADO` (Codex sobre `268b9d2`, 1 P1 + 3 P2):**
+  - P1 — una graduación de otro sistema daba por buena la fecha de inicio del tiempo (alumno en sistema B, grado 1, sin graduaciones en B y una de 2020 en A → `READY`). Nuevo `pickStepSince()` (puro): última graduación que llegó al rango **y grado** actuales; si no, `beltDate` solo en grado 0; si no, `joinedAt` solo en el primer grado del sistema; si no, desconocido. La repro de Codex está como test del cargador.
+  - P2 — la ventana de 3 meses de la frecuencia se desbordaba los días 29–31 (31-may − 3 = "31-feb" = 3-mar). `monthsBefore()` recorta al último día del mes; la ventana completa cuenta exactamente 12 semanas / 3 meses.
+  - P2 — el tope agrupaba por semana/mes UTC. Ahora usa la zona horaria de la escuela (`schoolTimeZone(School.country)`, mismo helper que el informe de Usuarios) vía `civilDateInTz`. Tests este/oeste de UTC (Madrid, Nueva York), semanal y mensual.
+  - P2 — el informe no explicaba los bloqueos ni el tope. `blockReasons()` / `overCapLabel()` compartidos por la tarjeta del perfil y el informe: motivos bajo "Le corresponde" y "N clases no cuentan" bajo Clases. Test en los 4 idiomas.
+  - Tests: +11 (`gradingReadiness`, cargador, `gradingReadinessLabels.test.ts` nuevo). Suite 928 pasan / 55 preexistentes. tsc 0, eslint sin nuevos avisos, `git diff --check` limpio.
 - **Antes de mergear:** aplicar la migración en la BD (con el OK del usuario) — el cargador selecciona las columnas nuevas y fallaría sin ellas. **Efecto en escuelas existentes:** cualquier cinturón que ya tenga `classesPerPeriod` pasa de avisar a bloquear (el fixture de tests de RGM usa 2/semana; no comprobado en la BD real — la lectura de producción quedó bloqueada por permisos). Revisar esas cifras con el usuario antes de desplegar.
 
 ### Sesión — 2026-11-01 (b) (rama `claude/users-report-provisional-month`, PR [#37](https://github.com/MartialOneOnline/martial-v2/pull/37) — `APROBADO CON PENDIENTES` en `50fce6e` → **`APROBADO`** por Codex Project Audit en `d5ba7ab`; falta prueba de UI con sesión real)
