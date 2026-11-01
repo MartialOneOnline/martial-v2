@@ -10,8 +10,8 @@ import {
   ChevronDown, CreditCard, Award, ArrowRight,
   ChevronUp, Edit2, Info,
 } from 'lucide-react'
-import { useDashboard, useGradingEnabled } from '../../../components/DashboardShell'
-import { GradingOffCard, offActionStyle } from '../../../components/grading/GradingModuleGate'
+import { useDashboard, useGradingEnabled, useSchoolContextFailure } from '../../../components/DashboardShell'
+import { GradingOffCard, GradingLoadError, offActionStyle } from '../../../components/grading/GradingModuleGate'
 import NotificationBell from '../../../components/NotificationBell'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../lib/format'
@@ -2272,6 +2272,7 @@ const TABS: { id: TabId; label: string; danger?: boolean }[] = [
 export default function SettingsClient() {
   const { menuOpen, setMenuOpen } = useDashboard()
   const gradingEnabled = useGradingEnabled()
+  const { failed: contextFailed } = useSchoolContextFailure()
   const t = useT()
   const searchParams = useSearchParams()
   const tabParam = searchParams.get('tab')
@@ -2288,7 +2289,7 @@ export default function SettingsClient() {
     payments:   <PaymentsTab />,
     billing:    <BillingTab />,
     grading:    gradingEnabled === null
-      ? <p style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</p>
+      ? (contextFailed ? <GradingLoadError /> : <p style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</p>)
       : gradingEnabled ? <GradingTab /> : <GradingOffState onOpenModules={() => setActiveTab('modules')} />,
     password:   <PasswordTab />,
     delete:     <DeleteTab />,

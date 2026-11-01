@@ -77,3 +77,10 @@ export function gradingFromSchoolContext(
   if (!ctx || ctx.loading || !ctx.currentSchool) return null
   return ctx.currentSchool.gradingEnabled
 }
+
+/** The context finished loading without a school because the request failed — not just slow */
+export function schoolContextFailed(
+  ctx: { loading: boolean; failed: boolean; currentSchool: unknown } | null | undefined,
+): boolean {
+  return !!ctx && !ctx.loading && !ctx.currentSchool && ctx.failed
+}

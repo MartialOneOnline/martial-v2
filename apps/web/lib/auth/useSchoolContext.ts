@@ -15,12 +15,15 @@ export type AuthMe = {
 export function useSchoolContext() {
   const [data, setData] = useState<AuthMe | null>(null)
   const [loading, setLoading] = useState(true)
+  // The context request failed (network / server) — distinct from "loading"
+  // so screens waiting on it can offer a retry instead of spinning forever
+  const [failed, setFailed] = useState(false)
 
   useEffect(() => {
     fetch('/api/auth/me')
       .then(r => r.ok ? r.json() : null)
       .then(async (json) => {
-        if (!json) return setData(json)
+        if (!json) { setFailed(true); return setData(json) }
         // Auto-set context if cookie missing but user has a school
         if (!json.contexts?.currentSchoolId && json.contexts?.schools?.length > 0) {
           const firstSchoolId = json.contexts.schools[0].schoolId
@@ -33,7 +36,7 @@ export function useSchoolContext() {
         }
         setData(json)
       })
-      .catch(() => setData(null))
+      .catch(() => { setData(null); setFailed(true) })
       .finally(() => setLoading(false))
   }, [])
 
@@ -59,6 +62,7 @@ export function useSchoolContext() {
       const res = await fetch('/api/auth/me')
       if (!res.ok) return false
       setData(await res.json())
+      setFailed(false)
       return true
     } catch {
       return false
@@ -67,6 +71,7 @@ export function useSchoolContext() {
 
   return {
     loading,
+    failed,
     user: data?.user ?? null,
     isAdmin: data?.contexts.isAdmin ?? false,
     schools: data?.contexts.schools ?? [],

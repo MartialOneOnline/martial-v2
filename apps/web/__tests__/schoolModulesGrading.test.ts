@@ -89,3 +89,16 @@ describe('gradingFromSchoolContext (only a resolved school counts)', () => {
     expect(gradingFromSchoolContext({ loading: false, currentSchool: { gradingEnabled: false } })).toBe(false)
   })
 })
+
+describe('schoolContextFailed (loading vs failed)', () => {
+  it('is only true once loading finished without a school because the request failed', async () => {
+    const { schoolContextFailed } = await import('@/lib/school-modules')
+    expect(schoolContextFailed({ loading: true, failed: false, currentSchool: null })).toBe(false)
+    expect(schoolContextFailed({ loading: false, failed: true, currentSchool: null })).toBe(true)
+    // A later successful retry brings the school back — no longer failed
+    expect(schoolContextFailed({ loading: false, failed: false, currentSchool: { gradingEnabled: true } })).toBe(false)
+    // A stale failed flag never wins over a resolved school
+    expect(schoolContextFailed({ loading: false, failed: true, currentSchool: { gradingEnabled: true } })).toBe(false)
+    expect(schoolContextFailed(null)).toBe(false)
+  })
+})

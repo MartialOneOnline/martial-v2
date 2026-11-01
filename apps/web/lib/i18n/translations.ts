@@ -757,6 +757,8 @@ export const translations = {
       saveFailed: 'Couldn’t save. Check your connection and try again.',
       syncFailed: 'Saved. The menu hasn’t updated yet — retry or reload the page.',
       syncRetry: 'Retry',
+      loadFailedTitle: 'Couldn’t load your school',
+      loadFailedBody: 'Check your connection and try again.',
     },
     settings: {
       title: 'Settings', subtitle: 'Manage your academy profile and preferences',
@@ -1760,6 +1762,8 @@ export const translations = {
       saveFailed: 'No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.',
       syncFailed: 'Guardado. El menú aún no se ha actualizado: reintenta o recarga la página.',
       syncRetry: 'Reintentar',
+      loadFailedTitle: 'No se pudo cargar tu escuela',
+      loadFailedBody: 'Revisa tu conexión e inténtalo de nuevo.',
     },
     settings: {
       title: 'Configuración', subtitle: 'Gestiona el perfil y las preferencias de tu academia',
@@ -2743,6 +2747,8 @@ export const translations = {
       saveFailed: 'Não foi possível guardar. Verifica a ligação e tenta novamente.',
       syncFailed: 'Guardado. O menu ainda não foi atualizado: tenta de novo ou recarrega a página.',
       syncRetry: 'Tentar novamente',
+      loadFailedTitle: 'Não foi possível carregar a tua escola',
+      loadFailedBody: 'Verifica a ligação e tenta novamente.',
     },
     settings: {
       title: 'Configurações', subtitle: 'Gerencie o perfil e as preferências da sua academia',
@@ -3726,6 +3732,8 @@ export const translations = {
       saveFailed: 'Enregistrement impossible. Vérifiez votre connexion et réessayez.',
       syncFailed: 'Enregistré. Le menu n’est pas encore à jour : réessayez ou rechargez la page.',
       syncRetry: 'Réessayer',
+      loadFailedTitle: 'Impossible de charger votre école',
+      loadFailedBody: 'Vérifiez votre connexion et réessayez.',
     },
     settings: {
       title: 'Paramètres', subtitle: 'Gérez le profil et les préférences de votre académie',

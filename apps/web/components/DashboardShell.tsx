@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import DashboardSidebar from './DashboardSidebar'
 import { useSchoolContext } from '../lib/auth/useSchoolContext'
-import { resolveGradingEnabled, gradingFromSchoolContext } from '../lib/school-modules'
+import { resolveGradingEnabled, gradingFromSchoolContext, schoolContextFailed } from '../lib/school-modules'
 
 const SIDEBAR_COLLAPSED_KEY = 'dashboard-sidebar-collapsed'
 
@@ -40,6 +40,16 @@ export function useGradingEnabled(): boolean | null {
   const fromServer = useContext(GradingEnabledContext)
   const { school } = useContext(DashboardContext)
   return resolveGradingEnabled(gradingFromSchoolContext(school), fromServer)
+}
+
+/**
+ * The module state is unknown because the school context failed to load (not
+ * just slow). Screens that wait on it show an error with this retry.
+ */
+export function useSchoolContextFailure(): { failed: boolean; retry: () => Promise<boolean> } {
+  const { school } = useContext(DashboardContext)
+  const failed = schoolContextFailed(school)
+  return { failed, retry: async () => (await school?.refresh()) ?? false }
 }
 
 // A page that already knows the answer from the server (Users, Users report)
