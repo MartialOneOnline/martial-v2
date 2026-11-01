@@ -271,7 +271,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-01 (h) (rama `claude/grading-module`, PR [#45](https://github.com/MartialOneOnline/martial-v2/pull/45) — `APROBADO CON PENDIENTES` en `4770d80` (4 P2) → `APROBADO CON PENDIENTES` en `24c3312` (1 P2 nuevo) → `APROBADO CON PENDIENTES` en `efcee36` (1 P2 de regresión) → `APROBADO CON PENDIENTES` en `6194d1a` (1 P2 de recuperación) → corregido, pendiente de re-auditoría; sin migración)
+### Sesión — 2026-11-01 (h) (rama `claude/grading-module`, PR [#45](https://github.com/MartialOneOnline/martial-v2/pull/45) — `APROBADO CON PENDIENTES` en `4770d80` (4 P2) → `APROBADO CON PENDIENTES` en `24c3312` (1 P2 nuevo) → `APROBADO CON PENDIENTES` en `efcee36` (1 P2 de regresión) → `APROBADO CON PENDIENTES` en `6194d1a` (1 P2 de recuperación) → **`APROBADO CON PENDIENTES`** en `e993442`, sin hallazgos abiertos; sin migración; pendiente: sesión autenticada con datos reales)
 
 **"Cinturones y graduaciones" pasa a ser un módulo de la escuela** (Settings → Modules). Pedido del usuario: el sistema de grados depende de si la escuela lo usa (boxeo no; un BJJ puede no querer).
 - `lib/school-modules.ts`: nueva clave `grading`. Sin valor guardado, vale `true` si la escuela tiene algún sistema de grados activo (RGM y demás no notan el cambio) y `false` si no. `mergeSchoolModules()` en el PATCH de `/api/dashboard/school`: una clave que no llega conserva su valor (un cliente antiguo no puede apagar grading por omisión). `isGradingEnabled(modules, activeSystems)`.
