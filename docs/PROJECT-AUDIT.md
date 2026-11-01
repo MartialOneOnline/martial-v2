@@ -130,6 +130,14 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 - Objetivo: ver hasta dónde llega cada interesado (contactado → reservó prueba → vino → se apuntó) y a quién darle un empujón, con contacto directo.
 - Criterios: etapas por evidencia (email/convertedUserId → reservas y pagos de cuota de esta escuela, nunca de otra); LOST fuera de las listas; 48 h para "sin contactar"; invitaciones del equipo fuera por defecto; permiso `school.leads.view`; respuestas fuera de orden descartadas; textos EN/ES/PT/FR.
 - No verificado: navegador y datos reales.
+- Mergeado a `main` el 2026-11-01 (431ac9e) con el OK del usuario.
+
+### Lote J — Frecuencia de graduación semana a semana (rama `claude/grading-weekly-count`)
+
+- Estado: `APROBADO CON PENDIENTES` sobre `d8582b7` (P3: los avisos decían "semanas" con mínimo mensual y "1 clases") → corregido → **`APROBADO CON PENDIENTES` sobre `c06bd82`** (sin hallazgos P0–P3; pendiente operativo: sesión autenticada con datos reales). Sin migración.
+- Decisión del usuario (2026-11-01, caso Rafa en RGM): "aquí no hay media de nada, son contabilidad de clases". El mínimo por semana/mes ya no es una media que bloquea: una semana con menos clases que el mínimo suma 0; una que lo alcanza suma como mucho el máximo. Con mín. 2 / máx. 2, 8 clases = 4 semanas completas de 2.
+- Criterios: semanas lunes–domingo en la zona horaria del colegio; la semana en curso por debajo del mínimo queda "pendiente" (no perdida); una clase cuenta desde el día en que su semana alcanza el mínimo (afecta a `earnedAt`/"le toca desde"); ya no existe el bloqueo `FREQUENCY`; avisos en ficha e informe (máximo, semanas por debajo, semana en curso) en EN/ES/PT/FR.
+- No verificado: navegador y datos reales.
 
 ## Próxima entrega de Claude
 

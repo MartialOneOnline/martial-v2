@@ -271,6 +271,16 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
+### Sesión — 2026-11-01 (g) (rama `claude/grading-weekly-count`, PR [#44](https://github.com/MartialOneOnline/martial-v2/pull/44) — `APROBADO CON PENDIENTES` en `d8582b7` (1 P3 de textos) → **`APROBADO CON PENDIENTES`** en `c06bd82`, sin hallazgos abiertos; sin migración; pendiente: sesión autenticada con datos reales)
+
+**Frecuencia de graduación = contabilidad de clases, no media.** Caso Rafa (RGM, Blanco mín. 2 / máx. — por semana): con una media salía 6/8 "casi listo" en 12 días. Decisión del usuario: mín. 2 y máx. 2, y "esa semana no cuenta" si no llega al mínimo.
+- `lib/grading/readiness.ts`: nuevo `countByPeriod()` sustituye a `capPerPeriod` y al bloqueo por media (12 semanas / 3 meses). Por semana (lunes–domingo, zona del colegio) o mes: menos de `classesPerPeriod` → 0; si lo alcanza → como mucho `maxClassesPerPeriod`. Las clases contadas se fechan, como pronto, el día en que su semana llega al mínimo (para `earnedAt`/`dueSince`). La semana en curso por debajo del mínimo es `classesPendingPeriod` (no se pierde). Nuevos `classesBelowMin`, `classMin`. Desaparece el `RequirementKind` `FREQUENCY` (ya no bloquea, solo cuenta).
+- UI: `countNotes()` en `components/GradingReadiness.tsx` (ficha) y `ReadinessSection` (informe): "N clases no cuentan (máx.)", "N clases no cuentan (semanas con menos de 2/semana)", "Esta semana: 1 de 2 — cuentan al llegar a 2". Texto de ayuda de Settings actualizado. Se quitan `blockedFrequency`/`frequencyLow` de las 4 traducciones.
+- Con mín. 2 / máx. 2, Rafa queda en 2/8 (semana del 19 oct: 1 clase → 0; semana del 26: 5 → 2). De blanco a azul (8·16·24·24·24 = 96 clases) ≈ 48 semanas.
+- **Configuración pendiente del usuario en RGM:** máx. 2/semana en Blanco, Azul, Morado y Marrón (hoy vacío).
+- **P3 de Codex corregido:** los avisos distinguen semana/mes y singular/plural (`belowMinWeek(One)`, `belowMinMonth(One)`, `overCapOne`) en EN/ES/PT/FR; tests con la reproducción mensual en los 4 idiomas.
+- Tests: `gradingReadiness` (caso Rafa, 8 clases = 4 semanas, semana en curso pendiente, fecha al alcanzar el mínimo, mínimo mensual) y `gradingReadinessLabels` (avisos en 4 idiomas). Suite 993 pasan / 55 preexistentes; tsc 0.
+
 ### Sesión — 2026-11-01 (f) (rama `claude/leads-report`, PR [#43](https://github.com/MartialOneOnline/martial-v2/pull/43) — `RECHAZADO` en `0fd0d00` → `APROBADO CON PENDIENTES` en `674b1ac` → **`APROBADO CON PENDIENTES`** en `d1aa1a3`, sin hallazgos abiertos; sin migración; pendiente: sesión autenticada con datos reales)
 
 **Informe de Leads** (`/dashboard/reports/leads`, menú Informes → Leads). Pedido del usuario: los leads son alumnos potenciales que a veces no llegan a probar la clase; les falta un pequeño empujón.
