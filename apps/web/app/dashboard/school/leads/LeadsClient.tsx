@@ -8,6 +8,7 @@ import {
 import { useDashboard } from '../../../../components/DashboardShell'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import RowMenu from '../../../../components/RowMenu'
+import { loadLeadDetail } from '../../../../lib/leads/detailLoad'
 
 type FilterTab = 'OPEN' | 'ALL' | 'NEW' | 'INVITED' | 'CONTACTED' | 'TRIAL_BOOKED' | 'CONVERTED' | 'LOST'
 
@@ -276,19 +277,15 @@ function LeadDetailDrawer({ leadId, onClose, onChanged, onRequestDelete, onReque
     if (!leadId) { setLead(null); setEditing(false); setLoadError(false); return }
     setLoading(true)
     setLoadError(false)
-    fetch(`/api/dashboard/leads/${leadId}`)
-      .then(res => (res.ok ? res.json() : null))
-      .then(data => {
-        if (data?.lead) {
-          setLead(data.lead)
-          setReminderDraft(data.lead.reminderAt ? data.lead.reminderAt.slice(0, 10) : '')
-        } else {
-          setLead(null)
-          setLoadError(true)
-        }
-      })
-      .catch(() => { setLead(null); setLoadError(true) })
-      .finally(() => setLoading(false))
+    // Cancelled on close/switch, so a late response can't replace this lead
+    return loadLeadDetail<LeadDetail>(leadId, {
+      onLoaded: l => {
+        setLead(l)
+        setReminderDraft(l.reminderAt ? l.reminderAt.slice(0, 10) : '')
+      },
+      onError: () => { setLead(null); setLoadError(true) },
+      onSettled: () => setLoading(false),
+    })
   }, [leadId])
 
   async function saveReminder(value: string) {

@@ -126,7 +126,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote I — Informe de Leads (rama `claude/leads-report`, PR #43)
 
-- Estado: `RECHAZADO` sobre `0fd0d00` (P1 actividad anterior al lead; P2 asistencia/conversión sin evidencia; P2 reserva cancelada = sin contactar; P2 prueba próxima incompleta; P2 ficha 403 con permiso de lectura; P2 CSV de otro periodo) → corregido, **pendiente de reauditoría**.
+- Estado: `RECHAZADO` sobre `0fd0d00` (P1 actividad anterior al lead; P2 asistencia/conversión sin evidencia; P2 reserva cancelada = sin contactar; P2 prueba próxima incompleta; P2 ficha 403 con permiso de lectura; P2 CSV de otro periodo) → `APROBADO CON PENDIENTES` sobre `674b1ac` (los 6 cerrados; P2 nuevo: un error tardío de otra ficha borraba la ficha actual) → corregido (carga cancelable `lib/leads/detailLoad.ts`), **pendiente de reauditoría**. Pendiente operativo aceptado por Codex: sesión autenticada y datos reales; botones de gestión visibles para lectores (deuda previa del CRM).
 - Objetivo: ver hasta dónde llega cada interesado (contactado → reservó prueba → vino → se apuntó) y a quién darle un empujón, con contacto directo.
 - Criterios: etapas por evidencia (email/convertedUserId → reservas y pagos de cuota de esta escuela, nunca de otra); LOST fuera de las listas; 48 h para "sin contactar"; invitaciones del equipo fuera por defecto; permiso `school.leads.view`; respuestas fuera de orden descartadas; textos EN/ES/PT/FR.
 - No verificado: navegador y datos reales.

@@ -271,7 +271,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-01 (f) (rama `claude/leads-report`, PR [#43](https://github.com/MartialOneOnline/martial-v2/pull/43) — `RECHAZADO` en `0fd0d00` → corregido, pendiente de reauditoría; sin migración)
+### Sesión — 2026-11-01 (f) (rama `claude/leads-report`, PR [#43](https://github.com/MartialOneOnline/martial-v2/pull/43) — `RECHAZADO` en `0fd0d00` → `APROBADO CON PENDIENTES` en `674b1ac` → P2 de la ficha corregido, pendiente de reauditoría; sin migración)
 
 **Informe de Leads** (`/dashboard/reports/leads`, menú Informes → Leads). Pedido del usuario: los leads son alumnos potenciales que a veces no llegan a probar la clase; les falta un pequeño empujón.
 - **Problema de datos:** el estado del CRM casi nunca se mueve a mano y un `Lead` no está enlazado a sus reservas. `lib/leads/funnel.ts` (puro) calcula la etapa con evidencia: lead → usuario por `convertedUserId` o email (sin distinguir mayúsculas, `$queryRaw … lower(email) = ANY(...)`) → reservas en la escuela y primer pago de cuota PAID. Etapas: NUEVO → CONTACTADO (estado ≠ NEW, nota o reserva) → RESERVÓ PRUEBA (reserva no cancelada o estado TRIAL_BOOKED) → VINO A PROBAR (asistencia) → SE APUNTÓ (CONVERTED o cuota pagada). LOST = cerrado (sale de las listas salvo que haya pagado).
@@ -287,6 +287,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
   - P2 — la ficha del lead (`GET /api/dashboard/leads/[id]`) pide `school.leads.view` (editar/borrar siguen con `manage`) y el panel muestra un error claro si no carga (antes "…" para siempre).
   - P2 — no se puede exportar mientras carga otro periodo o tras un error (la tabla aún muestra el anterior).
   - Tests: funnel 19, ruta 6. Suite 1015 pasan / 55 preexistentes; tsc 0; eslint sin avisos nuevos.
+- **Reauditoría (`APROBADO CON PENDIENTES` sobre `674b1ac`):** los 6 cerrados; P2 nuevo — abrir la ficha A (lenta), cerrarla y abrir B: la respuesta 404 tardía de A borraba B. Ahora la carga va por `loadLeadDetail` (`lib/leads/detailLoad.ts`), que se cancela al cerrar o cambiar de ficha (aborta la petición e ignora then/catch/finally tardíos). Test `leadDetailLoad.test.ts` (4) con la reproducción. Suite 1019 pasan / 55 preexistentes; tsc 0.
 - Tests: `leadsFunnel.test.ts` (13), `leadsReportRoute.test.ts` (4). Suite 1007 pasan / 55 preexistentes. tsc 0, eslint sin avisos nuevos. **No probado en navegador ni con datos reales.**
 
 ### Sesión — 2026-11-01 (f) (rama `claude/report-belt-filter`, PR [#41](https://github.com/MartialOneOnline/martial-v2/pull/41) — `APROBADO CON PENDIENTES` en `fe771a2` → **`APROBADO CON PENDIENTES`** en `f62b7f8`, los 6 hallazgos cerrados; sin migración; pendiente: recorrido autenticado con datos reales)
