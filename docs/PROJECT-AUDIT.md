@@ -111,7 +111,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote H — Informe de graduaciones atrasadas (rama `claude/overdue-gradings`, PR #40)
 
-- Estado: `RECHAZADO` sobre `89115a2` (P1 atraso anterior al grado actual; P2 fechas de fin de mes/29-feb; P2 chips sin filtro de cinturón; P3 texto del umbral) → corregido, **pendiente de reauditoría**.
+- Estado: `RECHAZADO` sobre `89115a2` (P1 atraso anterior al grado actual; P2 fechas de fin de mes/29-feb; P2 chips sin filtro de cinturón; P3 texto del umbral) → corregido en `23d92d4` → **`APROBADO CON PENDIENTES`** (Codex). Pendiente: recorrido autenticado con datos reales.
 - Objetivo: ver a quién le tocaba un grado y no se le ha dado, desde cuándo, con los alumnos nuevos (< 6 meses) primero, y sacar la lista para el día de graduación.
 - Criterios: `dueSince` = cuándo se cumplió la última regla del primer paso debido (clase N tras el tope, meses, edad), nunca futuro ni anterior al paso previo; atrasado = ≥14 días; orden nuevos → días → pasos; chips y contadores coinciden con la lista; CSV con el orden del informe y el formato del idioma; textos EN/ES/PT/FR.
 - No verificado: navegador y datos reales.

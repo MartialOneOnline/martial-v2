@@ -270,7 +270,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-01 (e) (rama `claude/overdue-gradings`, PR [#40](https://github.com/MartialOneOnline/martial-v2/pull/40) — `RECHAZADO` en `89115a2` → corregido, pendiente de reauditoría; sin migración)
+### Sesión — 2026-11-01 (e) (rama `claude/overdue-gradings`, PR [#40](https://github.com/MartialOneOnline/martial-v2/pull/40) — `RECHAZADO` en `89115a2` → **`APROBADO CON PENDIENTES`** por Codex Project Audit en `23d92d4`; sin migración; pendiente: recorrido autenticado con datos reales)
 
 **Informe de graduaciones atrasadas.** Tercer paso del plan (tras #38 reglas y #39 plantillas). Idea del usuario: no graduar a tiempo, sobre todo al principio, desmotiva y hace que el alumno se vaya (RGM: solo el 33% de los nuevos sigue a los 3 meses).
 - **Motor** (`lib/grading/readiness.ts`): cada paso ganado tiene `earnedAt` = cuándo se cumplió la última de sus reglas (día de la clase N tras el tope, meses desde la graduación, edad, tiempo/edad del cinturón); nunca antes del paso anterior ni en el futuro. `Readiness.dueSince` = `earnedAt` del primer paso que se le debe. La frecuencia no tiene fecha (es un estado).
@@ -284,6 +284,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
   - P2 — los contadores de los chips no respetaban el filtro de cinturón. `focusCounts()` (puro) se calcula sobre las filas del cinturón elegido.
   - P3 — "más de 14 días" → "14 días o más" (ES/PT/FR).
   - Tests: +5 motor, +1 cargador (repro de Codex), +1 `focusCounts`. Suite 970 pasan / 55 preexistentes; tsc 0; eslint sin avisos nuevos.
+  - Reauditoría `APROBADO CON PENDIENTES` sobre `23d92d4`: los 4 cerrados, sin hallazgos nuevos; Chromium (API simulada) en EN/ES/PT/FR. Aceptado: las fechas estimadas siguen contando en "Atrasados" y en el orden (van etiquetadas); las tarjetas de estado globales se quedan como en el PR #33.
 - Pendiente (siguiente lote si el usuario lo quiere): comprobar con datos históricos que los nuevos graduados a tiempo se quedan más (retención con/sin primer grado a tiempo). Después: informe de Leads.
 
 ### Sesión — 2026-11-01 (d) (rama `claude/grading-templates`, PR [#39](https://github.com/MartialOneOnline/martial-v2/pull/39) — `APROBADO CON PENDIENTES` en `0ef8f2a` (3 P2 + 1 P3) → **`APROBADO CON PENDIENTES`** en `6afcbe9` (los 4 cerrados, sin hallazgos nuevos); migración **aplicada en la BD** 2026-11-01 con el OK del usuario; pendiente: comprobar persistencia con sesión real)
