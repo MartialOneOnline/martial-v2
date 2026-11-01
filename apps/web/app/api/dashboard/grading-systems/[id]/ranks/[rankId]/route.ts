@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { parseClassesByDegree } from '@/lib/grading/rules'
+import { parseClassesByDegree, parseFrequency, parseMinAgeByDegree, parseMonthsByDegree } from '@/lib/grading/rules'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 import { memberHasPermission } from '@/lib/auth/customRoles'
@@ -30,6 +30,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (!rank) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const body = await req.json()
+  // Min, max and period are validated together, against the saved values
+  // for whichever of them this request doesn't send.
+  const freqTouched = ['classesPerPeriod', 'maxClassesPerPeriod', 'periodType'].some(k => body[k] !== undefined)
+  const freq = parseFrequency({
+    classesPerPeriod:    body.classesPerPeriod    !== undefined ? body.classesPerPeriod    : rank.classesPerPeriod,
+    maxClassesPerPeriod: body.maxClassesPerPeriod !== undefined ? body.maxClassesPerPeriod : rank.maxClassesPerPeriod,
+    periodType:          body.periodType          !== undefined ? body.periodType          : rank.periodType,
+  })
+  if (freqTouched && !freq.ok) return NextResponse.json({ error: freq.error }, { status: 400 })
   const updated = await prisma.beltRank.update({
     where: { id: rankId },
     data: {
@@ -40,8 +49,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       ...(body.minMonthsAtPrevious !== undefined && { minMonthsAtPrevious: body.minMonthsAtPrevious }),
       ...(body.totalClassesRequired !== undefined && { totalClassesRequired: body.totalClassesRequired }),
       ...(body.classesByDegree !== undefined     && { classesByDegree: parseClassesByDegree(body.classesByDegree) }),
-      ...(body.classesPerPeriod !== undefined    && { classesPerPeriod: body.classesPerPeriod }),
-      ...(body.periodType !== undefined          && { periodType: body.periodType }),
+      ...(body.monthsByDegree !== undefined      && { monthsByDegree: parseMonthsByDegree(body.monthsByDegree) }),
+      ...(body.minAgeByDegree !== undefined      && { minAgeByDegree: parseMinAgeByDegree(body.minAgeByDegree) }),
+      ...(freqTouched && freq.ok                 && freq.value),
       ...(body.classTypeIds !== undefined        && { classTypeIds: body.classTypeIds }),
       ...(body.requireCompetition !== undefined  && { requireCompetition: body.requireCompetition }),
       ...(body.requireExam !== undefined         && { requireExam: body.requireExam }),

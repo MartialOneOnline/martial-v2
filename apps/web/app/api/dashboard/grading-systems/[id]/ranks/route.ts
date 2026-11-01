@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { parseClassesByDegree } from '@/lib/grading/rules'
+import { parseClassesByDegree, parseFrequency, parseMinAgeByDegree, parseMonthsByDegree } from '@/lib/grading/rules'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 import { memberHasPermission } from '@/lib/auth/customRoles'
@@ -33,6 +33,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const body = await req.json()
   if (!body.name) return NextResponse.json({ error: 'name required' }, { status: 400 })
+  const freq = parseFrequency(body)
+  if (!freq.ok) return NextResponse.json({ error: freq.error }, { status: 400 })
 
   const maxRank = await prisma.beltRank.findFirst({
     where: { systemId: id },
@@ -51,8 +53,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       minMonthsAtPrevious:  body.minMonthsAtPrevious ?? null,
       totalClassesRequired: body.totalClassesRequired ?? null,
       classesByDegree:      parseClassesByDegree(body.classesByDegree),
-      classesPerPeriod:     body.classesPerPeriod ?? null,
-      periodType:           body.periodType ?? null,
+      monthsByDegree:       parseMonthsByDegree(body.monthsByDegree),
+      minAgeByDegree:       parseMinAgeByDegree(body.minAgeByDegree),
+      ...freq.value,
       classTypeIds:         body.classTypeIds ?? [],
       requireCompetition:   body.requireCompetition ?? false,
       requireExam:          body.requireExam ?? false,

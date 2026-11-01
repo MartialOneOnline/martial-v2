@@ -58,6 +58,29 @@ describe('getReadinessForSchool()', () => {
     expect(row!.readiness.status).not.toBe('READY')
   })
 
+  it('months since the last grading: join date only counts at the first grade of the system', async () => {
+    const ranks = [
+      rank({ id: 'a', name: 'A', order: 0, maxDegrees: 1, monthsByDegree: [12, 12] }),
+      rank({ id: 'b', name: 'B', order: 1, maxDegrees: 1, monthsByDegree: [12, 12] }),
+      rank({ id: 'c', name: 'C', order: 2 }),
+    ]
+    gradingSystemFindMany.mockResolvedValue([{ id: 'sys', isDefault: true, createdAt: new Date(), ranks }])
+    const member = (id: string, beltRankId: string) => ({
+      id, userId: id, status: 'ACTIVE', belt: beltRankId.toUpperCase(), beltRankId, beltDegree: 0,
+      beltDate: null, joinedAt: new Date('2020-01-01T00:00:00Z'),
+      user: { name: id, email: `${id}@x.test`, avatarUrl: null, dateOfBirth: null },
+    })
+    schoolMemberFindMany.mockResolvedValue([member('first', 'a'), member('imported', 'b')])
+    const rows = await getReadinessForSchool('school-1')
+    const first = rows.find(r => r.memberId === 'first')!.readiness
+    const imported = rows.find(r => r.memberId === 'imported')!.readiness
+    // Started at the first grade in 2020 → 6 years there: stripe (12) + belt (12 more) due
+    expect(first.due).toMatchObject({ kind: 'BELT', rankName: 'B', count: 2 })
+    // Imported straight into B with no grading/belt date → unknown, not due
+    expect(imported.due).toBeNull()
+    expect(imported.next!.gates[0]).toMatchObject({ kind: 'GRADING_MONTHS', unknown: true })
+  })
+
   it('only queries this school\'s classes for attendance', async () => {
     await getReadinessForSchool('school-1')
     expect(bookingFindMany.mock.calls[0]![0].where.class).toEqual({ schoolId: 'school-1' })

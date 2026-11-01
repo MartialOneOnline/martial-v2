@@ -24,7 +24,8 @@ export const ATTENDED_WHERE = {
 
 const RANK_SELECT = {
   id: true, name: true, color: true, order: true, maxDegrees: true, minAge: true,
-  minMonthsAtPrevious: true, totalClassesRequired: true, classesByDegree: true, classesPerPeriod: true,
+  minMonthsAtPrevious: true, totalClassesRequired: true, classesByDegree: true, monthsByDegree: true,
+  minAgeByDegree: true, classesPerPeriod: true, maxClassesPerPeriod: true,
   periodType: true, classTypeIds: true, requireExam: true, requireCompetition: true, systemId: true,
 } as const
 
@@ -120,12 +121,18 @@ export async function getReadinessForSchool(
       : (m.belt ? rankByName.get(m.belt.trim().toLowerCase()) ?? null : null)
     const rank = rankId ? rankById.get(rankId)! : null
     const systemRanks = rank ? [...rankById.values()].filter(r => r.systemId === rank.systemId) : []
+    // "Months since the previous grading" needs a real grading/promotion date.
+    // The join date only works for someone still at the very first grade of
+    // the system — they started there. Otherwise unknown → the rule isn't met.
+    const isFirstGrade = !!rank && (m.beltDegree ?? 0) === 0 && systemRanks.every(r => r.order >= rank.order)
+    const stepSince = laterOf(lastGrading.get(m.userId), m.beltDate) ?? (isFirstGrade ? m.joinedAt : null)
 
     const readiness = computeReadiness({
       ranks: systemRanks,
       currentRankId: rankId,
       currentDegree: m.beltDegree ?? 0,
       countSince: starts.get(m.id) ?? null,
+      stepSince,
       beltSince: pickBeltSince({
         gradings: gradingsByUser.get(m.userId) ?? [],
         rankId,

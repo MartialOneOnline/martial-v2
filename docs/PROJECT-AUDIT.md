@@ -95,6 +95,13 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 - Confirmado por Codex: 32/32 tests del lote + 4 pruebas propias del cargador, TypeScript/ESLint/`git diff --check`, suite 821 pasan / 55 preexistentes idénticos, UI del report validada en Chromium con API simulada (error → reintento, graduar → fallo de refresco → aviso).
 - Pendiente: recorrido autenticado con persistencia real en BD (graduar desde perfil/report y comprobar el registro `Grading`). La migración `20261026120000_belt_rank_classes_by_degree` ya está aplicada en la BD compartida — mergear pronto para evitar drift.
 
+### Lote F — Reglas de graduación por grado (rama `claude/grading-step-rules`)
+
+- Estado: **pendiente de auditoría**.
+- Objetivo: cada escuela puede exigir, por grado, clases, meses mínimos desde la graduación anterior y edad mínima; y por cinturón una frecuencia mínima (bloquea) y máxima (tope de clases que cuentan).
+- Criterios: reglas en blanco no aplican; tiempo con fecha desconocida no se cumple (nunca `joinedAt` salvo primer grado del sistema); tope por semana (lunes) o mes natural; validación API mín./máx./periodo; textos en EN/ES/PT/FR.
+- No verificado: navegador y recorrido autenticado; migración `20261101120000_belt_rank_step_rules` sin aplicar en la BD.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.

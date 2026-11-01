@@ -99,10 +99,13 @@ describe('computeReadiness()', () => {
     expect(r.classesSince).toBe(4)
   })
 
-  it('frequency is shown but does not block', () => {
+  it('training below the minimum frequency blocks the grading (2026-11-01)', () => {
+    // 9 classes, one every 10 days = 0.7/week, Blanco needs 2/week
     const r = computeReadiness({ ...base, currentRankId: 'blanco', currentDegree: 0, attended: classes(9, 10) })
     expect(r.requirements.find(q => q.kind === 'FREQUENCY')?.met).toBe(false)
-    expect(r.status).toBe('READY')
+    expect(r.due).toBeNull()
+    expect(r.next).toMatchObject({ degree: 1, classes: 8, required: 8, earned: false, blockedBy: ['FREQUENCY'] })
+    expect(r.status).toBe('NOT_READY')
   })
 
   it('months at belt gate the belt step only', () => {
@@ -273,5 +276,104 @@ describe('pickBeltSince()', () => {
 
   it('returns null when nothing is known (never the join date)', () => {
     expect(pickBeltSince({ gradings: [], rankId: 'x', beltNames: ['Azul'], beltDate: null })).toBeNull()
+  })
+})
+
+// ── Per-step rules set by each school (2026-11-01) ───────────────────────────
+describe('computeReadiness() — time, age and frequency per grading', () => {
+  // IBJJF-style black belt: degrees by time only (3 years each for 1st–3rd)
+  const BLACK = [
+    rank({ id: 'negro', order: 0, maxDegrees: 6, monthsByDegree: [36, 36, 36, 60, 60, 60] }),
+    rank({ id: 'coral', order: 1, maxDegrees: 0, minMonthsAtPrevious: 84, minAge: 50 }),
+  ]
+
+  it('time-only degrees: due once the months since the last grading are met', () => {
+    const r = computeReadiness({
+      ...base, ranks: BLACK, currentRankId: 'negro', currentDegree: 0,
+      stepSince: new Date('2023-10-01T00:00:00Z'), attended: [],
+    })
+    expect(r.due).toMatchObject({ kind: 'DEGREE', degree: 1, count: 1 })
+    expect(r.next).toMatchObject({ degree: 2, classes: null, required: null, earned: false, blockedBy: ['GRADING_MONTHS'] })
+    expect(r.next!.gates[0]).toMatchObject({ kind: 'GRADING_MONTHS', current: 36, required: 72, met: false })
+  })
+
+  it('time-only degrees: not due before the time, with progress as percent', () => {
+    const r = computeReadiness({
+      ...base, ranks: BLACK, currentRankId: 'negro', currentDegree: 3,
+      stepSince: new Date('2025-10-26T00:00:00Z'), attended: [],
+    })
+    expect(r.due).toBeNull()
+    expect(r.next!.gates[0]).toMatchObject({ kind: 'GRADING_MONTHS', current: 12, required: 60 })
+    expect(r.percent).toBe(20)
+    expect(r.status).toBe('NOT_READY')
+  })
+
+  it('unknown last grading date: the time rule is not met', () => {
+    const r = computeReadiness({ ...base, ranks: BLACK, currentRankId: 'negro', currentDegree: 0, stepSince: null, attended: [] })
+    expect(r.due).toBeNull()
+    expect(r.next!.gates[0]).toMatchObject({ kind: 'GRADING_MONTHS', unknown: true, met: false })
+  })
+
+  it('classes AND time: both must be met', () => {
+    const ranks = [rank({ id: 'a', order: 0, maxDegrees: 1, classesByDegree: [8, 8], monthsByDegree: [2] }), rank({ id: 'b', order: 1 })]
+    const since = new Date('2026-09-10T00:00:00Z') // 1 month ago
+    const r = computeReadiness({ ...base, ranks, currentRankId: 'a', currentDegree: 0, countSince: since, stepSince: since, attended: classes(12, 2) })
+    expect(r.due).toBeNull()
+    expect(r.next).toMatchObject({ degree: 1, classes: 8, required: 8, earned: false, blockedBy: ['GRADING_MONTHS'] })
+  })
+
+  it('time-only belt with a gap in the months: rules incomplete, nothing past it', () => {
+    const ranks = [rank({ id: 'a', order: 0, maxDegrees: 2, monthsByDegree: [6] }), rank({ id: 'b', order: 1 })]
+    const r = computeReadiness({ ...base, ranks, currentRankId: 'a', currentDegree: 0, stepSince: new Date('2020-01-01'), attended: [] })
+    expect(r.steps).toHaveLength(1)
+    expect(r.incompleteRules).toMatchObject({ kind: 'DEGREE', degree: 2 })
+  })
+
+  it('minimum age for a stripe blocks only that stripe onward', () => {
+    const ranks = [rank({ id: 'a', order: 0, maxDegrees: 2, totalClassesRequired: 4, minAgeByDegree: [0, 14] }), rank({ id: 'b', order: 1 })]
+    const r = computeReadiness({
+      ...base, ranks, currentRankId: 'a', currentDegree: 0, dateOfBirth: new Date('2013-01-01'), attended: classes(20, 1),
+    })
+    expect(r.due).toMatchObject({ degree: 1, count: 1 })
+    expect(r.next).toMatchObject({ degree: 2, blockedBy: ['AGE'] })
+  })
+
+  it('minimum frequency also blocks the belt step', () => {
+    const ranks = [rank({ id: 'a', order: 0, maxDegrees: 0, totalClassesRequired: 5, classesPerPeriod: 3, periodType: 'WEEK' }), rank({ id: 'b', order: 1 })]
+    const r = computeReadiness({ ...base, ranks, currentRankId: 'a', currentDegree: 0, attended: classes(6, 4) })
+    expect(r.due).toBeNull()
+    expect(r.next).toMatchObject({ kind: 'BELT', blockedBy: ['FREQUENCY'] })
+  })
+
+  it('max per week: extra classes in the same week do not count', () => {
+    // Mon 19 Oct – Sun 25 Oct 2026: 5 classes, cap 3 → 3 count
+    const week = [19, 20, 21, 22, 23].map(d => ({ scheduledAt: new Date(Date.UTC(2026, 9, d, 19)), classId: 'c1', disciplineId: null }))
+    const ranks = [rank({ id: 'a', order: 0, maxDegrees: 1, totalClassesRequired: 4, maxClassesPerPeriod: 3, periodType: 'WEEK' }), rank({ id: 'b', order: 1 })]
+    const r = computeReadiness({ ...base, ranks, currentRankId: 'a', currentDegree: 0, attended: week })
+    expect(r).toMatchObject({ classesSince: 3, classesAttended: 5, classesOverCap: 2, classCap: { max: 3, periodType: 'WEEK' } })
+    expect(r.due).toBeNull()
+  })
+
+  it('max per week: weeks start on Monday', () => {
+    // Sun 18 Oct + Mon 19 Oct are different weeks → both count with cap 1
+    const two = [18, 19].map(d => ({ scheduledAt: new Date(Date.UTC(2026, 9, d, 19)), classId: 'c1', disciplineId: null }))
+    const ranks = [rank({ id: 'a', order: 0, maxDegrees: 1, totalClassesRequired: 2, maxClassesPerPeriod: 1, periodType: 'WEEK' }), rank({ id: 'b', order: 1 })]
+    const r = computeReadiness({ ...base, ranks, currentRankId: 'a', currentDegree: 0, attended: two })
+    expect(r.classesSince).toBe(2)
+    expect(r.due).toMatchObject({ degree: 1 })
+  })
+
+  it('max per month caps by calendar month', () => {
+    const days = [new Date(Date.UTC(2026, 8, 29)), new Date(Date.UTC(2026, 8, 30)), new Date(Date.UTC(2026, 9, 1)), new Date(Date.UTC(2026, 9, 2))]
+    const ranks = [rank({ id: 'a', order: 0, maxDegrees: 1, totalClassesRequired: 10, maxClassesPerPeriod: 1, periodType: 'MONTH' }), rank({ id: 'b', order: 1 })]
+    const r = computeReadiness({ ...base, ranks, currentRankId: 'a', currentDegree: 0, attended: days.map(d => ({ scheduledAt: d, classId: 'c1', disciplineId: null })) })
+    expect(r.classesSince).toBe(2)
+  })
+
+  it('no cap without a period, and blank rules change nothing', () => {
+    const ranks = [rank({ id: 'a', order: 0, maxDegrees: 1, totalClassesRequired: 4, maxClassesPerPeriod: 1 }), rank({ id: 'b', order: 1 })]
+    const r = computeReadiness({ ...base, ranks, currentRankId: 'a', currentDegree: 0, attended: classes(5, 1) })
+    expect(r).toMatchObject({ classesSince: 5, classesOverCap: 0, classCap: null })
+    expect(r.due).toMatchObject({ degree: 1 })
   })
 })

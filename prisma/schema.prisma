@@ -1373,8 +1373,16 @@ model BeltRank {
   // the next belt. e.g. RGM Blanco = [8, 16, 24, 24, 24]. Missing entries fall
   // back to totalClassesRequired.
   classesByDegree      Int[]    @default([])
-  classesPerPeriod     Int? // min classes per period
-  periodType           String? // "WEEK" | "MONTH"
+  // Minimum months for each grading at this belt, since the previous grading
+  // (same indexing as classesByDegree). e.g. IBJJF black belt degrees =
+  // [36, 36, 36, 60, 60, 60]. Cumulative when several steps are due at once.
+  monthsByDegree       Int[]    @default([])
+  // Minimum age for each stripe at this belt: [i] = to receive stripe i+1.
+  // The next belt's age is that rank's own minAge.
+  minAgeByDegree       Int[]    @default([])
+  classesPerPeriod     Int? // min classes per period — below it no grading is due
+  maxClassesPerPeriod  Int? // max classes per period that count toward grading
+  periodType           String? // "WEEK" | "MONTH" — period for both min and max
   classTypeIds         String[] // which class types count (empty = all)
   requireCompetition   Boolean  @default(false) // must have competed
   requireExam          Boolean  @default(false) // must pass an exam

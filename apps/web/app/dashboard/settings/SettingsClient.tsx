@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, Fragment } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import {
@@ -1442,8 +1442,11 @@ interface BeltRank {
   id: string; order: number; name: string; color: string; maxDegrees: number
   minAge: number | null; minMonthsAtPrevious: number | null
   totalClassesRequired: number | null; classesPerPeriod: number | null; periodType: string | null
+  maxClassesPerPeriod: number | null
   classTypeIds: string[]
   classesByDegree: number[]
+  monthsByDegree: number[]
+  minAgeByDegree: number[]
 }
 interface GradingSystem {
   id: string; name: string; activity: string | null; isDefault: boolean
@@ -1451,7 +1454,24 @@ interface GradingSystem {
   ranks: BeltRank[]
 }
 
-const PERIOD_OPTS = [{ value: 'WEEK', label: 'per week' }, { value: 'MONTH', label: 'per month' }]
+/** Per-grading list edited cell by cell: blanks are 0, trailing blanks dropped. */
+function setStepValue(list: number[], i: number, raw: string): number[] {
+  const next = [...list]
+  while (next.length <= i) next.push(0)
+  next[i] = raw ? Math.max(0, Math.round(Number(raw)) || 0) : 0
+  while (next.length && !next[next.length - 1]) next.pop()
+  return next
+}
+
+function rankForm(rank: BeltRank): BeltRank {
+  return {
+    ...rank,
+    classesByDegree: rank.classesByDegree ?? [],
+    monthsByDegree: rank.monthsByDegree ?? [],
+    minAgeByDegree: rank.minAgeByDegree ?? [],
+    maxClassesPerPeriod: rank.maxClassesPerPeriod ?? null,
+  }
+}
 
 const COLOR_PRESETS = [
   '#9CA3AF', // white/grey
@@ -1474,31 +1494,52 @@ function RankRow({
 }) {
   const rt = useT().readiness
   const [open, setOpen] = useState(false)
-  const [form, setForm] = useState({ ...rank, classesByDegree: rank.classesByDegree ?? [] })
+  const [form, setForm] = useState(() => rankForm(rank))
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   function set<K extends keyof BeltRank>(k: K, v: BeltRank[K]) {
     setForm(p => ({ ...p, [k]: v }))
   }
 
   async function save() {
+    const hasFreq = (form.classesPerPeriod ?? 0) > 0 || (form.maxClassesPerPeriod ?? 0) > 0
+    if (hasFreq && !form.periodType) { setError(rt.freqPeriodRequired); return }
+    if (form.classesPerPeriod && form.maxClassesPerPeriod && form.maxClassesPerPeriod < form.classesPerPeriod) {
+      setError(rt.freqMaxBelowMin); return
+    }
+    setError(null)
     setSaving(true)
-    const res = await fetch(`/api/dashboard/grading-systems/${systemId}/ranks/${rank.id}`, {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      // One entry per grading at this belt: each stripe, then the next belt.
-      body: JSON.stringify({ ...form, classesByDegree: form.classesByDegree.slice(0, form.maxDegrees + 1) }),
-    })
-    setSaving(false)
-    if (!res.ok) return
-    const { rank: updated } = await res.json()
-    onUpdate(updated)
-    setOpen(false)
+    try {
+      const res = await fetch(`/api/dashboard/grading-systems/${systemId}/ranks/${rank.id}`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        // One entry per grading at this belt: each stripe, then the next belt.
+        // Ages are per stripe only — the next belt's age lives on that belt.
+        body: JSON.stringify({
+          ...form,
+          classesByDegree: form.classesByDegree.slice(0, form.maxDegrees + 1),
+          monthsByDegree: form.monthsByDegree.slice(0, form.maxDegrees + 1),
+          minAgeByDegree: form.minAgeByDegree.slice(0, form.maxDegrees),
+        }),
+      })
+      if (!res.ok) { setError(rt.saveError); return }
+      const { rank: updated } = await res.json()
+      onUpdate(updated)
+      setForm(rankForm(updated))
+      setOpen(false)
+    } catch {
+      setError(rt.saveError)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const INP: React.CSSProperties = {
     border: '1.5px solid #E5E7EB', borderRadius: 8, padding: '7px 10px',
-    fontSize: 13, color: '#111827', background: '#fff', outline: 'none', width: '100%',
+    fontSize: 13, color: '#111827', background: '#fff', outline: 'none', width: '100%', minWidth: 0,
   }
+  const LBL: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }
+  const SUB: React.CSSProperties = { fontSize: 10, color: '#9CA3AF', display: 'block', marginBottom: 2 }
 
   return (
     <div style={{ borderBottom: isLast ? 'none' : '1px solid #F3F4F6' }}>
@@ -1508,7 +1549,7 @@ function RankRow({
           style={{ background: form.color }} />
         <p style={{ fontSize: 14, fontWeight: 500, color: '#111827', flex: 1, margin: 0 }}>{form.name}</p>
         {form.maxDegrees > 0 && (
-          <span style={{ fontSize: 11, color: '#9CA3AF' }}>{form.maxDegrees} stripes</span>
+          <span style={{ fontSize: 11, color: '#9CA3AF' }}>{rt.rankNStripes.replace('{n}', String(form.maxDegrees))}</span>
         )}
         {form.classesByDegree.some(n => n > 0) ? (
           <span style={{ fontSize: 11, color: '#6B7280', background: '#F3F4F6', padding: '2px 8px', borderRadius: 999 }}>
@@ -1516,7 +1557,7 @@ function RankRow({
           </span>
         ) : form.totalClassesRequired ? (
           <span style={{ fontSize: 11, color: '#6B7280', background: '#F3F4F6', padding: '2px 8px', borderRadius: 999 }}>
-            {form.totalClassesRequired} classes
+            {form.totalClassesRequired} {rt.colClasses.toLowerCase()}
           </span>
         ) : null}
         {form.minMonthsAtPrevious && (
@@ -1545,21 +1586,23 @@ function RankRow({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>Name</label>
+              <label style={LBL}>{rt.rankName}</label>
               <input value={form.name} onChange={e => set('name', e.target.value)} style={INP} />
             </div>
             <div>
-              <label style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>Stripes / Degrees</label>
+              <label style={LBL}>{rt.rankStripes}</label>
               <select value={form.maxDegrees} onChange={e => set('maxDegrees', Number(e.target.value))} style={INP}>
-                <option value={0}>No stripes</option>
-                {[1, 2, 3, 4].map(n => <option key={n} value={n}>{n} stripes</option>)}
+                <option value={0}>{rt.rankNoStripes}</option>
+                {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
+                  <option key={n} value={n}>{rt.rankNStripes.replace('{n}', String(n))}</option>
+                ))}
               </select>
             </div>
           </div>
 
           {/* Color */}
           <div>
-            <label style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>Color</label>
+            <label style={{ ...LBL, marginBottom: 6 }}>{rt.rankColor}</label>
             <div className="flex items-center gap-2 flex-wrap">
               {COLOR_PRESETS.map(c => (
                 <button key={c} onClick={() => set('color', c)}
@@ -1570,74 +1613,97 @@ function RankRow({
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          {/* Requirements to reach this belt */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>Min age</label>
+              <label style={LBL}>{rt.rankMinAge}</label>
               <input type="number" min={0} max={99} value={form.minAge ?? ''} placeholder="—"
                 onChange={e => set('minAge', e.target.value ? Number(e.target.value) : null)} style={INP} />
             </div>
             <div>
-              <label style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>Months at prev.</label>
+              <label style={LBL}>{rt.rankMonthsAtPrev}</label>
               <input type="number" min={0} value={form.minMonthsAtPrevious ?? ''} placeholder="—"
                 onChange={e => set('minMonthsAtPrevious', e.target.value ? Number(e.target.value) : null)} style={INP} />
             </div>
             <div>
-              <label style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>Total classes</label>
+              <label style={LBL}>{rt.rankDefaultClasses}</label>
               <input type="number" min={0} value={form.totalClassesRequired ?? ''} placeholder="—"
                 onChange={e => set('totalClassesRequired', e.target.value ? Number(e.target.value) : null)} style={INP} />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>Min classes</label>
-              <input type="number" min={0} value={form.classesPerPeriod ?? ''} placeholder="—"
-                onChange={e => set('classesPerPeriod', e.target.value ? Number(e.target.value) : null)} style={INP} />
-            </div>
-            <div>
-              <label style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>Period</label>
-              <select value={form.periodType ?? ''} onChange={e => set('periodType', e.target.value || null)} style={INP}>
-                <option value="">—</option>
-                {PERIOD_OPTS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
+          {/* Training frequency at this belt */}
+          <div>
+            <label style={{ ...LBL, marginBottom: 2 }}>{rt.freqLabel}</label>
+            <p style={{ fontSize: 11, color: '#9CA3AF', margin: '0 0 6px' }}>{rt.freqHint}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <span style={SUB}>{rt.freqMin}</span>
+                <input type="number" min={0} value={form.classesPerPeriod ?? ''} placeholder="—"
+                  onChange={e => set('classesPerPeriod', e.target.value ? Number(e.target.value) : null)} style={INP} />
+              </div>
+              <div>
+                <span style={SUB}>{rt.freqMax}</span>
+                <input type="number" min={0} value={form.maxClassesPerPeriod ?? ''} placeholder="—"
+                  onChange={e => set('maxClassesPerPeriod', e.target.value ? Number(e.target.value) : null)} style={INP} />
+              </div>
+              <div>
+                <span style={SUB}>{rt.freqPeriod}</span>
+                <select value={form.periodType ?? ''} onChange={e => set('periodType', e.target.value || null)} style={INP}>
+                  <option value="">—</option>
+                  <option value="WEEK">{rt.periodWeek}</option>
+                  <option value="MONTH">{rt.periodMonth}</option>
+                </select>
+              </div>
             </div>
           </div>
 
-          {/* Classes for each grading at this belt (V1 "Total Classes" per row) */}
+          {/* Rules for each grading at this belt: classes, time, age */}
           <div>
-            <label style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 2 }}>{rt.perStripeLabel}</label>
-            <p style={{ fontSize: 11, color: '#9CA3AF', margin: '0 0 6px' }}>{rt.perStripeHint}</p>
-            <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(form.maxDegrees + 1, 5)}, minmax(0, 1fr))` }}>
-              {Array.from({ length: form.maxDegrees + 1 }, (_, i) => (
-                <div key={i}>
-                  <span style={{ fontSize: 10, color: '#9CA3AF', display: 'block', marginBottom: 2 }} className="truncate">
-                    {i < form.maxDegrees
-                      ? rt.toStripe.replace('{n}', String(i + 1))
-                      : rt.toNextBelt.replace('{belt}', nextRankName ?? '—')}
-                  </span>
-                  <input type="number" min={0} value={form.classesByDegree[i] || ''}
-                    placeholder={form.totalClassesRequired ? String(form.totalClassesRequired) : '—'}
-                    onChange={e => {
-                      const next = [...form.classesByDegree]
-                      while (next.length <= i) next.push(0)
-                      next[i] = e.target.value ? Math.max(0, Number(e.target.value)) : 0
-                      // Trailing blanks fall back to "Total classes".
-                      while (next.length && !next[next.length - 1]) next.pop()
-                      set('classesByDegree', next)
-                    }} style={INP} />
-                </div>
-              ))}
+            <label style={{ ...LBL, marginBottom: 2 }}>{rt.rulesStepsLabel}</label>
+            <p style={{ fontSize: 11, color: '#9CA3AF', margin: '0 0 6px' }}>{rt.rulesStepsHint}</p>
+            <div className="grid gap-x-2 gap-y-1.5 items-center" style={{ gridTemplateColumns: 'minmax(72px, 1.2fr) repeat(3, minmax(0, 1fr))' }}>
+              <span style={SUB}>{rt.colStep}</span>
+              <span style={SUB}>{rt.colClasses}</span>
+              <span style={SUB}>{rt.colMonths}</span>
+              <span style={SUB}>{rt.colAge}</span>
+              {Array.from({ length: form.maxDegrees + 1 }, (_, i) => {
+                const isBelt = i === form.maxDegrees
+                return (
+                  <Fragment key={i}>
+                    <span style={{ fontSize: 12, color: '#374151', fontWeight: isBelt ? 600 : 500 }} className="truncate">
+                      {isBelt ? rt.toNextBelt.replace('{belt}', nextRankName ?? '—') : rt.toStripe.replace('{n}', String(i + 1))}
+                    </span>
+                    <input type="number" min={0} value={form.classesByDegree[i] || ''}
+                      placeholder={form.totalClassesRequired ? String(form.totalClassesRequired) : '—'}
+                      onChange={e => set('classesByDegree', setStepValue(form.classesByDegree, i, e.target.value))} style={INP} />
+                    <input type="number" min={0} value={form.monthsByDegree[i] || ''} placeholder="—"
+                      onChange={e => set('monthsByDegree', setStepValue(form.monthsByDegree, i, e.target.value))} style={INP} />
+                    {isBelt ? (
+                      <span style={{ fontSize: 13, color: '#D1D5DB', textAlign: 'center' }} title={nextRankName ? rt.beltRowHint.replaceAll('{belt}', nextRankName) : undefined}>—</span>
+                    ) : (
+                      <input type="number" min={0} max={99} value={form.minAgeByDegree[i] || ''} placeholder="—"
+                        onChange={e => set('minAgeByDegree', setStepValue(form.minAgeByDegree, i, e.target.value))} style={INP} />
+                    )}
+                  </Fragment>
+                )
+              })}
             </div>
+            {nextRankName && (
+              <p style={{ fontSize: 11, color: '#9CA3AF', margin: '6px 0 0' }}>{rt.beltRowHint.replaceAll('{belt}', nextRankName)}</p>
+            )}
           </div>
+
+          {error && <p style={{ fontSize: 12, color: '#DC2626', margin: 0 }}>{error}</p>}
 
           <div className="flex gap-2 justify-end">
-            <button onClick={() => { setForm({ ...rank, classesByDegree: rank.classesByDegree ?? [] }); setOpen(false) }}
+            <button onClick={() => { setForm(rankForm(rank)); setError(null); setOpen(false) }}
               style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', color: '#374151', fontSize: 13, cursor: 'pointer' }}>
-              Cancel
+              {rt.cancel}
             </button>
             <button onClick={save} disabled={saving}
               style={{ padding: '7px 16px', borderRadius: 8, border: 'none', background: '#0870E2', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-              {saving ? 'Saving…' : 'Save rank'}
+              {saving ? rt.saving : rt.saveRank}
             </button>
           </div>
         </div>

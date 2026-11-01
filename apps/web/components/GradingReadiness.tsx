@@ -218,20 +218,27 @@ export function AttendanceGradingCard({ readiness, lastGradedAt, target, onGrade
         </div>
       )}
 
-      {blockedStep && (() => {
-        const gate = blockedStep.blockedBy[0]!
-        const q = readiness.requirements.find(r => r.kind === gate)
-        if (!q) return null
-        const text = q.unknown
-          ? rt.beltDateUnknown
-          : (gate === 'AGE' ? rt.blockedAge : rt.blockedMonths)
-              .replace('{current}', String(q.current)).replace('{required}', String(q.required))
+      {blockedStep && blockedStep.gates.filter(g => !g.met).map(q => {
+        const unit = q.periodType === 'MONTH' ? rt.perMonth : rt.perWeek
+        const text = q.kind === 'FREQUENCY'
+          ? rt.blockedFrequency.replaceAll('{unit}', unit)
+          : q.unknown
+            ? (q.kind === 'GRADING_MONTHS' ? rt.gradingDateUnknown : rt.beltDateUnknown)
+            : ({ AGE: rt.blockedAge, MONTHS: rt.blockedMonths, GRADING_MONTHS: rt.blockedGradingMonths } as const)[q.kind]
         return (
-          <p className="flex items-center gap-1.5" style={{ fontSize: 12, color: '#B45309', margin: 0 }}>
-            <Lock size={12} /> {text}
+          <p key={q.kind} className="flex items-center gap-1.5" style={{ fontSize: 12, color: '#B45309', margin: 0 }}>
+            <Lock size={12} /> {text.replace('{current}', String(q.current)).replace('{required}', String(q.required))}
           </p>
         )
-      })()}
+      })}
+
+      {readiness.classesOverCap > 0 && readiness.classCap && (
+        <p className="flex items-center gap-1.5" style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>
+          <AlertTriangle size={12} />
+          {rt.overCap.replace('{n}', String(readiness.classesOverCap)).replace('{max}', String(readiness.classCap.max))
+            .replace('{unit}', readiness.classCap.periodType === 'MONTH' ? rt.perMonth : rt.perWeek)}
+        </p>
+      )}
 
       {incomplete && (
         <p className="flex items-center gap-1.5" style={{ fontSize: 12, color: '#B45309', margin: 0 }}>
@@ -239,7 +246,7 @@ export function AttendanceGradingCard({ readiness, lastGradedAt, target, onGrade
         </p>
       )}
 
-      {freq && !freq.met && (
+      {freq && !freq.met && !blockedStep?.blockedBy.includes('FREQUENCY') && (
         <p className="flex items-center gap-1.5" style={{ fontSize: 12, color: '#B45309', margin: 0 }}>
           <AlertTriangle size={12} />
           {rt.frequencyLow.replace('{required}', String(freq.required)).replace('{unit}', freq.periodType === 'MONTH' ? rt.perMonth : rt.perWeek)}
