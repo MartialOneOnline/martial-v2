@@ -153,6 +153,7 @@ interface MonthStats {
   growthPct: number | null; churnPct: number | null
   newPct: number | null; returningPct: number | null
   activeYearAgo: number; yoyPct: number | null
+  provisional?: boolean
 }
 const COHORT_OFFSETS = [2, 3, 6] as const
 interface CohortStats {
@@ -325,7 +326,7 @@ export default function UsersReportClient() {
   function exportMonthly(monthly: MonthStats[], cohorts: CohortStats[], name: string) {
     const byMonth = new Map(cohorts.map(c => [c.month, c]))
     const headers = [
-      r.usersMonth, r.usersColActive,
+      r.usersMonth, r.usersCsvStatus, r.usersColActive,
       r.usersColNew, r.usersCsvPctNew, r.usersColReturning, r.usersCsvPctReturning, r.usersColLost, r.usersColChurn,
       r.usersCsvGrowth, r.usersCsvYearAgo, r.usersCsvYoy,
       ...COHORT_OFFSETS.map(k => r.usersCsvRetained.replace('{n}', String(k))),
@@ -333,7 +334,8 @@ export default function UsersReportClient() {
     const rows = monthly.map(m => {
       const c = byMonth.get(m.month)
       return [
-        m.month, m.active,
+        // Explicit so the month in progress stays recognisable outside the app
+        m.month, m.provisional ? r.usersCsvProvisional : r.usersCsvClosed, m.active,
         m.new, m.newPct, m.returning, m.returningPct, m.lost, m.churnPct,
         // 0 is a real count (nobody a year earlier) — only % with a 0 denominator are empty
         m.growthPct, m.activeYearAgo, m.yoyPct,
@@ -370,7 +372,9 @@ export default function UsersReportClient() {
 
   // New/lost/growth compare the period's baseline month with its last month
   // (see summarisePeriod in lib/memberActivity.ts), so the sub-label names it.
-  const vsBase = stats ? r.usersVsMonth.replace('{m}', fmtMonth(stats.baseMonth)) : ''
+  // The cards always compare closed months (the API ends the period at the
+  // last full month), so name both ends: "sep 26 → oct 26".
+  const vsBase = stats ? `${fmtMonth(stats.baseMonth)} → ${fmtMonth(stats.endMonth)}` : ''
   const STAT_CARDS = [
     { label: r.usersActive, value: stats?.totalActive ?? '—', sub: r.usersActiveSub, color: '#0870E2', note: '' },
     { label: r.usersNew, value: stats?.newInPeriod ?? '—', sub: vsBase, color: '#16A34A',
@@ -380,7 +384,8 @@ export default function UsersReportClient() {
       sub: stats ? `${stats.baseActive} → ${stats.endActive}` : '', color: '#6D28D9',
       note: stats?.retentionPct != null ? r.usersRetention.replace('{n}', stats.retentionPct.toLocaleString(locale)) : '' },
   ]
-  const chartData = (data?.monthly ?? []).map(m => ({ ...m, label: fmtMonth(m.month), lostNeg: -m.lost }))
+  const chartData = (data?.monthly ?? []).map(m => ({ ...m, label: fmtMonth(m.month) + (m.provisional ? '*' : ''), lostNeg: -m.lost }))
+  const provisionalMonth = (data?.monthly ?? []).find(m => m.provisional)?.month
   const monthlyDesc = [...(data?.monthly ?? [])].reverse()
 
   return (
@@ -473,11 +478,18 @@ export default function UsersReportClient() {
                   <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12 }}
                     formatter={(v, name) => [Math.abs(Number(v)), name]} />
                   <Legend wrapperStyle={{ fontSize: 11 }} iconSize={8} />
-                  <Bar yAxisId="flow" dataKey="new" name={r.usersColNew} fill="#22C55E" stackId="flow" radius={[3, 3, 0, 0]} maxBarSize={18} />
-                  <Bar yAxisId="flow" dataKey="lostNeg" name={r.usersColLost} fill="#E11D48" stackId="flow" radius={[3, 3, 0, 0]} maxBarSize={18} />
+                  <Bar yAxisId="flow" dataKey="new" name={r.usersColNew} fill="#22C55E" stackId="flow" radius={[3, 3, 0, 0]} maxBarSize={18}>
+                    {chartData.map(d => <Cell key={d.month} fillOpacity={d.provisional ? 0.35 : 1} />)}
+                  </Bar>
+                  <Bar yAxisId="flow" dataKey="lostNeg" name={r.usersColLost} fill="#E11D48" stackId="flow" radius={[3, 3, 0, 0]} maxBarSize={18}>
+                    {chartData.map(d => <Cell key={d.month} fillOpacity={d.provisional ? 0.35 : 1} />)}
+                  </Bar>
                   <Line yAxisId="active" type="monotone" dataKey="active" name={r.usersColActive} stroke="#0870E2" strokeWidth={2} dot={{ r: 3 }} />
                 </ComposedChart>
               </ResponsiveContainer>
+            )}
+            {!loading && provisionalMonth && (
+              <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 8 }}>{r.usersProvisionalNote.replace('{m}', fmtMonth(provisionalMonth, true))}</p>
             )}
           </div>
           <div className="rounded-2xl p-5" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
@@ -552,10 +564,10 @@ export default function UsersReportClient() {
                 ) : monthlyDesc.map((m, idx) => {
                   const cell = { fontSize: 13, color: '#374151', fontVariantNumeric: 'tabular-nums' } as const
                   return (
-                    <tr key={m.month} style={{ borderBottom: idx < monthlyDesc.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
+                    <tr key={m.month} style={{ background: m.provisional ? '#FAFAFA' : undefined, borderBottom: idx < monthlyDesc.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
                       <td className="px-5 py-2.5" style={{ fontSize: 13, fontWeight: 500, color: '#111827', textTransform: 'capitalize' }}>
                         {fmtMonth(m.month, true)}
-                        {m.month === data?.currentMonth && <span style={{ fontSize: 11, fontWeight: 400, color: '#9CA3AF', marginLeft: 6, textTransform: 'none' }}>({r.usersInProgress})</span>}
+                        {m.provisional && <span style={{ fontSize: 11, fontWeight: 400, color: '#9CA3AF', marginLeft: 6, textTransform: 'none' }}>({r.usersProvisional})</span>}
                       </td>
                       <td className="px-5 py-2.5 text-right" style={{ ...cell, fontWeight: 600, color: '#111827' }}>{m.active}</td>
                       {([['NEW', m.new, m.newPct, '+', '#16A34A'], ['RETURNING', m.returning, m.returningPct, '+', '#0870E2'], ['LOST', m.lost, m.churnPct, '−', '#E11D48']] as const).map(([seg, n, pct, sign, color]) => (
@@ -697,9 +709,13 @@ export default function UsersReportClient() {
             <p style={{ fontSize: 12, color: '#6B7280', marginBottom: 12 }}>
               {filterTab === 'NEW' && r.usersHintNew.replace('{m}', fmtMonth(data.segmentMonth, true))}
               {filterTab === 'RETURNING' && r.usersHintReturning.replace('{m}', fmtMonth(data.segmentMonth, true))}
-              {filterTab === 'LOST' && r.usersHintLost
-                .replace('{last}', fmtMonth(addMonth(data.segmentMonth, -2), true))
-                .replace('{m}', fmtMonth(data.segmentMonth, true))}
+              {(filterTab === 'NEW' || filterTab === 'RETURNING') && data.segmentMonth === data.currentMonth && ' ' + r.usersSoFar}
+              {filterTab === 'LOST' && (data.segmentMonth === data.currentMonth
+                // Lost "this month" = still recoverable this month — say so
+                ? r.usersHintLostCurrent.replace('{last}', fmtMonth(addMonth(data.segmentMonth, -2), true))
+                : r.usersHintLost
+                  .replace('{last}', fmtMonth(addMonth(data.segmentMonth, -2), true))
+                  .replace('{m}', fmtMonth(data.segmentMonth, true)))}
               {filterTab === 'AT_RISK' && r.usersHintAtRisk}
               {data.segmentRemoved > 0 && <span style={{ color: '#9CA3AF' }}> {r.usersRemovedNote.replace('{n}', String(data.segmentRemoved))}</span>}
             </p>

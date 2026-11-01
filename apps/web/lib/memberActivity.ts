@@ -40,6 +40,8 @@ export interface MonthStats {
   activeYearAgo: number
   /** % change in active vs the same month a year earlier; null when that was 0 */
   yoyPct: number | null
+  /** The month is still in progress — figures are "so far", see markProvisional() */
+  provisional?: boolean
 }
 
 export function addMonths(month: MonthKey, n: number): MonthKey {
@@ -338,6 +340,36 @@ export function atRiskUsers(byUser: Map<string, UserActivity>, lastAttended: Map
 export const COHORT_OFFSETS = [2, 3, 6] as const
 export type CohortOffset = typeof COHORT_OFFSETS[number]
 
+// ── The month in progress ─────────────────────────────────────────────────────
+// On the 1st, "active" for the new month is only last month's students (the
+// grace), nobody new has started yet and growth always reads −10…−20% even in
+// months that end up positive (measured on RGM over 12 months). Lost is close
+// to final — those are students who haven't paid or come for a whole month,
+// i.e. the ones still worth calling this month. So:
+//   - period summaries (the cards) end at the last closed month;
+//   - the current month stays on the table/chart, flagged provisional, with
+//     growth and year-on-year left empty until it closes.
+
+/**
+ * Period months for the summary cards, never ending in the month in progress.
+ * Presets keep their length (the window slides back one month); a custom
+ * range just has its end clamped to the last closed month.
+ */
+export function closedPeriodMonths(fromMonth: MonthKey, toMonth: MonthKey, currentMonth: MonthKey, keepLength: boolean): { fromMonth: MonthKey; toMonth: MonthKey } {
+  if (toMonth < currentMonth) return { fromMonth, toMonth }
+  const closed = addMonths(currentMonth, -1)
+  let from = keepLength ? addMonths(fromMonth, -1) : fromMonth
+  if (from > closed) from = closed
+  return { fromMonth: from, toMonth: closed }
+}
+
+/** Flags the month in progress and blanks the figures that only make sense once it has closed. */
+export function markProvisional(stats: MonthStats[], currentMonth: MonthKey): MonthStats[] {
+  return stats.map(m => m.month === currentMonth
+    ? { ...m, provisional: true, growthPct: null, yoyPct: null }
+    : { ...m, provisional: false })
+}
+
 export interface CohortStats {
   month: MonthKey
   started: number
@@ -355,7 +387,8 @@ export function cohortRetention(rows: ActivityRow[], months: MonthKey[], current
     const retainedCount = {} as Record<CohortOffset, number | null>
     for (const k of COHORT_OFFSETS) {
       const target = addMonths(month, k)
-      if (target > currentMonth || cohort.length === 0) { retained[k] = null; retainedCount[k] = null; continue }
+      // Only measure against closed months: the current one is still filling up
+      if (target >= currentMonth || cohort.length === 0) { retained[k] = null; retainedCount[k] = null; continue }
       const n = cohort.filter(u => activeIn(byUser.get(u)!, target, grace)).length
       retainedCount[k] = n
       retained[k] = round1((n / cohort.length) * 100)

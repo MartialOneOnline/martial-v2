@@ -270,6 +270,16 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
+### Sesión — 2026-11-01 (b) (rama `claude/users-report-provisional-month`, PR [#37](https://github.com/MartialOneOnline/martial-v2/pull/37) — `APROBADO CON PENDIENTES` en `50fce6e` → **`APROBADO`** por Codex Project Audit en `d5ba7ab`; falta prueba de UI con sesión real)
+
+**Informe de Usuarios: el mes en curso como provisional.** Medido en RGM sobre 12 meses: el día 1 los activos salen ~20% por debajo del final y el crecimiento siempre entre −8% y −21% (aunque el mes termine en positivo); los perdidos del día 1 se acercan al final (+1 a +11 de más, los que vuelven ese mes).
+- `lib/memberActivity.ts`: `closedPeriodMonths()` (los presets deslizan la ventana un mes atrás manteniendo su longitud; Custom solo recorta el final al último mes cerrado) y `markProvisional()` (marca el mes actual y deja vacíos crecimiento e interanual). `cohortRetention` solo mide contra meses cerrados (`target >= currentMonth` → null). +5 tests.
+- API: las tarjetas usan el periodo cerrado; `monthly` (también `view=history`) lleva `provisional`.
+- UI: tarjetas con "mes base → mes final"; en la gráfica el mes en curso con `*` y barras atenuadas + nota; fila en gris "en curso · hasta hoy"; los Perdidos del mes en curso se explican como "a recuperar este mes"; Nuevos/Vuelven del mes en curso con "(hasta hoy)". Textos EN/ES/PT/FR.
+- **P3 de Codex sobre `50fce6e`**: el CSV (mensual e histórico) no identificaba el mes provisional → nueva columna "Estado" tras "Mes" (Cerrado / Provisional (en curso)), traducida en los 4 idiomas.
+- RGM a 1-nov: 30D → sep→oct (crecimiento 0%, no −12,9%); 12M → nov-25→oct-26 (+21,1%); nov-26 provisional sin crecimiento/interanual.
+- tsc 0 errores, eslint limpio, Vitest 898 pasan / 55 preexistentes. No probado en navegador.
+
 ### Sesión — 2026-11-01 (rama `claude/users-report-percentages`, PR [#36](https://github.com/MartialOneOnline/martial-v2/pull/36) — `APROBADO CON PENDIENTES` en `ae4fd49` y `9bc57c1` → **`APROBADO`** por Codex Project Audit en `5d7013e`; falta prueba de UI con sesión real)
 
 **Informe de Usuarios: porcentajes, interanual, retención de nuevos y CSV legible en Excel.**

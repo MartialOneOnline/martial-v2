@@ -7,7 +7,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   addMonths, monthRange, monthKeyInTz, schoolTimeZone,
-  computeMonthlyActivity, summarisePeriod, reportMonths, zonedRangeBounds, civilDateInTz, activityByUser, segmentUsers, atRiskUsers, cohortRetention, averageRetention, type ActivityRow,
+  computeMonthlyActivity, summarisePeriod, reportMonths, zonedRangeBounds, civilDateInTz, activityByUser, segmentUsers, atRiskUsers, cohortRetention, averageRetention, closedPeriodMonths, markProvisional, type ActivityRow,
 } from '@/lib/memberActivity'
 
 const rows = (userId: string, ...months: string[]): ActivityRow[] => months.map(month => ({ userId, month }))
@@ -239,9 +239,10 @@ describe('cohortRetention()', () => {
     expect(jan!.retained).toEqual({ 2: 66.7, 3: 66.7, 6: 33.3 })
     expect(jan!.retainedCount).toEqual({ 2: 2, 3: 2, 6: 1 })
   })
-  it('leaves offsets that have not happened yet empty', () => {
+  it('leaves offsets that have not closed yet empty — including the month in progress', () => {
+    // Jan +2 = March (closed), +3 = April (in progress), +6 = July (future)
     const [jan] = cohortRetention(data, ['2026-01'], '2026-04')
-    expect(jan!.retained).toEqual({ 2: 66.7, 3: 66.7, 6: null })
+    expect(jan!.retained).toEqual({ 2: 66.7, 3: null, 6: null })
   })
   it('handles months where nobody started', () => {
     const [feb] = cohortRetention(data, ['2026-02'], '2026-10')
@@ -251,5 +252,30 @@ describe('cohortRetention()', () => {
     const cohorts = cohortRetention([...data, ...rows('solo', '2026-02', '2026-05')], ['2026-01', '2026-02'], '2026-10')
     // Jan: 2 of 3 at +3; Feb: 1 of 1 at +3 (May) → 3 of 4
     expect(averageRetention(cohorts, 3)).toBe(75)
+  })
+})
+
+describe('month in progress', () => {
+  it('ends preset periods at the last closed month, keeping their length', () => {
+    // 1 Nov, 12M = Dec..Nov → Nov..Oct
+    expect(closedPeriodMonths('2025-12', '2026-11', '2026-11', true)).toEqual({ fromMonth: '2025-11', toMonth: '2026-10' })
+    // 30D on 1 Nov = Oct..Nov → Sep..Oct
+    expect(closedPeriodMonths('2026-10', '2026-11', '2026-11', true)).toEqual({ fromMonth: '2026-09', toMonth: '2026-10' })
+    // 7D inside November → October
+    expect(closedPeriodMonths('2026-11', '2026-11', '2026-11', true)).toEqual({ fromMonth: '2026-10', toMonth: '2026-10' })
+  })
+  it('clamps only the end of a custom range that reaches the current month', () => {
+    expect(closedPeriodMonths('2026-06', '2026-11', '2026-11', false)).toEqual({ fromMonth: '2026-06', toMonth: '2026-10' })
+    expect(closedPeriodMonths('2026-11', '2026-11', '2026-11', false)).toEqual({ fromMonth: '2026-10', toMonth: '2026-10' })
+  })
+  it('leaves periods that are already closed untouched', () => {
+    expect(closedPeriodMonths('2026-06', '2026-08', '2026-11', true)).toEqual({ fromMonth: '2026-06', toMonth: '2026-08' })
+  })
+  it('flags the current month and blanks growth and year-on-year', () => {
+    const data = [...rows('a', '2025-11', '2026-09', '2026-10', '2026-11'), ...rows('b', '2026-10')]
+    const [oct, nov] = markProvisional(computeMonthlyActivity(data, ['2026-10', '2026-11']), '2026-11')
+    expect(oct).toMatchObject({ provisional: false })
+    expect(oct!.growthPct).not.toBeNull()
+    expect(nov).toMatchObject({ provisional: true, growthPct: null, yoyPct: null, active: 2 })
   })
 })
