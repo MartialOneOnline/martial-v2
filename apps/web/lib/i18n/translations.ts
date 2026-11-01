@@ -3,8 +3,13 @@ export type Locale = 'en' | 'es' | 'pt' | 'fr'
 export const translations = {
   en: {
     readiness: {
-      incompleteRules: 'Rules incomplete: no class count for {step} (Settings → Grading)', beltDateUnknown: 'Belt date unknown — record the promotion date to check time at belt', loadError: 'Could not load grading readiness.', retry: 'Retry', staleWarning: 'Couldn’t refresh — the list may be out of date.',
-      perStripeLabel: 'Classes for each grading', perStripeHint: 'Counted from the previous grading. Leave blank to use Total classes.', toStripe: '→ Stripe {n}', toNextBelt: '→ {belt}',
+      rulesStepsLabel: 'Rules for each grading', rulesStepsHint: 'Counted from the previous grading. Leave blank for no rule — blank classes use the default.', colStep: 'Grading', colClasses: 'Classes', colMonths: 'Min. months', colAge: 'Min. age', beltRowHint: 'Age and time at belt to reach {belt} are set on {belt}.',
+      rankName: 'Name', rankStripes: 'Stripes / degrees', rankNoStripes: 'No stripes', rankNStripes: '{n} stripes', rankColor: 'Color', rankMinAge: 'Min. age to reach this belt', rankMonthsAtPrev: 'Months at previous belt', rankDefaultClasses: 'Classes per grading (default)',
+      freqLabel: 'Training frequency', freqHint: 'Below the minimum no grading is due. Classes above the maximum in the same week/month don’t count.', freqMin: 'Min. classes', freqMax: 'Max. classes that count', freqPeriod: 'Period', periodWeek: 'per week', periodMonth: 'per month',
+      freqPeriodRequired: 'Choose a period for the min/max classes', freqMaxBelowMin: 'The max can’t be below the min', saveRank: 'Save rank', saving: 'Saving…', cancel: 'Cancel', saveError: 'Could not save the rank',
+      blockedFrequency: 'Trains too little: {current}{unit} (min {required}{unit})', blockedGradingMonths: 'Waiting on time since last grading ({current}/{required} mo)', gradingDateUnknown: 'Last grading date unknown — record it to check the time rule', overCap: '{n} classes don’t count (max {max}{unit})',
+      incompleteRules: 'Rules incomplete: no class count or time for {step} (Settings → Grading)', beltDateUnknown: 'Belt date unknown — record the promotion date to check time at belt', loadError: 'Could not load grading readiness.', retry: 'Retry', staleWarning: 'Couldn’t refresh — the list may be out of date.',
+      toStripe: '→ Stripe {n}', toNextBelt: '→ {belt}',
       cardTitle: 'Attendance & grading', due: 'Due now', dueStripes: '+{n} stripe(s) → {belt} {deg}', dueStripe: '+1 stripe → {belt} {deg}', dueBelt: 'Promote to {belt}',
       nothingDue: 'Nothing due yet', classesToNext: '{n} classes to {step}', stripeN: 'Stripe {n}', beltStep: '{belt} belt',
       classesSinceGrading: 'Classes since last grading', lastGrading: 'Last grading', never: 'Never',
@@ -1025,8 +1030,13 @@ export const translations = {
   // ── ESPAÑOL ────────────────────────────────────────────────────────────────
   es: {
     readiness: {
-      incompleteRules: 'Reglas incompletas: falta la cifra de clases para {step} (Ajustes → Grading)', beltDateUnknown: 'Fecha del cinturón desconocida — registra la fecha de promoción para comprobar el tiempo en el cinturón', loadError: 'No se pudo cargar la preparación para graduar.', retry: 'Reintentar', staleWarning: 'No se pudo actualizar — la lista puede estar desactualizada.',
-      perStripeLabel: 'Clases para cada graduación', perStripeHint: 'Se cuentan desde la graduación anterior. En blanco = usa Total classes.', toStripe: '→ Grado {n}', toNextBelt: '→ {belt}',
+      rulesStepsLabel: 'Reglas para cada graduación', rulesStepsHint: 'Se cuenta desde la graduación anterior. En blanco = sin regla; las clases en blanco usan la cifra por defecto.', colStep: 'Graduación', colClasses: 'Clases', colMonths: 'Meses mín.', colAge: 'Edad mín.', beltRowHint: 'La edad y el tiempo en el cinturón para llegar a {belt} se configuran en {belt}.',
+      rankName: 'Nombre', rankStripes: 'Grados', rankNoStripes: 'Sin grados', rankNStripes: '{n} grados', rankColor: 'Color', rankMinAge: 'Edad mín. para llegar a este cinturón', rankMonthsAtPrev: 'Meses en el cinturón anterior', rankDefaultClasses: 'Clases por graduación (por defecto)',
+      freqLabel: 'Frecuencia de entrenamiento', freqHint: 'Por debajo del mínimo no le corresponde ninguna graduación. Las clases por encima del máximo en la misma semana/mes no cuentan.', freqMin: 'Clases mín.', freqMax: 'Clases máx. que cuentan', freqPeriod: 'Periodo', periodWeek: 'por semana', periodMonth: 'por mes',
+      freqPeriodRequired: 'Elige un periodo para las clases mín./máx.', freqMaxBelowMin: 'El máximo no puede ser menor que el mínimo', saveRank: 'Guardar cinturón', saving: 'Guardando…', cancel: 'Cancelar', saveError: 'No se pudo guardar el cinturón',
+      blockedFrequency: 'Entrena poco: {current}{unit} (mín. {required}{unit})', blockedGradingMonths: 'Falta tiempo desde la última graduación ({current}/{required} meses)', gradingDateUnknown: 'Fecha de la última graduación desconocida: regístrala para comprobar el tiempo', overCap: '{n} clases no cuentan (máx. {max}{unit})',
+      incompleteRules: 'Reglas incompletas: falta la cifra de clases o de tiempo para {step} (Ajustes → Grading)', beltDateUnknown: 'Fecha del cinturón desconocida — registra la fecha de promoción para comprobar el tiempo en el cinturón', loadError: 'No se pudo cargar la preparación para graduar.', retry: 'Reintentar', staleWarning: 'No se pudo actualizar — la lista puede estar desactualizada.',
+      toStripe: '→ Grado {n}', toNextBelt: '→ {belt}',
       cardTitle: 'Asistencia y graduación', due: 'Le corresponde', dueStripes: '+{n} grados → {belt} {deg}', dueStripe: '+1 grado → {belt} {deg}', dueBelt: 'Subir a {belt}',
       nothingDue: 'Aún no le corresponde nada', classesToNext: '{n} clases para {step}', stripeN: 'Grado {n}', beltStep: 'Cinturón {belt}',
       classesSinceGrading: 'Clases desde la última graduación', lastGrading: 'Última graduación', never: 'Nunca',
@@ -1961,8 +1971,13 @@ export const translations = {
   // ── PORTUGUÊS ──────────────────────────────────────────────────────────────
   pt: {
     readiness: {
-      incompleteRules: 'Regras incompletas: falta o número de aulas para {step} (Definições → Grading)', beltDateUnknown: 'Data da faixa desconhecida — registe a data de promoção para verificar o tempo na faixa', loadError: 'Não foi possível carregar a prontidão para graduar.', retry: 'Tentar de novo', staleWarning: 'Não foi possível atualizar — a lista pode estar desatualizada.',
-      perStripeLabel: 'Aulas para cada graduação', perStripeHint: 'Contadas desde a graduação anterior. Em branco = usa Total classes.', toStripe: '→ Grau {n}', toNextBelt: '→ {belt}',
+      rulesStepsLabel: 'Regras para cada graduação', rulesStepsHint: 'Contado desde a graduação anterior. Em branco = sem regra; aulas em branco usam o valor padrão.', colStep: 'Graduação', colClasses: 'Aulas', colMonths: 'Meses mín.', colAge: 'Idade mín.', beltRowHint: 'A idade e o tempo na faixa para chegar a {belt} configuram-se em {belt}.',
+      rankName: 'Nome', rankStripes: 'Graus', rankNoStripes: 'Sem graus', rankNStripes: '{n} graus', rankColor: 'Cor', rankMinAge: 'Idade mín. para chegar a esta faixa', rankMonthsAtPrev: 'Meses na faixa anterior', rankDefaultClasses: 'Aulas por graduação (padrão)',
+      freqLabel: 'Frequência de treino', freqHint: 'Abaixo do mínimo não corresponde nenhuma graduação. As aulas acima do máximo na mesma semana/mês não contam.', freqMin: 'Aulas mín.', freqMax: 'Aulas máx. que contam', freqPeriod: 'Período', periodWeek: 'por semana', periodMonth: 'por mês',
+      freqPeriodRequired: 'Escolha um período para as aulas mín./máx.', freqMaxBelowMin: 'O máximo não pode ser menor que o mínimo', saveRank: 'Guardar faixa', saving: 'A guardar…', cancel: 'Cancelar', saveError: 'Não foi possível guardar a faixa',
+      blockedFrequency: 'Treina pouco: {current}{unit} (mín. {required}{unit})', blockedGradingMonths: 'Falta tempo desde a última graduação ({current}/{required} meses)', gradingDateUnknown: 'Data da última graduação desconhecida: registe-a para verificar o tempo', overCap: '{n} aulas não contam (máx. {max}{unit})',
+      incompleteRules: 'Regras incompletas: falta o número de aulas ou o tempo para {step} (Definições → Grading)', beltDateUnknown: 'Data da faixa desconhecida — registe a data de promoção para verificar o tempo na faixa', loadError: 'Não foi possível carregar a prontidão para graduar.', retry: 'Tentar de novo', staleWarning: 'Não foi possível atualizar — a lista pode estar desatualizada.',
+      toStripe: '→ Grau {n}', toNextBelt: '→ {belt}',
       cardTitle: 'Frequência e graduação', due: 'Tem direito a', dueStripes: '+{n} graus → {belt} {deg}', dueStripe: '+1 grau → {belt} {deg}', dueBelt: 'Subir para {belt}',
       nothingDue: 'Ainda nada pendente', classesToNext: '{n} aulas para {step}', stripeN: 'Grau {n}', beltStep: 'Faixa {belt}',
       classesSinceGrading: 'Aulas desde a última graduação', lastGrading: 'Última graduação', never: 'Nunca',
@@ -2897,8 +2912,13 @@ export const translations = {
   // ── FRANÇAIS ───────────────────────────────────────────────────────────────
   fr: {
     readiness: {
-      incompleteRules: 'Règles incomplètes : nombre de cours manquant pour {step} (Paramètres → Grading)', beltDateUnknown: 'Date de ceinture inconnue — enregistrez la date de passage pour vérifier le temps à la ceinture', loadError: 'Impossible de charger la préparation au passage.', retry: 'Réessayer', staleWarning: 'Actualisation impossible — la liste peut être obsolète.',
-      perStripeLabel: 'Cours pour chaque passage', perStripeHint: 'Comptés depuis le passage précédent. Vide = utilise Total classes.', toStripe: '→ Barrette {n}', toNextBelt: '→ {belt}',
+      rulesStepsLabel: 'Règles pour chaque passage de grade', rulesStepsHint: 'Compté depuis le passage précédent. Vide = pas de règle ; les cours vides utilisent la valeur par défaut.', colStep: 'Passage', colClasses: 'Cours', colMonths: 'Mois min.', colAge: 'Âge min.', beltRowHint: 'L’âge et le temps à la ceinture pour atteindre {belt} se règlent sur {belt}.',
+      rankName: 'Nom', rankStripes: 'Barrettes / degrés', rankNoStripes: 'Sans barrettes', rankNStripes: '{n} barrettes', rankColor: 'Couleur', rankMinAge: 'Âge min. pour atteindre cette ceinture', rankMonthsAtPrev: 'Mois à la ceinture précédente', rankDefaultClasses: 'Cours par passage (par défaut)',
+      freqLabel: 'Fréquence d’entraînement', freqHint: 'En dessous du minimum, aucun passage n’est dû. Les cours au-delà du maximum dans la même semaine/mois ne comptent pas.', freqMin: 'Cours min.', freqMax: 'Cours max. comptés', freqPeriod: 'Période', periodWeek: 'par semaine', periodMonth: 'par mois',
+      freqPeriodRequired: 'Choisissez une période pour les cours min./max.', freqMaxBelowMin: 'Le maximum ne peut pas être inférieur au minimum', saveRank: 'Enregistrer la ceinture', saving: 'Enregistrement…', cancel: 'Annuler', saveError: 'Impossible d’enregistrer la ceinture',
+      blockedFrequency: 'S’entraîne trop peu : {current}{unit} (min. {required}{unit})', blockedGradingMonths: 'Temps depuis le dernier passage insuffisant ({current}/{required} mois)', gradingDateUnknown: 'Date du dernier passage inconnue : enregistrez-la pour vérifier la durée', overCap: '{n} cours ne comptent pas (max. {max}{unit})',
+      incompleteRules: 'Règles incomplètes : nombre de cours ou durée manquant pour {step} (Paramètres → Grading)', beltDateUnknown: 'Date de ceinture inconnue — enregistrez la date de passage pour vérifier le temps à la ceinture', loadError: 'Impossible de charger la préparation au passage.', retry: 'Réessayer', staleWarning: 'Actualisation impossible — la liste peut être obsolète.',
+      toStripe: '→ Barrette {n}', toNextBelt: '→ {belt}',
       cardTitle: 'Présence et passage de grade', due: 'Dû maintenant', dueStripes: '+{n} barrettes → {belt} {deg}', dueStripe: '+1 barrette → {belt} {deg}', dueBelt: 'Passer à {belt}',
       nothingDue: 'Rien de dû pour l’instant', classesToNext: '{n} cours avant {step}', stripeN: 'Barrette {n}', beltStep: 'Ceinture {belt}',
       classesSinceGrading: 'Cours depuis le dernier passage', lastGrading: 'Dernier passage', never: 'Jamais',

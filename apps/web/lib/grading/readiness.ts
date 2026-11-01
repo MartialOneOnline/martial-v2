@@ -10,12 +10,24 @@
 //
 // We never go past the next belt: a belt is the instructor's call, so the
 // count stops there. The belt step also needs the NEXT rank's minAge and
-// minMonthsAtPrevious. Training frequency (classesPerPeriod) is shown as
-// information but doesn't block — attendance already reflects it.
+// minMonthsAtPrevious.
+//
+// Each school sets its own rules (2026-11-01) — any mix of, per grading:
+//  - classes since the previous grading (classesByDegree / totalClassesRequired)
+//  - minimum months since the previous grading (monthsByDegree), e.g. IBJJF
+//    black belt degrees; cumulative when several steps are due at once
+//  - minimum age for a stripe (minAgeByDegree); the belt uses the next rank's minAge
+//  - training frequency for the whole belt: below classesPerPeriod nothing is
+//    due (it blocks), and above maxClassesPerPeriod the extra classes in that
+//    week/month don't count toward grading.
+// A rule left blank doesn't apply.
+
+import { civilDateInTz } from '../memberActivity'
 
 export type ReadinessStatus = 'READY' | 'ALMOST_READY' | 'NOT_READY' | 'NO_RULES' | 'TOP_RANK'
 
-export type RequirementKind = 'FREQUENCY' | 'MONTHS' | 'AGE'
+/** MONTHS = time at the current belt (next rank's minMonthsAtPrevious); GRADING_MONTHS = since the previous grading */
+export type RequirementKind = 'FREQUENCY' | 'MONTHS' | 'AGE' | 'GRADING_MONTHS'
 
 export interface Requirement {
   kind: RequirementKind
@@ -26,7 +38,7 @@ export interface Requirement {
   met: boolean
   /** FREQUENCY only */
   periodType?: 'WEEK' | 'MONTH'
-  /** MONTHS only: the current belt's award date isn't known — treated as not met */
+  /** MONTHS / GRADING_MONTHS: the start date isn't known — treated as not met */
   unknown?: boolean
 }
 
@@ -40,10 +52,12 @@ export interface GradingStep {
   /** Classes counted toward this step (0..required) — null when classes aren't a rule */
   classes: number | null
   required: number | null
-  /** Enough classes AND (belt step) age / months met */
+  /** Enough classes AND every gate met */
   earned: boolean
-  /** Belt step only: which gate is holding it back despite enough classes */
-  blockedBy: Array<'AGE' | 'MONTHS'>
+  /** Every non-class rule that applies to this step (time, age, frequency) */
+  gates: Requirement[]
+  /** Unmet gates holding it back despite enough classes */
+  blockedBy: RequirementKind[]
 }
 
 export interface RankRules {
@@ -56,7 +70,11 @@ export interface RankRules {
   minMonthsAtPrevious: number | null
   totalClassesRequired: number | null
   classesByDegree: number[]
+  /** Optional so older callers/fixtures keep working — missing = no rule */
+  monthsByDegree?: number[]
+  minAgeByDegree?: number[]
   classesPerPeriod: number | null
+  maxClassesPerPeriod?: number | null
   periodType: string | null
   classTypeIds: string[]
   requireExam: boolean
@@ -78,9 +96,13 @@ export interface ReadinessInput {
   countSince: Date | null
   /** When the current belt (not stripe) was awarded — see pickBeltSince(). null = unknown */
   beltSince: Date | null
+  /** Start for "months since the previous grading". null = unknown (rule not met); omitted = countSince */
+  stepSince?: Date | null
   dateOfBirth: Date | null
   attended: AttendedClass[]
   now?: Date
+  /** School IANA timezone, for the week/month of the max-per-period cap. Default UTC. */
+  timeZone?: string
 }
 
 export interface Readiness {
@@ -96,7 +118,13 @@ export interface Readiness {
   requirements: Requirement[]
   /** Exam / competition for the belt — not tracked in the app, the instructor checks them */
   manualChecks: Array<'EXAM' | 'COMPETITION'>
+  /** Classes that count toward grading since countSince (after the max-per-period cap) */
   classesSince: number
+  /** Classes actually attended since countSince */
+  classesAttended: number
+  /** Attended classes that don't count because of maxClassesPerPeriod */
+  classesOverCap: number
+  classCap: { max: number; periodType: 'WEEK' | 'MONTH' } | null
   /** Classes the very next grading needs (from the current stripe) */
   classesForFirstStep: number | null
   /** The belt has class rules but this grading has no count and no fallback — nothing past it is evaluated */
@@ -127,14 +155,7 @@ export function pickBeltSince(input: {
   beltNames: string[]
   beltDate: Date | null
 }): Date | null {
-  const names = input.beltNames.map(n => n.trim().toLowerCase()).filter(Boolean)
-  // Structured identity wins: a record whose FK names another rank never
-  // matches by name (two systems can both have a "White"). Name matching is
-  // only for legacy records without toBeltRankId.
-  const atCurrent = (g: GradingRecord) => {
-    if (g.toBeltRankId && input.rankId) return g.toBeltRankId === input.rankId
-    return names.includes(g.toBelt.trim().toLowerCase())
-  }
+  const atCurrent = landsAtRank(input.rankId, input.beltNames)
   // Only positive evidence counts as a belt change: landing on the plain belt
   // (degree 0/null), or a known origin belt that differs. A stripe with an
   // unknown origin is not one — it only proves the belt was already held.
@@ -147,6 +168,47 @@ export function pickBeltSince(input: {
   if (beltChanges.length) return beltChanges[beltChanges.length - 1]!.gradedAt
   if (here.length) return here[0]!.gradedAt
   return input.beltDate
+}
+
+/**
+ * Whether a grading landed on the given rank. Structured identity wins: a
+ * record whose FK names another rank never matches by name (two systems can
+ * both have a "White"). Name matching is only for legacy records without
+ * toBeltRankId.
+ */
+function landsAtRank(rankId: string | null, beltNames: string[]) {
+  const names = beltNames.map(n => n.trim().toLowerCase()).filter(Boolean)
+  return (g: GradingRecord) => {
+    if (g.toBeltRankId && rankId) return g.toBeltRankId === rankId
+    return names.includes(g.toBelt.trim().toLowerCase())
+  }
+}
+
+/**
+ * Start of "months since the previous grading" — the date the student reached
+ * their CURRENT rank and degree. Only evidence for that exact grade counts:
+ *  1. latest grading that landed on the current rank AND degree
+ *  2. else, at degree 0, member.beltDate (the belt's award date)
+ *  3. else, at the very first grade of the system, the join date (they started there)
+ *  4. else null → unknown, and the time rule counts as not met
+ * A grading at another rank or system never resolves it (Project Audit PR #38 P1).
+ */
+export function pickStepSince(input: {
+  gradings: GradingRecord[]
+  rankId: string | null
+  beltNames: string[]
+  degree: number
+  beltDate: Date | null
+  joinedAt: Date | null
+  isFirstGrade: boolean
+}): Date | null {
+  const atRank = landsAtRank(input.rankId, input.beltNames)
+  const here = input.gradings
+    .filter(g => atRank(g) && (g.toDegree ?? 0) === input.degree)
+    .sort((a, b) => b.gradedAt.getTime() - a.gradedAt.getTime())
+  if (here.length) return here[0]!.gradedAt
+  if (input.degree === 0 && input.beltDate) return input.beltDate
+  return input.isFirstGrade ? input.joinedAt : null
 }
 
 export const ALMOST_READY_THRESHOLD = 75
@@ -173,6 +235,44 @@ function ageAt(dob: Date, at: Date): number {
   return age
 }
 
+/**
+ * Week (Monday start) or calendar month of an instant, on the school's local
+ * calendar — a 00:15 Tuesday class in Madrid is 23:15 Monday UTC.
+ */
+function periodKey(d: Date, type: 'WEEK' | 'MONTH', timeZone: string): number {
+  const [y, m, day] = civilDateInTz(d, timeZone).split('-').map(Number) as [number, number, number]
+  if (type === 'MONTH') return y * 12 + (m - 1)
+  const civil = Date.UTC(y, m - 1, day)
+  const sinceMonday = (new Date(civil).getUTCDay() + 6) % 7
+  return civil - sinceMonday * DAY_MS
+}
+
+/** Keeps at most `max` classes per week/month (school calendar), earliest first. */
+export function capPerPeriod(classes: AttendedClass[], max: number, type: 'WEEK' | 'MONTH', timeZone = 'UTC'): AttendedClass[] {
+  const perPeriod = new Map<number, number>()
+  return [...classes]
+    .sort((a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime())
+    .filter(c => {
+      const k = periodKey(c.scheduledAt, type, timeZone)
+      const n = perPeriod.get(k) ?? 0
+      if (n >= max) return false
+      perPeriod.set(k, n + 1)
+      return true
+    })
+}
+
+/** Same instant `months` calendar months earlier, clamped to the month's last day (31 May − 3 → 28/29 Feb, not 3 Mar). */
+function monthsBefore(d: Date, months: number): Date {
+  const first = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() - months, 1))
+  const lastDay = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate()
+  return new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth(), Math.min(d.getUTCDate(), lastDay),
+    d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds(), d.getUTCMilliseconds()))
+}
+
+function positive(v: number | null | undefined): number | null {
+  return typeof v === 'number' && v > 0 ? v : null
+}
+
 function classCounts(rank: RankRules, c: AttendedClass): boolean {
   if (!rank.classTypeIds.length) return true
   return rank.classTypeIds.includes(c.classId) || (!!c.disciplineId && rank.classTypeIds.includes(c.disciplineId))
@@ -186,7 +286,7 @@ export function computeReadiness(input: ReadinessInput): Readiness {
 
   const result = (r: Partial<Readiness> & { status: ReadinessStatus }): Readiness => ({
     percent: null, due: null, next: null, steps: [], requirements: [], manualChecks: [],
-    classesSince: 0, classesForFirstStep: null, incompleteRules: null, countSince: since ? since.toISOString() : null, ...r,
+    classesSince: 0, classesAttended: 0, classesOverCap: 0, classCap: null, classesForFirstStep: null, incompleteRules: null, countSince: since ? since.toISOString() : null, ...r,
   })
 
   if (!current) return result({ status: 'NO_RULES' })
@@ -196,10 +296,15 @@ export function computeReadiness(input: ReadinessInput): Readiness {
 
   const counted = input.attended.filter(c =>
     c.scheduledAt <= now && (!since || c.scheduledAt >= since) && classCounts(current, c))
-  const classesSince = counted.length
+  const period: 'WEEK' | 'MONTH' | null = current.periodType === 'WEEK' || current.periodType === 'MONTH' ? current.periodType : null
+  const maxPerPeriod = period ? positive(current.maxClassesPerPeriod) : null
+  const classCap = maxPerPeriod && period ? { max: maxPerPeriod, periodType: period } : null
+  const classesAttended = counted.length
+  const classesSince = classCap ? capPerPeriod(counted, classCap.max, classCap.periodType, input.timeZone ?? 'UTC').length : classesAttended
+  const classCounters = { classesSince, classesAttended, classesOverCap: classesAttended - classesSince, classCap }
 
   // Nothing left to grade — but the attendance count is still real.
-  if (degree >= current.maxDegrees && !nextRank) return result({ status: 'TOP_RANK', classesSince })
+  if (degree >= current.maxDegrees && !nextRank) return result({ status: 'TOP_RANK', ...classCounters })
   /** Classes needed to go from stripe `d` to the next step at this belt — null = not a rule */
   const requiredFrom = (d: number): number | null => {
     // 0 / missing = not set for this stripe → use the belt's default
@@ -210,13 +315,11 @@ export function computeReadiness(input: ReadinessInput): Readiness {
   const requirements: Requirement[] = []
 
   // ── Belt gates (next rank) ────────────────────────────────────────────────
-  const blockedBy: Array<'AGE' | 'MONTHS'> = []
   if (nextRank?.minMonthsAtPrevious && nextRank.minMonthsAtPrevious > 0) {
     // Unknown belt date → can't prove the time at belt, so it doesn't pass.
     const unknown = !input.beltSince
     const months = input.beltSince ? wholeMonthsBetween(input.beltSince, now) : 0
     const met = !unknown && months >= nextRank.minMonthsAtPrevious
-    if (!met) blockedBy.push('MONTHS')
     requirements.push({
       kind: 'MONTHS', current: months, required: nextRank.minMonthsAtPrevious,
       percent: unknown ? 0 : pct(months, nextRank.minMonthsAtPrevious), met, ...(unknown && { unknown: true }),
@@ -226,69 +329,111 @@ export function computeReadiness(input: ReadinessInput): Readiness {
   if (nextRank?.minAge && nextRank.minAge > 0 && input.dateOfBirth) {
     const age = ageAt(input.dateOfBirth, now)
     const met = age >= nextRank.minAge
-    if (!met) blockedBy.push('AGE')
     requirements.push({ kind: 'AGE', current: age, required: nextRank.minAge, percent: pct(age, nextRank.minAge), met })
   }
   const beltGates = requirements.filter(r => r.kind === 'MONTHS' || r.kind === 'AGE')
 
+  // ── Frequency: below the minimum nothing is due ───────────────────────────
+  let frequency: Requirement | null = null
+  const minPerPeriod = period ? positive(current.classesPerPeriod) : null
+  if (minPerPeriod && period) {
+    const isWeek = period === 'WEEK'
+    const windowStart = isWeek
+      ? new Date(now.getTime() - FREQUENCY_WINDOW_WEEKS * 7 * DAY_MS)
+      : monthsBefore(now, FREQUENCY_WINDOW_MONTHS)
+    // Start of the count (or, unknown, the first class in the window) so a
+    // student who started three weeks ago isn't averaged over twelve.
+    const firstInWindow = counted.filter(c => c.scheduledAt >= windowStart)
+      .reduce<Date | null>((min, c) => (!min || c.scheduledAt < min ? c.scheduledAt : min), null)
+    const start = since ?? firstInWindow
+    const from = start && start > windowStart ? start : windowStart
+    // The full window is exactly 12 weeks / 3 calendar months; a shorter one
+    // (graded or started recently) is measured in days, at least one week.
+    const spanDays = Math.max(7, (now.getTime() - from.getTime()) / DAY_MS)
+    const periods = from === windowStart
+      ? (isWeek ? FREQUENCY_WINDOW_WEEKS : FREQUENCY_WINDOW_MONTHS)
+      : (isWeek ? spanDays / 7 : spanDays / 30.44)
+    // Real attendance (before the cap): the student did train that much.
+    const avg = Math.round((counted.filter(c => c.scheduledAt >= from).length / periods) * 10) / 10
+    frequency = {
+      kind: 'FREQUENCY', current: avg, required: minPerPeriod,
+      percent: pct(avg, minPerPeriod), met: avg >= minPerPeriod, periodType: period,
+    }
+    requirements.unshift(frequency)
+  }
+
   // ── Steps: remaining stripes, then the next belt ──────────────────────────
+  const stepSince = input.stepSince === undefined ? since : input.stepSince
+  const monthsSinceGrading = stepSince ? wholeMonthsBetween(stepSince, now) : null
+  const age = input.dateOfBirth ? ageAt(input.dateOfBirth, now) : null
+  const monthsFrom = (d: number) => positive((current.monthsByDegree ?? [])[d])
+  const ageFor = (d: number) => (d < current.maxDegrees ? positive((current.minAgeByDegree ?? [])[d]) : null)
+
   const steps: GradingStep[] = []
   let used = 0 // classes consumed by earlier steps
-  const pushStep = (kind: 'DEGREE' | 'BELT', rank: RankRules, deg: number, required: number | null) => {
+  let usedMonths = 0 // months consumed by earlier steps
+  const pushStep = (
+    kind: 'DEGREE' | 'BELT', rank: RankRules, deg: number,
+    required: number | null, months: number | null, minAge: number | null,
+  ) => {
     const classes = required ? Math.max(0, Math.min(required, classesSince - used)) : null
     const enoughClasses = required ? classesSince >= used + required : true
     if (required) used += required
-    const gates = kind === 'BELT' ? blockedBy : []
+    const gates: Requirement[] = []
+    if (months) {
+      usedMonths += months
+      // Unknown last-grading date → can't prove the time, so it doesn't pass.
+      const unknown = monthsSinceGrading === null
+      const cur = monthsSinceGrading ?? 0
+      gates.push({
+        kind: 'GRADING_MONTHS', current: cur, required: usedMonths,
+        percent: unknown ? 0 : pct(cur, usedMonths), met: !unknown && cur >= usedMonths, ...(unknown && { unknown: true }),
+      })
+    }
+    // An unknown birth date doesn't block — many schools never collected it.
+    if (minAge && age !== null) {
+      gates.push({ kind: 'AGE', current: age, required: minAge, percent: pct(age, minAge), met: age >= minAge })
+    }
+    if (kind === 'BELT') gates.push(...beltGates)
+    if (frequency) gates.push(frequency)
+    const unmet = gates.filter(g => !g.met).map(g => g.kind)
     steps.push({
       kind, rankId: rank.id, rankName: rank.name, rankColor: rank.color, degree: deg,
-      classes, required, earned: enoughClasses && gates.length === 0,
-      blockedBy: enoughClasses ? gates : [],
+      classes, required, earned: enoughClasses && unmet.length === 0, gates,
+      blockedBy: enoughClasses ? unmet : [],
     })
   }
-  // A belt either uses classes (any count set) or doesn't (time/age-only).
-  // With classes, every grading up to the next belt needs a count: a gap
-  // stops the walk there, so later requirements can never be skipped.
+  // A belt measures its gradings in classes, in time, or both. With classes,
+  // every grading up to the next belt needs a count; with time only, every
+  // stripe needs a time. A gap stops the walk there, so later requirements
+  // can never be skipped. Neither → only the belt gates (time/age at belt).
   const usesClasses = (current.totalClassesRequired ?? 0) > 0 || current.classesByDegree.some(v => v > 0)
+  const usesMonths = (current.monthsByDegree ?? []).some(v => v > 0)
   let incompleteRules: Readiness['incompleteRules'] = null
-  if (usesClasses) {
+  if (usesClasses || usesMonths) {
     for (let d = degree; d <= current.maxDegrees; d++) {
       const isBelt = d === current.maxDegrees
       if (isBelt && !nextRank) break
       const rank = isBelt ? nextRank! : current
       const target = isBelt ? 0 : d + 1
-      const req = requiredFrom(d)
-      if (!req) {
+      const req = usesClasses ? requiredFrom(d) : null
+      const months = monthsFrom(d)
+      const measurable = usesClasses ? !!req : (!!months || (isBelt && beltGates.length > 0))
+      if (!measurable) {
         incompleteRules = { kind: isBelt ? 'BELT' : 'DEGREE', degree: target, rankName: rank.name }
         break
       }
-      pushStep(isBelt ? 'BELT' : 'DEGREE', rank, target, req)
+      pushStep(isBelt ? 'BELT' : 'DEGREE', rank, target, req, months, isBelt ? null : ageFor(d))
     }
   } else if (nextRank && beltGates.length) {
-    pushStep('BELT', nextRank, 0, null)
-  }
-
-  // ── Frequency (information only) ──────────────────────────────────────────
-  if (current.classesPerPeriod && current.classesPerPeriod > 0 && (current.periodType === 'WEEK' || current.periodType === 'MONTH')) {
-    const isWeek = current.periodType === 'WEEK'
-    const windowStart = isWeek
-      ? new Date(now.getTime() - FREQUENCY_WINDOW_WEEKS * 7 * DAY_MS)
-      : new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - FREQUENCY_WINDOW_MONTHS, now.getUTCDate()))
-    const from = since && since > windowStart ? since : windowStart
-    const spanDays = Math.max(7, (now.getTime() - from.getTime()) / DAY_MS)
-    const periods = isWeek ? spanDays / 7 : spanDays / 30.44
-    const avg = Math.round((counted.filter(c => c.scheduledAt >= from).length / periods) * 10) / 10
-    requirements.unshift({
-      kind: 'FREQUENCY', current: avg, required: current.classesPerPeriod,
-      percent: pct(avg, current.classesPerPeriod), met: avg >= current.classesPerPeriod,
-      periodType: current.periodType,
-    })
+    pushStep('BELT', nextRank, 0, null, null, null)
   }
 
   const manualChecks: Array<'EXAM' | 'COMPETITION'> = []
   if (nextRank?.requireExam) manualChecks.push('EXAM')
   if (nextRank?.requireCompetition) manualChecks.push('COMPETITION')
 
-  const base = { steps, requirements, manualChecks, classesSince, classesForFirstStep: steps[0]?.required ?? null, incompleteRules }
+  const base = { steps, requirements, manualChecks, ...classCounters, classesForFirstStep: steps[0]?.required ?? null, incompleteRules }
   if (!steps.length) return result({ status: 'NO_RULES', ...base })
 
   // Steps are earned in order — a blocked belt doesn't hide earned stripes.
@@ -307,7 +452,7 @@ export function computeReadiness(input: ReadinessInput): Readiness {
   // Nothing due yet: progress toward the first step.
   const parts: number[] = []
   if (next?.classes !== null && next?.required) parts.push(pct(next.classes, next.required))
-  if (next?.kind === 'BELT') parts.push(...beltGates.map(g => g.percent))
+  if (next) parts.push(...next.gates.map(g => g.percent))
   const percent = parts.length ? Math.min(...parts) : 0
   return result({
     status: percent >= ALMOST_READY_THRESHOLD ? 'ALMOST_READY' : 'NOT_READY',

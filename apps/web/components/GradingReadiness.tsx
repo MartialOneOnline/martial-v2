@@ -47,6 +47,31 @@ export function toNextLabel(r: Readiness, rt: RT): string | null {
   return rt.classesToNext.replace('{n}', String(n.required - n.classes)).replace('{step}', stepLabel(n, rt))
 }
 
+/**
+ * Why the first held-back step isn't due — one line per unmet rule (time,
+ * age, frequency, unknown date). Shared by the profile card and the report.
+ */
+export function blockReasons(r: Readiness, rt: RT): string[] {
+  const step = r.steps.find(s => s.blockedBy.length > 0)
+  if (!step) return []
+  return step.gates.filter(g => !g.met).map(q => {
+    const unit = q.periodType === 'MONTH' ? rt.perMonth : rt.perWeek
+    const text = q.kind === 'FREQUENCY'
+      ? rt.blockedFrequency.replaceAll('{unit}', unit)
+      : q.unknown
+        ? (q.kind === 'GRADING_MONTHS' ? rt.gradingDateUnknown : rt.beltDateUnknown)
+        : ({ AGE: rt.blockedAge, MONTHS: rt.blockedMonths, GRADING_MONTHS: rt.blockedGradingMonths } as const)[q.kind]
+    return text.replace('{current}', String(q.current)).replace('{required}', String(q.required))
+  })
+}
+
+/** "2 classes don't count (max 3/week)" — null without a cap or nothing over it */
+export function overCapLabel(r: Readiness, rt: RT): string | null {
+  if (!r.classCap || r.classesOverCap <= 0) return null
+  return rt.overCap.replace('{n}', String(r.classesOverCap)).replace('{max}', String(r.classCap.max))
+    .replace('{unit}', r.classCap.periodType === 'MONTH' ? rt.perMonth : rt.perWeek)
+}
+
 export function ReadinessBadge({ status }: { status: ReadinessStatus }) {
   const { t } = useLanguage()
   const s = READINESS_STYLE[status]
@@ -182,6 +207,7 @@ export function AttendanceGradingCard({ readiness, lastGradedAt, target, onGrade
   const toNext = toNextLabel(readiness, rt)
   const freq = readiness.requirements.find(q => q.kind === 'FREQUENCY')
   const blockedStep = readiness.steps.find(s => s.blockedBy.length > 0)
+  const overCap = overCapLabel(readiness, rt)
 
   return (
     <div className="flex flex-col gap-3">
@@ -218,20 +244,17 @@ export function AttendanceGradingCard({ readiness, lastGradedAt, target, onGrade
         </div>
       )}
 
-      {blockedStep && (() => {
-        const gate = blockedStep.blockedBy[0]!
-        const q = readiness.requirements.find(r => r.kind === gate)
-        if (!q) return null
-        const text = q.unknown
-          ? rt.beltDateUnknown
-          : (gate === 'AGE' ? rt.blockedAge : rt.blockedMonths)
-              .replace('{current}', String(q.current)).replace('{required}', String(q.required))
-        return (
-          <p className="flex items-center gap-1.5" style={{ fontSize: 12, color: '#B45309', margin: 0 }}>
-            <Lock size={12} /> {text}
-          </p>
-        )
-      })()}
+      {blockReasons(readiness, rt).map(text => (
+        <p key={text} className="flex items-center gap-1.5" style={{ fontSize: 12, color: '#B45309', margin: 0 }}>
+          <Lock size={12} /> {text}
+        </p>
+      ))}
+
+      {overCap && (
+        <p className="flex items-center gap-1.5" style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>
+          <AlertTriangle size={12} /> {overCap}
+        </p>
+      )}
 
       {incomplete && (
         <p className="flex items-center gap-1.5" style={{ fontSize: 12, color: '#B45309', margin: 0 }}>
@@ -239,7 +262,7 @@ export function AttendanceGradingCard({ readiness, lastGradedAt, target, onGrade
         </p>
       )}
 
-      {freq && !freq.met && (
+      {freq && !freq.met && !blockedStep?.blockedBy.includes('FREQUENCY') && (
         <p className="flex items-center gap-1.5" style={{ fontSize: 12, color: '#B45309', margin: 0 }}>
           <AlertTriangle size={12} />
           {rt.frequencyLow.replace('{required}', String(freq.required)).replace('{unit}', freq.periodType === 'MONTH' ? rt.perMonth : rt.perWeek)}
