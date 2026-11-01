@@ -50,18 +50,15 @@ export function toNextLabel(r: Readiness, rt: RT): string | null {
 
 /**
  * Why the first held-back step isn't due — one line per unmet rule (time,
- * age, frequency, unknown date). Shared by the profile card and the report.
+ * age, unknown date). Shared by the profile card and the report.
  */
 export function blockReasons(r: Readiness, rt: RT): string[] {
   const step = r.steps.find(s => s.blockedBy.length > 0)
   if (!step) return []
   return step.gates.filter(g => !g.met).map(q => {
-    const unit = q.periodType === 'MONTH' ? rt.perMonth : rt.perWeek
-    const text = q.kind === 'FREQUENCY'
-      ? rt.blockedFrequency.replaceAll('{unit}', unit)
-      : q.unknown
-        ? (q.kind === 'GRADING_MONTHS' ? rt.gradingDateUnknown : rt.beltDateUnknown)
-        : ({ AGE: rt.blockedAge, MONTHS: rt.blockedMonths, GRADING_MONTHS: rt.blockedGradingMonths } as const)[q.kind]
+    const text = q.unknown
+      ? (q.kind === 'GRADING_MONTHS' ? rt.gradingDateUnknown : rt.beltDateUnknown)
+      : ({ AGE: rt.blockedAge, MONTHS: rt.blockedMonths, GRADING_MONTHS: rt.blockedGradingMonths } as const)[q.kind]
     return text.replace('{current}', String(q.current)).replace('{required}', String(q.required))
   })
 }
@@ -71,6 +68,28 @@ export function overCapLabel(r: Readiness, rt: RT): string | null {
   if (!r.classCap || r.classesOverCap <= 0) return null
   return rt.overCap.replace('{n}', String(r.classesOverCap)).replace('{max}', String(r.classCap.max))
     .replace('{unit}', r.classCap.periodType === 'MONTH' ? rt.perMonth : rt.perWeek)
+}
+
+/**
+ * Why attended classes aren't counted, from the week-by-week rule: over the
+ * max, in weeks under the min, and the current week still under the min.
+ */
+export function countNotes(r: Readiness, rt: RT): string[] {
+  const notes: string[] = []
+  const overCap = overCapLabel(r, rt)
+  if (overCap) notes.push(overCap)
+  if (r.classMin) {
+    const unit = r.classMin.periodType === 'MONTH' ? rt.perMonth : rt.perWeek
+    const min = String(r.classMin.min)
+    if (r.classesBelowMin > 0) {
+      notes.push(rt.belowMin.replace('{n}', String(r.classesBelowMin)).replace('{min}', min).replace('{unit}', unit))
+    }
+    if (r.classesPendingPeriod > 0) {
+      notes.push(rt.pendingPeriod.replace('{period}', r.classMin.periodType === 'MONTH' ? rt.thisMonth : rt.thisWeek)
+        .replace('{n}', String(r.classesPendingPeriod)).replaceAll('{min}', min))
+    }
+  }
+  return notes
 }
 
 export function ReadinessBadge({ status }: { status: ReadinessStatus }) {
@@ -207,9 +226,7 @@ export function AttendanceGradingCard({ readiness, lastGradedAt, target, onGrade
 
   const due = dueLabel(readiness, rt)
   const toNext = toNextLabel(readiness, rt)
-  const freq = readiness.requirements.find(q => q.kind === 'FREQUENCY')
-  const blockedStep = readiness.steps.find(s => s.blockedBy.length > 0)
-  const overCap = overCapLabel(readiness, rt)
+  const notes = countNotes(readiness, rt)
 
   return (
     <div className="flex flex-col gap-3">
@@ -260,11 +277,11 @@ export function AttendanceGradingCard({ readiness, lastGradedAt, target, onGrade
         </p>
       ))}
 
-      {overCap && (
-        <p className="flex items-center gap-1.5" style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>
-          <AlertTriangle size={12} /> {overCap}
+      {notes.map(text => (
+        <p key={text} className="flex items-center gap-1.5" style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>
+          <AlertTriangle size={12} /> {text}
         </p>
-      )}
+      ))}
 
       {incomplete && (
         <p className="flex items-center gap-1.5" style={{ fontSize: 12, color: '#B45309', margin: 0 }}>
@@ -272,13 +289,6 @@ export function AttendanceGradingCard({ readiness, lastGradedAt, target, onGrade
         </p>
       )}
 
-      {freq && !freq.met && !blockedStep?.blockedBy.includes('FREQUENCY') && (
-        <p className="flex items-center gap-1.5" style={{ fontSize: 12, color: '#B45309', margin: 0 }}>
-          <AlertTriangle size={12} />
-          {rt.frequencyLow.replace('{required}', String(freq.required)).replace('{unit}', freq.periodType === 'MONTH' ? rt.perMonth : rt.perWeek)}
-          {' '}({freq.current}{freq.periodType === 'MONTH' ? rt.perMonth : rt.perWeek})
-        </p>
-      )}
 
       {readiness.manualChecks.length > 0 && (
         <div className="flex gap-1.5 flex-wrap">

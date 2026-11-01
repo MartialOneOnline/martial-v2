@@ -270,6 +270,15 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
+### Sesión — 2026-11-01 (g) (rama `claude/grading-weekly-count` — pendiente de auditoría; sin migración)
+
+**Frecuencia de graduación = contabilidad de clases, no media.** Caso Rafa (RGM, Blanco mín. 2 / máx. — por semana): con una media salía 6/8 "casi listo" en 12 días. Decisión del usuario: mín. 2 y máx. 2, y "esa semana no cuenta" si no llega al mínimo.
+- `lib/grading/readiness.ts`: nuevo `countByPeriod()` sustituye a `capPerPeriod` y al bloqueo por media (12 semanas / 3 meses). Por semana (lunes–domingo, zona del colegio) o mes: menos de `classesPerPeriod` → 0; si lo alcanza → como mucho `maxClassesPerPeriod`. Las clases contadas se fechan, como pronto, el día en que su semana llega al mínimo (para `earnedAt`/`dueSince`). La semana en curso por debajo del mínimo es `classesPendingPeriod` (no se pierde). Nuevos `classesBelowMin`, `classMin`. Desaparece el `RequirementKind` `FREQUENCY` (ya no bloquea, solo cuenta).
+- UI: `countNotes()` en `components/GradingReadiness.tsx` (ficha) y `ReadinessSection` (informe): "N clases no cuentan (máx.)", "N clases no cuentan (semanas con menos de 2/semana)", "Esta semana: 1 de 2 — cuentan al llegar a 2". Texto de ayuda de Settings actualizado. Se quitan `blockedFrequency`/`frequencyLow` de las 4 traducciones.
+- Con mín. 2 / máx. 2, Rafa queda en 2/8 (semana del 19 oct: 1 clase → 0; semana del 26: 5 → 2). De blanco a azul (8·16·24·24·24 = 96 clases) ≈ 48 semanas.
+- **Configuración pendiente del usuario en RGM:** máx. 2/semana en Blanco, Azul, Morado y Marrón (hoy vacío).
+- Tests: `gradingReadiness` (caso Rafa, 8 clases = 4 semanas, semana en curso pendiente, fecha al alcanzar el mínimo, mínimo mensual) y `gradingReadinessLabels` (avisos en 4 idiomas). Suite 993 pasan / 55 preexistentes; tsc 0.
+
 ### Sesión — 2026-11-01 (f) (rama `claude/report-belt-filter`, PR [#41](https://github.com/MartialOneOnline/martial-v2/pull/41) — `APROBADO CON PENDIENTES` en `fe771a2` → **`APROBADO CON PENDIENTES`** en `f62b7f8`, los 6 hallazgos cerrados; sin migración; pendiente: recorrido autenticado con datos reales)
 
 **Filtro por cinturón en el informe de alumnos (Reports → Users).** El filtro ya existía pero era una lista fija de 5 cinturones con coincidencia exacta de texto: "Marrón" (con tilde) no encontraba a los 6 "Marron" de RGM, no había "Sin cinturón", ni varios a la vez, ni grados, y el gráfico no se podía pulsar.

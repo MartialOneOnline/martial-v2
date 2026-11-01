@@ -17,9 +17,11 @@
 //  - minimum months since the previous grading (monthsByDegree), e.g. IBJJF
 //    black belt degrees; cumulative when several steps are due at once
 //  - minimum age for a stripe (minAgeByDegree); the belt uses the next rank's minAge
-//  - training frequency for the whole belt: below classesPerPeriod nothing is
-//    due (it blocks), and above maxClassesPerPeriod the extra classes in that
-//    week/month don't count toward grading.
+//  - training frequency for the whole belt, counted week by week (or month
+//    by month) on the school's calendar: a week with fewer than
+//    classesPerPeriod classes adds nothing, and a week adds at most
+//    maxClassesPerPeriod. No averages — e.g. min 2 / max 2 means 8 classes
+//    take 4 full weeks of 2 (user decision 2026-11-01).
 // A rule left blank doesn't apply.
 
 import { civilDateInTz } from '../memberActivity'
@@ -27,7 +29,7 @@ import { civilDateInTz } from '../memberActivity'
 export type ReadinessStatus = 'READY' | 'ALMOST_READY' | 'NOT_READY' | 'NO_RULES' | 'TOP_RANK'
 
 /** MONTHS = time at the current belt (next rank's minMonthsAtPrevious); GRADING_MONTHS = since the previous grading */
-export type RequirementKind = 'FREQUENCY' | 'MONTHS' | 'AGE' | 'GRADING_MONTHS'
+export type RequirementKind = 'MONTHS' | 'AGE' | 'GRADING_MONTHS'
 
 export interface Requirement {
   kind: RequirementKind
@@ -36,8 +38,6 @@ export interface Requirement {
   /** 0–100, capped */
   percent: number
   met: boolean
-  /** FREQUENCY only */
-  periodType?: 'WEEK' | 'MONTH'
   /** MONTHS / GRADING_MONTHS: the start date isn't known — treated as not met */
   unknown?: boolean
 }
@@ -54,14 +54,14 @@ export interface GradingStep {
   required: number | null
   /** Enough classes AND every gate met */
   earned: boolean
-  /** Every non-class rule that applies to this step (time, age, frequency) */
+  /** Every non-class rule that applies to this step (time, age) */
   gates: Requirement[]
   /** Unmet gates holding it back despite enough classes */
   blockedBy: RequirementKind[]
   /**
    * Earned steps: when the last of its rules was met (ISO) — the day of the
-   * Nth class, or when the time/age was reached. null when not earned or
-   * when only a frequency rule applies (that's a state, not a date).
+   * Nth class (the day its week reached the minimum), or when the time/age
+   * was reached. null when not earned.
    */
   earnedAt: string | null
 }
@@ -107,7 +107,7 @@ export interface ReadinessInput {
   dateOfBirth: Date | null
   attended: AttendedClass[]
   now?: Date
-  /** School IANA timezone, for the week/month of the max-per-period cap. Default UTC. */
+  /** School IANA timezone, for the week/month of the frequency rule. Default UTC. */
   timeZone?: string
 }
 
@@ -132,13 +132,18 @@ export interface Readiness {
   requirements: Requirement[]
   /** Exam / competition for the belt — not tracked in the app, the instructor checks them */
   manualChecks: Array<'EXAM' | 'COMPETITION'>
-  /** Classes that count toward grading since countSince (after the max-per-period cap) */
+  /** Classes that count toward grading since countSince (after the frequency rule) */
   classesSince: number
   /** Classes actually attended since countSince */
   classesAttended: number
   /** Attended classes that don't count because of maxClassesPerPeriod */
   classesOverCap: number
   classCap: { max: number; periodType: 'WEEK' | 'MONTH' } | null
+  /** Classes in finished weeks/months that didn't reach classesPerPeriod — they never count */
+  classesBelowMin: number
+  /** Classes so far in the current week/month, still below the minimum — they count once it's reached */
+  classesPendingPeriod: number
+  classMin: { min: number; periodType: 'WEEK' | 'MONTH' } | null
   /** Classes the very next grading needs (from the current stripe) */
   classesForFirstStep: number | null
   /** The belt has class rules but this grading has no count and no fallback — nothing past it is evaluated */
@@ -227,8 +232,6 @@ export function pickStepSince(input: {
 
 export const ALMOST_READY_THRESHOLD = 75
 
-const FREQUENCY_WINDOW_WEEKS = 12
-const FREQUENCY_WINDOW_MONTHS = 3
 const DAY_MS = 24 * 60 * 60 * 1000
 
 function pct(current: number, required: number): number {
@@ -261,26 +264,44 @@ function periodKey(d: Date, type: 'WEEK' | 'MONTH', timeZone: string): number {
   return civil - sinceMonday * DAY_MS
 }
 
-/** Keeps at most `max` classes per week/month (school calendar), earliest first. */
-export function capPerPeriod(classes: AttendedClass[], max: number, type: 'WEEK' | 'MONTH', timeZone = 'UTC'): AttendedClass[] {
-  const perPeriod = new Map<number, number>()
-  return [...classes]
-    .sort((a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime())
-    .filter(c => {
-      const k = periodKey(c.scheduledAt, type, timeZone)
-      const n = perPeriod.get(k) ?? 0
-      if (n >= max) return false
-      perPeriod.set(k, n + 1)
-      return true
-    })
-}
-
-/** Same instant `months` calendar months earlier, clamped to the month's last day (31 May − 3 → 28/29 Feb, not 3 Mar). */
-function monthsBefore(d: Date, months: number): Date {
-  const first = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() - months, 1))
-  const lastDay = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate()
-  return new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth(), Math.min(d.getUTCDate(), lastDay),
-    d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds(), d.getUTCMilliseconds()))
+/**
+ * Week-by-week (or month-by-month) count on the school calendar. A period
+ * with fewer than `min` classes adds nothing; one that reaches it adds at
+ * most `max`. A counted class is dated no earlier than the class that made
+ * its period reach the minimum — that's when it started to count. The
+ * current period isn't over, so below the minimum it's "pending", not lost.
+ */
+export function countByPeriod(
+  classes: AttendedClass[],
+  rule: { min: number | null; max: number | null; type: 'WEEK' | 'MONTH' },
+  timeZone: string,
+  now: Date,
+): { counted: AttendedClass[]; overCap: number; belowMin: number; pending: number } {
+  const sorted = [...classes].sort((a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime())
+  const byPeriod = new Map<number, AttendedClass[]>()
+  for (const c of sorted) {
+    const k = periodKey(c.scheduledAt, rule.type, timeZone)
+    const list = byPeriod.get(k)
+    if (list) list.push(c)
+    else byPeriod.set(k, [c])
+  }
+  const currentPeriod = periodKey(now, rule.type, timeZone)
+  const min = rule.min ?? 1
+  const counted: AttendedClass[] = []
+  let overCap = 0, belowMin = 0, pending = 0
+  for (const [k, list] of byPeriod) {
+    if (list.length < min) {
+      if (k === currentPeriod) pending += list.length
+      else belowMin += list.length
+      continue
+    }
+    const reachedAt = list[min - 1]!.scheduledAt
+    const kept = rule.max ? list.slice(0, rule.max) : list
+    overCap += list.length - kept.length
+    for (const c of kept) counted.push(c.scheduledAt < reachedAt ? { ...c, scheduledAt: reachedAt } : c)
+  }
+  counted.sort((a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime())
+  return { counted, overCap, belowMin, pending }
 }
 
 /**
@@ -321,7 +342,8 @@ export function computeReadiness(input: ReadinessInput): Readiness {
 
   const result = (r: Partial<Readiness> & { status: ReadinessStatus }): Readiness => ({
     percent: null, due: null, dueSince: null, dueSinceEstimated: false, next: null, steps: [], requirements: [], manualChecks: [],
-    classesSince: 0, classesAttended: 0, classesOverCap: 0, classCap: null, classesForFirstStep: null, incompleteRules: null, countSince: since ? since.toISOString() : null, ...r,
+    classesSince: 0, classesAttended: 0, classesOverCap: 0, classCap: null, classesBelowMin: 0, classesPendingPeriod: 0, classMin: null,
+    classesForFirstStep: null, incompleteRules: null, countSince: since ? since.toISOString() : null, ...r,
   })
 
   if (!current) return result({ status: 'NO_RULES' })
@@ -333,14 +355,22 @@ export function computeReadiness(input: ReadinessInput): Readiness {
     c.scheduledAt <= now && (!since || c.scheduledAt >= since) && classCounts(current, c))
   const period: 'WEEK' | 'MONTH' | null = current.periodType === 'WEEK' || current.periodType === 'MONTH' ? current.periodType : null
   const maxPerPeriod = period ? positive(current.maxClassesPerPeriod) : null
+  const minPerPeriod = period ? positive(current.classesPerPeriod) : null
   const classCap = maxPerPeriod && period ? { max: maxPerPeriod, periodType: period } : null
+  const classMin = minPerPeriod && period ? { min: minPerPeriod, periodType: period } : null
   const classesAttended = counted.length
   // Classes that count toward grading, oldest first — [n-1] is the day the nth one was reached
-  const countedForGrading = classCap
-    ? capPerPeriod(counted, classCap.max, classCap.periodType, input.timeZone ?? 'UTC')
+  const byPeriod = period && (classCap || classMin)
+    ? countByPeriod(counted, { min: minPerPeriod, max: maxPerPeriod, type: period }, input.timeZone ?? 'UTC', now)
+    : null
+  const countedForGrading = byPeriod
+    ? byPeriod.counted
     : [...counted].sort((a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime())
   const classesSince = countedForGrading.length
-  const classCounters = { classesSince, classesAttended, classesOverCap: classesAttended - classesSince, classCap }
+  const classCounters = {
+    classesSince, classesAttended, classesOverCap: byPeriod?.overCap ?? 0, classCap,
+    classesBelowMin: byPeriod?.belowMin ?? 0, classesPendingPeriod: byPeriod?.pending ?? 0, classMin,
+  }
 
   // Nothing left to grade — but the attendance count is still real.
   if (degree >= current.maxDegrees && !nextRank) return result({ status: 'TOP_RANK', ...classCounters })
@@ -377,35 +407,6 @@ export function computeReadiness(input: ReadinessInput): Readiness {
     if (g.kind === 'MONTHS') return input.beltSince ? monthsMetAt(input.beltSince, g.required) : null
     return input.dateOfBirth ? ageMetAt(input.dateOfBirth, g.required) : null
   })
-
-  // ── Frequency: below the minimum nothing is due ───────────────────────────
-  let frequency: Requirement | null = null
-  const minPerPeriod = period ? positive(current.classesPerPeriod) : null
-  if (minPerPeriod && period) {
-    const isWeek = period === 'WEEK'
-    const windowStart = isWeek
-      ? new Date(now.getTime() - FREQUENCY_WINDOW_WEEKS * 7 * DAY_MS)
-      : monthsBefore(now, FREQUENCY_WINDOW_MONTHS)
-    // Start of the count (or, unknown, the first class in the window) so a
-    // student who started three weeks ago isn't averaged over twelve.
-    const firstInWindow = counted.filter(c => c.scheduledAt >= windowStart)
-      .reduce<Date | null>((min, c) => (!min || c.scheduledAt < min ? c.scheduledAt : min), null)
-    const start = since ?? firstInWindow
-    const from = start && start > windowStart ? start : windowStart
-    // The full window is exactly 12 weeks / 3 calendar months; a shorter one
-    // (graded or started recently) is measured in days, at least one week.
-    const spanDays = Math.max(7, (now.getTime() - from.getTime()) / DAY_MS)
-    const periods = from === windowStart
-      ? (isWeek ? FREQUENCY_WINDOW_WEEKS : FREQUENCY_WINDOW_MONTHS)
-      : (isWeek ? spanDays / 7 : spanDays / 30.44)
-    // Real attendance (before the cap): the student did train that much.
-    const avg = Math.round((counted.filter(c => c.scheduledAt >= from).length / periods) * 10) / 10
-    frequency = {
-      kind: 'FREQUENCY', current: avg, required: minPerPeriod,
-      percent: pct(avg, minPerPeriod), met: avg >= minPerPeriod, periodType: period,
-    }
-    requirements.unshift(frequency)
-  }
 
   // ── Steps: remaining stripes, then the next belt ──────────────────────────
   const stepSince = input.stepSince === undefined ? since : input.stepSince
@@ -448,7 +449,6 @@ export function computeReadiness(input: ReadinessInput): Readiness {
       metDates.push(ageMetAt(input.dateOfBirth!, minAge))
     }
     if (kind === 'BELT') { gates.push(...beltGates); metDates.push(...beltGateDates) }
-    if (frequency) gates.push(frequency)
     const unmet = gates.filter(g => !g.met).map(g => g.kind)
     const earned = enoughClasses && unmet.length === 0
     // Never before the previous step, never in the future (month-end rounding)

@@ -12,10 +12,11 @@ function rank(p: Partial<RankRules> & { id: string; order: number }): RankRules 
   }
 }
 
-// Mirrors Roger Gracie Málaga's V1 configuration: Blanco needs 8 → 16 → 24 → 24 → 24 (to Azul).
+// Mirrors Roger Gracie Málaga's V1 class counts: Blanco needs 8 → 16 → 24 → 24 → 24 (to Azul).
+// The weekly frequency rule is tested on its own below.
 const RGM = [
-  rank({ id: 'blanco', order: 0, totalClassesRequired: 8, classesByDegree: [8, 16, 24, 24, 24], classesPerPeriod: 2, periodType: 'WEEK' }),
-  rank({ id: 'azul', order: 1, totalClassesRequired: 30, classesPerPeriod: 2, periodType: 'WEEK', minAge: 16 }),
+  rank({ id: 'blanco', order: 0, totalClassesRequired: 8, classesByDegree: [8, 16, 24, 24, 24] }),
+  rank({ id: 'azul', order: 1, totalClassesRequired: 30, minAge: 16 }),
   rank({ id: 'negro', order: 2, totalClassesRequired: 120, minAge: 19 }),
 ]
 
@@ -99,13 +100,13 @@ describe('computeReadiness()', () => {
     expect(r.classesSince).toBe(4)
   })
 
-  it('training below the minimum frequency blocks the grading (2026-11-01)', () => {
-    // 9 classes, one every 10 days = 0.7/week, Blanco needs 2/week
-    const r = computeReadiness({ ...base, currentRankId: 'blanco', currentDegree: 0, attended: classes(9, 10) })
-    expect(r.requirements.find(q => q.kind === 'FREQUENCY')?.met).toBe(false)
-    expect(r.due).toBeNull()
-    expect(r.next).toMatchObject({ degree: 1, classes: 8, required: 8, earned: false, blockedBy: ['FREQUENCY'] })
-    expect(r.status).toBe('NOT_READY')
+  it('weeks below the minimum add nothing (2026-11-01, no averages)', () => {
+    // 9 classes, one every 10 days: never 2 in one week, Blanco min 2/week
+    const ranks = [rank({ id: 'blanco', order: 0, totalClassesRequired: 8, classesPerPeriod: 2, periodType: 'WEEK' }), rank({ id: 'azul', order: 1 })]
+    const r = computeReadiness({ ...base, ranks, currentRankId: 'blanco', currentDegree: 0, attended: classes(9, 10) })
+    expect(r).toMatchObject({ classesSince: 0, classesAttended: 9, classesBelowMin: 9, classesPendingPeriod: 0, classMin: { min: 2, periodType: 'WEEK' } })
+    expect(r.requirements).toEqual([])
+    expect(r.next).toMatchObject({ degree: 1, classes: 0, required: 8, blockedBy: [] })
   })
 
   it('months at belt gate the belt step only', () => {
@@ -338,11 +339,52 @@ describe('computeReadiness() — time, age and frequency per grading', () => {
     expect(r.next).toMatchObject({ degree: 2, blockedBy: ['AGE'] })
   })
 
-  it('minimum frequency also blocks the belt step', () => {
-    const ranks = [rank({ id: 'a', order: 0, maxDegrees: 0, totalClassesRequired: 5, classesPerPeriod: 3, periodType: 'WEEK' }), rank({ id: 'b', order: 1 })]
-    const r = computeReadiness({ ...base, ranks, currentRankId: 'a', currentDegree: 0, attended: classes(6, 4) })
-    expect(r.due).toBeNull()
-    expect(r.next).toMatchObject({ kind: 'BELT', blockedBy: ['FREQUENCY'] })
+  // RGM case, Rafa (2026-11-01): Blanco min 2 / max 2 per week, Madrid.
+  // Week of 19 Oct: 1 class. Week of 26 Oct: 5 classes (two on the 27th).
+  const RAFA = ['2026-10-21T18:30:00Z', '2026-10-26T19:30:00Z', '2026-10-27T18:00:00Z', '2026-10-27T19:00:00Z', '2026-10-29T18:00:00Z', '2026-10-31T10:00:00Z']
+    .map(iso => ({ scheduledAt: new Date(iso), classId: 'c1', disciplineId: null }))
+  const blanco22 = [
+    rank({ id: 'blanco', order: 0, totalClassesRequired: 8, classesByDegree: [8, 16, 24, 24, 24], classesPerPeriod: 2, maxClassesPerPeriod: 2, periodType: 'WEEK' }),
+    rank({ id: 'azul', order: 1 }),
+  ]
+
+  it('min 2 / max 2 per week: a 1-class week adds 0, a 5-class week adds 2', () => {
+    const r = computeReadiness({
+      ...base, ranks: blanco22, currentRankId: 'blanco', currentDegree: 0, timeZone: 'Europe/Madrid',
+      attended: RAFA, now: new Date('2026-11-01T20:00:00Z'),
+    })
+    expect(r).toMatchObject({ classesSince: 2, classesAttended: 6, classesBelowMin: 1, classesOverCap: 3, classesPendingPeriod: 0 })
+    expect(r.next).toMatchObject({ degree: 1, classes: 2, required: 8 })
+    expect(r.status).toBe('NOT_READY')
+  })
+
+  it('8 classes take 4 full weeks of 2', () => {
+    // Mon+Wed for 4 weeks from Mon 5 Oct, plus extras that don't count
+    const days = [5, 7, 8, 12, 14, 19, 21, 22, 23, 26, 28]
+    const attended = days.map(d => ({ scheduledAt: new Date(Date.UTC(2026, 9, d, 18)), classId: 'c1', disciplineId: null }))
+    const r = computeReadiness({ ...base, ranks: blanco22, currentRankId: 'blanco', currentDegree: 0, attended, now: new Date('2026-10-30T12:00:00Z') })
+    expect(r.classesSince).toBe(8)
+    expect(r.due).toMatchObject({ degree: 1 })
+    expect(r.steps[0]!.earnedAt).toBe(new Date(Date.UTC(2026, 9, 28, 18)).toISOString())
+  })
+
+  it('the current week below the minimum is pending, not lost', () => {
+    // Mon 2 Nov: one class so far this week
+    const r = computeReadiness({
+      ...base, ranks: blanco22, currentRankId: 'blanco', currentDegree: 0, timeZone: 'Europe/Madrid',
+      attended: [...RAFA, { scheduledAt: new Date('2026-11-02T18:00:00Z'), classId: 'c1', disciplineId: null }],
+      now: new Date('2026-11-03T08:00:00Z'),
+    })
+    expect(r).toMatchObject({ classesSince: 2, classesBelowMin: 1, classesPendingPeriod: 1 })
+  })
+
+  it('a class counts from the day its week reaches the minimum', () => {
+    // 1 class per stripe, min 2/week: Mon + Thu → the stripe is earned on Thu, not Mon
+    const ranks = [rank({ id: 'a', order: 0, maxDegrees: 1, classesByDegree: [1, 5], classesPerPeriod: 2, periodType: 'WEEK' }), rank({ id: 'b', order: 1 })]
+    const attended = [12, 15].map(d => ({ scheduledAt: new Date(Date.UTC(2026, 9, d, 18)), classId: 'c1', disciplineId: null }))
+    const r = computeReadiness({ ...base, ranks, currentRankId: 'a', currentDegree: 0, attended })
+    expect(r.due).toMatchObject({ degree: 1 })
+    expect(r.steps[0]!.earnedAt).toBe(new Date(Date.UTC(2026, 9, 15, 18)).toISOString())
   })
 
   it('max per week: extra classes in the same week do not count', () => {
@@ -382,27 +424,13 @@ describe('computeReadiness() — time, age and frequency per grading', () => {
 describe('Project Audit PR #38', () => {
   const at = (iso: string) => ({ scheduledAt: new Date(iso), classId: 'c1', disciplineId: null })
 
-  it('P2: 3-month frequency window does not overflow on days 29–31', () => {
-    const ranks = [rank({ id: 'a', order: 0, maxDegrees: 1, totalClassesRequired: 3, classesPerPeriod: 1, periodType: 'MONTH' }), rank({ id: 'b', order: 1 })]
-    const attended = ['2026-03-01T12:00:00Z', '2026-04-01T12:00:00Z', '2026-05-01T12:00:00Z'].map(at)
-    for (const day of [28, 29, 30, 31]) {
-      const r = computeReadiness({
-        ...base, ranks, currentRankId: 'a', currentDegree: 0, countSince: new Date('2026-01-01T00:00:00Z'),
-        attended, now: new Date(`2026-05-${day}T12:00:00Z`),
-      })
-      expect(r.requirements.find(q => q.kind === 'FREQUENCY'), `day ${day}`).toMatchObject({ current: 1, met: true })
-      expect(r.due, `day ${day}`).toMatchObject({ degree: 1 })
-    }
-  })
-
-  it('P2: the 3-month window from 31 Aug starts on 31 May, from 30 Nov on 30 Aug', () => {
-    const ranks = [rank({ id: 'a', order: 0, maxDegrees: 1, totalClassesRequired: 1, classesPerPeriod: 1, periodType: 'MONTH' }), rank({ id: 'b', order: 1 })]
-    // One class on 31 May: inside the window on 31 Aug (1 class / 3 months = 0.3)
-    const r = computeReadiness({
-      ...base, ranks, currentRankId: 'a', currentDegree: 0, countSince: new Date('2026-01-01T00:00:00Z'),
-      attended: [at('2026-05-31T13:00:00Z')], now: new Date('2026-08-31T12:00:00Z'),
-    })
-    expect(r.requirements.find(q => q.kind === 'FREQUENCY')).toMatchObject({ current: 0.3 })
+  it('min per month: calendar months below the minimum add nothing', () => {
+    const ranks = [rank({ id: 'a', order: 0, maxDegrees: 1, totalClassesRequired: 3, classesPerPeriod: 2, periodType: 'MONTH' }), rank({ id: 'b', order: 1 })]
+    // March: 2, April: 1, May 31 + 30 May: 2
+    const attended = ['2026-03-01T12:00:00Z', '2026-03-31T12:00:00Z', '2026-04-15T12:00:00Z', '2026-05-30T12:00:00Z', '2026-05-31T12:00:00Z'].map(at)
+    const r = computeReadiness({ ...base, ranks, currentRankId: 'a', currentDegree: 0, attended, now: new Date('2026-06-15T12:00:00Z') })
+    expect(r).toMatchObject({ classesSince: 4, classesBelowMin: 1 })
+    expect(r.due).toMatchObject({ degree: 1 })
   })
 
   const capRanks = (periodType: 'WEEK' | 'MONTH') => [

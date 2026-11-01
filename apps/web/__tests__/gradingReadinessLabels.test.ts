@@ -1,9 +1,9 @@
 /**
  * Project Audit PR #38 P2: the report must explain the same blocks as the
- * profile card. Both use blockReasons() / overCapLabel().
+ * profile card. Both use blockReasons() / countNotes().
  */
 import { describe, it, expect } from 'vitest'
-import { blockReasons, overCapLabel } from '../components/GradingReadiness'
+import { blockReasons, countNotes, overCapLabel } from '../components/GradingReadiness'
 import { computeReadiness, type RankRules } from '../lib/grading/readiness'
 import { translations } from '../lib/i18n/translations'
 
@@ -13,7 +13,7 @@ const rank = (p: Partial<RankRules> & { id: string; order: number }): RankRules 
   classesByDegree: [], classesPerPeriod: null, periodType: null, classTypeIds: [], requireExam: false, requireCompetition: false, ...p,
 })
 
-// Since 1 Sep only three classes, all in one week (0.4/week), cap 1/week, min 2/week, 6 months since last grading, min age 16 for the stripe
+// Since 1 Sep only three classes, all in one week: min 2/week reached, cap 1/week → 1 counts. 6 months since last grading, min age 16 for the stripe
 const r = computeReadiness({
   ranks: [
     rank({ id: 'a', order: 0, totalClassesRequired: 1, monthsByDegree: [6, 6], minAgeByDegree: [16], classesPerPeriod: 2, maxClassesPerPeriod: 1, periodType: 'WEEK' }),
@@ -25,17 +25,16 @@ const r = computeReadiness({
     .map(iso => ({ scheduledAt: new Date(iso), classId: 'c', disciplineId: null })),
 })
 
-describe('blockReasons() / overCapLabel()', () => {
+describe('blockReasons() / countNotes()', () => {
   it('lists every unmet rule of the held-back step, in each language', () => {
     for (const lang of ['en', 'es', 'pt', 'fr'] as const) {
       const lines = blockReasons(r, translations[lang].readiness)
-      expect(lines, lang).toHaveLength(3) // time, age, frequency
+      expect(lines, lang).toHaveLength(2) // time, age — frequency never blocks, it only counts
       expect(lines.join(' '), lang).not.toMatch(/\{\w+\}/)
     }
     expect(blockReasons(r, translations.es.readiness)).toEqual([
       'Falta tiempo desde la última graduación (2/6 meses)',
       expect.stringContaining('(14/16)'),
-      'Entrena poco: 0.4/semana (mín. 2/semana)',
     ])
   })
 
@@ -51,5 +50,23 @@ describe('blockReasons() / overCapLabel()', () => {
   it('reports classes left out by the cap', () => {
     expect(overCapLabel(r, translations.en.readiness)).toBe('2 classes don’t count (max 1/week)')
     expect(overCapLabel(r, translations.es.readiness)).toBe('2 clases no cuentan (máx. 1/semana)')
+  })
+
+  it('explains weeks under the minimum and the current week, in each language', () => {
+    const r2 = computeReadiness({
+      ranks: [rank({ id: 'a', order: 0, totalClassesRequired: 8, classesPerPeriod: 2, maxClassesPerPeriod: 2, periodType: 'WEEK' }), rank({ id: 'b', order: 1 })],
+      currentRankId: 'a', currentDegree: 0, countSince: null, beltSince: null, dateOfBirth: null, now: NOW,
+      // Wed 14 Oct alone; Mon 26 Oct = this week (NOW is Mon 26 Oct)
+      attended: ['2026-10-14T19:00:00Z', '2026-10-26T09:00:00Z'].map(iso => ({ scheduledAt: new Date(iso), classId: 'c', disciplineId: null })),
+    })
+    expect(countNotes(r2, translations.es.readiness)).toEqual([
+      '1 clases no cuentan (semanas con menos de 2/semana)',
+      'Esta semana: 1 de 2 — cuentan al llegar a 2',
+    ])
+    for (const lang of ['en', 'es', 'pt', 'fr'] as const) {
+      const lines = countNotes(r2, translations[lang].readiness)
+      expect(lines, lang).toHaveLength(2)
+      expect(lines.join(' '), lang).not.toMatch(/\{\w+\}/)
+    }
   })
 })

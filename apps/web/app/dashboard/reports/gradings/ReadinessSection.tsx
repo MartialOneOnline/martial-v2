@@ -6,7 +6,7 @@ import { useLanguage } from '../../../../lib/i18n/LanguageContext'
 import type { ReadinessStatus } from '../../../../lib/grading/readiness'
 import type { MemberReadiness } from '../../../../lib/grading/readinessData'
 import {
-  READINESS_STYLE, ReadinessBadge, ReadinessBar, GradeButton, blockReasons, dueLabel, incompleteLabel, overCapLabel, readinessLabel, toNextLabel,
+  READINESS_STYLE, ReadinessBadge, ReadinessBar, GradeButton, blockReasons, dueLabel, incompleteLabel, countNotes, readinessLabel, toNextLabel,
 } from '../../../../components/GradingReadiness'
 import { Download, Lock } from 'lucide-react'
 import { NEW_STUDENT_MONTHS, focusCounts, isOverdue } from '../../../../lib/grading/overdue'
@@ -220,7 +220,7 @@ export default function ReadinessSection({ onGraded }: { onGraded?: () => void }
               const due = dueLabel(r, rt)
               const toNext = toNextLabel(r, rt)
               const reasons = blockReasons(r, rt)
-              const overCap = overCapLabel(r, rt)
+              const notes = countNotes(r, rt)
               return (
                 <tr key={s.memberId} className="hover:bg-[#FAFAFA] transition-colors" style={{ borderBottom: '1px solid #F9FAFB' }}>
                   <td className="px-4 py-3">
@@ -284,7 +284,7 @@ export default function ReadinessSection({ onGraded }: { onGraded?: () => void }
                   </td>
                   <td className="px-4 py-3">
                     <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{r.classesSince}</span>
-                    {overCap && <p style={{ fontSize: 11, color: '#6B7280', margin: '2px 0 0', whiteSpace: 'nowrap' }}>{overCap}</p>}
+                    {notes.map(text => <p key={text} style={{ fontSize: 11, color: '#6B7280', margin: '2px 0 0', whiteSpace: 'nowrap' }}>{text}</p>)}
                   </td>
                   <td className="px-4 py-3">
                     <span style={{ fontSize: 12, color: '#6B7280', whiteSpace: 'nowrap' }}>{s.lastGradedAt ? fmt(s.lastGradedAt) : rt.never}</span>

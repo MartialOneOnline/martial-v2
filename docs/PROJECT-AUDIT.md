@@ -124,6 +124,13 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 - Correcciones de la re-entrega: borrar el cinturón desenlaza el rango; el gráfico quita grados, búsqueda y rango Custom; el editor de Users conserva el valor guardado exacto; los enlaces antiguos adoptan la clave resuelta; la preparación para graduación usa `resolveBeltRank` como el informe, y el PATCH guarda el enlace que resuelve el texto; mock `gradingSystem` en `dashboardReportAuthGuards.test.ts`. Nuevo `memberBeltLink.test.ts`.
 - No verificado: navegador y recorrido autenticado.
 
+### Lote J — Frecuencia de graduación semana a semana (rama `claude/grading-weekly-count`)
+
+- Estado: entregado por Claude, **pendiente de auditoría**. Sin migración.
+- Decisión del usuario (2026-11-01, caso Rafa en RGM): "aquí no hay media de nada, son contabilidad de clases". El mínimo por semana/mes ya no es una media que bloquea: una semana con menos clases que el mínimo suma 0; una que lo alcanza suma como mucho el máximo. Con mín. 2 / máx. 2, 8 clases = 4 semanas completas de 2.
+- Criterios: semanas lunes–domingo en la zona horaria del colegio; la semana en curso por debajo del mínimo queda "pendiente" (no perdida); una clase cuenta desde el día en que su semana alcanza el mínimo (afecta a `earnedAt`/"le toca desde"); ya no existe el bloqueo `FREQUENCY`; avisos en ficha e informe (máximo, semanas por debajo, semana en curso) en EN/ES/PT/FR.
+- No verificado: navegador y datos reales.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.
