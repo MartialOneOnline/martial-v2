@@ -24,13 +24,25 @@ export async function GET() {
   const a = await auth()
   if ('error' in a) return NextResponse.json({ error: a.error }, { status: a.status })
 
-  const systems = await prisma.gradingSystem.findMany({
-    where: { schoolId: a.schoolId, isActive: true },
-    include: { ranks: { orderBy: { order: 'asc' } } },
-    orderBy: { createdAt: 'asc' },
-  })
+  const [systems, classes] = await Promise.all([
+    prisma.gradingSystem.findMany({
+      where: { schoolId: a.schoolId, isActive: true },
+      include: { ranks: { orderBy: { order: 'asc' } } },
+      orderBy: { createdAt: 'asc' },
+    }),
+    // For "which classes count" — active classes, plus inactive ones a belt still uses
+    prisma.class.findMany({
+      where: { schoolId: a.schoolId },
+      select: { id: true, name: true, isActive: true },
+      orderBy: { name: 'asc' },
+    }),
+  ])
+  const used = new Set(systems.flatMap(s => s.ranks.flatMap(r => r.classTypeIds)))
 
-  return NextResponse.json({ systems })
+  return NextResponse.json({
+    systems,
+    classes: classes.filter(c => c.isActive || used.has(c.id)).map(c => ({ id: c.id, name: c.name, isActive: c.isActive })),
+  })
 }
 
 // POST /api/dashboard/grading-systems
