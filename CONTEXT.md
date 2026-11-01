@@ -270,7 +270,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-01 (g) (rama `claude/grading-weekly-count`, PR [#44](https://github.com/MartialOneOnline/martial-v2/pull/44) — `APROBADO CON PENDIENTES` en `d8582b7` (1 P3 de textos) → corregido, pendiente de reauditoría; sin migración)
+### Sesión — 2026-11-01 (g) (rama `claude/grading-weekly-count`, PR [#44](https://github.com/MartialOneOnline/martial-v2/pull/44) — `APROBADO CON PENDIENTES` en `d8582b7` (1 P3 de textos) → **`APROBADO CON PENDIENTES`** en `c06bd82`, sin hallazgos abiertos; sin migración; pendiente: sesión autenticada con datos reales)
 
 **Frecuencia de graduación = contabilidad de clases, no media.** Caso Rafa (RGM, Blanco mín. 2 / máx. — por semana): con una media salía 6/8 "casi listo" en 12 días. Decisión del usuario: mín. 2 y máx. 2, y "esa semana no cuenta" si no llega al mínimo.
 - `lib/grading/readiness.ts`: nuevo `countByPeriod()` sustituye a `capPerPeriod` y al bloqueo por media (12 semanas / 3 meses). Por semana (lunes–domingo, zona del colegio) o mes: menos de `classesPerPeriod` → 0; si lo alcanza → como mucho `maxClassesPerPeriod`. Las clases contadas se fechan, como pronto, el día en que su semana llega al mínimo (para `earnedAt`/`dueSince`). La semana en curso por debajo del mínimo es `classesPendingPeriod` (no se pierde). Nuevos `classesBelowMin`, `classMin`. Desaparece el `RequirementKind` `FREQUENCY` (ya no bloquea, solo cuenta).
