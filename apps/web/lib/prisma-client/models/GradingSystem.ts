@@ -45,6 +45,7 @@ export type GradingSystemMinAggregateOutputType = {
   gradingFee: number | null
   notifyStudent: boolean | null
   notifyInstructor: boolean | null
+  templateId: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -60,6 +61,7 @@ export type GradingSystemMaxAggregateOutputType = {
   gradingFee: number | null
   notifyStudent: boolean | null
   notifyInstructor: boolean | null
+  templateId: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -75,6 +77,7 @@ export type GradingSystemCountAggregateOutputType = {
   gradingFee: number
   notifyStudent: number
   notifyInstructor: number
+  templateId: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -100,6 +103,7 @@ export type GradingSystemMinAggregateInputType = {
   gradingFee?: true
   notifyStudent?: true
   notifyInstructor?: true
+  templateId?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -115,6 +119,7 @@ export type GradingSystemMaxAggregateInputType = {
   gradingFee?: true
   notifyStudent?: true
   notifyInstructor?: true
+  templateId?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -130,6 +135,7 @@ export type GradingSystemCountAggregateInputType = {
   gradingFee?: true
   notifyStudent?: true
   notifyInstructor?: true
+  templateId?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -232,6 +238,7 @@ export type GradingSystemGroupByOutputType = {
   gradingFee: number
   notifyStudent: boolean
   notifyInstructor: boolean
+  templateId: string | null
   createdAt: Date
   updatedAt: Date
   _count: GradingSystemCountAggregateOutputType | null
@@ -270,10 +277,12 @@ export type GradingSystemWhereInput = {
   gradingFee?: Prisma.IntFilter<"GradingSystem"> | number
   notifyStudent?: Prisma.BoolFilter<"GradingSystem"> | boolean
   notifyInstructor?: Prisma.BoolFilter<"GradingSystem"> | boolean
+  templateId?: Prisma.StringNullableFilter<"GradingSystem"> | string | null
   createdAt?: Prisma.DateTimeFilter<"GradingSystem"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"GradingSystem"> | Date | string
   school?: Prisma.XOR<Prisma.SchoolScalarRelationFilter, Prisma.SchoolWhereInput>
   ranks?: Prisma.BeltRankListRelationFilter
+  template?: Prisma.XOR<Prisma.GradingTemplateNullableScalarRelationFilter, Prisma.GradingTemplateWhereInput> | null
 }
 
 export type GradingSystemOrderByWithRelationInput = {
@@ -287,10 +296,12 @@ export type GradingSystemOrderByWithRelationInput = {
   gradingFee?: Prisma.SortOrder
   notifyStudent?: Prisma.SortOrder
   notifyInstructor?: Prisma.SortOrder
+  templateId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   school?: Prisma.SchoolOrderByWithRelationInput
   ranks?: Prisma.BeltRankOrderByRelationAggregateInput
+  template?: Prisma.GradingTemplateOrderByWithRelationInput
 }
 
 export type GradingSystemWhereUniqueInput = Prisma.AtLeast<{
@@ -307,10 +318,12 @@ export type GradingSystemWhereUniqueInput = Prisma.AtLeast<{
   gradingFee?: Prisma.IntFilter<"GradingSystem"> | number
   notifyStudent?: Prisma.BoolFilter<"GradingSystem"> | boolean
   notifyInstructor?: Prisma.BoolFilter<"GradingSystem"> | boolean
+  templateId?: Prisma.StringNullableFilter<"GradingSystem"> | string | null
   createdAt?: Prisma.DateTimeFilter<"GradingSystem"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"GradingSystem"> | Date | string
   school?: Prisma.XOR<Prisma.SchoolScalarRelationFilter, Prisma.SchoolWhereInput>
   ranks?: Prisma.BeltRankListRelationFilter
+  template?: Prisma.XOR<Prisma.GradingTemplateNullableScalarRelationFilter, Prisma.GradingTemplateWhereInput> | null
 }, "id">
 
 export type GradingSystemOrderByWithAggregationInput = {
@@ -324,6 +337,7 @@ export type GradingSystemOrderByWithAggregationInput = {
   gradingFee?: Prisma.SortOrder
   notifyStudent?: Prisma.SortOrder
   notifyInstructor?: Prisma.SortOrder
+  templateId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.GradingSystemCountOrderByAggregateInput
@@ -347,6 +361,7 @@ export type GradingSystemScalarWhereWithAggregatesInput = {
   gradingFee?: Prisma.IntWithAggregatesFilter<"GradingSystem"> | number
   notifyStudent?: Prisma.BoolWithAggregatesFilter<"GradingSystem"> | boolean
   notifyInstructor?: Prisma.BoolWithAggregatesFilter<"GradingSystem"> | boolean
+  templateId?: Prisma.StringNullableWithAggregatesFilter<"GradingSystem"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"GradingSystem"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"GradingSystem"> | Date | string
 }
@@ -365,6 +380,7 @@ export type GradingSystemCreateInput = {
   updatedAt?: Date | string
   school: Prisma.SchoolCreateNestedOneWithoutGradingSystemsInput
   ranks?: Prisma.BeltRankCreateNestedManyWithoutSystemInput
+  template?: Prisma.GradingTemplateCreateNestedOneWithoutSystemsInput
 }
 
 export type GradingSystemUncheckedCreateInput = {
@@ -378,6 +394,7 @@ export type GradingSystemUncheckedCreateInput = {
   gradingFee?: number
   notifyStudent?: boolean
   notifyInstructor?: boolean
+  templateId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   ranks?: Prisma.BeltRankUncheckedCreateNestedManyWithoutSystemInput
@@ -397,6 +414,7 @@ export type GradingSystemUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneRequiredWithoutGradingSystemsNestedInput
   ranks?: Prisma.BeltRankUpdateManyWithoutSystemNestedInput
+  template?: Prisma.GradingTemplateUpdateOneWithoutSystemsNestedInput
 }
 
 export type GradingSystemUncheckedUpdateInput = {
@@ -410,6 +428,7 @@ export type GradingSystemUncheckedUpdateInput = {
   gradingFee?: Prisma.IntFieldUpdateOperationsInput | number
   notifyStudent?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifyInstructor?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ranks?: Prisma.BeltRankUncheckedUpdateManyWithoutSystemNestedInput
@@ -426,6 +445,7 @@ export type GradingSystemCreateManyInput = {
   gradingFee?: number
   notifyStudent?: boolean
   notifyInstructor?: boolean
+  templateId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -455,6 +475,7 @@ export type GradingSystemUncheckedUpdateManyInput = {
   gradingFee?: Prisma.IntFieldUpdateOperationsInput | number
   notifyStudent?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifyInstructor?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -480,6 +501,7 @@ export type GradingSystemCountOrderByAggregateInput = {
   gradingFee?: Prisma.SortOrder
   notifyStudent?: Prisma.SortOrder
   notifyInstructor?: Prisma.SortOrder
+  templateId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -499,6 +521,7 @@ export type GradingSystemMaxOrderByAggregateInput = {
   gradingFee?: Prisma.SortOrder
   notifyStudent?: Prisma.SortOrder
   notifyInstructor?: Prisma.SortOrder
+  templateId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -514,6 +537,7 @@ export type GradingSystemMinOrderByAggregateInput = {
   gradingFee?: Prisma.SortOrder
   notifyStudent?: Prisma.SortOrder
   notifyInstructor?: Prisma.SortOrder
+  templateId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -569,6 +593,48 @@ export type GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput = {
   deleteMany?: Prisma.GradingSystemScalarWhereInput | Prisma.GradingSystemScalarWhereInput[]
 }
 
+export type GradingSystemCreateNestedManyWithoutTemplateInput = {
+  create?: Prisma.XOR<Prisma.GradingSystemCreateWithoutTemplateInput, Prisma.GradingSystemUncheckedCreateWithoutTemplateInput> | Prisma.GradingSystemCreateWithoutTemplateInput[] | Prisma.GradingSystemUncheckedCreateWithoutTemplateInput[]
+  connectOrCreate?: Prisma.GradingSystemCreateOrConnectWithoutTemplateInput | Prisma.GradingSystemCreateOrConnectWithoutTemplateInput[]
+  createMany?: Prisma.GradingSystemCreateManyTemplateInputEnvelope
+  connect?: Prisma.GradingSystemWhereUniqueInput | Prisma.GradingSystemWhereUniqueInput[]
+}
+
+export type GradingSystemUncheckedCreateNestedManyWithoutTemplateInput = {
+  create?: Prisma.XOR<Prisma.GradingSystemCreateWithoutTemplateInput, Prisma.GradingSystemUncheckedCreateWithoutTemplateInput> | Prisma.GradingSystemCreateWithoutTemplateInput[] | Prisma.GradingSystemUncheckedCreateWithoutTemplateInput[]
+  connectOrCreate?: Prisma.GradingSystemCreateOrConnectWithoutTemplateInput | Prisma.GradingSystemCreateOrConnectWithoutTemplateInput[]
+  createMany?: Prisma.GradingSystemCreateManyTemplateInputEnvelope
+  connect?: Prisma.GradingSystemWhereUniqueInput | Prisma.GradingSystemWhereUniqueInput[]
+}
+
+export type GradingSystemUpdateManyWithoutTemplateNestedInput = {
+  create?: Prisma.XOR<Prisma.GradingSystemCreateWithoutTemplateInput, Prisma.GradingSystemUncheckedCreateWithoutTemplateInput> | Prisma.GradingSystemCreateWithoutTemplateInput[] | Prisma.GradingSystemUncheckedCreateWithoutTemplateInput[]
+  connectOrCreate?: Prisma.GradingSystemCreateOrConnectWithoutTemplateInput | Prisma.GradingSystemCreateOrConnectWithoutTemplateInput[]
+  upsert?: Prisma.GradingSystemUpsertWithWhereUniqueWithoutTemplateInput | Prisma.GradingSystemUpsertWithWhereUniqueWithoutTemplateInput[]
+  createMany?: Prisma.GradingSystemCreateManyTemplateInputEnvelope
+  set?: Prisma.GradingSystemWhereUniqueInput | Prisma.GradingSystemWhereUniqueInput[]
+  disconnect?: Prisma.GradingSystemWhereUniqueInput | Prisma.GradingSystemWhereUniqueInput[]
+  delete?: Prisma.GradingSystemWhereUniqueInput | Prisma.GradingSystemWhereUniqueInput[]
+  connect?: Prisma.GradingSystemWhereUniqueInput | Prisma.GradingSystemWhereUniqueInput[]
+  update?: Prisma.GradingSystemUpdateWithWhereUniqueWithoutTemplateInput | Prisma.GradingSystemUpdateWithWhereUniqueWithoutTemplateInput[]
+  updateMany?: Prisma.GradingSystemUpdateManyWithWhereWithoutTemplateInput | Prisma.GradingSystemUpdateManyWithWhereWithoutTemplateInput[]
+  deleteMany?: Prisma.GradingSystemScalarWhereInput | Prisma.GradingSystemScalarWhereInput[]
+}
+
+export type GradingSystemUncheckedUpdateManyWithoutTemplateNestedInput = {
+  create?: Prisma.XOR<Prisma.GradingSystemCreateWithoutTemplateInput, Prisma.GradingSystemUncheckedCreateWithoutTemplateInput> | Prisma.GradingSystemCreateWithoutTemplateInput[] | Prisma.GradingSystemUncheckedCreateWithoutTemplateInput[]
+  connectOrCreate?: Prisma.GradingSystemCreateOrConnectWithoutTemplateInput | Prisma.GradingSystemCreateOrConnectWithoutTemplateInput[]
+  upsert?: Prisma.GradingSystemUpsertWithWhereUniqueWithoutTemplateInput | Prisma.GradingSystemUpsertWithWhereUniqueWithoutTemplateInput[]
+  createMany?: Prisma.GradingSystemCreateManyTemplateInputEnvelope
+  set?: Prisma.GradingSystemWhereUniqueInput | Prisma.GradingSystemWhereUniqueInput[]
+  disconnect?: Prisma.GradingSystemWhereUniqueInput | Prisma.GradingSystemWhereUniqueInput[]
+  delete?: Prisma.GradingSystemWhereUniqueInput | Prisma.GradingSystemWhereUniqueInput[]
+  connect?: Prisma.GradingSystemWhereUniqueInput | Prisma.GradingSystemWhereUniqueInput[]
+  update?: Prisma.GradingSystemUpdateWithWhereUniqueWithoutTemplateInput | Prisma.GradingSystemUpdateWithWhereUniqueWithoutTemplateInput[]
+  updateMany?: Prisma.GradingSystemUpdateManyWithWhereWithoutTemplateInput | Prisma.GradingSystemUpdateManyWithWhereWithoutTemplateInput[]
+  deleteMany?: Prisma.GradingSystemScalarWhereInput | Prisma.GradingSystemScalarWhereInput[]
+}
+
 export type GradingSystemCreateNestedOneWithoutRanksInput = {
   create?: Prisma.XOR<Prisma.GradingSystemCreateWithoutRanksInput, Prisma.GradingSystemUncheckedCreateWithoutRanksInput>
   connectOrCreate?: Prisma.GradingSystemCreateOrConnectWithoutRanksInput
@@ -596,6 +662,7 @@ export type GradingSystemCreateWithoutSchoolInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   ranks?: Prisma.BeltRankCreateNestedManyWithoutSystemInput
+  template?: Prisma.GradingTemplateCreateNestedOneWithoutSystemsInput
 }
 
 export type GradingSystemUncheckedCreateWithoutSchoolInput = {
@@ -608,6 +675,7 @@ export type GradingSystemUncheckedCreateWithoutSchoolInput = {
   gradingFee?: number
   notifyStudent?: boolean
   notifyInstructor?: boolean
+  templateId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   ranks?: Prisma.BeltRankUncheckedCreateNestedManyWithoutSystemInput
@@ -653,8 +721,67 @@ export type GradingSystemScalarWhereInput = {
   gradingFee?: Prisma.IntFilter<"GradingSystem"> | number
   notifyStudent?: Prisma.BoolFilter<"GradingSystem"> | boolean
   notifyInstructor?: Prisma.BoolFilter<"GradingSystem"> | boolean
+  templateId?: Prisma.StringNullableFilter<"GradingSystem"> | string | null
   createdAt?: Prisma.DateTimeFilter<"GradingSystem"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"GradingSystem"> | Date | string
+}
+
+export type GradingSystemCreateWithoutTemplateInput = {
+  id?: string
+  name: string
+  activity?: string | null
+  isDefault?: boolean
+  isActive?: boolean
+  requireApproval?: boolean
+  gradingFee?: number
+  notifyStudent?: boolean
+  notifyInstructor?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  school: Prisma.SchoolCreateNestedOneWithoutGradingSystemsInput
+  ranks?: Prisma.BeltRankCreateNestedManyWithoutSystemInput
+}
+
+export type GradingSystemUncheckedCreateWithoutTemplateInput = {
+  id?: string
+  schoolId: string
+  name: string
+  activity?: string | null
+  isDefault?: boolean
+  isActive?: boolean
+  requireApproval?: boolean
+  gradingFee?: number
+  notifyStudent?: boolean
+  notifyInstructor?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ranks?: Prisma.BeltRankUncheckedCreateNestedManyWithoutSystemInput
+}
+
+export type GradingSystemCreateOrConnectWithoutTemplateInput = {
+  where: Prisma.GradingSystemWhereUniqueInput
+  create: Prisma.XOR<Prisma.GradingSystemCreateWithoutTemplateInput, Prisma.GradingSystemUncheckedCreateWithoutTemplateInput>
+}
+
+export type GradingSystemCreateManyTemplateInputEnvelope = {
+  data: Prisma.GradingSystemCreateManyTemplateInput | Prisma.GradingSystemCreateManyTemplateInput[]
+  skipDuplicates?: boolean
+}
+
+export type GradingSystemUpsertWithWhereUniqueWithoutTemplateInput = {
+  where: Prisma.GradingSystemWhereUniqueInput
+  update: Prisma.XOR<Prisma.GradingSystemUpdateWithoutTemplateInput, Prisma.GradingSystemUncheckedUpdateWithoutTemplateInput>
+  create: Prisma.XOR<Prisma.GradingSystemCreateWithoutTemplateInput, Prisma.GradingSystemUncheckedCreateWithoutTemplateInput>
+}
+
+export type GradingSystemUpdateWithWhereUniqueWithoutTemplateInput = {
+  where: Prisma.GradingSystemWhereUniqueInput
+  data: Prisma.XOR<Prisma.GradingSystemUpdateWithoutTemplateInput, Prisma.GradingSystemUncheckedUpdateWithoutTemplateInput>
+}
+
+export type GradingSystemUpdateManyWithWhereWithoutTemplateInput = {
+  where: Prisma.GradingSystemScalarWhereInput
+  data: Prisma.XOR<Prisma.GradingSystemUpdateManyMutationInput, Prisma.GradingSystemUncheckedUpdateManyWithoutTemplateInput>
 }
 
 export type GradingSystemCreateWithoutRanksInput = {
@@ -670,6 +797,7 @@ export type GradingSystemCreateWithoutRanksInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   school: Prisma.SchoolCreateNestedOneWithoutGradingSystemsInput
+  template?: Prisma.GradingTemplateCreateNestedOneWithoutSystemsInput
 }
 
 export type GradingSystemUncheckedCreateWithoutRanksInput = {
@@ -683,6 +811,7 @@ export type GradingSystemUncheckedCreateWithoutRanksInput = {
   gradingFee?: number
   notifyStudent?: boolean
   notifyInstructor?: boolean
+  templateId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -716,6 +845,7 @@ export type GradingSystemUpdateWithoutRanksInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   school?: Prisma.SchoolUpdateOneRequiredWithoutGradingSystemsNestedInput
+  template?: Prisma.GradingTemplateUpdateOneWithoutSystemsNestedInput
 }
 
 export type GradingSystemUncheckedUpdateWithoutRanksInput = {
@@ -729,6 +859,7 @@ export type GradingSystemUncheckedUpdateWithoutRanksInput = {
   gradingFee?: Prisma.IntFieldUpdateOperationsInput | number
   notifyStudent?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifyInstructor?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -743,6 +874,7 @@ export type GradingSystemCreateManySchoolInput = {
   gradingFee?: number
   notifyStudent?: boolean
   notifyInstructor?: boolean
+  templateId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -760,10 +892,74 @@ export type GradingSystemUpdateWithoutSchoolInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ranks?: Prisma.BeltRankUpdateManyWithoutSystemNestedInput
+  template?: Prisma.GradingTemplateUpdateOneWithoutSystemsNestedInput
 }
 
 export type GradingSystemUncheckedUpdateWithoutSchoolInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  activity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  gradingFee?: Prisma.IntFieldUpdateOperationsInput | number
+  notifyStudent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifyInstructor?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ranks?: Prisma.BeltRankUncheckedUpdateManyWithoutSystemNestedInput
+}
+
+export type GradingSystemUncheckedUpdateManyWithoutSchoolInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  activity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  gradingFee?: Prisma.IntFieldUpdateOperationsInput | number
+  notifyStudent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifyInstructor?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type GradingSystemCreateManyTemplateInput = {
+  id?: string
+  schoolId: string
+  name: string
+  activity?: string | null
+  isDefault?: boolean
+  isActive?: boolean
+  requireApproval?: boolean
+  gradingFee?: number
+  notifyStudent?: boolean
+  notifyInstructor?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type GradingSystemUpdateWithoutTemplateInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  activity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  gradingFee?: Prisma.IntFieldUpdateOperationsInput | number
+  notifyStudent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifyInstructor?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  school?: Prisma.SchoolUpdateOneRequiredWithoutGradingSystemsNestedInput
+  ranks?: Prisma.BeltRankUpdateManyWithoutSystemNestedInput
+}
+
+export type GradingSystemUncheckedUpdateWithoutTemplateInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  schoolId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   activity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -777,8 +973,9 @@ export type GradingSystemUncheckedUpdateWithoutSchoolInput = {
   ranks?: Prisma.BeltRankUncheckedUpdateManyWithoutSystemNestedInput
 }
 
-export type GradingSystemUncheckedUpdateManyWithoutSchoolInput = {
+export type GradingSystemUncheckedUpdateManyWithoutTemplateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  schoolId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   activity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -833,10 +1030,12 @@ export type GradingSystemSelect<ExtArgs extends runtime.Types.Extensions.Interna
   gradingFee?: boolean
   notifyStudent?: boolean
   notifyInstructor?: boolean
+  templateId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   ranks?: boolean | Prisma.GradingSystem$ranksArgs<ExtArgs>
+  template?: boolean | Prisma.GradingSystem$templateArgs<ExtArgs>
   _count?: boolean | Prisma.GradingSystemCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["gradingSystem"]>
 
@@ -851,9 +1050,11 @@ export type GradingSystemSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   gradingFee?: boolean
   notifyStudent?: boolean
   notifyInstructor?: boolean
+  templateId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
+  template?: boolean | Prisma.GradingSystem$templateArgs<ExtArgs>
 }, ExtArgs["result"]["gradingSystem"]>
 
 export type GradingSystemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -867,9 +1068,11 @@ export type GradingSystemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   gradingFee?: boolean
   notifyStudent?: boolean
   notifyInstructor?: boolean
+  templateId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
+  template?: boolean | Prisma.GradingSystem$templateArgs<ExtArgs>
 }, ExtArgs["result"]["gradingSystem"]>
 
 export type GradingSystemSelectScalar = {
@@ -883,21 +1086,25 @@ export type GradingSystemSelectScalar = {
   gradingFee?: boolean
   notifyStudent?: boolean
   notifyInstructor?: boolean
+  templateId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type GradingSystemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "name" | "activity" | "isDefault" | "isActive" | "requireApproval" | "gradingFee" | "notifyStudent" | "notifyInstructor" | "createdAt" | "updatedAt", ExtArgs["result"]["gradingSystem"]>
+export type GradingSystemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "name" | "activity" | "isDefault" | "isActive" | "requireApproval" | "gradingFee" | "notifyStudent" | "notifyInstructor" | "templateId" | "createdAt" | "updatedAt", ExtArgs["result"]["gradingSystem"]>
 export type GradingSystemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   ranks?: boolean | Prisma.GradingSystem$ranksArgs<ExtArgs>
+  template?: boolean | Prisma.GradingSystem$templateArgs<ExtArgs>
   _count?: boolean | Prisma.GradingSystemCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type GradingSystemIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
+  template?: boolean | Prisma.GradingSystem$templateArgs<ExtArgs>
 }
 export type GradingSystemIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
+  template?: boolean | Prisma.GradingSystem$templateArgs<ExtArgs>
 }
 
 export type $GradingSystemPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -905,6 +1112,7 @@ export type $GradingSystemPayload<ExtArgs extends runtime.Types.Extensions.Inter
   objects: {
     school: Prisma.$SchoolPayload<ExtArgs>
     ranks: Prisma.$BeltRankPayload<ExtArgs>[]
+    template: Prisma.$GradingTemplatePayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -917,6 +1125,7 @@ export type $GradingSystemPayload<ExtArgs extends runtime.Types.Extensions.Inter
     gradingFee: number
     notifyStudent: boolean
     notifyInstructor: boolean
+    templateId: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["gradingSystem"]>
@@ -1315,6 +1524,7 @@ export interface Prisma__GradingSystemClient<T, Null = never, ExtArgs extends ru
   readonly [Symbol.toStringTag]: "PrismaPromise"
   school<T extends Prisma.SchoolDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SchoolDefaultArgs<ExtArgs>>): Prisma.Prisma__SchoolClient<runtime.Types.Result.GetResult<Prisma.$SchoolPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   ranks<T extends Prisma.GradingSystem$ranksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.GradingSystem$ranksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BeltRankPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  template<T extends Prisma.GradingSystem$templateArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.GradingSystem$templateArgs<ExtArgs>>): Prisma.Prisma__GradingTemplateClient<runtime.Types.Result.GetResult<Prisma.$GradingTemplatePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1354,6 +1564,7 @@ export interface GradingSystemFieldRefs {
   readonly gradingFee: Prisma.FieldRef<"GradingSystem", 'Int'>
   readonly notifyStudent: Prisma.FieldRef<"GradingSystem", 'Boolean'>
   readonly notifyInstructor: Prisma.FieldRef<"GradingSystem", 'Boolean'>
+  readonly templateId: Prisma.FieldRef<"GradingSystem", 'String'>
   readonly createdAt: Prisma.FieldRef<"GradingSystem", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"GradingSystem", 'DateTime'>
 }
@@ -1778,6 +1989,25 @@ export type GradingSystem$ranksArgs<ExtArgs extends runtime.Types.Extensions.Int
   take?: number
   skip?: number
   distinct?: Prisma.BeltRankScalarFieldEnum | Prisma.BeltRankScalarFieldEnum[]
+}
+
+/**
+ * GradingSystem.template
+ */
+export type GradingSystem$templateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the GradingTemplate
+   */
+  select?: Prisma.GradingTemplateSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the GradingTemplate
+   */
+  omit?: Prisma.GradingTemplateOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.GradingTemplateInclude<ExtArgs> | null
+  where?: Prisma.GradingTemplateWhereInput
 }
 
 /**

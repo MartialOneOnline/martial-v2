@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef, Fragment } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import {
@@ -14,6 +14,7 @@ import { useDashboard } from '../../../components/DashboardShell'
 import NotificationBell from '../../../components/NotificationBell'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../lib/format'
+import { COLOR_PRESETS, RankRulesFields, frequencyError, trimRankLists, type RankRulesValue } from '../../../components/grading/RankRulesFields'
 
 // ── Shared styles ─────────────────────────────────────────────────────────────
 const INP: React.CSSProperties = {
@@ -1454,15 +1455,6 @@ interface GradingSystem {
   ranks: BeltRank[]
 }
 
-/** Per-grading list edited cell by cell: blanks are 0, trailing blanks dropped. */
-function setStepValue(list: number[], i: number, raw: string): number[] {
-  const next = [...list]
-  while (next.length <= i) next.push(0)
-  next[i] = raw ? Math.max(0, Math.round(Number(raw)) || 0) : 0
-  while (next.length && !next[next.length - 1]) next.pop()
-  return next
-}
-
 function rankForm(rank: BeltRank): BeltRank {
   return {
     ...rank,
@@ -1473,17 +1465,6 @@ function rankForm(rank: BeltRank): BeltRank {
   }
 }
 
-const COLOR_PRESETS = [
-  '#9CA3AF', // white/grey
-  '#2563EB', // blue
-  '#7C3AED', // purple
-  '#92400E', // brown
-  '#111827', // black
-  '#EAB308', // yellow
-  '#F97316', // orange
-  '#16A34A', // green
-  '#DC2626', // red
-]
 
 function RankRow({
   rank, systemId, onUpdate, onDelete, isLast, nextRankName,
@@ -1498,16 +1479,13 @@ function RankRow({
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  function set<K extends keyof BeltRank>(k: K, v: BeltRank[K]) {
+  function set<K extends keyof RankRulesValue>(k: K, v: RankRulesValue[K]) {
     setForm(p => ({ ...p, [k]: v }))
   }
 
   async function save() {
-    const hasFreq = (form.classesPerPeriod ?? 0) > 0 || (form.maxClassesPerPeriod ?? 0) > 0
-    if (hasFreq && !form.periodType) { setError(rt.freqPeriodRequired); return }
-    if (form.classesPerPeriod && form.maxClassesPerPeriod && form.maxClassesPerPeriod < form.classesPerPeriod) {
-      setError(rt.freqMaxBelowMin); return
-    }
+    const freqErr = frequencyError(form, rt)
+    if (freqErr) { setError(freqErr); return }
     setError(null)
     setSaving(true)
     try {
@@ -1515,12 +1493,7 @@ function RankRow({
         method: 'PATCH', headers: { 'Content-Type': 'application/json' },
         // One entry per grading at this belt: each stripe, then the next belt.
         // Ages are per stripe only — the next belt's age lives on that belt.
-        body: JSON.stringify({
-          ...form,
-          classesByDegree: form.classesByDegree.slice(0, form.maxDegrees + 1),
-          monthsByDegree: form.monthsByDegree.slice(0, form.maxDegrees + 1),
-          minAgeByDegree: form.minAgeByDegree.slice(0, form.maxDegrees),
-        }),
+        body: JSON.stringify(trimRankLists(form)),
       })
       if (!res.ok) { setError(rt.saveError); return }
       const { rank: updated } = await res.json()
@@ -1533,13 +1506,6 @@ function RankRow({
       setSaving(false)
     }
   }
-
-  const INP: React.CSSProperties = {
-    border: '1.5px solid #E5E7EB', borderRadius: 8, padding: '7px 10px',
-    fontSize: 13, color: '#111827', background: '#fff', outline: 'none', width: '100%', minWidth: 0,
-  }
-  const LBL: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }
-  const SUB: React.CSSProperties = { fontSize: 10, color: '#9CA3AF', display: 'block', marginBottom: 2 }
 
   return (
     <div style={{ borderBottom: isLast ? 'none' : '1px solid #F3F4F6' }}>
@@ -1584,115 +1550,7 @@ function RankRow({
         <div className="mx-1 mb-3 p-4 rounded-xl flex flex-col gap-4"
           style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label style={LBL}>{rt.rankName}</label>
-              <input value={form.name} onChange={e => set('name', e.target.value)} style={INP} />
-            </div>
-            <div>
-              <label style={LBL}>{rt.rankStripes}</label>
-              <select value={form.maxDegrees} onChange={e => set('maxDegrees', Number(e.target.value))} style={INP}>
-                <option value={0}>{rt.rankNoStripes}</option>
-                {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
-                  <option key={n} value={n}>{rt.rankNStripes.replace('{n}', String(n))}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Color */}
-          <div>
-            <label style={{ ...LBL, marginBottom: 6 }}>{rt.rankColor}</label>
-            <div className="flex items-center gap-2 flex-wrap">
-              {COLOR_PRESETS.map(c => (
-                <button key={c} onClick={() => set('color', c)}
-                  style={{ width: 24, height: 24, borderRadius: '50%', background: c, border: form.color === c ? '3px solid #0870E2' : '2px solid transparent', cursor: 'pointer', outline: 'none' }} />
-              ))}
-              <input type="color" value={form.color} onChange={e => set('color', e.target.value)}
-                style={{ width: 32, height: 32, borderRadius: 8, border: '1.5px solid #E5E7EB', cursor: 'pointer', padding: 2, background: '#fff' }} />
-            </div>
-          </div>
-
-          {/* Requirements to reach this belt */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label style={LBL}>{rt.rankMinAge}</label>
-              <input type="number" min={0} max={99} value={form.minAge ?? ''} placeholder="—"
-                onChange={e => set('minAge', e.target.value ? Number(e.target.value) : null)} style={INP} />
-            </div>
-            <div>
-              <label style={LBL}>{rt.rankMonthsAtPrev}</label>
-              <input type="number" min={0} value={form.minMonthsAtPrevious ?? ''} placeholder="—"
-                onChange={e => set('minMonthsAtPrevious', e.target.value ? Number(e.target.value) : null)} style={INP} />
-            </div>
-            <div>
-              <label style={LBL}>{rt.rankDefaultClasses}</label>
-              <input type="number" min={0} value={form.totalClassesRequired ?? ''} placeholder="—"
-                onChange={e => set('totalClassesRequired', e.target.value ? Number(e.target.value) : null)} style={INP} />
-            </div>
-          </div>
-
-          {/* Training frequency at this belt */}
-          <div>
-            <label style={{ ...LBL, marginBottom: 2 }}>{rt.freqLabel}</label>
-            <p style={{ fontSize: 11, color: '#9CA3AF', margin: '0 0 6px' }}>{rt.freqHint}</p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div>
-                <span style={SUB}>{rt.freqMin}</span>
-                <input type="number" min={0} value={form.classesPerPeriod ?? ''} placeholder="—"
-                  onChange={e => set('classesPerPeriod', e.target.value ? Number(e.target.value) : null)} style={INP} />
-              </div>
-              <div>
-                <span style={SUB}>{rt.freqMax}</span>
-                <input type="number" min={0} value={form.maxClassesPerPeriod ?? ''} placeholder="—"
-                  onChange={e => set('maxClassesPerPeriod', e.target.value ? Number(e.target.value) : null)} style={INP} />
-              </div>
-              <div>
-                <span style={SUB}>{rt.freqPeriod}</span>
-                <select value={form.periodType ?? ''} onChange={e => set('periodType', e.target.value || null)} style={INP}>
-                  <option value="">—</option>
-                  <option value="WEEK">{rt.periodWeek}</option>
-                  <option value="MONTH">{rt.periodMonth}</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Rules for each grading at this belt: classes, time, age */}
-          <div>
-            <label style={{ ...LBL, marginBottom: 2 }}>{rt.rulesStepsLabel}</label>
-            <p style={{ fontSize: 11, color: '#9CA3AF', margin: '0 0 6px' }}>{rt.rulesStepsHint}</p>
-            <div className="grid gap-x-2 gap-y-1.5 items-center" style={{ gridTemplateColumns: 'minmax(72px, 1.2fr) repeat(3, minmax(0, 1fr))' }}>
-              <span style={SUB}>{rt.colStep}</span>
-              <span style={SUB}>{rt.colClasses}</span>
-              <span style={SUB}>{rt.colMonths}</span>
-              <span style={SUB}>{rt.colAge}</span>
-              {Array.from({ length: form.maxDegrees + 1 }, (_, i) => {
-                const isBelt = i === form.maxDegrees
-                return (
-                  <Fragment key={i}>
-                    <span style={{ fontSize: 12, color: '#374151', fontWeight: isBelt ? 600 : 500 }} className="truncate">
-                      {isBelt ? rt.toNextBelt.replace('{belt}', nextRankName ?? '—') : rt.toStripe.replace('{n}', String(i + 1))}
-                    </span>
-                    <input type="number" min={0} value={form.classesByDegree[i] || ''}
-                      placeholder={form.totalClassesRequired ? String(form.totalClassesRequired) : '—'}
-                      onChange={e => set('classesByDegree', setStepValue(form.classesByDegree, i, e.target.value))} style={INP} />
-                    <input type="number" min={0} value={form.monthsByDegree[i] || ''} placeholder="—"
-                      onChange={e => set('monthsByDegree', setStepValue(form.monthsByDegree, i, e.target.value))} style={INP} />
-                    {isBelt ? (
-                      <span style={{ fontSize: 13, color: '#D1D5DB', textAlign: 'center' }} title={nextRankName ? rt.beltRowHint.replaceAll('{belt}', nextRankName) : undefined}>—</span>
-                    ) : (
-                      <input type="number" min={0} max={99} value={form.minAgeByDegree[i] || ''} placeholder="—"
-                        onChange={e => set('minAgeByDegree', setStepValue(form.minAgeByDegree, i, e.target.value))} style={INP} />
-                    )}
-                  </Fragment>
-                )
-              })}
-            </div>
-            {nextRankName && (
-              <p style={{ fontSize: 11, color: '#9CA3AF', margin: '6px 0 0' }}>{rt.beltRowHint.replaceAll('{belt}', nextRankName)}</p>
-            )}
-          </div>
+          <RankRulesFields value={form} onChange={set} nextRankName={nextRankName} />
 
           {error && <p style={{ fontSize: 12, color: '#DC2626', margin: 0 }}>{error}</p>}
 
@@ -1712,12 +1570,13 @@ function RankRow({
   )
 }
 
-function SystemEditor({ system, onUpdate, onDelete }: {
+function SystemEditor({ system, onUpdate, onDelete, initiallyExpanded = false }: {
   system: GradingSystem
   onUpdate: (s: GradingSystem) => void
   onDelete: () => void
+  initiallyExpanded?: boolean
 }) {
-  const [expanded, setExpanded]   = useState(false)
+  const [expanded, setExpanded]   = useState(initiallyExpanded)
   const [addingRank, setAddingRank] = useState(false)
   const [newRankName, setNewRankName] = useState('')
   const [newRankColor, setNewRankColor] = useState('#9CA3AF')
@@ -1920,7 +1779,120 @@ function SystemEditor({ system, onUpdate, onDelete }: {
   )
 }
 
+interface TemplateOption {
+  id: string; name: string; activity: string | null; description: string | null
+  ranks: Array<{ name: string; color: string; maxDegrees: number }>
+}
+
+/**
+ * Published platform templates (super admin) — applying one creates the
+ * school's own copy. The "creating" state lives in GradingTab, not here, so
+ * closing and reopening the picker mid-request keeps it locked (PR #39 P2).
+ */
+function TemplatePicker({ applyingId, applyError, onApply, onClose }: {
+  applyingId: string | null
+  applyError: string | null
+  onApply: (t: TemplateOption) => void
+  onClose: () => void
+}) {
+  const rt = useT().readiness
+  const [templates, setTemplates] = useState<TemplateOption[] | null>(null)
+  const [loadError, setLoadError] = useState(false)
+
+  const load = useCallback(() => {
+    setLoadError(false)
+    fetch('/api/dashboard/grading-templates')
+      .then(r => { if (!r.ok) throw new Error(); return r.json() })
+      .then(d => setTemplates(d.templates ?? []))
+      .catch(() => setLoadError(true))
+  }, [])
+  useEffect(load, [load])
+
+  return (
+    <div className="flex flex-col gap-3 p-4 rounded-2xl" style={{ background: '#F9FAFB', border: '1.5px solid #E5E7EB' }}>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p style={{ fontSize: 14, fontWeight: 600, color: '#111827', margin: 0 }}>{rt.templatesTitle}</p>
+          <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>{rt.templatesHint}</p>
+        </div>
+        <button onClick={onClose} aria-label={rt.closeTemplates}
+          style={{ padding: '6px 8px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', cursor: 'pointer' }}>
+          <X size={14} style={{ color: '#9CA3AF' }} />
+        </button>
+      </div>
+      {loadError ? (
+        <p style={{ fontSize: 13, color: '#DC2626', margin: 0 }}>
+          {rt.templatesLoadError}{' '}
+          <button onClick={load} style={{ color: '#0870E2', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>{rt.retry}</button>
+        </p>
+      ) : !templates ? (
+        <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0 }}>{rt.loading}</p>
+      ) : templates.length === 0 ? (
+        <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0 }}>{rt.templatesEmpty}</p>
+      ) : templates.map(t => (
+        <div key={t.id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-xl" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <p style={{ fontSize: 14, fontWeight: 600, color: '#111827', margin: 0 }}>{t.name}</p>
+              {t.activity && (
+                <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 999, background: '#F0F7FF', color: '#0870E2', border: '1px solid #BFDBFE' }}>
+                  {t.activity}
+                </span>
+              )}
+              <span style={{ fontSize: 11, color: '#9CA3AF' }}>{rt.beltsCount.replace('{n}', String(t.ranks.length))}</span>
+            </div>
+            {t.description && <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>{t.description}</p>}
+            <div className="flex gap-0.5 mt-2" title={t.ranks.map(r => r.name).join(' → ')}>
+              {t.ranks.slice(0, 12).map((r, i) => (
+                <div key={i} className="w-3 h-3 rounded-full" style={{ background: r.color, border: '1px solid #D1D5DB' }} />
+              ))}
+            </div>
+            {applyError === t.id && <p style={{ fontSize: 12, color: '#DC2626', margin: '6px 0 0' }}>{rt.applyError}</p>}
+          </div>
+          <button onClick={() => onApply(t)} disabled={applyingId !== null}
+            style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: '#0870E2', color: '#fff', fontSize: 13, fontWeight: 600,
+              cursor: 'pointer', opacity: applyingId !== null ? 0.6 : 1, whiteSpace: 'nowrap' }}>
+            {applyingId === t.id ? rt.applying : rt.applyTemplate}
+          </button>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function GradingTab() {
+  const rt = useT().readiness
+  const [showTemplates, setShowTemplates] = useState(false)
+  const [createdId, setCreatedId] = useState<string | null>(null)
+  const [applyingId, setApplyingId] = useState<string | null>(null)
+  const [applyError, setApplyError] = useState<string | null>(null)
+  // Synchronous guard: a second click before React re-renders can't start another copy.
+  const applyingRef = useRef(false)
+
+  async function applyTemplate(t: TemplateOption) {
+    if (applyingRef.current) return
+    applyingRef.current = true
+    setApplyingId(t.id); setApplyError(null)
+    try {
+      const res = await fetch('/api/dashboard/grading-systems', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ templateId: t.id }),
+      })
+      if (!res.ok) { setApplyError(t.id); setShowTemplates(true); return }
+      const { system } = await res.json() as { system: GradingSystem }
+      setSystems(prev => [
+        ...prev.map(s => (system.isDefault ? { ...s, isDefault: false } : s)),
+        system,
+      ])
+      setCreatedId(system.id)
+      setShowTemplates(false)
+    } catch {
+      setApplyError(t.id); setShowTemplates(true)
+    } finally {
+      applyingRef.current = false
+      setApplyingId(null)
+    }
+  }
   const [systems, setSystems]   = useState<GradingSystem[]>([])
   const [loading, setLoading]   = useState(true)
   const [adding,  setAdding]    = useState(false)
@@ -1975,17 +1947,36 @@ function GradingTab() {
       </div>
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <p style={SECTION_TITLE}>Grading Systems</p>
           <p style={SECTION_SUB}>One system per activity (BJJ, Judo, Karate…). Each system has its own belt progression and rules.</p>
         </div>
-        <button onClick={() => setAdding(true)}
-          className="flex items-center gap-2 cursor-pointer"
-          style={{ padding: '9px 16px', borderRadius: 10, border: 'none', background: '#0870E2', color: '#fff', fontSize: 13, fontWeight: 600 }}>
-          <Plus size={14} /> New system
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <button onClick={() => setShowTemplates(v => !v)}
+            className="flex items-center gap-2 cursor-pointer"
+            style={{ padding: '9px 14px', borderRadius: 10, border: '1px solid #BFDBFE', background: '#F0F7FF', color: '#0870E2', fontSize: 13, fontWeight: 600 }}>
+            <Award size={14} /> {applyingId ? rt.applying : rt.useTemplate}
+          </button>
+          <button onClick={() => setAdding(true)}
+            className="flex items-center gap-2 cursor-pointer"
+            style={{ padding: '9px 16px', borderRadius: 10, border: 'none', background: '#0870E2', color: '#fff', fontSize: 13, fontWeight: 600 }}>
+            <Plus size={14} /> New system
+          </button>
+        </div>
       </div>
+
+      {showTemplates && (
+        <TemplatePicker applyingId={applyingId} applyError={applyError} onApply={applyTemplate}
+          onClose={() => setShowTemplates(false)} />
+      )}
+
+      {createdId && (() => {
+        const created = systems.find(s => s.id === createdId)
+        return created ? (
+          <p style={{ fontSize: 13, color: '#15803D', margin: 0 }}>{rt.createdFromTemplate.replace('{name}', created.name)}</p>
+        ) : null
+      })()}
 
       {/* New system form */}
       {adding && (
@@ -2021,7 +2012,8 @@ function GradingTab() {
       ) : (
         <div className="flex flex-col gap-3">
           {systems.map(s => (
-            <SystemEditor key={s.id} system={s} onUpdate={updateSystem} onDelete={() => deleteSystem(s.id)} />
+            <SystemEditor key={s.id} system={s} onUpdate={updateSystem} onDelete={() => deleteSystem(s.id)}
+              initiallyExpanded={s.id === createdId} />
           ))}
         </div>
       )}

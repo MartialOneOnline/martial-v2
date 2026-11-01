@@ -416,6 +416,7 @@ export const ModelName = {
   CampaignRecipient: 'CampaignRecipient',
   SchoolClaim: 'SchoolClaim',
   GradingSystem: 'GradingSystem',
+  GradingTemplate: 'GradingTemplate',
   BeltRank: 'BeltRank',
   Grading: 'Grading',
   Lead: 'Lead',
@@ -458,7 +459,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "curriculum" | "curriculumLesson" | "curriculumLessonView" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "classCancellation" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "staffRole" | "campaign" | "campaignRecipient" | "schoolClaim" | "gradingSystem" | "beltRank" | "grading" | "lead" | "leadNote" | "affiliate" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "impersonationLog" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "limitedCollection" | "limitedCollectionTier" | "collectibleUnit" | "collectibleOwnership" | "partner" | "notification" | "platformSettings" | "claimRequest" | "schoolSubscription" | "stripeWebhookEvent" | "inviteToken"
+    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "curriculum" | "curriculumLesson" | "curriculumLessonView" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "classCancellation" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "staffRole" | "campaign" | "campaignRecipient" | "schoolClaim" | "gradingSystem" | "gradingTemplate" | "beltRank" | "grading" | "lead" | "leadNote" | "affiliate" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "impersonationLog" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "limitedCollection" | "limitedCollectionTier" | "collectibleUnit" | "collectibleOwnership" | "partner" | "notification" | "platformSettings" | "claimRequest" | "schoolSubscription" | "stripeWebhookEvent" | "inviteToken"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2827,6 +2828,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.GradingSystemCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.GradingSystemCountAggregateOutputType> | number
+        }
+      }
+    }
+    GradingTemplate: {
+      payload: Prisma.$GradingTemplatePayload<ExtArgs>
+      fields: Prisma.GradingTemplateFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.GradingTemplateFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradingTemplatePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.GradingTemplateFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradingTemplatePayload>
+        }
+        findFirst: {
+          args: Prisma.GradingTemplateFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradingTemplatePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.GradingTemplateFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradingTemplatePayload>
+        }
+        findMany: {
+          args: Prisma.GradingTemplateFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradingTemplatePayload>[]
+        }
+        create: {
+          args: Prisma.GradingTemplateCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradingTemplatePayload>
+        }
+        createMany: {
+          args: Prisma.GradingTemplateCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.GradingTemplateCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradingTemplatePayload>[]
+        }
+        delete: {
+          args: Prisma.GradingTemplateDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradingTemplatePayload>
+        }
+        update: {
+          args: Prisma.GradingTemplateUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradingTemplatePayload>
+        }
+        deleteMany: {
+          args: Prisma.GradingTemplateDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.GradingTemplateUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.GradingTemplateUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradingTemplatePayload>[]
+        }
+        upsert: {
+          args: Prisma.GradingTemplateUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradingTemplatePayload>
+        }
+        aggregate: {
+          args: Prisma.GradingTemplateAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateGradingTemplate>
+        }
+        groupBy: {
+          args: Prisma.GradingTemplateGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GradingTemplateGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.GradingTemplateCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GradingTemplateCountAggregateOutputType> | number
         }
       }
     }
@@ -5471,11 +5546,27 @@ export const GradingSystemScalarFieldEnum = {
   gradingFee: 'gradingFee',
   notifyStudent: 'notifyStudent',
   notifyInstructor: 'notifyInstructor',
+  templateId: 'templateId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type GradingSystemScalarFieldEnum = (typeof GradingSystemScalarFieldEnum)[keyof typeof GradingSystemScalarFieldEnum]
+
+
+export const GradingTemplateScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  activity: 'activity',
+  description: 'description',
+  isPublished: 'isPublished',
+  ranks: 'ranks',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GradingTemplateScalarFieldEnum = (typeof GradingTemplateScalarFieldEnum)[keyof typeof GradingTemplateScalarFieldEnum]
 
 
 export const BeltRankScalarFieldEnum = {
@@ -6783,6 +6874,7 @@ export type GlobalOmitConfig = {
   campaignRecipient?: Prisma.CampaignRecipientOmit
   schoolClaim?: Prisma.SchoolClaimOmit
   gradingSystem?: Prisma.GradingSystemOmit
+  gradingTemplate?: Prisma.GradingTemplateOmit
   beltRank?: Prisma.BeltRankOmit
   grading?: Prisma.GradingOmit
   lead?: Prisma.LeadOmit

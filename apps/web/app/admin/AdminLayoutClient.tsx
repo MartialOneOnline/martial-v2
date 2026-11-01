@@ -82,6 +82,7 @@ const NAV = [
       { label: 'General',  href: '/admin/settings' },
       { label: 'Payments', href: '/admin/settings/payments' },
       { label: 'Catalog',  href: '/admin/settings/catalog' },
+      { label: 'Grading templates', href: '/admin/settings/grading-templates' },
     ],
   },
 ]

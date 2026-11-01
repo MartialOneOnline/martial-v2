@@ -283,6 +283,7 @@ export type UserWhereInput = {
   schoolClaims?: Prisma.SchoolClaimListRelationFilter
   gradings?: Prisma.GradingListRelationFilter
   gradingsGiven?: Prisma.GradingListRelationFilter
+  gradingTemplates?: Prisma.GradingTemplateListRelationFilter
   leads?: Prisma.LeadListRelationFilter
   leadNotes?: Prisma.LeadNoteListRelationFilter
   transactions?: Prisma.TransactionListRelationFilter
@@ -333,6 +334,7 @@ export type UserOrderByWithRelationInput = {
   schoolClaims?: Prisma.SchoolClaimOrderByRelationAggregateInput
   gradings?: Prisma.GradingOrderByRelationAggregateInput
   gradingsGiven?: Prisma.GradingOrderByRelationAggregateInput
+  gradingTemplates?: Prisma.GradingTemplateOrderByRelationAggregateInput
   leads?: Prisma.LeadOrderByRelationAggregateInput
   leadNotes?: Prisma.LeadNoteOrderByRelationAggregateInput
   transactions?: Prisma.TransactionOrderByRelationAggregateInput
@@ -386,6 +388,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   schoolClaims?: Prisma.SchoolClaimListRelationFilter
   gradings?: Prisma.GradingListRelationFilter
   gradingsGiven?: Prisma.GradingListRelationFilter
+  gradingTemplates?: Prisma.GradingTemplateListRelationFilter
   leads?: Prisma.LeadListRelationFilter
   leadNotes?: Prisma.LeadNoteListRelationFilter
   transactions?: Prisma.TransactionListRelationFilter
@@ -479,6 +482,7 @@ export type UserCreateInput = {
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
@@ -528,6 +532,7 @@ export type UserUncheckedCreateInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -577,6 +582,7 @@ export type UserUpdateInput = {
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
@@ -626,6 +632,7 @@ export type UserUncheckedUpdateInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -1019,6 +1026,22 @@ export type UserUpdateOneRequiredWithoutSchoolClaimsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSchoolClaimsInput, Prisma.UserUpdateWithoutSchoolClaimsInput>, Prisma.UserUncheckedUpdateWithoutSchoolClaimsInput>
 }
 
+export type UserCreateNestedOneWithoutGradingTemplatesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutGradingTemplatesInput, Prisma.UserUncheckedCreateWithoutGradingTemplatesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutGradingTemplatesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutGradingTemplatesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutGradingTemplatesInput, Prisma.UserUncheckedCreateWithoutGradingTemplatesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutGradingTemplatesInput
+  upsert?: Prisma.UserUpsertWithoutGradingTemplatesInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutGradingTemplatesInput, Prisma.UserUpdateWithoutGradingTemplatesInput>, Prisma.UserUncheckedUpdateWithoutGradingTemplatesInput>
+}
+
 export type UserCreateNestedOneWithoutGradingsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutGradingsInput, Prisma.UserUncheckedCreateWithoutGradingsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutGradingsInput
@@ -1307,6 +1330,7 @@ export type UserCreateWithoutContentAccessesInput = {
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
@@ -1355,6 +1379,7 @@ export type UserUncheckedCreateWithoutContentAccessesInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -1419,6 +1444,7 @@ export type UserUpdateWithoutContentAccessesInput = {
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
@@ -1467,6 +1493,7 @@ export type UserUncheckedUpdateWithoutContentAccessesInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -1516,6 +1543,7 @@ export type UserCreateWithoutCurriculumLessonsMadeInput = {
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
@@ -1564,6 +1592,7 @@ export type UserUncheckedCreateWithoutCurriculumLessonsMadeInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -1628,6 +1657,7 @@ export type UserUpdateWithoutCurriculumLessonsMadeInput = {
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
@@ -1676,6 +1706,7 @@ export type UserUncheckedUpdateWithoutCurriculumLessonsMadeInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -1724,6 +1755,7 @@ export type UserCreateWithoutCurriculumLessonViewsInput = {
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
@@ -1772,6 +1804,7 @@ export type UserUncheckedCreateWithoutCurriculumLessonViewsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -1836,6 +1869,7 @@ export type UserUpdateWithoutCurriculumLessonViewsInput = {
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
@@ -1884,6 +1918,7 @@ export type UserUncheckedUpdateWithoutCurriculumLessonViewsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -1931,6 +1966,7 @@ export type UserCreateWithoutClaimedSchoolsInput = {
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
@@ -1979,6 +2015,7 @@ export type UserUncheckedCreateWithoutClaimedSchoolsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -2032,6 +2069,7 @@ export type UserCreateWithoutSchoolInput = {
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
@@ -2080,6 +2118,7 @@ export type UserUncheckedCreateWithoutSchoolInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -2149,6 +2188,7 @@ export type UserUpdateWithoutClaimedSchoolsInput = {
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
@@ -2197,6 +2237,7 @@ export type UserUncheckedUpdateWithoutClaimedSchoolsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -2283,6 +2324,7 @@ export type UserCreateWithoutReviewsInput = {
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
@@ -2331,6 +2373,7 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -2395,6 +2438,7 @@ export type UserUpdateWithoutReviewsInput = {
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
@@ -2443,6 +2487,7 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -2491,6 +2536,7 @@ export type UserCreateWithoutEventBookingsInput = {
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
@@ -2539,6 +2585,7 @@ export type UserUncheckedCreateWithoutEventBookingsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -2603,6 +2650,7 @@ export type UserUpdateWithoutEventBookingsInput = {
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
@@ -2651,6 +2699,7 @@ export type UserUncheckedUpdateWithoutEventBookingsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -2699,6 +2748,7 @@ export type UserCreateWithoutBookingsInput = {
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
@@ -2747,6 +2797,7 @@ export type UserUncheckedCreateWithoutBookingsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -2800,6 +2851,7 @@ export type UserCreateWithoutStaffBookingsInput = {
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
@@ -2848,6 +2900,7 @@ export type UserUncheckedCreateWithoutStaffBookingsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -2912,6 +2965,7 @@ export type UserUpdateWithoutBookingsInput = {
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
@@ -2960,6 +3014,7 @@ export type UserUncheckedUpdateWithoutBookingsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -3019,6 +3074,7 @@ export type UserUpdateWithoutStaffBookingsInput = {
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
@@ -3067,6 +3123,7 @@ export type UserUncheckedUpdateWithoutStaffBookingsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -3115,6 +3172,7 @@ export type UserCreateWithoutMembershipsInput = {
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
@@ -3163,6 +3221,7 @@ export type UserUncheckedCreateWithoutMembershipsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -3227,6 +3286,7 @@ export type UserUpdateWithoutMembershipsInput = {
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
@@ -3275,6 +3335,7 @@ export type UserUncheckedUpdateWithoutMembershipsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -3323,6 +3384,7 @@ export type UserCreateWithoutCampBookingsInput = {
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
@@ -3371,6 +3433,7 @@ export type UserUncheckedCreateWithoutCampBookingsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -3435,6 +3498,7 @@ export type UserUpdateWithoutCampBookingsInput = {
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
@@ -3483,6 +3547,7 @@ export type UserUncheckedUpdateWithoutCampBookingsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -3531,6 +3596,7 @@ export type UserCreateWithoutSchoolMembersInput = {
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
@@ -3579,6 +3645,7 @@ export type UserUncheckedCreateWithoutSchoolMembersInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -3643,6 +3710,7 @@ export type UserUpdateWithoutSchoolMembersInput = {
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
@@ -3691,6 +3759,7 @@ export type UserUncheckedUpdateWithoutSchoolMembersInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -3740,6 +3809,7 @@ export type UserCreateWithoutCreatedCampaignsInput = {
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
@@ -3788,6 +3858,7 @@ export type UserUncheckedCreateWithoutCreatedCampaignsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -3852,6 +3923,7 @@ export type UserUpdateWithoutCreatedCampaignsInput = {
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
@@ -3900,6 +3972,7 @@ export type UserUncheckedUpdateWithoutCreatedCampaignsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -3947,6 +4020,7 @@ export type UserCreateWithoutSchoolClaimsInput = {
   schoolMembers?: Prisma.SchoolMemberCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
@@ -3995,6 +4069,7 @@ export type UserUncheckedCreateWithoutSchoolClaimsInput = {
   schoolMembers?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -4059,6 +4134,7 @@ export type UserUpdateWithoutSchoolClaimsInput = {
   schoolMembers?: Prisma.SchoolMemberUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
@@ -4105,6 +4181,219 @@ export type UserUncheckedUpdateWithoutSchoolClaimsInput = {
   campBookings?: Prisma.CampBookingUncheckedUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
   schoolMembers?: Prisma.SchoolMemberUncheckedUpdateManyWithoutUserNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
+  gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
+  leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
+  userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
+  sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
+  loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
+  targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
+  createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutGradingTemplatesInput = {
+  id?: string
+  email: string
+  name?: string | null
+  phone?: string | null
+  gender?: $Enums.Gender | null
+  dateOfBirth?: Date | string | null
+  avatarUrl?: string | null
+  guardianName?: string | null
+  guardianContact?: string | null
+  guardianConsentAt?: Date | string | null
+  supabaseAuthId?: string | null
+  role?: $Enums.Role
+  deletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
+  claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
+  eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
+  contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
+  campBookings?: Prisma.CampBookingCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
+  schoolMembers?: Prisma.SchoolMemberCreateNestedManyWithoutUserInput
+  schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
+  gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
+  leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
+  userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
+  sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
+  loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
+  targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
+  createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutGradingTemplatesInput = {
+  id?: string
+  email: string
+  name?: string | null
+  phone?: string | null
+  gender?: $Enums.Gender | null
+  dateOfBirth?: Date | string | null
+  avatarUrl?: string | null
+  guardianName?: string | null
+  guardianContact?: string | null
+  guardianConsentAt?: Date | string | null
+  supabaseAuthId?: string | null
+  role?: $Enums.Role
+  deletedAt?: Date | string | null
+  schoolId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
+  eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
+  contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
+  campBookings?: Prisma.CampBookingUncheckedCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
+  schoolMembers?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutUserInput
+  schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
+  gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
+  leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
+  userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
+  sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
+  loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
+  targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
+  createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutGradingTemplatesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutGradingTemplatesInput, Prisma.UserUncheckedCreateWithoutGradingTemplatesInput>
+}
+
+export type UserUpsertWithoutGradingTemplatesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutGradingTemplatesInput, Prisma.UserUncheckedUpdateWithoutGradingTemplatesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutGradingTemplatesInput, Prisma.UserUncheckedCreateWithoutGradingTemplatesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutGradingTemplatesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutGradingTemplatesInput, Prisma.UserUncheckedUpdateWithoutGradingTemplatesInput>
+}
+
+export type UserUpdateWithoutGradingTemplatesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianContact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
+  claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
+  eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
+  contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
+  campBookings?: Prisma.CampBookingUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
+  schoolMembers?: Prisma.SchoolMemberUpdateManyWithoutUserNestedInput
+  schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
+  gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
+  leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
+  userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
+  sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
+  loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
+  targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
+  createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutGradingTemplatesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianContact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
+  eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
+  contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
+  campBookings?: Prisma.CampBookingUncheckedUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
+  schoolMembers?: Prisma.SchoolMemberUncheckedUpdateManyWithoutUserNestedInput
+  schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
@@ -4155,6 +4444,7 @@ export type UserCreateWithoutGradingsInput = {
   schoolMembers?: Prisma.SchoolMemberCreateNestedManyWithoutUserInput
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
@@ -4203,6 +4493,7 @@ export type UserUncheckedCreateWithoutGradingsInput = {
   schoolMembers?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutUserInput
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -4256,6 +4547,7 @@ export type UserCreateWithoutGradingsGivenInput = {
   schoolMembers?: Prisma.SchoolMemberCreateNestedManyWithoutUserInput
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
@@ -4304,6 +4596,7 @@ export type UserUncheckedCreateWithoutGradingsGivenInput = {
   schoolMembers?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutUserInput
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -4368,6 +4661,7 @@ export type UserUpdateWithoutGradingsInput = {
   schoolMembers?: Prisma.SchoolMemberUpdateManyWithoutUserNestedInput
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
@@ -4416,6 +4710,7 @@ export type UserUncheckedUpdateWithoutGradingsInput = {
   schoolMembers?: Prisma.SchoolMemberUncheckedUpdateManyWithoutUserNestedInput
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -4475,6 +4770,7 @@ export type UserUpdateWithoutGradingsGivenInput = {
   schoolMembers?: Prisma.SchoolMemberUpdateManyWithoutUserNestedInput
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
@@ -4523,6 +4819,7 @@ export type UserUncheckedUpdateWithoutGradingsGivenInput = {
   schoolMembers?: Prisma.SchoolMemberUncheckedUpdateManyWithoutUserNestedInput
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -4572,6 +4869,7 @@ export type UserCreateWithoutLeadsInput = {
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
@@ -4620,6 +4918,7 @@ export type UserUncheckedCreateWithoutLeadsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -4684,6 +4983,7 @@ export type UserUpdateWithoutLeadsInput = {
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
@@ -4732,6 +5032,7 @@ export type UserUncheckedUpdateWithoutLeadsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -4780,6 +5081,7 @@ export type UserCreateWithoutLeadNotesInput = {
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
@@ -4828,6 +5130,7 @@ export type UserUncheckedCreateWithoutLeadNotesInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -4892,6 +5195,7 @@ export type UserUpdateWithoutLeadNotesInput = {
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
@@ -4940,6 +5244,7 @@ export type UserUncheckedUpdateWithoutLeadNotesInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -4988,6 +5293,7 @@ export type UserCreateWithoutSentInvitationsInput = {
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
@@ -5036,6 +5342,7 @@ export type UserUncheckedCreateWithoutSentInvitationsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -5100,6 +5407,7 @@ export type UserUpdateWithoutSentInvitationsInput = {
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
@@ -5148,6 +5456,7 @@ export type UserUncheckedUpdateWithoutSentInvitationsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -5196,6 +5505,7 @@ export type UserCreateWithoutUserWaiversInput = {
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
@@ -5244,6 +5554,7 @@ export type UserUncheckedCreateWithoutUserWaiversInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -5308,6 +5619,7 @@ export type UserUpdateWithoutUserWaiversInput = {
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
@@ -5356,6 +5668,7 @@ export type UserUncheckedUpdateWithoutUserWaiversInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -5404,6 +5717,7 @@ export type UserCreateWithoutLoginHistoryInput = {
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
@@ -5452,6 +5766,7 @@ export type UserUncheckedCreateWithoutLoginHistoryInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -5516,6 +5831,7 @@ export type UserUpdateWithoutLoginHistoryInput = {
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
@@ -5564,6 +5880,7 @@ export type UserUncheckedUpdateWithoutLoginHistoryInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -5612,6 +5929,7 @@ export type UserCreateWithoutImpersonationsAsActorInput = {
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
@@ -5660,6 +5978,7 @@ export type UserUncheckedCreateWithoutImpersonationsAsActorInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -5713,6 +6032,7 @@ export type UserCreateWithoutImpersonationsAsTargetInput = {
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
@@ -5761,6 +6081,7 @@ export type UserUncheckedCreateWithoutImpersonationsAsTargetInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -5825,6 +6146,7 @@ export type UserUpdateWithoutImpersonationsAsActorInput = {
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
@@ -5873,6 +6195,7 @@ export type UserUncheckedUpdateWithoutImpersonationsAsActorInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -5932,6 +6255,7 @@ export type UserUpdateWithoutImpersonationsAsTargetInput = {
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
@@ -5980,6 +6304,7 @@ export type UserUncheckedUpdateWithoutImpersonationsAsTargetInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -6028,6 +6353,7 @@ export type UserCreateWithoutTransactionsInput = {
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
@@ -6076,6 +6402,7 @@ export type UserUncheckedCreateWithoutTransactionsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -6129,6 +6456,7 @@ export type UserCreateWithoutResolvedTransactionsInput = {
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
@@ -6177,6 +6505,7 @@ export type UserUncheckedCreateWithoutResolvedTransactionsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -6230,6 +6559,7 @@ export type UserCreateWithoutDeletedTransactionsInput = {
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
@@ -6278,6 +6608,7 @@ export type UserUncheckedCreateWithoutDeletedTransactionsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -6342,6 +6673,7 @@ export type UserUpdateWithoutTransactionsInput = {
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
@@ -6390,6 +6722,7 @@ export type UserUncheckedUpdateWithoutTransactionsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -6449,6 +6782,7 @@ export type UserUpdateWithoutResolvedTransactionsInput = {
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
@@ -6497,6 +6831,7 @@ export type UserUncheckedUpdateWithoutResolvedTransactionsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -6556,6 +6891,7 @@ export type UserUpdateWithoutDeletedTransactionsInput = {
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
@@ -6604,6 +6940,7 @@ export type UserUncheckedUpdateWithoutDeletedTransactionsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -6652,6 +6989,7 @@ export type UserCreateWithoutPreferenceInput = {
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
@@ -6700,6 +7038,7 @@ export type UserUncheckedCreateWithoutPreferenceInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -6764,6 +7103,7 @@ export type UserUpdateWithoutPreferenceInput = {
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
@@ -6812,6 +7152,7 @@ export type UserUncheckedUpdateWithoutPreferenceInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -6860,6 +7201,7 @@ export type UserCreateWithoutOrdersInput = {
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
@@ -6908,6 +7250,7 @@ export type UserUncheckedCreateWithoutOrdersInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -6972,6 +7315,7 @@ export type UserUpdateWithoutOrdersInput = {
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
@@ -7020,6 +7364,7 @@ export type UserUncheckedUpdateWithoutOrdersInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -7068,6 +7413,7 @@ export type UserCreateWithoutCollectibleUnitsOwnedInput = {
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
@@ -7116,6 +7462,7 @@ export type UserUncheckedCreateWithoutCollectibleUnitsOwnedInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -7180,6 +7527,7 @@ export type UserUpdateWithoutCollectibleUnitsOwnedInput = {
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
@@ -7228,6 +7576,7 @@ export type UserUncheckedUpdateWithoutCollectibleUnitsOwnedInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -7276,6 +7625,7 @@ export type UserCreateWithoutCollectibleOwnershipsInput = {
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
@@ -7324,6 +7674,7 @@ export type UserUncheckedCreateWithoutCollectibleOwnershipsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -7388,6 +7739,7 @@ export type UserUpdateWithoutCollectibleOwnershipsInput = {
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
@@ -7436,6 +7788,7 @@ export type UserUncheckedUpdateWithoutCollectibleOwnershipsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -7484,6 +7837,7 @@ export type UserCreateWithoutTargetedNotificationsInput = {
   schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
@@ -7532,6 +7886,7 @@ export type UserUncheckedCreateWithoutTargetedNotificationsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
   gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
   gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
   leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -7596,6 +7951,7 @@ export type UserUpdateWithoutTargetedNotificationsInput = {
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
@@ -7644,6 +8000,7 @@ export type UserUncheckedUpdateWithoutTargetedNotificationsInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -7709,6 +8066,7 @@ export type UserUpdateWithoutSchoolInput = {
   schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
@@ -7757,6 +8115,7 @@ export type UserUncheckedUpdateWithoutSchoolInput = {
   schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
   gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
   gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
   leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -7813,6 +8172,7 @@ export type UserCountOutputType = {
   schoolClaims: number
   gradings: number
   gradingsGiven: number
+  gradingTemplates: number
   leads: number
   leadNotes: number
   transactions: number
@@ -7845,6 +8205,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   schoolClaims?: boolean | UserCountOutputTypeCountSchoolClaimsArgs
   gradings?: boolean | UserCountOutputTypeCountGradingsArgs
   gradingsGiven?: boolean | UserCountOutputTypeCountGradingsGivenArgs
+  gradingTemplates?: boolean | UserCountOutputTypeCountGradingTemplatesArgs
   leads?: boolean | UserCountOutputTypeCountLeadsArgs
   leadNotes?: boolean | UserCountOutputTypeCountLeadNotesArgs
   transactions?: boolean | UserCountOutputTypeCountTransactionsArgs
@@ -7956,6 +8317,13 @@ export type UserCountOutputTypeCountGradingsArgs<ExtArgs extends runtime.Types.E
  */
 export type UserCountOutputTypeCountGradingsGivenArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.GradingWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountGradingTemplatesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.GradingTemplateWhereInput
 }
 
 /**
@@ -8108,6 +8476,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   schoolClaims?: boolean | Prisma.User$schoolClaimsArgs<ExtArgs>
   gradings?: boolean | Prisma.User$gradingsArgs<ExtArgs>
   gradingsGiven?: boolean | Prisma.User$gradingsGivenArgs<ExtArgs>
+  gradingTemplates?: boolean | Prisma.User$gradingTemplatesArgs<ExtArgs>
   leads?: boolean | Prisma.User$leadsArgs<ExtArgs>
   leadNotes?: boolean | Prisma.User$leadNotesArgs<ExtArgs>
   transactions?: boolean | Prisma.User$transactionsArgs<ExtArgs>
@@ -8203,6 +8572,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   schoolClaims?: boolean | Prisma.User$schoolClaimsArgs<ExtArgs>
   gradings?: boolean | Prisma.User$gradingsArgs<ExtArgs>
   gradingsGiven?: boolean | Prisma.User$gradingsGivenArgs<ExtArgs>
+  gradingTemplates?: boolean | Prisma.User$gradingTemplatesArgs<ExtArgs>
   leads?: boolean | Prisma.User$leadsArgs<ExtArgs>
   leadNotes?: boolean | Prisma.User$leadNotesArgs<ExtArgs>
   transactions?: boolean | Prisma.User$transactionsArgs<ExtArgs>
@@ -8246,6 +8616,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     schoolClaims: Prisma.$SchoolClaimPayload<ExtArgs>[]
     gradings: Prisma.$GradingPayload<ExtArgs>[]
     gradingsGiven: Prisma.$GradingPayload<ExtArgs>[]
+    gradingTemplates: Prisma.$GradingTemplatePayload<ExtArgs>[]
     leads: Prisma.$LeadPayload<ExtArgs>[]
     leadNotes: Prisma.$LeadNotePayload<ExtArgs>[]
     transactions: Prisma.$TransactionPayload<ExtArgs>[]
@@ -8689,6 +9060,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   schoolClaims<T extends Prisma.User$schoolClaimsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$schoolClaimsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SchoolClaimPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   gradings<T extends Prisma.User$gradingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$gradingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GradingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   gradingsGiven<T extends Prisma.User$gradingsGivenArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$gradingsGivenArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GradingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  gradingTemplates<T extends Prisma.User$gradingTemplatesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$gradingTemplatesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GradingTemplatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   leads<T extends Prisma.User$leadsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$leadsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LeadPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   leadNotes<T extends Prisma.User$leadNotesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$leadNotesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LeadNotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   transactions<T extends Prisma.User$transactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -9457,6 +9829,30 @@ export type User$gradingsGivenArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.GradingScalarFieldEnum | Prisma.GradingScalarFieldEnum[]
+}
+
+/**
+ * User.gradingTemplates
+ */
+export type User$gradingTemplatesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the GradingTemplate
+   */
+  select?: Prisma.GradingTemplateSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the GradingTemplate
+   */
+  omit?: Prisma.GradingTemplateOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.GradingTemplateInclude<ExtArgs> | null
+  where?: Prisma.GradingTemplateWhereInput
+  orderBy?: Prisma.GradingTemplateOrderByWithRelationInput | Prisma.GradingTemplateOrderByWithRelationInput[]
+  cursor?: Prisma.GradingTemplateWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.GradingTemplateScalarFieldEnum | Prisma.GradingTemplateScalarFieldEnum[]
 }
 
 /**
