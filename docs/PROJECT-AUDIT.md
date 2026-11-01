@@ -104,7 +104,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote G — Plantillas de graduación del super admin (rama `claude/grading-templates`, PR #39)
 
-- Estado: `APROBADO CON PENDIENTES` sobre `0ef8f2a` (P2 guardado admin pierde cambios; P2 dos sistemas por defecto en concurrencia; P2 selector reabierto permite duplicar; P3 admin en idioma mixto) → corregido, **pendiente de reauditoría**.
+- Estado: `APROBADO CON PENDIENTES` sobre `0ef8f2a` (P2 guardado admin pierde cambios; P2 dos sistemas por defecto en concurrencia; P2 selector reabierto permite duplicar; P3 admin en idioma mixto) → corregido en `6afcbe9` → **`APROBADO CON PENDIENTES`** (Codex). Pendiente: aplicar `20261101180000_grading_templates` antes de desplegar y comprobar persistencia con sesión real.
 - Objetivo: el super admin crea plantillas de sistemas de cinturones (IBJJF, judo, karate…) con todas las reglas por cinturón/graduación; las escuelas ven solo las publicadas y crean su propia copia editable.
 - Criterios: solo super admin en `/api/admin/grading-templates/**`; no publicar sin cinturones; validación de cinturones igual que la API de ranks; la escuela solo copia plantillas publicadas y necesita `school.gradings.manage`; la copia es independiente (editar/borrar la plantilla no la toca; `templateId` → null al borrar); `classTypeIds` no se copia; textos de escuela en EN/ES/PT/FR.
 - No verificado: navegador y recorrido autenticado; migración `20261101180000_grading_templates` sin aplicar (bloquea también Ajustes → Graduaciones si se despliega sin ella).

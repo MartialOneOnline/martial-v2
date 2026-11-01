@@ -270,7 +270,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-01 (d) (rama `claude/grading-templates`, PR [#39](https://github.com/MartialOneOnline/martial-v2/pull/39) — `APROBADO CON PENDIENTES` en `0ef8f2a` (3 P2 + 1 P3) → corregido, pendiente de reauditoría; migración **sin aplicar** en la BD)
+### Sesión — 2026-11-01 (d) (rama `claude/grading-templates`, PR [#39](https://github.com/MartialOneOnline/martial-v2/pull/39) — `APROBADO CON PENDIENTES` en `0ef8f2a` (3 P2 + 1 P3) → **`APROBADO CON PENDIENTES`** en `6afcbe9` (los 4 cerrados, sin hallazgos nuevos); pendiente operativo: aplicar la migración y comprobar persistencia con sesión real)
 
 **Plantillas de graduación del super admin.** Segundo paso del plan de informes (tras el PR #38). Decisión del usuario: las plantillas (p.ej. IBJJF) las crea el **super admin**; en V2 no hay ninguna plantilla de V1, así que no se siembra ninguna cifra.
 - **Schema** (`20261101180000_grading_templates`): nuevo `GradingTemplate` (global: `name`, `activity`, `description`, `isPublished`, `ranks Json`, `createdById`) y `GradingSystem.templateId` (informativo, `onDelete: SetNull`). Las reglas de cada cinturón van en JSON con la forma de `BeltRank`, sin `classTypeIds` (son ids de clases de cada escuela).
@@ -285,6 +285,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
   - P2 — cerrar y reabrir el selector quitaba el bloqueo de una creación pendiente. El estado de creación vive en `GradingTab` (+ guard síncrono con `useRef`); el botón "Usar plantilla" muestra "Creando…"; al terminar se puede crear otra copia a propósito.
   - P3 — el editor admin mezclaba inglés con el idioma del usuario. `RankRulesFields` acepta `labels`; el admin pasa siempre `translations.en.readiness`.
   - Suite 950 pasan / 55 preexistentes; tsc 0; eslint sin avisos nuevos.
+  - Reauditoría Codex sobre `6afcbe9`: 22/22, selector reabierto genera un único POST en los 4 idiomas, admin siempre en inglés, editor escolar sin regresiones (navegador con API simulada). OK para migrar.
 - **Antes de desplegar:** aplicar la migración. Ojo: `include: { ranks }` de `gradingSystem` lee todas las columnas, así que sin `templateId` en la BD fallaría también Ajustes → Graduaciones existente.
 - Siguiente del plan: informe de graduaciones atrasadas.
 
