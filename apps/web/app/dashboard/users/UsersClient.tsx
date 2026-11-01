@@ -11,7 +11,8 @@ import {
   QrCode, Pencil, MessageSquare, RefreshCw, CreditCard, Receipt, Globe,
   Megaphone,
 } from 'lucide-react'
-import { useDashboard } from '../../../components/DashboardShell'
+import { useDashboard, useGradingEnabled, GradingEnabledProvider } from '../../../components/DashboardShell'
+import { resolveGradingEnabled } from '../../../lib/school-modules'
 import NotificationBell from '../../../components/NotificationBell'
 import RowMenu from '../../../components/RowMenu'
 import DashboardLanguageSelector from '../../../components/DashboardLanguageSelector'
@@ -203,6 +204,7 @@ function ActionsMenu({
   showToast: (msg: string, type?: 'success' | 'error' | 'info') => void
 }) {
   const router = useRouter()
+  const gradingEnabled = useGradingEnabled() === true
   const [statusOpen, setStatusOpen] = useState(false)
   const [beltOpen, setBeltOpen] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -319,8 +321,8 @@ function ActionsMenu({
           )}
         </div>
 
-        {/* Change belt submenu */}
-        <div style={{ position: 'relative' }}>
+        {/* Change belt submenu — only when the school uses belts */}
+        {gradingEnabled && <div style={{ position: 'relative' }}>
           <button
             onClick={e => { e.stopPropagation(); setBeltOpen(o => !o); setStatusOpen(false) }}
             className="w-full flex items-center justify-between cursor-pointer"
@@ -363,7 +365,7 @@ function ActionsMenu({
               })}
             </div>
           )}
-        </div>
+        </div>}
 
         <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
 
@@ -451,6 +453,7 @@ function EditStudentModal({ student, onClose, onSaved }: {
   onClose: () => void
   onSaved: (updated: Partial<Student>) => void
 }) {
+  const gradingEnabled = useGradingEnabled() === true
   const [belt, setBelt]         = useState(student.belt ?? 'Blanco')
   const beltNames = useBeltNames(student.belt ?? undefined)
   const [degree, setDegree]     = useState(student.beltDegree ?? 0)
@@ -500,6 +503,7 @@ function EditStudentModal({ student, onClose, onSaved }: {
               {STATUSES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
             </select>
           </div>
+          {gradingEnabled && (<>
           {/* Belt */}
           <div>
             <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Cinturón</label>
@@ -522,6 +526,7 @@ function EditStudentModal({ student, onClose, onSaved }: {
               ))}
             </div>
           </div>
+          </>)}
         </div>
         <div className="flex gap-2 px-5 pb-5">
           <button onClick={onClose} style={{ flex: 1, padding: '9px 0', borderRadius: 10, fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151', cursor: 'pointer' }}>Cancelar</button>
@@ -717,6 +722,7 @@ function FiltersDropdown({
   filters: ActiveFilters
   onChange: (f: ActiveFilters) => void
 }) {
+  const gradingEnabled = useGradingEnabled() === true
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState<ActiveFilters>(filters)
   const ref = useRef<HTMLDivElement>(null)
@@ -778,6 +784,7 @@ function FiltersDropdown({
           boxShadow: '0 8px 32px rgba(0,0,0,0.12)', width: 280, padding: 16,
         }}>
 
+          {gradingEnabled && (<>
           {/* Belt section */}
           <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 10px' }}>
             Cinturón
@@ -798,6 +805,7 @@ function FiltersDropdown({
               </label>
             ))}
           </div>
+          </>)}
 
           {/* Status section */}
           <div style={{ borderTop: '1px solid #F3F4F6', paddingTop: 14, marginBottom: 16 }}>
@@ -1126,6 +1134,7 @@ function InviteTab({ onClose, onCreated, schoolSlug }: { onClose: () => void; on
 
 // ── Create tab ─────────────────────────────────────────────────────────────────
 function CreateTab({ onClose, onCreated }: { onClose: () => void; onCreated: (s: Student[]) => void }) {
+  const gradingEnabled = useGradingEnabled() === true
   const beltNames = useBeltNames()
   const [form, setForm] = useState({ name: '', email: '', phone: '', belt: beltNames[0] ?? 'Blanco', beltDegree: 0, status: 'ACTIVE' })
   const [sendInvite, setSendInvite] = useState(false)
@@ -1180,7 +1189,7 @@ function CreateTab({ onClose, onCreated }: { onClose: () => void; onCreated: (s:
         <input type="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="+34 600 000 000"
           style={fieldInput} onFocus={e => (e.target.style.borderColor = '#0071E3')} onBlur={e => (e.target.style.borderColor = '#E5E7EB')} />
       </div>
-      <div className="flex gap-3">
+      {gradingEnabled && <div className="flex gap-3">
         <div style={{ flex: 2 }}>
           <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Cinturón</label>
           <select value={form.belt} onChange={e => setForm(f => ({ ...f, belt: e.target.value }))} style={fieldInput}>
@@ -1193,7 +1202,7 @@ function CreateTab({ onClose, onCreated }: { onClose: () => void; onCreated: (s:
             {[0,1,2,3,4].map(n => <option key={n} value={n}>{n}</option>)}
           </select>
         </div>
-      </div>
+      </div>}
       <div>
         <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Estado</label>
         <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} style={fieldInput}>
@@ -1244,6 +1253,7 @@ function CreateTab({ onClose, onCreated }: { onClose: () => void; onCreated: (s:
 type CsvRow = { name: string; email: string; phone: string; belt: string }
 
 function ImportTab({ onClose, onCreated }: { onClose: () => void; onCreated: (s: Student[]) => void }) {
+  const gradingEnabled = useGradingEnabled() === true
   const [dragging, setDragging] = useState(false)
   const [rows, setRows] = useState<CsvRow[]>([])
   const [fileName, setFileName] = useState('')
@@ -1383,7 +1393,7 @@ function ImportTab({ onClose, onCreated }: { onClose: () => void; onCreated: (s:
           <div>
             <p style={{ fontSize: 12, fontWeight: 600, color: '#374151', margin: '0 0 10px' }}>Mapeo de columnas</p>
             <div className="grid grid-cols-2 gap-2">
-              {(['name', 'email', 'phone', 'belt'] as const).map(field => (
+              {(gradingEnabled ? ['name', 'email', 'phone', 'belt'] as const : ['name', 'email', 'phone'] as const).map(field => (
                 <div key={field}>
                   <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4, textTransform: 'capitalize' }}>
                     {field === 'name' ? 'Nombre' : field === 'email' ? 'Email' : field === 'phone' ? 'Teléfono' : 'Cinturón'}
@@ -1639,7 +1649,10 @@ function MarkAsPaidModal({
 // ── Main component ─────────────────────────────────────────────────────────────
 type DriftedMember = { id: string; name: string; status: string }
 
-export default function UsersClient({ students: initialStudents, driftedMembers = [], beltNames = [] }: { students: Student[]; driftedMembers?: DriftedMember[]; beltNames?: string[] }) {
+export default function UsersClient({ students: initialStudents, driftedMembers = [], beltNames = [], gradingEnabled: gradingFromServer }: { students: Student[]; driftedMembers?: DriftedMember[]; beltNames?: string[]; gradingEnabled?: boolean }) {
+  // Starts from the server's value (no load-timing shift); a later context update wins
+  const gradingState = resolveGradingEnabled(useGradingEnabled(), gradingFromServer)
+  const gradingEnabled = gradingState === true
   const { menuOpen, setMenuOpen } = useDashboard()
   const t = useT()
   const router = useRouter()
@@ -1800,13 +1813,16 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
     // onSent callback fires toast from parent
   }
 
+  // Columns depend on the module — wait until it's known rather than export the wrong shape
+  const gradingKnown = gradingState !== null
+
   const handleExport = () => {
-    const headers = ['Nombre', 'Email', 'Cinturón', 'Grados', 'Estado', 'Rol', 'Plan', 'Estado Membresía', 'Inicio Membresía', 'Fin Membresía', 'Alta']
+    if (!gradingKnown) return
+    const headers = ['Nombre', 'Email', ...(gradingEnabled ? ['Cinturón', 'Grados'] : []), 'Estado', 'Rol', 'Plan', 'Estado Membresía', 'Inicio Membresía', 'Fin Membresía', 'Alta']
     const rows = filtered.map(s => [
       s.name,
       s.email,
-      BELT_DISPLAY[s.belt]?.label ?? s.belt ?? '',
-      String(s.beltDegree ?? 0),
+      ...(gradingEnabled ? [BELT_DISPLAY[s.belt]?.label ?? s.belt ?? '', String(s.beltDegree ?? 0)] : []),
       STATUS_DISPLAY[s.status] ?? s.status,
       s.role,
       s.activeMembership?.planName ?? '',
@@ -1824,6 +1840,7 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
   }
 
   return (
+    <GradingEnabledProvider value={gradingFromServer}>
     <BeltNamesContext.Provider value={beltNames.length ? beltNames : BELTS}>
     <main style={{ flex: 1, minWidth: 0 }}>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
@@ -1917,7 +1934,7 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
               {filtered.length} {t.common.of} {students.length} {t.users.ofMembers}
             </p>
           </div>
-          <button onClick={handleExport} className="hidden sm:flex items-center gap-2 cursor-pointer"
+          <button onClick={handleExport} disabled={!gradingKnown} className="hidden sm:flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-default"
             style={{ fontSize: 13, fontWeight: 500, color: '#374151', background: '#fff',
               border: '1px solid #E5E7EB', borderRadius: 8, padding: '7px 14px' }}>
             <Download size={13} style={{ color: '#6B7280' }} />
@@ -2085,7 +2102,7 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
                 </th>
                 {[
                   { label: t.common.member,     cls: '',                     pad: 'px-3 sm:px-6' },
-                  { label: t.users.belt,        cls: 'hidden md:table-cell', pad: 'px-6' },
+                  ...(gradingEnabled ? [{ label: t.users.belt, cls: 'hidden md:table-cell', pad: 'px-6' }] : []),
                   { label: t.users.membership,  cls: 'hidden lg:table-cell', pad: 'px-6' },
                   { label: t.common.classes,    cls: 'hidden lg:table-cell', pad: 'px-6' },
                   { label: t.users.lastSeen,    cls: 'hidden md:table-cell', pad: 'px-6' },
@@ -2132,9 +2149,11 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
                   </td>
 
                   {/* Belt */}
-                  <td className="hidden md:table-cell px-6 py-4">
-                    <BeltBadge belt={student.belt} stripes={student.beltDegree} />
-                  </td>
+                  {gradingEnabled && (
+                    <td className="hidden md:table-cell px-6 py-4">
+                      <BeltBadge belt={student.belt} stripes={student.beltDegree} />
+                    </td>
+                  )}
 
                   {/* Membership */}
                   <td className="hidden lg:table-cell px-6 py-4">
@@ -2273,5 +2292,6 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
       />
     )}
     </BeltNamesContext.Provider>
+    </GradingEnabledProvider>
   )
 }

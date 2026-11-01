@@ -105,7 +105,7 @@ type UserData = {
       beltDate: string | null
       role: string
       status: string
-      school: { id: string; name: string; slug: string; logoUrl: string | null; coverUrl: string | null; coverPosY: number }
+      school: { id: string; name: string; slug: string; logoUrl: string | null; coverUrl: string | null; coverPosY: number; hasGrading?: boolean }
     }[]
     gradings: {
       id: string
@@ -490,6 +490,8 @@ export default function MyHomePage() {
   const nextBooking       = user?.bookings?.[0]
   const nextEventBooking  = user?.eventBookings?.[0]
   const primaryMember     = user?.schoolMembers?.[0]
+  // Belts & gradings module of the student's school — off: no belt anywhere
+  const gradingOn         = !!primaryMember?.school.hasGrading
   const hour              = new Date().getHours()
   const greeting          = hour < 12 ? t.my.goodMorning : hour < 18 ? t.my.goodAfternoon : t.my.goodEvening
   const days              = nextBooking ? daysUntil(nextBooking.scheduledAt) : null
@@ -582,7 +584,7 @@ export default function MyHomePage() {
   }
 
   function renderBeltCard() {
-    if (!primaryMember?.belt) return null
+    if (!gradingOn || !primaryMember?.belt) return null
     const degree = primaryMember.beltDegree ?? 0
     // Same fixed scale the /my/progress ranking card uses — stripes are
     // awarded by an instructor, not earned on a schedule, so degree/MAX is
@@ -681,8 +683,8 @@ export default function MyHomePage() {
       </div>
 
       {/* ── Stat row — desktop/tablet only ───────────────────────────────── */}
-      <div className="hidden lg:grid lg:grid-cols-4 lg:gap-4 lg:px-6 lg:mb-6">
-        <StatBox label={t.my.currentBelt} value={primaryMember?.belt ?? '—'} sub={primaryMember?.beltDegree ? `${primaryMember.beltDegree} ${t.my.stripesLabel}` : undefined} />
+      <div className={`hidden lg:grid ${gradingOn ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} lg:gap-4 lg:px-6 lg:mb-6`}>
+        {gradingOn && <StatBox label={t.my.currentBelt} value={primaryMember?.belt ?? '—'} sub={primaryMember?.beltDegree ? `${primaryMember.beltDegree} ${t.my.stripesLabel}` : undefined} />}
         <StatBox
           label={t.my.activePlan}
           value={shownMembership ? fmtPrice(shownMembership.price, shownMembership.currency) : '—'}
@@ -1041,7 +1043,7 @@ export default function MyHomePage() {
         const membershipStyle = compactMembership ? MEMBERSHIP_STYLE[compactMembership.status] : undefined
         const MAX_STRIPES = 4
         const degree = primaryMember?.beltDegree ?? 0
-        const showProgress = !!primaryMember?.belt
+        const showProgress = gradingOn && !!primaryMember?.belt
         // "No membership" is only worth a column for someone who actually
         // belongs to a school — a visitor with no school at all gets the
         // dedicated empty-state card further down instead of this fallback.

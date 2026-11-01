@@ -6,7 +6,7 @@ import {
   TrendingUp, TrendingDown, RefreshCw,
   PauseCircle, XCircle, Plus, AlertCircle, Download,
 } from 'lucide-react'
-import { useDashboard } from '../../../../components/DashboardShell'
+import { useDashboard, useGradingEnabled } from '../../../../components/DashboardShell'
 import NotificationBell from '../../../../components/NotificationBell'
 import MembershipRowActions from '../../../../components/MembershipRowActions'
 import RowMenu from '../../../../components/RowMenu'
@@ -117,6 +117,7 @@ function SubFiltersPanel({ filters, onChange }: {
   filters: SubFilters
   onChange: (f: SubFilters) => void
 }) {
+  const gradingEnabled = useGradingEnabled() === true
   const [local, setLocal] = useState<SubFilters>(filters)
 
   useEffect(() => { setLocal(filters) }, [filters])
@@ -181,7 +182,7 @@ function SubFiltersPanel({ filters, onChange }: {
             </div>
 
             {/* Belt */}
-            <div style={{ marginBottom: 16 }}>
+            {gradingEnabled && <div style={{ marginBottom: 16 }}>
               <span style={sectionLabel}>Belt</span>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 <button onClick={() => setLocal(p => ({ ...p, belt: '' }))}
@@ -205,7 +206,7 @@ function SubFiltersPanel({ filters, onChange }: {
                   )
                 })}
               </div>
-            </div>
+            </div>}
 
             {/* Actions */}
             <div style={{ display: 'flex', gap: 8, paddingTop: 12, borderTop: '1px solid #F3F4F6' }}>
@@ -496,6 +497,7 @@ function AssignMembershipModal({ onClose, onSaved }: { onClose: () => void; onSa
 const VALID_FILTERS: Filter[] = ['ALL', 'PENDING', 'ACTIVE', 'PAUSED', 'CANCELLED', 'EXPIRED']
 
 export default function PaymentSubscriptionsClient() {
+  const gradingEnabled = useGradingEnabled() === true
   const { menuOpen, setMenuOpen } = useDashboard()
   const t = useT()
   const initFilter = (typeof window !== 'undefined'
@@ -619,9 +621,9 @@ export default function PaymentSubscriptionsClient() {
   function handleSearch(v: string) { setSearch(v); setCurrentPage(1) }
 
   function handleExport() {
-    const headers = ['Member', 'Email', 'Belt', 'Plan', 'Type', 'Amount', 'Currency', 'Start date', 'End date', 'Status']
+    const headers = ['Member', 'Email', ...(gradingEnabled ? ['Belt'] : []), 'Plan', 'Type', 'Amount', 'Currency', 'Start date', 'End date', 'Status']
     const rows = filtered.map(s => [
-      s.memberName, s.memberEmail, s.belt, s.planName, s.planType,
+      s.memberName, s.memberEmail, ...(gradingEnabled ? [s.belt] : []), s.planName, s.planType,
       String(s.amount), s.currency, fmtDate(s.startDate), s.endDate ? fmtDate(s.endDate) : '',
       STATUS_MAP[s.status].label,
     ])
@@ -776,10 +778,12 @@ export default function PaymentSubscriptionsClient() {
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 min-w-0">
                             <p className="truncate" style={{ fontSize: 14, fontWeight: 600, color: '#111827', maxWidth: 110 }}>{sub.memberName}</p>
-                            <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 99,
-                              background: bc.bg, color: bc.color, flexShrink: 0 }}>
-                              {sub.belt}
-                            </span>
+                            {gradingEnabled && (
+                              <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 99,
+                                background: bc.bg, color: bc.color, flexShrink: 0 }}>
+                                {sub.belt}
+                              </span>
+                            )}
                           </div>
                           <p className="truncate" style={{ fontSize: 11, color: '#9CA3AF', maxWidth: 148 }}>{sub.memberEmail}</p>
                         </div>

@@ -1,3 +1,4 @@
+import { isGradingEnabled } from '@/lib/school-modules'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
@@ -41,7 +42,7 @@ export default async function StudentProfilePage({
           createdAt: true,
         },
       },
-      school: { select: { id: true, name: true } },
+      school: { select: { id: true, name: true, modules: true } },
     },
   })
 
@@ -75,6 +76,9 @@ export default async function StudentProfilePage({
   // Attendance stats over the full history at this school — the bookings
   // list above is capped at 50 rows, so counting it would undercount.
   const now = new Date()
+  // Belts & gradings module (Settings → Modules) — off: no belt, no readiness
+  const activeGradingSystems = await prisma.gradingSystem.count({ where: { schoolId: member.schoolId, isActive: true } }).catch(() => 0)
+  const gradingOn = isGradingEnabled(member.school.modules, activeGradingSystems)
   const attendedHere = { userId: member.userId, class: { schoolId: member.schoolId }, scheduledAt: { lte: now }, ...ATTENDED_WHERE }
   const [totalClasses, last30Days, lastAttended, readinessRows] = await Promise.all([
     prisma.booking.count({ where: attendedHere }).catch(() => 0),
@@ -82,7 +86,7 @@ export default async function StudentProfilePage({
       where: { ...attendedHere, scheduledAt: { gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000), lte: now } },
     }).catch(() => 0),
     prisma.booking.findFirst({ where: attendedHere, orderBy: { scheduledAt: 'desc' }, select: { scheduledAt: true } }).catch(() => null),
-    getReadinessForSchool(member.schoolId, { memberIds: [member.id] }).catch(() => []),
+    gradingOn ? getReadinessForSchool(member.schoolId, { memberIds: [member.id] }).catch(() => []) : Promise.resolve([]),
   ])
   const attendanceStats = {
     totalClasses,
@@ -191,5 +195,5 @@ export default async function StudentProfilePage({
     })),
   }
 
-  return <StudentProfileClient profile={profile} ranks={beltRanks} attendanceStats={attendanceStats} readiness={readiness} lastGradedAt={lastGradedAt} />
+  return <StudentProfileClient profile={profile} ranks={beltRanks} attendanceStats={attendanceStats} readiness={readiness} lastGradedAt={lastGradedAt} gradingEnabled={gradingOn} />
 }

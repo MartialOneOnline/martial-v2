@@ -13,7 +13,6 @@ import {
   MoreHorizontal, Eye, Check, AlertCircle, UserRound,
 } from 'lucide-react'
 import { useDashboard } from '../../components/DashboardShell'
-import { useSchoolContext } from '../../lib/auth/useSchoolContext'
 import NotificationBell          from '../../components/NotificationBell'
 import InviteUserModal           from '../../components/popups/InviteUserModal'
 import SendModal                 from '../../components/popups/SendModal'
@@ -347,7 +346,10 @@ type TodayClass = {
 
 export default function DashboardClient({ userName, userEmail }: Props) {
   const t = useT()
-  const { currentSchool, user: authUser, loading: ctxLoading } = useSchoolContext()
+  const { school } = useDashboard()
+  const currentSchool = school?.currentSchool ?? null
+  const authUser = school?.user ?? null
+  const ctxLoading = school?.loading ?? true
   const [gettingStartedDismissed, setGettingStartedDismissed] = useState(false)
 
   const [period, setPeriod]         = useState<Period>('12 months')

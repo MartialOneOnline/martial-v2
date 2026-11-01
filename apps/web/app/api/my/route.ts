@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
-import { getSchoolModules } from '@/lib/school-modules'
+import { getSchoolModules, isGradingEnabled } from '@/lib/school-modules'
 import { hasDashboardAccess, hasStudentAccess } from '@/lib/auth/contexts'
 import { getActiveStudentContext } from '@/lib/auth/activeContextCookie'
 
@@ -128,11 +128,12 @@ export async function GET() {
       gradings: {
         where: { ...(schoolId && { schoolId }) },
         orderBy: { gradedAt: 'desc' },
-        take: 10,
+        // Over-fetch: gradings from schools with the module off are dropped below
+        take: 50,
         select: {
           id: true, fromBelt: true, toBelt: true,
           toDegree: true, gradedAt: true, notes: true,
-          school: { select: { name: true } },
+          school: { select: { name: true, modules: true, _count: { select: { gradingSystems: { where: { isActive: true } } } } } },
           promotedBy: { select: { name: true } },
         },
       },
@@ -154,7 +155,7 @@ export async function GET() {
     const { _count, ...school } = m.school ?? {}
     return {
       ...m,
-      school: m.school && { ...school, modules: getSchoolModules(m.school.modules), hasGrading: (_count?.gradingSystems ?? 0) > 0 },
+      school: m.school && { ...school, modules: getSchoolModules(m.school.modules, { activeGradingSystems: _count?.gradingSystems ?? 0 }), hasGrading: (_count?.gradingSystems ?? 0) > 0 && getSchoolModules(m.school.modules, { activeGradingSystems: _count?.gradingSystems ?? 0 }).grading },
     }
   })
 
@@ -162,11 +163,17 @@ export async function GET() {
     const { _count, ...school } = sm.school ?? {}
     return {
       ...sm,
-      school: sm.school && { ...school, modules: getSchoolModules(sm.school.modules), hasGrading: (_count?.gradingSystems ?? 0) > 0 },
+      school: sm.school && { ...school, modules: getSchoolModules(sm.school.modules, { activeGradingSystems: _count?.gradingSystems ?? 0 }), hasGrading: (_count?.gradingSystems ?? 0) > 0 && getSchoolModules(sm.school.modules, { activeGradingSystems: _count?.gradingSystems ?? 0 }).grading },
     }
   })
 
-  return NextResponse.json({ user: { ...user, memberships, schoolMembers } })
+  // A school that turned belts off shouldn't surface its gradings in the portal
+  const gradings = user.gradings
+    .filter(g => g.school._count.gradingSystems > 0 && isGradingEnabled(g.school.modules, g.school._count.gradingSystems))
+    .slice(0, 10)
+    .map(({ school, ...g }) => ({ ...g, school: { name: school.name } }))
+
+  return NextResponse.json({ user: { ...user, memberships, schoolMembers, gradings } })
 }
 
 export async function PATCH(req: Request) {

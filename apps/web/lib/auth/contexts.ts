@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db'
 import type { Permission } from './permissions'
 import { getMemberPermissions } from './customRoles'
+import { isGradingEnabled } from '../school-modules'
 import type { SchoolMemberRole } from '../prisma-client/enums'
 
 export type SchoolContext = {
@@ -9,6 +10,8 @@ export type SchoolContext = {
   schoolSlug: string
   role: SchoolMemberRole
   permissions: Permission[]
+  /** Belts & gradings module (see lib/school-modules.ts) — hides every belt/grading surface when off */
+  gradingEnabled: boolean
 }
 
 export type UserContexts = {
@@ -24,7 +27,14 @@ export async function getUserContexts(userId: string, lastSchoolId?: string | nu
     prisma.user.findUnique({ where: { id: userId }, select: { role: true } }),
     prisma.schoolMember.findMany({
       where: { userId, status: 'ACTIVE' },
-      include: { school: { select: { id: true, name: true, slug: true } } },
+      include: {
+        school: {
+          select: {
+            id: true, name: true, slug: true, modules: true,
+            _count: { select: { gradingSystems: { where: { isActive: true } } } },
+          },
+        },
+      },
     }),
   ])
 
@@ -37,6 +47,7 @@ export async function getUserContexts(userId: string, lastSchoolId?: string | nu
         schoolSlug: m.school.slug,
         role: m.role,
         permissions: await getMemberPermissions(m),
+        gradingEnabled: isGradingEnabled(m.school.modules, m.school._count?.gradingSystems ?? 0),
       }))
   )
 

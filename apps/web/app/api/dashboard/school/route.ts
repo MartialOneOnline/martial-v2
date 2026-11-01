@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId, requireDashboardAccess } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
-import { getSchoolModules } from '@/lib/school-modules'
+import { getSchoolModules, mergeSchoolModules } from '@/lib/school-modules'
 
 async function getEnabledPaymentMethods() {
   const settings = await prisma.platformSettings.upsert({
@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
     revolutPublicKey: true,
     modules: true,
     hasFreeTrialCls: true,
-    _count: { select: { disciplines: true } },
+    _count: { select: { disciplines: true, gradingSystems: { where: { isActive: true } } } },
   } as const
 
   const school = await prisma.school.findUnique({
@@ -87,13 +87,14 @@ export async function GET(req: NextRequest) {
   // settings page loads this on every visit, so anyone with devtools access to a
   // dashboard session would otherwise see live payment-provider credentials.
   const { stripeSecretKey, stripeWebhookSecret, revolutSecretKey, revolutWebhookSecret, _count, ...publicSchool } = school as
-    Record<string, unknown> & { stripeSecretKey?: string | null; stripeWebhookSecret?: string | null; revolutSecretKey?: string | null; revolutWebhookSecret?: string | null; _count?: { disciplines: number } }
+    Record<string, unknown> & { stripeSecretKey?: string | null; stripeWebhookSecret?: string | null; revolutSecretKey?: string | null; revolutWebhookSecret?: string | null; _count?: { disciplines: number; gradingSystems: number } }
 
   return NextResponse.json({
     school: {
       ...publicSchool,
-      modules: getSchoolModules(publicSchool.modules as string | null),
+      modules: getSchoolModules(publicSchool.modules, { activeGradingSystems: _count?.gradingSystems ?? 0 }),
       disciplineCount: _count?.disciplines ?? 0,
+      activeGradingSystems: _count?.gradingSystems ?? 0,
       ...(canViewPaymentSecrets && {
         stripeSecretKeyConfigured:     !!stripeSecretKey,
         stripeSecretKeyMasked:         maskSecret(stripeSecretKey),
@@ -155,6 +156,17 @@ export async function PATCH(req: NextRequest) {
     }
   }
 
+  // A save that doesn't mention a module (e.g. an older client without the
+  // grading switch) keeps its current value instead of turning it off.
+  let nextModules: ReturnType<typeof mergeSchoolModules> | undefined
+  if (modules !== undefined) {
+    const current = await prisma.school.findUnique({
+      where: { id: schoolId },
+      select: { modules: true, _count: { select: { gradingSystems: { where: { isActive: true } } } } },
+    })
+    nextModules = mergeSchoolModules(current?.modules, modules, { activeGradingSystems: current?._count.gradingSystems ?? 0 })
+  }
+
   const updated = await prisma.school.update({
     where: { id: schoolId },
     data: {
@@ -178,7 +190,7 @@ export async function PATCH(req: NextRequest) {
       ...(coverPosY              !== undefined && { coverPosY: Math.max(0, Math.min(100, Number(coverPosY))) }),
       ...(defaultBookingSettings !== undefined && { defaultBookingSettings: gatedBookingSettings }),
       ...(cancelPolicy !== undefined && VALID_CANCEL_POLICIES.includes(cancelPolicy) && { cancelPolicy }),
-      ...(modules !== undefined && { modules: getSchoolModules(modules) }),
+      ...(nextModules && { modules: nextModules }),
       ...(hasFreeTrialCls !== undefined && { hasFreeTrialCls: Boolean(hasFreeTrialCls) }),
       ...(stripePublishableKey !== undefined && { stripePublishableKey: stripePublishableKey?.trim() || null }),
       ...(stripeSecretKey      !== undefined && { stripeSecretKey:      stripeSecretKey?.trim()      || null }),
@@ -189,8 +201,12 @@ export async function PATCH(req: NextRequest) {
       // ever written by /api/dashboard/revolut/register-webhook from Revolut's own response.
       ...(revolutWebhookSecret === null && { revolutWebhookSecret: null }),
     },
-    select: { id: true, language: true, name: true, cancelPolicy: true, modules: true, hasFreeTrialCls: true, coverPosY: true },
+    select: {
+      id: true, language: true, name: true, cancelPolicy: true, modules: true, hasFreeTrialCls: true, coverPosY: true,
+      _count: { select: { gradingSystems: { where: { isActive: true } } } },
+    },
   })
 
-  return NextResponse.json({ school: { ...updated, modules: getSchoolModules(updated.modules) } })
+  const { _count: updatedCount, ...updatedSchool } = updated
+  return NextResponse.json({ school: { ...updatedSchool, modules: getSchoolModules(updated.modules, { activeGradingSystems: updatedCount.gradingSystems }) } })
 }

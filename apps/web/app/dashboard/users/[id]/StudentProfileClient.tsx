@@ -224,13 +224,15 @@ function Field({ label, children, hint }: { label: string; children: React.React
 
 // ── Edit Drawer ────────────────────────────────────────────────────────────────
 function EditDrawer({
-  profile, open, onClose, onSaved, ranks,
+  profile, open, onClose, onSaved, ranks, gradingEnabled,
 }: {
   profile: Profile
   open: boolean
   onClose: () => void
   onSaved: (updates: Partial<Profile>) => void
   ranks: BeltRankInfo[]
+  /** Belts & gradings module — without it there's no belt to edit */
+  gradingEnabled: boolean
 }) {
   const tt = useT()
   const [name, setName] = useState(profile.name)
@@ -403,6 +405,7 @@ function EditDrawer({
             </Field>
           </div>
 
+          {gradingEnabled && (<>
           <div style={{ borderTop: '1px solid #F3F4F6', margin: '24px 0' }} />
 
           {/* Belt section */}
@@ -516,6 +519,7 @@ function EditDrawer({
               />
             </Field>
           </div>
+          </>)}
         </div>
 
         {/* Error bar */}
@@ -1624,12 +1628,14 @@ function MembershipSection({
 // ── Main component ─────────────────────────────────────────────────────────────
 interface AttendanceStats { totalClasses: number; last30Days: number; lastClassDate: string | null }
 
-export default function StudentProfileClient({ profile: initialProfile, ranks, attendanceStats, readiness, lastGradedAt }: {
+export default function StudentProfileClient({ profile: initialProfile, ranks, attendanceStats, readiness, lastGradedAt, gradingEnabled }: {
   profile: Profile
   ranks: BeltRankInfo[]
   attendanceStats: AttendanceStats
   readiness: Readiness | null
   lastGradedAt: string | null
+  /** Belts & gradings module (Settings → Modules): off hides every belt surface */
+  gradingEnabled: boolean
 }) {
   const tt = useT()
   const statusMap = getStatusMap(tt)
@@ -1819,6 +1825,7 @@ export default function StudentProfileClient({ profile: initialProfile, ranks, a
 
       {/* Edit drawer */}
       <EditDrawer
+        gradingEnabled={gradingEnabled}
         profile={profile}
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
@@ -1910,10 +1917,12 @@ export default function StudentProfileClient({ profile: initialProfile, ranks, a
                   <span style={{ background: status.bg, color: status.color, fontSize: 11, fontWeight: 600, padding: '2px 10px', borderRadius: 999 }}>
                     {status.label}
                   </span>
-                  <span style={{ background: belt.bg, color: belt.color, fontSize: 11, fontWeight: 600, padding: '2px 10px', borderRadius: 999 }}>
-                    {profile.belt}
-                    {profile.beltDegree > 0 && ` ${'●'.repeat(profile.beltDegree)}`}
-                  </span>
+                  {gradingEnabled && (
+                    <span style={{ background: belt.bg, color: belt.color, fontSize: 11, fontWeight: 600, padding: '2px 10px', borderRadius: 999 }}>
+                      {profile.belt}
+                      {profile.beltDegree > 0 && ` ${'●'.repeat(profile.beltDegree)}`}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -2044,7 +2053,8 @@ export default function StudentProfileClient({ profile: initialProfile, ranks, a
               </div>
             </Card>
 
-            {/* Belt progress */}
+            {/* Belt progress — only for schools that use belts */}
+            {gradingEnabled && (
             <Card>
               <CardHeader title={tt.studentProfile.beltProgressTitle} action={
                 <button
@@ -2077,6 +2087,7 @@ export default function StudentProfileClient({ profile: initialProfile, ranks, a
                 </p>
               </div>
             </Card>
+            )}
 
             {/* Emergency & Medical */}
             {(profile.emergencyContact || profile.medicalNotes) && (
@@ -2108,7 +2119,7 @@ export default function StudentProfileClient({ profile: initialProfile, ranks, a
           <div className="flex flex-col gap-4">
 
             {/* Attendance & grading — what the student is due, from attendance and the belt rules */}
-            {readiness && (
+            {readiness && gradingEnabled && (
               <Card>
                 <CardHeader title={tt.readiness.cardTitle} />
                 <AttendanceGradingCard

@@ -7,6 +7,7 @@ import {
   ACTIVITY_SEGMENTS, cohortRetention, closedPeriodMonths, markProvisional, type ActivityRow, type ActivitySegment,
 } from '@/lib/memberActivity'
 import { cleanPhone, whatsappNumber } from '@/lib/phone'
+import { isGradingEnabled } from '@/lib/school-modules'
 import { buildBeltIndex, beltKey, beltOptions, beltColor, resolveBeltRank, matchesBeltFilter, parseBeltFilter } from '@/lib/beltGroups'
 
 // requireDashboardAccess() bypasses this for SUPERADMIN and otherwise
@@ -43,7 +44,7 @@ export async function GET(req: NextRequest) {
   // so the 7d/30d/90d/12m presets don't narrow it — only an explicit 'custom'
   // range does, replacing what used to be a separate, disconnected "Joined
   // date range" filter.
-  const school = await prisma.school.findUnique({ where: { id: auth.schoolId }, select: { country: true, name: true } })
+  const school = await prisma.school.findUnique({ where: { id: auth.schoolId }, select: { country: true, name: true, modules: true } })
   const tz = schoolTimeZone(school?.country)
   const now = new Date()
   const isCustom = period === 'custom' && !!dateFrom && /^\d{4}-\d{2}-\d{2}$/.test(dateFrom)
@@ -141,7 +142,12 @@ export async function GET(req: NextRequest) {
   // per `degree`. Belt names are free text ("Marron", "Marrón", "Brown
   // Belt"…), so matching happens here on the resolved key, not in SQL.
   const beltIndex = buildBeltIndex(gradingSystems)
-  const beltFilter = parseBeltFilter(searchParams.getAll('belt'), searchParams.getAll('degree'), beltIndex)
+  // With the Belts & gradings module off a stale ?belt= link must not narrow
+  // the list or the export — the empty filter comes back and the client drops it.
+  const gradingOn = isGradingEnabled(school?.modules, gradingSystems.length)
+  const beltFilter = gradingOn
+    ? parseBeltFilter(searchParams.getAll('belt'), searchParams.getAll('degree'), beltIndex)
+    : { belts: [], degrees: [] }
   const beltFilterIds = beltFilter.belts.length || beltFilter.degrees.length
     ? roster.filter(m => matchesBeltFilter(m, beltFilter, beltIndex)).map(m => m.id)
     : null
