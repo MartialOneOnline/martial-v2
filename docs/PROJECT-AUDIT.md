@@ -124,6 +124,13 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 - Correcciones de la re-entrega: borrar el cinturón desenlaza el rango; el gráfico quita grados, búsqueda y rango Custom; el editor de Users conserva el valor guardado exacto; los enlaces antiguos adoptan la clave resuelta; la preparación para graduación usa `resolveBeltRank` como el informe, y el PATCH guarda el enlace que resuelve el texto; mock `gradingSystem` en `dashboardReportAuthGuards.test.ts`. Nuevo `memberBeltLink.test.ts`.
 - No verificado: navegador y recorrido autenticado.
 
+### Lote I — Informe de Leads (rama `claude/leads-report`)
+
+- Estado: **pendiente de auditoría**.
+- Objetivo: ver hasta dónde llega cada interesado (contactado → reservó prueba → vino → se apuntó) y a quién darle un empujón, con contacto directo.
+- Criterios: etapas por evidencia (email/convertedUserId → reservas y pagos de cuota de esta escuela, nunca de otra); LOST fuera de las listas; 48 h para "sin contactar"; invitaciones del equipo fuera por defecto; permiso `school.leads.view`; respuestas fuera de orden descartadas; textos EN/ES/PT/FR.
+- No verificado: navegador y datos reales.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.

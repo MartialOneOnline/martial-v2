@@ -2,6 +2,21 @@ export type Locale = 'en' | 'es' | 'pt' | 'fr'
 
 export const translations = {
   en: {
+    leadsReport: {
+      title: 'Leads', subtitle: 'Prospects in the period: how far they got, and who needs a nudge to try a class or join',
+      period30: '30D', period90: '90D', period12: '12M', periodAll: 'All', includeInvites: 'Include staff invites', includeInvitesHint: 'Staff invites are usually existing students being onboarded, not prospects',
+      stageTotal: 'New leads', stageContacted: 'Contacted', stageBooked: 'Booked a trial', stageTried: 'Came to try', stageJoined: 'Joined',
+      ofLeads: '{n}% of leads', joinedOfTried: 'Of those who came to try a class, {n}% joined.', joinedOfTriedNone: 'Nobody came to try a class in this period yet.', lost: '{n} marked lost',
+      followUpTitle: 'Who needs a nudge', followUpHint: 'Open leads only — joined and lost ones are left out.',
+      tabNotContacted: 'Not contacted', tabNotContactedHint: 'No contact, booking or note {h}+ hours after they got in touch', tabNoShow: 'Didn’t come to the trial', tabNoShowHint: 'Booked a class but never came and has nothing booked ahead',
+      tabTried: 'Tried, didn’t join', tabTriedHint: 'Came to at least one class but hasn’t joined', tabUpcoming: 'Trial coming up', tabUpcomingHint: 'A class booked ahead — a reminder helps them show up',
+      colName: 'Lead', colSource: 'Source', colCreated: 'Got in touch', colWhen: 'When', colNotes: 'Notes', colContact: 'Contact', colPhone: 'Phone',
+      daysAgo: '{n} days ago', today: 'today', lastClass: 'Last class {n} days ago', trialOn: 'Trial {date}', bookedDaysAgo: 'Last booking {n} days ago',
+      call: 'Call', whatsapp: 'WhatsApp', email: 'Email', noContact: 'No contact details', openLead: 'Open in Leads', emptyTab: 'Nobody here — nice.', showMore: 'Show {n} more',
+      bySourceTitle: 'By source', monthlyTitle: 'By month', colLeads: 'Leads', colTried: 'Tried', colJoined: 'Joined', colJoinedRate: '% joined', colMonth: 'Month',
+      export: 'Export list', exportFile: 'leads-follow-up', loadError: 'Could not load the leads report.', retry: 'Retry', loading: 'Loading…', empty: 'No leads in this period.',
+      source: { WEBSITE: 'Website', INSTAGRAM: 'Instagram', FACEBOOK: 'Facebook', WALK_IN: 'Walk-in', REFERRAL: 'Referral', PHONE: 'Phone', INVITE: 'Staff invite', SELF_REQUEST: 'Join request', OTHER: 'Other' },
+    },
     readiness: {
       estimatedTag: 'estimated', estimatedHint: 'The date of the current grade isn’t recorded, so this is estimated from attendance.', csvEstimated: 'Estimated date',
       overdueChip: 'Overdue · {n}+ days', newDueChip: 'New students due', priorityHint: 'New students (first {months} months) first, then the longest overdue.', newBadge: 'New · {n} mo', dueForDays: 'Due for {n} days · since {date}', dueToday: 'Due since today', exportList: 'Export grading list', csvPhone: 'Phone', csvDegree: 'Current stripe', csvDueSince: 'Due since', csvDays: 'Days overdue', csvMonths: 'Months with us', csvNew: 'New student', yes: 'Yes', no: 'No', gradingListFile: 'grading-list',
@@ -1043,6 +1058,21 @@ export const translations = {
 
   // ── ESPAÑOL ────────────────────────────────────────────────────────────────
   es: {
+    leadsReport: {
+      title: 'Leads', subtitle: 'Interesados del periodo: hasta dónde llegaron y a quién darle un empujón para probar o apuntarse',
+      period30: '30D', period90: '90D', period12: '12M', periodAll: 'Todo', includeInvites: 'Incluir invitaciones del equipo', includeInvitesHint: 'Las invitaciones del equipo suelen ser alumnos actuales que se dan de alta, no interesados nuevos',
+      stageTotal: 'Leads nuevos', stageContacted: 'Contactados', stageBooked: 'Reservaron prueba', stageTried: 'Vinieron a probar', stageJoined: 'Se apuntaron',
+      ofLeads: '{n}% de los leads', joinedOfTried: 'De los que vinieron a probar una clase, se apuntó el {n}%.', joinedOfTriedNone: 'En este periodo todavía no ha venido nadie a probar.', lost: '{n} marcados como perdidos',
+      followUpTitle: 'A quién darle un empujón', followUpHint: 'Solo leads abiertos: los que se apuntaron o se perdieron no aparecen.',
+      tabNotContacted: 'Sin contactar', tabNotContactedHint: 'Sin contacto, reserva ni nota {h} horas o más después de escribir', tabNoShow: 'No vinieron a la prueba', tabNoShowHint: 'Reservaron una clase, no vinieron y no tienen nada reservado',
+      tabTried: 'Probaron y no se apuntaron', tabTriedHint: 'Vinieron al menos a una clase pero no se han apuntado', tabUpcoming: 'Prueba próxima', tabUpcomingHint: 'Tienen una clase reservada: un recordatorio ayuda a que vengan',
+      colName: 'Lead', colSource: 'Origen', colCreated: 'Contactó', colWhen: 'Cuándo', colNotes: 'Notas', colContact: 'Contacto', colPhone: 'Teléfono',
+      daysAgo: 'hace {n} días', today: 'hoy', lastClass: 'Última clase hace {n} días', trialOn: 'Prueba el {date}', bookedDaysAgo: 'Última reserva hace {n} días',
+      call: 'Llamar', whatsapp: 'WhatsApp', email: 'Email', noContact: 'Sin datos de contacto', openLead: 'Abrir en Leads', emptyTab: 'Nadie por aquí.', showMore: 'Ver {n} más',
+      bySourceTitle: 'Por origen', monthlyTitle: 'Por mes', colLeads: 'Leads', colTried: 'Probaron', colJoined: 'Se apuntaron', colJoinedRate: '% apuntados', colMonth: 'Mes',
+      export: 'Exportar lista', exportFile: 'leads-seguimiento', loadError: 'No se pudo cargar el informe de leads.', retry: 'Reintentar', loading: 'Cargando…', empty: 'No hay leads en este periodo.',
+      source: { WEBSITE: 'Web', INSTAGRAM: 'Instagram', FACEBOOK: 'Facebook', WALK_IN: 'En persona', REFERRAL: 'Recomendación', PHONE: 'Teléfono', INVITE: 'Invitación del equipo', SELF_REQUEST: 'Solicitud de alta', OTHER: 'Otro' },
+    },
     readiness: {
       estimatedTag: 'estimado', estimatedHint: 'No consta la fecha del grado actual, así que se estima con la asistencia.', csvEstimated: 'Fecha estimada',
       overdueChip: 'Atrasados · {n} días o más', newDueChip: 'Nuevos con grado pendiente', priorityHint: 'Primero los alumnos nuevos (primeros {months} meses), después los que llevan más tiempo esperando.', newBadge: 'Nuevo · {n} meses', dueForDays: 'Le toca desde hace {n} días · {date}', dueToday: 'Le toca desde hoy', exportList: 'Exportar lista de graduación', csvPhone: 'Teléfono', csvDegree: 'Grado actual', csvDueSince: 'Le toca desde', csvDays: 'Días de retraso', csvMonths: 'Meses con nosotros', csvNew: 'Alumno nuevo', yes: 'Sí', no: 'No', gradingListFile: 'lista-graduacion',
@@ -1998,6 +2028,21 @@ export const translations = {
 
   // ── PORTUGUÊS ──────────────────────────────────────────────────────────────
   pt: {
+    leadsReport: {
+      title: 'Leads', subtitle: 'Interessados do período: até onde chegaram e a quem dar um empurrão para experimentar ou inscrever-se',
+      period30: '30D', period90: '90D', period12: '12M', periodAll: 'Tudo', includeInvites: 'Incluir convites da equipa', includeInvitesHint: 'Os convites da equipa costumam ser alunos atuais a registar-se, não interessados novos',
+      stageTotal: 'Leads novos', stageContacted: 'Contactados', stageBooked: 'Reservaram aula experimental', stageTried: 'Vieram experimentar', stageJoined: 'Inscreveram-se',
+      ofLeads: '{n}% dos leads', joinedOfTried: 'Dos que vieram experimentar uma aula, inscreveram-se {n}%.', joinedOfTriedNone: 'Ainda ninguém veio experimentar neste período.', lost: '{n} marcados como perdidos',
+      followUpTitle: 'A quem dar um empurrão', followUpHint: 'Só leads abertos: os inscritos ou perdidos não aparecem.',
+      tabNotContacted: 'Sem contacto', tabNotContactedHint: 'Sem contacto, reserva nem nota {h} horas ou mais depois de escrever', tabNoShow: 'Não vieram à aula experimental', tabNoShowHint: 'Reservaram uma aula, não vieram e não têm nada reservado',
+      tabTried: 'Experimentaram e não se inscreveram', tabTriedHint: 'Vieram pelo menos a uma aula mas não se inscreveram', tabUpcoming: 'Aula experimental próxima', tabUpcomingHint: 'Têm uma aula reservada: um lembrete ajuda a que venham',
+      colName: 'Lead', colSource: 'Origem', colCreated: 'Contactou', colWhen: 'Quando', colNotes: 'Notas', colContact: 'Contacto', colPhone: 'Telefone',
+      daysAgo: 'há {n} dias', today: 'hoje', lastClass: 'Última aula há {n} dias', trialOn: 'Aula experimental a {date}', bookedDaysAgo: 'Última reserva há {n} dias',
+      call: 'Ligar', whatsapp: 'WhatsApp', email: 'Email', noContact: 'Sem dados de contacto', openLead: 'Abrir em Leads', emptyTab: 'Ninguém aqui.', showMore: 'Ver mais {n}',
+      bySourceTitle: 'Por origem', monthlyTitle: 'Por mês', colLeads: 'Leads', colTried: 'Experimentaram', colJoined: 'Inscreveram-se', colJoinedRate: '% inscritos', colMonth: 'Mês',
+      export: 'Exportar lista', exportFile: 'leads-seguimento', loadError: 'Não foi possível carregar o relatório de leads.', retry: 'Tentar de novo', loading: 'A carregar…', empty: 'Não há leads neste período.',
+      source: { WEBSITE: 'Site', INSTAGRAM: 'Instagram', FACEBOOK: 'Facebook', WALK_IN: 'Presencial', REFERRAL: 'Recomendação', PHONE: 'Telefone', INVITE: 'Convite da equipa', SELF_REQUEST: 'Pedido de inscrição', OTHER: 'Outro' },
+    },
     readiness: {
       estimatedTag: 'estimado', estimatedHint: 'A data do grau atual não está registada, por isso é estimada pela assiduidade.', csvEstimated: 'Data estimada',
       overdueChip: 'Atrasados · {n} dias ou mais', newDueChip: 'Novos com grau pendente', priorityHint: 'Primeiro os alunos novos (primeiros {months} meses), depois os que esperam há mais tempo.', newBadge: 'Novo · {n} meses', dueForDays: 'Corresponde há {n} dias · {date}', dueToday: 'Corresponde desde hoje', exportList: 'Exportar lista de graduação', csvPhone: 'Telefone', csvDegree: 'Grau atual', csvDueSince: 'Corresponde desde', csvDays: 'Dias de atraso', csvMonths: 'Meses connosco', csvNew: 'Aluno novo', yes: 'Sim', no: 'Não', gradingListFile: 'lista-graduacao',
@@ -2953,6 +2998,21 @@ export const translations = {
 
   // ── FRANÇAIS ───────────────────────────────────────────────────────────────
   fr: {
+    leadsReport: {
+      title: 'Leads', subtitle: 'Prospects de la période : jusqu’où ils sont allés et qui relancer pour un cours d’essai ou une inscription',
+      period30: '30J', period90: '90J', period12: '12M', periodAll: 'Tout', includeInvites: 'Inclure les invitations de l’équipe', includeInvitesHint: 'Les invitations de l’équipe sont en général des élèves actuels qui s’inscrivent, pas de nouveaux prospects',
+      stageTotal: 'Nouveaux leads', stageContacted: 'Contactés', stageBooked: 'Ont réservé un essai', stageTried: 'Sont venus essayer', stageJoined: 'Inscrits',
+      ofLeads: '{n} % des leads', joinedOfTried: 'Parmi ceux venus essayer un cours, {n} % se sont inscrits.', joinedOfTriedNone: 'Personne n’est encore venu essayer sur cette période.', lost: '{n} marqués perdus',
+      followUpTitle: 'Qui relancer', followUpHint: 'Leads ouverts seulement : inscrits et perdus n’apparaissent pas.',
+      tabNotContacted: 'Non contactés', tabNotContactedHint: 'Ni contact, ni réservation, ni note {h} heures ou plus après leur message', tabNoShow: 'Pas venus à l’essai', tabNoShowHint: 'Ont réservé un cours, ne sont pas venus et n’ont rien de prévu',
+      tabTried: 'Ont essayé sans s’inscrire', tabTriedHint: 'Sont venus au moins une fois mais ne se sont pas inscrits', tabUpcoming: 'Essai à venir', tabUpcomingHint: 'Un cours réservé : un rappel les aide à venir',
+      colName: 'Lead', colSource: 'Origine', colCreated: 'Premier contact', colWhen: 'Quand', colNotes: 'Notes', colContact: 'Contact', colPhone: 'Téléphone',
+      daysAgo: 'il y a {n} jours', today: 'aujourd’hui', lastClass: 'Dernier cours il y a {n} jours', trialOn: 'Essai le {date}', bookedDaysAgo: 'Dernière réservation il y a {n} jours',
+      call: 'Appeler', whatsapp: 'WhatsApp', email: 'Email', noContact: 'Pas de coordonnées', openLead: 'Ouvrir dans Leads', emptyTab: 'Personne ici.', showMore: 'Voir {n} de plus',
+      bySourceTitle: 'Par origine', monthlyTitle: 'Par mois', colLeads: 'Leads', colTried: 'Ont essayé', colJoined: 'Inscrits', colJoinedRate: '% inscrits', colMonth: 'Mois',
+      export: 'Exporter la liste', exportFile: 'leads-relance', loadError: 'Impossible de charger le rapport des leads.', retry: 'Réessayer', loading: 'Chargement…', empty: 'Aucun lead sur cette période.',
+      source: { WEBSITE: 'Site web', INSTAGRAM: 'Instagram', FACEBOOK: 'Facebook', WALK_IN: 'Sur place', REFERRAL: 'Recommandation', PHONE: 'Téléphone', INVITE: 'Invitation de l’équipe', SELF_REQUEST: 'Demande d’inscription', OTHER: 'Autre' },
+    },
     readiness: {
       estimatedTag: 'estimé', estimatedHint: 'La date du grade actuel n’est pas enregistrée : elle est estimée à partir de la présence.', csvEstimated: 'Date estimée',
       overdueChip: 'En retard · {n} jours ou plus', newDueChip: 'Nouveaux avec un grade dû', priorityHint: 'D’abord les nouveaux élèves ({months} premiers mois), puis ceux qui attendent depuis le plus longtemps.', newBadge: 'Nouveau · {n} mois', dueForDays: 'Dû depuis {n} jours · {date}', dueToday: 'Dû depuis aujourd’hui', exportList: 'Exporter la liste de passage', csvPhone: 'Téléphone', csvDegree: 'Barrette actuelle', csvDueSince: 'Dû depuis', csvDays: 'Jours de retard', csvMonths: 'Mois avec nous', csvNew: 'Nouvel élève', yes: 'Oui', no: 'Non', gradingListFile: 'liste-passage',

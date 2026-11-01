@@ -213,6 +213,7 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen, collapsed, set
       { label: t.sidebar.balance,  href: '/dashboard/reports/balance', permission: 'school.analytics.view' },
       { label: t.sidebar.absents,  href: '/dashboard/reports/absents', permission: 'school.analytics.view' },
       { label: t.sidebar.users,    href: '/dashboard/reports/users', permission: 'school.analytics.view' },
+      { label: t.sidebar.leads,    href: '/dashboard/reports/leads', permission: 'school.leads.view' },
     ]},
     { label: t.sidebar.settings,    icon: Settings,   href: '/dashboard/settings', permission: 'school.settings.view' },
   ]

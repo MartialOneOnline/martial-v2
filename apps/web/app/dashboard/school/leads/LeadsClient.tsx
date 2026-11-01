@@ -705,7 +705,7 @@ function getPaginationPages(current: number, total: number): (number | '...')[] 
   return [1, '...', current - 1, current, current + 1, '...', total]
 }
 
-export default function LeadsClient() {
+export default function LeadsClient({ initialLeadId = null }: { initialLeadId?: string | null } = {}) {
   const { menuOpen, setMenuOpen } = useDashboard()
   const t = useT()
 
@@ -725,7 +725,7 @@ export default function LeadsClient() {
   const [deleteToast, setDeleteToast]   = useState<number | null>(null)
   const [emailTarget, setEmailTarget]   = useState<{ ids: string[]; skipped: number } | null>(null)
   const [emailToast, setEmailToast]     = useState<number | null>(null)
-  const [detailLeadId, setDetailLeadId] = useState<string | null>(null)
+  const [detailLeadId, setDetailLeadId] = useState<string | null>(initialLeadId)
 
   const fetchLeads = useCallback(async () => {
     setLoading(true)
