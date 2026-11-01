@@ -280,7 +280,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 - **Users** (`UsersClient`): "Cambiar cinturón", editar y crear alumno usan los cinturones del catálogo de la escuela (`getSchoolBeltNames` en `data.ts`, vía contexto); sin catálogo, siguen los 5 de BJJ adulto. Si el cinturón actual no está en la lista se añade, para no cambiarlo sin querer.
 - Verificado con datos reales (solo lectura): RGM Marrón → 6 (antes 0), "Blue Belt" se agrupa con Azul (68), 3 sin cinturón; KongJitsu sin catálogo agrupa por nombre.
 - Tests: `beltGroups.test.ts` (13). Suite: mismos 12 archivos fallando que en `main` (preexistentes). tsc 0, eslint sin avisos nuevos. **No probado en navegador.**
-- Pendiente aparte (no hecho): limpieza de datos — enlazar al catálogo los ~120 alumnos de RGM sin `beltRankId` y normalizar el "Blue Belt" a "Azul".
+- Limpieza de datos **hecha (2026-11-01)** con `scripts/link-belts-to-catalog.ts` (rama `claude/rgm-belt-cleanup`; por defecto solo ensayo, `--apply` para escribir; misma regla `resolveBeltRank`). En RGM, 121 de 806 alumnos: 116 enlazados a Blanco y 5 a Azul (uno de ellos, Alex Rivera, pasa de "Blue Belt" a "Azul"). Un segundo ensayo da 0 cambios. Copia de los valores anteriores: `~/Projects/martial-v2-backups/belt-cleanup-backup-cmq6k2n5t0000x4o0rcvlmhmv-1793543755778.json`, fuera del repo.
 - **Re-entrega tras `APROBADO CON PENDIENTES` (Codex sobre `fe771a2`, 5 P2 + 1 P3):**
   - P2 — borrar el cinturón (`belt: null`/`""`) conservaba el enlace. Ahora deja `beltRankId = null`, salvo que se envíe un enlace con él.
   - P2 — pulsar el gráfico mantenía grados, búsqueda y fechas Custom, y la lista no cuadraba con el número. Ahora se quitan los grados y la búsqueda, y un rango Custom vuelve a 30 días.
