@@ -60,7 +60,7 @@ describe('blockReasons() / countNotes()', () => {
       attended: ['2026-10-14T19:00:00Z', '2026-10-26T09:00:00Z'].map(iso => ({ scheduledAt: new Date(iso), classId: 'c', disciplineId: null })),
     })
     expect(countNotes(r2, translations.es.readiness)).toEqual([
-      '1 clases no cuentan (semanas con menos de 2/semana)',
+      '1 clase no cuenta (semana con menos de 2/semana)',
       'Esta semana: 1 de 2 — cuentan al llegar a 2',
     ])
     for (const lang of ['en', 'es', 'pt', 'fr'] as const) {
@@ -68,5 +68,39 @@ describe('blockReasons() / countNotes()', () => {
       expect(lines, lang).toHaveLength(2)
       expect(lines.join(' '), lang).not.toMatch(/\{\w+\}/)
     }
+  })
+
+  // Project Audit PR #44 P3: period and singular/plural
+  const monthly = (attended: string[]) => computeReadiness({
+    ranks: [rank({ id: 'a', order: 0, totalClassesRequired: 8, classesPerPeriod: 2, maxClassesPerPeriod: 1, periodType: 'MONTH' }), rank({ id: 'b', order: 1 })],
+    currentRankId: 'a', currentDegree: 0, countSince: null, beltSince: null, dateOfBirth: null, now: NOW,
+    attended: attended.map(iso => ({ scheduledAt: new Date(iso), classId: 'c', disciplineId: null })),
+  })
+
+  it('monthly minimum says month, singular for one class (audit repro)', () => {
+    // September: 1 class (below 2), October: 2 (cap 1 → one over)
+    const one = monthly(['2026-09-10T19:00:00Z', '2026-10-05T19:00:00Z', '2026-10-07T19:00:00Z'])
+    expect(countNotes(one, translations.en.readiness)).toEqual([
+      '1 class doesn’t count (max 1/month)', '1 class doesn’t count (month under 2/month)',
+    ])
+    expect(countNotes(one, translations.es.readiness)).toEqual([
+      '1 clase no cuenta (máx. 1/mes)', '1 clase no cuenta (mes con menos de 2/mes)',
+    ])
+    expect(countNotes(one, translations.pt.readiness)).toEqual([
+      '1 aula não conta (máx. 1/mês)', '1 aula não conta (mês com menos de 2/mês)',
+    ])
+    expect(countNotes(one, translations.fr.readiness)).toEqual([
+      '1 cours ne compte pas (max. 1/mois)', '1 cours ne compte pas (mois sous 2/mois)',
+    ])
+  })
+
+  it('plural for several classes, by week and by month, in each language', () => {
+    const many = monthly(['2026-07-10T19:00:00Z', '2026-09-10T19:00:00Z'])
+    for (const lang of ['en', 'es', 'pt', 'fr'] as const) {
+      const rt = translations[lang].readiness
+      expect(countNotes(many, rt), lang).toEqual([rt.belowMinMonth.replace('{n}', '2').replace('{min}', '2').replace('{unit}', rt.perMonth)])
+      expect(rt.belowMinWeek, lang).not.toBe(rt.belowMinWeekOne)
+    }
+    expect(countNotes(many, translations.es.readiness)).toEqual(['2 clases no cuentan (meses con menos de 2/mes)'])
   })
 })

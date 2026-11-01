@@ -66,7 +66,7 @@ export function blockReasons(r: Readiness, rt: RT): string[] {
 /** "2 classes don't count (max 3/week)" — null without a cap or nothing over it */
 export function overCapLabel(r: Readiness, rt: RT): string | null {
   if (!r.classCap || r.classesOverCap <= 0) return null
-  return rt.overCap.replace('{n}', String(r.classesOverCap)).replace('{max}', String(r.classCap.max))
+  return (r.classesOverCap === 1 ? rt.overCapOne : rt.overCap).replace('{n}', String(r.classesOverCap)).replace('{max}', String(r.classCap.max))
     .replace('{unit}', r.classCap.periodType === 'MONTH' ? rt.perMonth : rt.perWeek)
 }
 
@@ -82,7 +82,10 @@ export function countNotes(r: Readiness, rt: RT): string[] {
     const unit = r.classMin.periodType === 'MONTH' ? rt.perMonth : rt.perWeek
     const min = String(r.classMin.min)
     if (r.classesBelowMin > 0) {
-      notes.push(rt.belowMin.replace('{n}', String(r.classesBelowMin)).replace('{min}', min).replace('{unit}', unit))
+      const month = r.classMin.periodType === 'MONTH'
+      const one = r.classesBelowMin === 1
+      const text = month ? (one ? rt.belowMinMonthOne : rt.belowMinMonth) : (one ? rt.belowMinWeekOne : rt.belowMinWeek)
+      notes.push(text.replace('{n}', String(r.classesBelowMin)).replace('{min}', min).replace('{unit}', unit))
     }
     if (r.classesPendingPeriod > 0) {
       notes.push(rt.pendingPeriod.replace('{period}', r.classMin.periodType === 'MONTH' ? rt.thisMonth : rt.thisWeek)
