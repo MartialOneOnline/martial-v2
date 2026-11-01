@@ -262,6 +262,7 @@ function LeadDetailDrawer({ leadId, onClose, onChanged, onRequestDelete, onReque
   const open = leadId !== null
   const [lead, setLead] = useState<LeadDetail | null>(null)
   const [loading, setLoading] = useState(false)
+  const [loadError, setLoadError] = useState(false)
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({ name: '', email: '', phone: '', source: 'OTHER' })
   const [saving, setSaving] = useState(false)
@@ -272,16 +273,21 @@ function LeadDetailDrawer({ leadId, onClose, onChanged, onRequestDelete, onReque
   const [savingReminder, setSavingReminder] = useState(false)
 
   useEffect(() => {
-    if (!leadId) { setLead(null); setEditing(false); return }
+    if (!leadId) { setLead(null); setEditing(false); setLoadError(false); return }
     setLoading(true)
+    setLoadError(false)
     fetch(`/api/dashboard/leads/${leadId}`)
       .then(res => (res.ok ? res.json() : null))
       .then(data => {
         if (data?.lead) {
           setLead(data.lead)
           setReminderDraft(data.lead.reminderAt ? data.lead.reminderAt.slice(0, 10) : '')
+        } else {
+          setLead(null)
+          setLoadError(true)
         }
       })
+      .catch(() => { setLead(null); setLoadError(true) })
       .finally(() => setLoading(false))
   }, [leadId])
 
@@ -392,7 +398,9 @@ function LeadDetailDrawer({ leadId, onClose, onChanged, onRequestDelete, onReque
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-6">
-          {loading || !lead ? (
+          {loadError && !loading ? (
+            <p style={{ fontSize: 13, color: '#DC2626', textAlign: 'center', padding: '40px 0' }}>{t.leadsReport.detailLoadError}</p>
+          ) : loading || !lead ? (
             <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: '40px 0' }}>…</p>
           ) : (
             <>

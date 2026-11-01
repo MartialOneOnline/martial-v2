@@ -90,9 +90,13 @@ export default function LeadsReportClient() {
   }
 
   const rows = data && tab ? data.followUps[tab] : []
+  // While a new period/filter loads (or after it failed) the table still shows
+  // the previous one — never export that as if it were the current selection
+  // (Project Audit PR #43 P2).
+  const canExport = rows.length > 0 && !loading && !error
 
   function exportList() {
-    if (!tab || !rows.length) return
+    if (!tab || !canExport) return
     downloadCsv(`${r.exportFile}-${tabLabel[tab]}`, [
       r.colName, r.email, r.colPhone, r.colSource, r.colCreated, r.colWhen, r.colNotes,
     ], rows.map(x => [x.name, x.email, x.phone, sourceLabel(x.source), fmt(x.createdAt), whenLabel(x, tab), x.notesCount]), { locale })
@@ -182,8 +186,8 @@ export default function LeadsReportClient() {
                   <p style={{ fontSize: 12, color: '#9CA3AF', margin: '2px 0 0' }}>{r.followUpHint}</p>
                 </div>
                 {rows.length > 0 && (
-                  <button onClick={exportList} className="cursor-pointer inline-flex items-center gap-1.5"
-                    style={{ fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 999, background: '#fff', color: '#374151', border: '1.5px solid #E5E7EB' }}>
+                  <button onClick={exportList} disabled={!canExport} className="cursor-pointer inline-flex items-center gap-1.5 disabled:cursor-not-allowed"
+                    style={{ fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 999, background: '#fff', color: '#374151', border: '1.5px solid #E5E7EB', opacity: canExport ? 1 : 0.5 }}>
                     <Download size={13} /> {r.export}
                   </button>
                 )}

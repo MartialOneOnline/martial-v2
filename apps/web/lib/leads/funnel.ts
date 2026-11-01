@@ -6,12 +6,19 @@
 // payments, and its stage is the furthest point with evidence:
 //   NEW → CONTACTED → TRIAL_BOOKED → TRIED → JOINED
 // LOST leads (closed by staff) stay out of the follow-up lists.
+//
+// Only activity from when the lead got in touch counts (Project Audit PR #43
+// P1): someone who trained and paid two years ago and now writes again is a
+// prospect again, not "already joined". A day of slack covers a walk-in whose
+// lead is typed in after their first class.
 
 export type LeadStage = 'NEW' | 'CONTACTED' | 'TRIAL_BOOKED' | 'TRIED' | 'JOINED'
 export type FollowUp = 'NOT_CONTACTED' | 'UPCOMING_TRIAL' | 'NO_SHOW' | 'TRIED_NOT_JOINED'
 
 /** A lead with no contact for this long is "not contacted" (not just "new") */
 export const CONTACT_WITHIN_HOURS = 48
+/** Activity this long before the lead was created still counts as this lead's */
+export const EVIDENCE_SLACK_HOURS = 24
 
 const HOUR_MS = 60 * 60 * 1000
 const DAY_MS = 24 * HOUR_MS
@@ -24,10 +31,10 @@ export interface LeadEvidence {
   /** Staff notes on the lead — a note means someone talked to them */
   notesCount: number
   lastNoteAt: Date | null
-  /** Their bookings at this school (any status) */
+  /** Their bookings at this school (any status, any date — filtered here) */
   bookings: Array<{ scheduledAt: Date; status: string; attended: boolean }>
-  /** First paid membership payment at this school, if any */
-  firstPaidAt: Date | null
+  /** Dates of their paid membership payments at this school (any date — filtered here) */
+  payments: Date[]
 }
 
 export interface LeadProgress {
@@ -41,51 +48,58 @@ export interface LeadProgress {
   upcomingAt: Date | null
   /** Last class actually attended */
   lastAttendedAt: Date | null
-  /** Open follow-up the school should act on; null when none applies */
-  followUp: FollowUp | null
-  /** Days since the moment that follow-up is about (created, no-show, last class) */
+  /**
+   * Open follow-ups the school should act on. A lead can be in two: someone
+   * who tried a class and has another one booked is both "tried, didn't
+   * join" and "trial coming up".
+   */
+  followUps: FollowUp[]
+  /** Days since the moment the non-upcoming follow-up is about (created, no-show, last class) */
   followUpDays: number | null
 }
 
 const days = (from: Date, now: Date) => Math.max(0, Math.floor((now.getTime() - from.getTime()) / DAY_MS))
 
 export function leadProgress(l: LeadEvidence, now: Date): LeadProgress {
-  const live = l.bookings.filter(b => b.status !== 'CANCELLED')
-  const attended = l.bookings.filter(b => b.attended)
+  const evidenceFrom = l.createdAt.getTime() - EVIDENCE_SLACK_HOURS * HOUR_MS
+  const bookings = l.bookings.filter(b => b.scheduledAt.getTime() >= evidenceFrom)
+  const live = bookings.filter(b => b.status !== 'CANCELLED')
+  const attended = bookings.filter(b => b.attended && b.scheduledAt <= now)
   const upcoming = live.filter(b => b.scheduledAt > now && !b.attended)
     .sort((a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime())
   const lastAttendedAt = attended.reduce<Date | null>((m, b) => (!m || b.scheduledAt > m ? b.scheduledAt : m), null)
+  const paidSince = l.payments.some(d => d.getTime() >= evidenceFrom)
 
-  const joined = l.status === 'CONVERTED' || !!l.firstPaidAt
+  const joined = l.status === 'CONVERTED' || paidSince
+  // Only real attendance — a direct sign-up didn't "come to try" (PR #43 P2)
   const tried = attended.length > 0
   const trialBooked = live.length > 0 || l.status === 'TRIAL_BOOKED'
-  const contacted = l.status !== 'NEW' || l.notesCount > 0 || trialBooked
+  // Any booking, even one later cancelled, means there was contact (PR #43 P2)
+  const contacted = l.status !== 'NEW' || l.notesCount > 0 || bookings.length > 0 || trialBooked
   const stage: LeadStage = joined ? 'JOINED' : tried ? 'TRIED' : trialBooked ? 'TRIAL_BOOKED' : contacted ? 'CONTACTED' : 'NEW'
   const lost = l.status === 'LOST' && !joined
 
-  let followUp: FollowUp | null = null
+  const followUps: FollowUp[] = []
   let followUpDays: number | null = null
   if (!joined && !lost) {
+    if (upcoming.length) followUps.push('UPCOMING_TRIAL')
     if (tried) {
-      followUp = 'TRIED_NOT_JOINED'
+      followUps.push('TRIED_NOT_JOINED')
       followUpDays = days(lastAttendedAt!, now)
-    } else if (upcoming.length) {
-      followUp = 'UPCOMING_TRIAL'
-      followUpDays = null
-    } else if (trialBooked) {
+    } else if (!upcoming.length && trialBooked) {
       // Booked (or marked as booked) but never came and nothing booked ahead
-      followUp = 'NO_SHOW'
+      followUps.push('NO_SHOW')
       const lastBooked = live.reduce<Date | null>((m, b) => (!m || b.scheduledAt > m ? b.scheduledAt : m), null)
       followUpDays = days(lastBooked ?? l.createdAt, now)
     } else if (!contacted && now.getTime() - l.createdAt.getTime() >= CONTACT_WITHIN_HOURS * HOUR_MS) {
-      followUp = 'NOT_CONTACTED'
+      followUps.push('NOT_CONTACTED')
       followUpDays = days(l.createdAt, now)
     }
   }
 
   return {
     stage, lost, contacted, trialBooked, tried, joined,
-    upcomingAt: upcoming[0]?.scheduledAt ?? null, lastAttendedAt, followUp, followUpDays,
+    upcomingAt: upcoming[0]?.scheduledAt ?? null, lastAttendedAt, followUps, followUpDays,
   }
 }
 
@@ -95,17 +109,23 @@ export interface FunnelCounts {
   trialBooked: number
   tried: number
   joined: number
+  /** Came to try AND joined — the base of "of those who tried, X% joined" */
+  triedAndJoined: number
   lost: number
 }
 
-/** Each stage counts every lead that reached it (a joined lead also counts as contacted, booked and tried when it did). */
+/**
+ * Each stage counts the leads with evidence for it. Joining implies contact,
+ * but not a trial: a direct sign-up never booked or came to try a class.
+ */
 export function funnelCounts(rows: LeadProgress[]): FunnelCounts {
-  const c: FunnelCounts = { total: rows.length, contacted: 0, trialBooked: 0, tried: 0, joined: 0, lost: 0 }
+  const c: FunnelCounts = { total: rows.length, contacted: 0, trialBooked: 0, tried: 0, joined: 0, triedAndJoined: 0, lost: 0 }
   for (const r of rows) {
     if (r.contacted || r.joined) c.contacted++
-    if (r.trialBooked || r.tried || r.joined) c.trialBooked++
-    if (r.tried || r.joined) c.tried++
+    if (r.trialBooked || r.tried) c.trialBooked++
+    if (r.tried) c.tried++
     if (r.joined) c.joined++
+    if (r.tried && r.joined) c.triedAndJoined++
     if (r.lost) c.lost++
   }
   return c

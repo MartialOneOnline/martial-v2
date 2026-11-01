@@ -81,34 +81,46 @@ export async function GET(req: NextRequest) {
     l.convertedUserId ?? (l.email ? userByEmail.get(l.email.trim().toLowerCase()) ?? null : null)
   const userIds = [...new Set(leads.map(userOf).filter((id): id is string => !!id))]
 
-  const [bookings, payments] = userIds.length ? await Promise.all([
+  const [bookings, payments, staff] = userIds.length ? await Promise.all([
     prisma.booking.findMany({
       where: { userId: { in: userIds }, class: { schoolId } },
       select: { userId: true, scheduledAt: true, status: true, attendedAt: true },
     }),
-    prisma.transaction.groupBy({
-      by: ['userId'],
+    // All dates: leadProgress() keeps only those from when each lead got in touch
+    prisma.transaction.findMany({
       where: { schoolId, userId: { in: userIds }, type: 'INCOME', category: 'MEMBERSHIP', status: 'PAID', deletedAt: null },
-      _min: { date: true },
+      select: { userId: true, date: true },
     }),
-  ]) : [[], []]
+    // Staff of this school (owner, instructors…) who show up as a lead — usually a test
+    prisma.schoolMember.findMany({
+      where: { schoolId, userId: { in: userIds }, role: { not: 'STUDENT' } },
+      select: { userId: true },
+    }),
+  ]) : [[], [], []]
   const bookingsBy = new Map<string, LeadEvidence['bookings']>()
   for (const b of bookings) {
     const list = bookingsBy.get(b.userId) ?? []
     list.push({ scheduledAt: b.scheduledAt, status: b.status, attended: b.status === 'COMPLETED' || !!b.attendedAt })
     bookingsBy.set(b.userId, list)
   }
-  const paidBy = new Map(payments.filter(p => p.userId).map(p => [p.userId!, p._min.date]))
+  const paidBy = new Map<string, Date[]>()
+  for (const p of payments) {
+    if (!p.userId) continue
+    const list = paidBy.get(p.userId) ?? []
+    list.push(p.date)
+    paidBy.set(p.userId, list)
+  }
+  const staffIds = new Set(staff.map(m => m.userId))
 
-  // ── Per lead ──────────────────────────────────────────────────────────────
-  const rows = leads.map(l => {
+  // ── Per lead (staff of the school are left out) ───────────────────────────
+  const rows = leads.filter(l => { const u = userOf(l); return !u || !staffIds.has(u) }).map(l => {
     const userId = userOf(l)
     const n = notesBy.get(l.id)
     const progress: LeadProgress = leadProgress({
       id: l.id, status: l.status, createdAt: l.createdAt, convertedAt: l.convertedAt,
       notesCount: n?.count ?? 0, lastNoteAt: n?.last ?? null,
       bookings: userId ? bookingsBy.get(userId) ?? [] : [],
-      firstPaidAt: userId ? paidBy.get(userId) ?? null : null,
+      payments: userId ? paidBy.get(userId) ?? [] : [],
     }, now)
     return { lead: l, userId, notesCount: n?.count ?? 0, progress }
   })
@@ -120,7 +132,7 @@ export async function GET(req: NextRequest) {
     tried: rate(funnel.tried, funnel.total),
     joined: rate(funnel.joined, funnel.total),
     // Of those who came to try a class, how many joined — the "nudge" metric
-    joinedOfTried: rate(funnel.joined, funnel.tried),
+    joinedOfTried: rate(funnel.triedAndJoined, funnel.tried),
   }
 
   const bySourceMap = new Map<string, LeadProgress[]>()
@@ -148,7 +160,7 @@ export async function GET(req: NextRequest) {
 
   const followUps = Object.fromEntries(FOLLOW_UPS.map(kind => {
     const list = rows
-      .filter(r => r.progress.followUp === kind)
+      .filter(r => r.progress.followUps.includes(kind))
       .sort((a, b) => compareFollowUp(
         { followUpDays: a.progress.followUpDays, createdAt: a.lead.createdAt, upcomingAt: a.progress.upcomingAt },
         { followUpDays: b.progress.followUpDays, createdAt: b.lead.createdAt, upcomingAt: b.progress.upcomingAt },

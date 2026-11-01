@@ -3,6 +3,7 @@ export type Locale = 'en' | 'es' | 'pt' | 'fr'
 export const translations = {
   en: {
     leadsReport: {
+      detailLoadError: 'Could not open this lead (it may have been deleted, or you don’t have access).',
       title: 'Leads', subtitle: 'Prospects in the period: how far they got, and who needs a nudge to try a class or join',
       period30: '30D', period90: '90D', period12: '12M', periodAll: 'All', includeInvites: 'Include staff invites', includeInvitesHint: 'Staff invites are usually existing students being onboarded, not prospects',
       stageTotal: 'New leads', stageContacted: 'Contacted', stageBooked: 'Booked a trial', stageTried: 'Came to try', stageJoined: 'Joined',
@@ -1059,6 +1060,7 @@ export const translations = {
   // ── ESPAÑOL ────────────────────────────────────────────────────────────────
   es: {
     leadsReport: {
+      detailLoadError: 'No se pudo abrir este lead (puede que se haya borrado o que no tengas acceso).',
       title: 'Leads', subtitle: 'Interesados del periodo: hasta dónde llegaron y a quién darle un empujón para probar o apuntarse',
       period30: '30D', period90: '90D', period12: '12M', periodAll: 'Todo', includeInvites: 'Incluir invitaciones del equipo', includeInvitesHint: 'Las invitaciones del equipo suelen ser alumnos actuales que se dan de alta, no interesados nuevos',
       stageTotal: 'Leads nuevos', stageContacted: 'Contactados', stageBooked: 'Reservaron prueba', stageTried: 'Vinieron a probar', stageJoined: 'Se apuntaron',
@@ -2029,6 +2031,7 @@ export const translations = {
   // ── PORTUGUÊS ──────────────────────────────────────────────────────────────
   pt: {
     leadsReport: {
+      detailLoadError: 'Não foi possível abrir este lead (pode ter sido apagado ou não tem acesso).',
       title: 'Leads', subtitle: 'Interessados do período: até onde chegaram e a quem dar um empurrão para experimentar ou inscrever-se',
       period30: '30D', period90: '90D', period12: '12M', periodAll: 'Tudo', includeInvites: 'Incluir convites da equipa', includeInvitesHint: 'Os convites da equipa costumam ser alunos atuais a registar-se, não interessados novos',
       stageTotal: 'Leads novos', stageContacted: 'Contactados', stageBooked: 'Reservaram aula experimental', stageTried: 'Vieram experimentar', stageJoined: 'Inscreveram-se',
@@ -2999,6 +3002,7 @@ export const translations = {
   // ── FRANÇAIS ───────────────────────────────────────────────────────────────
   fr: {
     leadsReport: {
+      detailLoadError: 'Impossible d’ouvrir ce lead (il a peut-être été supprimé, ou vous n’y avez pas accès).',
       title: 'Leads', subtitle: 'Prospects de la période : jusqu’où ils sont allés et qui relancer pour un cours d’essai ou une inscription',
       period30: '30J', period90: '90J', period12: '12M', periodAll: 'Tout', includeInvites: 'Inclure les invitations de l’équipe', includeInvitesHint: 'Les invitations de l’équipe sont en général des élèves actuels qui s’inscrivent, pas de nouveaux prospects',
       stageTotal: 'Nouveaux leads', stageContacted: 'Contactés', stageBooked: 'Ont réservé un essai', stageTried: 'Sont venus essayer', stageJoined: 'Inscrits',

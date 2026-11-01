@@ -271,7 +271,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-01 (f) (rama `claude/leads-report` — pendiente de Project Audit; sin migración)
+### Sesión — 2026-11-01 (f) (rama `claude/leads-report`, PR [#43](https://github.com/MartialOneOnline/martial-v2/pull/43) — `RECHAZADO` en `0fd0d00` → corregido, pendiente de reauditoría; sin migración)
 
 **Informe de Leads** (`/dashboard/reports/leads`, menú Informes → Leads). Pedido del usuario: los leads son alumnos potenciales que a veces no llegan a probar la clase; les falta un pequeño empujón.
 - **Problema de datos:** el estado del CRM casi nunca se mueve a mano y un `Lead` no está enlazado a sus reservas. `lib/leads/funnel.ts` (puro) calcula la etapa con evidencia: lead → usuario por `convertedUserId` o email (sin distinguir mayúsculas, `$queryRaw … lower(email) = ANY(...)`) → reservas en la escuela y primer pago de cuota PAID. Etapas: NUEVO → CONTACTADO (estado ≠ NEW, nota o reserva) → RESERVÓ PRUEBA (reserva no cancelada o estado TRIAL_BOOKED) → VINO A PROBAR (asistencia) → SE APUNTÓ (CONVERTED o cuota pagada). LOST = cerrado (sale de las listas salvo que haya pagado).
@@ -279,6 +279,14 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 - **Embudo** del periodo (30D/90D/12M/Todo, rodante, por fecha de alta del lead) con % sobre leads y la frase "de los que vinieron a probar, se apuntó el X%"; tablas por origen y por mes (zona horaria del colegio).
 - **Invitaciones del equipo** (`source: INVITE`, sobre todo alumnos actuales dados de alta en V2) quedan fuera por defecto; casilla "Incluir invitaciones del equipo".
 - Permiso `school.leads.view` (como el CRM) en API, página y menú. Textos EN/ES/PT/FR (`t.leadsReport`).
+- **Re-entrega tras `RECHAZADO` (Codex sobre `0fd0d00`, 1 P1 + 5 P2):**
+  - P1 — actividad anterior al lead lo daba por apuntado (alumno de hace 2 años que vuelve a escribir → "se apuntó", sin seguimiento). Ahora reservas, asistencia y pagos solo cuentan desde la creación del lead (con 24 h de margen para el walk-in que se apunta después de su primera clase); se leen todos los pagos y se busca uno posterior, no el primero histórico. El estado CONVERTED explícito sigue contando. Además, los leads cuyo usuario es staff de la escuela (dueño, instructores…) quedan fuera del informe.
+  - P2 — "Vinieron a probar" solo con asistencia real (un alta directa ya no cuenta como reserva ni prueba) y "de los que vinieron, se apuntó el X%" = vinieron Y se apuntaron / vinieron (`triedAndJoined`).
+  - P2 — una reserva cancelada ya cuenta como contacto (no sale en "Sin contactar"), aunque no como prueba.
+  - P2 — "Prueba próxima" incluye también a quien ya probó y tiene otra clase reservada (`followUps` es una lista: puede estar en dos).
+  - P2 — la ficha del lead (`GET /api/dashboard/leads/[id]`) pide `school.leads.view` (editar/borrar siguen con `manage`) y el panel muestra un error claro si no carga (antes "…" para siempre).
+  - P2 — no se puede exportar mientras carga otro periodo o tras un error (la tabla aún muestra el anterior).
+  - Tests: funnel 19, ruta 6. Suite 1015 pasan / 55 preexistentes; tsc 0; eslint sin avisos nuevos.
 - Tests: `leadsFunnel.test.ts` (13), `leadsReportRoute.test.ts` (4). Suite 1007 pasan / 55 preexistentes. tsc 0, eslint sin avisos nuevos. **No probado en navegador ni con datos reales.**
 
 ### Sesión — 2026-11-01 (f) (rama `claude/report-belt-filter`, PR [#41](https://github.com/MartialOneOnline/martial-v2/pull/41) — `APROBADO CON PENDIENTES` en `fe771a2` → **`APROBADO CON PENDIENTES`** en `f62b7f8`, los 6 hallazgos cerrados; sin migración; pendiente: recorrido autenticado con datos reales)
