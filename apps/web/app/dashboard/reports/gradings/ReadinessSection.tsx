@@ -8,10 +8,14 @@ import type { MemberReadiness } from '../../../../lib/grading/readinessData'
 import {
   READINESS_STYLE, ReadinessBadge, ReadinessBar, GradeButton, blockReasons, dueLabel, incompleteLabel, overCapLabel, readinessLabel, toNextLabel,
 } from '../../../../components/GradingReadiness'
-import { Lock } from 'lucide-react'
+import { Download, Lock } from 'lucide-react'
+import { NEW_STUDENT_MONTHS, isOverdue } from '../../../../lib/grading/overdue'
+import { downloadCsv } from '../../../../lib/csvExport'
 
 type Counts = Record<ReadinessStatus, number>
 type Filter = 'ALL' | 'READY' | 'ALMOST_READY' | 'NOT_READY'
+/** Narrows the due list: overdue for 2+ weeks, or new students */
+type Focus = 'NONE' | 'OVERDUE' | 'NEW'
 
 const PAGE = 25
 
@@ -25,6 +29,8 @@ export default function ReadinessSection({ onGraded }: { onGraded?: () => void }
   const rt = t.readiness
   const [students, setStudents] = useState<MemberReadiness[]>([])
   const [counts, setCounts] = useState<Counts | null>(null)
+  const [queue, setQueue] = useState({ overdue: 0, newDue: 0, overdueDays: 14 })
+  const [focus, setFocus] = useState<Focus>('NONE')
   const [loading, setLoading] = useState(true)
   /** 'load' = never loaded (show error + retry); 'refresh' = showing older data that failed to refresh */
   const [error, setError] = useState<null | 'load' | 'refresh'>(null)
@@ -43,6 +49,7 @@ export default function ReadinessSection({ onGraded }: { onGraded?: () => void }
         setError(null)
         setStudents(d.students)
         setCounts(d.counts)
+        setQueue({ overdue: d.overdue ?? 0, newDue: d.newDue ?? 0, overdueDays: d.overdueDays ?? 14 })
         // First open: land on the most useful non-empty group.
         if (firstLoad.current && !d.counts.READY) setFilter(d.counts.ALMOST_READY ? 'ALMOST_READY' : 'ALL')
         firstLoad.current = false
@@ -80,9 +87,31 @@ export default function ReadinessSection({ onGraded }: { onGraded?: () => void }
   if (!loading && counts && counts.READY + counts.ALMOST_READY + counts.NOT_READY === 0) return null
 
   const visible = students.filter(s =>
-    (filter === 'ALL' || s.readiness.status === filter) && (belt === 'ALL' || s.rankName === belt))
+    (filter === 'ALL' || s.readiness.status === filter) && (belt === 'ALL' || s.rankName === belt)
+    && (focus === 'NONE' || (focus === 'OVERDUE' ? isOverdue(s) : s.isNew && s.readiness.status === 'READY')))
   const fmt = (iso: string) => new Date(iso).toLocaleDateString(locale, { day: '2-digit', month: 'short', year: 'numeric' })
   const heads = [rt.student, rt.currentBelt, rt.dueCol, rt.classesCol, rt.lastCol, '']
+  const dueSinceLabel = (s: MemberReadiness) => {
+    if (s.daysOverdue === null || !s.readiness.dueSince) return null
+    return s.daysOverdue === 0
+      ? rt.dueToday
+      : rt.dueForDays.replace('{n}', String(s.daysOverdue)).replace('{date}', fmt(s.readiness.dueSince))
+  }
+
+  /** The list to take to the grading day: who is due and what, in report order */
+  function exportList() {
+    const rows = visible.filter(s => s.readiness.status === 'READY')
+    downloadCsv(rt.gradingListFile, [
+      rt.student, rt.csvPhone, rt.currentBelt, rt.csvDegree, rt.dueCol, rt.csvDueSince, rt.csvDays,
+      rt.csvMonths, rt.csvNew, rt.classesCol, rt.lastCol,
+    ], rows.map(s => [
+      s.name, s.phone, s.rankName ?? s.belt, s.beltDegree, dueLabel(s.readiness, rt),
+      s.readiness.dueSince ? fmt(s.readiness.dueSince) : null, s.daysOverdue,
+      s.monthsWithSchool, s.isNew ? rt.yes : rt.no, s.readiness.classesSince,
+      s.lastGradedAt ? fmt(s.lastGradedAt) : rt.never,
+    ]), { locale })
+  }
+  const exportable = visible.some(s => s.readiness.status === 'READY')
 
   return (
     <div className="rounded-2xl" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
@@ -102,7 +131,7 @@ export default function ReadinessSection({ onGraded }: { onGraded?: () => void }
             const s = READINESS_STYLE[st]
             const on = filter === st
             return (
-              <button key={st} onClick={() => { setFilter(on ? 'ALL' : st); setShown(PAGE) }}
+              <button key={st} onClick={() => { setFilter(on ? 'ALL' : st); setFocus('NONE'); setShown(PAGE) }}
                 className="rounded-xl text-left cursor-pointer"
                 style={{ padding: '12px 14px', background: on ? s.bg : '#fff', border: `1.5px solid ${on ? s.bar : '#E5E7EB'}` }}>
                 <div className="flex items-center gap-2" style={{ marginBottom: 6 }}>
@@ -116,6 +145,37 @@ export default function ReadinessSection({ onGraded }: { onGraded?: () => void }
             )
           })}
         </div>
+
+        {!loading && (counts?.READY ?? 0) > 0 && (
+          <div style={{ marginTop: 12 }}>
+            <div className="flex gap-2 flex-wrap items-center">
+              {([
+                ['OVERDUE', rt.overdueChip.replace('{n}', String(queue.overdueDays)), queue.overdue, '#B91C1C', '#FEF2F2', '#FECACA'],
+                ['NEW', rt.newDueChip, queue.newDue, '#1D4ED8', '#EFF6FF', '#BFDBFE'],
+              ] as const).map(([key, label, n, color, bg, border]) => {
+                const on = focus === key
+                return (
+                  <button key={key} onClick={() => { setFocus(on ? 'NONE' : key); if (!on) setFilter('READY'); setShown(PAGE) }}
+                    className="cursor-pointer inline-flex items-center gap-2"
+                    style={{ fontSize: 12, fontWeight: 600, padding: '5px 12px', borderRadius: 999,
+                      background: on ? color : bg, color: on ? '#fff' : color, border: `1.5px solid ${on ? color : border}` }}>
+                    {label}
+                    <span style={{ fontSize: 11, fontWeight: 700, padding: '0 6px', borderRadius: 999, background: on ? 'rgba(255,255,255,0.25)' : '#fff' }}>{n}</span>
+                  </button>
+                )
+              })}
+              {exportable && (
+                <button onClick={exportList} className="cursor-pointer inline-flex items-center gap-1.5 ml-auto"
+                  style={{ fontSize: 12, fontWeight: 600, padding: '5px 12px', borderRadius: 999, background: '#fff', color: '#374151', border: '1.5px solid #E5E7EB' }}>
+                  <Download size={13} /> {rt.exportList}
+                </button>
+              )}
+            </div>
+            <p style={{ fontSize: 11, color: '#9CA3AF', margin: '6px 0 0' }}>
+              {rt.priorityHint.replace('{months}', String(NEW_STUDENT_MONTHS))}
+            </p>
+          </div>
+        )}
 
         {belts.length > 1 && (
           <div className="flex gap-2 flex-wrap items-center" style={{ marginTop: 12 }}>
@@ -166,6 +226,11 @@ export default function ReadinessSection({ onGraded }: { onGraded?: () => void }
                         : <div className="rounded-full shrink-0 flex items-center justify-center"
                             style={{ width: 28, height: 28, background: '#E0E7FF', color: '#3730A3', fontSize: 10, fontWeight: 700 }}>{initials(s.name)}</div>}
                       <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{s.name}</span>
+                      {s.isNew && s.monthsWithSchool !== null && (
+                        <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 999, background: '#EFF6FF', color: '#1D4ED8', whiteSpace: 'nowrap' }}>
+                          {rt.newBadge.replace('{n}', String(s.monthsWithSchool))}
+                        </span>
+                      )}
                     </Link>
                   </td>
                   <td className="px-4 py-3">
@@ -183,7 +248,14 @@ export default function ReadinessSection({ onGraded }: { onGraded?: () => void }
                   </td>
                   <td className="px-4 py-3" style={{ minWidth: 190 }}>
                     {due ? (
-                      <span style={{ fontSize: 13, fontWeight: 600, color: '#15803D' }}>{due}</span>
+                      <div>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: '#15803D' }}>{due}</span>
+                        {dueSinceLabel(s) && (
+                          <p style={{ fontSize: 11, margin: '2px 0 0', fontWeight: isOverdue(s) ? 600 : 400, color: isOverdue(s) ? '#B91C1C' : '#9CA3AF' }}>
+                            {dueSinceLabel(s)}
+                          </p>
+                        )}
+                      </div>
                     ) : r.status === 'NO_RULES' && r.incompleteRules ? (
                       <span style={{ fontSize: 11, color: '#B45309' }}>{incompleteLabel(r, rt)}</span>
                     ) : r.status === 'NO_RULES' || r.status === 'TOP_RANK' ? (

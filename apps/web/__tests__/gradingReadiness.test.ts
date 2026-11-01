@@ -460,3 +460,53 @@ describe('pickStepSince()', () => {
     expect(pickStepSince({ ...input, gradings: [], degree: 0, isFirstGrade: true })).toEqual(new Date('2019-01-01'))
   })
 })
+
+// ── "Due since" — when an owed grading became due (overdue gradings report) ──
+describe('computeReadiness() — dueSince / earnedAt', () => {
+  const at = (iso: string) => ({ scheduledAt: new Date(iso), classId: 'c1', disciplineId: null })
+
+  it('classes rule: due since the day of the Nth class', () => {
+    // Blanco 0 → 1 needs 8: classes on 1..10 Oct, the 8th on 8 Oct
+    const attended = Array.from({ length: 10 }, (_, i) => at(`2026-10-${String(i + 1).padStart(2, '0')}T19:00:00Z`))
+    const r = computeReadiness({ ...base, currentRankId: 'blanco', currentDegree: 0, attended })
+    expect(r.dueSince).toBe('2026-10-08T19:00:00.000Z')
+    expect(r.steps[0]!.earnedAt).toBe('2026-10-08T19:00:00.000Z')
+    expect(r.steps[1]!.earnedAt).toBeNull()
+  })
+
+  it('several owed steps: dueSince is the oldest one, each later step on its own Nth class', () => {
+    // 8 + 16 = 24 classes → stripe 1 on the 8th, stripe 2 on the 24th
+    const attended = Array.from({ length: 30 }, (_, i) => ({ scheduledAt: new Date(Date.UTC(2026, 8, 1 + i, 19)), classId: 'c1', disciplineId: null }))
+    const r = computeReadiness({ ...base, currentRankId: 'blanco', currentDegree: 0, attended })
+    expect(r.due).toMatchObject({ count: 2 })
+    expect(r.dueSince).toBe('2026-09-08T19:00:00.000Z')
+    expect(r.steps[1]!.earnedAt).toBe('2026-09-24T19:00:00.000Z')
+  })
+
+  it('classes AND time: the later of the two', () => {
+    const ranks = [rank({ id: 'a', order: 0, maxDegrees: 1, totalClassesRequired: 2, monthsByDegree: [3] }), rank({ id: 'b', order: 1 })]
+    const r = computeReadiness({
+      ...base, ranks, currentRankId: 'a', currentDegree: 0,
+      stepSince: new Date('2026-06-15T00:00:00Z'), attended: [at('2026-06-20T19:00:00Z'), at('2026-06-21T19:00:00Z')],
+    })
+    expect(r.dueSince).toBe('2026-09-15T00:00:00.000Z') // classes done in June, 3 months reached 15 Sep
+  })
+
+  it('time-only degree: since the months were reached', () => {
+    const ranks = [rank({ id: 'negro', order: 0, maxDegrees: 1, monthsByDegree: [36, 36] }), rank({ id: 'x', order: 1 })]
+    const r = computeReadiness({ ...base, ranks, currentRankId: 'negro', currentDegree: 0, stepSince: new Date('2023-01-10T00:00:00Z'), attended: [] })
+    expect(r.dueSince).toBe('2026-01-10T00:00:00.000Z')
+  })
+
+  it('belt step waits for the next belt minimum age', () => {
+    const ranks = [rank({ id: 'a', order: 0, maxDegrees: 0, totalClassesRequired: 1 }), rank({ id: 'b', order: 1, minAge: 16 })]
+    const r = computeReadiness({ ...base, ranks, currentRankId: 'a', currentDegree: 0, dateOfBirth: new Date('2010-03-01T00:00:00Z'), attended: [at('2025-01-01T19:00:00Z')] })
+    expect(r.dueSince).toBe('2026-03-01T00:00:00.000Z')
+  })
+
+  it('nothing due → no dueSince', () => {
+    const r = computeReadiness({ ...base, currentRankId: 'blanco', currentDegree: 0, attended: [at('2026-10-01T19:00:00Z')] })
+    expect(r.dueSince).toBeNull()
+    expect(r.steps.every(s => s.earnedAt === null)).toBe(true)
+  })
+})

@@ -5,6 +5,7 @@ import { Check, Lock, AlertTriangle, Award } from 'lucide-react'
 import { useLanguage } from '../lib/i18n/LanguageContext'
 import type { GradingStep, Readiness, ReadinessStatus } from '../lib/grading/readiness'
 import type { Translations } from '../lib/i18n/translations'
+import { OVERDUE_DAYS, daysSince } from '../lib/grading/overdue'
 
 type RT = Translations['readiness']
 
@@ -194,6 +195,7 @@ export function AttendanceGradingCard({ readiness, lastGradedAt, target, onGrade
   const { t, locale } = useLanguage()
   const rt = t.readiness
   const fmt = (iso: string) => new Date(iso).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })
+  const dueDays = daysSince(readiness.dueSince, new Date())
 
   if (readiness.status === 'TOP_RANK') return <ReadinessBadge status="TOP_RANK" />
   const incomplete = incompleteLabel(readiness, rt)
@@ -218,6 +220,11 @@ export function AttendanceGradingCard({ readiness, lastGradedAt, target, onGrade
           <p style={{ fontSize: 16, fontWeight: 700, color: due ? '#15803D' : '#111827', margin: '2px 0 0', letterSpacing: '-0.01em' }}>
             {due ?? rt.nothingDue}
           </p>
+          {dueDays !== null && readiness.dueSince && (
+            <p style={{ fontSize: 12, margin: '2px 0 0', fontWeight: dueDays >= OVERDUE_DAYS ? 600 : 400, color: dueDays >= OVERDUE_DAYS ? '#B91C1C' : '#6B7280' }}>
+              {dueDays === 0 ? rt.dueToday : rt.dueForDays.replace('{n}', String(dueDays)).replace('{date}', fmt(readiness.dueSince))}
+            </p>
+          )}
           {toNext && <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>{toNext}</p>}
         </div>
         {target && onGraded && readiness.due

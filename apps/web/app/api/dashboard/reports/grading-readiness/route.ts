@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getAuthUser, getCurrentSchoolId, requireDashboardAccess } from '@/lib/auth/server'
 import { getReadinessForSchool } from '@/lib/grading/readinessData'
+import { OVERDUE_DAYS, compareGradingQueue, isOverdue } from '@/lib/grading/overdue'
 
 // GET /api/dashboard/reports/grading-readiness
 // Active/frozen students of the current school with their grading readiness.
@@ -16,14 +17,11 @@ export async function GET() {
   const rows = await getReadinessForSchool(schoolId)
   const counts = { READY: 0, ALMOST_READY: 0, NOT_READY: 0, NO_RULES: 0, TOP_RANK: 0 }
   for (const r of rows) counts[r.readiness.status]++
+  // Owed for 2+ weeks, and new students (first months) owed anything
+  const overdue = rows.filter(isOverdue).length
+  const newDue = rows.filter(r => r.isNew && r.readiness.status === 'READY').length
 
-  // Most overdue first (most steps due), then closest to the next step.
-  const order = { READY: 0, ALMOST_READY: 1, NOT_READY: 2, NO_RULES: 3, TOP_RANK: 4 }
-  rows.sort((a, b) =>
-    order[a.readiness.status] - order[b.readiness.status]
-    || (b.readiness.due?.count ?? 0) - (a.readiness.due?.count ?? 0)
-    || (b.readiness.percent ?? -1) - (a.readiness.percent ?? -1)
-    || a.name.localeCompare(b.name))
+  rows.sort(compareGradingQueue)
 
-  return NextResponse.json({ counts, students: rows })
+  return NextResponse.json({ counts, overdue, newDue, overdueDays: OVERDUE_DAYS, students: rows })
 }

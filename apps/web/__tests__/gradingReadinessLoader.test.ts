@@ -107,6 +107,22 @@ describe('getReadinessForSchool()', () => {
     expect(row!.readiness.next!.gates[0]).toMatchObject({ kind: 'GRADING_MONTHS', unknown: true, met: false })
   })
 
+  it('overdue report fields: new student, days overdue, cleaned phone', async () => {
+    // 2026-10-27 "now"; joined 2 months ago, 1 class needed, attended on 20 Oct
+    schoolMemberFindMany.mockResolvedValue([{
+      id: 'm1', userId: 'u1', status: 'ACTIVE', belt: 'A', beltRankId: 'a', beltDegree: 0,
+      beltDate: null, joinedAt: new Date('2026-08-15T00:00:00Z'),
+      user: { name: 'New', email: 'n@x.test', avatarUrl: null, dateOfBirth: null, phone: 'NULL' },
+    }])
+    gradingSystemFindMany.mockResolvedValue([{
+      id: 'sys', isDefault: true, createdAt: new Date(),
+      ranks: [rank({ id: 'a', name: 'A', order: 0, maxDegrees: 1, totalClassesRequired: 1 }), rank({ id: 'b', name: 'B', order: 1 })],
+    }])
+    const [row] = await getReadinessForSchool('school-1')
+    expect(row!.readiness.status).toBe('READY')
+    expect(row).toMatchObject({ isNew: true, monthsWithSchool: 2, daysOverdue: 7, phone: null, joinedAt: '2026-08-15T00:00:00.000Z' })
+  })
+
   it('only queries this school\'s classes for attendance', async () => {
     await getReadinessForSchool('school-1')
     expect(bookingFindMany.mock.calls[0]![0].where.class).toEqual({ schoolId: 'school-1' })
