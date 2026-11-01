@@ -11,6 +11,7 @@ import { fmtPrice } from '../../../../lib/format'
 import CampaignComposerModal, { type ComposerStudent } from '../../users/CampaignComposerModal'
 import { segmentMonthOptions, createRequestGuard } from '../../../../lib/reportSelection'
 import { averageRetention } from '../../../../lib/memberActivity'
+import { isWhiteBelt, NO_BELT_KEY, type BeltOption, type BeltFilter } from '../../../../lib/beltGroups'
 import {
   ComposedChart, Line, Bar, PieChart, Pie, Cell, Legend,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -18,21 +19,23 @@ import {
 
 const ITEMS_PER_PAGE = 15
 
-const BELT_BG: Record<string, string> = {
-  Blanco: '#F3F4F6', White: '#F3F4F6', Azul: '#1D4ED8', Blue: '#1D4ED8',
-  Morado: '#6D28D9', Purple: '#6D28D9', Marrón: '#92400E', Brown: '#92400E',
-  Negro: '#111827',  Black: '#111827',
+// Belt colours come from the school's grading catalog (see lib/beltGroups.ts);
+// white belts get a light chip so they stay visible on white.
+function textOn(hex: string): string {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex)
+  if (!m) return '#fff'
+  const n = parseInt(m[1]!, 16)
+  const lum = (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255
+  return lum > 0.6 ? '#111827' : '#fff'
 }
-const BELT_TEXT: Record<string, string> = {
-  Blanco: '#374151', White: '#374151', Azul: '#fff', Blue: '#fff',
-  Morado: '#fff', Purple: '#fff', Marrón: '#fff', Brown: '#fff', Negro: '#fff', Black: '#fff',
+function beltChipStyle(name: string, color: string): React.CSSProperties {
+  if (isWhiteBelt(name)) return { background: '#F3F4F6', color: '#374151', border: '1px solid #D1D5DB' }
+  return { background: color, color: textOn(color), border: 'none' }
 }
-const BELT_CHART_FILL: Record<string, string> = {
-  Blanco: '#E5E7EB', White: '#E5E7EB', Azul: '#1D4ED8', Blue: '#1D4ED8',
-  Morado: '#6D28D9', Purple: '#6D28D9', Marrón: '#92400E', Brown: '#92400E',
-  Negro: '#111827',  Black: '#111827',
+function beltDotStyle(name: string, color: string): React.CSSProperties {
+  return isWhiteBelt(name) ? { background: '#F3F4F6', border: '1px solid #D1D5DB' } : { background: color }
 }
-const BELT_OPTIONS = ['Blanco', 'Azul', 'Morado', 'Marrón', 'Negro']
+const chartFill = (name: string, color: string) => (isWhiteBelt(name) ? '#E5E7EB' : color)
 
 const STATUS_STYLES: Record<string, { bg: string; color: string; border: string; label: string }> = {
   ACTIVE:   { bg: '#F0FDF4', color: '#16A34A', border: '#BBF7D0', label: 'Active'   },
@@ -68,13 +71,30 @@ function fmtDate(iso: string) {
 // ── Shared UI helpers ─────────────────────────────────────────────────────────
 const SEC: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8, display: 'block' }
 
-interface FiltersState { belt: string }
-const EMPTY_FILTERS: FiltersState = { belt: '' }
+type FiltersState = BeltFilter
+const EMPTY_FILTERS: FiltersState = { belts: [], degrees: [] }
+const toggleIn = <T,>(list: T[], v: T) => (list.includes(v) ? list.filter(x => x !== v) : [...list, v])
 
-function FiltersPanel({ filters, onChange }: { filters: FiltersState; onChange: (f: FiltersState) => void }) {
+type ReportLabels = ReturnType<typeof useT>['reports']
+
+function FiltersPanel({ filters, onChange, options, r }: {
+  filters: FiltersState; onChange: (f: FiltersState) => void; options: BeltOption[]; r: ReportLabels
+}) {
   const [local, setLocal] = useState<FiltersState>(filters)
   useEffect(() => { setLocal(filters) }, [filters])
-  const activeCount = [!!filters.belt].filter(Boolean).length
+  const activeCount = filters.belts.length + filters.degrees.length
+  // Stripes go up to the most any selected belt allows (or any belt, if none picked)
+  const scope = local.belts.length ? options.filter(o => local.belts.includes(o.key)) : options
+  const maxDeg = Math.max(4, ...scope.map(o => o.maxDegrees))
+  const groups: { name: string | null; items: BeltOption[] }[] = []
+  for (const o of options) {
+    const g = groups.find(x => x.name === o.group)
+    if (g) g.items.push(o); else groups.push({ name: o.group, items: [o] })
+  }
+  const chip = (on: boolean): React.CSSProperties => ({
+    display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 500, padding: '4px 10px', borderRadius: 999, cursor: 'pointer',
+    border: on ? '1.5px solid #0870E2' : '1px solid #E5E7EB', background: on ? '#EFF6FF' : '#F9FAFB', color: on ? '#0870E2' : '#6B7280',
+  })
   return (
     <SharedRowMenu align="right" closeOnItemClick={false} trigger={({ onClick }) => (
       <button onClick={onClick}
@@ -82,7 +102,7 @@ function FiltersPanel({ filters, onChange }: { filters: FiltersState; onChange: 
           border: activeCount ? '1.5px solid #0870E2' : '1px solid #E5E7EB',
           background: activeCount ? '#EFF6FF' : '#fff' }}>
         <Filter size={13} style={{ color: activeCount ? '#0870E2' : '#6B7280' }} />
-        <span style={{ fontSize: 12, fontWeight: 500, color: activeCount ? '#0870E2' : '#6B7280' }}>Filters</span>
+        <span style={{ fontSize: 12, fontWeight: 500, color: activeCount ? '#0870E2' : '#6B7280' }}>{r.usersFilters}</span>
         {activeCount > 0 && <span style={{ background: '#0870E2', color: '#fff', borderRadius: 999, fontSize: 10, fontWeight: 700, padding: '1px 6px' }}>{activeCount}</span>}
       </button>
     )}>
@@ -90,22 +110,42 @@ function FiltersPanel({ filters, onChange }: { filters: FiltersState; onChange: 
         function apply() { onChange(local); close() }
         function clear() { setLocal(EMPTY_FILTERS); onChange(EMPTY_FILTERS); close() }
         return (
-          <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 14, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', width: 280, padding: 16 }}>
+          <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 14, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', width: 320, maxWidth: 'calc(100vw - 32px)', padding: 16 }}>
+            <div style={{ marginBottom: 16, maxHeight: 320, overflowY: 'auto' }}>
+              <span style={SEC}>{r.usersColBelt}</span>
+              {options.length === 0 && <p style={{ fontSize: 12, color: '#9CA3AF' }}>{r.usersNoBeltOptions}</p>}
+              {groups.map(g => (
+                <div key={g.name ?? '_'} style={{ marginBottom: 8 }}>
+                  {g.name && <p style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', marginBottom: 4 }}>{g.name}</p>}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {g.items.map(o => {
+                      const label = o.key === NO_BELT_KEY ? r.usersNoBelt : o.name
+                      return (
+                        <button key={o.key} onClick={() => setLocal(p => ({ ...p, belts: toggleIn(p.belts, o.key) }))}
+                          title={r.usersBeltOptionHint.replace('{n}', String(o.count)).replace('{a}', String(o.activeCount))}
+                          style={chip(local.belts.includes(o.key))}>
+                          <span style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0, ...beltDotStyle(label, o.color) }} />
+                          {label}
+                          <span style={{ opacity: 0.6 }}>{o.count}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
             <div style={{ marginBottom: 16 }}>
-              <span style={SEC}>Belt</span>
+              <span style={SEC}>{r.usersColDegree}</span>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {BELT_OPTIONS.map(b => (
-                  <button key={b} onClick={() => setLocal(p => ({ ...p, belt: p.belt === b ? '' : b }))}
-                    style={{ fontSize: 11, fontWeight: 500, padding: '4px 10px', borderRadius: 999, cursor: 'pointer',
-                      border: local.belt === b ? '1.5px solid #0870E2' : '1px solid #E5E7EB',
-                      background: local.belt === b ? '#EFF6FF' : '#F9FAFB',
-                      color: local.belt === b ? '#0870E2' : '#6B7280' }}>{b}</button>
+                {Array.from({ length: maxDeg + 1 }, (_, d) => (
+                  <button key={d} onClick={() => setLocal(p => ({ ...p, degrees: toggleIn(p.degrees, d).sort((a, b) => a - b) }))}
+                    style={{ ...chip(local.degrees.includes(d)), minWidth: 32, justifyContent: 'center' }}>{d}</button>
                 ))}
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8, paddingTop: 12, borderTop: '1px solid #F3F4F6' }}>
-              <button onClick={clear} style={{ flex: 1, padding: 8, borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, fontWeight: 500, color: '#6B7280', cursor: 'pointer' }}>Clear</button>
-              <button onClick={apply} style={{ flex: 1, padding: 8, borderRadius: 8, border: 'none', background: '#111827', fontSize: 12, fontWeight: 600, color: '#fff', cursor: 'pointer' }}>Apply</button>
+              <button onClick={clear} style={{ flex: 1, padding: 8, borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, fontWeight: 500, color: '#6B7280', cursor: 'pointer' }}>{r.usersFilterClear}</button>
+              <button onClick={apply} style={{ flex: 1, padding: 8, borderRadius: 8, border: 'none', background: '#111827', fontSize: 12, fontWeight: 600, color: '#fff', cursor: 'pointer' }}>{r.usersFilterApply}</button>
             </div>
           </div>
         )
@@ -139,7 +179,8 @@ function RowMenu({ items }: { items: { label: string; onClick: () => void; varia
 interface MemberRow {
   id: string; name: string; email: string; avatarUrl: string | null
   phone: string | null; whatsapp: string | null
-  belt: string; plan: string; status: string; joinedAt: string; isNew: boolean
+  belt: string; beltKey: string; beltColor: string; beltDegree: number
+  plan: string; status: string; joinedAt: string; isNew: boolean
   firstMonth: string | null; lastMonth: string | null; monthsActive: number; classes: number
   lastAttendedAt: string | null
   lastPayment: { date: string; amount: number; currency: string } | null
@@ -174,12 +215,14 @@ interface ReportData {
   segmentMonth: string
   segmentCounts: Record<Segment, number>
   segmentRemoved: number
-  beltDist:   { name: string; value: number }[]
+  beltDist:   { key: string; name: string; color: string; value: number }[]
+  beltOptions: BeltOption[]
+  beltFilter:  BeltFilter
   members:    MemberRow[]
   total:      number
 }
 
-export default function UsersReportClient() {
+export default function UsersReportClient({ initialFilters = EMPTY_FILTERS }: { initialFilters?: FiltersState }) {
   const { setMenuOpen } = useDashboard()
   const t = useT()
   const { locale } = useLanguage()
@@ -210,7 +253,7 @@ export default function UsersReportClient() {
   const listRef = useRef<HTMLDivElement>(null)
   const [search,    setSearch]    = useState('')
   const [page,      setPage]      = useState(1)
-  const [filters,   setFilters]   = useState<FiltersState>(EMPTY_FILTERS)
+  const [filters,   setFilters]   = useState<FiltersState>(initialFilters)
   const [data,      setData]      = useState<ReportData | null>(null)
   const [loading,   setLoading]   = useState(true)
   const [toast,     setToast]     = useState('')
@@ -224,7 +267,8 @@ export default function UsersReportClient() {
       if (segMonth) params.set('month', segMonth)  // explicit whenever known, see selectTab
     } else params.set('status', filterTab)
     if (pageSize) params.set('pageSize', String(pageSize))
-    if (filters.belt)     params.set('belt', filters.belt)
+    for (const b of filters.belts)   params.append('belt', b)
+    for (const d of filters.degrees) params.append('degree', String(d))
     if (period === 'custom' && customFrom) params.set('dateFrom', customFrom)
     if (period === 'custom' && customTo)   params.set('dateTo', customTo)
     return params
@@ -246,6 +290,14 @@ export default function UsersReportClient() {
   }, [buildParams, page, filterTab, segMonth, loadGuard])
 
   useEffect(() => { load() }, [load])
+  // Keep the belt filter in the address bar so the view can be shared or bookmarked
+  useEffect(() => {
+    const url = new URL(window.location.href)
+    url.searchParams.delete('belt'); url.searchParams.delete('degree')
+    for (const b of filters.belts)   url.searchParams.append('belt', b)
+    for (const d of filters.degrees) url.searchParams.append('degree', String(d))
+    if (url.href !== window.location.href) window.history.replaceState(window.history.state, '', url.href)
+  }, [filters])
   useEffect(() => { setPage(1) }, [period, filterTab, segMonth, search, filters, customFrom, customTo])
   // A new group means a new audience — don't carry a selection across it,
   // and any pending "Select all" for the old context must not land later.
@@ -272,15 +324,15 @@ export default function UsersReportClient() {
   }
 
   function exportMembers(list: MemberRow[]) {
-    const headers = [r.usersColMember, 'Email', 'Phone', r.usersColBelt, r.usersColPlan, r.usersColStatus,
+    const headers = [r.usersColMember, 'Email', 'Phone', r.usersColBelt, r.usersColDegree, r.usersColPlan, r.usersColStatus,
       r.usersColWithUs, r.usersColClasses, r.usersColLastClass, r.usersColLastPayment]
     const rows = list.map(m => [
-      m.name, m.email, m.phone ?? '', m.belt, m.plan, STATUS_STYLES[m.status]?.label ?? m.status,
+      m.name, m.email, m.phone ?? '', m.belt, m.beltDegree, m.plan, STATUS_STYLES[m.status]?.label ?? m.status,
       m.firstMonth ? `${m.firstMonth} (${m.monthsActive})` : fmtDate(m.joinedAt), m.classes,
       m.lastAttendedAt ? fmtDate(m.lastAttendedAt) : '',
       m.lastPayment ? `${fmtDate(m.lastPayment.date)} ${fmtPrice(m.lastPayment.amount, m.lastPayment.currency)}` : '',
     ])
-    const name = isSegment(filterTab) ? `members-${filterTab.toLowerCase()}-${data?.segmentMonth ?? ''}` : 'members-report'
+    const name = isSegment(filterTab) ? `members-${filterTab.toLowerCase()}-${data?.segmentMonth ?? ''}` : (filters.belts.length || filters.degrees.length) ? 'members-report-belts' : 'members-report'
     downloadCsv(name, headers, rows)
   }
 
@@ -317,6 +369,19 @@ export default function UsersReportClient() {
     setSegMonth(month)
     setTimeout(() => listRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
   }
+
+  // From the belt chart: list that belt's active students (the chart counts
+  // active ones, so the list matches it); clicking it again clears the filter.
+  function showBelt(key: string) {
+    const only = filters.belts.length === 1 && filters.belts[0] === key
+    setFilters(f => ({ ...f, belts: only ? [] : [key] }))
+    if (!only) {
+      selectTab('ACTIVE')
+      setTimeout(() => listRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
+    }
+  }
+  const beltLabel = (key: string, name: string) => (key === NO_BELT_KEY ? r.usersNoBelt : name)
+  const beltOptionByKey = new Map((data?.beltOptions ?? []).map(o => [o.key, o]))
 
   function copy(text: string) { navigator.clipboard.writeText(text); showToast(r.usersCopied) }
 
@@ -493,38 +558,51 @@ export default function UsersReportClient() {
             )}
           </div>
           <div className="rounded-2xl p-5" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 16 }}>Members by Belt</p>
-            {loading ? <div style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</p></div> : (
-              <>
-                <div className="relative">
-                  <ResponsiveContainer width="100%" height={220}>
-                    <PieChart>
-                      <Pie data={data?.beltDist ?? []} cx="50%" cy="50%" innerRadius={60} outerRadius={90} dataKey="value" paddingAngle={2} isAnimationActive={false}>
-                        {(data?.beltDist ?? []).map((entry, i) => (
-                          <Cell key={i} fill={BELT_CHART_FILL[entry.name] ?? '#9CA3AF'}
-                            stroke={['Blanco','White'].includes(entry.name) ? '#D1D5DB' : (BELT_CHART_FILL[entry.name] ?? '#9CA3AF')} />
-                        ))}
-                      </Pie>
-                      <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12 }} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="text-center">
-                      <p style={{ fontSize: 22, fontWeight: 700, color: '#111827', lineHeight: 1 }}>{totalBelt}</p>
-                      <p style={{ fontSize: 11, color: '#9CA3AF' }}>active</p>
+            <div className="flex items-baseline justify-between gap-2 flex-wrap" style={{ marginBottom: 16 }}>
+              <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{r.usersBeltChart}</p>
+              <span style={{ fontSize: 11, color: '#9CA3AF' }}>{r.usersBeltChartHint}</span>
+            </div>
+            {loading && !data ? <div style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</p></div> : (() => {
+              const pieData = (data?.beltDist ?? []).map(b => ({ ...b, name: beltLabel(b.key, b.name) }))
+              const dim = (key: string) => filters.belts.length > 0 && !filters.belts.includes(key)
+              return (
+                <>
+                  <div className="relative">
+                    <ResponsiveContainer width="100%" height={220}>
+                      <PieChart>
+                        <Pie data={pieData} nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={90} dataKey="value" paddingAngle={2} isAnimationActive={false}>
+                          {pieData.map(entry => (
+                            <Cell key={entry.key} fill={chartFill(entry.name, entry.color)} fillOpacity={dim(entry.key) ? 0.25 : 1}
+                              stroke={isWhiteBelt(entry.name) ? '#D1D5DB' : chartFill(entry.name, entry.color)}
+                              style={{ cursor: 'pointer', outline: 'none' }} onClick={() => showBelt(entry.key)} />
+                          ))}
+                        </Pie>
+                        <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12 }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="text-center">
+                        <p style={{ fontSize: 22, fontWeight: 700, color: '#111827', lineHeight: 1 }}>{totalBelt}</p>
+                        <p style={{ fontSize: 11, color: '#9CA3AF' }}>{r.usersActiveShort}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-3 flex-wrap justify-center" style={{ marginTop: 8 }}>
-                  {(data?.beltDist ?? []).map(b => (
-                    <div key={b.name} className="flex items-center gap-1.5">
-                      <div className="w-2.5 h-2.5 rounded-full" style={{ background: BELT_CHART_FILL[b.name] ?? '#9CA3AF', border: ['Blanco','White'].includes(b.name) ? '1px solid #D1D5DB' : 'none' }} />
-                      <span style={{ fontSize: 11, color: '#6B7280' }}>{b.name} ({b.value})</span>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
+                  <div className="flex items-center gap-1.5 flex-wrap justify-center" style={{ marginTop: 8 }}>
+                    {pieData.map(b => {
+                      const on = filters.belts.includes(b.key)
+                      return (
+                        <button key={b.key} onClick={() => showBelt(b.key)} className="flex items-center gap-1.5 cursor-pointer"
+                          style={{ padding: '3px 8px', borderRadius: 999, border: on ? '1.5px solid #0870E2' : '1px solid transparent',
+                            background: on ? '#EFF6FF' : 'transparent', opacity: dim(b.key) ? 0.5 : 1 }}>
+                          <span className="w-2.5 h-2.5 rounded-full" style={beltDotStyle(b.name, b.color)} />
+                          <span style={{ fontSize: 11, color: on ? '#0870E2' : '#6B7280' }}>{b.name} ({b.value})</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </>
+              )
+            })()}
           </div>
         </div>
 
@@ -701,9 +779,38 @@ export default function UsersReportClient() {
               </select>
             )}
             <div style={{ marginLeft: 'auto' }}>
-              <FiltersPanel filters={filters} onChange={f => { setFilters(f); setPage(1) }} />
+              <FiltersPanel filters={filters} onChange={f => { setFilters(f); setPage(1) }} options={data?.beltOptions ?? []} r={r} />
             </div>
           </div>
+
+          {(filters.belts.length > 0 || filters.degrees.length > 0) && (
+            <div className="flex items-center gap-1.5 flex-wrap" style={{ marginBottom: 12 }}>
+              <span style={{ fontSize: 12, color: '#6B7280', marginRight: 2 }}>{r.usersFilteredBy}</span>
+              {filters.belts.map(key => {
+                const o = beltOptionByKey.get(key)
+                const label = o ? beltLabel(o.key, o.name) : key === NO_BELT_KEY ? r.usersNoBelt : key.replace(/^[rn]:/, '')
+                return (
+                  <button key={key} onClick={() => setFilters(f => ({ ...f, belts: f.belts.filter(b => b !== key) }))}
+                    className="flex items-center gap-1.5 cursor-pointer" aria-label={`${label} ×`}
+                    style={{ fontSize: 12, fontWeight: 500, padding: '3px 8px 3px 10px', borderRadius: 999, border: '1px solid #BFDBFE', background: '#EFF6FF', color: '#0870E2' }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', ...beltDotStyle(label, o?.color ?? '#9CA3AF') }} />
+                    {label} <X size={12} />
+                  </button>
+                )
+              })}
+              {filters.degrees.length > 0 && (
+                <button onClick={() => setFilters(f => ({ ...f, degrees: [] }))} className="flex items-center gap-1.5 cursor-pointer"
+                  style={{ fontSize: 12, fontWeight: 500, padding: '3px 8px 3px 10px', borderRadius: 999, border: '1px solid #BFDBFE', background: '#EFF6FF', color: '#0870E2' }}>
+                  {r.usersColDegree}: {filters.degrees.join(', ')} <X size={12} />
+                </button>
+              )}
+              <button onClick={() => setFilters(EMPTY_FILTERS)} className="cursor-pointer"
+                style={{ fontSize: 12, color: '#6B7280', background: 'none', border: 'none', textDecoration: 'underline', marginLeft: 4 }}>
+                {r.usersFilterClear}
+              </button>
+              {data && !loading && <span style={{ fontSize: 12, color: '#9CA3AF', marginLeft: 'auto' }}>{data.total}</span>}
+            </div>
+          )}
 
           {isSegment(filterTab) && data && !loading && (
             <p style={{ fontSize: 12, color: '#6B7280', marginBottom: 12 }}>
@@ -776,9 +883,6 @@ export default function UsersReportClient() {
                 ) : (
                   (data?.members ?? []).map((m, idx) => {
                     const ss = STATUS_STYLES[m.status] ?? STATUS_STYLES['INACTIVE']!
-                    const beltBg   = BELT_BG[m.belt]   ?? '#E5E7EB'
-                    const beltText = BELT_TEXT[m.belt]  ?? '#374151'
-                    const isWhite  = ['Blanco','White'].includes(m.belt)
                     const isSel = selected.has(m.id)
                     const iconBtn = { width: 24, height: 24, borderRadius: 6, border: '1px solid #E5E7EB', background: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' } as const
                     return (
@@ -814,10 +918,20 @@ export default function UsersReportClient() {
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 999, whiteSpace: 'nowrap',
-                            background: beltBg, color: beltText, border: isWhite ? '1px solid #D1D5DB' : 'none' }}>
-                            {m.belt}
-                          </span>
+                          {m.beltKey === NO_BELT_KEY ? <span style={{ fontSize: 12, color: '#D1D5DB' }}>—</span> : (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+                              <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 999, ...beltChipStyle(m.belt, m.beltColor) }}>
+                                {m.belt}
+                              </span>
+                              {m.beltDegree > 0 && (
+                                <span title={`${r.usersColDegree}: ${m.beltDegree}`} aria-label={`${r.usersColDegree}: ${m.beltDegree}`} style={{ display: 'inline-flex', gap: 2 }}>
+                                  {Array.from({ length: Math.min(m.beltDegree, 6) }, (_, i) => (
+                                    <span key={i} style={{ width: 3, height: 10, borderRadius: 1, background: '#6B7280' }} />
+                                  ))}
+                                </span>
+                              )}
+                            </span>
+                          )}
                         </td>
                         <td className="px-4 py-3"><span style={{ fontSize: 12, color: '#6B7280' }}>{m.plan}</span></td>
                         <td className="px-4 py-3" style={{ whiteSpace: 'nowrap' }}>

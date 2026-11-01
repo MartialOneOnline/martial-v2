@@ -116,6 +116,13 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 - Criterios: `dueSince` = cuándo se cumplió la última regla del primer paso debido (clase N tras el tope, meses, edad), nunca futuro ni anterior al paso previo; atrasado = ≥14 días; orden nuevos → días → pasos; chips y contadores coinciden con la lista; CSV con el orden del informe y el formato del idioma; textos EN/ES/PT/FR.
 - No verificado: navegador y datos reales.
 
+### Lote I — Filtro por cinturón en el informe de alumnos (rama `claude/report-belt-filter`)
+
+- Estado: pendiente de auditoría.
+- Objetivo: en Reports → Users, listar a los alumnos de uno o varios cinturones (y grados), también desde el gráfico, sin que tildes o idiomas del texto libre dejen a nadie fuera.
+- Criterios: "Marrón"/"Marron"/"Brown Belt" son el mismo cinturón; opciones = catálogo de la escuela + nombres fuera de catálogo + "sin cinturón", con recuentos; varios cinturones = O, cinturón + grado = Y; la lista, la paginación, el CSV y "Seleccionar todos" respetan el filtro; el gráfico filtra y muestra activos; la URL conserva el filtro; enlaces viejos `?belt=Marrón` siguen funcionando; cambiar el cinturón como texto no deja `beltRankId` viejo; textos EN/ES/PT/FR.
+- No verificado: navegador y recorrido autenticado.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.

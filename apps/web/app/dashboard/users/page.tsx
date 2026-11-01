@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import UsersClient from './UsersClient'
-import { getStudentsForSchool } from './data'
+import { getStudentsForSchool, getSchoolBeltNames } from './data'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { getSchoolMembership } from '@/lib/auth/contexts'
 import { hasPermission } from '@/lib/auth/permissions'
@@ -40,7 +40,7 @@ async function UsersPageWithSchool({ schoolId }: { schoolId: string }) {
     }
   }
 
-  const students = await getStudentsForSchool(schoolId)
+  const [students, beltNames] = await Promise.all([getStudentsForSchool(schoolId), getSchoolBeltNames(schoolId)])
 
   // Members with an ACTIVE membership whose access status disagrees (e.g.
   // stuck INACTIVE) — surfaced as an OWNER/ADMIN-only banner below. Computed
@@ -65,5 +65,5 @@ async function UsersPageWithSchool({ schoolId }: { schoolId: string }) {
       || ['OWNER', 'ADMIN'].includes((await getSchoolMembership(viewer.id, schoolId))?.role ?? '')
   }
 
-  return <UsersClient students={students} driftedMembers={canViewDrift ? driftedMembers : []} />
+  return <UsersClient students={students} driftedMembers={canViewDrift ? driftedMembers : []} beltNames={beltNames} />
 }
