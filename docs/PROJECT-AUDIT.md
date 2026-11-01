@@ -97,7 +97,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote F — Reglas de graduación por grado (rama `claude/grading-step-rules`)
 
-- Estado: `RECHAZADO` sobre `268b9d2` (P1 fecha de inicio tomada de otro sistema; P2 ventana mensual días 29–31; P2 tope en UTC; P2 informe sin motivos) → corregido, **pendiente de reauditoría**.
+- Estado: `RECHAZADO` sobre `268b9d2` (P1 fecha de inicio tomada de otro sistema; P2 ventana mensual días 29–31; P2 tope en UTC; P2 informe sin motivos) → corregido en `bfd58ce` → **`APROBADO CON PENDIENTES`** (Codex). Pendientes: aplicar `20261101120000_belt_rank_step_rules` antes de desplegar; recorrido autenticado con persistencia real.
 - Objetivo: cada escuela puede exigir, por grado, clases, meses mínimos desde la graduación anterior y edad mínima; y por cinturón una frecuencia mínima (bloquea) y máxima (tope de clases que cuentan).
 - Criterios: reglas en blanco no aplican; tiempo con fecha desconocida no se cumple (nunca `joinedAt` salvo primer grado del sistema); tope por semana (lunes) o mes natural; validación API mín./máx./periodo; textos en EN/ES/PT/FR.
 - No verificado: navegador y recorrido autenticado; migración `20261101120000_belt_rank_step_rules` sin aplicar en la BD.

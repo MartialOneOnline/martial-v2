@@ -270,7 +270,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-01 (c) (rama `claude/grading-step-rules`, PR [#38](https://github.com/MartialOneOnline/martial-v2/pull/38) — `RECHAZADO` en `268b9d2` → re-entregado, pendiente de reauditoría; migración **sin aplicar** en la BD, se aplica tras `APROBADO` con el OK del usuario)
+### Sesión — 2026-11-01 (c) (rama `claude/grading-step-rules`, PR [#38](https://github.com/MartialOneOnline/martial-v2/pull/38) — `RECHAZADO` en `268b9d2` → **`APROBADO CON PENDIENTES`** por Codex Project Audit en `bfd58ce`; pendientes: aplicar la migración antes de desplegar y recorrido autenticado con persistencia real)
 
 **Reglas de graduación por grado: tiempo, edad y frecuencia mín./máx.** Primer paso del plan de informes (Graduaciones → plantillas de super admin → informe de graduaciones atrasadas → Leads → Ausencias → Pagos → Balance → Reservas). Principio acordado con el usuario: las reglas las pone **cada escuela** en Ajustes → Graduaciones, y MartialApp no es solo BJJ (karate kyu/dan, judo…); IBJJF es un caso más (edad mínima, tiempo en cinturón, grados del negro por tiempo).
 - **Decisiones del usuario:** (1) la frecuencia máxima es el **tope de clases que cuentan** por semana/mes; (2) la frecuencia mínima **bloquea** (antes solo avisaba); (3) las plantillas (p.ej. IBJJF) las crea el **super admin**. En el repo de V2 no hay ninguna plantilla de V1.
@@ -286,6 +286,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
   - P2 — la ventana de 3 meses de la frecuencia se desbordaba los días 29–31 (31-may − 3 = "31-feb" = 3-mar). `monthsBefore()` recorta al último día del mes; la ventana completa cuenta exactamente 12 semanas / 3 meses.
   - P2 — el tope agrupaba por semana/mes UTC. Ahora usa la zona horaria de la escuela (`schoolTimeZone(School.country)`, mismo helper que el informe de Usuarios) vía `civilDateInTz`. Tests este/oeste de UTC (Madrid, Nueva York), semanal y mensual.
   - P2 — el informe no explicaba los bloqueos ni el tope. `blockReasons()` / `overCapLabel()` compartidos por la tarjeta del perfil y el informe: motivos bajo "Le corresponde" y "N clases no cuentan" bajo Clases. Test en los 4 idiomas.
+  - Reauditoría `APROBADO CON PENDIENTES` sobre `bfd58ce`: los 4 hallazgos cerrados, sin hallazgos nuevos. Codex: 62/62 en UTC y Asia/Tokyo, perfil e informe verificados en Chromium (API simulada) en EN/ES/PT/FR. Un grado editado a mano sin registro `Grading` queda con fecha desconocida (criterio aceptado).
   - Tests: +11 (`gradingReadiness`, cargador, `gradingReadinessLabels.test.ts` nuevo). Suite 928 pasan / 55 preexistentes. tsc 0, eslint sin nuevos avisos, `git diff --check` limpio.
 - **Antes de mergear:** aplicar la migración en la BD (con el OK del usuario) — el cargador selecciona las columnas nuevas y fallaría sin ellas. **Efecto en escuelas existentes:** cualquier cinturón que ya tenga `classesPerPeriod` pasa de avisar a bloquear (el fixture de tests de RGM usa 2/semana; no comprobado en la BD real — la lectura de producción quedó bloqueada por permisos). Revisar esas cifras con el usuario antes de desplegar.
 
