@@ -270,7 +270,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-01 (b) (rama `claude/users-report-provisional-month`, PR [#37](https://github.com/MartialOneOnline/martial-v2/pull/37) — `APROBADO CON PENDIENTES` por Codex en `50fce6e`, P3 corregido, pendiente de confirmación)
+### Sesión — 2026-11-01 (b) (rama `claude/users-report-provisional-month`, PR [#37](https://github.com/MartialOneOnline/martial-v2/pull/37) — `APROBADO CON PENDIENTES` en `50fce6e` → **`APROBADO`** por Codex Project Audit en `d5ba7ab`; falta prueba de UI con sesión real)
 
 **Informe de Usuarios: el mes en curso como provisional.** Medido en RGM sobre 12 meses: el día 1 los activos salen ~20% por debajo del final y el crecimiento siempre entre −8% y −21% (aunque el mes termine en positivo); los perdidos del día 1 se acercan al final (+1 a +11 de más, los que vuelven ese mes).
 - `lib/memberActivity.ts`: `closedPeriodMonths()` (los presets deslizan la ventana un mes atrás manteniendo su longitud; Custom solo recorta el final al último mes cerrado) y `markProvisional()` (marca el mes actual y deja vacíos crecimiento e interanual). `cohortRetention` solo mide contra meses cerrados (`target >= currentMonth` → null). +5 tests.
