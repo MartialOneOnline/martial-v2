@@ -58,6 +58,12 @@ export interface GradingStep {
   gates: Requirement[]
   /** Unmet gates holding it back despite enough classes */
   blockedBy: RequirementKind[]
+  /**
+   * Earned steps: when the last of its rules was met (ISO) — the day of the
+   * Nth class, or when the time/age was reached. null when not earned or
+   * when only a frequency rule applies (that's a state, not a date).
+   */
+  earnedAt: string | null
 }
 
 export interface RankRules {
@@ -109,6 +115,14 @@ export interface Readiness {
   status: ReadinessStatus
   /** 0–100 toward the next not-yet-earned step; 100 when something is due */
   percent: number | null
+  /** When the first owed grading became due (ISO) — "due since"; null when nothing is due */
+  dueSince: string | null
+  /**
+   * true when the date the student reached their current grade isn't known
+   * (no grading or belt date): dueSince is then only an estimate from the
+   * attendance and can't be floored at the start of the current grade.
+   */
+  dueSinceEstimated: boolean
   /** Highest step earned right now — what the instructor should award */
   due: { kind: 'DEGREE' | 'BELT'; rankId: string; rankName: string; rankColor: string; degree: number; count: number } | null
   /** First step not earned yet */
@@ -269,6 +283,27 @@ function monthsBefore(d: Date, months: number): Date {
     d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds(), d.getUTCMilliseconds()))
 }
 
+/**
+ * First day on which wholeMonthsBetween(from, day) >= months — the exact
+ * calendar rule the engine checks. When that month is too short for from's
+ * day (31 Jan + 1 month, 29 Feb + 1 year) the rule is only met on the 1st of
+ * the following month, not on a clamped 28 Feb (Project Audit PR #40 P2).
+ */
+function monthsMetAt(from: Date, months: number): Date {
+  const y = from.getUTCFullYear(), m = from.getUTCMonth() + months, day = from.getUTCDate()
+  const lastDay = new Date(Date.UTC(y, m + 1, 0)).getUTCDate()
+  return day <= lastDay ? new Date(Date.UTC(y, m, day)) : new Date(Date.UTC(y, m + 1, 1))
+}
+
+/** First day on which ageAt(dob, day) >= years — same rule (29 Feb birthdays → 1 Mar). */
+function ageMetAt(dob: Date, years: number): Date {
+  return monthsMetAt(dob, 12 * years)
+}
+
+function latest(dates: Array<Date | null>): Date | null {
+  return dates.reduce<Date | null>((max, d) => (d && (!max || d > max) ? d : max), null)
+}
+
 function positive(v: number | null | undefined): number | null {
   return typeof v === 'number' && v > 0 ? v : null
 }
@@ -285,7 +320,7 @@ export function computeReadiness(input: ReadinessInput): Readiness {
   const since = input.countSince
 
   const result = (r: Partial<Readiness> & { status: ReadinessStatus }): Readiness => ({
-    percent: null, due: null, next: null, steps: [], requirements: [], manualChecks: [],
+    percent: null, due: null, dueSince: null, dueSinceEstimated: false, next: null, steps: [], requirements: [], manualChecks: [],
     classesSince: 0, classesAttended: 0, classesOverCap: 0, classCap: null, classesForFirstStep: null, incompleteRules: null, countSince: since ? since.toISOString() : null, ...r,
   })
 
@@ -300,7 +335,11 @@ export function computeReadiness(input: ReadinessInput): Readiness {
   const maxPerPeriod = period ? positive(current.maxClassesPerPeriod) : null
   const classCap = maxPerPeriod && period ? { max: maxPerPeriod, periodType: period } : null
   const classesAttended = counted.length
-  const classesSince = classCap ? capPerPeriod(counted, classCap.max, classCap.periodType, input.timeZone ?? 'UTC').length : classesAttended
+  // Classes that count toward grading, oldest first — [n-1] is the day the nth one was reached
+  const countedForGrading = classCap
+    ? capPerPeriod(counted, classCap.max, classCap.periodType, input.timeZone ?? 'UTC')
+    : [...counted].sort((a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime())
+  const classesSince = countedForGrading.length
   const classCounters = { classesSince, classesAttended, classesOverCap: classesAttended - classesSince, classCap }
 
   // Nothing left to grade — but the attendance count is still real.
@@ -332,6 +371,12 @@ export function computeReadiness(input: ReadinessInput): Readiness {
     requirements.push({ kind: 'AGE', current: age, required: nextRank.minAge, percent: pct(age, nextRank.minAge), met })
   }
   const beltGates = requirements.filter(r => r.kind === 'MONTHS' || r.kind === 'AGE')
+  // When each met belt gate was reached, for "due since"
+  const beltGateDates: Array<Date | null> = beltGates.map(g => {
+    if (!g.met) return null
+    if (g.kind === 'MONTHS') return input.beltSince ? monthsMetAt(input.beltSince, g.required) : null
+    return input.dateOfBirth ? ageMetAt(input.dateOfBirth, g.required) : null
+  })
 
   // ── Frequency: below the minimum nothing is due ───────────────────────────
   let frequency: Requirement | null = null
@@ -372,6 +417,11 @@ export function computeReadiness(input: ReadinessInput): Readiness {
   const steps: GradingStep[] = []
   let used = 0 // classes consumed by earlier steps
   let usedMonths = 0 // months consumed by earlier steps
+  // Nothing can be owed from before the student reached the current grade
+  // (e.g. a next-belt age met years ago doesn't make a grading from last
+  // week overdue — Project Audit PR #40 P1). Unknown → the count start.
+  const gradeSince = stepSince ?? since
+  let prevEarnedAt: Date | null = gradeSince
   const pushStep = (
     kind: 'DEGREE' | 'BELT', rank: RankRules, deg: number,
     required: number | null, months: number | null, minAge: number | null,
@@ -380,8 +430,10 @@ export function computeReadiness(input: ReadinessInput): Readiness {
     const enoughClasses = required ? classesSince >= used + required : true
     if (required) used += required
     const gates: Requirement[] = []
+    const metDates: Array<Date | null> = [required && enoughClasses ? countedForGrading[used - 1]!.scheduledAt : null]
     if (months) {
       usedMonths += months
+      if (stepSince) metDates.push(monthsMetAt(stepSince, usedMonths))
       // Unknown last-grading date → can't prove the time, so it doesn't pass.
       const unknown = monthsSinceGrading === null
       const cur = monthsSinceGrading ?? 0
@@ -393,14 +445,24 @@ export function computeReadiness(input: ReadinessInput): Readiness {
     // An unknown birth date doesn't block — many schools never collected it.
     if (minAge && age !== null) {
       gates.push({ kind: 'AGE', current: age, required: minAge, percent: pct(age, minAge), met: age >= minAge })
+      metDates.push(ageMetAt(input.dateOfBirth!, minAge))
     }
-    if (kind === 'BELT') gates.push(...beltGates)
+    if (kind === 'BELT') { gates.push(...beltGates); metDates.push(...beltGateDates) }
     if (frequency) gates.push(frequency)
     const unmet = gates.filter(g => !g.met).map(g => g.kind)
+    const earned = enoughClasses && unmet.length === 0
+    // Never before the previous step, never in the future (month-end rounding)
+    let earnedAt: Date | null = null
+    if (earned) {
+      const at = latest([...metDates, prevEarnedAt])
+      earnedAt = at && at > now ? now : at
+      prevEarnedAt = earnedAt
+    }
     steps.push({
       kind, rankId: rank.id, rankName: rank.name, rankColor: rank.color, degree: deg,
-      classes, required, earned: enoughClasses && unmet.length === 0, gates,
+      classes, required, earned, gates,
       blockedBy: enoughClasses ? unmet : [],
+      earnedAt: earnedAt ? earnedAt.toISOString() : null,
     })
   }
   // A belt measures its gradings in classes, in time, or both. With classes,
@@ -447,7 +509,7 @@ export function computeReadiness(input: ReadinessInput): Readiness {
     degree: last.degree, count: earnedCount,
   } : null
 
-  if (due) return result({ status: 'READY', percent: 100, due, next, ...base })
+  if (due) return result({ status: 'READY', percent: 100, due, dueSince: steps[0]!.earnedAt, dueSinceEstimated: !stepSince, next, ...base })
 
   // Nothing due yet: progress toward the first step.
   const parts: number[] = []

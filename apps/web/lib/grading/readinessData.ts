@@ -1,5 +1,7 @@
 import { prisma } from '@/lib/db'
 import { schoolTimeZone } from '@/lib/memberActivity'
+import { NEW_STUDENT_MONTHS, daysSince, monthsWithSchool } from './overdue'
+import { cleanPhone } from '@/lib/phone'
 import { computeReadiness, pickBeltSince, pickStepSince, type AttendedClass, type GradingRecord, type RankRules, type Readiness } from './readiness'
 
 export interface MemberReadiness {
@@ -15,6 +17,14 @@ export interface MemberReadiness {
   rankColor: string | null
   maxDegrees: number
   lastGradedAt: string | null
+  joinedAt: string | null
+  /** Whole months with the school; null when the join date is unknown */
+  monthsWithSchool: number | null
+  /** Less than NEW_STUDENT_MONTHS with the school */
+  isNew: boolean
+  /** Days since the first owed grading became due; null when nothing is due */
+  daysOverdue: number | null
+  phone: string | null
   readiness: Readiness
 }
 
@@ -71,7 +81,7 @@ export async function getReadinessForSchool(
     select: {
       id: true, userId: true, status: true, belt: true, beltRankId: true, beltDegree: true,
       beltDate: true, joinedAt: true,
-      user: { select: { name: true, email: true, avatarUrl: true, dateOfBirth: true } },
+      user: { select: { name: true, email: true, avatarUrl: true, dateOfBirth: true, phone: true } },
     },
   })
   if (!members.length) return []
@@ -120,6 +130,7 @@ export async function getReadinessForSchool(
     attendedByUser.set(b.userId, list)
   }
 
+  const now = new Date()
   return members.map(m => {
     const rankId = (m.beltRankId && rankById.has(m.beltRankId))
       ? m.beltRankId
@@ -157,6 +168,7 @@ export async function getReadinessForSchool(
       timeZone,
     })
 
+    const months = monthsWithSchool(m.joinedAt, now)
     return {
       memberId: m.id,
       userId: m.userId,
@@ -170,6 +182,11 @@ export async function getReadinessForSchool(
       rankColor: rank?.color ?? null,
       maxDegrees: rank?.maxDegrees ?? 0,
       lastGradedAt: lastGrading.get(m.userId)?.toISOString() ?? null,
+      joinedAt: m.joinedAt?.toISOString() ?? null,
+      monthsWithSchool: months,
+      isNew: months !== null && months < NEW_STUDENT_MONTHS,
+      daysOverdue: daysSince(readiness.dueSince, now),
+      phone: cleanPhone(m.user.phone),
       readiness,
     }
   })
