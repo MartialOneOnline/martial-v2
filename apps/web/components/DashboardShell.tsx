@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import DashboardSidebar from './DashboardSidebar'
 import { useSchoolContext } from '../lib/auth/useSchoolContext'
-import { resolveGradingEnabled } from '../lib/school-modules'
+import { resolveGradingEnabled, gradingFromSchoolContext } from '../lib/school-modules'
 
 const SIDEBAR_COLLAPSED_KEY = 'dashboard-sidebar-collapsed'
 
@@ -39,8 +39,7 @@ export function useDashboard() {
 export function useGradingEnabled(): boolean | null {
   const fromServer = useContext(GradingEnabledContext)
   const { school } = useContext(DashboardContext)
-  const fromContext = !school || school.loading ? null : (school.currentSchool?.gradingEnabled ?? false)
-  return resolveGradingEnabled(fromContext, fromServer)
+  return resolveGradingEnabled(gradingFromSchoolContext(school), fromServer)
 }
 
 // A page that already knows the answer from the server (Users, Users report)

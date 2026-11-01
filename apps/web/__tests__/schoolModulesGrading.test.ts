@@ -70,3 +70,22 @@ describe('resolveGradingEnabled (client: server start value vs live context)', (
     expect(resolveGradingEnabled(null, null)).toBeNull()
   })
 })
+
+describe('gradingFromSchoolContext (only a resolved school counts)', () => {
+  it('is unknown while loading, and after a failed load with no school', async () => {
+    const { gradingFromSchoolContext, resolveGradingEnabled } = await import('@/lib/school-modules')
+    expect(gradingFromSchoolContext({ loading: true, currentSchool: null })).toBeNull()
+    expect(gradingFromSchoolContext({ loading: false, currentSchool: null })).toBeNull()
+    expect(gradingFromSchoolContext(undefined)).toBeNull()
+    // /api/auth/me failed: the server's "on" survives, nothing gets hidden
+    expect(resolveGradingEnabled(gradingFromSchoolContext({ loading: false, currentSchool: null }), true)).toBe(true)
+    // ...and with no server value either, it stays unknown (exports blocked)
+    expect(resolveGradingEnabled(gradingFromSchoolContext({ loading: false, currentSchool: null }), undefined)).toBeNull()
+  })
+
+  it('reports the resolved school either way', async () => {
+    const { gradingFromSchoolContext } = await import('@/lib/school-modules')
+    expect(gradingFromSchoolContext({ loading: false, currentSchool: { gradingEnabled: true } })).toBe(true)
+    expect(gradingFromSchoolContext({ loading: false, currentSchool: { gradingEnabled: false } })).toBe(false)
+  })
+})

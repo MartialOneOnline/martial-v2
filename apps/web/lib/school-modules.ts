@@ -64,3 +64,16 @@ export function resolveGradingEnabled(context: boolean | null, server: boolean |
   if (context !== null) return context
   return server ?? null
 }
+
+/**
+ * What the shared dashboard context knows about the module: only a loaded
+ * context with a resolved school counts. Still loading, or a failed load
+ * (no school), is unknown (null) — never "off", so a network blip can't
+ * hide belts or reshape exports for a school that uses them.
+ */
+export function gradingFromSchoolContext(
+  ctx: { loading: boolean; currentSchool: { gradingEnabled: boolean } | null } | null | undefined,
+): boolean | null {
+  if (!ctx || ctx.loading || !ctx.currentSchool) return null
+  return ctx.currentSchool.gradingEnabled
+}
