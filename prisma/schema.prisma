@@ -493,6 +493,7 @@ model User {
   schoolClaims           SchoolClaim[]
   gradings               Grading[]              @relation("GradingStudent")
   gradingsGiven          Grading[]              @relation("GradingPromoter")
+  gradingTemplates       GradingTemplate[]      @relation("GradingTemplateCreator")
   leads                  Lead[]                 @relation("LeadConvertedUser")
   leadNotes              LeadNote[]
   transactions           Transaction[]          @relation("TransactionUser")
@@ -1055,7 +1056,7 @@ model Membership {
 
   // Stripe billing health, kept in sync by the Stripe webhook. Only ever
   // moves off ACTIVE for Stripe-billed memberships; CASH/other stay ACTIVE.
-  paymentStatus MembershipPaymentStatus @default(ACTIVE)
+  paymentStatus   MembershipPaymentStatus @default(ACTIVE)
   // Stripe event time of the last paymentStatus write. Stripe doesn't
   // guarantee delivery order, so an older event arriving late must not
   // overwrite a newer state (e.g. a stale past_due after a successful retry).
@@ -1346,10 +1347,37 @@ model GradingSystem {
 
   ranks BeltRank[]
 
+  // Template this system was copied from, if any — informational only: the
+  // copy is the school's own and later template edits never change it.
+  templateId String?
+  template   GradingTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("grading_systems")
+}
+
+// Platform-wide grading system templates (e.g. IBJJF), created by the super
+// admin. A school applies one to get its own editable GradingSystem copy.
+// `ranks` holds the belt rules in BeltRank's shape — see lib/grading/templates.ts.
+model GradingTemplate {
+  id          String  @id @default(cuid())
+  name        String // "IBJJF Adultos"
+  activity    String? // "BJJ", "Judo", "Karate"
+  description String?
+  isPublished Boolean @default(false) // only published templates are offered to schools
+  ranks       Json    @default("[]")
+
+  createdById String?
+  createdBy   User?   @relation("GradingTemplateCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  systems GradingSystem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("grading_templates")
 }
 
 model BeltRank {

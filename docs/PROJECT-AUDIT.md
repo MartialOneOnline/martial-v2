@@ -102,6 +102,13 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 - Criterios: reglas en blanco no aplican; tiempo con fecha desconocida no se cumple (nunca `joinedAt` salvo primer grado del sistema); tope por semana (lunes) o mes natural; validación API mín./máx./periodo; textos en EN/ES/PT/FR.
 - No verificado: navegador y recorrido autenticado; migración `20261101120000_belt_rank_step_rules` sin aplicar en la BD.
 
+### Lote G — Plantillas de graduación del super admin (rama `claude/grading-templates`)
+
+- Estado: **pendiente de auditoría**.
+- Objetivo: el super admin crea plantillas de sistemas de cinturones (IBJJF, judo, karate…) con todas las reglas por cinturón/graduación; las escuelas ven solo las publicadas y crean su propia copia editable.
+- Criterios: solo super admin en `/api/admin/grading-templates/**`; no publicar sin cinturones; validación de cinturones igual que la API de ranks; la escuela solo copia plantillas publicadas y necesita `school.gradings.manage`; la copia es independiente (editar/borrar la plantilla no la toca; `templateId` → null al borrar); `classTypeIds` no se copia; textos de escuela en EN/ES/PT/FR.
+- No verificado: navegador y recorrido autenticado; migración `20261101180000_grading_templates` sin aplicar (bloquea también Ajustes → Graduaciones si se despliega sin ella).
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.

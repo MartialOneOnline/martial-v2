@@ -178,6 +178,11 @@ export type SchoolClaim = Prisma.SchoolClaimModel
  */
 export type GradingSystem = Prisma.GradingSystemModel
 /**
+ * Model GradingTemplate
+ * 
+ */
+export type GradingTemplate = Prisma.GradingTemplateModel
+/**
  * Model BeltRank
  * 
  */

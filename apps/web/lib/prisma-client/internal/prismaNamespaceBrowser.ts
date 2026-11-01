@@ -83,6 +83,7 @@ export const ModelName = {
   CampaignRecipient: 'CampaignRecipient',
   SchoolClaim: 'SchoolClaim',
   GradingSystem: 'GradingSystem',
+  GradingTemplate: 'GradingTemplate',
   BeltRank: 'BeltRank',
   Grading: 'Grading',
   Lead: 'Lead',
@@ -732,11 +733,27 @@ export const GradingSystemScalarFieldEnum = {
   gradingFee: 'gradingFee',
   notifyStudent: 'notifyStudent',
   notifyInstructor: 'notifyInstructor',
+  templateId: 'templateId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type GradingSystemScalarFieldEnum = (typeof GradingSystemScalarFieldEnum)[keyof typeof GradingSystemScalarFieldEnum]
+
+
+export const GradingTemplateScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  activity: 'activity',
+  description: 'description',
+  isPublished: 'isPublished',
+  ranks: 'ranks',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GradingTemplateScalarFieldEnum = (typeof GradingTemplateScalarFieldEnum)[keyof typeof GradingTemplateScalarFieldEnum]
 
 
 export const BeltRankScalarFieldEnum = {
