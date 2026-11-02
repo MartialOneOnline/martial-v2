@@ -246,6 +246,14 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
   4. P2 — copia ofrecida donde la API la rechaza: el GET devuelve `copyable` con la misma regla que el endpoint (ningún gasto ese mes en ninguna moneda ni fecha + un mes anterior con gastos) y `expensesElsewhere` (faltan en este balance pero hay gastos en otra moneda o más adelante este mes); el botón y "copiar todos" solo usan `copyable`.
 - Tests: +4 en `balanceRoutes` (copia no ofrecida con gasto en otra moneda; gasto añadido a las 12:00 en días de DST; validaciones y permiso) y +1 en `balancePnl` (`schoolNoon`). Suite 1126 / 55 preexistentes; tsc 0; ESLint limpio.
 
+### Lote Q — Reservas: ocupación del horario (rama `claude/bookings-report`)
+
+- Estado: **pendiente de auditoría**. Sin migración.
+- Pedido del usuario: informes operativos; el de Reservas era un historial con un "% de asistencia" que no medía asistencia. Propuesta aprobada.
+- Criterios: periodo 30/90 días/12 meses con comparación con el tramo anterior; hora de pared (`scheduledAt` en campos UTC = hora del horario) también para "ahora"; sesiones sin reservas cuentan como 0 desde la primera reserva del colegio y el alta de la clase, sin ocurrencias canceladas; solo sesiones terminadas; poca gente / casi llena / sin marcar / fuera de horario; tarjeta de la portada sin cambios (`/bookings/chart`); lista completa con CSV; enlace al calendario para marcar asistencia; 4 idiomas; móvil.
+- A revisar: franjas con varias horas el mismo día; cambios de horario dentro del periodo (aparecen como fuera de horario); clases inactivas; escuelas sin reservas (estado vacío); rendimiento con 12 meses + 12 anteriores de reservas; el enlace del calendario con fechas de otra semana/mes.
+- No verificado: navegador y datos reales.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.

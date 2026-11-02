@@ -126,7 +126,7 @@ generated/prisma/
 | School / Staff | `/dashboard/school/staff` | ✅ Live |
 | School / Waivers | `/dashboard/school/waivers` | ✅ Live |
 | School / Gradings | `/dashboard/school/gradings` | ✅ Live |
-| Reports / Bookings | `/dashboard/reports/bookings` | ✅ Live |
+| Reports / Bookings | `/dashboard/reports/bookings` | ✅ Live — ocupación del horario (2026-11-02) |
 | Reports / Gradings | `/dashboard/reports/gradings` | ✅ Live |
 | Reports / Payments | `/dashboard/reports/payments` | ✅ Live |
 | Reports / Balance | `/dashboard/reports/balance` | ✅ Live |
@@ -270,6 +270,17 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 ---
 
 ## Historial de sesiones
+
+### Sesión — 2026-11-02 (o) (rama `claude/bookings-report` — pendiente de Project Audit; sin migración)
+
+**Informe de Reservas rehecho: ocupación del horario.** Diagnóstico con datos de RGM (lectura autorizada por el usuario, solo RGM, 90 días): 2.005 asistencias de 147 alumnos, de ~55 a ~200 reservas/semana entre agosto y octubre; 113 canceladas, 59 no presentados, 93 reservas pasadas sin marcar; la mitad de las reservas las añade el staff. Todas las clases tienen 30 plazas y ninguna pasa de ~20 de media. Iniciación del jueves 19:00 tiene 2,8 de media a la misma hora que Jiu Jitsu Todos (19,5). El informe anterior llamaba "asistencia" a confirmadas/total (casi siempre ~100 %), no conocía NO_SHOW ni PENDING y agrupaba en la zona del servidor. Propuesta aprobada ("Sí, así").
+- **Convención de horas:** `Booking.scheduledAt` guarda la hora del horario en campos UTC (una clase de las 10:00 se guarda como 10:00Z; ver `scheduledAtForDate`). El informe trabaja en esa "hora de pared": `wallClock(now, tz)` lleva el ahora del colegio al mismo formato. Una primera consulta que convertía a Europe/Madrid mostraba franjas falsas desplazadas 1–2 h; con la convención correcta solo quedan ~8 sesiones sueltas fuera de horario.
+- `lib/bookings/occupancy.ts` (puro): `occupancyWindows()` (últimos 30/90/365 días incluido hoy y el mismo tramo anterior), `buildOccupancy()`: por franja (clase × día × hora del horario) sesiones celebradas (terminadas), incluidas las de 0 alumnos desde max(inicio del periodo, alta de la clase, primera reserva del colegio) y sin ocurrencias canceladas (`ClassCancellation`); media asistida/reservada, ocupación sobre capacidad, comparación con el periodo anterior (≥3 sesiones, cambio ≥ máx(1, 15 %)), **poca gente** (< 5 de media, ≥ 3 sesiones) con las clases que coinciden a la misma hora, **casi llena** (≥ 85 % de capacidad), **sin marcar** (CONFIRMED/PENDING sin asistencia 3 h después de terminar), **fuera de horario** (hora que no está en el horario actual o clase sin horario fijo), totales (media por sesión, ocupación, alumnos distintos, quién reserva) y tendencia semanal (mensual en 12 meses). `parseSchedule()` tolera `schedule` null/[]/basura.
+- API: `GET /api/dashboard/reports/bookings?period=` reescrito; nuevo `GET …/bookings/list` (todas las reservas del periodo, filtro de estado, búsqueda, paginación, CSV hasta 5.000); nuevo `GET …/bookings/chart` con la lógica antigua sin cambios para la tarjeta de la portada (`DashboardClient` apunta ahí). Permiso: `requireDashboardAccess` (igual que antes y que Ausencias).
+- UI: 4 tarjetas con cambio vs periodo anterior; frase de canal (app vs staff); horario semanal en cuadrícula (media, plazas, barra de ocupación, flecha de tendencia, etiqueta Poca gente / Casi llena); pestañas Poca gente / Casi llenas / Sin marcar (enlace "Marcar asistencia") / Fuera de horario; gráfica de tendencia; "Todas las reservas" plegada. Fechas y horas formateadas en UTC (hora de pared). Textos `t.bookingsReport` en EN/ES/PT/FR.
+- Calendario: enlace directo `/dashboard/classes/calendar?date=YYYY-MM-DD&class=<id>&time=HH:MM` abre la lista de esa sesión para marcar asistencia.
+- Tests: `bookingsOccupancy` (11); `dashboardReportAuthGuards` cubre `list` y `chart`. Suite 1151 / 55 preexistentes; tsc 0; ESLint sin avisos nuevos.
+- No verificado: navegador y datos reales.
 
 ### Sesión — 2026-11-02 (n) (rama `claude/dashboard-revenue-chart`, PR [#52](https://github.com/MartialOneOnline/martial-v2/pull/52) — `APROBADO CON PENDIENTES` en `88c3732` (2 P2 heredados) → **`APROBADO`** en `3c8a659`, sin hallazgos abiertos; sin migración; pendiente: prueba manual del usuario)
 

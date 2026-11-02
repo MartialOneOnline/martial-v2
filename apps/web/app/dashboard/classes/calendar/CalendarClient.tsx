@@ -535,7 +535,20 @@ export default function CalendarClient() {
     fetch('/api/dashboard/classes')
       .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
       .then((data: { classes: ApiClass[] }) => {
-        setClasses(data.classes.flatMap(apiClassToSlots))
+        const slots = data.classes.flatMap(apiClassToSlots)
+        setClasses(slots)
+        // Deep link from the Bookings report: ?date=YYYY-MM-DD&class=<id>&time=HH:MM
+        // opens that session's roster so attendance can be marked.
+        const q = new URLSearchParams(window.location.search)
+        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(q.get('date') ?? '')
+        if (!m) return
+        const day = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+        if (Number.isNaN(day.getTime())) return
+        setSelectedDate(day)
+        setView('week')
+        const [h, min] = (q.get('time') ?? '').split(':').map(Number)
+        const slot = slots.find(s => s.classId === q.get('class') && s.day === dowMon(day) && s.startH === h && s.startM === min)
+        if (slot) { setSelectedSlot(slot); setSelectedSlotDate(day) }
       })
       .catch(() => setLoadError('Failed to load classes'))
       .finally(() => setLoading(false))

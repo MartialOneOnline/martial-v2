@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId, requireDashboardAccess } from '@/lib/auth/server'
-import { periodBounds } from '@/lib/reportPeriods'
+import { schoolTimeZone } from '@/lib/memberActivity'
+import {
+  buildOccupancy, isOccPeriod, occupancyWindows, parseSchedule, wallClock,
+} from '@/lib/bookings/occupancy'
 
 // requireDashboardAccess() bypasses this for SUPERADMIN and otherwise
 // requires an ACTIVE SchoolMember with a staff-facing role — a STUDENT must
-// not read the full per-member booking roster for the school.
+// not read the school's attendance.
 async function authorise() {
   const user = await getAuthUser()
   if (!user) return { error: 'Unauthorized', status: 401 }
@@ -16,113 +19,64 @@ async function authorise() {
   return { schoolId }
 }
 
+/**
+ * GET /api/dashboard/reports/bookings?period=30d|90d|12m
+ * How full each class of the weekly timetable is: average attendance per
+ * session against capacity, compared with the period before; quiet classes
+ * (and what else runs at that time), nearly full ones, past classes nobody
+ * marked, bookings outside the timetable, a weekly trend and who books.
+ * The full booking list lives at ./list.
+ */
 export async function GET(req: NextRequest) {
   const auth = await authorise()
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
+  const schoolId = auth.schoolId
 
-  const { searchParams } = new URL(req.url)
-  const period    = searchParams.get('period')    ?? '30d'
-  const status    = searchParams.get('status')    ?? 'ALL'
-  const search    = searchParams.get('search')    ?? ''
-  const page      = Math.max(1, parseInt(searchParams.get('page') ?? '1'))
-  const pageSize  = Math.min(1000, parseInt(searchParams.get('pageSize') ?? '15'))
-  const className = searchParams.get('className') ?? ''
-  const dateFrom  = searchParams.get('dateFrom')
-  const dateTo    = searchParams.get('dateTo')
+  const raw = new URL(req.url).searchParams.get('period')
+  const period = isOccPeriod(raw) ? raw : '30d'
 
-  // Single time window shared by the table, the trend chart and the stat
-  // cards — a 'custom' period (with dateFrom/dateTo) or a preset both flow
-  // through here so every widget on the page reflects the same range.
-  const { from, to, points } = periodBounds(period, dateFrom, dateTo)
+  const school = await prisma.school.findUnique({ where: { id: schoolId }, select: { country: true } })
+  const timeZone = schoolTimeZone(school?.country)
+  const nowWall = wallClock(new Date(), timeZone)
+  const { current, previous } = occupancyWindows(period, nowWall)
 
-  // ── Booking list ─────────────────────────────────────────────────────────────
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const where: any = {
-    class: { schoolId: auth.schoolId, ...(className ? { name: { contains: className, mode: 'insensitive' } } : {}) },
-    scheduledAt: { gte: from, lte: to },
-    // 'ALL' still excludes CANCELLED, matching totalPeriod above — a
-    // cancelled slot isn't a real booking; the dedicated Cancelled tab
-    // below is the way to see those rows.
-    ...(status !== 'ALL' ? { status } : { status: { not: 'CANCELLED' } }),
-    ...(search ? {
-      OR: [
-        { user: { name:  { contains: search, mode: 'insensitive' } } },
-        { user: { email: { contains: search, mode: 'insensitive' } } },
-        { class: { name: { contains: search, mode: 'insensitive' } } },
-      ],
-    } : {}),
-  }
-
-  const [bookings, total] = await Promise.all([
-    prisma.booking.findMany({
-      where,
-      include: {
-        user:  { select: { name: true, email: true, avatarUrl: true } },
-        class: { select: { name: true } },
-      },
-      orderBy: { scheduledAt: 'desc' },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
+  const [classRows, bookingRows, cancellationRows, first] = await Promise.all([
+    prisma.class.findMany({
+      where: { schoolId },
+      select: { id: true, name: true, capacity: true, duration: true, isActive: true, schedule: true, createdAt: true },
     }),
-    prisma.booking.count({ where }),
+    prisma.booking.findMany({
+      where: { class: { schoolId }, scheduledAt: { gte: previous.from, lte: current.to } },
+      select: { classId: true, userId: true, scheduledAt: true, status: true, attendedAt: true, bookedByRole: true },
+    }),
+    prisma.classCancellation.findMany({
+      where: { class: { schoolId }, date: { gte: previous.from, lte: current.to } },
+      select: { classId: true, date: true },
+    }),
+    prisma.booking.findFirst({
+      where: { class: { schoolId }, status: { not: 'CANCELLED' } },
+      orderBy: { scheduledAt: 'asc' },
+      select: { scheduledAt: true },
+    }),
   ])
 
-  // ── Chart: bookings per time point ───────────────────────────────────────────
-  const chartData = await Promise.all(
-    points.map(async pt => {
-      const [confirmed, cancelled] = await Promise.all([
-        prisma.booking.count({ where: { class: { schoolId: auth.schoolId }, scheduledAt: { gte: pt.from, lte: pt.to }, status: { in: ['CONFIRMED', 'COMPLETED'] } } }),
-        prisma.booking.count({ where: { class: { schoolId: auth.schoolId }, scheduledAt: { gte: pt.from, lte: pt.to }, status: 'CANCELLED' } }),
-      ])
-      return { date: pt.label, confirmed, cancelled }
-    })
-  )
-
-  // ── By class breakdown ───────────────────────────────────────────────────────
-  const byClass = await prisma.booking.groupBy({
-    by: ['classId'],
-    where: { class: { schoolId: auth.schoolId }, scheduledAt: { gte: from, lte: to }, status: { in: ['CONFIRMED', 'COMPLETED'] } },
-    _count: { id: true },
-    orderBy: { _count: { id: 'desc' } },
-    take: 6,
+  const occupancy = buildOccupancy({
+    classes: classRows.map(c => ({ ...c, schedule: parseSchedule(c.schedule) })),
+    bookings: bookingRows.map(b => ({
+      classId: b.classId, userId: b.userId, scheduledAt: b.scheduledAt, status: b.status,
+      attended: b.attendedAt !== null, bookedByRole: b.bookedByRole,
+    })),
+    cancellations: cancellationRows.map(c => ({ classId: c.classId, date: c.date.toISOString().slice(0, 10) })),
+    period,
+    nowWall,
+    firstBookingAt: first?.scheduledAt ?? null,
   })
-  const classIds = byClass.map(b => b.classId)
-  const classes  = await prisma.class.findMany({ where: { id: { in: classIds } }, select: { id: true, name: true } })
-  const classMap = Object.fromEntries(classes.map(c => [c.id, c.name]))
-
-  const CHART_COLORS = ['#0870E2', '#6D28D9', '#C2410C', '#15803D', '#0F766E', '#B45309']
-  const byClassData = byClass.map((b, i) => ({
-    name: classMap[b.classId] ?? b.classId,
-    bookings: b._count.id,
-    fill: CHART_COLORS[i] ?? '#9CA3AF',
-  }))
-
-  // ── Stats ─────────────────────────────────────────────────────────────────────
-  // Total excludes CANCELLED — a cancelled booking isn't a real reservation
-  // of a class slot, so counting it alongside confirmed/completed ones
-  // inflates the headline number and skews attendanceRate below.
-  const [totalPeriod, confirmedPeriod, cancelledPeriod] = await Promise.all([
-    prisma.booking.count({ where: { class: { schoolId: auth.schoolId }, scheduledAt: { gte: from, lte: to }, status: { not: 'CANCELLED' } } }),
-    prisma.booking.count({ where: { class: { schoolId: auth.schoolId }, scheduledAt: { gte: from, lte: to }, status: { in: ['CONFIRMED', 'COMPLETED'] } } }),
-    prisma.booking.count({ where: { class: { schoolId: auth.schoolId }, scheduledAt: { gte: from, lte: to }, status: 'CANCELLED' } }),
-  ])
-  const attendanceRate = totalPeriod > 0 ? Math.round((confirmedPeriod / totalPeriod) * 100) : 0
 
   return NextResponse.json({
-    stats: { totalPeriod, confirmedPeriod, cancelledPeriod, attendanceRate },
-    chartData,
-    byClassData,
-    bookings: bookings.map(b => ({
-      id:          b.id,
-      userName:    b.user?.name     ?? '—',
-      userEmail:   b.user?.email    ?? '—',
-      userAvatar:  b.user?.avatarUrl ?? null,
-      className:   b.class?.name    ?? '—',
-      scheduledAt: b.scheduledAt.toISOString(),
-      status:      b.status,
-    })),
-    total,
-    page,
-    pageSize,
+    period,
+    from: current.from.toISOString().slice(0, 10),
+    to: current.to.toISOString().slice(0, 10),
+    hasBookings: first !== null,
+    ...occupancy,
   })
 }
