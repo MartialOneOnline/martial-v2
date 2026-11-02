@@ -232,6 +232,14 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
   9. P3 — contador de la pestaña: cuenta deudas; las filas a revisar se muestran como "+N" aparte (listadas, paginadas y exportadas).
 - Tests: +3 en `paymentsReportRoute` (otro plan no oculta la deuda; pago adelantado con periodo; CUSTOM con y sin permiso, STUDENT). Suite 1112 / 55; tsc 0; ESLint limpio.
 
+### Lote P — Balance: cuenta de resultados mensual (rama `claude/balance-report`)
+
+- Estado: entregado por Claude, **pendiente de auditoría**. Sin migración.
+- Pedido del usuario: informes operativos; el Balance mostraba totales desde 2022 y, con los gastos interrumpidos en nov. 2025, un margen falso. Propuesta aprobada.
+- Criterios: periodo (mes / 3 / 12 meses / año) en la zona del colegio; solo dinero pagado; una moneda a la vez; meses con ingresos y sin gastos señalados, sin margen; margen del periodo oculto si falta algún mes; copiar gastos del último mes con gastos (no sobre un mes que ya tiene gastos, ni futuro, idempotente ante doble clic); añadir gasto; ingresos "Otros" o muy grandes para revisar; permisos: leer `school.analytics.view`, escribir `school.payments.manage`; 4 idiomas; móvil.
+- A revisar: copias (fechas, DST, moneda, método, notas); carrera entre "copiar todos" y ediciones; que "Añadir gasto" respete la moneda del colegio; filtros de transacciones FLAGGED/REFUNDED (solo PAID cuenta); rendimiento con años de datos.
+- No verificado: navegador y datos reales.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.

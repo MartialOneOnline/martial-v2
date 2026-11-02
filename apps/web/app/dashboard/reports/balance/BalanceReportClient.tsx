@@ -1,295 +1,334 @@
 'use client'
 
+// Balance — monthly profit & loss (see lib/balance/pnl.ts).
+import { useCallback, useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
+import { Menu, AlertTriangle, Plus, Copy, ArrowRight, X } from 'lucide-react'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import { useDashboard } from '../../../../components/DashboardShell'
-import { useState, useEffect, useCallback } from 'react'
-import { Menu, Search, ChevronLeft, ChevronRight, Download } from 'lucide-react'
-import { useT } from '../../../../lib/i18n/LanguageContext'
-import { fmtPrice as fmtAmt } from '../../../../lib/format'
-import { downloadCsv } from '../../../../lib/csvExport'
-import {
-  AreaChart, Area, BarChart, Bar,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-} from 'recharts'
+import NotificationBell from '../../../../components/NotificationBell'
+import { useLanguage } from '../../../../lib/i18n/LanguageContext'
+import { fmtPrice } from '../../../../lib/format'
 
-const ITEMS_PER_PAGE = 20
-
-function getPaginationPages(current: number, total: number): (number | '...')[] {
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
-  if (current <= 4) return [1, 2, 3, 4, 5, '...', total]
-  if (current >= total - 3) return [1, '...', total - 4, total - 3, total - 2, total - 1, total]
-  return [1, '...', current - 1, current, current + 1, '...', total]
+type Period = 'month' | '3m' | '12m' | 'year'
+interface Row {
+  key: string; income: Record<string, number>; expenses: Record<string, number>
+  incomeTotal: number; expenseTotal: number; net: number; margin: number | null; missingExpenses: boolean
+}
+interface Unusual { id: string; category: string; amount: number; currency: string; date: string; description: string | null; reason: 'OTHER' | 'LARGE' }
+interface Data {
+  period: Period; currency: string; otherCurrencies: string[]
+  months: Row[]; totals: Omit<Row, 'key'>
+  lastExpenseMonth: string | null
+  unusual: Unusual[]
+  canManage: boolean
 }
 
-type TxType = 'INCOME' | 'EXPENSE'
-type FilterTab = 'ALL' | TxType
-
-const TYPE_STYLES: Record<TxType, { bg: string; color: string; border: string; label: string }> = {
-  INCOME:  { bg: '#F0FDF4', color: '#16A34A', border: '#BBF7D0', label: 'Income'  },
-  EXPENSE: { bg: '#FEF2F2', color: '#DC2626', border: '#FECACA', label: 'Expense' },
-}
-
-const CAT_LABELS: Record<string, string> = {
-  MEMBERSHIP: 'Membership', SALARY: 'Salary', RENT: 'Rent',
-  EQUIPMENT: 'Equipment', UTILITIES: 'Utilities', MARKETING: 'Marketing',
-  INSURANCE: 'Insurance', OTHER: 'Other',
-}
-
-interface Entry {
-  id: string
-  date: string
-  description: string | null
-  category: string
-  type: TxType
-  amount: number
-  currency: string
-  status: string
-}
-
-interface ChartPoint { date: string; income: number; expenses: number }
-
-
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
-}
+const EXPENSE_CATEGORIES = ['RENT', 'SALARY', 'EQUIPMENT', 'MARKETING', 'OTHER'] as const
+const CARD: React.CSSProperties = { background: '#fff', border: '1px solid #E5E7EB', borderRadius: 16 }
+const TH: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.04em', padding: '10px 16px', textAlign: 'left' }
+const TD: React.CSSProperties = { fontSize: 13, color: '#374151', padding: '10px 16px', borderTop: '1px solid #F3F4F6' }
+const INPUT: React.CSSProperties = { height: 40, boxSizing: 'border-box', border: '1px solid #E5E7EB', borderRadius: 10, padding: '0 12px', fontSize: 14, color: '#111827', background: '#fff' }
 
 export default function BalanceReportClient() {
   const { setMenuOpen } = useDashboard()
-  const t = useT()
+  const { t, locale } = useLanguage()
+  const r = t.balanceReport
+  const [period, setPeriod] = useState<Period>('12m')
+  const [data, setData] = useState<Data | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [toast, setToast] = useState<{ ok: boolean; text: string } | null>(null)
+  const [adding, setAdding] = useState(false)
+  const [form, setForm] = useState({ category: 'RENT', amount: '', date: '', description: '' })
+  const requestId = useRef(0)
 
-  const [entries,       setEntries]       = useState<Entry[]>([])
-  const [total,         setTotal]         = useState(0)
-  const [totalIncome,   setTotalIncome]   = useState(0)
-  const [totalExpenses, setTotalExpenses] = useState(0)
-  const [netBalance,    setNetBalance]    = useState(0)
-  const [chartData,     setChartData]     = useState<ChartPoint[]>([])
-  const [loading,       setLoading]       = useState(true)
+  const load = useCallback(() => {
+    const id = ++requestId.current
+    setLoading(true); setError(false)
+    fetch(`/api/dashboard/balance?period=${period}`)
+      .then(res => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json() })
+      .then((d: Data) => { if (id === requestId.current) setData(d) })
+      .catch(() => { if (id === requestId.current) setError(true) })
+      .finally(() => { if (id === requestId.current) setLoading(false) })
+  }, [period])
+  useEffect(load, [load])
 
-  const [filterTab, setFilterTab] = useState<FilterTab>('ALL')
-  const [search,    setSearch]    = useState('')
-  const [page,      setPage]      = useState(1)
+  const say = (ok: boolean, text: string) => { setToast({ ok, text }); setTimeout(() => setToast(null), 3500) }
+  const cur = data?.currency ?? 'EUR'
+  const money = (n: number) => fmtPrice(n, cur)
+  const monthLabel = (key: string, long = false) => new Date(`${key}-15T12:00:00Z`).toLocaleDateString(locale, { month: long ? 'long' : 'short', year: 'numeric', timeZone: 'UTC' })
+  const catLabel = (c: string) => (r.categories as Record<string, string>)[c] ?? c
+  const periodLabel: Record<Period, string> = { month: r.periodMonth, '3m': r.period3m, '12m': r.period12m, year: r.periodYear }
+  // The rows on screen must be the period asked for
+  const stale = !!data && data.period !== period
+  const shown = data && !stale ? data : null
+  const missing = shown ? shown.months.filter(m => m.missingExpenses) : []
 
-  const load = useCallback(async () => {
-    setLoading(true)
-    const params = new URLSearchParams({
-      page: String(page),
-      pageSize: String(ITEMS_PER_PAGE),
-      ...(filterTab !== 'ALL' ? { type: filterTab } : {}),
-      ...(search ? { search } : {}),
-    })
-    const res = await fetch(`/api/dashboard/balance?${params}`)
-    if (!res.ok) { setLoading(false); return }
-    const data = await res.json()
-    setEntries(data.entries)
-    setTotal(data.total)
-    setTotalIncome(data.totalIncome)
-    setTotalExpenses(data.totalExpenses)
-    setNetBalance(data.netBalance)
-    setChartData(data.chartData)
-    setLoading(false)
-  }, [page, filterTab, search])
-
-  useEffect(() => { load() }, [load])
-
-  async function handleExport() {
-    const params = new URLSearchParams({
-      page: '1', pageSize: '1000',
-      ...(filterTab !== 'ALL' ? { type: filterTab } : {}),
-      ...(search ? { search } : {}),
-    })
-    const res = await fetch(`/api/dashboard/balance?${params}`)
-    if (!res.ok) return
-    const data = await res.json()
-    const headers = ['Date', 'Description', 'Category', 'Type', 'Amount', 'Currency', 'Status']
-    const rows = (data.entries as Entry[]).map(e => [
-      fmtDate(e.date), e.description ?? '', CAT_LABELS[e.category] ?? e.category,
-      TYPE_STYLES[e.type].label, String(e.amount), e.currency, e.status,
-    ])
-    downloadCsv('balance-report', headers, rows)
+  async function copyInto(month: string): Promise<boolean> {
+    const res = await fetch('/api/dashboard/balance/copy-expenses', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ month }),
+    }).catch(() => null)
+    if (res?.status === 201) return true
+    const code = (await res?.json().catch(() => null))?.error
+    say(false, code === 'ALREADY_HAS_EXPENSES' ? r.copyAlready.replace('{month}', monthLabel(month, true))
+      : code === 'NO_EXPENSES_TO_COPY' ? r.copyNothing : r.actionError)
+    return false
   }
 
-  const totalPages = Math.max(1, Math.ceil(total / ITEMS_PER_PAGE))
-  const pages = getPaginationPages(page, totalPages)
-  const profitMargin = totalIncome > 0 ? Math.round((netBalance / totalIncome) * 100) : 0
+  async function copyOne(month: string) {
+    if (busy) return
+    setBusy(true)
+    try { if (await copyInto(month)) { say(true, r.copied.replace('{month}', monthLabel(month, true))); load() } }
+    finally { setBusy(false) }
+  }
 
-  const STATS = [
-    { label: 'Total Income',   value: fmtAmt(totalIncome),   color: '#16A34A' },
-    { label: 'Total Expenses', value: fmtAmt(totalExpenses), color: '#DC2626' },
-    { label: 'Net Balance',    value: fmtAmt(netBalance),    color: '#0071E3' },
-    { label: 'Profit Margin',  value: profitMargin + '%',    color: '#6D28D9' },
-  ]
+  /** Oldest first: each month copies the one just filled before it */
+  async function copyAll() {
+    if (busy || !missing.length) return
+    if (!confirm(r.copyAllConfirm.replace('{n}', String(missing.length)))) return
+    setBusy(true)
+    let done = 0
+    try {
+      for (const m of missing) { if (!(await copyInto(m.key))) break; done++ }
+      if (done) say(true, r.copiedMany.replace('{n}', String(done)))
+      load()
+    } finally { setBusy(false) }
+  }
+
+  async function addExpense() {
+    const amount = Number(form.amount.replace(',', '.'))
+    if (busy || !(amount > 0) || !form.date) return
+    setBusy(true)
+    try {
+      const res = await fetch('/api/dashboard/transactions', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'EXPENSE', status: 'PAID', category: form.category, amount, currency: cur, date: `${form.date}T12:00:00`, description: form.description }),
+      }).catch(() => null)
+      if (!res?.ok) { say(false, r.actionError); return }
+      say(true, r.expenseAdded)
+      setForm(f => ({ ...f, amount: '', description: '' })); setAdding(false)
+      load()
+    } finally { setBusy(false) }
+  }
+
+  const tot = shown?.totals
+  const cards = tot ? [
+    { label: r.income, value: money(tot.incomeTotal), color: '#16A34A' },
+    { label: r.expenses, value: money(tot.expenseTotal), color: '#DC2626' },
+    { label: r.result, value: money(tot.net), color: '#0870E2' },
+    { label: r.margin, value: tot.margin === null ? '—' : `${tot.margin}%`, color: '#6D28D9', hint: tot.margin === null && missing.length ? r.marginNotReal : undefined },
+  ] : []
+  const categories = (kind: 'income' | 'expenses') => Object.entries(tot?.[kind] ?? {}).sort(([, a], [, b]) => b - a)
 
   return (
     <main style={{ flex: 1, minWidth: 0, width: '100%', overflow: 'auto' }}>
-      <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20"
-        style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
-        <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
+      <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20 flex-wrap" style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
+        <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0" aria-label="Menu"
           style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(true)}>
           <Menu size={16} style={{ color: '#374151' }} />
         </button>
-        <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 max-w-xs"
-          style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-          <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
-          <input type="text" placeholder="Search ledger…" value={search}
-            onChange={e => { setSearch(e.target.value); setPage(1) }}
-            style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
-        </div>
         <div className="flex-1" />
-        <button onClick={handleExport}
-          className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
-          style={{ background: '#fff', border: '1px solid #E5E7EB', color: '#374151', fontSize: 13, fontWeight: 500 }}>
-          <Download size={14} /> Export
-        </button>
+        <div className="flex items-center gap-1 p-1 rounded-xl" role="group" aria-label={r.title} style={{ background: '#F3F4F6' }}>
+          {(['month', '3m', '12m', 'year'] as const).map(p => (
+            <button key={p} onClick={() => setPeriod(p)} aria-pressed={period === p} className="cursor-pointer"
+              style={{ fontSize: 12, fontWeight: period === p ? 600 : 400, padding: '5px 12px', borderRadius: 8, border: 'none',
+                background: period === p ? '#fff' : 'transparent', color: period === p ? '#111827' : '#4B5563', boxShadow: period === p ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}>
+              {periodLabel[p]}
+            </button>
+          ))}
+        </div>
+        <NotificationBell />
       </div>
 
       <div className="px-4 md:px-8 py-6 flex flex-col gap-6">
-        <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>{t.reports.balanceTitle}</h1>
-          <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>Income, expenses and net balance</p>
+        <div className="flex items-end justify-between gap-3 flex-wrap">
+          <div>
+            <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>{r.title}</h1>
+            <p style={{ fontSize: 13, color: '#6B7280', marginTop: 2 }}>{r.subtitle}</p>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            {shown?.canManage && (
+              <button onClick={() => setAdding(a => !a)} className="cursor-pointer inline-flex items-center gap-1.5"
+                style={{ fontSize: 13, fontWeight: 600, padding: '8px 14px', borderRadius: 999, background: '#0870E2', color: '#fff', border: 'none' }}>
+                <Plus size={14} aria-hidden /> {r.addExpense}
+              </button>
+            )}
+            <Link href="/dashboard/payments/transactions" prefetch={false} className="inline-flex items-center gap-1.5" style={{ fontSize: 13, fontWeight: 600, color: '#0870E2' }}>
+              {r.allTransactions} <ArrowRight size={14} aria-hidden />
+            </Link>
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-          {STATS.map(stat => (
-            <div key={stat.label} className="rounded-2xl" style={{ background: '#fff', border: '1px solid #E5E7EB', padding: '18px 20px' }}>
-              <div className="w-2 h-2 rounded-full mb-3" style={{ background: stat.color }} />
-              <p style={{ fontSize: 24, fontWeight: 700, color: '#111827', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 4 }}>
-                {loading ? '—' : stat.value}
-              </p>
-              <p style={{ fontSize: 12, fontWeight: 500, color: '#6B7280' }}>{stat.label}</p>
-            </div>
-          ))}
-        </div>
-
-        {chartData.length > 0 && (
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-            <div className="rounded-2xl p-5" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-              <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 16 }}>Income vs Expenses</p>
-              <ResponsiveContainer width="100%" height={240}>
-                <AreaChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
-                  <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false}
-                    tickFormatter={v => '€' + (v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v)} />
-                  <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12 }}
-                    formatter={(v: unknown) => [fmtAmt(v as number)]} />
-                  <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Area type="monotone" dataKey="income" name="Income" stroke="#16A34A" fill="#16A34A" fillOpacity={0.12} strokeWidth={2} />
-                  <Area type="monotone" dataKey="expenses" name="Expenses" stroke="#DC2626" fill="#DC2626" fillOpacity={0.12} strokeWidth={2} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="rounded-2xl p-5" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-              <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 16 }}>Monthly P&amp;L</p>
-              <ResponsiveContainer width="100%" height={240}>
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
-                  <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false}
-                    tickFormatter={v => '€' + (v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v)} />
-                  <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12 }}
-                    formatter={(v: unknown) => [fmtAmt(v as number)]} />
-                  <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Bar dataKey="income" name="Income" fill="#16A34A" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="expenses" name="Expenses" fill="#DC2626" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+        {toast && (
+          <div role="status" className="px-4 py-2 rounded-xl" style={{ fontSize: 13, fontWeight: 500, background: toast.ok ? '#ECFDF5' : '#FEF2F2', color: toast.ok ? '#047857' : '#B91C1C', border: `1px solid ${toast.ok ? '#A7F3D0' : '#FECACA'}` }}>
+            {toast.text}
           </div>
         )}
 
-        <div>
-          <div className="flex items-center gap-2 mb-4 flex-wrap">
-            {(['ALL', 'INCOME', 'EXPENSE'] as const).map(tab => {
-              const isOn = filterTab === tab
-              const label = tab === 'ALL' ? 'All' : TYPE_STYLES[tab].label
-              return (
-                <button key={tab} onClick={() => { setFilterTab(tab); setPage(1) }} className="cursor-pointer"
-                  style={{ fontSize: 12, fontWeight: isOn ? 600 : 400, padding: '5px 14px', borderRadius: 8,
-                    background: isOn ? '#111827' : '#fff', color: isOn ? '#fff' : '#6B7280',
-                    border: isOn ? '1.5px solid #111827' : '1.5px solid #E5E7EB' }}>
-                  {label}
-                </button>
-              )
-            })}
+        {adding && shown?.canManage && (
+          <div className="flex flex-wrap items-end gap-3 p-4" style={CARD}>
+            <label className="flex flex-col gap-1" style={{ fontSize: 12, color: '#4B5563' }}>{r.category}
+              <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} style={INPUT}>
+                {EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{catLabel(c)}</option>)}
+              </select>
+            </label>
+            <label className="flex flex-col gap-1" style={{ fontSize: 12, color: '#4B5563' }}>{r.amount} ({cur})
+              <input inputMode="decimal" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} placeholder="500" style={{ ...INPUT, width: 120 }} />
+            </label>
+            <label className="flex flex-col gap-1" style={{ fontSize: 12, color: '#4B5563' }}>{r.date}
+              <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} style={INPUT} />
+            </label>
+            <label className="flex flex-col gap-1" style={{ fontSize: 12, color: '#4B5563', flex: '1 1 180px' }}>{r.concept}
+              <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder={r.conceptPlaceholder} style={INPUT} />
+            </label>
+            <button onClick={addExpense} disabled={busy || !(Number(form.amount.replace(',', '.')) > 0) || !form.date} className="cursor-pointer disabled:cursor-not-allowed"
+              style={{ height: 40, padding: '0 18px', borderRadius: 10, border: 'none', background: '#0870E2', color: '#fff', fontSize: 14, fontWeight: 600, opacity: busy || !(Number(form.amount.replace(',', '.')) > 0) || !form.date ? 0.5 : 1 }}>
+              {r.save}
+            </button>
+            <button onClick={() => setAdding(false)} aria-label={r.cancel} className="cursor-pointer" style={{ height: 40, width: 40, borderRadius: 10, border: 'none', background: 'transparent' }}>
+              <X size={16} style={{ color: '#6B7280' }} />
+            </button>
           </div>
+        )}
 
-          <div className="rounded-2xl overflow-hidden" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-            <table className="w-full">
-              <thead>
-                <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
-                  {['Date', 'Description', 'Category', 'Amount'].map(h => (
-                    <th key={h} className="px-5 py-3 text-left"
-                      style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr><td colSpan={4} className="px-5 py-10 text-center" style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</td></tr>
-                ) : entries.length === 0 ? (
-                  <tr><td colSpan={4} className="px-5 py-10 text-center" style={{ fontSize: 13, color: '#9CA3AF' }}>No entries found</td></tr>
-                ) : entries.map((e, idx) => {
-                  const ts = TYPE_STYLES[e.type]
-                  const isIncome = e.type === 'INCOME'
-                  return (
-                    <tr key={e.id} className="hover:bg-[#FAFAFA] transition-colors"
-                      style={{ borderBottom: idx < entries.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
-                      <td className="px-5 py-3">
-                        <span style={{ fontSize: 13, color: '#6B7280' }}>{fmtDate(e.date)}</span>
-                      </td>
-                      <td className="px-5 py-3">
-                        <span style={{ fontSize: 13, color: e.description ? '#111827' : '#D1D5DB', fontWeight: 500 }}>
-                          {e.description ?? '—'}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3">
-                        <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999,
-                          background: ts.bg, color: ts.color, border: '1px solid ' + ts.border }}>
-                          {CAT_LABELS[e.category] ?? e.category}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3">
-                        <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.02em',
-                          color: isIncome ? '#16A34A' : '#DC2626' }}>
-                          {isIncome ? '+' : '−'}{fmtAmt(e.amount, e.currency)}
-                        </span>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between px-6 py-3" style={{ borderTop: '1px solid #F3F4F6' }}>
-                <p style={{ fontSize: 13, color: '#6B7280' }}>
-                  Showing <span style={{ fontWeight: 600, color: '#111827' }}>{(page - 1) * ITEMS_PER_PAGE + 1}–{Math.min(page * ITEMS_PER_PAGE, total)}</span> of <span style={{ fontWeight: 600, color: '#111827' }}>{total}</span>
+        {error && !shown ? (
+          <div className="flex items-center justify-between gap-3 px-5 py-4" style={CARD}>
+            <span role="alert" style={{ fontSize: 13, color: '#DC2626' }}>{r.loadError}</span>
+            <button onClick={load} className="cursor-pointer" style={{ fontSize: 13, fontWeight: 600, padding: '6px 14px', borderRadius: 999, border: '1px solid #E5E7EB', background: '#fff' }}>{r.retry}</button>
+          </div>
+        ) : !shown ? (
+          <p style={{ fontSize: 13, color: '#6B7280' }}>{r.loading}</p>
+        ) : (
+          <div className="flex flex-col gap-6" style={{ opacity: loading ? 0.6 : 1 }}>
+            {missing.length > 0 && (
+              <div className="flex items-start justify-between gap-3 flex-wrap px-4 py-3 rounded-xl" style={{ background: '#FFFBEB', border: '1px solid #FDE68A' }}>
+                <p className="flex items-start gap-2" style={{ fontSize: 13, color: '#92400E', margin: 0, flex: '1 1 300px' }}>
+                  <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 1 }} aria-hidden />
+                  <span>
+                    {shown.lastExpenseMonth
+                      ? r.missingSince.replace('{month}', monthLabel(shown.lastExpenseMonth, true)).replace('{n}', String(missing.length))
+                      : r.missingNever.replace('{n}', String(missing.length))}
+                  </span>
                 </p>
-                <div className="flex items-center gap-1">
-                  <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-                    style={{ fontSize: 13, border: '1px solid #E5E7EB', background: '#fff', color: page === 1 ? '#D1D5DB' : '#374151', cursor: page === 1 ? 'not-allowed' : 'pointer', borderRadius: 8, padding: '6px 10px' }}>
-                    <ChevronLeft size={14} />
+                {shown.canManage && shown.lastExpenseMonth && (
+                  <button onClick={copyAll} disabled={busy} className="cursor-pointer inline-flex items-center gap-1.5 disabled:cursor-not-allowed"
+                    style={{ fontSize: 12, fontWeight: 600, padding: '7px 14px', borderRadius: 999, background: '#fff', color: '#92400E', border: '1px solid #FCD34D', opacity: busy ? 0.6 : 1 }}>
+                    <Copy size={13} aria-hidden /> {r.copyAll}
                   </button>
-                  {pages.map((p, i) =>
-                    p === '...' ? <span key={'e' + i} style={{ fontSize: 13, color: '#9CA3AF', padding: '0 4px' }}>…</span> : (
-                      <button key={p} onClick={() => setPage(p as number)}
-                        className="w-9 h-9 flex items-center justify-center rounded-lg cursor-pointer"
-                        style={{ fontSize: 13, fontWeight: p === page ? 600 : 400, border: 'none',
-                          background: p === page ? '#F3F4F6' : 'transparent', color: p === page ? '#111827' : '#6B7280' }}>
-                        {p}
-                      </button>
-                    )
-                  )}
-                  <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-                    style={{ fontSize: 13, border: '1px solid #E5E7EB', background: '#fff', color: page === totalPages ? '#D1D5DB' : '#374151', cursor: page === totalPages ? 'not-allowed' : 'pointer', borderRadius: 8, padding: '6px 10px' }}>
-                    <ChevronRight size={14} />
-                  </button>
+                )}
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              {cards.map(c => (
+                <div key={c.label} style={{ ...CARD, padding: '16px 18px' }}>
+                  <span className="flex items-center gap-2" style={{ marginBottom: 8 }}>
+                    <span className="w-2 h-2 rounded-full" style={{ background: c.color }} aria-hidden />
+                    <span style={{ fontSize: 12, color: '#4B5563', fontWeight: 500 }}>{c.label}</span>
+                  </span>
+                  <span style={{ display: 'block', fontSize: 24, fontWeight: 700, color: '#111827', lineHeight: 1.1 }}>{c.value}</span>
+                  {c.hint && <span style={{ display: 'block', fontSize: 11, color: '#92400E', marginTop: 6 }}>{c.hint}</span>}
+                </div>
+              ))}
+            </div>
+            {shown.otherCurrencies.length > 0 && (
+              <p style={{ fontSize: 12, color: '#6B7280', margin: '-12px 0 0' }}>{r.otherCurrencies.replace('{currency}', cur).replace('{list}', shown.otherCurrencies.join(', '))}</p>
+            )}
+
+            {/* Month by month */}
+            <div style={CARD}>
+              <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0, padding: '18px 20px 6px' }}>{r.byMonthTitle}</p>
+              <div className="overflow-x-auto">
+                <table className="w-full" style={{ minWidth: 640, borderCollapse: 'collapse' }}>
+                  <thead><tr>{[r.month, r.income, r.expenses, r.result, r.margin, ''].map((h, i) => <th key={i} style={{ ...TH, textAlign: i && i < 5 ? 'right' : 'left' }}>{h}</th>)}</tr></thead>
+                  <tbody>
+                    {[...shown.months].reverse().map(m => (
+                      <tr key={m.key} style={{ background: m.missingExpenses ? '#FFFDF5' : undefined }}>
+                        <td style={{ ...TD, fontWeight: 600, color: '#111827', whiteSpace: 'nowrap' }}>{monthLabel(m.key)}</td>
+                        <td style={{ ...TD, textAlign: 'right', whiteSpace: 'nowrap' }}>{money(m.incomeTotal)}</td>
+                        <td style={{ ...TD, textAlign: 'right', whiteSpace: 'nowrap', color: m.missingExpenses ? '#B45309' : '#374151' }}>
+                          {m.missingExpenses ? r.noExpenses : money(m.expenseTotal)}
+                        </td>
+                        <td style={{ ...TD, textAlign: 'right', whiteSpace: 'nowrap', fontWeight: 600, color: m.missingExpenses ? '#9CA3AF' : m.net < 0 ? '#B91C1C' : '#111827' }}>{money(m.net)}</td>
+                        <td style={{ ...TD, textAlign: 'right', whiteSpace: 'nowrap', color: m.margin === null ? '#9CA3AF' : '#374151' }}>{m.margin === null ? '—' : `${m.margin}%`}</td>
+                        <td style={{ ...TD, textAlign: 'right' }}>
+                          {m.missingExpenses && shown.canManage && shown.lastExpenseMonth && (
+                            <button onClick={() => copyOne(m.key)} disabled={busy} className="cursor-pointer inline-flex items-center gap-1 disabled:cursor-not-allowed"
+                              style={{ fontSize: 12, fontWeight: 600, color: '#0870E2', background: 'none', border: 'none', padding: 0, opacity: busy ? 0.5 : 1, whiteSpace: 'nowrap' }}>
+                              <Copy size={12} aria-hidden /> {r.copyPrevious}
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+              <div className="xl:col-span-2" style={{ ...CARD, padding: 20 }}>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: '0 0 12px' }}>{r.chartTitle}</p>
+                <ResponsiveContainer width="100%" height={240}>
+                  <BarChart data={shown.months.map(m => ({ label: monthLabel(m.key), income: m.incomeTotal, expenses: m.expenseTotal }))}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
+                    <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#6B7280' }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 11, fill: '#6B7280' }} axisLine={false} tickLine={false} width={56} tickFormatter={(v: number) => money(v)} />
+                    <Tooltip formatter={v => money(Number(v))} contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12 }} />
+                    <Legend wrapperStyle={{ fontSize: 12 }} />
+                    <Bar dataKey="income" name={r.income} fill="#16A34A" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="expenses" name={r.expenses} fill="#DC2626" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <div style={{ ...CARD, padding: 20 }}>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: '0 0 12px' }}>{r.byCategoryTitle}</p>
+                {(['income', 'expenses'] as const).map(kind => (
+                  <div key={kind} style={{ marginBottom: 14 }}>
+                    <p style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.04em', margin: '0 0 6px' }}>{kind === 'income' ? r.income : r.expenses}</p>
+                    {categories(kind).length === 0 ? <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0 }}>—</p> : (
+                      <ul style={{ listStyle: 'none', margin: 0, padding: 0 }} className="flex flex-col gap-1.5">
+                        {categories(kind).map(([c, n]) => (
+                          <li key={c} className="flex items-center justify-between" style={{ fontSize: 13 }}>
+                            <span style={{ color: '#374151' }}>{catLabel(c)}</span>
+                            <span style={{ fontWeight: 600, color: '#111827' }}>{money(n)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {shown.unusual.length > 0 && (
+              <div style={CARD}>
+                <div style={{ padding: '18px 20px 6px' }}>
+                  <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0 }}>{r.unusualTitle}</p>
+                  <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>{r.unusualHint}</p>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full" style={{ minWidth: 560, borderCollapse: 'collapse' }}>
+                    <thead><tr>{[r.date, r.concept, r.category, r.amount, r.why].map(h => <th key={h} style={TH}>{h}</th>)}</tr></thead>
+                    <tbody>
+                      {shown.unusual.map(u => (
+                        <tr key={u.id}>
+                          <td style={{ ...TD, whiteSpace: 'nowrap' }}>{new Date(u.date).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                          <td style={TD}>{u.description ?? '—'}</td>
+                          <td style={TD}>{catLabel(u.category)}</td>
+                          <td style={{ ...TD, fontWeight: 600, whiteSpace: 'nowrap' }}>{fmtPrice(u.amount, u.currency)}</td>
+                          <td style={TD}>{u.reason === 'OTHER' ? r.whyOther : r.whyLarge}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             )}
           </div>
-        </div>
+        )}
       </div>
     </main>
   )
