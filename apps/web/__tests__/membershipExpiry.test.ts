@@ -147,22 +147,25 @@ describe('checkAndExpireMembership', () => {
 
 describe('expireLapsedMemberships', () => {
   it('sweeps every ACTIVE membership past its endDate, splitting EXPIRED vs CANCELLED counts', async () => {
-    mockMembershipFindMany.mockResolvedValue([
+    // 1st query: paid/plan-less with the 30-day grace; 2nd: trials (none here)
+    mockMembershipFindMany.mockResolvedValueOnce([
       fakeMembership({ id: 'm-1' }),                                   // lapsed, never cancelled -> EXPIRED
       fakeMembership({ id: 'm-2', cancelledAt: new Date() }),          // Netflix-cancelled -> CANCELLED
       fakeMembership({ id: 'm-3' }),                                   // lapsed, never cancelled -> EXPIRED
-    ])
+    ]).mockResolvedValueOnce([])
 
     const result = await expireLapsedMemberships()
 
-    expect(mockMembershipFindMany).toHaveBeenCalledWith({
-      where: { status: 'ACTIVE', endDate: { lt: expect.any(Date) } },
-      select: {
-        id: true, userId: true, schoolId: true, cancelledAt: true, endDate: true, planName: true,
-        user: { select: { name: true, email: true } },
-        school: { select: { name: true } },
+    expect(mockMembershipFindMany).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      where: {
+        status: 'ACTIVE', endDate: { lt: expect.any(Date) },
+        // Trials are swept separately (from the first class, no grace)
+        OR: [{ planId: null }, { plan: { planType: { not: 'TRIAL' } } }],
       },
-    })
+    }))
+    expect(mockMembershipFindMany).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      where: { status: 'ACTIVE', plan: { planType: 'TRIAL' } },
+    }))
     expect(result).toEqual({ expiredCount: 2, cancelledCount: 1 })
     expect(mockMembershipUpdate).toHaveBeenCalledTimes(3)
   })
@@ -177,10 +180,10 @@ describe('expireLapsedMemberships', () => {
   })
 
   it('dryRun: true -> returns a preview with no writes at all', async () => {
-    mockMembershipFindMany.mockResolvedValue([
+    mockMembershipFindMany.mockResolvedValueOnce([
       fakeMembership({ id: 'm-1' }),
       fakeMembership({ id: 'm-2', cancelledAt: new Date() }),
-    ])
+    ]).mockResolvedValueOnce([])
 
     const result = await expireLapsedMemberships({ dryRun: true })
 

@@ -8,7 +8,7 @@ import { sendMembershipReceiptEmail, sendEventTicketConfirmationEmail, sendEvent
 import { checkEventCapacity } from '@/lib/services/eventCapacity'
 import { recordOnlinePayment, recordFlaggedPayment } from '@/lib/services/transactions'
 import { syncSchoolMemberStatusForMembership, isSchoolMemberArchived } from '@/lib/services/membership'
-import { convertLeadOnMembershipActivation } from '@/lib/leads'
+import { convertLeadAfterPaidActivation } from '@/lib/leads'
 import { PaymentMethod, TransactionCategory, StripeWebhookEventStatus, MembershipPaymentStatus } from '@/lib/prisma-client/enums'
 import { notifyPaymentReceived } from '@/lib/notifications/create'
 import { fmtPrice } from '@/lib/format'
@@ -538,8 +538,7 @@ async function handleStripeEvent(event: Stripe.Event) {
 
       // Notify + send receipt email (fire-and-forget)
       if (activatedMembershipId) {
-        convertLeadOnMembershipActivation(schoolId, userId).catch(err =>
-          console.error('[stripe webhook] lead conversion failed:', err))
+        await convertLeadAfterPaidActivation(schoolId, userId, 'stripe webhook')
 
         prisma.membership.findUnique({
           where: { id: activatedMembershipId },

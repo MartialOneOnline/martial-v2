@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { startTrialClocks } from '@/lib/services/trial'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
@@ -38,7 +39,7 @@ export async function PATCH(
 
   const booking = await prisma.booking.findFirst({
     where: { id, class: { schoolId: auth.schoolId } },
-    select: { id: true, status: true, attendedAt: true },
+    select: { id: true, status: true, attendedAt: true, userId: true },
   })
   if (!booking) return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
 
@@ -59,6 +60,8 @@ export async function PATCH(
     data: { attendedAt: new Date(), status: 'COMPLETED' },
     select: { id: true, status: true, attendedAt: true },
   })
+  // First class of a free trial starts its days (lib/services/trial.ts)
+  await startTrialClocks([booking.userId], auth.schoolId)
 
   return NextResponse.json({
     id:         updated.id,

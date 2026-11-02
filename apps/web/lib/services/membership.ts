@@ -11,7 +11,8 @@ import type { Prisma } from '@/lib/prisma-client/client'
 import { PaymentMethod, MembershipStatus, TransactionType, TransactionCategory, TransactionStatus } from '@/lib/prisma-client/enums'
 import { sendMembershipReceiptEmail } from '@/lib/email/sendEmails'
 import { getStripe } from '@/lib/stripe'
-import { convertLeadOnMembershipActivation } from '@/lib/leads'
+import { convertLeadAfterPaidActivation } from '@/lib/leads'
+import { isTrialPlanType, syncTrialWindow, trialLapsed, TRIAL_PLAN_TYPE } from '@/lib/services/trial'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -57,6 +58,7 @@ export interface CancelMembershipInput {
  * membership that's merely a few days overdue (e.g. paid in cash but not
  * renewed in the system yet) doesn't lose access the moment the cron runs.
  */
+// Free trials don't get it — see lib/services/trial.ts.
 const EXPIRY_GRACE_PERIOD_DAYS = 30
 
 function graceCutoff(): Date {
@@ -306,9 +308,12 @@ export async function assignPlan(input: AssignPlanInput) {
   })
   if (!plan) throw new Error('Plan not found or inactive')
 
+  // A free trial has no end date until the student's first class (lib/services/trial.ts)
   const endDate = (paymentMethod === PaymentMethod.CASH && input.endDateOverride)
     ? input.endDateOverride
-    : computeEndDate(plan.planType, plan.billingCycle, plan.validityDays, start)
+    : isTrialPlanType(plan.planType)
+      ? null
+      : computeEndDate(plan.planType, plan.billingCycle, plan.validityDays, start)
 
   // 3–6. All in one transaction
   const [membership] = await prisma.$transaction(async (tx) => {
@@ -389,10 +394,7 @@ export async function assignPlan(input: AssignPlanInput) {
   // CRM — a free/trial plan (e.g. the trial assigned via Invite User, which
   // calls this with activateMember: false) must not mark the lead Won just
   // for getting trial access. Fire-and-forget, must never fail the assignment.
-  if (plan.price > 0) {
-    convertLeadOnMembershipActivation(schoolId, schoolMember.userId).catch(err =>
-      console.error('[assignPlan] lead conversion failed:', err))
-  }
+  await convertLeadAfterPaidActivation(schoolId, schoolMember.userId, 'assignPlan', { price: plan.price })
 
   // Send receipt email for paid plans
   if (plan.price > 0) {
@@ -543,12 +545,21 @@ async function expireOneMembership(membership: {
 export async function checkAndExpireMembership(membershipId: string): Promise<boolean> {
   const membership = await prisma.membership.findUnique({
     where: { id: membershipId },
-    select: { id: true, userId: true, schoolId: true, status: true, cancelledAt: true, endDate: true },
+    select: {
+      id: true, userId: true, schoolId: true, status: true, cancelledAt: true, startDate: true, endDate: true,
+      plan: { select: { planType: true, validityDays: true } },
+    },
   })
   if (!membership) return true
   if (membership.status === MembershipStatus.CANCELLED || membership.status === MembershipStatus.EXPIRED) return true
   if (membership.status !== MembershipStatus.ACTIVE) return false // PENDING/PAUSED — nothing to expire here
-  if (!membership.endDate || membership.endDate > graceCutoff()) return false
+  if (isTrialPlanType(membership.plan?.planType)) {
+    // Trials: from the first class, no grace, and an unused one never expires
+    const state = await syncTrialWindow(prisma, membership)
+    if (!trialLapsed(state.endDate, state.used)) return false
+  } else if (!membership.endDate || membership.endDate > graceCutoff()) {
+    return false
+  }
 
   await expireOneMembership(membership)
   return true
@@ -582,14 +593,32 @@ export interface LapsedMembershipPreview {
 export async function expireLapsedMemberships(
   options: { dryRun?: boolean } = {},
 ): Promise<{ expiredCount: number; cancelledCount: number; preview?: LapsedMembershipPreview[] }> {
-  const lapsed = await prisma.membership.findMany({
-    where: { status: MembershipStatus.ACTIVE, endDate: { lt: graceCutoff() } },
-    select: {
-      id: true, userId: true, schoolId: true, cancelledAt: true, endDate: true, planName: true,
-      user: { select: { name: true, email: true } },
-      school: { select: { name: true } },
+  const select = {
+    id: true, userId: true, schoolId: true, cancelledAt: true, startDate: true, endDate: true, planName: true,
+    plan: { select: { validityDays: true } },
+    user: { select: { name: true, email: true } },
+    school: { select: { name: true } },
+  } as const
+  // Paid (and plan-less) memberships: 30 days of grace after endDate
+  const paidLapsed = await prisma.membership.findMany({
+    where: {
+      status: MembershipStatus.ACTIVE, endDate: { lt: graceCutoff() },
+      OR: [{ planId: null }, { plan: { planType: { not: TRIAL_PLAN_TYPE } } }],
     },
+    select,
   })
+  // Trials: counted from the first class, over on their last day, never if unused.
+  // The dry run computes the same window without writing it.
+  const trials = await prisma.membership.findMany({
+    where: { status: MembershipStatus.ACTIVE, plan: { planType: TRIAL_PLAN_TYPE } },
+    select,
+  })
+  const lapsedTrials: typeof trials = []
+  for (const t of trials) {
+    const state = await syncTrialWindow(prisma, t, { write: !options.dryRun })
+    if (trialLapsed(state.endDate, state.used)) lapsedTrials.push({ ...t, endDate: state.endDate })
+  }
+  const lapsed = [...paidLapsed, ...lapsedTrials]
 
   if (options.dryRun) {
     const preview: LapsedMembershipPreview[] = lapsed.map(m => ({
@@ -776,6 +805,8 @@ export async function markRenewalPaid(input: MarkRenewalPaidInput) {
   })
 
   if (!updated) throw new Error('Membership not found')
+  // A paid cash renewal is also a paying student (e.g. converted in cash after a trial)
+  await convertLeadAfterPaidActivation(schoolId, updated.userId, 'markRenewalPaid', { price: Number(updated.price) })
   return updated
 }
 
@@ -908,11 +939,13 @@ export interface ApplyPaidMembershipTransactionInput {
  */
 export async function applyPaidMembershipTransaction(input: ApplyPaidMembershipTransactionInput) {
   const { transactionId, schoolId } = input
-  return prisma.$transaction(async (tx) => {
+  const updated = await prisma.$transaction(async (tx) => {
     const txn = await tx.transaction.findFirst({ where: { id: transactionId, schoolId } })
     if (!txn) return null
     return activateMembershipForPaidRenewal(tx, txn, schoolId)
   })
+  if (updated) await convertLeadAfterPaidActivation(schoolId, updated.userId, 'applyPaidMembershipTransaction', { price: Number(updated.price) })
+  return updated
 }
 
 /**

@@ -175,6 +175,14 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 - Hallazgo de Codex en `137ff8c` y corrección:
   5. P3 — la confirmación de salida interceptaba `mailto:` y enlaces externos. `isInAppLeave()`: solo pregunta en navegación http(s) del mismo origen a otra ruta o query; `mailto:`/`tel:`, otros sitios (salida real → `beforeunload`) y anclas pasan sin preguntar. Test: 1 caso más. Suite 1061 / 55.
 
+### Lote M — Pruebas gratis y conversión de leads (rama `claude/trial-fixes`)
+
+- Estado: entregado por Claude, **pendiente de auditoría**. Sin migración. No mergear hasta que el usuario revise la lista de pruebas de RGM que caducarían.
+- Pedido del usuario: una prueba gratis no debe perder al alumno que no pudo venir a tiempo; la prueba de un día no "se renueva"; un lead que acaba pagando debe convertirse. Decisiones: días desde la primera clase; caduca ese día sin bloquear; revisar la lista antes.
+- Criterios: TRIAL nace sin endDate y se ancla en la primera clase asistida (desde la asignación − 24 h); sin margen de 30 días para TRIAL (los de pago lo conservan); prueba sin usar no caduca; ningún bloqueo de entrada; aviso en check-in y ficha ("Caducada" + "Asignar plan"); conversión de lead esperada y solo en pagos, también en renovaciones en efectivo y pagos marcados a mano; 4 idiomas.
+- A revisar: que ningún plan de pago cambie su expiración; idempotencia del anclaje; que el dry run no escriba; que marcar asistencia no falle si falla el anclaje; carrera entre anclaje y barrido nocturno; efectos de `endDate: null` en /my, informes y KPIs.
+- No verificado: navegador y datos reales.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.

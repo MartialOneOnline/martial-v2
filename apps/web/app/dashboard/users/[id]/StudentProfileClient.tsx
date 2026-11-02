@@ -1225,6 +1225,10 @@ function MembershipSection({
   useEffect(() => { setMemberships(initialMemberships) }, [initialMemberships])
 
   const isPastDue = !!(activeMembership?.expiresAt && new Date(activeMembership.expiresAt) < new Date())
+  // A trial or single pass doesn't renew: past its end it's simply over
+  const isOneOff = activeMembership?.planType === 'TRIAL' || activeMembership?.planType === 'SINGLE_PASS'
+  const isExpiredOneOff = isPastDue && isOneOff
+  const trialNotStarted = activeMembership?.planType === 'TRIAL' && !activeMembership.expiresAt
 
   async function handleCreateRenewalPayment() {
     if (!activeMembership) return
@@ -1456,6 +1460,9 @@ function MembershipSection({
                         {tt.studentProfile.expiresLabel} {new Date(activeMembership.expiresAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                       </span>
                     )}
+                    {trialNotStarted && (
+                      <span style={{ whiteSpace: 'nowrap' }}>· {tt.trial.startsAtFirstClass}</span>
+                    )}
                     {activeMembership.paymentMethod === 'CASH' && (
                       <button onClick={openDateEdit} title={tt.studentProfile.editDatesTitle}
                         style={{ display: 'inline-flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: '#9CA3AF' }}>
@@ -1472,9 +1479,9 @@ function MembershipSection({
                 </span>
                 <span style={{
                   fontSize: 11, fontWeight: 600, color: '#fff', padding: '2px 10px', borderRadius: 999,
-                  background: isPastDue ? '#D97706' : '#16A34A',
+                  background: isExpiredOneOff ? '#DC2626' : isPastDue ? '#D97706' : '#16A34A',
                 }}>
-                  {isPastDue ? tt.studentProfile.renewalDue : tt.common.active}
+                  {isExpiredOneOff ? tt.trial.expired : isPastDue ? tt.studentProfile.renewalDue : tt.common.active}
                 </span>
                 {activeMembership.paymentStatus === 'PAST_DUE' && (
                   <span style={{
@@ -1490,6 +1497,17 @@ function MembershipSection({
               <p style={{ fontSize: 12, color: '#B45309', margin: '10px 0 0' }}>
                 {tt.studentProfile.paymentFailedHint}
               </p>
+            )}
+            {isExpiredOneOff && (
+              <div className="flex flex-wrap items-center justify-between gap-2" style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #FDE68A' }}>
+                <p style={{ fontSize: 12, color: '#92400E', margin: 0, flex: '1 1 200px' }}>
+                  {activeMembership.planType === 'TRIAL' ? tt.trial.expiredHint : tt.trial.passExpiredHint}
+                </p>
+                <button onClick={() => setShowModal(true)}
+                  style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: '#0870E2', border: 'none', padding: '6px 14px', borderRadius: 999, cursor: 'pointer' }}>
+                  {tt.trial.assignPlan}
+                </button>
+              </div>
             )}
 
             {/* Scheduled cancellation — access continues until the period ends */}

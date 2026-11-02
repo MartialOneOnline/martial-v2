@@ -860,6 +860,14 @@ export const translations = {
       retry: "Retry",
       save: "Save changes",
     },
+    trial: {
+      expired: "Expired",
+      assignPlan: "Assign plan",
+      expiredHint: "The free trial is over. If they keep coming, assign them a plan.",
+      passExpiredHint: "This pass is used up. Assign a plan to keep them training.",
+      startsAtFirstClass: "starts at the first class",
+      checkinExpired: "Trial expired — still coming. Assign a plan.",
+    },
     gradingModule: {
       label: 'Belts & gradings',
       desc: 'Belts, stripes, grading readiness and the gradings report. Turn it off for disciplines without belts, like boxing or fitness.',
@@ -1980,6 +1988,14 @@ export const translations = {
       retry: "Reintentar",
       save: "Guardar cambios",
     },
+    trial: {
+      expired: "Caducada",
+      assignPlan: "Asignar plan",
+      expiredHint: "La prueba gratis ha terminado. Si sigue viniendo, asígnale un plan.",
+      passExpiredHint: "Este bono ha terminado. Asígnale un plan para que siga entrenando.",
+      startsAtFirstClass: "empieza con la primera clase",
+      checkinExpired: "Prueba caducada, sigue viniendo. Asígnale un plan.",
+    },
     gradingModule: {
       label: 'Cinturones y graduaciones',
       desc: 'Cinturones, grados, preparación para graduar y el informe de graduaciones. Desactívalo en disciplinas sin cinturones, como boxeo o fitness.',
@@ -3080,6 +3096,14 @@ export const translations = {
       retry: "Tentar novamente",
       save: "Guardar alterações",
     },
+    trial: {
+      expired: "Expirada",
+      assignPlan: "Atribuir plano",
+      expiredHint: "A aula experimental terminou. Se continuar a vir, atribui-lhe um plano.",
+      passExpiredHint: "Este passe terminou. Atribui-lhe um plano para continuar a treinar.",
+      startsAtFirstClass: "começa na primeira aula",
+      checkinExpired: "Experiência expirada, continua a vir. Atribui-lhe um plano.",
+    },
     gradingModule: {
       label: 'Faixas e graduações',
       desc: 'Faixas, graus, prontidão para graduar e o relatório de graduações. Desative em modalidades sem faixas, como boxe ou fitness.',
@@ -4179,6 +4203,14 @@ export const translations = {
       saving: "Enregistrement…",
       retry: "Réessayer",
       save: "Enregistrer",
+    },
+    trial: {
+      expired: "Expiré",
+      assignPlan: "Attribuer un forfait",
+      expiredHint: "L’essai gratuit est terminé. S’il continue à venir, attribuez-lui un forfait.",
+      passExpiredHint: "Ce pass est terminé. Attribuez un forfait pour qu’il continue à s’entraîner.",
+      startsAtFirstClass: "commence au premier cours",
+      checkinExpired: "Essai expiré, il continue à venir. Attribuez-lui un forfait.",
     },
     gradingModule: {
       label: 'Ceintures et passages de grade',

@@ -271,6 +271,18 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
+### Sesión — 2026-11-02 (j) (rama `claude/trial-fixes` — pendiente de auditoría; sin migración; NO mergear antes de que el usuario revise la lista de pruebas de RGM)
+
+**Pruebas gratis y conversión de leads** (caso Rafa). Decisiones del usuario (2026-11-02): los días cuentan desde la primera clase; caduca ese día sin bloquear la entrada; revisar la lista de pruebas antiguas antes de publicar.
+- `lib/services/trial.ts` (nuevo): `trialWindow()` (primera clase + validityDays), `trialLapsed()` (usada y pasado su último día; sin margen), `syncTrialWindow()` (re-ancla startDate/endDate en la primera clase asistida desde la asignación − 24 h; idempotente; `write: false` para el dry run), `startTrialClocks()` (tras marcar asistencia; nunca lanza), `trialExpiredFor()` (aviso de check-in).
+- `assignPlan`: un plan TRIAL nace con `endDate: null` ("empieza con la primera clase"), salvo override de efectivo. Expiración: los planes de pago siguen con 30 días de margen (la consulta excluye TRIAL); las pruebas se barren aparte: ancladas en su primera clase, caducan el último día y una prueba sin usar no caduca.
+- Asistencia: check-in, marcar reserva y "marcar clase" llaman a `startTrialClocks`. El check-in nunca bloquea y devuelve `trialExpired` → aviso "Prueba caducada, sigue viniendo. Asígnale un plan."
+- Ficha del alumno: prueba o bono pasado de fecha → "Caducada" + "Asignar plan" (antes "Renovación pendiente"); prueba sin empezar → "empieza con la primera clase". Textos `t.trial` en EN/ES/PT/FR.
+- Leads: `convertLeadAfterPaidActivation()` (awaited, solo pagos, nunca lanza) sustituye las llamadas fire-and-forget (assignPlan, webhooks Stripe/Revolut, activación manual — ahora exige precio > 0) y se añade a `markRenewalPaid` y `applyPaidMembershipTransaction`.
+- Lista RGM (lectura en prod, 2026-11-02, sin escribir): 43 pruebas ACTIVE; 36 sin usar (varias son cuentas de prueba internas); 4 usadas caducarían en el primer barrido tras publicar (una con ~30 clases desde agosto). Configuración sospechosa: el plan "Prueba 1 Semana" dura 30 días y "Prueba 1 Día" 7.
+- Tests: `trialLifecycle` (9), `leadConversionAwaited` (4), `membershipExpiry` actualizado. Suite 1073 / 55 preexistentes; tsc 0.
+- Pendiente: backfill de leads ya pagados sin convertir (escritura en prod, requiere OK).
+
 ### Sesión — 2026-11-02 (i) (rama `claude/grading-settings`, PR [#46](https://github.com/MartialOneOnline/martial-v2/pull/46) — `RECHAZADO` en `d514b3c` (1 P1, 3 P2) → `APROBADO CON PENDIENTES` en `137ff8c` (1 P3) → P3 corregido; sin migración; pendiente: sesión autenticada con datos reales)
 
 **Rediseño de Settings → Grading** (maqueta aprobada por el usuario: "Construirlo así").
