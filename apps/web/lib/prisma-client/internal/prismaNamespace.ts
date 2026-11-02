@@ -5390,6 +5390,8 @@ export const MembershipScalarFieldEnum = {
   status: 'status',
   startDate: 'startDate',
   endDate: 'endDate',
+  assignedAt: 'assignedAt',
+  endDateManual: 'endDateManual',
   paymentStatus: 'paymentStatus',
   paymentStatusAt: 'paymentStatusAt',
   classesUsed: 'classesUsed',

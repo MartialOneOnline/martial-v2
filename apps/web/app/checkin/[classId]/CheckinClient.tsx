@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { CheckCircle, XCircle, Camera, RefreshCw } from 'lucide-react'
 import jsQR from 'jsqr'
+import { useT } from '../../../lib/i18n/LanguageContext'
 
 interface Props {
   classId: string
@@ -10,9 +11,10 @@ interface Props {
   date: string  // YYYY-MM-DD
 }
 
-type ScanResult = { ok: true; name: string; walkin: boolean; atCapacity: boolean } | { ok: false; error: string }
+type ScanResult = { ok: true; name: string; walkin: boolean; atCapacity: boolean; trialExpired?: boolean } | { ok: false; error: string }
 
 export default function CheckinClient({ classId, className, date }: Props) {
+  const tt = useT()
   const videoRef   = useRef<HTMLVideoElement>(null)
   const canvasRef  = useRef<HTMLCanvasElement>(null)
   const streamRef  = useRef<MediaStream | null>(null)
@@ -34,6 +36,7 @@ export default function CheckinClient({ classId, className, date }: Props) {
     cooldown.current = true
     setTimeout(() => { cooldown.current = false; lastScan.current = '' }, 3000)
 
+    let keepLonger = false
     try {
       const res = await fetch('/api/dashboard/checkin', {
         method: 'POST',
@@ -46,7 +49,10 @@ export default function CheckinClient({ classId, className, date }: Props) {
       } else {
         const name = data.studentName as string
         const atCapacity = data.atCapacity === true
-        setResult({ ok: true, name, walkin: false, atCapacity })
+        // Never blocks: the student is in, staff just see the trial is over
+        const trialExpired = data.trialExpired === true
+        keepLonger = trialExpired
+        setResult({ ok: true, name, walkin: false, atCapacity, trialExpired })
         if (data.alreadyCheckedIn) {
           setResult({ ok: false, error: `${name} already checked in` })
         } else {
@@ -56,7 +62,8 @@ export default function CheckinClient({ classId, className, date }: Props) {
     } catch {
       setResult({ ok: false, error: 'Network error' })
     }
-    setTimeout(() => setResult(null), 3000)
+    // A note to read (expired trial) stays a bit longer
+    setTimeout(() => setResult(null), keepLonger ? 6000 : 3000)
   }, [classId, date])
 
   const startCamera = useCallback(async () => {
@@ -195,7 +202,7 @@ export default function CheckinClient({ classId, className, date }: Props) {
         {result && (
           <div style={{ position: 'absolute', inset: 0, background: result.ok ? 'rgba(22,163,74,0.85)' : 'rgba(220,38,38,0.85)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, zIndex: 20, backdropFilter: 'blur(4px)' }}>
             {result.ok
-              ? <><CheckCircle size={52} color="#fff" strokeWidth={1.5} /><p style={{ fontSize: 20, fontWeight: 700, color: '#fff', textAlign: 'center', padding: '0 24px' }}>{result.name}</p><p style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>Checked in ✓</p>{result.atCapacity && <p style={{ fontSize: 12, fontWeight: 600, color: '#FEF08A' }}>⚠ Class is at capacity</p>}</>
+              ? <><CheckCircle size={52} color="#fff" strokeWidth={1.5} /><p style={{ fontSize: 20, fontWeight: 700, color: '#fff', textAlign: 'center', padding: '0 24px' }}>{result.name}</p><p style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>Checked in ✓</p>{result.atCapacity && <p style={{ fontSize: 12, fontWeight: 600, color: '#FEF08A' }}>⚠ Class is at capacity</p>}{result.trialExpired && <p role="status" style={{ fontSize: 14, fontWeight: 600, color: '#111827', background: '#FEF08A', borderRadius: 10, padding: '8px 14px', margin: '4px 24px 0', textAlign: 'center' }}>{tt.trial.checkinExpired}</p>}</>
               : <><XCircle size={52} color="#fff" strokeWidth={1.5} /><p style={{ fontSize: 15, fontWeight: 600, color: '#fff', textAlign: 'center', padding: '0 24px' }}>{result.error}</p></>
             }
           </div>

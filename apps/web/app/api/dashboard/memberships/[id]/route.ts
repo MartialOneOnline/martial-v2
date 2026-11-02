@@ -4,7 +4,8 @@ import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 import { memberHasPermission } from '@/lib/auth/customRoles'
 import { cancelMembership, computeEndDate, syncSchoolMemberStatusForMembership } from '@/lib/services/membership'
-import { convertLeadOnMembershipActivation } from '@/lib/leads'
+import { convertLeadAfterPaidActivation } from '@/lib/leads'
+import { isTrialPlanType } from '@/lib/services/trial'
 import { MembershipStatus, TransactionType, TransactionStatus, TransactionCategory } from '@/lib/prisma-client/enums'
 
 async function authorise() {
@@ -77,10 +78,13 @@ export async function PATCH(
     if (body.endDate !== undefined) {
       if (body.endDate === null) {
         data.endDate = null
+        data.endDateManual = false
       } else {
         const endDate = new Date(body.endDate)
         if (isNaN(endDate.getTime())) return NextResponse.json({ error: 'Invalid end date' }, { status: 400 })
         data.endDate = endDate
+        // A date the staff changed is theirs: a trial never moves or clears it (lib/services/trial.ts)
+        if (endDate.getTime() !== membership.endDate?.getTime()) data.endDateManual = true
       }
     }
     if (Object.keys(data).length === 0) {
@@ -148,14 +152,15 @@ export async function PATCH(
       return NextResponse.json({ error: 'Plan not found or inactive' }, { status: 404 })
 
     const startDate = new Date()
-    const endDate   = computeEndDate(plan.planType, plan.billingCycle ?? '', plan.validityDays, startDate)
+    // A free trial's days count from the first class (lib/services/trial.ts)
+    const endDate   = isTrialPlanType(plan.planType) ? null : computeEndDate(plan.planType, plan.billingCycle ?? '', plan.validityDays, startDate)
     const price     = Number(membership.price)
 
     await prisma.$transaction(async (tx) => {
       // 1. Activate in-place — preserve ID, avoid cancelling sibling memberships
       await tx.membership.update({
         where: { id },
-        data: { status: MembershipStatus.ACTIVE, startDate, endDate, cancelledAt: null },
+        data: { status: MembershipStatus.ACTIVE, startDate, endDate, cancelledAt: null, assignedAt: startDate, endDateManual: false },
       })
 
       // 2. Record income transaction (skip for free/trial plans)
@@ -190,8 +195,7 @@ export async function PATCH(
       })
     })
 
-    convertLeadOnMembershipActivation(auth.schoolId, membership.userId).catch(err =>
-      console.error('[memberships PATCH activate] lead conversion failed:', err))
+    await convertLeadAfterPaidActivation(auth.schoolId, membership.userId, 'memberships PATCH activate', { price: Number(membership.price) })
 
     return NextResponse.json({ status: 'ACTIVE', id })
   }

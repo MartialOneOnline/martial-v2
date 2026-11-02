@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { PUBLIC_TRIAL_NAME } from '@/lib/services/trial'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
@@ -87,8 +88,8 @@ export async function POST(req: NextRequest) {
 
   // Race-condition protection: use a transaction
   const startDate = new Date()
-  const endDate = new Date(startDate)
-  endDate.setDate(endDate.getDate() + 7)
+  // The week counts from the first class, not from today (lib/services/trial.ts)
+  const endDate: Date | null = null
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -155,13 +156,14 @@ export async function POST(req: NextRequest) {
         data: {
           userId: dbUser.id,
           schoolId,
-          planName: 'Free Trial — 1 Week',
+          planName: PUBLIC_TRIAL_NAME,
           price: 0,
           currency: 'EUR',
           paymentMethod: 'CASH',
           status: 'ACTIVE',
           startDate,
           endDate,
+          assignedAt: startDate,
         },
       })
     })

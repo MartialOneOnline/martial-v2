@@ -6,7 +6,7 @@ import { sendMembershipReceiptEmail, sendEventTicketConfirmationEmail, sendEvent
 import { checkEventCapacity } from '@/lib/services/eventCapacity'
 import { recordOnlinePayment, recordFlaggedPayment } from '@/lib/services/transactions'
 import { isSchoolMemberArchived } from '@/lib/services/membership'
-import { convertLeadOnMembershipActivation } from '@/lib/leads'
+import { convertLeadAfterPaidActivation } from '@/lib/leads'
 import { PaymentMethod, TransactionCategory } from '@/lib/prisma-client/enums'
 import { notifyPaymentReceived } from '@/lib/notifications/create'
 import { fmtPrice } from '@/lib/format'
@@ -163,8 +163,7 @@ export async function POST(req: NextRequest) {
       }
       if (!outcome.claimed) return NextResponse.json({ received: true })
 
-      convertLeadOnMembershipActivation(membership.schoolId, membership.userId).catch(err =>
-        console.error('[revolut webhook] lead conversion failed:', err))
+      await convertLeadAfterPaidActivation(membership.schoolId, membership.userId, 'revolut webhook')
 
       // Notify + send receipt email (fire-and-forget)
       prisma.membership.findUnique({

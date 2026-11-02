@@ -50,6 +50,8 @@ export async function GET() {
           id: true, planName: true, price: true, currency: true,
           status: true, startDate: true, endDate: true,
           classesUsed: true, paymentMethod: true,
+          // planType: a trial or pass "ends", only a subscription "renews"
+          planId: true, plan: { select: { planType: true, classAccess: true } },
           school: {
             select: {
               id: true, name: true, slug: true, logoUrl: true, coverUrl: true, coverPosY: true, city: true, modules: true,

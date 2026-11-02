@@ -46,6 +46,24 @@ export async function convertLeadOnMembershipActivation(schoolId: string, userId
 }
 
 /**
+ * The way every payment path converts the lead: awaited (a serverless
+ * function can be frozen right after the response, losing a floating
+ * promise) but never allowed to fail the payment that triggered it.
+ * Free plans (trials) are not a conversion.
+ */
+export async function convertLeadAfterPaidActivation(
+  schoolId: string, userId: string, context: string, opts: { price?: number } = {},
+): Promise<void> {
+  // A captured card/Revolut payment is paid by definition; otherwise the plan's price decides
+  if (opts.price !== undefined && !(opts.price > 0)) return
+  try {
+    await convertLeadOnMembershipActivation(schoolId, userId)
+  } catch (err) {
+    console.error(`[${context}] lead conversion failed:`, err)
+  }
+}
+
+/**
  * Records — or advances — a CRM Lead whenever someone engages with a school
  * through a non-CRM entry point (staff invite, "Join this school" self-request,
  * free trial booking). Creates a new Lead if none exists for this school+email;

@@ -67,7 +67,8 @@ type UserData = {
       endDate: string | null
       classesUsed: number
       school: { id: string; name: string; slug: string; logoUrl: string | null; coverUrl: string | null; coverPosY: number; city: string | null }
-      plan: { classAccess: Record<string, unknown> } | null
+      planId?: string | null
+      plan: { classAccess: Record<string, unknown>; planType?: string } | null
     }[]
     bookings: {
       id: string
@@ -487,6 +488,9 @@ export default function MyHomePage() {
   const activeMembership  = user?.memberships?.find(m => m.status === 'ACTIVE')
   const pendingMembership = user?.memberships?.find(m => m.status === 'PENDING')
   const shownMembership   = activeMembership ?? pendingMembership
+  // Only a subscription renews; a trial or pass just ends (a trial without a date starts at the first class)
+  const renews = (m: { plan: { planType?: string } | null; planId?: string | null; price: number; planName: string } | undefined) =>
+    !!m && (m.plan ? (m.plan.planType ?? 'SUBSCRIPTION') === 'SUBSCRIPTION' : !(Number(m.price) === 0 && m.planName === 'Free Trial — 1 Week'))
   const nextBooking       = user?.bookings?.[0]
   const nextEventBooking  = user?.eventBookings?.[0]
   const primaryMember     = user?.schoolMembers?.[0]
@@ -645,13 +649,15 @@ export default function MyHomePage() {
           )}
         </div>
         <p className="text-[22px] font-medium mb-0.5 whitespace-nowrap" style={{ color: '#1C1C1E', letterSpacing: '-0.4px' }}>
-          {fmtPrice(shownMembership.price, shownMembership.currency)}
-          <span className="text-sm font-normal" style={{ color: '#6B6B70' }}> {t.my.perMonth}</span>
+          {Number(shownMembership.price) === 0 ? t.trial.free : fmtPrice(shownMembership.price, shownMembership.currency)}
+          {renews(shownMembership) && <span className="text-sm font-normal" style={{ color: '#6B6B70' }}> {t.my.perMonth}</span>}
         </p>
-        {activeMembership?.endDate && (
+        {activeMembership?.endDate ? (
           <p className="text-xs mb-3" style={{ color: '#6B6B70' }}>
-            {t.my.renews} {new Date(activeMembership.endDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+            {renews(activeMembership) ? t.my.renews : t.trial.ends} {new Date(activeMembership.endDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
           </p>
+        ) : activeMembership && !renews(activeMembership) && (
+          <p className="text-xs mb-3" style={{ color: '#6B6B70' }}>{t.trial.startsAtYourFirstClass}</p>
         )}
         {pendingMembership && !activeMembership && (
           <div className="mt-1 mb-3 rounded-xl flex items-start gap-2" style={{ background: '#FFFBEB', border: '1px solid #FDE68A', padding: '10px 12px' }}>
@@ -1080,8 +1086,11 @@ export default function MyHomePage() {
                       <p className="text-sm font-semibold mb-1" style={{ color: membershipStyle.color }}>{membershipStyle.label}</p>
                       {compactMembership.status === 'ACTIVE' && compactMembership.endDate && (
                         <p className="text-xs truncate" style={{ color: '#6B6B70' }}>
-                          {t.my.renews} {new Date(compactMembership.endDate).toLocaleDateString(LOCALE_TAG[locale] ?? 'en-GB', { day: 'numeric', month: 'short' })}
+                          {renews(compactMembership) ? t.my.renews : t.trial.ends} {new Date(compactMembership.endDate).toLocaleDateString(LOCALE_TAG[locale] ?? 'en-GB', { day: 'numeric', month: 'short' })}
                         </p>
+                      )}
+                      {compactMembership.status === 'ACTIVE' && !compactMembership.endDate && !renews(compactMembership) && (
+                        <p className="text-xs truncate" style={{ color: '#6B6B70' }}>{t.trial.startsAtYourFirstClass}</p>
                       )}
                     </>
                   ) : (

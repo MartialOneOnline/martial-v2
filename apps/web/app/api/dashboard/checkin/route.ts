@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { syncTrials, trialExpiredFor } from '@/lib/services/trial'
 import { prisma } from '@/lib/db'
 import { Prisma } from '@/lib/prisma-client/client'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
@@ -131,9 +132,15 @@ export async function POST(req: NextRequest) {
     throw err
   }
 
+  // First class of a free trial starts its days; a trial that's over never
+  // blocks entry, the screen just says so (lib/services/trial.ts)
+  await syncTrials([userId], schoolId)
+  const trialExpired = await trialExpiredFor(userId, schoolId).catch(() => false)
+
   return NextResponse.json({
     studentName: student.name ?? student.email,
     alreadyCheckedIn: result.alreadyCheckedIn,
     atCapacity: result.atCapacity,
+    trialExpired,
   })
 }
