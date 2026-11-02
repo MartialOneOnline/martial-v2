@@ -1,103 +1,79 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
-import { requireSchoolAccess } from '@/lib/auth/contexts'
-import { TransactionStatus } from '@/lib/prisma-client/enums'
+import { schoolTimeZone } from '@/lib/memberActivity'
+import { dayKey } from '@/lib/absences/stopped'
+import { zonedStartOfDay } from '@/lib/absences/periods'
+import { balanceMonths, BALANCE_PERIODS, type BalancePeriod } from '@/lib/balance/months'
+import { mainCurrency, sumByCurrency } from '@/lib/payments/collect'
+import { buildPnl, unusualIncome, type PnlTx } from '@/lib/balance/pnl'
+import { balanceAccess } from '@/lib/balance/access'
 
-async function authorise() {
-  const user = await getAuthUser()
-  if (!user) return { error: 'Unauthorized', status: 401 }
-  const schoolId = await getCurrentSchoolId()
-  if (!schoolId) return { error: 'No school context', status: 400 }
-  if (user.role !== 'SUPERADMIN') {
-    try {
-      const member = await requireSchoolAccess(user.id, schoolId)
-      if (!['OWNER', 'ADMIN', 'MANAGER'].includes(member.role)) return { error: 'Forbidden', status: 403 }
-    } catch {
-      return { error: 'Forbidden', status: 403 }
-    }
-  }
-  return { schoolId }
-}
-
-// GET /api/dashboard/balance
+/**
+ * GET /api/dashboard/balance?period=month|3m|12m|year — monthly P&L (PAID
+ * only, school timezone, one currency at a time), months without expenses,
+ * the last month that has expenses (to copy from) and unusual income.
+ */
 export async function GET(req: NextRequest) {
-  const auth = await authorise()
+  const auth = await balanceAccess('school.analytics.view')
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
+  const { schoolId } = auth
 
-  const { searchParams } = new URL(req.url)
-  const type    = searchParams.get('type')   // INCOME|EXPENSE|ALL
-  const search  = searchParams.get('search') || ''
-  const page     = Math.max(1, parseInt(searchParams.get('page') || '1'))
-  const pageSize = Math.min(1000, parseInt(searchParams.get('pageSize') || '20'))
+  const raw = new URL(req.url).searchParams.get('period') as BalancePeriod | null
+  const period: BalancePeriod = raw && BALANCE_PERIODS.includes(raw) ? raw : '12m'
+  const now = new Date()
+  const school = await prisma.school.findUnique({ where: { id: schoolId }, select: { country: true } })
+  const timeZone = schoolTimeZone(school?.country)
+  const months = balanceMonths(period, timeZone, now)
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const where: any = {
-    schoolId: auth.schoolId,
-    deletedAt: null,
-    ...(type && type !== 'ALL' ? { type } : {}),
-    ...(search ? {
-      OR: [
-        { description: { contains: search, mode: 'insensitive' } },
-        { category:    { contains: search, mode: 'insensitive' } },
-      ],
-    } : {}),
-  }
-
-  const [entries, total] = await Promise.all([
+  const lastMonth = months[months.length - 1]!
+  const [ly, lm] = lastMonth.key.split('-').map(Number) as [number, number]
+  const endOfCurrentMonth = zonedStartOfDay(ly, lm + 1, 1, timeZone)
+  const [rows, lastExpense, periodExpenses, firstExpense] = await Promise.all([
     prisma.transaction.findMany({
-      where,
-      orderBy: { date: 'desc' },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
+      where: { schoolId, status: 'PAID', deletedAt: null, date: { gte: months[0]!.from, lte: now } },
+      select: { id: true, type: true, category: true, amount: true, currency: true, date: true, description: true },
     }),
-    prisma.transaction.count({ where }),
+    prisma.transaction.findFirst({
+      where: { schoolId, type: 'EXPENSE', status: 'PAID', deletedAt: null, date: { lte: now } },
+      orderBy: { date: 'desc' },
+      select: { date: true },
+    }),
+    // What the copy endpoint looks at: any expense, any currency, the WHOLE month (later days included)
+    prisma.transaction.findMany({
+      where: { schoolId, type: 'EXPENSE', status: 'PAID', deletedAt: null, date: { gte: months[0]!.from, lt: endOfCurrentMonth } },
+      select: { date: true },
+    }),
+    prisma.transaction.findFirst({
+      where: { schoolId, type: 'EXPENSE', status: 'PAID', deletedAt: null },
+      orderBy: { date: 'asc' },
+      select: { date: true },
+    }),
   ])
-
-  // Monthly chart data for last 12 months — only count settled money (PAID),
-  // never PENDING/FAILED/REFUNDED/CANCELLED, so income/expenses/balance reflect
-  // actual cash rather than attempted or reversed charges.
-  const allTx = await prisma.transaction.findMany({
-    where: { schoolId: auth.schoolId, status: TransactionStatus.PAID, deletedAt: null },
-    select: { type: true, amount: true, date: true },
-  })
-
-  const monthMap = new Map<string, { income: number; expenses: number }>()
-  for (const tx of allTx) {
-    const key = tx.date.toISOString().slice(0, 7) // YYYY-MM
-    const cur = monthMap.get(key) ?? { income: 0, expenses: 0 }
-    if (tx.type === 'INCOME')  cur.income   += Number(tx.amount)
-    else                       cur.expenses += Number(tx.amount)
-    monthMap.set(key, cur)
-  }
-  const chartData = Array.from(monthMap.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, v]) => ({
-      date: new Date(key + '-01').toLocaleString('en', { month: 'short', year: '2-digit' }),
-      income: Math.round(v.income),
-      expenses: Math.round(v.expenses),
-    }))
-
-  const totalIncome   = allTx.filter(t => t.type === 'INCOME').reduce((s, t) => s + Number(t.amount), 0)
-  const totalExpenses = allTx.filter(t => t.type === 'EXPENSE').reduce((s, t) => s + Number(t.amount), 0)
+  const monthsWithAnyExpense = new Set(periodExpenses.map(e => dayKey(e.date, timeZone).slice(0, 7)))
+  const txs: PnlTx[] = rows.map(t => ({
+    id: t.id, type: t.type as PnlTx['type'], category: t.category, amount: Number(t.amount), currency: t.currency, date: t.date,
+    description: t.description && t.description !== 'NULL' ? t.description : null,
+  }))
+  const byCurrency = sumByCurrency(txs.map(t => ({ amount: t.amount, currency: t.currency })))
+  const currency = mainCurrency(byCurrency)
+  const { rows: pnl, totals } = buildPnl(txs, months, currency)
 
   return NextResponse.json({
-    entries: entries.map(t => ({
-      id:          t.id,
-      date:        t.date.toISOString(),
-      description: (t.description && t.description !== 'NULL') ? t.description : null,
-      category:    t.category,
-      type:        t.type,
-      amount:      Number(t.amount),
-      currency:    t.currency,
-      status:      t.status,
+    period, currency,
+    otherCurrencies: Object.keys(byCurrency).filter(c => c !== currency),
+    months: pnl.map((row, i) => ({
+      ...row,
+      // The copy button shows exactly when the copy endpoint would accept it:
+      // no expense at all that month (any currency, any day) and an earlier month to copy from
+      copyable: !monthsWithAnyExpense.has(row.key) && !!firstExpense && firstExpense.date < months[i]!.from,
+      // Missing from this balance, but there are expenses in another currency or later this month
+      expensesElsewhere: row.missingExpenses && monthsWithAnyExpense.has(row.key),
     })),
-    total,
-    page,
-    pageSize,
-    totalIncome:   Math.round(totalIncome),
-    totalExpenses: Math.round(totalExpenses),
-    netBalance:    Math.round(totalIncome - totalExpenses),
-    chartData,
+    totals,
+    lastExpenseMonth: lastExpense ? dayKey(lastExpense.date, timeZone).slice(0, 7) : null,
+    unusual: unusualIncome(txs.filter(t => t.currency === currency)).slice(0, 10).map(t => ({
+      id: t.id, category: t.category, amount: t.amount, currency: t.currency, date: t.date.toISOString(), description: t.description, reason: t.reason,
+    })),
+    canManage: auth.canManage,
   })
 }

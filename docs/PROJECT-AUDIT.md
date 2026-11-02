@@ -232,6 +232,20 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
   9. P3 — contador de la pestaña: cuenta deudas; las filas a revisar se muestran como "+N" aparte (listadas, paginadas y exportadas).
 - Tests: +3 en `paymentsReportRoute` (otro plan no oculta la deuda; pago adelantado con periodo; CUSTOM con y sin permiso, STUDENT). Suite 1112 / 55; tsc 0; ESLint limpio.
 
+### Lote P — Balance: cuenta de resultados mensual (rama `claude/balance-report`)
+
+- Estado: `APROBADO CON PENDIENTES` en `41c14e3` (4 P2) → corregidos → **`APROBADO`** en `cfd69a2` (los 4 P2 cerrados, sin hallazgos P0–P3). Sin migración. El pendiente de acceso de roles CUSTOM al layout lo cubre el PR #51.
+- Pedido del usuario: informes operativos; el Balance mostraba totales desde 2022 y, con los gastos interrumpidos en nov. 2025, un margen falso. Propuesta aprobada.
+- Criterios: periodo (mes / 3 / 12 meses / año) en la zona del colegio; solo dinero pagado; una moneda a la vez; meses con ingresos y sin gastos señalados, sin margen; margen del periodo oculto si falta algún mes; copiar gastos del último mes con gastos (no sobre un mes que ya tiene gastos, ni futuro, idempotente ante doble clic); añadir gasto; ingresos "Otros" o muy grandes para revisar; permisos: leer `school.analytics.view`, escribir `school.payments.manage`; 4 idiomas; móvil.
+- A revisar: copias (fechas, DST, moneda, método, notas); carrera entre "copiar todos" y ediciones; que "Añadir gasto" respete la moneda del colegio; filtros de transacciones FLAGGED/REFUNDED (solo PAID cuenta); rendimiento con años de datos.
+- No verificado: sesión autenticada y datos reales (Codex lo recorrió en navegador con API simulada, escritorio y móvil, 4 idiomas).
+- Hallazgos de Codex en `41c14e3` y corrección:
+  1. P2 — cambiar de periodo durante una escritura dejaba el informe en "Cargando": `load()` lee el periodo actual de un ref, así que toda escritura recarga el periodo en pantalla al terminar.
+  2. P2 — "copiar todos" ocultaba un fallo tras copias correctas: se detiene en el primer fallo y lo dice ("Copiados N meses; falló {mes}: {motivo}. Quedan M meses por copiar"); los errores se quedan hasta cerrarlos; los meses pendientes siguen ofreciendo copia.
+  3. P2 — hora de los gastos: `schoolNoon()` convierte las 12:00 civiles del colegio a UTC (correcto en los días de cambio de hora); la copia lo usa y "Añadir gasto" usa un endpoint propio `POST /api/dashboard/balance/expense` (fecha del día escolar, validación de categoría, importe, moneda y fecha; permiso `school.payments.manage`) en vez del genérico, que leía la fecha en la zona del servidor.
+  4. P2 — copia ofrecida donde la API la rechaza: el GET devuelve `copyable` con la misma regla que el endpoint (ningún gasto ese mes en ninguna moneda ni fecha + un mes anterior con gastos) y `expensesElsewhere` (faltan en este balance pero hay gastos en otra moneda o más adelante este mes); el botón y "copiar todos" solo usan `copyable`.
+- Tests: +4 en `balanceRoutes` (copia no ofrecida con gasto en otra moneda; gasto añadido a las 12:00 en días de DST; validaciones y permiso) y +1 en `balancePnl` (`schoolNoon`). Suite 1126 / 55 preexistentes; tsc 0; ESLint limpio.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.
