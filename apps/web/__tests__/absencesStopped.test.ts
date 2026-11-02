@@ -116,3 +116,12 @@ describe('audit fixes (PR #48)', () => {
     for (let i = 1; i < p.points.length; i++) expect(p.points[i - 1]!.to.getTime() + 1).toBe(p.points[i]!.from.getTime())
   })
 })
+
+describe('zonedStartOfDay (P3: a day without a midnight)', () => {
+  it('São Paulo 2018-11-04 starts at 01:00 local (03:00Z), not in the previous day', async () => {
+    const { zonedStartOfDay } = await import('@/lib/absences/periods')
+    expect(zonedStartOfDay(2018, 11, 4, 'America/Sao_Paulo').toISOString()).toBe('2018-11-04T03:00:00.000Z')
+    expect(zonedStartOfDay(2026, 10, 25, 'Europe/Madrid').toISOString()).toBe('2026-10-24T22:00:00.000Z')
+    expect(zonedStartOfDay(2026, 11, 0, 'Europe/Madrid').toISOString()).toBe('2026-10-30T23:00:00.000Z') // day 0 = 31 Oct
+  })
+})

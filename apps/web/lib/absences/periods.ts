@@ -3,25 +3,20 @@
 // a class at 00:30 Madrid time would land on the previous day). Kept local to
 // this report so the other reports don't change behaviour.
 import { dayKey } from './stopped'
+import { startOfCivilDayUtc } from '../memberActivity'
 
 export type AbsencePeriod = '30d' | '90d' | '12m'
 export interface ZonedPoint { key: string; kind: 'days' | 'month'; from: Date; to: Date }
 
-/** Offset (ms) of the timezone from UTC at a given instant */
-function tzOffsetMs(instant: Date, timeZone: string): number {
-  const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
-    timeZone, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit',
-  }).formatToParts(instant).map(x => [x.type, x.value]))
-  const asUtc = Date.UTC(+p.year!, +p.month! - 1, +p.day!, +p.hour!, +p.minute!, +p.second!)
-  return asUtc - Math.floor(instant.getTime() / 1000) * 1000
-}
-
-/** The instant local midnight starts on that calendar day (month 1-based; overflow allowed, e.g. day 0) */
+/**
+ * The first instant of that civil day in the timezone (month 1-based; overflow
+ * allowed, e.g. day 0). Uses the shared civil-day search, so a day whose
+ * midnight doesn't exist (DST starting at 00:00, e.g. São Paulo 2018-11-04)
+ * starts at its first real instant.
+ */
 export function zonedStartOfDay(year: number, month: number, day: number, timeZone: string): Date {
-  const guess = Date.UTC(year, month - 1, day)
-  let t = guess - tzOffsetMs(new Date(guess), timeZone)
-  t = guess - tzOffsetMs(new Date(t), timeZone) // second pass: the offset may change across a DST switch
-  return new Date(t)
+  const key = new Date(Date.UTC(year, month - 1, day)).toISOString().slice(0, 10)
+  return startOfCivilDayUtc(key, timeZone)
 }
 
 const ymd = (key: string) => key.split('-').map(Number) as [number, number, number]

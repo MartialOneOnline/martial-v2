@@ -197,7 +197,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote N — Informe de Ausencias: quién ha dejado de venir (rama `claude/absences-report`)
 
-- Estado: `APROBADO CON PENDIENTES` en `9b5ee75` (5 P2, 1 P3) → corregidos, **pendiente de confirmar**. Sin migración. Pendiente: sesión autenticada y rendimiento real.
+- Estado: `APROBADO CON PENDIENTES` en `9b5ee75` (5 P2, 1 P3) → **`APROBADO CON PENDIENTES`** en `0c0c5b6` (cerrados; 1 P3: día sin medianoche → `zonedStartOfDay` usa `startOfCivilDayUtc`, test São Paulo 2018-11-04). Sin migración. Pendiente: sesión autenticada y rendimiento real.
 - Pedido del usuario: informes operativos; el de Ausencias solo contaba cancelaciones y no presentados, cuando el problema real son los alumnos activos que dejan de venir. Propuesta aprobada.
 - Criterios: listas calculadas con asistencias (check-in o reserva); grupos 7–13 / 14–29 / 30+ días en la zona horaria del colegio; "nunca han venido" tras 7 días de alta; FROZEN y staff excluidos; los que pagan primero; frecuencia previa (8 semanas); contacto directo y CSV; no presentados incluyen reservas pasadas sin marcar; periodo solo para la sección de reservas; 4 idiomas; móvil.
 - A revisar: cálculo de días y DST; rendimiento con escuelas grandes (historial de 1 año + `groupBy`); que el CSV no exporte datos de un periodo en carga; accesibilidad de tarjetas y pestañas; permisos (cualquier staff con acceso al dashboard, como antes).
