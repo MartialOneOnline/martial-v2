@@ -1054,6 +1054,13 @@ model Membership {
   startDate     DateTime
   endDate       DateTime?
 
+  // Free trials (lib/services/trial.ts). assignedAt: when the plan was given
+  // (historical for imports/backdated) — a trial's first class is looked for
+  // from here; never changes, so anchoring is idempotent. endDateManual: staff
+  // set endDate by hand (cash override, date edit) — it is never moved or cleared.
+  assignedAt    DateTime?
+  endDateManual Boolean   @default(false)
+
   // Stripe billing health, kept in sync by the Stripe webhook. Only ever
   // moves off ACTIVE for Stripe-billed memberships; CASH/other stay ACTIVE.
   paymentStatus   MembershipPaymentStatus @default(ACTIVE)

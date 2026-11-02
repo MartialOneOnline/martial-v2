@@ -9,8 +9,10 @@
 // - It never blocks entry: staff check-in still works, and the check-in says
 //   "trial expired — still coming" so someone assigns a plan.
 // - A trial that was never used doesn't expire.
-// - An end date set by hand (cash override) is the staff's decision: it is
-//   never moved, and the trial ends on it.
+// - An end date set by hand (cash override, date edit — Membership.endDateManual)
+//   is the staff's decision: it is never moved or cleared, and the trial ends on it.
+// - The first class is looked for from Membership.assignedAt (when the trial
+//   was given — historical for imports), which never changes.
 //
 // A trial is a membership of a TRIAL plan, or the plan-less one-week trial a
 // student starts from the school's public page (app/api/memberships/trial).
@@ -26,8 +28,6 @@ const DAY_MS = 86_400_000
 // The trial class is often done before staff register the trial that same
 // day, so a class up to a day before the assignment counts as its first.
 const FIRST_CLASS_LOOKBACK_MS = DAY_MS
-// computeEndDate() works in local days, so a DST change can shift it by an hour
-const COMPUTED_TOLERANCE_MS = 2 * 60 * 60 * 1000
 
 export const isTrialPlanType = (planType: string | null | undefined) => planType === TRIAL_PLAN_TYPE
 
@@ -49,6 +49,7 @@ export const NON_TRIAL_MEMBERSHIP_WHERE = {
 export interface TrialMembership {
   id: string; userId: string; schoolId: string
   createdAt: Date; startDate: Date; endDate: Date | null
+  assignedAt: Date | null; endDateManual: boolean
   planId: string | null; planName: string; price: number | { toString(): string }
   plan: { planType?: string | null; validityDays: number | null } | null
 }
@@ -72,16 +73,6 @@ export function trialWindow(validityDays: number | null | undefined, firstClass:
   return { startDate: new Date(firstClass), endDate: new Date(firstClass.getTime() + validityDays * DAY_MS) }
 }
 
-/**
- * An end date the app didn't compute (start + validity) was set by hand —
- * the cash override at assignment, or an edit — and is kept as is.
- */
-export function isManualTrialEnd(startDate: Date, endDate: Date | null, validityDays: number | null): boolean {
-  if (!endDate) return false
-  if (!validityDays) return true
-  return Math.abs(endDate.getTime() - startDate.getTime() - validityDays * DAY_MS) > COMPUTED_TOLERANCE_MS
-}
-
 export interface TrialState { id: string; endDate: Date | null; used: boolean; manual: boolean }
 
 /** Over once its last day has passed — no grace. Unused ones only end if staff set the date. */
@@ -92,15 +83,21 @@ export function trialLapsed(s: Pick<TrialState, 'endDate' | 'used' | 'manual'>, 
 
 type Db = Pick<typeof prisma, 'booking' | 'membership'>
 
+/** When the trial was given. Older rows without assignedAt fall back to the earliest of creation and start. */
+export function trialAssignedAt(m: Pick<TrialMembership, 'assignedAt' | 'createdAt' | 'startDate'>): Date {
+  if (m.assignedAt) return m.assignedAt
+  return m.startDate < m.createdAt ? m.startDate : m.createdAt
+}
+
 /**
- * The first attended class at this school for a trial. Measured from when
- * the trial was created (stable — startDate moves when the trial is anchored).
+ * The first attended class at this school for a trial, counted from when the
+ * trial was given (stable — startDate moves when the trial is anchored).
  */
-export async function firstTrialClass(db: Db, userId: string, schoolId: string, createdAt: Date): Promise<Date | null> {
+export async function firstTrialClass(db: Db, userId: string, schoolId: string, assignedAt: Date): Promise<Date | null> {
   const b = await db.booking.findFirst({
     where: {
       userId, class: { schoolId }, attendedAt: { not: null }, status: { not: 'CANCELLED' },
-      scheduledAt: { gte: new Date(createdAt.getTime() - FIRST_CLASS_LOOKBACK_MS) },
+      scheduledAt: { gte: new Date(assignedAt.getTime() - FIRST_CLASS_LOOKBACK_MS) },
     },
     orderBy: { scheduledAt: 'asc' },
     select: { scheduledAt: true },
@@ -111,31 +108,35 @@ export async function firstTrialClass(db: Db, userId: string, schoolId: string, 
 /**
  * Puts one ACTIVE trial where it belongs and returns where it stands:
  * anchored on its first class, or without an end date until that class.
- * A hand-set end date is never touched. Idempotent — the reference is the
- * trial's creation, which never changes. `write: false` computes only (dry run).
+ * A hand-set end date is never touched. Idempotent — the reference is when
+ * the trial was given (assignedAt), which never changes. `write: false`
+ * computes only (dry run).
  */
 export async function syncTrialWindow(db: Db, m: TrialMembership, opts: { write?: boolean } = {}): Promise<TrialState> {
   const validity = trialValidityDays(m)
-  const first = await firstTrialClass(db, m.userId, m.schoolId, m.createdAt)
+  const assignedAt = trialAssignedAt(m)
+  const first = await firstTrialClass(db, m.userId, m.schoolId, assignedAt)
   const used = !!first
-  if (isManualTrialEnd(m.startDate, m.endDate, validity)) return { id: m.id, endDate: m.endDate, used, manual: true }
+  if (m.endDateManual) return { id: m.id, endDate: m.endDate, used, manual: true }
 
+  // An older row gets its assignment recorded once, so later syncs use the same reference
+  const pin = m.assignedAt ? {} : { assignedAt }
   const write = async (data: { startDate?: Date; endDate: Date | null }) => {
-    if (opts.write !== false) await db.membership.update({ where: { id: m.id }, data })
+    if (opts.write !== false) await db.membership.update({ where: { id: m.id }, data: { ...data, ...pin } })
   }
   const w = trialWindow(validity, first)
   if (!w) {
     // Not started yet: no end date, so the first booking isn't refused
-    if (m.endDate) await write({ endDate: null })
+    if (m.endDate || !m.assignedAt) await write({ endDate: null })
     return { id: m.id, endDate: null, used, manual: false }
   }
-  if (m.startDate.getTime() !== w.startDate.getTime() || m.endDate?.getTime() !== w.endDate.getTime()) await write(w)
+  if (!m.assignedAt || m.startDate.getTime() !== w.startDate.getTime() || m.endDate?.getTime() !== w.endDate.getTime()) await write(w)
   return { id: m.id, endDate: w.endDate, used: true, manual: false }
 }
 
 export const trialSelect = {
   id: true, userId: true, schoolId: true, createdAt: true, startDate: true, endDate: true,
-  planId: true, planName: true, price: true,
+  assignedAt: true, endDateManual: true, planId: true, planName: true, price: true,
   plan: { select: { planType: true, validityDays: true } },
 } as const
 

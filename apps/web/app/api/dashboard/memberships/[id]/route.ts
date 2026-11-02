@@ -78,10 +78,13 @@ export async function PATCH(
     if (body.endDate !== undefined) {
       if (body.endDate === null) {
         data.endDate = null
+        data.endDateManual = false
       } else {
         const endDate = new Date(body.endDate)
         if (isNaN(endDate.getTime())) return NextResponse.json({ error: 'Invalid end date' }, { status: 400 })
         data.endDate = endDate
+        // A date the staff changed is theirs: a trial never moves or clears it (lib/services/trial.ts)
+        if (endDate.getTime() !== membership.endDate?.getTime()) data.endDateManual = true
       }
     }
     if (Object.keys(data).length === 0) {
@@ -157,7 +160,7 @@ export async function PATCH(
       // 1. Activate in-place — preserve ID, avoid cancelling sibling memberships
       await tx.membership.update({
         where: { id },
-        data: { status: MembershipStatus.ACTIVE, startDate, endDate, cancelledAt: null },
+        data: { status: MembershipStatus.ACTIVE, startDate, endDate, cancelledAt: null, assignedAt: startDate, endDateManual: false },
       })
 
       // 2. Record income transaction (skip for free/trial plans)

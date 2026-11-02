@@ -163,6 +163,7 @@ export async function POST(req: NextRequest) {
           status: 'ACTIVE',
           startDate,
           endDate,
+          assignedAt: startDate,
         },
       })
     })

@@ -177,7 +177,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote M — Pruebas gratis y conversión de leads (rama `claude/trial-fixes`)
 
-- Estado: `RECHAZADO` en `104c2bf` (2 P1, 2 P2, 1 P3) → correcciones entregadas, **pendiente de re-auditoría**. Sin migración. No mergear hasta que el usuario revise la lista de pruebas de RGM que caducarían.
+- Estado: `RECHAZADO` en `104c2bf` (2 P1, 2 P2, 1 P3) → `RECHAZADO` en `6a364e7` (1 P1, 1 P2) → correcciones entregadas con **migración** `20261102120000_membership_trial_assignment`, **pendiente de re-auditoría**. La migración en producción requiere OK explícito del usuario. No mergear hasta que el usuario revise la lista de pruebas de RGM que caducarían.
 - Pedido del usuario: una prueba gratis no debe perder al alumno que no pudo venir a tiempo; la prueba de un día no "se renueva"; un lead que acaba pagando debe convertirse. Decisiones: días desde la primera clase; caduca ese día sin bloquear; revisar la lista antes.
 - Criterios: TRIAL nace sin endDate y se ancla en la primera clase asistida (desde la asignación − 24 h); sin margen de 30 días para TRIAL (los de pago lo conservan); prueba sin usar no caduca; ningún bloqueo de entrada; aviso en check-in y ficha ("Caducada" + "Asignar plan"); conversión de lead esperada y solo en pagos, también en renovaciones en efectivo y pagos marcados a mano; 4 idiomas.
 - A revisar: que ningún plan de pago cambie su expiración; idempotencia del anclaje; que el dry run no escriba; que marcar asistencia no falle si falla el anclaje; carrera entre anclaje y barrido nocturno; efectos de `endDate: null` en /my, informes y KPIs.
@@ -190,6 +190,10 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
   5. P3 — /my decía "Renueva" en pruebas. `/api/my` devuelve `plan.planType`; "Termina" para pruebas y bonos, "Renueva" (y "/ mes") solo para suscripciones, "Gratis" a 0 €, y "Empieza con tu primera clase" si no hay fecha.
 - Tests: `trialLifecycle` reescrito con las reproducciones (idempotencia 31-oct/1-nov, prueba antigua sin usar, override 30-nov, dry run, prueba pública); 2 casos en `stripeWebhookLifecycleSync` (conversión una sola vez en renovación; 0 €). Suite 1078 / 55 preexistentes; tsc 0; ESLint sin avisos nuevos.
 - Lista RGM recalculada con las reglas corregidas (lectura): 43 pruebas activas; 36 sin usar (perderán su fecha caducada y podrán reservar su primera clase); 1 con fecha manual a un año (se respeta); 3 usadas caducarían en el primer barrido.
+- Hallazgos de Codex en `6a364e7` y corrección (sin heurísticas: el dato se guarda):
+  6. P1 — una prueba importada o retrodatada (`createdAt` posterior a su asignación real) volvía a parecer sin usar y perdía su `endDate`. Nuevo `Membership.assignedAt` (cuándo se dio el plan): lo fijan `assignPlan` (= inicio, histórico si es retrodatado), la prueba pública, la activación manual y el importador `seed-rgm-payments`; la migración lo rellena en las pruebas existentes con `LEAST(createdAt, startDate)`; si falta, el código usa ese mismo valor y lo guarda una vez (idempotente).
+  7. P2 — la heurística de fecha manual fallaba con una fecha igual al cálculo o dentro de la tolerancia. Nuevo `Membership.endDateManual`: `true` con el override de efectivo en `assignPlan` y cuando el staff cambia la fecha (`updateDates`); `false` si la borra o en una activación. La migración lo rellena una sola vez en las pruebas existentes con la regla anterior; desde entonces es explícito. Se elimina `isManualTrialEnd()`.
+- Tests: 5 reproducciones nuevas en `trialLifecycle` (importada 2-nov/1-oct, fila sin `assignedAt` que lo fija una vez, fecha manual igual al cálculo sin usar, edición manual de 1 h, referencia histórica). Suite 1082 / 55 preexistentes; tsc 0; ESLint sin errores.
 
 ## Próxima entrega de Claude
 

@@ -32,6 +32,7 @@ function fakeDb(attended: Date[]) {
 const tm = (over: Partial<TM> = {}): TM => ({
   id: 'mem', userId: 'u', schoolId: 's',
   createdAt: at('2026-10-19T10:00:00Z'), startDate: at('2026-10-19T10:00:00Z'), endDate: null,
+  assignedAt: at('2026-10-19T10:00:00Z'), endDateManual: false,
   planId: 'plan', planName: 'Prueba 1 Semana', price: 0, plan: { planType: 'TRIAL', validityDays: 7 },
   ...over,
 })
@@ -59,9 +60,9 @@ describe('pure rules', () => {
     expect(trial.isTrialMembership({ planId: null, planName: 'Cuota mensual', price: 65, plan: null })).toBe(false)
   })
 
-  it('a computed end date is not manual (DST hour tolerated); a cash override is', () => {
-    expect(trial.isManualTrialEnd(at('2026-10-20T18:00:00Z'), at('2026-10-27T19:00:00Z'), 7)).toBe(false)
-    expect(trial.isManualTrialEnd(at('2026-11-02T10:00:00Z'), at('2026-11-30T10:00:00Z'), 7)).toBe(true)
+  it('assignment reference: stored assignedAt, else the earliest of creation and start (imports keep their history)', () => {
+    expect(trial.trialAssignedAt({ assignedAt: at('2026-10-01T00:00:00Z'), createdAt: at('2026-11-02T00:00:00Z'), startDate: at('2026-11-05T00:00:00Z') })).toEqual(at('2026-10-01T00:00:00Z'))
+    expect(trial.trialAssignedAt({ assignedAt: null, createdAt: at('2026-11-02T00:00:00Z'), startDate: at('2026-10-01T00:00:00Z') })).toEqual(at('2026-10-01T00:00:00Z'))
   })
 })
 
@@ -77,7 +78,7 @@ describe('syncTrialWindow', () => {
     // One-day trial created 2 Nov 12:00; classes on 31 Oct and 1 Nov at 18:00
     const created = at('2026-11-02T12:00:00Z')
     const { db, writes } = fakeDb([at('2026-10-31T18:00:00Z'), at('2026-11-01T18:00:00Z')])
-    let row = tm({ createdAt: created, startDate: created, plan: { planType: 'TRIAL', validityDays: 1 } })
+    let row = tm({ createdAt: created, startDate: created, assignedAt: created, plan: { planType: 'TRIAL', validityDays: 1 } })
     const first = await trial.syncTrialWindow(db, row)
     row = apply(row, writes.splice(0))
     const second = await trial.syncTrialWindow(db, row)
@@ -89,16 +90,52 @@ describe('syncTrialWindow', () => {
 
   it('P1 audit: an old unused trial loses its stale end date, so its first class can be booked', async () => {
     const { db, writes } = fakeDb([])
-    const s = await trial.syncTrialWindow(db, tm({ createdAt: at('2026-10-01T10:00:00Z'), startDate: at('2026-10-01T10:00:00Z'), endDate: at('2026-10-08T10:00:00Z') }))
+    const s = await trial.syncTrialWindow(db, tm({ createdAt: at('2026-10-01T10:00:00Z'), startDate: at('2026-10-01T10:00:00Z'), assignedAt: at('2026-10-01T10:00:00Z'), endDate: at('2026-10-08T10:00:00Z') }))
     expect(s).toMatchObject({ endDate: null, used: false })
     expect(writes).toEqual([{ endDate: null }])
   })
 
   it('P2 audit: a hand-set end date (cash override) is kept through attendance and sweeps', async () => {
     const { db, update } = fakeDb([at('2026-11-02T18:00:00Z')])
-    const s = await trial.syncTrialWindow(db, tm({ createdAt: at('2026-11-02T10:00:00Z'), startDate: at('2026-11-02T10:00:00Z'), endDate: at('2026-11-30T10:00:00Z') }))
+    const s = await trial.syncTrialWindow(db, tm({ createdAt: at('2026-11-02T10:00:00Z'), startDate: at('2026-11-02T10:00:00Z'), assignedAt: at('2026-11-02T10:00:00Z'), endDate: at('2026-11-30T10:00:00Z'), endDateManual: true }))
     expect(s).toMatchObject({ endDate: at('2026-11-30T10:00:00Z'), used: true, manual: true })
     expect(update).not.toHaveBeenCalled()
+  })
+
+  it('P2 re-audit: a manual date equal to start + 7 days is kept even unused, and ends the trial', async () => {
+    const { db, update } = fakeDb([])
+    const s = await trial.syncTrialWindow(db, tm({ endDate: at('2026-10-26T10:00:00Z'), endDateManual: true }))
+    expect(s).toMatchObject({ endDate: at('2026-10-26T10:00:00Z'), used: false, manual: true })
+    expect(update).not.toHaveBeenCalled()
+    expect(trial.trialLapsed(s, at('2026-10-27T00:00:00Z'))).toBe(true)
+  })
+
+  it('P2 re-audit: a manual edit of one hour is not moved when the student attends', async () => {
+    const { db, update } = fakeDb([at('2026-10-21T18:00:00Z')])
+    const s = await trial.syncTrialWindow(db, tm({ endDate: at('2026-10-26T11:00:00Z'), endDateManual: true }))
+    expect(s.endDate).toEqual(at('2026-10-26T11:00:00Z'))
+    expect(update).not.toHaveBeenCalled()
+  })
+
+  it('P1 re-audit: an imported/backdated trial (created 2 Nov, given 1 Oct, class 1 Oct) stays used and keeps its window', async () => {
+    const { db, writes } = fakeDb([at('2026-10-01T18:00:00Z')])
+    const row = tm({ createdAt: at('2026-11-02T09:00:00Z'), startDate: at('2026-10-01T10:00:00Z'), assignedAt: at('2026-10-01T10:00:00Z'), endDate: at('2026-10-08T10:00:00Z') })
+    const s = await trial.syncTrialWindow(db, row)
+    expect(s).toMatchObject({ used: true, endDate: at('2026-10-08T18:00:00Z') })
+    expect(writes).toEqual([{ startDate: at('2026-10-01T18:00:00Z'), endDate: at('2026-10-08T18:00:00Z') }])
+    expect(trial.trialLapsed(s, at('2026-11-02T12:00:00Z'))).toBe(true)
+  })
+
+  it('P1 re-audit: a row without assignedAt uses the earliest of creation and start, and records it once', async () => {
+    const { db, writes } = fakeDb([at('2026-10-01T18:00:00Z')])
+    let row = tm({ createdAt: at('2026-11-02T09:00:00Z'), startDate: at('2026-10-01T10:00:00Z'), assignedAt: null, endDate: at('2026-10-08T10:00:00Z') })
+    const first = await trial.syncTrialWindow(db, row)
+    expect(first.used).toBe(true)
+    expect(writes[0]).toMatchObject({ assignedAt: at('2026-10-01T10:00:00Z') })
+    row = apply(row, writes.splice(0) as never)
+    const second = await trial.syncTrialWindow(db, row)
+    expect(second.endDate).toEqual(first.endDate)
+    expect(writes).toEqual([])
   })
 
   it('dry run computes without writing', async () => {

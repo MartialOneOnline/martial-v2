@@ -222,6 +222,7 @@ async function main() {
         paymentMethod,
         status,
         startDate,
+        assignedAt: startDate,
       },
     })
     membershipCreated++

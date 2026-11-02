@@ -350,6 +350,10 @@ export async function assignPlan(input: AssignPlanInput) {
         status: MembershipStatus.ACTIVE,
         startDate: start,
         endDate,
+        // When the plan was given (a trial counts its first class from here) and
+        // whether staff fixed the end date by hand (never moved afterwards)
+        assignedAt: start,
+        endDateManual: paymentMethod === PaymentMethod.CASH && !!input.endDateOverride,
         stripeSubId: stripeSubId ?? null,
         renewedFromId: renewedFromId ?? null,
         notes: notes?.trim() || null,
@@ -547,7 +551,7 @@ export async function checkAndExpireMembership(membershipId: string): Promise<bo
     where: { id: membershipId },
     select: {
       id: true, userId: true, schoolId: true, status: true, cancelledAt: true, createdAt: true, startDate: true, endDate: true,
-      planId: true, planName: true, price: true,
+      assignedAt: true, endDateManual: true, planId: true, planName: true, price: true,
       plan: { select: { planType: true, validityDays: true } },
     },
   })
@@ -596,7 +600,7 @@ export async function expireLapsedMemberships(
 ): Promise<{ expiredCount: number; cancelledCount: number; preview?: LapsedMembershipPreview[] }> {
   const select = {
     id: true, userId: true, schoolId: true, cancelledAt: true, createdAt: true, startDate: true, endDate: true,
-    planId: true, planName: true, price: true,
+    assignedAt: true, endDateManual: true, planId: true, planName: true, price: true,
     plan: { select: { planType: true, validityDays: true } },
     user: { select: { name: true, email: true } },
     school: { select: { name: true } },
