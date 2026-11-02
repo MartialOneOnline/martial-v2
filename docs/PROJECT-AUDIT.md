@@ -232,7 +232,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
   9. P3 — contador de la pestaña: cuenta deudas; las filas a revisar se muestran como "+N" aparte (listadas, paginadas y exportadas).
 - Tests: +3 en `paymentsReportRoute` (otro plan no oculta la deuda; pago adelantado con periodo; CUSTOM con y sin permiso, STUDENT). Suite 1112 / 55; tsc 0; ESLint limpio.
 
-### Lote P — Roles personalizados (CUSTOM) en el dashboard (rama `claude/strange-bun-729a1e`, apilada sobre PR #49)
+### Lote P — Roles personalizados (CUSTOM) en el dashboard (rama `claude/custom-role-dashboard`, PR #51, apilada sobre PR #49)
 
 - Estado: pendiente de Project Audit. Sin migración. Cierra el P2 compartido del Lote O (8.).
 - Pedido: que un miembro con rol CUSTOM (`customRoleId` → `StaffRole.permissions`) use el dashboard según sus permisos — exactamente lo que activan sus toggles, nada más; STUDENT, inactivos y miembros de otra escuela fuera.

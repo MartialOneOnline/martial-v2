@@ -271,7 +271,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-02 (m) (rama `claude/strange-bun-729a1e`, apilada sobre `claude/payments-report` / PR #49 — pendiente de Project Audit; sin migración)
+### Sesión — 2026-11-02 (m) (rama `claude/custom-role-dashboard`, PR [#51](https://github.com/MartialOneOnline/martial-v2/pull/51), apilada sobre `claude/payments-report` / PR #49 — pendiente de Project Audit; sin migración)
 
 **Roles de staff personalizados (CUSTOM) usan el dashboard según sus permisos.** Cierra el P2 compartido que quedó abierto en PR #49. Antes, un `SchoolMember` con `role = 'CUSTOM'` + `customRoleId` → `StaffRole.permissions` iba a `/my` (el layout solo admitía los 6 roles base) y `requireDashboardAccess()` lo rechazaba; PR #49 tenía un parche solo para la API de Pagos. En producción hay 0 roles CUSTOM (2026-11-02), nadie afectado hoy.
 - **Regla única — `staffCan(member, permiso, listaLegacy?)`** en `lib/auth/customRoles.ts`: STUDENT nunca pasa; CUSTOM pasa solo si su StaffRole tiene ese permiso; un rol base pasa por la lista de roles histórica de la ruta si la tiene (comportamiento idéntico al de antes) o por la matriz fija. `BASE_STAFF_ROLES` vive ahora en `permissions.ts` (`DASHBOARD_ROLES` es un alias) para que `customRoles.ts` no importe `contexts.ts` (muchos tests lo mockean solo con `requireSchoolAccess`).
