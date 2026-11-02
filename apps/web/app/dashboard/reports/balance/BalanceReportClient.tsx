@@ -14,6 +14,7 @@ type Period = 'month' | '3m' | '12m' | 'year'
 interface Row {
   key: string; income: Record<string, number>; expenses: Record<string, number>
   incomeTotal: number; expenseTotal: number; net: number; margin: number | null; missingExpenses: boolean
+  copyable?: boolean; expensesElsewhere?: boolean
 }
 interface Unusual { id: string; category: string; amount: number; currency: string; date: string; description: string | null; reason: 'OTHER' | 'LARGE' }
 interface Data {
@@ -43,19 +44,24 @@ export default function BalanceReportClient() {
   const [adding, setAdding] = useState(false)
   const [form, setForm] = useState({ category: 'RENT', amount: '', date: '', description: '' })
   const requestId = useRef(0)
+  // Writes reload whatever period is on screen WHEN they finish, not the one
+  // they started in (Project Audit PR #50 P2)
+  const periodRef = useRef(period)
+  periodRef.current = period
 
   const load = useCallback(() => {
     const id = ++requestId.current
     setLoading(true); setError(false)
-    fetch(`/api/dashboard/balance?period=${period}`)
+    fetch(`/api/dashboard/balance?period=${periodRef.current}`)
       .then(res => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json() })
       .then((d: Data) => { if (id === requestId.current) setData(d) })
       .catch(() => { if (id === requestId.current) setError(true) })
       .finally(() => { if (id === requestId.current) setLoading(false) })
-  }, [period])
-  useEffect(load, [load])
+  }, [])
+  useEffect(load, [load, period])
 
-  const say = (ok: boolean, text: string) => { setToast({ ok, text }); setTimeout(() => setToast(null), 3500) }
+  // Errors stay until dismissed; successes fade
+  const say = (ok: boolean, text: string) => { setToast({ ok, text }); if (ok) setTimeout(() => setToast(t => (t?.text === text ? null : t)), 3500) }
   const cur = data?.currency ?? 'EUR'
   const money = (n: number) => fmtPrice(n, cur)
   const monthLabel = (key: string, long = false) => new Date(`${key}-15T12:00:00Z`).toLocaleDateString(locale, { month: long ? 'long' : 'short', year: 'numeric', timeZone: 'UTC' })
@@ -65,36 +71,47 @@ export default function BalanceReportClient() {
   const stale = !!data && data.period !== period
   const shown = data && !stale ? data : null
   const missing = shown ? shown.months.filter(m => m.missingExpenses) : []
+  const copyable = shown ? shown.months.filter(m => m.copyable) : []
 
-  async function copyInto(month: string): Promise<boolean> {
+  /** null = copied; otherwise why it wasn't */
+  async function copyInto(month: string): Promise<string | null> {
     const res = await fetch('/api/dashboard/balance/copy-expenses', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ month }),
     }).catch(() => null)
-    if (res?.status === 201) return true
+    if (res?.status === 201) return null
     const code = (await res?.json().catch(() => null))?.error
-    say(false, code === 'ALREADY_HAS_EXPENSES' ? r.copyAlready.replace('{month}', monthLabel(month, true))
-      : code === 'NO_EXPENSES_TO_COPY' ? r.copyNothing : r.actionError)
-    return false
+    return code === 'ALREADY_HAS_EXPENSES' ? r.copyAlready.replace('{month}', monthLabel(month, true))
+      : code === 'NO_EXPENSES_TO_COPY' ? r.copyNothing : r.actionError
   }
 
   async function copyOne(month: string) {
     if (busy) return
     setBusy(true)
-    try { if (await copyInto(month)) { say(true, r.copied.replace('{month}', monthLabel(month, true))); load() } }
-    finally { setBusy(false) }
+    try {
+      const failed = await copyInto(month)
+      say(!failed, failed ?? r.copied.replace('{month}', monthLabel(month, true)))
+      load()
+    } finally { setBusy(false) }
   }
 
-  /** Oldest first: each month copies the one just filled before it */
+  /** Oldest first: each month copies the one just filled before it. Stops at the first failure and says so. */
   async function copyAll() {
-    if (busy || !missing.length) return
-    if (!confirm(r.copyAllConfirm.replace('{n}', String(missing.length)))) return
+    if (busy || !copyable.length) return
+    if (!confirm(r.copyAllConfirm.replace('{n}', String(copyable.length)))) return
     setBusy(true)
     let done = 0
     try {
-      for (const m of missing) { if (!(await copyInto(m.key))) break; done++ }
-      if (done) say(true, r.copiedMany.replace('{n}', String(done)))
-      load()
-    } finally { setBusy(false) }
+      for (const m of copyable) {
+        const failed = await copyInto(m.key)
+        if (failed) {
+          say(false, r.copyPartial.replace('{done}', String(done)).replace('{month}', monthLabel(m.key, true))
+            .replace('{reason}', failed).replace('{left}', String(copyable.length - done)))
+          return
+        }
+        done++
+      }
+      say(true, r.copiedMany.replace('{n}', String(done)))
+    } finally { setBusy(false); load() }
   }
 
   async function addExpense() {
@@ -102,9 +119,10 @@ export default function BalanceReportClient() {
     if (busy || !(amount > 0) || !form.date) return
     setBusy(true)
     try {
-      const res = await fetch('/api/dashboard/transactions', {
+      // The school's calendar day; the server stores it at 12:00 school time
+      const res = await fetch('/api/dashboard/balance/expense', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'EXPENSE', status: 'PAID', category: form.category, amount, currency: cur, date: `${form.date}T12:00:00`, description: form.description }),
+        body: JSON.stringify({ category: form.category, amount, currency: cur, date: form.date, description: form.description }),
       }).catch(() => null)
       if (!res?.ok) { say(false, r.actionError); return }
       say(true, r.expenseAdded)
@@ -162,8 +180,9 @@ export default function BalanceReportClient() {
         </div>
 
         {toast && (
-          <div role="status" className="px-4 py-2 rounded-xl" style={{ fontSize: 13, fontWeight: 500, background: toast.ok ? '#ECFDF5' : '#FEF2F2', color: toast.ok ? '#047857' : '#B91C1C', border: `1px solid ${toast.ok ? '#A7F3D0' : '#FECACA'}` }}>
-            {toast.text}
+          <div role={toast.ok ? 'status' : 'alert'} className="flex items-start justify-between gap-3 px-4 py-2 rounded-xl" style={{ fontSize: 13, fontWeight: 500, background: toast.ok ? '#ECFDF5' : '#FEF2F2', color: toast.ok ? '#047857' : '#B91C1C', border: `1px solid ${toast.ok ? '#A7F3D0' : '#FECACA'}` }}>
+            <span>{toast.text}</span>
+            <button onClick={() => setToast(null)} aria-label={r.cancel} className="cursor-pointer" style={{ background: 'none', border: 'none', padding: 0, color: 'inherit' }}><X size={14} /></button>
           </div>
         )}
 
@@ -212,7 +231,7 @@ export default function BalanceReportClient() {
                       : r.missingNever.replace('{n}', String(missing.length))}
                   </span>
                 </p>
-                {shown.canManage && shown.lastExpenseMonth && (
+                {shown.canManage && copyable.length > 0 && (
                   <button onClick={copyAll} disabled={busy} className="cursor-pointer inline-flex items-center gap-1.5 disabled:cursor-not-allowed"
                     style={{ fontSize: 12, fontWeight: 600, padding: '7px 14px', borderRadius: 999, background: '#fff', color: '#92400E', border: '1px solid #FCD34D', opacity: busy ? 0.6 : 1 }}>
                     <Copy size={13} aria-hidden /> {r.copyAll}
@@ -254,7 +273,10 @@ export default function BalanceReportClient() {
                         <td style={{ ...TD, textAlign: 'right', whiteSpace: 'nowrap', fontWeight: 600, color: m.missingExpenses ? '#9CA3AF' : m.net < 0 ? '#B91C1C' : '#111827' }}>{money(m.net)}</td>
                         <td style={{ ...TD, textAlign: 'right', whiteSpace: 'nowrap', color: m.margin === null ? '#9CA3AF' : '#374151' }}>{m.margin === null ? '—' : `${m.margin}%`}</td>
                         <td style={{ ...TD, textAlign: 'right' }}>
-                          {m.missingExpenses && shown.canManage && shown.lastExpenseMonth && (
+                          {m.expensesElsewhere && (
+                            <span title={r.expensesElsewhereHint} style={{ fontSize: 11, color: '#6B7280', whiteSpace: 'nowrap' }}>{r.expensesElsewhere}</span>
+                          )}
+                          {m.copyable && shown.canManage && (
                             <button onClick={() => copyOne(m.key)} disabled={busy} className="cursor-pointer inline-flex items-center gap-1 disabled:cursor-not-allowed"
                               style={{ fontSize: 12, fontWeight: 600, color: '#0870E2', background: 'none', border: 'none', padding: 0, opacity: busy ? 0.5 : 1, whiteSpace: 'nowrap' }}>
                               <Copy size={12} aria-hidden /> {r.copyPrevious}

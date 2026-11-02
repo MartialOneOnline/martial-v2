@@ -1018,6 +1018,9 @@ export const translations = {
       methods: { CASH: "Cash", STRIPE: "Card (Stripe)", REVOLUT: "Revolut", BANK_TRANSFER: "Bank transfer", DIRECT_DEBIT: "Direct debit", OTHER: "Other" },
     },
     balanceReport: {
+      copyPartial: "Copied {done} months; {month} failed: {reason} {left} months still to copy — try again.",
+      expensesElsewhere: "expenses outside",
+      expensesElsewhereHint: "There are expenses this month in another currency or dated later this month, so it can’t be copied.",
       title: "Balance",
       subtitle: "Income, expenses and result, month by month. Only money actually paid counts.",
       periodMonth: "This month",
@@ -2343,6 +2346,9 @@ export const translations = {
       methods: { CASH: "Efectivo", STRIPE: "Tarjeta (Stripe)", REVOLUT: "Revolut", BANK_TRANSFER: "Transferencia", DIRECT_DEBIT: "Domiciliación", OTHER: "Otro" },
     },
     balanceReport: {
+      copyPartial: "Copiados {done} meses; falló {month}: {reason} Quedan {left} meses por copiar: vuelve a intentarlo.",
+      expensesElsewhere: "gastos en otra moneda o fecha",
+      expensesElsewhereHint: "Este mes tiene gastos en otra moneda o con fecha posterior, así que no se puede copiar.",
       title: "Balance",
       subtitle: "Ingresos, gastos y resultado, mes a mes. Solo cuenta el dinero realmente pagado.",
       periodMonth: "Este mes",
@@ -3648,6 +3654,9 @@ export const translations = {
       methods: { CASH: "Dinheiro", STRIPE: "Cartão (Stripe)", REVOLUT: "Revolut", BANK_TRANSFER: "Transferência", DIRECT_DEBIT: "Débito direto", OTHER: "Outro" },
     },
     balanceReport: {
+      copyPartial: "Copiados {done} meses; falhou {month}: {reason} Faltam {left} meses por copiar: tenta novamente.",
+      expensesElsewhere: "despesas noutra moeda ou data",
+      expensesElsewhereHint: "Este mês tem despesas noutra moeda ou com data posterior, por isso não pode ser copiado.",
       title: "Balanço",
       subtitle: "Receitas, despesas e resultado, mês a mês. Só conta o dinheiro realmente pago.",
       periodMonth: "Este mês",
@@ -4953,6 +4962,9 @@ export const translations = {
       methods: { CASH: "Espèces", STRIPE: "Carte (Stripe)", REVOLUT: "Revolut", BANK_TRANSFER: "Virement", DIRECT_DEBIT: "Prélèvement", OTHER: "Autre" },
     },
     balanceReport: {
+      copyPartial: "{done} mois copiés ; échec pour {month} : {reason} Il reste {left} mois à copier : réessayez.",
+      expensesElsewhere: "dépenses dans une autre devise ou date",
+      expensesElsewhereHint: "Ce mois a des dépenses dans une autre devise ou datées plus tard, il ne peut donc pas être copié.",
       title: "Bilan",
       subtitle: "Recettes, dépenses et résultat, mois par mois. Seul l’argent réellement payé compte.",
       periodMonth: "Ce mois-ci",

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { schoolTimeZone } from '@/lib/memberActivity'
 import { dayKey } from '@/lib/absences/stopped'
+import { zonedStartOfDay } from '@/lib/absences/periods'
 import { balanceMonths, BALANCE_PERIODS, type BalancePeriod } from '@/lib/balance/months'
 import { mainCurrency, sumByCurrency } from '@/lib/payments/collect'
 import { buildPnl, unusualIncome, type PnlTx } from '@/lib/balance/pnl'
@@ -24,7 +25,10 @@ export async function GET(req: NextRequest) {
   const timeZone = schoolTimeZone(school?.country)
   const months = balanceMonths(period, timeZone, now)
 
-  const [rows, lastExpense] = await Promise.all([
+  const lastMonth = months[months.length - 1]!
+  const [ly, lm] = lastMonth.key.split('-').map(Number) as [number, number]
+  const endOfCurrentMonth = zonedStartOfDay(ly, lm + 1, 1, timeZone)
+  const [rows, lastExpense, periodExpenses, firstExpense] = await Promise.all([
     prisma.transaction.findMany({
       where: { schoolId, status: 'PAID', deletedAt: null, date: { gte: months[0]!.from, lte: now } },
       select: { id: true, type: true, category: true, amount: true, currency: true, date: true, description: true },
@@ -34,7 +38,18 @@ export async function GET(req: NextRequest) {
       orderBy: { date: 'desc' },
       select: { date: true },
     }),
+    // What the copy endpoint looks at: any expense, any currency, the WHOLE month (later days included)
+    prisma.transaction.findMany({
+      where: { schoolId, type: 'EXPENSE', status: 'PAID', deletedAt: null, date: { gte: months[0]!.from, lt: endOfCurrentMonth } },
+      select: { date: true },
+    }),
+    prisma.transaction.findFirst({
+      where: { schoolId, type: 'EXPENSE', status: 'PAID', deletedAt: null },
+      orderBy: { date: 'asc' },
+      select: { date: true },
+    }),
   ])
+  const monthsWithAnyExpense = new Set(periodExpenses.map(e => dayKey(e.date, timeZone).slice(0, 7)))
   const txs: PnlTx[] = rows.map(t => ({
     id: t.id, type: t.type as PnlTx['type'], category: t.category, amount: Number(t.amount), currency: t.currency, date: t.date,
     description: t.description && t.description !== 'NULL' ? t.description : null,
@@ -46,7 +61,14 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     period, currency,
     otherCurrencies: Object.keys(byCurrency).filter(c => c !== currency),
-    months: pnl,
+    months: pnl.map((row, i) => ({
+      ...row,
+      // The copy button shows exactly when the copy endpoint would accept it:
+      // no expense at all that month (any currency, any day) and an earlier month to copy from
+      copyable: !monthsWithAnyExpense.has(row.key) && !!firstExpense && firstExpense.date < months[i]!.from,
+      // Missing from this balance, but there are expenses in another currency or later this month
+      expensesElsewhere: row.missingExpenses && monthsWithAnyExpense.has(row.key),
+    })),
     totals,
     lastExpenseMonth: lastExpense ? dayKey(lastExpense.date, timeZone).slice(0, 7) : null,
     unusual: unusualIncome(txs.filter(t => t.currency === currency)).slice(0, 10).map(t => ({

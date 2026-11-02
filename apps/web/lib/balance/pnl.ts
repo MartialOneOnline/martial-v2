@@ -6,6 +6,9 @@
 // unusually large income is pointed out for review. Only PAID money counts.
 // Pure — the API route loads the rows.
 
+/** What can be added as an expense from the Balance */
+export const EXPENSE_CATEGORIES = ['RENT', 'SALARY', 'EQUIPMENT', 'MARKETING', 'OTHER'] as const
+
 export interface PnlTx {
   id: string
   type: 'INCOME' | 'EXPENSE'

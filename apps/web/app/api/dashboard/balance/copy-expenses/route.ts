@@ -4,6 +4,7 @@ import { schoolTimeZone } from '@/lib/memberActivity'
 import { zonedStartOfDay } from '@/lib/absences/periods'
 import { dayKey } from '@/lib/absences/stopped'
 import { copyDay } from '@/lib/balance/pnl'
+import { schoolNoon } from '@/lib/balance/months'
 import { balanceAccess } from '@/lib/balance/access'
 
 const MONTH = /^(\d{4})-(0[1-9]|1[0-2])$/
@@ -50,8 +51,8 @@ export async function POST(req: NextRequest) {
         data: {
           schoolId, type: 'EXPENSE', status: 'PAID', category: s.category, amount: s.amount, currency: s.currency,
           description: s.description, paymentMethod: s.paymentMethod,
-          // Midday local time: well inside the day whatever the timezone
-          date: new Date(zonedStartOfDay(ty, tm, day, timeZone).getTime() + 12 * 3_600_000),
+          // 12:00 school time (DST-safe): well inside the day
+          date: schoolNoon(ty, tm, day, timeZone),
           notes: `Copied from ${sourceKey}`,
         },
         select: { id: true },

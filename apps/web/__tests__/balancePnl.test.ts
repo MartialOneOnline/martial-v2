@@ -61,3 +61,12 @@ describe('months and copies', () => {
     expect(copyDay(15, 2026, 11)).toBe(15)
   })
 })
+
+describe('schoolNoon (P2: 12:00 school time, DST-safe)', () => {
+  it('is 12:00 local on the DST-change days in Madrid, and in another zone', async () => {
+    const { schoolNoon } = await import('@/lib/balance/months')
+    expect(schoolNoon(2026, 10, 25, 'Europe/Madrid').toISOString()).toBe('2026-10-25T11:00:00.000Z')
+    expect(schoolNoon(2026, 3, 29, 'Europe/Madrid').toISOString()).toBe('2026-03-29T10:00:00.000Z')
+    expect(schoolNoon(2026, 7, 1, 'America/Sao_Paulo').toISOString()).toBe('2026-07-01T15:00:00.000Z')
+  })
+})
