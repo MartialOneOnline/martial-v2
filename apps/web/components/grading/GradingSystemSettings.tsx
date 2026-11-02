@@ -40,6 +40,17 @@ function inkOn(hex: string): string {
 }
 const isLight = (hex: string) => inkOn(hex) === '#111827'
 
+/**
+ * Only in-app navigation away from this view needs the "unsaved changes"
+ * question: mailto:/tel:, other sites (a real unload — beforeunload asks) and
+ * same-page anchors don't leave the editor.
+ */
+export function isInAppLeave(url: URL, here: { origin: string; pathname: string; search: string }): boolean {
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return false
+  if (url.origin !== here.origin) return false
+  return url.pathname !== here.pathname || url.search !== here.search
+}
+
 const CARD: React.CSSProperties = {
   background: '#FFFFFF', borderRadius: 18, overflow: 'hidden',
   boxShadow: '0 1px 2px rgba(16,24,40,0.05), 0 0 0 1px rgba(16,24,40,0.06)',
@@ -162,7 +173,7 @@ export default function GradingSystemSettings({ systemId, ranks, classes, onRank
       const link = (e.target as Element | null)?.closest?.('a[href]') as HTMLAnchorElement | null
       if (!link || link.target === '_blank' || e.metaKey || e.ctrlKey || e.shiftKey) return
       const url = new URL(link.href, window.location.href)
-      if (url.pathname === window.location.pathname && url.search === window.location.search) return
+      if (!isInAppLeave(url, window.location)) return
       if (!confirm(g.leaveConfirm)) { e.preventDefault(); e.stopPropagation() }
     }
     window.addEventListener('beforeunload', h)

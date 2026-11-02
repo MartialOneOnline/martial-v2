@@ -161,7 +161,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote L — Rediseño de Settings → Grading (rama `claude/grading-settings`)
 
-- Estado: `RECHAZADO` en `d514b3c` (1 P1, 3 P2) → correcciones entregadas, **pendiente de re-auditoría**. Sin migración.
+- Estado: `RECHAZADO` en `d514b3c` (1 P1, 3 P2) → `APROBADO CON PENDIENTES` en `137ff8c` (cerrados; 1 P3) → P3 corregido, **pendiente de confirmar**. Sin migración. Pendiente operativo: sesión autenticada con persistencia real.
 - Pedido del usuario (2026-11-01/02): Settings → Grading más fácil, con opción de expandir; quitar "Classes per grading (default)"; elegir qué clases cuentan (p. ej. solo Gi); frecuencia mín. 2 / máx. 2 para todos sin repetirla por cinturón. Maqueta aprobada ("Construirlo así").
 - Criterios: frecuencia y clases que cuentan se editan una vez para el sistema y se escriben en cada `BeltRank` sin frecuencia propia; un cinturón puede tener frecuencia propia; pasos de clases explícitos (lo que se ve es lo que cuenta el motor); un solo Guardar atómico (`PATCH …/ranks`), con descartar y aviso al salir; resumen en lenguaje claro y tiempo aproximado por cinturón; requisitos del siguiente cinturón (edad, tiempo mínimo, examen, competición) editados desde el cinturón actual; añadir/eliminar cinturón inmediato; 4 idiomas; móvil.
 - A revisar: que guardar sin tocar nada no cambie el comportamiento del motor para ninguna escuela (pasos resueltos = fallback actual); que `classTypeIds` no acepte clases de otra escuela; que no aparezcan "cambios sin guardar" fantasma; que cambiar un cinturón no pise cambios de otro.
@@ -172,6 +172,8 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
   3. P2 — añadir un cinturón dejaba sin cifra el nuevo paso del anterior. `withNextStep()` lo inicia con el `totalClassesRequired` que contaba el motor (en el borrador y en la base guardada).
   4. P2 — crear sistema o aplicar plantilla cambiaba de sistema sin confirmar. `confirmLeave()` en GradingTab para selector, crear y plantilla. Además (pendiente que estaba declarado): cambiar de pestaña de Settings y los enlaces internos (barra lateral) piden confirmación con cambios sin guardar.
 - Tests: 2 casos de regresión más en `gradingSettingsDraft` (P1 con el caso White/Blue/Black y P2 de añadir cinturón). Suite 1060 / 55 preexistentes; tsc 0; eslint sin avisos nuevos.
+- Hallazgo de Codex en `137ff8c` y corrección:
+  5. P3 — la confirmación de salida interceptaba `mailto:` y enlaces externos. `isInAppLeave()`: solo pregunta en navegación http(s) del mismo origen a otra ruta o query; `mailto:`/`tel:`, otros sitios (salida real → `beforeunload`) y anclas pasan sin preguntar. Test: 1 caso más. Suite 1061 / 55.
 
 ## Próxima entrega de Claude
 

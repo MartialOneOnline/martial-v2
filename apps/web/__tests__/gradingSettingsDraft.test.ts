@@ -146,3 +146,17 @@ describe('audit fixes (PR #46 RECHAZADO on d514b3c)', () => {
     expect(withNextStep({ ...black!, classesByDegree: [8, 12] }).classesByDegree).toEqual([8, 12])
   })
 })
+
+describe('isInAppLeave (P3: only in-app navigation asks)', () => {
+  it('asks for other in-app pages, not for mailto, other sites or same-page anchors', async () => {
+    const { isInAppLeave } = await import('@/components/grading/GradingSystemSettings')
+    const here = { origin: 'https://app.test', pathname: '/dashboard/settings', search: '?tab=grading' }
+    const at = (h: string) => new URL(h, 'https://app.test/dashboard/settings?tab=grading')
+    expect(isInAppLeave(at('/dashboard/users'), here)).toBe(true)
+    expect(isInAppLeave(at('/dashboard/settings?tab=modules'), here)).toBe(true)
+    expect(isInAppLeave(at('mailto:a@b.com'), here)).toBe(false)
+    expect(isInAppLeave(at('tel:+34600000000'), here)).toBe(false)
+    expect(isInAppLeave(at('https://example.com/x'), here)).toBe(false)
+    expect(isInAppLeave(at('#belts'), here)).toBe(false)
+  })
+})
