@@ -12,7 +12,7 @@ import { PaymentMethod, MembershipStatus, TransactionType, TransactionCategory, 
 import { sendMembershipReceiptEmail } from '@/lib/email/sendEmails'
 import { getStripe } from '@/lib/stripe'
 import { convertLeadAfterPaidActivation } from '@/lib/leads'
-import { isTrialPlanType, syncTrialWindow, trialLapsed, TRIAL_PLAN_TYPE } from '@/lib/services/trial'
+import { isTrialMembership, isTrialPlanType, NON_TRIAL_MEMBERSHIP_WHERE, syncTrialWindow, trialLapsed, TRIAL_MEMBERSHIP_WHERE } from '@/lib/services/trial'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -546,17 +546,18 @@ export async function checkAndExpireMembership(membershipId: string): Promise<bo
   const membership = await prisma.membership.findUnique({
     where: { id: membershipId },
     select: {
-      id: true, userId: true, schoolId: true, status: true, cancelledAt: true, startDate: true, endDate: true,
+      id: true, userId: true, schoolId: true, status: true, cancelledAt: true, createdAt: true, startDate: true, endDate: true,
+      planId: true, planName: true, price: true,
       plan: { select: { planType: true, validityDays: true } },
     },
   })
   if (!membership) return true
   if (membership.status === MembershipStatus.CANCELLED || membership.status === MembershipStatus.EXPIRED) return true
   if (membership.status !== MembershipStatus.ACTIVE) return false // PENDING/PAUSED — nothing to expire here
-  if (isTrialPlanType(membership.plan?.planType)) {
+  if (isTrialMembership(membership)) {
     // Trials: from the first class, no grace, and an unused one never expires
     const state = await syncTrialWindow(prisma, membership)
-    if (!trialLapsed(state.endDate, state.used)) return false
+    if (!trialLapsed(state)) return false
   } else if (!membership.endDate || membership.endDate > graceCutoff()) {
     return false
   }
@@ -594,8 +595,9 @@ export async function expireLapsedMemberships(
   options: { dryRun?: boolean } = {},
 ): Promise<{ expiredCount: number; cancelledCount: number; preview?: LapsedMembershipPreview[] }> {
   const select = {
-    id: true, userId: true, schoolId: true, cancelledAt: true, startDate: true, endDate: true, planName: true,
-    plan: { select: { validityDays: true } },
+    id: true, userId: true, schoolId: true, cancelledAt: true, createdAt: true, startDate: true, endDate: true,
+    planId: true, planName: true, price: true,
+    plan: { select: { planType: true, validityDays: true } },
     user: { select: { name: true, email: true } },
     school: { select: { name: true } },
   } as const
@@ -603,20 +605,20 @@ export async function expireLapsedMemberships(
   const paidLapsed = await prisma.membership.findMany({
     where: {
       status: MembershipStatus.ACTIVE, endDate: { lt: graceCutoff() },
-      OR: [{ planId: null }, { plan: { planType: { not: TRIAL_PLAN_TYPE } } }],
+      ...NON_TRIAL_MEMBERSHIP_WHERE,
     },
     select,
   })
   // Trials: counted from the first class, over on their last day, never if unused.
   // The dry run computes the same window without writing it.
   const trials = await prisma.membership.findMany({
-    where: { status: MembershipStatus.ACTIVE, plan: { planType: TRIAL_PLAN_TYPE } },
+    where: { status: MembershipStatus.ACTIVE, ...TRIAL_MEMBERSHIP_WHERE },
     select,
   })
   const lapsedTrials: typeof trials = []
   for (const t of trials) {
     const state = await syncTrialWindow(prisma, t, { write: !options.dryRun })
-    if (trialLapsed(state.endDate, state.used)) lapsedTrials.push({ ...t, endDate: state.endDate })
+    if (trialLapsed(state)) lapsedTrials.push({ ...t, endDate: state.endDate })
   }
   const lapsed = [...paidLapsed, ...lapsedTrials]
 

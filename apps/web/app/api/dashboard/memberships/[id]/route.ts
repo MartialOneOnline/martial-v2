@@ -5,6 +5,7 @@ import { requireSchoolAccess } from '@/lib/auth/contexts'
 import { memberHasPermission } from '@/lib/auth/customRoles'
 import { cancelMembership, computeEndDate, syncSchoolMemberStatusForMembership } from '@/lib/services/membership'
 import { convertLeadAfterPaidActivation } from '@/lib/leads'
+import { isTrialPlanType } from '@/lib/services/trial'
 import { MembershipStatus, TransactionType, TransactionStatus, TransactionCategory } from '@/lib/prisma-client/enums'
 
 async function authorise() {
@@ -148,7 +149,8 @@ export async function PATCH(
       return NextResponse.json({ error: 'Plan not found or inactive' }, { status: 404 })
 
     const startDate = new Date()
-    const endDate   = computeEndDate(plan.planType, plan.billingCycle ?? '', plan.validityDays, startDate)
+    // A free trial's days count from the first class (lib/services/trial.ts)
+    const endDate   = isTrialPlanType(plan.planType) ? null : computeEndDate(plan.planType, plan.billingCycle ?? '', plan.validityDays, startDate)
     const price     = Number(membership.price)
 
     await prisma.$transaction(async (tx) => {

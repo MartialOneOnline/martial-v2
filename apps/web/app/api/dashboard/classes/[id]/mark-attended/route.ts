@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { startTrialClocks } from '@/lib/services/trial'
+import { syncTrials } from '@/lib/services/trial'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     data: { status: 'COMPLETED', attendedAt: new Date() },
   })
   // First class of a free trial starts its days (lib/services/trial.ts)
-  await startTrialClocks(attendees.map(a => a.userId), schoolId)
+  await syncTrials(attendees.map(a => a.userId), schoolId)
 
   return NextResponse.json({ updated: count })
 }

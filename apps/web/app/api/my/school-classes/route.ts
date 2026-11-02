@@ -4,6 +4,7 @@ import { getAuthUser } from '@/lib/auth/server'
 import { nextOccurrence, type ScheduleSlot } from '@/lib/scheduling'
 import type { ClassAccessConfig, BookingCounts } from '@/lib/services/classAccess'
 import { checkBookingEligibility, type EligibleMembership } from '@/lib/services/bookingEligibility'
+import { syncTrials } from '@/lib/services/trial'
 import { hasDashboardAccess } from '@/lib/auth/contexts'
 import { getActiveStudentContext } from '@/lib/auth/activeContextCookie'
 
@@ -64,6 +65,8 @@ export async function GET() {
   // bookableSchoolIds set): each occurrence checks endDate against its own
   // scheduledAt below, since a membership can be active today but expire
   // before a session 10 days out.
+  // An unused old trial loses its stale end date first, so its first class shows as bookable
+  for (const sid of schoolIds) await syncTrials([dbUser.id], sid)
   const activeMemberships = await prisma.membership.findMany({
     where: { userId: dbUser.id, schoolId: { in: schoolIds }, status: 'ACTIVE' },
     include: { plan: { select: { classAccess: true } } },

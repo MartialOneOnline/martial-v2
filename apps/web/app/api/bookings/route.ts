@@ -5,6 +5,7 @@ import { Prisma } from '@/lib/prisma-client/client'
 import { isValidScheduledAt, type ScheduleSlot } from '@/lib/scheduling'
 import { type ClassAccessConfig } from '@/lib/services/classAccess'
 import { checkBookingEligibility } from '@/lib/services/bookingEligibility'
+import { syncTrials } from '@/lib/services/trial'
 import { sendTrialConfirmedEmail } from '@/lib/email/sendEmails'
 import { getBlockingWaivers } from '@/lib/waivers'
 
@@ -70,6 +71,9 @@ export async function POST(req: NextRequest) {
   if (cancelledOccurrence) {
     return NextResponse.json({ error: 'This class has been cancelled for this date' }, { status: 409 })
   }
+
+  // An unused old trial loses its stale end date first, so its first class can be booked
+  await syncTrials([dbUser.id], cls.schoolId)
 
   // Validate user has an active membership or trial at this school
   const activeMembership = await prisma.membership.findFirst({

@@ -661,6 +661,8 @@ async function handleStripeEvent(event: Stripe.Event) {
 
       if (claimed) {
         notifyPaymentReceived(membership.schoolId, membership.user?.name ?? 'Alumno', fmtPrice(renewalAmount, membership.currency), `${membership.planName} — renovación`)
+        // A paid renewal is a paying student too — only the delivery that claimed it, never a €0 invoice
+        await convertLeadAfterPaidActivation(membership.schoolId, membership.userId, 'stripe webhook renewal', { price: renewalAmount })
       }
       break
     }

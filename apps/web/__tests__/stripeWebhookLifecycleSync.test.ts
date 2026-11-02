@@ -45,6 +45,8 @@ vi.mock('@/lib/email/sendEmails', () => ({
   sendEventTicketRefundedEmail: vi.fn().mockResolvedValue(undefined),
 }))
 vi.mock('@/lib/notifications/create', () => ({ notifyPaymentReceived: vi.fn() }))
+const mockConvertLead = vi.hoisted(() => vi.fn().mockResolvedValue(undefined))
+vi.mock('@/lib/leads', () => ({ convertLeadAfterPaidActivation: mockConvertLead }))
 const mockAlertWebhookFailure = vi.fn().mockResolvedValue(undefined)
 vi.mock('@/lib/alerts/webhookFailure', () => ({ alertWebhookFailure: (...args: unknown[]) => mockAlertWebhookFailure(...args) }))
 // recordOnlinePayment is mocked away (not the focus of these tests), but
@@ -351,6 +353,32 @@ describe('invoice.payment_succeeded (renewal)', () => {
     }))
 
     expect(schoolMembers[smKey('school-1', 'user-1')]!.status).toBe('ACTIVE')
+  })
+})
+
+describe('invoice.payment_succeeded (renewal) — lead conversion', () => {
+  it('a claimed paid renewal converts the lead once; a redelivery of the same invoice does not', async () => {
+    seedMembership({ id: 'membership-1', stripeSubId: 'sub_1', status: 'ACTIVE', stripeInvoiceId: null })
+    seedSchoolMember('school-1', 'user-1', 'ACTIVE')
+    const event = {
+      id: 'evt_conv', type: 'invoice.payment_succeeded',
+      data: { object: { subscription: 'sub_1', id: 'in_conv', billing_reason: 'subscription_cycle', amount_paid: 6500, metadata: { schoolId: 'school-1' } } },
+    }
+    await POST(makeRequest(event))
+    expect(mockConvertLead).toHaveBeenCalledTimes(1)
+    expect(mockConvertLead).toHaveBeenCalledWith('school-1', 'user-1', 'stripe webhook renewal', { price: 65 })
+    await POST(makeRequest({ ...event, id: 'evt_conv_retry' }))
+    expect(mockConvertLead).toHaveBeenCalledTimes(1)
+  })
+
+  it('a €0 invoice passes price 0, which the helper never converts', async () => {
+    seedMembership({ id: 'membership-1', stripeSubId: 'sub_1', status: 'ACTIVE', stripeInvoiceId: null })
+    seedSchoolMember('school-1', 'user-1', 'ACTIVE')
+    await POST(makeRequest({
+      id: 'evt_zero', type: 'invoice.payment_succeeded',
+      data: { object: { subscription: 'sub_1', id: 'in_zero', billing_reason: 'subscription_cycle', amount_paid: 0, metadata: { schoolId: 'school-1' } } },
+    }))
+    for (const c of mockConvertLead.mock.calls) expect(c[3]).toEqual({ price: 0 })
   })
 })
 

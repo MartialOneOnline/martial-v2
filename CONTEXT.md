@@ -271,7 +271,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-02 (j) (rama `claude/trial-fixes` — pendiente de auditoría; sin migración; NO mergear antes de que el usuario revise la lista de pruebas de RGM)
+### Sesión — 2026-11-02 (j) (rama `claude/trial-fixes`, PR [#47](https://github.com/MartialOneOnline/martial-v2/pull/47) — `RECHAZADO` en `104c2bf` (2 P1, 2 P2, 1 P3) → corregidos, pendiente de re-auditoría; sin migración; NO mergear antes de que el usuario revise la lista de pruebas de RGM)
 
 **Pruebas gratis y conversión de leads** (caso Rafa). Decisiones del usuario (2026-11-02): los días cuentan desde la primera clase; caduca ese día sin bloquear la entrada; revisar la lista de pruebas antiguas antes de publicar.
 - `lib/services/trial.ts` (nuevo): `trialWindow()` (primera clase + validityDays), `trialLapsed()` (usada y pasado su último día; sin margen), `syncTrialWindow()` (re-ancla startDate/endDate en la primera clase asistida desde la asignación − 24 h; idempotente; `write: false` para el dry run), `startTrialClocks()` (tras marcar asistencia; nunca lanza), `trialExpiredFor()` (aviso de check-in).
@@ -282,6 +282,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 - Lista RGM (lectura en prod, 2026-11-02, sin escribir): 43 pruebas ACTIVE; 36 sin usar (varias son cuentas de prueba internas); 4 usadas caducarían en el primer barrido tras publicar (una con ~30 clases desde agosto). Configuración sospechosa: el plan "Prueba 1 Semana" dura 30 días y "Prueba 1 Día" 7.
 - Tests: `trialLifecycle` (9), `leadConversionAwaited` (4), `membershipExpiry` actualizado. Suite 1073 / 55 preexistentes; tsc 0.
 - Pendiente: backfill de leads ya pagados sin convertir (escritura en prod, requiere OK).
+- **Correcciones tras `RECHAZADO`:** referencia estable `createdAt` para anclar; una prueba sin usar pierde su fecha caducada (y se sincroniza antes de reservar) para poder reservar su primera clase; prueba pública y activación manual nacen sin fecha; la fecha manual (efectivo) se respeta siempre; renovaciones Stripe convierten el lead; /my dice "Termina" en pruebas y bonos. Lista RGM recalculada: 3 caducarían, 1 con fecha manual a un año se respeta, 36 sin usar recuperan la posibilidad de reservar. Suite 1078 / 55.
 
 ### Sesión — 2026-11-02 (i) (rama `claude/grading-settings`, PR [#46](https://github.com/MartialOneOnline/martial-v2/pull/46) — `RECHAZADO` en `d514b3c` (1 P1, 3 P2) → `APROBADO CON PENDIENTES` en `137ff8c` (1 P3) → P3 corregido; sin migración; pendiente: sesión autenticada con datos reales)
 

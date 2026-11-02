@@ -861,6 +861,9 @@ export const translations = {
       save: "Save changes",
     },
     trial: {
+      free: "Free",
+      ends: "Ends",
+      startsAtYourFirstClass: "Starts at your first class",
       expired: "Expired",
       assignPlan: "Assign plan",
       expiredHint: "The free trial is over. If they keep coming, assign them a plan.",
@@ -1989,6 +1992,9 @@ export const translations = {
       save: "Guardar cambios",
     },
     trial: {
+      free: "Gratis",
+      ends: "Termina",
+      startsAtYourFirstClass: "Empieza con tu primera clase",
       expired: "Caducada",
       assignPlan: "Asignar plan",
       expiredHint: "La prueba gratis ha terminado. Si sigue viniendo, asígnale un plan.",
@@ -3097,6 +3103,9 @@ export const translations = {
       save: "Guardar alterações",
     },
     trial: {
+      free: "Grátis",
+      ends: "Termina",
+      startsAtYourFirstClass: "Começa na tua primeira aula",
       expired: "Expirada",
       assignPlan: "Atribuir plano",
       expiredHint: "A aula experimental terminou. Se continuar a vir, atribui-lhe um plano.",
@@ -4205,6 +4214,9 @@ export const translations = {
       save: "Enregistrer",
     },
     trial: {
+      free: "Gratuit",
+      ends: "Se termine le",
+      startsAtYourFirstClass: "Commence à ton premier cours",
       expired: "Expiré",
       assignPlan: "Attribuer un forfait",
       expiredHint: "L’essai gratuit est terminé. S’il continue à venir, attribuez-lui un forfait.",

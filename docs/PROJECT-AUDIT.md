@@ -177,11 +177,19 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote M — Pruebas gratis y conversión de leads (rama `claude/trial-fixes`)
 
-- Estado: entregado por Claude, **pendiente de auditoría**. Sin migración. No mergear hasta que el usuario revise la lista de pruebas de RGM que caducarían.
+- Estado: `RECHAZADO` en `104c2bf` (2 P1, 2 P2, 1 P3) → correcciones entregadas, **pendiente de re-auditoría**. Sin migración. No mergear hasta que el usuario revise la lista de pruebas de RGM que caducarían.
 - Pedido del usuario: una prueba gratis no debe perder al alumno que no pudo venir a tiempo; la prueba de un día no "se renueva"; un lead que acaba pagando debe convertirse. Decisiones: días desde la primera clase; caduca ese día sin bloquear; revisar la lista antes.
 - Criterios: TRIAL nace sin endDate y se ancla en la primera clase asistida (desde la asignación − 24 h); sin margen de 30 días para TRIAL (los de pago lo conservan); prueba sin usar no caduca; ningún bloqueo de entrada; aviso en check-in y ficha ("Caducada" + "Asignar plan"); conversión de lead esperada y solo en pagos, también en renovaciones en efectivo y pagos marcados a mano; 4 idiomas.
 - A revisar: que ningún plan de pago cambie su expiración; idempotencia del anclaje; que el dry run no escriba; que marcar asistencia no falle si falla el anclaje; carrera entre anclaje y barrido nocturno; efectos de `endDate: null` en /my, informes y KPIs.
 - No verificado: navegador y datos reales.
+- Hallazgos de Codex en `104c2bf` y corrección:
+  1. P1 — anclaje no idempotente (usaba `startDate`, que él mismo movía). Ahora la referencia es `Membership.createdAt` (− 24 h), que nunca cambia; repetir la sincronización o el barrido no desplaza la ventana.
+  2. P1 — pruebas que vencían antes de la primera clase. Una prueba sin usar y con fecha calculada pierde su `endDate` al sincronizar (sin fecha hasta la primera clase); `syncTrials()` se llama antes de comprobar reservas (`POST /api/bookings`, `GET /api/my/school-classes`) y tras marcar asistencia. La prueba pública (`/api/memberships/trial`, sin plan, `PUBLIC_TRIAL_NAME`, 7 días) nace sin `endDate` y entra en el mismo tratamiento (`TRIAL_MEMBERSHIP_WHERE` / `NON_TRIAL_MEMBERSHIP_WHERE`); la activación manual de un plan TRIAL también nace sin `endDate`.
+  3. P2 — la fecha manual de efectivo se sobrescribía. `isManualTrialEnd()`: una fecha que no es inicio + validez (± 2 h por DST) es manual y nunca se mueve; la prueba termina en ella (aunque no se haya usado).
+  4. P2 — renovaciones Stripe sin conversión. `invoice.payment_succeeded` convierte tras un cobro reclamado (idempotente con `stripeInvoiceId`), pasando el importe: 0 € no convierte.
+  5. P3 — /my decía "Renueva" en pruebas. `/api/my` devuelve `plan.planType`; "Termina" para pruebas y bonos, "Renueva" (y "/ mes") solo para suscripciones, "Gratis" a 0 €, y "Empieza con tu primera clase" si no hay fecha.
+- Tests: `trialLifecycle` reescrito con las reproducciones (idempotencia 31-oct/1-nov, prueba antigua sin usar, override 30-nov, dry run, prueba pública); 2 casos en `stripeWebhookLifecycleSync` (conversión una sola vez en renovación; 0 €). Suite 1078 / 55 preexistentes; tsc 0; ESLint sin avisos nuevos.
+- Lista RGM recalculada con las reglas corregidas (lectura): 43 pruebas activas; 36 sin usar (perderán su fecha caducada y podrán reservar su primera clase); 1 con fecha manual a un año (se respeta); 3 usadas caducarían en el primer barrido.
 
 ## Próxima entrega de Claude
 

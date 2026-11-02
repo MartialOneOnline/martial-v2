@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { startTrialClocks } from '@/lib/services/trial'
+import { syncTrials } from '@/lib/services/trial'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
@@ -61,7 +61,7 @@ export async function PATCH(
     select: { id: true, status: true, attendedAt: true },
   })
   // First class of a free trial starts its days (lib/services/trial.ts)
-  await startTrialClocks([booking.userId], auth.schoolId)
+  await syncTrials([booking.userId], auth.schoolId)
 
   return NextResponse.json({
     id:         updated.id,

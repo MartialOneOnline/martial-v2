@@ -156,15 +156,13 @@ describe('expireLapsedMemberships', () => {
 
     const result = await expireLapsedMemberships()
 
+    // Trials (plan or public-page) are swept separately: from the first class, no grace
+    const { NON_TRIAL_MEMBERSHIP_WHERE, TRIAL_MEMBERSHIP_WHERE } = await import('@/lib/services/trial')
     expect(mockMembershipFindMany).toHaveBeenNthCalledWith(1, expect.objectContaining({
-      where: {
-        status: 'ACTIVE', endDate: { lt: expect.any(Date) },
-        // Trials are swept separately (from the first class, no grace)
-        OR: [{ planId: null }, { plan: { planType: { not: 'TRIAL' } } }],
-      },
+      where: { status: 'ACTIVE', endDate: { lt: expect.any(Date) }, ...NON_TRIAL_MEMBERSHIP_WHERE },
     }))
     expect(mockMembershipFindMany).toHaveBeenNthCalledWith(2, expect.objectContaining({
-      where: { status: 'ACTIVE', plan: { planType: 'TRIAL' } },
+      where: { status: 'ACTIVE', ...TRIAL_MEMBERSHIP_WHERE },
     }))
     expect(result).toEqual({ expiredCount: 2, cancelledCount: 1 })
     expect(mockMembershipUpdate).toHaveBeenCalledTimes(3)
