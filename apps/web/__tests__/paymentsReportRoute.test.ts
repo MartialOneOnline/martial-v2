@@ -4,11 +4,14 @@ import { NextRequest } from 'next/server'
 
 const m = vi.hoisted(() => ({
   getAuthUser: vi.fn(), getCurrentSchoolId: vi.fn(), requireDashboardAccess: vi.fn(),
+  requireSchoolAccess: vi.fn(), staffRole: vi.fn(),
   school: vi.fn(), members: vi.fn(), memberships: vi.fn(), bookingGroupBy: vi.fn(), txGroupBy: vi.fn(), txFindMany: vi.fn(), users: vi.fn(),
 }))
 vi.mock('@/lib/auth/server', () => ({ getAuthUser: m.getAuthUser, getCurrentSchoolId: m.getCurrentSchoolId, requireDashboardAccess: m.requireDashboardAccess }))
+vi.mock('@/lib/auth/contexts', () => ({ requireSchoolAccess: m.requireSchoolAccess }))
 vi.mock('@/lib/db', () => ({
   prisma: {
+    staffRole: { findUnique: m.staffRole },
     school: { findUnique: m.school },
     schoolMember: { findMany: m.members },
     membership: { findMany: m.memberships },
@@ -119,5 +122,42 @@ describe('P2: an overdue plan with a recent payment is "to review", not a debt',
     const d = await (await call()).json()
     expect(d.toCollect[0]).toMatchObject({ name: 'Ana', toReview: true })
     expect(d.toCollectTotal).toEqual({})
+  })
+})
+
+describe('re-audit fixes', () => {
+  const sixEmpty = () => { for (let i = 0; i < 5; i++) m.txFindMany.mockResolvedValueOnce([]) }
+
+  it('P2: a payment linked to ANOTHER plan never hides this debt', async () => {
+    m.txFindMany.mockReset()
+    m.txFindMany.mockResolvedValueOnce([{ userId: 'u1', membershipId: 'other-plan', date: daysAgo(2), periodEnd: null }])
+    sixEmpty()
+    const d = await (await call()).json()
+    expect(d.toCollect[0]).toMatchObject({ name: 'Ana', toReview: false })
+    expect(d.toCollectTotal).toEqual({ EUR: 65 })
+  })
+
+  it('P2: an early payment of this plan whose period covers the due date → to review', async () => {
+    m.txFindMany.mockReset()
+    m.txFindMany.mockResolvedValueOnce([{ userId: 'u1', membershipId: 'ms1', date: daysAgo(30), periodEnd: daysAgo(-20) }])
+    sixEmpty()
+    const d = await (await call()).json()
+    expect(d.toCollect[0]).toMatchObject({ toReview: true })
+    const where = m.txFindMany.mock.calls[0]![0].where
+    expect(where.OR[1]).toEqual({ periodEnd: { gt: expect.any(Date) } })
+  })
+
+  it('P2: a CUSTOM staff role with analytics permission gets in; without it, 403', async () => {
+    m.requireDashboardAccess.mockRejectedValueOnce(new Error('FORBIDDEN'))
+    m.requireSchoolAccess.mockResolvedValueOnce({ role: 'CUSTOM', customRoleId: 'r1', status: 'ACTIVE' })
+    m.staffRole.mockResolvedValueOnce({ permissions: ['school.analytics.view'] })
+    expect((await call()).status).toBe(200)
+    m.requireDashboardAccess.mockRejectedValueOnce(new Error('FORBIDDEN'))
+    m.requireSchoolAccess.mockResolvedValueOnce({ role: 'CUSTOM', customRoleId: 'r2', status: 'ACTIVE' })
+    m.staffRole.mockResolvedValueOnce({ permissions: ['school.classes.view'] })
+    expect((await call()).status).toBe(403)
+    m.requireDashboardAccess.mockRejectedValueOnce(new Error('FORBIDDEN'))
+    m.requireSchoolAccess.mockResolvedValueOnce({ role: 'STUDENT', customRoleId: null, status: 'ACTIVE' })
+    expect((await call()).status).toBe(403)
   })
 })

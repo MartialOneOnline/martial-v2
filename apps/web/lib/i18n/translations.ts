@@ -942,6 +942,7 @@ export const translations = {
       dow: { Mon: "Mon", Tue: "Tue", Wed: "Wed", Thu: "Thu", Fri: "Fri", Sat: "Sat", Sun: "Sun" },
     },
     paymentsReport: {
+      toReviewCount: "{n} to review",
       toReview: "Paid on {date} — check the plan’s dates",
       colReview: "Review",
       title: "Payments",
@@ -2218,6 +2219,7 @@ export const translations = {
       dow: { Mon: "Lun", Tue: "Mar", Wed: "Mié", Thu: "Jue", Fri: "Vie", Sat: "Sáb", Sun: "Dom" },
     },
     paymentsReport: {
+      toReviewCount: "{n} por revisar",
       toReview: "Pagado el {date}: revisa las fechas del plan",
       colReview: "Revisar",
       title: "Pagos",
@@ -3474,6 +3476,7 @@ export const translations = {
       dow: { Mon: "Seg", Tue: "Ter", Wed: "Qua", Thu: "Qui", Fri: "Sex", Sat: "Sáb", Sun: "Dom" },
     },
     paymentsReport: {
+      toReviewCount: "{n} por rever",
       toReview: "Pago a {date}: revê as datas do plano",
       colReview: "Rever",
       title: "Pagamentos",
@@ -4730,6 +4733,7 @@ export const translations = {
       dow: { Mon: "Lun", Tue: "Mar", Wed: "Mer", Thu: "Jeu", Fri: "Ven", Sat: "Sam", Sun: "Dim" },
     },
     paymentsReport: {
+      toReviewCount: "{n} à vérifier",
       toReview: "Payé le {date} : vérifiez les dates du forfait",
       colReview: "À vérifier",
       title: "Paiements",

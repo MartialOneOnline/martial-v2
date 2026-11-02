@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId, requireDashboardAccess } from '@/lib/auth/server'
-import { memberHasPermission } from '@/lib/auth/customRoles'
+import { memberHasPermission, type RoleBearer } from '@/lib/auth/customRoles'
+import { requireSchoolAccess } from '@/lib/auth/contexts'
 import { schoolTimeZone } from '@/lib/memberActivity'
 import { cleanPhone, whatsappNumber } from '@/lib/phone'
 import { isTrialMembership, NON_TRIAL_MEMBERSHIP_WHERE } from '@/lib/services/trial'
@@ -20,10 +21,19 @@ async function authorise() {
   if (!user) return { error: 'Unauthorized', status: 401 }
   const schoolId = await getCurrentSchoolId()
   if (!schoolId) return { error: 'No school context', status: 400 }
+  let member: { role: string; customRoleId: string | null } | null
   try {
-    const { member } = await requireDashboardAccess(schoolId)
-    if (member && !await memberHasPermission(member, 'school.analytics.view')) return { error: 'Forbidden', status: 403 }
-  } catch { return { error: 'Forbidden', status: 403 } }
+    ({ member } = await requireDashboardAccess(schoolId))
+  } catch {
+    // requireDashboardAccess only knows the base staff roles; a school-defined
+    // (CUSTOM) staff role is staff too, and is judged by its own permissions below
+    try {
+      const m = await requireSchoolAccess(user.id, schoolId)
+      if (m.role !== 'CUSTOM') return { error: 'Forbidden', status: 403 }
+      member = m
+    } catch { return { error: 'Forbidden', status: 403 } }
+  }
+  if (member && !await memberHasPermission(member as RoleBearer, 'school.analytics.view')) return { error: 'Forbidden', status: 403 }
   return { schoolId }
 }
 
@@ -92,7 +102,11 @@ export async function GET(_req: NextRequest) {
     earliestDue ? prisma.transaction.findMany({
       where: {
         schoolId, userId: { in: overdueIds }, type: 'INCOME', category: 'MEMBERSHIP', status: 'PAID', deletedAt: null,
-        date: { gte: new Date(earliestDue.getTime() - PAID_EARLY_DAYS * DAY) },
+        // Paid around/after the earliest due date, or paid earlier for a period that reaches past it
+        OR: [
+          { date: { gte: new Date(earliestDue.getTime() - PAID_EARLY_DAYS * DAY) } },
+          { periodEnd: { gt: earliestDue } },
+        ],
       },
       select: { userId: true, membershipId: true, date: true, periodEnd: true },
     }) : Promise.resolve([]),
@@ -106,8 +120,9 @@ export async function GET(_req: NextRequest) {
    */
   const paidSinceDue = (m: { id: string; userId: string; endDate: Date | null }): Date | null => {
     const due = m.endDate!.getTime()
-    const hits = paidAround.filter(t => (t.membershipId === m.id || t.userId === m.userId)
-      && (t.date.getTime() >= due - PAID_EARLY_DAYS * DAY || (t.periodEnd && t.periodEnd.getTime() > due)))
+    // A payment linked to another plan never covers this one; an unlinked payment of this student may
+    const hits = paidAround.filter(t => (t.membershipId ? t.membershipId === m.id : t.userId === m.userId)
+      && (t.date.getTime() >= due - PAID_EARLY_DAYS * DAY || (!!t.periodEnd && t.periodEnd.getTime() > due)))
     return hits.reduce<Date | null>((max, t) => (!max || t.date > max ? t.date : max), null)
   }
   const toCollect = sortOverdue(overdueMembers.map(m => {

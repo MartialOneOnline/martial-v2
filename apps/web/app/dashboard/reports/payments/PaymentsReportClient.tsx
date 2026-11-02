@@ -89,8 +89,11 @@ export default function PaymentsReportClient() {
 
   const tabLabel: Record<Tab, string> = { COLLECT: r.tabCollect, UNPAID: r.tabUnpaid, FAILED: r.tabFailed, OLD_PENDING: r.tabOldPending }
   const tabHint: Record<Tab, string> = { COLLECT: r.tabCollectHint, UNPAID: r.tabUnpaidHint, FAILED: r.tabFailedHint, OLD_PENDING: r.tabOldPendingHint }
-  const count = (k: Tab) => !data ? 0 : { COLLECT: data.toCollect.length, UNPAID: data.unpaidTraining.length, FAILED: data.failed.length, OLD_PENDING: data.oldPending.length }[k]
-  const total = count(tab)
+  // "To collect" counts debts; rows to review are counted apart (still listed, paged and exported)
+  const reviews = data ? data.toCollect.filter(x => x.toReview).length : 0
+  const rowsOf = (k: Tab) => !data ? 0 : { COLLECT: data.toCollect.length, UNPAID: data.unpaidTraining.length, FAILED: data.failed.length, OLD_PENDING: data.oldPending.length }[k]
+  const count = (k: Tab) => (k === 'COLLECT' ? rowsOf(k) - reviews : rowsOf(k))
+  const total = rowsOf(tab)
   const canExport = total > 0 && !loading && !error
 
   function exportList() {
@@ -213,6 +216,12 @@ export default function PaymentsReportClient() {
                         background: on ? '#111827' : '#fff', color: on ? '#fff' : '#374151', border: `1.5px solid ${on ? '#111827' : '#E5E7EB'}` }}>
                       {tabLabel[k]}
                       <span style={{ fontSize: 11, padding: '0 6px', borderRadius: 999, background: on ? 'rgba(255,255,255,0.2)' : '#F3F4F6' }}>{count(k)}</span>
+                      {k === 'COLLECT' && reviews > 0 && (
+                        <span title={r.toReviewCount.replace('{n}', String(reviews))} aria-label={r.toReviewCount.replace('{n}', String(reviews))}
+                          style={{ fontSize: 11, padding: '0 6px', borderRadius: 999, background: on ? 'rgba(253,230,138,0.35)' : '#FEF3C7', color: on ? '#FDE68A' : '#92400E' }}>
+                          +{reviews}
+                        </span>
+                      )}
                     </button>
                   )
                 })}

@@ -213,7 +213,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote O — Informe de Pagos: dinero por cobrar (rama `claude/payments-report`)
 
-- Estado: `RECHAZADO` en `b7899f8` (1 P1, 3 P2, 1 P3) → corregidos, **pendiente de re-auditoría**. Sin migración.
+- Estado: `RECHAZADO` en `b7899f8` (1 P1, 3 P2, 1 P3) → `APROBADO CON PENDIENTES` en `b346ca6` (3 P2, 1 P3) → corregidos, **pendiente de re-auditoría**. Sin migración.
 - Pedido del usuario: informes operativos; Pagos debe decir quién debe dinero y quién entrena sin pagar. Propuesta aprobada.
 - Criterios: por cobrar = plan de pago activo (no prueba) vencido antes de hoy (zona del colegio) sin cancelación programada, con los que siguen entrenando primero; entrenan sin pagar (30 días); cobros fallidos (Stripe PAST_DUE/UNPAID + FAILED 90 días); pendientes > 60 días solo para revisar (no se cambia nada); previsto mensual solo de suscripciones; monedas nunca sumadas; staff excluido; contacto, ficha y CSV; Revolut; 4 idiomas; móvil.
 - A revisar: definición de "vencido" frente a renovaciones en efectivo con pago pendiente ya registrado; Stripe con `endDate` pasado (¿falso positivo por webhook?); importes con varias membresías del mismo alumno; rendimiento; coherencia con `/api/dashboard/stats`.
@@ -225,6 +225,12 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
   4. P2 — total de pendientes antiguos sin monedas secundarias: el pie muestra todas las monedas, la principal primero, sin sumarlas.
   5. P3 — redondeo acumulado: `sumByCurrency` suma primero y redondea una vez.
 - Tests: +4 en `paymentsReportRoute` (permiso INSTRUCTOR/SUPERADMIN, exclusión de staff en consultas, fila "a revisar" fuera del total) y +1 en `paymentsCollect` (3 × 100 € trimestral = 100 €). Suite 1109 / 55 preexistentes; tsc 0; ESLint limpio.
+- Hallazgos de Codex en `b346ca6` y corrección:
+  6. P2 — un pago de otro plan ocultaba la deuda: un movimiento con `membershipId` solo cubre esa membresía; el fallback por alumno es solo para movimientos sin vínculo.
+  7. P2 — pagos adelantados con periodo que cubre el vencimiento se descartaban: la consulta trae también `periodEnd > vencimiento` (OR con la ventana de 7 días).
+  8. P2 — rol CUSTOM con permiso recibía 403: si `requireDashboardAccess` rechaza, se admite un miembro ACTIVE con rol CUSTOM y se evalúan sus permisos; STUDENT sigue en 403. Solo en esta ruta (el `DASHBOARD_ROLES` compartido no cambia).
+  9. P3 — contador de la pestaña: cuenta deudas; las filas a revisar se muestran como "+N" aparte (listadas, paginadas y exportadas).
+- Tests: +3 en `paymentsReportRoute` (otro plan no oculta la deuda; pago adelantado con periodo; CUSTOM con y sin permiso, STUDENT). Suite 1112 / 55; tsc 0; ESLint limpio.
 
 ## Próxima entrega de Claude
 
