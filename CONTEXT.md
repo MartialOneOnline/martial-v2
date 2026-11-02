@@ -271,7 +271,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-02 (m) (rama `claude/balance-report`, PR [#50](https://github.com/MartialOneOnline/martial-v2/pull/50) — `APROBADO CON PENDIENTES` en `41c14e3` (4 P2) → corregidos; sin migración)
+### Sesión — 2026-11-02 (m) (rama `claude/balance-report`, PR [#50](https://github.com/MartialOneOnline/martial-v2/pull/50) — `APROBADO CON PENDIENTES` en `41c14e3` (4 P2) → **`APROBADO`** en `cfd69a2`; sin migración)
 
 **Balance rehecho: cuenta de resultados mensual.** Diagnóstico con datos de RGM (lectura autorizada por el usuario, solo RGM): 3.418 cuotas pagadas (210.385 €), 6 ingresos "Otros" que suman 26.148 €, y gastos solo hasta nov. 2025 (24 meses de alquiler 500 € y salarios, importados de V1). El informe anterior sumaba todo desde 2022 sin periodo, mezclaba monedas y agrupaba meses en la zona del servidor; con los gastos interrumpidos, un periodo de 12 meses mostraría un margen falso del ~96 %. Propuesta aprobada ("Sí, así").
 - `lib/balance/pnl.ts` (puro): `buildPnl()` (una fila por mes en una moneda; ingresos y gastos por categoría; resultado; margen solo si el mes tiene gastos; `missingExpenses` = ingresos sin ningún gasto; el margen del periodo es null si falta algún mes), `unusualIncome()` (categoría OTHER o ≥ máx(500, 5 × mediana de cuotas)), `copyDay()`. `lib/balance/months.ts`: periodos este mes / 3 / 12 meses / este año en la zona del colegio (meses contiguos, el último termina ahora). `lib/balance/access.ts`: leer = `school.analytics.view`, gestionar = `school.payments.manage` (vía `requireSchoolAccess` + `memberHasPermission`; admite CUSTOM; SUPERADMIN pasa).
@@ -280,6 +280,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 - Tests: `balancePnl` (6), `balanceRoutes` (4). Suite 1122 / 55 preexistentes; tsc 0; ESLint limpio.
 - No verificado: navegador y datos reales. Ningún gasto se ha creado en producción.
 - **Correcciones de auditoría:** recarga del periodo vigente tras escribir; "copiar todos" informa del resultado parcial; gastos a las 12:00 del colegio con `schoolNoon()` (nuevo `POST /api/dashboard/balance/expense`); copia ofrecida solo si el endpoint la acepta (`copyable`, `expensesElsewhere`). Suite 1126 / 55.
+- **Re-auditoría: `APROBADO` en `cfd69a2`.** Codex confirmó los 4 P2 cerrados (incluidos DST y zonas con cambio a medianoche, y `copyable` = endpoint con otra moneda, mes en curso y meses sin ingresos), sin hallazgos nuevos; 14/14 tests del lote; recorrido en navegador con API simulada (escritorio, móvil, 4 idiomas). Pendiente: sesión real con datos de producción.
 
 ### Sesión — 2026-11-02 (l) (rama `claude/payments-report`, PR [#49](https://github.com/MartialOneOnline/martial-v2/pull/49) — `RECHAZADO` en `b7899f8` (1 P1, 3 P2, 1 P3) → `APROBADO CON PENDIENTES` en `b346ca6` (3 P2, 1 P3) → **`APROBADO CON PENDIENTES`** en `10dec27` (queda 1 P2 compartido: el dashboard no admite roles CUSTOM — 0 en producción, tarea aparte); sin migración)
 
