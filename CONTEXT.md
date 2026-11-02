@@ -271,7 +271,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-02 (m) (rama `claude/dashboard-revenue-chart`, PR [#52](https://github.com/MartialOneOnline/martial-v2/pull/52) — `APROBADO CON PENDIENTES` en `88c3732` (2 P2 heredados) → P2 corregidos, reauditoría pendiente; sin migración; pendiente: prueba manual del usuario)
+### Sesión — 2026-11-02 (m) (rama `claude/dashboard-revenue-chart`, PR [#52](https://github.com/MartialOneOnline/martial-v2/pull/52) — `APROBADO CON PENDIENTES` en `88c3732` (2 P2 heredados) → **`APROBADO`** en `3c8a659`, sin hallazgos abiertos; sin migración; pendiente: prueba manual del usuario)
 
 **Regresión del PR #49: gráfico "Resumen de Pagos" del panel vacío.** El gráfico de `/dashboard` leía `revenueData` de `/api/dashboard/reports/payments`; el informe de Pagos se rehízo y ese campo (y el parámetro `period`) desapareció, así que el gráfico quedaba en blanco sin error.
 - Nuevo `GET /api/dashboard/revenue-chart?period=7d|30d|12m` → `{ revenueData: [{ date, revenue }] }`: suma INCOME PAID no borrado por punto de `periodBounds()`, mismo acceso (`requireDashboardAccess`) y mismo criterio que la tarjeta "Ingresos" de `/api/dashboard/stats`. Una sola consulta y reparto en memoria. Periodo desconocido → 12m.
