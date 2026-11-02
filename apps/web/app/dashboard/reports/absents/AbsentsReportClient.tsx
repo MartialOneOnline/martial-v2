@@ -24,7 +24,11 @@ interface ReportData {
   summary: { active: number; warning: number; atRisk: number; lost: number; never: number; payingAway: number }
   lists: Record<ListKey, Row[]>
   noShows: NoShowRow[]
-  period: { cancelled: number; noShows: number; unmarked: number; trend: { date: string; cancelled: number; missed: number }[]; dow: { day: string; cancelled: number; missed: number }[] }
+  period: {
+    key: Period; cancelled: number; noShows: number; unmarked: number
+    trend: { key: string; kind: 'days' | 'month'; cancelled: number; missed: number }[]
+    dow: { day: string; cancelled: number; missed: number }[]
+  }
 }
 
 const TABS: TabKey[] = ['WARNING', 'AT_RISK', 'LOST', 'NEVER', 'NO_SHOW']
@@ -73,10 +77,19 @@ export default function AbsentsReportClient() {
 
   const tabLabel: Record<TabKey, string> = { WARNING: r.tabWarning, AT_RISK: r.tabAtRisk, LOST: r.tabLost, NEVER: r.tabNever, NO_SHOW: r.tabNoShow }
   const tabHint: Record<TabKey, string> = { WARNING: r.tabWarningHint, AT_RISK: r.tabAtRiskHint, LOST: r.tabLostHint, NEVER: r.tabNeverHint, NO_SHOW: r.tabNoShowHint }
-  const count = (k: TabKey) => (!data ? 0 : k === 'NO_SHOW' ? data.noShows.length : data.lists[k].length)
+  const count = (k: TabKey) => (!data ? 0 : k === 'NO_SHOW' ? (data.period.key === period ? data.noShows.length : 0) : data.lists[k].length)
 
+  const periodLabel = (p: Period) => ({ '30d': r.period30, '90d': r.period90, '12m': r.period12 })[p]
+  // The no-show rows and booking figures belong to the period of the data on
+  // screen; while another one loads (or failed), they are not shown as if
+  // they were the new one (Project Audit PR #48 P2).
+  const shownPeriod = data?.period.key ?? period
+  const periodStale = !!data && shownPeriod !== period
   const listRows = data && tab && tab !== 'NO_SHOW' ? data.lists[tab] : []
-  const noShowRows = data && tab === 'NO_SHOW' ? data.noShows : []
+  const noShowRows = data && tab === 'NO_SHOW' && !periodStale ? data.noShows : []
+  const trendLabel = (pt: { key: string; kind: 'days' | 'month' }) => pt.kind === 'month'
+    ? new Date(`${pt.key}-15T12:00:00Z`).toLocaleDateString(locale, { month: 'short', timeZone: 'UTC' })
+    : new Date(`${pt.key}T12:00:00Z`).toLocaleDateString(locale, { day: 'numeric', month: 'short', timeZone: 'UTC' })
   const total = tab === 'NO_SHOW' ? noShowRows.length : listRows.length
   // Never export a list that belongs to a period still loading or that failed
   const canExport = total > 0 && !loading && !error
@@ -214,14 +227,16 @@ export default function AbsentsReportClient() {
                   )
                 })}
               </div>
-              {tab && <p style={{ fontSize: 12, color: '#4B5563', margin: '10px 20px 0' }}>{tab === 'NO_SHOW' ? tabHint[tab].replace('{period}', ({ '30d': r.period30, '90d': r.period90, '12m': r.period12 })[period]) : tabHint[tab]}</p>}
+              {tab && <p style={{ fontSize: 12, color: '#4B5563', margin: '10px 20px 0' }}>{tab === 'NO_SHOW' ? tabHint[tab].replace('{period}', periodLabel(shownPeriod)) : tabHint[tab]}</p>}
 
               <div className="overflow-x-auto" style={{ marginTop: 10 }}>
                 {tab === 'NO_SHOW' ? (
                   <table className="w-full" style={{ minWidth: 720, borderCollapse: 'collapse' }}>
                     <thead><tr>{[r.colStudent, r.colNoShows, r.colUnmarked, r.colLast, r.colClass, r.colContact].map(h => <th key={h} style={TH}>{h}</th>)}</tr></thead>
                     <tbody>
-                      {noShowRows.length === 0 ? (
+                      {periodStale ? (
+                        <tr><td colSpan={6} style={{ ...TD, textAlign: 'center', color: '#6B7280', padding: '32px 16px' }}>{error ? r.loadError : r.loading}</td></tr>
+                      ) : noShowRows.length === 0 ? (
                         <tr><td colSpan={6} style={{ ...TD, textAlign: 'center', color: '#6B7280', padding: '32px 16px' }}>{r.emptyNoShows}</td></tr>
                       ) : noShowRows.slice(0, shown).map((x, i) => (
                         <tr key={`${x.memberId ?? x.email ?? x.name}-${i}`}>
@@ -287,7 +302,9 @@ export default function AbsentsReportClient() {
               <div className="flex items-end justify-between gap-3 flex-wrap">
                 <div>
                   <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0 }}>{r.bookingsTitle}</p>
-                  <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>{r.bookingsHint}</p>
+                  <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>
+                    {r.bookingsHint}{periodStale && <strong style={{ color: '#92400E' }}> · {r.showing.replace('{period}', periodLabel(shownPeriod))}</strong>}
+                  </p>
                 </div>
                 <div className="flex items-center gap-1 p-1 rounded-xl" role="group" aria-label={r.bookingsTitle} style={{ background: '#F3F4F6' }}>
                   {(['30d', '90d', '12m'] as const).map(p => (
@@ -295,12 +312,12 @@ export default function AbsentsReportClient() {
                       style={{ fontSize: 12, fontWeight: period === p ? 600 : 400, padding: '5px 12px', borderRadius: 8, border: 'none',
                         background: period === p ? '#fff' : 'transparent', color: period === p ? '#111827' : '#4B5563',
                         boxShadow: period === p ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}>
-                      {{ '30d': r.period30, '90d': r.period90, '12m': r.period12 }[p]}
+                      {periodLabel(p)}
                     </button>
                   ))}
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-3" style={{ opacity: loading ? 0.6 : 1 }}>
+              <div className="grid grid-cols-3 gap-3" style={{ opacity: loading || periodStale ? 0.5 : 1 }}>
                 {[
                   { label: r.statNoShows, value: data.period.noShows, color: '#7C3AED' },
                   { label: r.statUnmarked, value: data.period.unmarked, color: '#6B7280' },
@@ -317,7 +334,7 @@ export default function AbsentsReportClient() {
               {data.period.unmarked > 0 && (
                 <p style={{ fontSize: 12, color: '#4B5563', margin: 0 }}>{r.unmarkedHint}</p>
               )}
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4" style={{ opacity: loading ? 0.6 : 1 }}>
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4" style={{ opacity: loading || periodStale ? 0.5 : 1 }}>
                 <div style={{ ...CARD, padding: 20 }}>
                   <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: '0 0 12px' }}>{r.byDayTitle}</p>
                   <ResponsiveContainer width="100%" height={220}>
@@ -335,9 +352,9 @@ export default function AbsentsReportClient() {
                 <div style={{ ...CARD, padding: 20 }}>
                   <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: '0 0 12px' }}>{r.trendTitle}</p>
                   <ResponsiveContainer width="100%" height={220}>
-                    <AreaChart data={data.period.trend}>
+                    <AreaChart data={data.period.trend.map(pt => ({ ...pt, label: trendLabel(pt) }))}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
-                      <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#6B7280' }} axisLine={false} tickLine={false} />
+                      <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#6B7280' }} axisLine={false} tickLine={false} />
                       <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#6B7280' }} axisLine={false} tickLine={false} />
                       <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12 }} />
                       <Legend wrapperStyle={{ fontSize: 12 }} />

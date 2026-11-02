@@ -872,6 +872,7 @@ export const translations = {
       checkinExpired: "Trial expired — still coming. Assign a plan.",
     },
     absencesReport: {
+      showing: "showing {period}",
       title: "Absences",
       subtitle: "Active students who stopped coming — catch them before they leave.",
       loadError: "Couldn’t load the report.",
@@ -2072,6 +2073,7 @@ export const translations = {
       checkinExpired: "Prueba caducada, sigue viniendo. Asígnale un plan.",
     },
     absencesReport: {
+      showing: "mostrando {period}",
       title: "Ausencias",
       subtitle: "Alumnos activos que han dejado de venir: recupéralos antes de que se vayan.",
       loadError: "No se pudo cargar el informe.",
@@ -3252,6 +3254,7 @@ export const translations = {
       checkinExpired: "Experiência expirada, continua a vir. Atribui-lhe um plano.",
     },
     absencesReport: {
+      showing: "a mostrar {period}",
       title: "Ausências",
       subtitle: "Alunos ativos que deixaram de vir: recupera-os antes que saiam.",
       loadError: "Não foi possível carregar o relatório.",
@@ -4432,6 +4435,7 @@ export const translations = {
       checkinExpired: "Essai expiré, il continue à venir. Attribuez-lui un forfait.",
     },
     absencesReport: {
+      showing: "affichage : {period}",
       title: "Absences",
       subtitle: "Élèves actifs qui ne viennent plus : récupérez-les avant qu’ils partent.",
       loadError: "Impossible de charger le rapport.",

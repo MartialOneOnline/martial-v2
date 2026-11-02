@@ -84,8 +84,9 @@ export function buildAbsenceLists(input: {
     const last = recentLast && ever ? (recentLast > ever ? recentLast : ever) : recentLast ?? ever
     const plan = input.plans.get(s.userId) ?? null
     if (!last) {
+      // Unknown join date: we can't tell they've had 7 days, so they aren't listed
       const since = s.joinedAt ? daysBetween(s.joinedAt, input.now, input.timeZone) : null
-      if (since === null || since >= NEVER_AFTER_DAYS) {
+      if (since !== null && since >= NEVER_AFTER_DAYS) {
         out.NEVER.push({ ...s, lastClassAt: null, daysSince: since, usualPerWeek: null, plan })
       }
       continue
@@ -103,6 +104,14 @@ export function buildAbsenceLists(input: {
 
 /** A booking for a class that already ended but still CONFIRMED: nobody marked whether they came */
 export const UNMARKED_AFTER_MS = 3 * 60 * 60 * 1000
+/** Class length when it isn't set — the longest usual class, so nothing is flagged early */
+export const UNKNOWN_CLASS_MINUTES = 120
+
+/** Still CONFIRMED three hours after the class ENDED (not started) */
+export function isUnmarked(scheduledAt: Date, durationMinutes: number | null, now: Date): boolean {
+  const minutes = durationMinutes && durationMinutes > 0 ? durationMinutes : UNKNOWN_CLASS_MINUTES
+  return scheduledAt.getTime() + minutes * 60_000 + UNMARKED_AFTER_MS <= now.getTime()
+}
 
 export interface NoShowBooking { userId: string; scheduledAt: Date; status: string; className: string }
 export interface NoShowAgg { userId: string; noShows: number; unmarked: number; lastAt: Date; topClass: string }

@@ -197,11 +197,19 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote N — Informe de Ausencias: quién ha dejado de venir (rama `claude/absences-report`)
 
-- Estado: entregado por Claude, **pendiente de auditoría**. Sin migración.
+- Estado: `APROBADO CON PENDIENTES` en `9b5ee75` (5 P2, 1 P3) → corregidos, **pendiente de confirmar**. Sin migración. Pendiente: sesión autenticada y rendimiento real.
 - Pedido del usuario: informes operativos; el de Ausencias solo contaba cancelaciones y no presentados, cuando el problema real son los alumnos activos que dejan de venir. Propuesta aprobada.
 - Criterios: listas calculadas con asistencias (check-in o reserva); grupos 7–13 / 14–29 / 30+ días en la zona horaria del colegio; "nunca han venido" tras 7 días de alta; FROZEN y staff excluidos; los que pagan primero; frecuencia previa (8 semanas); contacto directo y CSV; no presentados incluyen reservas pasadas sin marcar; periodo solo para la sección de reservas; 4 idiomas; móvil.
 - A revisar: cálculo de días y DST; rendimiento con escuelas grandes (historial de 1 año + `groupBy`); que el CSV no exporte datos de un periodo en carga; accesibilidad de tarjetas y pestañas; permisos (cualquier staff con acceso al dashboard, como antes).
 - No verificado: navegador y datos reales.
+- Hallazgos de Codex en `9b5ee75` y corrección:
+  1. P2 — "Reservó y no vino" incluía staff y FROZEN: las consultas de no presentados y cancelaciones usan el mismo roster que las listas (`userId in` alumnos ACTIVE sin staff); contadores y filas coinciden.
+  2. P2 — "Sin marcar" contaba desde el inicio: `isUnmarked()` = fin de la clase (`Class.duration`, 120 min si falta) + 3 h.
+  3. P2 — filas del periodo anterior bajo el nuevo: la respuesta trae `period.key`; mientras el periodo mostrado no es el pedido, la pestaña "Reservó y no vino" no muestra filas (Cargando / error), el contador es 0, y la sección Reservas se atenúa con "mostrando {periodo}".
+  4. P2 — sin `joinedAt` entraba en "Nunca han venido": la ruta usa `joinedAt ?? createdAt` del SchoolMember; la lógica pura no lista a nadie con fecha desconocida.
+  5. P2 — límites en la zona del servidor: nuevo `lib/absences/periods.ts` (`absencePeriod`, `zonedStartOfDay`) en la zona del colegio; 30 días = diez tramos de 3 días contiguos (antes solo un día de cada tres); 90 días / 12 meses = meses naturales locales. No cambia `lib/reportPeriods.ts` (Pagos y Reservas intactos). Etiquetas de la gráfica formateadas en el cliente con el idioma.
+  6. P3 — teléfono "NULL": `cleanPhone()` en ambas listas; sin número no hay enlace.
+- Tests: 4 casos más en `absencesStopped` (fin de clase, sin alta, zona horaria 1-sep 00:30, tramos de 30 días con DST) y 1 en `absencesReportRoute` (roster). Suite 1096 / 55 preexistentes; tsc 0; ESLint limpio.
 
 ## Próxima entrega de Claude
 

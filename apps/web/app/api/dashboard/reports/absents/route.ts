@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId, requireDashboardAccess } from '@/lib/auth/server'
-import { periodBounds } from '@/lib/reportPeriods'
+import { absencePeriod, isAbsencePeriod } from '@/lib/absences/periods'
 import { schoolTimeZone } from '@/lib/memberActivity'
-import { whatsappNumber } from '@/lib/phone'
+import { cleanPhone, whatsappNumber } from '@/lib/phone'
 import { isTrialMembership } from '@/lib/services/trial'
 import {
-  aggregateNoShows, buildAbsenceLists, UNMARKED_AFTER_MS, USUAL_WINDOW_WEEKS,
+  aggregateNoShows, buildAbsenceLists, isUnmarked, UNMARKED_AFTER_MS, USUAL_WINDOW_WEEKS,
   type AbsenceRow, type PlanInfo, type StudentInput,
 } from '@/lib/absences/stopped'
 
@@ -40,17 +40,19 @@ export async function GET(req: NextRequest) {
   const schoolId = auth.schoolId
 
   const { searchParams } = new URL(req.url)
-  const period = searchParams.get('period') ?? '30d'
-  const { from, to: toDate, points } = periodBounds(period, searchParams.get('dateFrom'), searchParams.get('dateTo'))
+  const rawPeriod = searchParams.get('period')
+  const period = isAbsencePeriod(rawPeriod) ? rawPeriod : '30d'
   const now = new Date()
 
   const school = await prisma.school.findUnique({ where: { id: schoolId }, select: { country: true } })
   const timeZone = schoolTimeZone(school?.country)
+  // Period limits and buckets in the school's timezone, not the server's
+  const { from, to: toDate, points } = absencePeriod(period, timeZone, now)
 
   // ── Active students (FROZEN = paused on purpose, not an absence) ─────────
   const members = await prisma.schoolMember.findMany({
     where: { schoolId, role: 'STUDENT', status: 'ACTIVE' },
-    select: { id: true, userId: true, joinedAt: true, user: { select: { name: true, email: true, phone: true, avatarUrl: true } } },
+    select: { id: true, userId: true, joinedAt: true, createdAt: true, user: { select: { name: true, email: true, phone: true, avatarUrl: true } } },
   })
   // Staff who also hold a student row aren't absent students
   const staff = await prisma.schoolMember.findMany({
@@ -60,7 +62,9 @@ export async function GET(req: NextRequest) {
   const staffIds = new Set(staff.map(s => s.userId))
   const students: StudentInput[] = members.filter(m => !staffIds.has(m.userId)).map(m => ({
     memberId: m.id, userId: m.userId, name: m.user?.name ?? m.user?.email ?? '—',
-    email: m.user?.email ?? null, phone: m.user?.phone ?? null, avatarUrl: m.user?.avatarUrl ?? null, joinedAt: m.joinedAt ?? null,
+    email: m.user?.email ?? null, phone: cleanPhone(m.user?.phone), avatarUrl: m.user?.avatarUrl ?? null,
+    // No joinedAt (older rows): when the membership row was created — never "assume 7 days passed"
+    joinedAt: m.joinedAt ?? m.createdAt ?? null,
   }))
   const userIds = students.map(s => s.userId)
 
@@ -106,30 +110,32 @@ export async function GET(req: NextRequest) {
   })
 
   // ── Within the period: no-shows (incl. unmarked) and cancellations ───────
-  const inPeriod = { gte: from, ...(toDate ? { lte: toDate } : {}) }
+  // Same people as the lists (active students, no staff), so counts and rows agree
+  const inPeriod = { gte: from, lte: toDate }
   const unmarkedBefore = new Date(now.getTime() - UNMARKED_AFTER_MS)
-  const [missed, cancelled] = await Promise.all([
+  const [missedRaw, cancelled] = await Promise.all([
     prisma.booking.findMany({
       where: {
-        class: { schoolId }, scheduledAt: inPeriod,
+        class: { schoolId }, scheduledAt: inPeriod, userId: { in: userIds },
         OR: [{ status: 'NO_SHOW' }, { status: 'CONFIRMED', attendedAt: null, scheduledAt: { lt: unmarkedBefore } }],
       },
-      select: { userId: true, scheduledAt: true, status: true, class: { select: { name: true } }, user: { select: { name: true, email: true, phone: true, avatarUrl: true } } },
+      select: { userId: true, scheduledAt: true, status: true, class: { select: { name: true, duration: true } }, user: { select: { name: true, email: true, phone: true, avatarUrl: true } } },
     }),
     prisma.booking.findMany({
-      where: { class: { schoolId }, scheduledAt: inPeriod, status: 'CANCELLED' },
+      where: { class: { schoolId }, scheduledAt: inPeriod, status: 'CANCELLED', userId: { in: userIds } },
       select: { scheduledAt: true },
     }),
   ])
+  // "Not marked" only once the class has ENDED three hours ago
+  const missed = missedRaw.filter(b => b.status === 'NO_SHOW' || isUnmarked(b.scheduledAt, b.class?.duration ?? null, now))
   const missedUsers = new Map(missed.map(b => [b.userId, b.user]))
   const memberIdByUser = new Map(members.map(m => [m.userId, m.id]))
   const noShows = aggregateNoShows(missed.map(b => ({ userId: b.userId, scheduledAt: b.scheduledAt, status: b.status, className: b.class?.name ?? '—' })))
-    .filter(a => !staffIds.has(a.userId))
     .map(a => {
       const u = missedUsers.get(a.userId)
       return {
         memberId: memberIdByUser.get(a.userId) ?? null, name: u?.name ?? u?.email ?? '—', email: u?.email ?? null,
-        phone: u?.phone ?? null, whatsapp: whatsappNumber(u?.phone, school?.country), avatarUrl: u?.avatarUrl ?? null,
+        phone: cleanPhone(u?.phone), whatsapp: whatsappNumber(u?.phone, school?.country), avatarUrl: u?.avatarUrl ?? null,
         noShows: a.noShows, unmarked: a.unmarked, lastAt: a.lastAt.toISOString(), topClass: a.topClass,
       }
     })
@@ -139,7 +145,7 @@ export async function GET(req: NextRequest) {
   for (const b of cancelled) dow[dayOf(b.scheduledAt)]!.cancelled++
   for (const b of missed) dow[dayOf(b.scheduledAt)]!.missed++
   const trend = points.map(pt => ({
-    date: pt.label,
+    key: pt.key, kind: pt.kind,
     cancelled: cancelled.filter(b => b.scheduledAt >= pt.from && b.scheduledAt <= pt.to).length,
     missed: missed.filter(b => b.scheduledAt >= pt.from && b.scheduledAt <= pt.to).length,
   }))
@@ -156,6 +162,7 @@ export async function GET(req: NextRequest) {
     },
     noShows,
     period: {
+      key: period,
       cancelled: cancelled.length,
       noShows: missed.filter(b => b.status === 'NO_SHOW').length,
       unmarked: missed.filter(b => b.status !== 'NO_SHOW').length,

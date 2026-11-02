@@ -78,3 +78,41 @@ describe('aggregateNoShows', () => {
     expect(out[0]).toMatchObject({ noShows: 2, unmarked: 1, topClass: 'Gi', lastAt: at('2026-10-09T18:00:00Z') })
   })
 })
+
+describe('audit fixes (PR #48)', () => {
+  it('P2: "not marked" only 3 hours after the class ENDS; unknown length = 2 h', async () => {
+    const { isUnmarked } = await import('@/lib/absences/stopped')
+    const start = at('2026-11-02T10:00:00Z')
+    // 90-minute class started 4 h ago: ended 2.5 h ago → not yet
+    expect(isUnmarked(start, 90, at('2026-11-02T14:00:00Z'))).toBe(false)
+    expect(isUnmarked(start, 90, at('2026-11-02T14:30:00Z'))).toBe(true)
+    expect(isUnmarked(start, null, at('2026-11-02T14:59:00Z'))).toBe(false)
+    expect(isUnmarked(start, null, at('2026-11-02T15:00:00Z'))).toBe(true)
+  })
+
+  it('P2: without a join date a student is not listed as "never came"', () => {
+    const lists = buildAbsenceLists({
+      students: [student('unknown', { joinedAt: null })], classes: new Map(), lastEver: new Map(), plans: new Map(),
+      now: at('2026-11-02T10:00:00Z'), timeZone: TZ,
+    })
+    expect(lists.NEVER).toEqual([])
+  })
+
+  it('P2: period limits in the school timezone — 1 Sep 00:30 Madrid is inside 90 days on 2 Nov', async () => {
+    const { absencePeriod } = await import('@/lib/absences/periods')
+    const p = absencePeriod('90d', TZ, at('2026-11-02T10:00:00Z'))
+    const event = at('2026-08-31T22:30:00Z') // 1 Sep 00:30 in Madrid
+    expect(p.from.toISOString()).toBe('2026-08-31T22:00:00.000Z')
+    expect(event >= p.from).toBe(true)
+    expect(p.points.map(x => x.key)).toEqual(['2026-09', '2026-10', '2026-11'])
+    expect(p.points[0]!.to.getTime() + 1).toBe(p.points[1]!.from.getTime()) // buckets touch, no gaps
+  })
+
+  it('30 days = ten 3-day buckets in local days, across the DST change', async () => {
+    const { absencePeriod } = await import('@/lib/absences/periods')
+    const p = absencePeriod('30d', TZ, at('2026-11-02T10:00:00Z'))
+    expect(p.points).toHaveLength(10)
+    expect(p.points[0]!.key).toBe('2026-10-04')
+    for (let i = 1; i < p.points.length; i++) expect(p.points[i - 1]!.to.getTime() + 1).toBe(p.points[i]!.from.getTime())
+  })
+})
