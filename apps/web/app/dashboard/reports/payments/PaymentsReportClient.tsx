@@ -1,442 +1,350 @@
 'use client'
 
+// Payments report — money to collect (see lib/payments/collect.ts).
+import { useCallback, useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
+import { Menu, Download, Phone, MessageCircle, Mail, ExternalLink, ArrowRight } from 'lucide-react'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useDashboard } from '../../../../components/DashboardShell'
 import NotificationBell from '../../../../components/NotificationBell'
-import { useState, useEffect, useCallback } from 'react'
-import { Menu, Search, ChevronLeft, ChevronRight, Filter, MoreVertical, Download } from 'lucide-react'
-import { useT } from '../../../../lib/i18n/LanguageContext'
-import { fmtPrice as fmtAmt } from '../../../../lib/format'
+import { useLanguage } from '../../../../lib/i18n/LanguageContext'
 import { downloadCsv } from '../../../../lib/csvExport'
-import SharedRowMenu from '../../../../components/RowMenu'
-import {
-  AreaChart, Area, BarChart, Bar, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-} from 'recharts'
+import { fmtPrice } from '../../../../lib/format'
 
-const ITEMS_PER_PAGE = 15
-
-function getPaginationPages(current: number, total: number): (number | '...')[] {
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
-  if (current <= 4) return [1, 2, 3, 4, 5, '...', total]
-  if (current >= total - 3) return [1, '...', total - 4, total - 3, total - 2, total - 1, total]
-  return [1, '...', current - 1, current, current + 1, '...', total]
+type Money = Record<string, number>
+interface Contact { memberId: string | null; name: string; email: string | null; phone: string | null; whatsapp: string | null }
+interface CollectRow extends Contact {
+  membershipId: string; endDate: string; amount: number; currency: string; daysOverdue: number; training: boolean
+  lastClassAt: string | null; lastPaidAt: string | null; method: string; planName: string; pendingRecorded: boolean
+  toReview: boolean; paidSinceDueAt: string | null
 }
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
-}
-
-function Avatar({ name, avatarUrl, size = 28 }: { name: string; avatarUrl: string | null; size?: number }) {
-  const initials = (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
-  if (avatarUrl) return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={avatarUrl} alt={name} style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
-  )
-  return (
-    <div style={{ width: size, height: size, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-      background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', color: '#fff', fontSize: size * 0.33, fontWeight: 700 }}>
-      {initials}
-    </div>
-  )
-}
-
-const STATUS_STYLES: Record<string, { bg: string; color: string; border: string; label: string }> = {
-  PAID:     { bg: '#F0FDF4', color: '#16A34A', border: '#BBF7D0', label: 'Paid'     },
-  PENDING:  { bg: '#FFFBEB', color: '#D97706', border: '#FDE68A', label: 'Pending'  },
-  FAILED:   { bg: '#FEF2F2', color: '#DC2626', border: '#FECACA', label: 'Failed'   },
-  REFUNDED: { bg: '#F5F3FF', color: '#6D28D9', border: '#DDD6FE', label: 'Refunded' },
-}
-const METHOD_STYLES: Record<string, { bg: string; color: string; border: string }> = {
-  STRIPE:        { bg: '#F5F3FF', color: '#6D28D9', border: '#DDD6FE' },
-  CASH:          { bg: '#F0FDF4', color: '#16A34A', border: '#BBF7D0' },
-  BANK_TRANSFER: { bg: '#EFF6FF', color: '#1D4ED8', border: '#BFDBFE' },
-  DIRECT_DEBIT:  { bg: '#F0FDFA', color: '#0F766E', border: '#99F6E4' },
-  OTHER:         { bg: '#F9FAFB', color: '#6B7280', border: '#E5E7EB' },
-}
-const METHOD_OPTIONS = [
-  { id: 'STRIPE',        label: 'Stripe'        },
-  { id: 'CASH',          label: 'Cash'          },
-  { id: 'BANK_TRANSFER', label: 'Bank Transfer' },
-  { id: 'DIRECT_DEBIT',  label: 'Direct Debit'  },
-  { id: 'OTHER',         label: 'Other'         },
-]
-
-const INP: React.CSSProperties = { width: '100%', border: '1px solid #E5E7EB', borderRadius: 8, padding: '7px 10px', fontSize: 12, color: '#111827', background: '#fff', outline: 'none' }
-const SEC: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8, display: 'block' }
-
-interface FiltersState { method: string; minAmount: string; maxAmount: string }
-const EMPTY_FILTERS: FiltersState = { method: '', minAmount: '', maxAmount: '' }
-
-function FiltersPanel({ filters, onChange }: { filters: FiltersState; onChange: (f: FiltersState) => void }) {
-  const [local, setLocal] = useState<FiltersState>(filters)
-  useEffect(() => { setLocal(filters) }, [filters])
-  const activeCount = [!!filters.method, !!filters.minAmount || !!filters.maxAmount].filter(Boolean).length
-  return (
-    <SharedRowMenu align="right" closeOnItemClick={false} trigger={({ onClick }) => (
-      <button onClick={onClick}
-        style={{ display: 'flex', alignItems: 'center', gap: 5, height: 34, padding: '0 12px', borderRadius: 8, cursor: 'pointer',
-          border: activeCount ? '1.5px solid #0870E2' : '1px solid #E5E7EB', background: activeCount ? '#EFF6FF' : '#fff' }}>
-        <Filter size={13} style={{ color: activeCount ? '#0870E2' : '#6B7280' }} />
-        <span style={{ fontSize: 12, fontWeight: 500, color: activeCount ? '#0870E2' : '#6B7280' }}>Filters</span>
-        {activeCount > 0 && <span style={{ background: '#0870E2', color: '#fff', borderRadius: 999, fontSize: 10, fontWeight: 700, padding: '1px 6px' }}>{activeCount}</span>}
-      </button>
-    )}>
-      {({ close }) => {
-        function apply() { onChange(local); close() }
-        function clear() { setLocal(EMPTY_FILTERS); onChange(EMPTY_FILTERS); close() }
-        return (
-          <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 14, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', width: 300, padding: 16 }}>
-            <div style={{ marginBottom: 16 }}>
-              <span style={SEC}>Payment method</span>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {METHOD_OPTIONS.map(m => (
-                  <button key={m.id} onClick={() => setLocal(p => ({ ...p, method: p.method === m.id ? '' : m.id }))}
-                    style={{ fontSize: 11, fontWeight: 500, padding: '4px 10px', borderRadius: 999, cursor: 'pointer',
-                      border: local.method === m.id ? '1.5px solid #0870E2' : '1px solid #E5E7EB',
-                      background: local.method === m.id ? '#EFF6FF' : '#F9FAFB',
-                      color: local.method === m.id ? '#0870E2' : '#6B7280' }}>{m.label}</button>
-                ))}
-              </div>
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              <span style={SEC}>Amount range (€)</span>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <input type="number" min={0} placeholder="Min" value={local.minAmount} onChange={e => setLocal(p => ({ ...p, minAmount: e.target.value }))} style={{ ...INP, width: '50%' }} />
-                <input type="number" min={0} placeholder="Max" value={local.maxAmount} onChange={e => setLocal(p => ({ ...p, maxAmount: e.target.value }))} style={{ ...INP, width: '50%' }} />
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: 8, paddingTop: 12, borderTop: '1px solid #F3F4F6' }}>
-              <button onClick={clear} style={{ flex: 1, padding: 8, borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, fontWeight: 500, color: '#6B7280', cursor: 'pointer' }}>Clear</button>
-              <button onClick={apply} style={{ flex: 1, padding: 8, borderRadius: 8, border: 'none', background: '#111827', fontSize: 12, fontWeight: 600, color: '#fff', cursor: 'pointer' }}>Apply</button>
-            </div>
-          </div>
-        )
-      }}
-    </SharedRowMenu>
-  )
-}
-
-function RowMenu({ items }: { items: { label: string; onClick: () => void; variant?: 'danger' }[] }) {
-  return (
-    <SharedRowMenu trigger={({ onClick }) => (
-      <button onClick={onClick} className="cursor-pointer"
-        style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #E5E7EB', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <MoreVertical size={13} style={{ color: '#6B7280' }} />
-      </button>
-    )}>
-      <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, boxShadow: '0 6px 20px rgba(0,0,0,0.1)', minWidth: 160, overflow: 'hidden' }}>
-        {items.map(item => (
-          <button key={item.label} onClick={item.onClick}
-            className="w-full text-left cursor-pointer hover:bg-[#F9FAFB]"
-            style={{ padding: '9px 14px', fontSize: 12, fontWeight: 500, color: item.variant === 'danger' ? '#DC2626' : '#374151', border: 'none', background: 'transparent', display: 'block' }}>
-            {item.label}
-          </button>
-        ))}
-      </div>
-    </SharedRowMenu>
-  )
-}
-
-interface TxRow {
-  id: string; userName: string; userEmail: string; userAvatar: string | null
-  description: string; method: string; methodKey: string
-  amount: number; currency: string; date: string; status: string
-}
-interface MethodPoint { name: string; amount: number; fill: string }
+type UnpaidState = 'NO_PLAN' | 'TRIAL_OVER' | 'FREE_PLAN' | 'TRIAL'
+interface UnpaidRow extends Contact { state: UnpaidState; classes: number; lastClassAt: string | null; planName: string | null; planEndsAt: string | null }
+interface FailedRow extends Contact { kind: 'PAST_DUE' | 'UNPAID' | 'FAILED'; amount: number; currency: string; label: string; date: string | null; method: string | null }
+interface PendingRow extends Contact { id: string; amount: number; currency: string; label: string; date: string; daysPending: number; membershipStatus: string | null }
 interface ReportData {
-  stats: { totalRevenue: number; mrr: number; pendingCount: number; failedRate: number }
-  revenueData: { date: string; revenue: number }[]
-  methodData:  MethodPoint[]
-  transactions: TxRow[]
-  total: number
+  currency: string
+  month: { key: string; expected: Money; collected: Money; pending: Money }
+  toCollect: CollectRow[]; toCollectTotal: Money
+  unpaidTraining: UnpaidRow[]
+  failed: FailedRow[]
+  oldPending: PendingRow[]; oldPendingTotal: Money
+  monthly: { key: string; amount: number }[]
+  byMethod: { method: string; amount: number }[]
+  otherCurrencies: string[]
 }
+type Tab = 'COLLECT' | 'UNPAID' | 'FAILED' | 'OLD_PENDING'
+
+const TABS: Tab[] = ['COLLECT', 'UNPAID', 'FAILED', 'OLD_PENDING']
+const PAGE = 25
+const CARD: React.CSSProperties = { background: '#fff', border: '1px solid #E5E7EB', borderRadius: 16 }
+const TH: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.04em', padding: '10px 16px', textAlign: 'left' }
+const TD: React.CSSProperties = { fontSize: 13, color: '#374151', padding: '10px 16px', borderTop: '1px solid #F3F4F6' }
+const iconBtn: React.CSSProperties = { width: 30, height: 30, borderRadius: 9, border: '1px solid #E5E7EB', background: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }
+const METHOD_COLOR: Record<string, string> = { CASH: '#16A34A', STRIPE: '#6D28D9', REVOLUT: '#0EA5E9', BANK_TRANSFER: '#0870E2', DIRECT_DEBIT: '#0F766E', OTHER: '#9CA3AF' }
 
 export default function PaymentsReportClient() {
   const { setMenuOpen } = useDashboard()
-  const t = useT()
+  const { t, locale } = useLanguage()
+  const r = t.paymentsReport
+  const [data, setData] = useState<ReportData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+  const [tab, setTab] = useState<Tab>('COLLECT')
+  const [shown, setShown] = useState(PAGE)
+  const requestId = useRef(0)
 
-  const [period,     setPeriod]     = useState<'7d' | '30d' | '90d' | '12m' | 'custom'>('30d')
-  const [customFrom, setCustomFrom] = useState('')
-  const [customTo,   setCustomTo]   = useState('')
-  const [filterTab, setFilterTab] = useState<'ALL' | 'PAID' | 'PENDING' | 'FAILED' | 'REFUNDED'>('ALL')
-  const [search,    setSearch]    = useState('')
-  const [page,      setPage]      = useState(1)
-  const [filters,   setFilters]   = useState<FiltersState>(EMPTY_FILTERS)
-  const [data,      setData]      = useState<ReportData | null>(null)
-  const [loading,   setLoading]   = useState(true)
-  const [toast,     setToast]     = useState('')
+  const load = useCallback(() => {
+    const id = ++requestId.current
+    setLoading(true); setError(false)
+    fetch('/api/dashboard/reports/payments')
+      .then(res => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json() })
+      .then((d: ReportData) => {
+        if (id !== requestId.current) return
+        setData(d)
+        const n: Record<Tab, number> = { COLLECT: d.toCollect.length, UNPAID: d.unpaidTraining.length, FAILED: d.failed.length, OLD_PENDING: d.oldPending.length }
+        setTab(prev => (n[prev] ? prev : TABS.find(k => n[k]) ?? 'COLLECT'))
+      })
+      .catch(() => { if (id === requestId.current) setError(true) })
+      .finally(() => { if (id === requestId.current) setLoading(false) })
+  }, [])
+  useEffect(load, [load])
 
-  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2200) }
+  const fmt = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' }) : '—')
+  const days = (n: number) => (n === 1 ? r.oneDay : r.nDays.replace('{n}', String(n)))
+  const cur = data?.currency ?? 'EUR'
+  const main = (m: Money | undefined) => fmtPrice(m?.[cur] ?? 0, cur)
+  /** Other currencies, never added to the main one */
+  const extra = (m: Money | undefined) => Object.entries(m ?? {}).filter(([c, n]) => c !== cur && n > 0).map(([c, n]) => fmtPrice(n, c)).join(' · ')
+  /** Every currency, main one first, never added together */
+  const allMoney = (m: Money | undefined) => {
+    const parts = Object.entries(m ?? {}).filter(([, n]) => n > 0).sort(([a], [b]) => Number(b === cur) - Number(a === cur)).map(([c, n]) => fmtPrice(n, c))
+    return parts.length ? parts.join(' + ') : fmtPrice(0, cur)
+  }
+  const debts = data ? data.toCollect.filter(x => !x.toReview).length : 0
+  const methodLabel = (k: string | null) => (r.methods as Record<string, string>)[k ?? 'OTHER'] ?? k ?? '—'
+  const stateLabel: Record<UnpaidState, string> = { NO_PLAN: r.stateNoPlan, TRIAL_OVER: r.stateTrialOver, FREE_PLAN: r.stateFreePlan, TRIAL: r.stateTrial }
+  const stateColor: Record<UnpaidState, [string, string]> = { NO_PLAN: ['#FEF2F2', '#B91C1C'], TRIAL_OVER: ['#FFF7ED', '#C2410C'], FREE_PLAN: ['#F3F4F6', '#374151'], TRIAL: ['#EFF6FF', '#1D4ED8'] }
+  const failedLabel = { PAST_DUE: r.failedPastDue, UNPAID: r.failedUnpaid, FAILED: r.failedTx }
 
-  const load = useCallback(async () => {
-    setLoading(true)
-    const params = new URLSearchParams({ period, status: filterTab, search, page: String(page) })
-    if (filters.method)    params.set('method', filters.method)
-    if (period === 'custom' && customFrom) params.set('dateFrom', customFrom)
-    if (period === 'custom' && customTo)   params.set('dateTo', customTo)
-    if (filters.minAmount) params.set('minAmount', filters.minAmount)
-    if (filters.maxAmount) params.set('maxAmount', filters.maxAmount)
-    const res = await fetch(`/api/dashboard/reports/payments?${params}`)
-    if (res.ok) setData(await res.json())
-    setLoading(false)
-  }, [period, filterTab, search, page, filters, customFrom, customTo])
+  const tabLabel: Record<Tab, string> = { COLLECT: r.tabCollect, UNPAID: r.tabUnpaid, FAILED: r.tabFailed, OLD_PENDING: r.tabOldPending }
+  const tabHint: Record<Tab, string> = { COLLECT: r.tabCollectHint, UNPAID: r.tabUnpaidHint, FAILED: r.tabFailedHint, OLD_PENDING: r.tabOldPendingHint }
+  // "To collect" counts debts; rows to review are counted apart (still listed, paged and exported)
+  const reviews = data ? data.toCollect.filter(x => x.toReview).length : 0
+  const rowsOf = (k: Tab) => !data ? 0 : { COLLECT: data.toCollect.length, UNPAID: data.unpaidTraining.length, FAILED: data.failed.length, OLD_PENDING: data.oldPending.length }[k]
+  const count = (k: Tab) => (k === 'COLLECT' ? rowsOf(k) - reviews : rowsOf(k))
+  const total = rowsOf(tab)
+  const canExport = total > 0 && !loading && !error
 
-  useEffect(() => { load() }, [load])
-  useEffect(() => { setPage(1) }, [period, filterTab, search, filters, customFrom, customTo])
-
-  async function handleExport() {
-    const params = new URLSearchParams({ period, status: filterTab, search, page: '1', pageSize: '1000' })
-    if (filters.method)    params.set('method', filters.method)
-    if (period === 'custom' && customFrom) params.set('dateFrom', customFrom)
-    if (period === 'custom' && customTo)   params.set('dateTo', customTo)
-    if (filters.minAmount) params.set('minAmount', filters.minAmount)
-    if (filters.maxAmount) params.set('maxAmount', filters.maxAmount)
-    const res = await fetch(`/api/dashboard/reports/payments?${params}`)
-    if (!res.ok) return
-    const d: ReportData = await res.json()
-    const headers = ['Member', 'Email', 'Description', 'Method', 'Amount', 'Currency', 'Date', 'Status']
-    const rows = d.transactions.map(tx => [
-      tx.userName, tx.userEmail, tx.description, tx.method,
-      String(tx.amount), tx.currency, fmtDate(tx.date),
-      STATUS_STYLES[tx.status]?.label ?? tx.status,
-    ])
-    downloadCsv('payments-report', headers, rows)
+  function exportList() {
+    if (!data || !canExport) return
+    const file = `${r.exportFile}-${tabLabel[tab]}`
+    if (tab === 'COLLECT') downloadCsv(file, [r.colStudent, r.email, r.colPhone, r.colPlan, r.colAmount, r.colDueSince, r.colDaysOverdue, r.colLastClass, r.colLastPaid, r.colMethod, r.colReview],
+      data.toCollect.map(x => [x.name, x.email, x.phone, x.planName, fmtPrice(x.amount, x.currency), fmt(x.endDate), x.daysOverdue, fmt(x.lastClassAt), fmt(x.lastPaidAt), methodLabel(x.method), x.toReview ? r.toReview.replace('{date}', fmt(x.paidSinceDueAt)) : '']), { locale })
+    else if (tab === 'UNPAID') downloadCsv(file, [r.colStudent, r.email, r.colPhone, r.colState, r.colClasses30, r.colLastClass, r.colPlan],
+      data.unpaidTraining.map(x => [x.name, x.email, x.phone, stateLabel[x.state], x.classes, fmt(x.lastClassAt), x.planName ?? '']), { locale })
+    else if (tab === 'FAILED') downloadCsv(file, [r.colStudent, r.email, r.colPhone, r.colWhat, r.colAmount, r.colDate, r.colMethod],
+      data.failed.map(x => [x.name, x.email, x.phone, failedLabel[x.kind], fmtPrice(x.amount, x.currency), fmt(x.date), methodLabel(x.method)]), { locale })
+    else downloadCsv(file, [r.colStudent, r.email, r.colPhone, r.colConcept, r.colAmount, r.colDate, r.colDaysPending],
+      data.oldPending.map(x => [x.name, x.email, x.phone, x.label, fmtPrice(x.amount, x.currency), fmt(x.date), x.daysPending]), { locale })
   }
 
-  async function updateTxStatus(id: string, status: string, label: string) {
-    const res = await fetch(`/api/dashboard/transactions/${id}`, {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }),
-    })
-    if (res.ok) { showToast(`Marked as ${label}`); load() }
-    else showToast('Error updating transaction')
-  }
+  const contactCell = (x: Contact) => (
+    <td style={TD}>
+      <div className="flex items-center gap-1.5">
+        {x.phone && <a href={`tel:${x.phone.replace(/[^\d+]/g, '')}`} title={r.call} aria-label={`${r.call} · ${x.name}`} style={iconBtn}><Phone size={13} style={{ color: '#374151' }} /></a>}
+        {x.whatsapp && <a href={`https://wa.me/${x.whatsapp}`} target="_blank" rel="noopener noreferrer" title={r.whatsapp} aria-label={`${r.whatsapp} · ${x.name}`} style={iconBtn}><MessageCircle size={13} style={{ color: '#16A34A' }} /></a>}
+        {x.email && <a href={`mailto:${x.email}`} title={r.email} aria-label={`${r.email} · ${x.name}`} style={iconBtn}><Mail size={13} style={{ color: '#0870E2' }} /></a>}
+        {!x.phone && !x.email && <span style={{ fontSize: 11, color: '#9CA3AF' }}>{r.noContact}</span>}
+      </div>
+    </td>
+  )
+  const nameCell = (x: Contact, sub?: string) => (
+    <td style={TD}>
+      {x.memberId ? (
+        <Link href={`/dashboard/users/${x.memberId}`} prefetch={false} title={r.openProfile} className="inline-flex items-center gap-1.5" style={{ fontWeight: 600, color: '#111827' }}>
+          {x.name} <ExternalLink size={11} style={{ color: '#9CA3AF' }} aria-hidden />
+        </Link>
+      ) : <span style={{ fontWeight: 600, color: '#111827' }}>{x.name}</span>}
+      {sub && <p style={{ fontSize: 11, color: '#6B7280', margin: '2px 0 0' }}>{sub}</p>}
+    </td>
+  )
+  const empty = (cols: number) => <tr><td colSpan={cols} style={{ ...TD, textAlign: 'center', color: '#6B7280', padding: '32px 16px' }}>{r.emptyList}</td></tr>
 
-  const totalPages = data ? Math.max(1, Math.ceil(data.total / ITEMS_PER_PAGE)) : 1
-  const pages = getPaginationPages(page, totalPages)
-  const stats = data?.stats
-
-  const STAT_CARDS = [
-    { label: 'Total Revenue',   value: stats ? fmtAmt(stats.totalRevenue) : '—', sub: 'this period',   color: '#16A34A' },
-    { label: 'MRR',             value: stats ? fmtAmt(stats.mrr)          : '—', sub: 'current month', color: '#0870E2' },
-    { label: 'Pending',         value: stats?.pendingCount ?? '—',                sub: 'awaiting',      color: '#D97706' },
-    { label: 'Failed Rate',     value: stats ? stats.failedRate + '%'      : '—', sub: 'of all income', color: '#DC2626' },
-  ]
+  const m = data?.month
+  const expectedMain = m?.expected[cur] ?? 0
+  const collectedMain = m?.collected[cur] ?? 0
+  const pct = expectedMain > 0 ? Math.round((collectedMain / expectedMain) * 100) : null
+  const monthName = m ? new Date(`${m.key}-15T12:00:00Z`).toLocaleDateString(locale, { month: 'long', timeZone: 'UTC' }) : ''
 
   return (
     <main style={{ flex: 1, minWidth: 0, width: '100%', overflow: 'auto' }}>
-      {toast && (
-        <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 100,
-          background: '#111827', color: '#fff', borderRadius: 10, padding: '10px 20px', fontSize: 13, fontWeight: 500 }}>
-          {toast}
-        </div>
-      )}
-
-      <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20"
-        style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
-        <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
+      <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20" style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
+        <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0" aria-label="Menu"
           style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(true)}>
           <Menu size={16} style={{ color: '#374151' }} />
         </button>
-        <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 max-w-xs"
-          style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-          <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
-          <input type="text" placeholder="Search member or description…" value={search} onChange={e => setSearch(e.target.value)}
-            style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
-        </div>
         <div className="flex-1" />
-        <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: '#F3F4F6' }}>
-          {(['7d', '30d', '90d', '12m', 'custom'] as const).map(p => (
-            <button key={p} onClick={() => setPeriod(p)} className="cursor-pointer"
-              style={{ fontSize: 12, fontWeight: period === p ? 600 : 400, padding: '5px 12px', borderRadius: 8, border: 'none',
-                background: period === p ? '#fff' : 'transparent', color: period === p ? '#111827' : '#6B7280',
-                boxShadow: period === p ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}>
-              {p === 'custom' ? 'Custom' : p.toUpperCase()}
-            </button>
-          ))}
-        </div>
-        {period === 'custom' && (
-          <div className="flex items-center gap-1.5">
-            <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)}
-              style={{ height: 30, padding: '0 8px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, color: '#111827', outline: 'none' }} />
-            <span style={{ fontSize: 12, color: '#9CA3AF' }}>–</span>
-            <input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)}
-              style={{ height: 30, padding: '0 8px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, color: '#111827', outline: 'none' }} />
-          </div>
-        )}
-        <button onClick={handleExport}
-          className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
-          style={{ background: '#fff', border: '1px solid #E5E7EB', color: '#374151', fontSize: 13, fontWeight: 500 }}>
-          <Download size={14} /> Export
-        </button>
         <NotificationBell />
       </div>
 
       <div className="px-4 md:px-8 py-6 flex flex-col gap-6">
-        <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>{t.reports.paymentsTitle}</h1>
-          <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>Revenue, transactions and payment method breakdown</p>
+        <div className="flex items-end justify-between gap-3 flex-wrap">
+          <div>
+            <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>{r.title}</h1>
+            <p style={{ fontSize: 13, color: '#6B7280', marginTop: 2 }}>{r.subtitle}</p>
+          </div>
+          <Link href="/dashboard/payments/transactions" prefetch={false} className="inline-flex items-center gap-1.5" style={{ fontSize: 13, fontWeight: 600, color: '#0870E2' }}>
+            {r.allTransactions} <ArrowRight size={14} aria-hidden />
+          </Link>
         </div>
 
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-          {STAT_CARDS.map(stat => (
-            <div key={stat.label} className="rounded-2xl" style={{ background: '#fff', border: '1px solid #E5E7EB', padding: '18px 20px' }}>
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-2 h-2 rounded-full" style={{ background: stat.color }} />
-                <span style={{ fontSize: 11, color: '#9CA3AF' }}>{stat.sub}</span>
+        {error && !data ? (
+          <div className="flex items-center justify-between gap-3 px-5 py-4" style={CARD}>
+            <span role="alert" style={{ fontSize: 13, color: '#DC2626' }}>{r.loadError}</span>
+            <button onClick={load} className="cursor-pointer" style={{ fontSize: 13, fontWeight: 600, padding: '6px 14px', borderRadius: 999, border: '1px solid #E5E7EB', background: '#fff' }}>{r.retry}</button>
+          </div>
+        ) : !data ? (
+          <p style={{ fontSize: 13, color: '#6B7280' }}>{r.loading}</p>
+        ) : (
+          <div className="flex flex-col gap-6" style={{ opacity: loading ? 0.6 : 1 }}>
+            {/* This month */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              {[
+                { label: r.cardExpected.replace('{month}', monthName), value: main(m?.expected), hint: r.cardExpectedHint, extra: extra(m?.expected), color: '#0870E2' },
+                { label: r.cardCollected, value: main(m?.collected), hint: pct === null ? r.cardCollectedNoPlan : r.cardCollectedHint.replace('{pct}', String(pct)), extra: extra(m?.collected), color: '#16A34A' },
+                { label: r.cardToCollect, value: main(data.toCollectTotal), hint: r.cardToCollectHint.replace('{n}', String(debts)), extra: extra(data.toCollectTotal), color: '#DC2626' },
+                { label: r.cardPending, value: main(m?.pending), hint: r.cardPendingHint, extra: extra(m?.pending), color: '#D97706' },
+              ].map(c => (
+                <div key={c.label} style={{ ...CARD, padding: '16px 18px' }}>
+                  <span className="flex items-center gap-2" style={{ marginBottom: 8 }}>
+                    <span className="w-2 h-2 rounded-full" style={{ background: c.color }} aria-hidden />
+                    <span style={{ fontSize: 12, color: '#4B5563', fontWeight: 500 }}>{c.label}</span>
+                  </span>
+                  <span style={{ display: 'block', fontSize: 24, fontWeight: 700, color: '#111827', lineHeight: 1.1 }}>{c.value}</span>
+                  <span style={{ display: 'block', fontSize: 11, color: '#6B7280', marginTop: 6 }}>{c.hint}</span>
+                  {c.extra && <span style={{ display: 'block', fontSize: 11, color: '#6B7280', marginTop: 2 }}>+ {c.extra}</span>}
+                </div>
+              ))}
+            </div>
+            {pct !== null && pct < 100 && (
+              <div aria-hidden style={{ height: 8, borderRadius: 999, background: '#F3F4F6', overflow: 'hidden', marginTop: -12 }}>
+                <div style={{ width: `${Math.min(100, pct)}%`, height: '100%', background: '#16A34A' }} />
               </div>
-              <p style={{ fontSize: 26, fontWeight: 700, color: '#111827', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 4 }}>
-                {loading ? '…' : stat.value}
-              </p>
-              <p style={{ fontSize: 12, fontWeight: 500, color: '#6B7280' }}>{stat.label}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-          <div className="rounded-2xl p-5" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 4 }}>Revenue Over Time</p>
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 16 }}>Paid income per time point</p>
-            {loading ? <div style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</p></div> : (
-              <ResponsiveContainer width="100%" height={260}>
-                <AreaChart data={data?.revenueData ?? []}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
-                  <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12 }}
-                    formatter={(v: unknown) => [fmtAmt(v as number), 'Revenue']} />
-                  <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#16A34A" fill="#16A34A" fillOpacity={0.12} strokeWidth={2} />
-                </AreaChart>
-              </ResponsiveContainer>
             )}
-          </div>
-          <div className="rounded-2xl p-5" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 4 }}>Revenue by Payment Method</p>
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 16 }}>Paid income breakdown</p>
-            {loading ? <div style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</p></div> : (
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={data?.methodData ?? []}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
-                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12 }}
-                    formatter={(v: unknown) => [fmtAmt(v as number), 'Amount']} />
-                  <Bar dataKey="amount" name="Amount" radius={[4, 4, 0, 0]} isAnimationActive={false}>
-                    {(data?.methodData ?? []).map((entry, i) => <Cell key={i} fill={entry.fill} />)}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-        </div>
 
-        <div>
-          <div className="flex items-center gap-2 mb-4 flex-wrap">
-            {([
-              { key: 'ALL', label: 'All' }, { key: 'PAID', label: 'Paid' },
-              { key: 'PENDING', label: 'Pending' }, { key: 'FAILED', label: 'Failed' }, { key: 'REFUNDED', label: 'Refunded' },
-            ] as const).map(tab => {
-              const isOn = filterTab === tab.key
-              return (
-                <button key={tab.key} onClick={() => setFilterTab(tab.key)} className="cursor-pointer"
-                  style={{ fontSize: 12, fontWeight: isOn ? 600 : 400, padding: '5px 14px', borderRadius: 8,
-                    background: isOn ? '#111827' : '#fff', color: isOn ? '#fff' : '#6B7280',
-                    border: isOn ? '1.5px solid #111827' : '1.5px solid #E5E7EB' }}>
-                  {tab.label}
-                  {!loading && tab.key === 'ALL' && data && <span style={{ opacity: 0.6, marginLeft: 4 }}>{data.total}</span>}
-                </button>
-              )
-            })}
-            <div style={{ marginLeft: 'auto' }}>
-              <FiltersPanel filters={filters} onChange={f => { setFilters(f); setPage(1) }} />
-            </div>
-          </div>
-
-          <div className="rounded-2xl overflow-hidden" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-            <table className="w-full">
-              <thead>
-                <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
-                  {['Member', 'Description', 'Method', 'Amount', 'Date', 'Status', ''].map(h => (
-                    <th key={h} className="px-5 py-3 text-left"
-                      style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr><td colSpan={7} className="px-5 py-8 text-center" style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</td></tr>
-                ) : (data?.transactions ?? []).length === 0 ? (
-                  <tr><td colSpan={7} className="px-5 py-8 text-center" style={{ fontSize: 13, color: '#9CA3AF' }}>No transactions found</td></tr>
-                ) : (
-                  (data?.transactions ?? []).map((tx, idx) => {
-                    const ms = METHOD_STYLES[tx.methodKey] ?? METHOD_STYLES['OTHER']!
-                    const ss = STATUS_STYLES[tx.status] ?? STATUS_STYLES['PAID']!
-                    return (
-                      <tr key={tx.id} className="hover:bg-[#FAFAFA] transition-colors"
-                        style={{ borderBottom: idx < (data?.transactions.length ?? 0) - 1 ? '1px solid #F9FAFB' : 'none' }}>
-                        <td className="px-5 py-3">
-                          <div className="flex items-center gap-2.5">
-                            <Avatar name={tx.userName} avatarUrl={tx.userAvatar} size={28} />
-                            <div>
-                              <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{tx.userName}</p>
-                              <p style={{ fontSize: 11, color: '#9CA3AF' }}>{tx.userEmail}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-5 py-3"><span style={{ fontSize: 12, color: '#6B7280' }}>{tx.description}</span></td>
-                        <td className="px-5 py-3">
-                          <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999, background: ms.bg, color: ms.color, border: '1px solid ' + ms.border }}>
-                            {tx.method}
-                          </span>
-                        </td>
-                        <td className="px-5 py-3">
-                          <span style={{ fontSize: 14, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em' }}>{fmtAmt(tx.amount, tx.currency)}</span>
-                        </td>
-                        <td className="px-5 py-3"><span style={{ fontSize: 12, color: '#6B7280' }}>{fmtDate(tx.date)}</span></td>
-                        <td className="px-5 py-3">
-                          <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999, background: ss.bg, color: ss.color, border: '1px solid ' + ss.border }}>
-                            {ss.label}
-                          </span>
-                        </td>
-                        <td className="px-5 py-3">
-                          <RowMenu items={[
-                            { label: 'Copy member email', onClick: () => { navigator.clipboard.writeText(tx.userEmail); showToast('Email copied') } },
-                            ...(tx.status === 'PENDING' ? [{ label: 'Mark as paid', onClick: () => updateTxStatus(tx.id, 'PAID', 'paid') }] : []),
-                            ...(tx.status === 'PAID'    ? [{ label: 'Mark as refunded', onClick: () => updateTxStatus(tx.id, 'REFUNDED', 'refunded'), variant: 'danger' as const }] : []),
-                            ...(tx.status === 'FAILED'  ? [{ label: 'Retry — mark as pending', onClick: () => updateTxStatus(tx.id, 'PENDING', 'pending') }] : []),
-                          ]} />
-                        </td>
-                      </tr>
-                    )
-                  })
-                )}
-              </tbody>
-            </table>
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between px-6 py-3" style={{ borderTop: '1px solid #F3F4F6' }}>
-                <p style={{ fontSize: 13, color: '#6B7280' }}>
-                  Showing <span style={{ fontWeight: 600, color: '#111827' }}>{(page - 1) * ITEMS_PER_PAGE + 1}–{Math.min(page * ITEMS_PER_PAGE, data?.total ?? 0)}</span> of <span style={{ fontWeight: 600, color: '#111827' }}>{data?.total ?? 0}</span>
-                </p>
-                <div className="flex items-center gap-1">
-                  <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-                    style={{ border: '1px solid #E5E7EB', background: '#fff', color: page === 1 ? '#D1D5DB' : '#374151', cursor: page === 1 ? 'not-allowed' : 'pointer', borderRadius: 8, padding: '6px 10px' }}>
-                    <ChevronLeft size={14} />
+            {/* Lists to act on */}
+            <div style={CARD}>
+              <div className="px-5 pt-5 pb-3 flex items-start justify-between gap-3 flex-wrap">
+                <div>
+                  <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0 }}>{r.listsTitle}</p>
+                  <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>{r.listsHint}</p>
+                </div>
+                {total > 0 && (
+                  <button onClick={exportList} disabled={!canExport} className="cursor-pointer inline-flex items-center gap-1.5 disabled:cursor-not-allowed"
+                    style={{ fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 999, background: '#fff', color: '#374151', border: '1.5px solid #E5E7EB', opacity: canExport ? 1 : 0.5 }}>
+                    <Download size={13} aria-hidden /> {r.export}
                   </button>
-                  {pages.map((p, i) =>
-                    p === '...' ? <span key={'e' + i} style={{ fontSize: 13, color: '#9CA3AF', padding: '0 4px' }}>…</span> : (
-                      <button key={p} onClick={() => setPage(p as number)} className="w-9 h-9 flex items-center justify-center rounded-lg cursor-pointer"
-                        style={{ fontSize: 13, fontWeight: p === page ? 600 : 400, border: 'none', background: p === page ? '#F3F4F6' : 'transparent', color: p === page ? '#111827' : '#6B7280' }}>{p}</button>
-                    )
-                  )}
-                  <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-                    style={{ border: '1px solid #E5E7EB', background: '#fff', color: page === totalPages ? '#D1D5DB' : '#374151', cursor: page === totalPages ? 'not-allowed' : 'pointer', borderRadius: 8, padding: '6px 10px' }}>
-                    <ChevronRight size={14} />
+                )}
+              </div>
+              <div className="px-5 flex gap-2 flex-wrap" role="tablist" aria-label={r.listsTitle}>
+                {TABS.map(k => {
+                  const on = tab === k
+                  return (
+                    <button key={k} role="tab" aria-selected={on} onClick={() => { setTab(k); setShown(PAGE) }} className="cursor-pointer inline-flex items-center gap-2"
+                      style={{ fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 999, minHeight: 32,
+                        background: on ? '#111827' : '#fff', color: on ? '#fff' : '#374151', border: `1.5px solid ${on ? '#111827' : '#E5E7EB'}` }}>
+                      {tabLabel[k]}
+                      <span style={{ fontSize: 11, padding: '0 6px', borderRadius: 999, background: on ? 'rgba(255,255,255,0.2)' : '#F3F4F6' }}>{count(k)}</span>
+                      {k === 'COLLECT' && reviews > 0 && (
+                        <span title={r.toReviewCount.replace('{n}', String(reviews))} aria-label={r.toReviewCount.replace('{n}', String(reviews))}
+                          style={{ fontSize: 11, padding: '0 6px', borderRadius: 999, background: on ? 'rgba(253,230,138,0.35)' : '#FEF3C7', color: on ? '#FDE68A' : '#92400E' }}>
+                          +{reviews}
+                        </span>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+              <p style={{ fontSize: 12, color: '#4B5563', margin: '10px 20px 0' }}>{tabHint[tab]}</p>
+
+              <div className="overflow-x-auto" style={{ marginTop: 10 }}>
+                <table className="w-full" style={{ minWidth: 760, borderCollapse: 'collapse' }}>
+                  {tab === 'COLLECT' && (<>
+                    <thead><tr>{[r.colStudent, r.colAmount, r.colDueSince, r.colLastClass, r.colLastPaid, r.colContact].map(h => <th key={h} style={TH}>{h}</th>)}</tr></thead>
+                    <tbody>{data.toCollect.length === 0 ? empty(6) : data.toCollect.slice(0, shown).map(x => (
+                      <tr key={x.membershipId}>
+                        {nameCell(x, `${x.planName} · ${methodLabel(x.method)}`)}
+                        <td style={{ ...TD, fontWeight: 600, color: x.toReview ? '#6B7280' : '#111827', whiteSpace: 'nowrap' }}>
+                          {fmtPrice(x.amount, x.currency)}
+                          {x.toReview ? (
+                            <span style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#B45309' }}>{r.toReview.replace('{date}', fmt(x.paidSinceDueAt))}</span>
+                          ) : x.pendingRecorded && <span style={{ display: 'block', fontSize: 11, fontWeight: 400, color: '#6B7280' }}>{r.pendingRecorded}</span>}
+                        </td>
+                        <td style={{ ...TD, whiteSpace: 'nowrap' }}><span style={{ fontWeight: 600, color: '#DC2626' }}>{days(x.daysOverdue)}</span><span style={{ color: '#6B7280' }}> · {fmt(x.endDate)}</span></td>
+                        <td style={{ ...TD, whiteSpace: 'nowrap' }}>
+                          {x.training && <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 999, background: '#ECFDF5', color: '#047857', marginRight: 6 }}>{r.stillTraining}</span>}
+                          {fmt(x.lastClassAt)}
+                        </td>
+                        <td style={{ ...TD, whiteSpace: 'nowrap' }}>{fmt(x.lastPaidAt)}</td>
+                        {contactCell(x)}
+                      </tr>
+                    ))}</tbody>
+                  </>)}
+                  {tab === 'UNPAID' && (<>
+                    <thead><tr>{[r.colStudent, r.colState, r.colClasses30, r.colLastClass, r.colContact].map(h => <th key={h} style={TH}>{h}</th>)}</tr></thead>
+                    <tbody>{data.unpaidTraining.length === 0 ? empty(5) : data.unpaidTraining.slice(0, shown).map((x, i) => (
+                      <tr key={`${x.memberId ?? x.name}-${i}`}>
+                        {nameCell(x, x.planName ? `${x.planName}${x.planEndsAt ? ` · ${r.until.replace('{date}', fmt(x.planEndsAt))}` : ''}` : undefined)}
+                        <td style={TD}><span style={{ fontSize: 12, fontWeight: 600, padding: '2px 9px', borderRadius: 999, whiteSpace: 'nowrap', background: stateColor[x.state][0], color: stateColor[x.state][1] }}>{stateLabel[x.state]}</span></td>
+                        <td style={{ ...TD, fontWeight: 600 }}>{x.classes}</td>
+                        <td style={{ ...TD, whiteSpace: 'nowrap' }}>{fmt(x.lastClassAt)}</td>
+                        {contactCell(x)}
+                      </tr>
+                    ))}</tbody>
+                  </>)}
+                  {tab === 'FAILED' && (<>
+                    <thead><tr>{[r.colStudent, r.colWhat, r.colAmount, r.colDate, r.colContact].map(h => <th key={h} style={TH}>{h}</th>)}</tr></thead>
+                    <tbody>{data.failed.length === 0 ? empty(5) : data.failed.slice(0, shown).map((x, i) => (
+                      <tr key={`${x.kind}-${x.memberId ?? x.name}-${i}`}>
+                        {nameCell(x, x.label)}
+                        <td style={TD}>{failedLabel[x.kind]} · {methodLabel(x.method)}</td>
+                        <td style={{ ...TD, fontWeight: 600, whiteSpace: 'nowrap' }}>{fmtPrice(x.amount, x.currency)}</td>
+                        <td style={{ ...TD, whiteSpace: 'nowrap' }}>{fmt(x.date)}</td>
+                        {contactCell(x)}
+                      </tr>
+                    ))}</tbody>
+                  </>)}
+                  {tab === 'OLD_PENDING' && (<>
+                    <thead><tr>{[r.colStudent, r.colConcept, r.colAmount, r.colDate, r.colContact].map(h => <th key={h} style={TH}>{h}</th>)}</tr></thead>
+                    <tbody>{data.oldPending.length === 0 ? empty(5) : data.oldPending.slice(0, shown).map(x => (
+                      <tr key={x.id}>
+                        {nameCell(x, x.membershipStatus && x.membershipStatus !== 'ACTIVE' ? r.planNotActive : undefined)}
+                        <td style={TD}>{x.label || '—'}</td>
+                        <td style={{ ...TD, fontWeight: 600, whiteSpace: 'nowrap' }}>{fmtPrice(x.amount, x.currency)}</td>
+                        <td style={{ ...TD, whiteSpace: 'nowrap' }}>{fmt(x.date)} <span style={{ color: '#6B7280' }}>· {days(x.daysPending)}</span></td>
+                        {contactCell(x)}
+                      </tr>
+                    ))}</tbody>
+                  </>)}
+                </table>
+              </div>
+              {tab === 'OLD_PENDING' && data.oldPending.length > 0 && (
+                <p style={{ fontSize: 12, color: '#4B5563', margin: 0, padding: '10px 20px', borderTop: '1px solid #F3F4F6' }}>
+                  {r.oldPendingTotal.replace('{amount}', allMoney(data.oldPendingTotal))}{' '}
+                  <Link href="/dashboard/payments/transactions" prefetch={false} style={{ color: '#0870E2', fontWeight: 600 }}>{r.reviewInTransactions}</Link>
+                </p>
+              )}
+              {total > shown && (
+                <div className="px-5 py-3" style={{ borderTop: '1px solid #F3F4F6' }}>
+                  <button onClick={() => setShown(n => n + PAGE)} className="cursor-pointer" style={{ fontSize: 12, fontWeight: 600, color: '#0870E2', background: 'none', border: 'none', padding: 0 }}>
+                    {r.showMore.replace('{n}', String(Math.min(PAGE, total - shown)))}
                   </button>
                 </div>
+              )}
+            </div>
+
+            {/* 12 months */}
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+              <div className="xl:col-span-2" style={{ ...CARD, padding: 20 }}>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>{r.monthlyTitle}</p>
+                <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 12px' }}>
+                  {r.monthlyHint.replace('{currency}', cur)}{data.otherCurrencies.length > 0 && ` · ${r.otherCurrencies.replace('{list}', data.otherCurrencies.join(', '))}`}
+                </p>
+                <ResponsiveContainer width="100%" height={240}>
+                  <BarChart data={data.monthly.map(x => ({ ...x, label: new Date(`${x.key}-15T12:00:00Z`).toLocaleDateString(locale, { month: 'short', timeZone: 'UTC' }) }))}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
+                    <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#6B7280' }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 11, fill: '#6B7280' }} axisLine={false} tickLine={false} width={56} tickFormatter={(v: number) => fmtPrice(v, cur)} />
+                    <Tooltip formatter={(v) => fmtPrice(Number(v), cur)} contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12 }} />
+                    <Bar dataKey="amount" name={r.collected} fill="#16A34A" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
-            )}
+              <div style={{ ...CARD, padding: 20 }}>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: '0 0 12px' }}>{r.byMethodTitle}</p>
+                {data.byMethod.length === 0 ? <p style={{ fontSize: 13, color: '#6B7280' }}>{r.emptyList}</p> : (() => {
+                  const sum = data.byMethod.reduce((s, x) => s + x.amount, 0) || 1
+                  return (
+                    <ul className="flex flex-col gap-3" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                      {data.byMethod.map(x => (
+                        <li key={x.method}>
+                          <div className="flex items-center justify-between" style={{ fontSize: 13, marginBottom: 4 }}>
+                            <span style={{ color: '#374151' }}>{methodLabel(x.method)}</span>
+                            <span style={{ fontWeight: 600, color: '#111827' }}>{fmtPrice(x.amount, cur)} <span style={{ fontWeight: 400, color: '#6B7280' }}>· {Math.round((x.amount / sum) * 100)}%</span></span>
+                          </div>
+                          <div aria-hidden style={{ height: 6, borderRadius: 999, background: '#F3F4F6', overflow: 'hidden' }}>
+                            <div style={{ width: `${(x.amount / sum) * 100}%`, height: '100%', background: METHOD_COLOR[x.method] ?? '#9CA3AF' }} />
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )
+                })()}
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </main>
   )

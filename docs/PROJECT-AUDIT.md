@@ -211,6 +211,27 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
   6. P3 — teléfono "NULL": `cleanPhone()` en ambas listas; sin número no hay enlace.
 - Tests: 4 casos más en `absencesStopped` (fin de clase, sin alta, zona horaria 1-sep 00:30, tramos de 30 días con DST) y 1 en `absencesReportRoute` (roster). Suite 1096 / 55 preexistentes; tsc 0; ESLint limpio.
 
+### Lote O — Informe de Pagos: dinero por cobrar (rama `claude/payments-report`)
+
+- Estado: `RECHAZADO` en `b7899f8` (1 P1, 3 P2, 1 P3) → `APROBADO CON PENDIENTES` en `b346ca6` (3 P2, 1 P3) → **`APROBADO CON PENDIENTES`** en `10dec27`: reconciliación y contadores cerrados; queda 1 P2 compartido y previo: el layout del dashboard (`hasDashboardAccess`) no admite roles CUSTOM, así que un CUSTOM con permiso usa la API pero no la página. En producción hay 0 roles CUSTOM (lectura 2026-11-02): se propone como tarea aparte (acceso al dashboard para roles personalizados, con permisos por página). Sin migración.
+- Pedido del usuario: informes operativos; Pagos debe decir quién debe dinero y quién entrena sin pagar. Propuesta aprobada.
+- Criterios: por cobrar = plan de pago activo (no prueba) vencido antes de hoy (zona del colegio) sin cancelación programada, con los que siguen entrenando primero; entrenan sin pagar (30 días); cobros fallidos (Stripe PAST_DUE/UNPAID + FAILED 90 días); pendientes > 60 días solo para revisar (no se cambia nada); previsto mensual solo de suscripciones; monedas nunca sumadas; staff excluido; contacto, ficha y CSV; Revolut; 4 idiomas; móvil.
+- A revisar: definición de "vencido" frente a renovaciones en efectivo con pago pendiente ya registrado; Stripe con `endDate` pasado (¿falso positivo por webhook?); importes con varias membresías del mismo alumno; rendimiento; coherencia con `/api/dashboard/stats`.
+- No verificado: navegador y datos reales.
+- Hallazgos de Codex en `b7899f8` y corrección:
+  1. P1 — la API solo exigía acceso al dashboard: ahora también `school.analytics.view` (el permiso del menú) vía `memberHasPermission`; SUPERADMIN (sin fila de miembro) pasa; INSTRUCTOR → 403.
+  2. P2 — staff en pendientes antiguos y cifras: filtro `notStaff` (`userId` nulo o fuera del staff) en fallidos, pendientes antiguos, cobrado y pendiente del mes y 12 meses; los pagos anónimos se mantienen.
+  3. P2 — fecha vencida con pago ya hecho: se buscan pagos PAID de cuota del alumno (o de esa membresía) desde 7 días antes del vencimiento, o con `periodEnd` posterior; esas filas salen "Pagado el {fecha}: revisa las fechas del plan", al final de la lista y fuera del total y del contador.
+  4. P2 — total de pendientes antiguos sin monedas secundarias: el pie muestra todas las monedas, la principal primero, sin sumarlas.
+  5. P3 — redondeo acumulado: `sumByCurrency` suma primero y redondea una vez.
+- Tests: +4 en `paymentsReportRoute` (permiso INSTRUCTOR/SUPERADMIN, exclusión de staff en consultas, fila "a revisar" fuera del total) y +1 en `paymentsCollect` (3 × 100 € trimestral = 100 €). Suite 1109 / 55 preexistentes; tsc 0; ESLint limpio.
+- Hallazgos de Codex en `b346ca6` y corrección:
+  6. P2 — un pago de otro plan ocultaba la deuda: un movimiento con `membershipId` solo cubre esa membresía; el fallback por alumno es solo para movimientos sin vínculo.
+  7. P2 — pagos adelantados con periodo que cubre el vencimiento se descartaban: la consulta trae también `periodEnd > vencimiento` (OR con la ventana de 7 días).
+  8. P2 — rol CUSTOM con permiso recibía 403: si `requireDashboardAccess` rechaza, se admite un miembro ACTIVE con rol CUSTOM y se evalúan sus permisos; STUDENT sigue en 403. Solo en esta ruta (el `DASHBOARD_ROLES` compartido no cambia).
+  9. P3 — contador de la pestaña: cuenta deudas; las filas a revisar se muestran como "+N" aparte (listadas, paginadas y exportadas).
+- Tests: +3 en `paymentsReportRoute` (otro plan no oculta la deuda; pago adelantado con periodo; CUSTOM con y sin permiso, STUDENT). Suite 1112 / 55; tsc 0; ESLint limpio.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.
