@@ -271,7 +271,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-02 (j) (rama `claude/trial-fixes`, PR [#47](https://github.com/MartialOneOnline/martial-v2/pull/47) — `RECHAZADO` en `104c2bf` (2 P1, 2 P2, 1 P3) → `RECHAZADO` en `6a364e7` (1 P1, 1 P2) → corregidos con migración `20261102120000_membership_trial_assignment` (requiere OK para prod), pendiente de re-auditoría; NO mergear antes de que el usuario revise la lista de pruebas de RGM)
+### Sesión — 2026-11-02 (j) (rama `claude/trial-fixes`, PR [#47](https://github.com/MartialOneOnline/martial-v2/pull/47) — `RECHAZADO` en `104c2bf` (2 P1, 2 P2, 1 P3) → `RECHAZADO` en `6a364e7` (1 P1, 1 P2) → **`APROBADO CON PENDIENTES`** en `c0f1103` (P3 de SQL rehacible corregido); migración `20261102120000_membership_trial_assignment` a aplicar en prod ANTES del despliegue y solo con OK; NO mergear antes de que el usuario revise la lista de pruebas de RGM)
 
 **Pruebas gratis y conversión de leads** (caso Rafa). Decisiones del usuario (2026-11-02): los días cuentan desde la primera clase; caduca ese día sin bloquear la entrada; revisar la lista de pruebas antiguas antes de publicar.
 - `lib/services/trial.ts` (nuevo): `trialWindow()` (primera clase + validityDays), `trialLapsed()` (usada y pasado su último día; sin margen), `syncTrialWindow()` (re-ancla startDate/endDate en la primera clase asistida desde la asignación − 24 h; idempotente; `write: false` para el dry run), `startTrialClocks()` (tras marcar asistencia; nunca lanza), `trialExpiredFor()` (aviso de check-in).
