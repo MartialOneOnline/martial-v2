@@ -72,6 +72,8 @@ const mockPrisma = {
   gradingSystem: makeModel(),
   // payments report: people training without a paid plan
   user: makeModel(),
+  // bookings report: cancelled occurrences
+  classCancellation: makeModel(),
   // users report: monthly activity rows (lib/memberActivity.ts)
   $queryRaw: vi.fn().mockResolvedValue([]),
 }
@@ -92,6 +94,8 @@ const paymentsReportRoute = await import('@/app/api/dashboard/reports/payments/r
 const usersReportRoute = await import('@/app/api/dashboard/reports/users/route')
 const absentsReportRoute = await import('@/app/api/dashboard/reports/absents/route')
 const bookingsReportRoute = await import('@/app/api/dashboard/reports/bookings/route')
+const bookingsListRoute = await import('@/app/api/dashboard/reports/bookings/list/route')
+const bookingsChartRoute = await import('@/app/api/dashboard/reports/bookings/chart/route')
 const planMembersRoute = await import('@/app/api/dashboard/membership-plans/[id]/members/route')
 const classesRoute = await import('@/app/api/dashboard/classes/route')
 
@@ -153,6 +157,8 @@ const ROUTES: RouteCase[] = [
   { name: 'GET /api/dashboard/reports/users', call: () => usersReportRoute.GET(getRequest('/api/dashboard/reports/users')) },
   { name: 'GET /api/dashboard/reports/absents', call: () => absentsReportRoute.GET(getRequest('/api/dashboard/reports/absents')) },
   { name: 'GET /api/dashboard/reports/bookings', call: () => bookingsReportRoute.GET(getRequest('/api/dashboard/reports/bookings')) },
+  { name: 'GET /api/dashboard/reports/bookings/list', call: () => bookingsListRoute.GET(getRequest('/api/dashboard/reports/bookings/list')) },
+  { name: 'GET /api/dashboard/reports/bookings/chart', call: () => bookingsChartRoute.GET(getRequest('/api/dashboard/reports/bookings/chart')) },
   {
     name: 'GET /api/dashboard/membership-plans/[id]/members',
     call: () => planMembersRoute.GET(getRequest('/api/dashboard/membership-plans/p1/members'), idParams('p1')),

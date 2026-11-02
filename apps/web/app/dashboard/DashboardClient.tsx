@@ -501,7 +501,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
     // Switching period/school aborts the previous requests, so a slow
     // earlier response can't overwrite the chart for the current selection.
     const ctrl = new AbortController()
-    fetch(`/api/dashboard/reports/bookings?period=${reportPeriod}&pageSize=1`, { signal: ctrl.signal })
+    fetch(`/api/dashboard/reports/bookings/chart?period=${reportPeriod}`, { signal: ctrl.signal })
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (!ctrl.signal.aborted && d?.chartData) setBookingsChart(d.chartData) })
       .catch(() => {})

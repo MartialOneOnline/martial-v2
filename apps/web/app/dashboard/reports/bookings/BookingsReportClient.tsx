@@ -1,385 +1,448 @@
 'use client'
 
+// Bookings report — how full each class of the timetable is (see lib/bookings/occupancy.ts).
+// Times: scheduledAt keeps the class's local time in UTC fields, so every
+// date/time here is formatted with timeZone 'UTC'.
+import { useCallback, useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
+import { Menu, Download, Search, ArrowUp, ArrowDown, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react'
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import { useDashboard } from '../../../../components/DashboardShell'
 import NotificationBell from '../../../../components/NotificationBell'
-import { useState, useEffect, useCallback } from 'react'
-import { Menu, Search, ChevronLeft, ChevronRight, Filter, MoreVertical, Download } from 'lucide-react'
-import { useT } from '../../../../lib/i18n/LanguageContext'
-import SharedRowMenu from '../../../../components/RowMenu'
+import { useLanguage } from '../../../../lib/i18n/LanguageContext'
 import { downloadCsv } from '../../../../lib/csvExport'
-import {
-  AreaChart, Area, BarChart, Bar,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-} from 'recharts'
 
-const ITEMS_PER_PAGE = 15
+type Period = '30d' | '90d' | '12m'
+type ReviewTab = 'LOW' | 'FULL' | 'UNMARKED' | 'OFF'
+type ListStatus = 'ALL' | 'COMPLETED' | 'CONFIRMED' | 'NO_SHOW' | 'CANCELLED'
 
-const STATUS_STYLES: Record<string, { bg: string; color: string; border: string; label: string }> = {
-  CONFIRMED:  { bg: '#F0FDF4', color: '#16A34A', border: '#BBF7D0', label: 'Confirmed'  },
-  COMPLETED:  { bg: '#EFF6FF', color: '#0870E2', border: '#BFDBFE', label: 'Completed'  },
-  CANCELLED:  { bg: '#FEF2F2', color: '#DC2626', border: '#FECACA', label: 'Cancelled'  },
+interface Slot {
+  key: string; classId: string; className: string; dayOfWeek: number; time: string; endTime: string
+  capacity: number | null; sessions: number; avgAttended: number; avgBooked: number; fill: number | null
+  prevAvgAttended: number | null; trend: 'UP' | 'DOWN' | null; low: boolean; full: boolean
+  overlaps: { className: string; time: string; avgAttended: number }[]
 }
-
-function Avatar({ name, avatarUrl, size = 28 }: { name: string; avatarUrl: string | null; size?: number }) {
-  const initials = (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
-  if (avatarUrl) return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={avatarUrl} alt={name} style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
-  )
-  return (
-    <div style={{ width: size, height: size, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-      background: 'linear-gradient(135deg,#0870E2,#7DE7EC)', color: '#fff', fontSize: size * 0.33, fontWeight: 700 }}>
-      {initials}
-    </div>
-  )
-}
-
-function getPaginationPages(current: number, total: number): (number | '...')[] {
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
-  if (current <= 4) return [1, 2, 3, 4, 5, '...', total]
-  if (current >= total - 3) return [1, '...', total - 4, total - 3, total - 2, total - 1, total]
-  return [1, '...', current - 1, current, current + 1, '...', total]
-}
-function fmtDateTime(iso: string) {
-  const d = new Date(iso)
-  return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) + ' · ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
-}
-
-const INP: React.CSSProperties = { width: '100%', border: '1px solid #E5E7EB', borderRadius: 8, padding: '7px 10px', fontSize: 12, color: '#111827', background: '#fff', outline: 'none' }
-const SEC: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8, display: 'block' }
-
-interface FiltersState { className: string }
-const EMPTY_FILTERS: FiltersState = { className: '' }
-
-function FiltersPanel({ filters, onChange }: { filters: FiltersState; onChange: (f: FiltersState) => void }) {
-  const [local, setLocal] = useState<FiltersState>(filters)
-  useEffect(() => { setLocal(filters) }, [filters])
-  const activeCount = [!!filters.className].filter(Boolean).length
-  return (
-    <SharedRowMenu align="right" closeOnItemClick={false} trigger={({ onClick }) => (
-      <button onClick={onClick}
-        style={{ display: 'flex', alignItems: 'center', gap: 5, height: 34, padding: '0 12px', borderRadius: 8, cursor: 'pointer',
-          border: activeCount ? '1.5px solid #0870E2' : '1px solid #E5E7EB', background: activeCount ? '#EFF6FF' : '#fff' }}>
-        <Filter size={13} style={{ color: activeCount ? '#0870E2' : '#6B7280' }} />
-        <span style={{ fontSize: 12, fontWeight: 500, color: activeCount ? '#0870E2' : '#6B7280' }}>Filters</span>
-        {activeCount > 0 && <span style={{ background: '#0870E2', color: '#fff', borderRadius: 999, fontSize: 10, fontWeight: 700, padding: '1px 6px' }}>{activeCount}</span>}
-      </button>
-    )}>
-      {({ close }) => {
-        function apply() { onChange(local); close() }
-        function clear() { setLocal(EMPTY_FILTERS); onChange(EMPTY_FILTERS); close() }
-        return (
-          <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 14, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', width: 280, padding: 16 }}>
-            <div style={{ marginBottom: 16 }}>
-              <span style={SEC}>Class name</span>
-              <input type="text" placeholder="e.g. BJJ, Nogi…" value={local.className} onChange={e => setLocal(p => ({ ...p, className: e.target.value }))} style={INP} />
-            </div>
-            <div style={{ display: 'flex', gap: 8, paddingTop: 12, borderTop: '1px solid #F3F4F6' }}>
-              <button onClick={clear} style={{ flex: 1, padding: 8, borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, fontWeight: 500, color: '#6B7280', cursor: 'pointer' }}>Clear</button>
-              <button onClick={apply} style={{ flex: 1, padding: 8, borderRadius: 8, border: 'none', background: '#111827', fontSize: 12, fontWeight: 600, color: '#fff', cursor: 'pointer' }}>Apply</button>
-            </div>
-          </div>
-        )
-      }}
-    </SharedRowMenu>
-  )
-}
-
-function RowMenu({ items }: { items: { label: string; onClick: () => void; variant?: 'danger' }[] }) {
-  return (
-    <SharedRowMenu trigger={({ onClick }) => (
-      <button onClick={onClick} className="cursor-pointer"
-        style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #E5E7EB', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <MoreVertical size={13} style={{ color: '#6B7280' }} />
-      </button>
-    )}>
-      <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, boxShadow: '0 6px 20px rgba(0,0,0,0.1)', minWidth: 160, overflow: 'hidden' }}>
-        {items.map(item => (
-          <button key={item.label} onClick={item.onClick}
-            className="w-full text-left cursor-pointer hover:bg-[#F9FAFB]"
-            style={{ padding: '9px 14px', fontSize: 12, fontWeight: 500, color: item.variant === 'danger' ? '#DC2626' : '#374151', border: 'none', background: 'transparent', display: 'block' }}>
-            {item.label}
-          </button>
-        ))}
-      </div>
-    </SharedRowMenu>
-  )
-}
-
-interface BookingRow {
-  id: string; userName: string; userEmail: string; userAvatar: string | null
-  className: string; scheduledAt: string; status: string
-}
+interface OffSession { classId: string; className: string; date: string; time: string; booked: number; attended: number; reason: 'NO_SCHEDULE' | 'NOT_IN_SCHEDULE' }
+interface Unmarked { classId: string; className: string; date: string; time: string; unmarked: number }
 interface ReportData {
-  stats: { totalPeriod: number; confirmedPeriod: number; cancelledPeriod: number; attendanceRate: number }
-  chartData:   { date: string; confirmed: number; cancelled: number }[]
-  byClassData: { name: string; bookings: number; fill: string }[]
-  bookings:    BookingRow[]
-  total:       number
+  period: Period; from: string; to: string; hasBookings: boolean
+  slots: Slot[]; offSchedule: OffSession[]; unmarked: Unmarked[]
+  totals: {
+    sessions: number; attended: number; avgPerSession: number | null; prevAvgPerSession: number | null
+    fill: number | null; students: number; prevStudents: number; selfBooked: number; staffBooked: number
+  }
+  trend: { key: string; booked: number; attended: number; cancelled: number }[]
+}
+interface ListRow {
+  id: string; userId: string; userName: string; userEmail: string; classId: string; className: string
+  scheduledAt: string; status: string; attended: boolean; bookedBy: 'STUDENT' | 'STAFF'
+}
+
+const PERIODS: Period[] = ['30d', '90d', '12m']
+const LIST_STATUSES: ListStatus[] = ['ALL', 'COMPLETED', 'CONFIRMED', 'NO_SHOW', 'CANCELLED']
+const LIST_PAGE = 25
+const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0]
+const LOW_COLOR = '#DC2626'
+const FULL_COLOR = '#EA580C'
+
+const CARD: React.CSSProperties = { background: '#fff', border: '1px solid #E5E7EB', borderRadius: 16 }
+const TH: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.04em', padding: '10px 16px', textAlign: 'left', whiteSpace: 'nowrap' }
+const TD: React.CSSProperties = { fontSize: 13, color: '#374151', padding: '10px 16px', borderTop: '1px solid #F3F4F6' }
+
+function fillColor(fill: number | null): string {
+  if (fill === null) return '#9CA3AF'
+  if (fill >= 0.85) return FULL_COLOR
+  if (fill >= 0.5) return '#16A34A'
+  if (fill >= 0.25) return '#0870E2'
+  return LOW_COLOR
 }
 
 export default function BookingsReportClient() {
   const { setMenuOpen } = useDashboard()
-  const t = useT()
+  const { t, locale } = useLanguage()
+  const r = t.bookingsReport
+  const [period, setPeriod] = useState<Period>('30d')
+  const [data, setData] = useState<ReportData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+  const [tab, setTab] = useState<ReviewTab | null>(null)
+  const requestId = useRef(0)
 
-  const [period,     setPeriod]     = useState<'7d' | '30d' | '90d' | '12m' | 'custom'>('30d')
-  const [customFrom, setCustomFrom] = useState('')
-  const [customTo,   setCustomTo]   = useState('')
-  const [filterTab, setFilterTab] = useState<'ALL' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED'>('ALL')
-  const [search,    setSearch]    = useState('')
-  const [page,      setPage]      = useState(1)
-  const [filters,   setFilters]   = useState<FiltersState>(EMPTY_FILTERS)
-  const [data,      setData]      = useState<ReportData | null>(null)
-  const [loading,   setLoading]   = useState(true)
-  const [toast,     setToast]     = useState('')
+  const load = useCallback(() => {
+    const id = ++requestId.current
+    setLoading(true); setError(false)
+    fetch(`/api/dashboard/reports/bookings?period=${period}`)
+      .then(res => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json() })
+      .then((d: ReportData) => {
+        if (id !== requestId.current) return
+        setData(d)
+        const count = (k: ReviewTab) => (k === 'LOW' ? d.slots.filter(s => s.low).length : k === 'FULL' ? d.slots.filter(s => s.full).length : k === 'UNMARKED' ? d.unmarked.length : d.offSchedule.length)
+        setTab(prev => prev && count(prev) ? prev : (['LOW', 'FULL', 'UNMARKED', 'OFF'] as ReviewTab[]).find(k => count(k)) ?? 'LOW')
+      })
+      .catch(() => { if (id === requestId.current) setError(true) })
+      .finally(() => { if (id === requestId.current) setLoading(false) })
+  }, [period])
+  useEffect(load, [load])
 
-  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2200) }
+  const num = (n: number) => n.toLocaleString(locale, { maximumFractionDigits: 1 })
+  const pct = (n: number) => `${Math.round(n * 100)}%`
+  const dayName = (dow: number, style: 'short' | 'long' = 'short') =>
+    new Date(Date.UTC(2026, 0, 4 + dow)).toLocaleDateString(locale, { weekday: style, timeZone: 'UTC' })
+  const fmtDate = (ymd: string) => new Date(`${ymd}T12:00:00Z`).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' })
+  const trendLabel = (key: string) => key.length === 7
+    ? new Date(`${key}-15T12:00:00Z`).toLocaleDateString(locale, { month: 'short', timeZone: 'UTC' })
+    : new Date(`${key}T12:00:00Z`).toLocaleDateString(locale, { day: 'numeric', month: 'short', timeZone: 'UTC' })
+  const calendarHref = (u: { classId: string; date: string; time: string }) =>
+    `/dashboard/classes/calendar?date=${u.date}&class=${encodeURIComponent(u.classId)}&time=${u.time}`
 
-  const load = useCallback(async () => {
-    setLoading(true)
-    const params = new URLSearchParams({ period, status: filterTab, search, page: String(page) })
-    if (filters.className) params.set('className', filters.className)
-    if (period === 'custom' && customFrom) params.set('dateFrom', customFrom)
-    if (period === 'custom' && customTo)   params.set('dateTo', customTo)
-    const res = await fetch(`/api/dashboard/reports/bookings?${params}`)
-    if (res.ok) setData(await res.json())
-    setLoading(false)
-  }, [period, filterTab, search, page, filters, customFrom, customTo])
-
-  useEffect(() => { load() }, [load])
-  useEffect(() => { setPage(1) }, [period, filterTab, search, filters, customFrom, customTo])
-
-  async function handleExport() {
-    const params = new URLSearchParams({ period, status: filterTab, search, page: '1', pageSize: '1000' })
-    if (filters.className) params.set('className', filters.className)
-    if (period === 'custom' && customFrom) params.set('dateFrom', customFrom)
-    if (period === 'custom' && customTo)   params.set('dateTo', customTo)
-    const res = await fetch(`/api/dashboard/reports/bookings?${params}`)
-    if (!res.ok) return
-    const d: ReportData = await res.json()
-    const headers = ['Member', 'Email', 'Class', 'Scheduled at', 'Status']
-    const rows = d.bookings.map(b => [
-      b.userName, b.userEmail, b.className, fmtDateTime(b.scheduledAt),
-      STATUS_STYLES[b.status]?.label ?? b.status,
-    ])
-    downloadCsv('bookings-report', headers, rows)
+  const d = data && data.period === period ? data : null
+  const tot = d?.totals
+  const low = d?.slots.filter(s => s.low) ?? []
+  const full = d?.slots.filter(s => s.full) ?? []
+  const delta = (cur: number | null | undefined, prev: number | null | undefined) => {
+    if (cur == null || prev == null || prev === 0) return null
+    return Math.round(((cur - prev) / prev) * 100)
   }
+  const cards = tot ? [
+    { label: r.cardAvg, value: tot.avgPerSession === null ? '—' : num(tot.avgPerSession), hint: r.cardAvgHint, change: delta(tot.avgPerSession, tot.prevAvgPerSession) },
+    { label: r.cardFill, value: tot.fill === null ? '—' : pct(tot.fill), hint: tot.fill === null ? r.noCapacity : r.cardFillHint, change: null },
+    { label: r.cardStudents, value: String(tot.students), hint: r.cardStudentsHint, change: delta(tot.students, tot.prevStudents) },
+    { label: r.cardSessions, value: String(tot.sessions), hint: r.cardSessionsHint, change: null },
+  ] : []
+  const bookedTotal = tot ? tot.selfBooked + tot.staffBooked : 0
 
-  const totalPages = data ? Math.max(1, Math.ceil(data.total / ITEMS_PER_PAGE)) : 1
-  const pages = getPaginationPages(page, totalPages)
-  const stats = data?.stats
-
-  const STAT_CARDS = [
-    { label: 'Total Bookings',  value: stats?.totalPeriod     ?? '—', sub: 'this period',        color: '#0870E2' },
-    { label: 'Confirmed',       value: stats?.confirmedPeriod ?? '—', sub: 'attended',            color: '#16A34A' },
-    { label: 'Cancelled',       value: stats?.cancelledPeriod ?? '—', sub: 'cancelled',           color: '#DC2626' },
-    { label: 'Attendance Rate', value: stats ? stats.attendanceRate + '%' : '—', sub: 'confirmed vs total', color: '#6D28D9' },
-  ]
+  const reviewTabs: { key: ReviewTab; label: string; count: number; color: string }[] = d ? [
+    { key: 'LOW', label: r.tabLow, count: low.length, color: LOW_COLOR },
+    { key: 'FULL', label: r.tabFull, count: full.length, color: FULL_COLOR },
+    { key: 'UNMARKED', label: r.tabUnmarked, count: d.unmarked.length, color: '#7C3AED' },
+    { key: 'OFF', label: r.tabOff, count: d.offSchedule.length, color: '#6B7280' },
+  ] : []
 
   return (
     <main style={{ flex: 1, minWidth: 0, width: '100%', overflow: 'auto' }}>
-      {toast && (
-        <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 100,
-          background: '#111827', color: '#fff', borderRadius: 10, padding: '10px 20px', fontSize: 13, fontWeight: 500 }}>
-          {toast}
-        </div>
-      )}
-
-      <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20"
-        style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
-        <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
+      <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20" style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
+        <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0" aria-label="Menu"
           style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(true)}>
           <Menu size={16} style={{ color: '#374151' }} />
         </button>
-        <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 max-w-xs"
-          style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-          <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
-          <input type="text" placeholder="Search member or class…" value={search} onChange={e => setSearch(e.target.value)}
-            style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
-        </div>
         <div className="flex-1" />
-        <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: '#F3F4F6' }}>
-          {(['7d', '30d', '90d', '12m', 'custom'] as const).map(p => (
-            <button key={p} onClick={() => setPeriod(p)} className="cursor-pointer"
-              style={{ fontSize: 12, fontWeight: period === p ? 600 : 400, padding: '5px 12px', borderRadius: 8, border: 'none',
-                background: period === p ? '#fff' : 'transparent', color: period === p ? '#111827' : '#6B7280',
-                boxShadow: period === p ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}>
-              {p === 'custom' ? 'Custom' : p.toUpperCase()}
-            </button>
-          ))}
-        </div>
-        {period === 'custom' && (
-          <div className="flex items-center gap-1.5">
-            <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)}
-              style={{ height: 30, padding: '0 8px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, color: '#111827', outline: 'none' }} />
-            <span style={{ fontSize: 12, color: '#9CA3AF' }}>–</span>
-            <input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)}
-              style={{ height: 30, padding: '0 8px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, color: '#111827', outline: 'none' }} />
-          </div>
-        )}
-        <button onClick={handleExport}
-          className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
-          style={{ background: '#fff', border: '1px solid #E5E7EB', color: '#374151', fontSize: 13, fontWeight: 500 }}>
-          <Download size={14} /> Export
-        </button>
         <NotificationBell />
       </div>
 
       <div className="px-4 md:px-8 py-6 flex flex-col gap-6">
-        <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>{t.reports.bookingsTitle}</h1>
-          <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>Class attendance and booking activity</p>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>{r.title}</h1>
+            <p style={{ fontSize: 13, color: '#6B7280', marginTop: 2 }}>{r.subtitle}</p>
+          </div>
+          <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: '#F3F4F6' }} role="group" aria-label={r.periodLabel}>
+            {PERIODS.map(p => (
+              <button key={p} onClick={() => setPeriod(p)} aria-pressed={period === p} className="cursor-pointer"
+                style={{ fontSize: 12, fontWeight: period === p ? 600 : 400, padding: '5px 12px', borderRadius: 8, border: 'none',
+                  background: period === p ? '#fff' : 'transparent', color: period === p ? '#111827' : '#4B5563',
+                  boxShadow: period === p ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}>
+                {r.periods[p]}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-          {STAT_CARDS.map(stat => (
-            <div key={stat.label} className="rounded-2xl" style={{ background: '#fff', border: '1px solid #E5E7EB', padding: '18px 20px' }}>
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-2 h-2 rounded-full" style={{ background: stat.color }} />
-                <span style={{ fontSize: 11, color: '#9CA3AF' }}>{stat.sub}</span>
-              </div>
-              <p style={{ fontSize: 28, fontWeight: 700, color: '#111827', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 4 }}>
-                {loading ? '…' : stat.value}
+        {error && !d ? (
+          <div className="flex items-center justify-between gap-3 px-5 py-4" style={CARD}>
+            <span role="alert" style={{ fontSize: 13, color: '#DC2626' }}>{r.loadError}</span>
+            <button onClick={load} className="cursor-pointer" style={{ fontSize: 13, fontWeight: 600, padding: '6px 14px', borderRadius: 999, border: '1px solid #E5E7EB', background: '#fff' }}>{r.retry}</button>
+          </div>
+        ) : !d ? (
+          <p style={{ fontSize: 13, color: '#6B7280' }}>{r.loading}</p>
+        ) : !d.hasBookings ? (
+          <div className="px-5 py-6" style={CARD}>
+            <p style={{ fontSize: 14, fontWeight: 600, color: '#111827', margin: 0 }}>{r.noBookingsTitle}</p>
+            <p style={{ fontSize: 13, color: '#6B7280', marginTop: 4 }}>{r.noBookingsHint}</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-6" style={{ opacity: loading ? 0.6 : 1, transition: 'opacity .15s' }}>
+            {/* Summary */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              {cards.map(c => (
+                <div key={c.label} style={{ ...CARD, padding: '16px 18px' }}>
+                  <span style={{ display: 'block', fontSize: 12, color: '#4B5563', fontWeight: 500, marginBottom: 8 }}>{c.label}</span>
+                  <span className="flex items-baseline gap-2">
+                    <span style={{ fontSize: 26, fontWeight: 700, color: '#111827', lineHeight: 1 }}>{c.value}</span>
+                    {c.change !== null && c.change !== 0 && (
+                      <span style={{ fontSize: 12, fontWeight: 600, color: c.change > 0 ? '#16A34A' : '#DC2626' }}>
+                        {c.change > 0 ? '+' : ''}{c.change}%
+                      </span>
+                    )}
+                  </span>
+                  <span style={{ display: 'block', fontSize: 11, color: '#6B7280', marginTop: 6 }}>{c.change !== null ? `${c.hint} · ${r.vsPrev}` : c.hint}</span>
+                </div>
+              ))}
+            </div>
+            {bookedTotal > 0 && tot && (
+              <p style={{ fontSize: 13, color: '#374151', margin: '-8px 0 0' }}>
+                {r.channelLine
+                  .replace('{self}', String(Math.round((tot.selfBooked / bookedTotal) * 100)))
+                  .replace('{staff}', String(Math.round((tot.staffBooked / bookedTotal) * 100)))}
               </p>
-              <p style={{ fontSize: 12, fontWeight: 500, color: '#6B7280' }}>{stat.label}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-          <div className="rounded-2xl p-5" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 4 }}>Bookings Over Time</p>
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 16 }}>Confirmed vs cancelled per period</p>
-            {loading ? <div style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</p></div> : (
-              <ResponsiveContainer width="100%" height={260}>
-                <AreaChart data={data?.chartData ?? []}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
-                  <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12 }} />
-                  <Area type="monotone" dataKey="confirmed" name="Confirmed" stroke="#0870E2" fill="#0870E2" fillOpacity={0.12} strokeWidth={2} />
-                  <Area type="monotone" dataKey="cancelled" name="Cancelled" stroke="#DC2626" fill="#DC2626" fillOpacity={0.08} strokeWidth={1.5} />
-                </AreaChart>
-              </ResponsiveContainer>
             )}
-          </div>
-          <div className="rounded-2xl p-5" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 4 }}>Bookings by Class</p>
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 16 }}>Top 6 classes by confirmed bookings</p>
-            {loading ? <div style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</p></div> : (
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={data?.byClassData ?? []} layout="vertical" margin={{ left: 8, right: 16 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" horizontal={false} />
-                  <XAxis type="number" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                  <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: '#6B7280' }} axisLine={false} tickLine={false} width={100} />
-                  <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12 }} />
-                  <Bar dataKey="bookings" name="Bookings" radius={[0, 6, 6, 0]} fill="#0870E2" />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-        </div>
 
-        <div>
-          <div className="flex items-center gap-2 mb-4 flex-wrap">
-            {([
-              { key: 'ALL', label: 'All' }, { key: 'CONFIRMED', label: 'Confirmed' },
-              { key: 'COMPLETED', label: 'Completed' }, { key: 'CANCELLED', label: 'Cancelled' },
-            ] as const).map(tab => {
-              const isOn = filterTab === tab.key
-              return (
-                <button key={tab.key} onClick={() => setFilterTab(tab.key)} className="cursor-pointer"
-                  style={{ fontSize: 12, fontWeight: isOn ? 600 : 400, padding: '5px 14px', borderRadius: 8,
-                    background: isOn ? '#111827' : '#fff', color: isOn ? '#fff' : '#6B7280',
-                    border: isOn ? '1.5px solid #111827' : '1.5px solid #E5E7EB' }}>
-                  {tab.label}
-                  {!loading && tab.key === 'ALL' && data && <span style={{ opacity: 0.6, marginLeft: 4 }}>{data.total}</span>}
-                </button>
-              )
-            })}
-            <div style={{ marginLeft: 'auto' }}>
-              <FiltersPanel filters={filters} onChange={f => { setFilters(f); setPage(1) }} />
-            </div>
-          </div>
-
-          <div className="rounded-2xl overflow-hidden" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-            <table className="w-full">
-              <thead>
-                <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
-                  {['Member', 'Class', 'Date & Time', 'Status', ''].map(h => (
-                    <th key={h} className="px-5 py-3 text-left"
-                      style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr><td colSpan={5} className="px-5 py-8 text-center" style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</td></tr>
-                ) : (data?.bookings ?? []).length === 0 ? (
-                  <tr><td colSpan={5} className="px-5 py-8 text-center" style={{ fontSize: 13, color: '#9CA3AF' }}>No bookings found</td></tr>
-                ) : (
-                  (data?.bookings ?? []).map((b, idx) => {
-                    const ss = STATUS_STYLES[b.status] ?? STATUS_STYLES['CONFIRMED']!
-                    return (
-                      <tr key={b.id} className="hover:bg-[#FAFAFA] transition-colors"
-                        style={{ borderBottom: idx < (data?.bookings.length ?? 0) - 1 ? '1px solid #F9FAFB' : 'none' }}>
-                        <td className="px-5 py-3">
-                          <div className="flex items-center gap-2.5">
-                            <Avatar name={b.userName} avatarUrl={b.userAvatar} size={28} />
-                            <div>
-                              <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{b.userName}</p>
-                              <p style={{ fontSize: 11, color: '#9CA3AF' }}>{b.userEmail}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-5 py-3"><span style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>{b.className}</span></td>
-                        <td className="px-5 py-3"><span style={{ fontSize: 12, color: '#9CA3AF' }}>{fmtDateTime(b.scheduledAt)}</span></td>
-                        <td className="px-5 py-3">
-                          <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999, background: ss.bg, color: ss.color, border: '1px solid ' + ss.border }}>
-                            {ss.label}
+            {/* Weekly timetable */}
+            <section style={{ ...CARD, padding: 18 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0 }}>{r.timetable}</h2>
+              <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 14px' }}>{r.timetableHint}</p>
+              {d.slots.length === 0 ? (
+                <p style={{ fontSize: 13, color: '#6B7280' }}>{r.noSessions}</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+                  {WEEK_ORDER.filter(dow => d.slots.some(s => s.dayOfWeek === dow)).map(dow => (
+                    <div key={dow} className="flex flex-col gap-2">
+                      <span style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{dayName(dow, 'long')}</span>
+                      {d.slots.filter(s => s.dayOfWeek === dow).map(s => (
+                        <div key={s.key} style={{ border: `1px solid ${s.low ? '#FECACA' : s.full ? '#FED7AA' : '#E5E7EB'}`, background: s.low ? '#FEF2F2' : s.full ? '#FFF7ED' : '#fff', borderRadius: 12, padding: '10px 12px' }}>
+                          <span style={{ display: 'block', fontSize: 11, color: '#6B7280' }}>{s.time}–{s.endTime}</span>
+                          <span style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#111827', lineHeight: 1.25, marginTop: 2 }}>{s.className}</span>
+                          <span className="flex items-center gap-1" style={{ marginTop: 6, fontSize: 12, color: '#374151' }}>
+                            <strong>{num(s.avgAttended)}</strong>
+                            <span style={{ color: '#6B7280' }}>{s.capacity ? r.ofCapacity.replace('{cap}', String(s.capacity)) : r.perSession}</span>
+                            {s.trend && (
+                              <span title={s.trend === 'UP' ? r.trendUp : r.trendDown} aria-label={s.trend === 'UP' ? r.trendUp : r.trendDown} style={{ color: s.trend === 'UP' ? '#16A34A' : '#DC2626', display: 'inline-flex' }}>
+                                {s.trend === 'UP' ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
+                              </span>
+                            )}
                           </span>
-                        </td>
-                        <td className="px-5 py-3">
-                          <RowMenu items={[
-                            { label: 'Copy member email', onClick: () => { navigator.clipboard.writeText(b.userEmail); showToast('Email copied') } },
-                            { label: `Copy class: ${b.className}`, onClick: () => { navigator.clipboard.writeText(b.className); showToast('Class name copied') } },
-                            { label: 'Copy date & time', onClick: () => { navigator.clipboard.writeText(fmtDateTime(b.scheduledAt)); showToast('Date copied') } },
-                          ]} />
+                          {s.fill !== null && (
+                            <span style={{ display: 'block', height: 4, borderRadius: 999, background: '#F3F4F6', marginTop: 6, overflow: 'hidden' }}>
+                              <span style={{ display: 'block', height: '100%', width: `${Math.min(100, Math.round(s.fill * 100))}%`, background: fillColor(s.fill) }} />
+                            </span>
+                          )}
+                          {(s.low || s.full) && (
+                            <span style={{ display: 'inline-block', marginTop: 6, fontSize: 10, fontWeight: 700, color: s.low ? LOW_COLOR : FULL_COLOR, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                              {s.low ? r.badgeLow : r.badgeFull}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            {/* To review */}
+            <section style={{ ...CARD, overflow: 'hidden' }}>
+              <div className="flex flex-wrap gap-2 px-4 pt-4 pb-3" role="tablist">
+                {reviewTabs.map(rt => (
+                  <button key={rt.key} role="tab" aria-selected={tab === rt.key} onClick={() => setTab(rt.key)} className="cursor-pointer flex items-center gap-2"
+                    style={{ fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 999,
+                      border: tab === rt.key ? `1.5px solid ${rt.color}` : '1px solid #E5E7EB', background: tab === rt.key ? '#fff' : '#F9FAFB', color: '#111827' }}>
+                    <span className="w-2 h-2 rounded-full" style={{ background: rt.color }} aria-hidden />
+                    {rt.label}
+                    <span style={{ fontSize: 11, color: '#6B7280', fontWeight: 500 }}>{rt.count}</span>
+                  </button>
+                ))}
+              </div>
+              <p style={{ fontSize: 12, color: '#6B7280', padding: '0 16px 10px', margin: 0 }}>
+                {tab === 'LOW' ? r.lowHint : tab === 'FULL' ? r.fullHint : tab === 'UNMARKED' ? r.unmarkedHint : r.offHint}
+              </p>
+              <div style={{ overflowX: 'auto' }}>
+                {tab === 'LOW' && (low.length === 0 ? <Empty text={r.emptyLow} /> : (
+                  <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 620 }}>
+                    <thead><tr style={{ background: '#F9FAFB' }}><th style={TH}>{r.colClass}</th><th style={TH}>{r.colWhen}</th><th style={TH}>{r.colAvg}</th><th style={TH}>{r.colPrev}</th><th style={TH}>{r.colSessions}</th><th style={TH}>{r.colOverlap}</th></tr></thead>
+                    <tbody>{low.map(s => (
+                      <tr key={s.key}>
+                        <td style={{ ...TD, fontWeight: 600, color: '#111827' }}>{s.className}</td>
+                        <td style={TD}>{dayName(s.dayOfWeek)} {s.time}</td>
+                        <td style={{ ...TD, color: LOW_COLOR, fontWeight: 600 }}>{num(s.avgAttended)}</td>
+                        <td style={TD}>{s.prevAvgAttended === null ? '—' : num(s.prevAvgAttended)}</td>
+                        <td style={TD}>{s.sessions}</td>
+                        <td style={TD}>{s.overlaps.length ? s.overlaps.map(o => `${o.className} (${num(o.avgAttended)})`).join(', ') : '—'}</td>
+                      </tr>
+                    ))}</tbody>
+                  </table>
+                ))}
+                {tab === 'FULL' && (full.length === 0 ? <Empty text={r.emptyFull} /> : (
+                  <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 560 }}>
+                    <thead><tr style={{ background: '#F9FAFB' }}><th style={TH}>{r.colClass}</th><th style={TH}>{r.colWhen}</th><th style={TH}>{r.colAvg}</th><th style={TH}>{r.colBookedAvg}</th><th style={TH}>{r.colCapacity}</th><th style={TH}>{r.colSessions}</th></tr></thead>
+                    <tbody>{full.map(s => (
+                      <tr key={s.key}>
+                        <td style={{ ...TD, fontWeight: 600, color: '#111827' }}>{s.className}</td>
+                        <td style={TD}>{dayName(s.dayOfWeek)} {s.time}</td>
+                        <td style={{ ...TD, color: FULL_COLOR, fontWeight: 600 }}>{num(s.avgAttended)}</td>
+                        <td style={TD}>{num(s.avgBooked)}</td>
+                        <td style={TD}>{s.capacity}</td>
+                        <td style={TD}>{s.sessions}</td>
+                      </tr>
+                    ))}</tbody>
+                  </table>
+                ))}
+                {tab === 'UNMARKED' && (d.unmarked.length === 0 ? <Empty text={r.emptyUnmarked} /> : (
+                  <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 520 }}>
+                    <thead><tr style={{ background: '#F9FAFB' }}><th style={TH}>{r.colDate}</th><th style={TH}>{r.colClass}</th><th style={TH}>{r.colUnmarked}</th><th style={TH} /></tr></thead>
+                    <tbody>{d.unmarked.map(u => (
+                      <tr key={`${u.classId}|${u.date}|${u.time}`}>
+                        <td style={TD}>{fmtDate(u.date)} · {u.time}</td>
+                        <td style={{ ...TD, fontWeight: 600, color: '#111827' }}>{u.className}</td>
+                        <td style={TD}>{u.unmarked}</td>
+                        <td style={{ ...TD, textAlign: 'right' }}>
+                          <Link href={calendarHref(u)} className="inline-flex items-center gap-1" style={{ fontSize: 12, fontWeight: 600, color: '#0870E2' }}>
+                            {r.markAttendance} <ExternalLink size={12} />
+                          </Link>
                         </td>
                       </tr>
-                    )
-                  })
-                )}
-              </tbody>
-            </table>
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between px-6 py-3" style={{ borderTop: '1px solid #F3F4F6' }}>
-                <p style={{ fontSize: 13, color: '#6B7280' }}>
-                  Showing <span style={{ fontWeight: 600, color: '#111827' }}>{(page - 1) * ITEMS_PER_PAGE + 1}–{Math.min(page * ITEMS_PER_PAGE, data?.total ?? 0)}</span> of <span style={{ fontWeight: 600, color: '#111827' }}>{data?.total ?? 0}</span>
-                </p>
-                <div className="flex items-center gap-1">
-                  <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-                    style={{ border: '1px solid #E5E7EB', background: '#fff', color: page === 1 ? '#D1D5DB' : '#374151', cursor: page === 1 ? 'not-allowed' : 'pointer', borderRadius: 8, padding: '6px 10px' }}>
-                    <ChevronLeft size={14} />
-                  </button>
-                  {pages.map((p, i) =>
-                    p === '...' ? <span key={'e' + i} style={{ fontSize: 13, color: '#9CA3AF', padding: '0 4px' }}>…</span> : (
-                      <button key={p} onClick={() => setPage(p as number)} className="w-9 h-9 flex items-center justify-center rounded-lg cursor-pointer"
-                        style={{ fontSize: 13, fontWeight: p === page ? 600 : 400, border: 'none', background: p === page ? '#F3F4F6' : 'transparent', color: p === page ? '#111827' : '#6B7280' }}>{p}</button>
-                    )
-                  )}
-                  <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-                    style={{ border: '1px solid #E5E7EB', background: '#fff', color: page === totalPages ? '#D1D5DB' : '#374151', cursor: page === totalPages ? 'not-allowed' : 'pointer', borderRadius: 8, padding: '6px 10px' }}>
-                    <ChevronRight size={14} />
-                  </button>
-                </div>
+                    ))}</tbody>
+                  </table>
+                ))}
+                {tab === 'OFF' && (d.offSchedule.length === 0 ? <Empty text={r.emptyOff} /> : (
+                  <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 560 }}>
+                    <thead><tr style={{ background: '#F9FAFB' }}><th style={TH}>{r.colDate}</th><th style={TH}>{r.colClass}</th><th style={TH}>{r.colBooked}</th><th style={TH}>{r.colAttended}</th><th style={TH}>{r.colReason}</th></tr></thead>
+                    <tbody>{d.offSchedule.map(o => (
+                      <tr key={`${o.classId}|${o.date}|${o.time}`}>
+                        <td style={TD}>{fmtDate(o.date)} · {o.time}</td>
+                        <td style={{ ...TD, fontWeight: 600, color: '#111827' }}>{o.className}</td>
+                        <td style={TD}>{o.booked}</td>
+                        <td style={TD}>{o.attended}</td>
+                        <td style={{ ...TD, color: '#6B7280' }}>{o.reason === 'NO_SCHEDULE' ? r.reasonNoSchedule : r.reasonNotInSchedule}</td>
+                      </tr>
+                    ))}</tbody>
+                  </table>
+                ))}
               </div>
-            )}
+            </section>
+
+            {/* Trend */}
+            <section style={{ ...CARD, padding: 18 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: '0 0 12px' }}>{d.period === '12m' ? r.trendMonthly : r.trendWeekly}</h2>
+              <div style={{ width: '100%', height: 240 }}>
+                <ResponsiveContainer>
+                  <AreaChart data={d.trend.map(p => ({ ...p, label: trendLabel(p.key) }))} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
+                    <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#6B7280' }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 11, fill: '#6B7280' }} axisLine={false} tickLine={false} allowDecimals={false} />
+                    <Tooltip contentStyle={{ fontSize: 12, borderRadius: 10, border: '1px solid #E5E7EB' }} />
+                    <Legend wrapperStyle={{ fontSize: 12 }} />
+                    <Area type="monotone" dataKey="booked" name={r.booked} stroke="#0870E2" fill="#0870E2" fillOpacity={0.08} strokeWidth={2} />
+                    <Area type="monotone" dataKey="attended" name={r.attended} stroke="#16A34A" fill="#16A34A" fillOpacity={0.12} strokeWidth={2} />
+                    <Area type="monotone" dataKey="cancelled" name={r.cancelled} stroke="#DC2626" fill="#DC2626" fillOpacity={0.06} strokeWidth={1.5} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </section>
+
+            <AllBookings period={period} />
           </div>
-        </div>
+        )}
       </div>
     </main>
+  )
+}
+
+function Empty({ text }: { text: string }) {
+  return <p style={{ fontSize: 13, color: '#6B7280', padding: '14px 16px', margin: 0, borderTop: '1px solid #F3F4F6' }}>{text}</p>
+}
+
+/** Every booking of the period, folded away by default (no other page lists them) */
+function AllBookings({ period }: { period: Period }) {
+  const { t, locale } = useLanguage()
+  const r = t.bookingsReport
+  const [open, setOpen] = useState(false)
+  const [status, setStatus] = useState<ListStatus>('ALL')
+  const [search, setSearch] = useState('')
+  const [query, setQuery] = useState('')
+  const [page, setPage] = useState(1)
+  const [rows, setRows] = useState<ListRow[] | null>(null)
+  const [total, setTotal] = useState(0)
+  const [error, setError] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  // A failed export is reported apart: the rows on screen are still current
+  const [exportError, setExportError] = useState(false)
+  const requestId = useRef(0)
+
+  // Debounce the search box
+  useEffect(() => { const h = setTimeout(() => setQuery(search.trim()), 300); return () => clearTimeout(h) }, [search])
+  useEffect(() => { setPage(1) }, [period, status, query])
+
+  const params = useCallback((p: number, size: number) =>
+    new URLSearchParams({ period, status, search: query, page: String(p), pageSize: String(size) }).toString(), [period, status, query])
+
+  useEffect(() => {
+    if (!open) return
+    const id = ++requestId.current
+    // Drop the rows of the previous filter/page: on an error they would sit
+    // under the new filter and be exported as if they belonged to it
+    setError(false); setExportError(false); setRows(null); setTotal(0)
+    fetch(`/api/dashboard/reports/bookings/list?${params(page, LIST_PAGE)}`)
+      .then(res => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json() })
+      .then((d: { bookings: ListRow[]; total: number }) => { if (id === requestId.current) { setRows(d.bookings); setTotal(d.total) } })
+      .catch(() => { if (id === requestId.current) setError(true) })
+  }, [open, page, params])
+
+  const fmt = (iso: string) => new Date(iso).toLocaleString(locale, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
+  const statusLabel = (s: string) => r.status[s as keyof typeof r.status] ?? s
+
+  async function exportCsv() {
+    setExporting(true); setExportError(false)
+    try {
+      const res = await fetch(`/api/dashboard/reports/bookings/list?${params(1, 5000)}`)
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const d: { bookings: ListRow[] } = await res.json()
+      downloadCsv('bookings', [r.colMember, 'Email', r.colClass, r.colDate, r.colStatus, r.colAttended, r.colBookedBy],
+        d.bookings.map(b => [b.userName, b.userEmail, b.className, fmt(b.scheduledAt), statusLabel(b.status), b.attended ? '✓' : '', b.bookedBy === 'STAFF' ? r.byStaff : r.bySelf]), { locale })
+    } catch { setExportError(true) } finally { setExporting(false) }
+  }
+
+  const pages = Math.max(1, Math.ceil(total / LIST_PAGE))
+  return (
+    <section style={{ ...CARD, overflow: 'hidden' }}>
+      <button onClick={() => setOpen(o => !o)} aria-expanded={open} className="w-full flex items-center justify-between cursor-pointer"
+        style={{ padding: '14px 18px', background: 'none', border: 'none', textAlign: 'left' }}>
+        <span style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>{r.allBookings}</span>
+        {open ? <ChevronUp size={16} style={{ color: '#6B7280' }} /> : <ChevronDown size={16} style={{ color: '#6B7280' }} />}
+      </button>
+      {open && (
+        <div>
+          <div className="flex flex-wrap items-center gap-2 px-4 pb-3">
+            {LIST_STATUSES.map(s => (
+              <button key={s} onClick={() => setStatus(s)} aria-pressed={status === s} className="cursor-pointer"
+                style={{ fontSize: 12, fontWeight: status === s ? 600 : 500, padding: '5px 11px', borderRadius: 999, border: status === s ? '1.5px solid #0870E2' : '1px solid #E5E7EB', background: status === s ? '#EFF6FF' : '#fff', color: status === s ? '#0870E2' : '#374151' }}>
+                {s === 'ALL' ? r.statusAll : statusLabel(s)}
+              </button>
+            ))}
+            <div className="flex items-center gap-2 px-3 rounded-xl flex-1" style={{ minWidth: 180, height: 32, background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
+              <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
+              <input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder={r.searchPlaceholder} aria-label={r.searchPlaceholder}
+                style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
+            </div>
+            <button onClick={exportCsv} disabled={exporting || error || rows === null || total === 0} className="flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-default"
+              style={{ fontSize: 12, fontWeight: 600, height: 32, padding: '0 12px', borderRadius: 999, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
+              <Download size={13} /> {r.exportCsv}
+            </button>
+          </div>
+          {(error || exportError) && <p role="alert" style={{ fontSize: 12, color: '#DC2626', padding: '0 16px 8px', margin: 0 }}>{r.loadError}</p>}
+          <div style={{ overflowX: 'auto' }}>
+            {rows === null ? (error ? null : <Empty text={r.loading} />) : rows.length === 0 ? <Empty text={r.noResults} /> : (
+              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 640 }}>
+                <thead><tr style={{ background: '#F9FAFB' }}><th style={TH}>{r.colMember}</th><th style={TH}>{r.colClass}</th><th style={TH}>{r.colDate}</th><th style={TH}>{r.colStatus}</th><th style={TH}>{r.colBookedBy}</th></tr></thead>
+                <tbody>{rows.map(b => (
+                  <tr key={b.id}>
+                    <td style={TD}><span style={{ display: 'block', fontWeight: 600, color: '#111827' }}>{b.userName}</span><span style={{ fontSize: 11, color: '#6B7280' }}>{b.userEmail}</span></td>
+                    <td style={TD}>{b.className}</td>
+                    <td style={{ ...TD, whiteSpace: 'nowrap' }}>{fmt(b.scheduledAt)}</td>
+                    <td style={TD}>{statusLabel(b.status)}</td>
+                    <td style={{ ...TD, color: '#6B7280' }}>{b.bookedBy === 'STAFF' ? r.byStaff : r.bySelf}</td>
+                  </tr>
+                ))}</tbody>
+              </table>
+            )}
+          </div>
+          {total > LIST_PAGE && (
+            <div className="flex items-center justify-between px-4 py-3" style={{ borderTop: '1px solid #F3F4F6' }}>
+              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="cursor-pointer disabled:opacity-40 disabled:cursor-default" style={{ fontSize: 12, fontWeight: 600, background: 'none', border: 'none', color: '#374151' }}>{r.prev}</button>
+              <span style={{ fontSize: 12, color: '#6B7280' }}>{r.pageOf.replace('{page}', String(page)).replace('{pages}', String(pages))} · {total}</span>
+              <button onClick={() => setPage(p => Math.min(pages, p + 1))} disabled={page >= pages} className="cursor-pointer disabled:opacity-40 disabled:cursor-default" style={{ fontSize: 12, fontWeight: 600, background: 'none', border: 'none', color: '#374151' }}>{r.next}</button>
+            </div>
+          )}
+        </div>
+      )}
+    </section>
   )
 }

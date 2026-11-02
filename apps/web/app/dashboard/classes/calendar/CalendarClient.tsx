@@ -535,7 +535,30 @@ export default function CalendarClient() {
     fetch('/api/dashboard/classes')
       .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
       .then((data: { classes: ApiClass[] }) => {
-        setClasses(data.classes.flatMap(apiClassToSlots))
+        const slots = data.classes.flatMap(apiClassToSlots)
+        setClasses(slots)
+        // Deep link from the Bookings report: ?date=YYYY-MM-DD&class=<id>&time=HH:MM
+        // opens that session's roster so attendance can be marked.
+        const q = new URLSearchParams(window.location.search)
+        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(q.get('date') ?? '')
+        if (!m) return
+        const day = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+        if (Number.isNaN(day.getTime())) return
+        setSelectedDate(day)
+        setView('week')
+        const tm = /^(\d{2}):(\d{2})$/.exec(q.get('time') ?? '')
+        const cls = data.classes.find(c => c.id === q.get('class'))
+        if (!tm || !cls) return
+        const h = Number(tm[1]), min = Number(tm[2])
+        // The session may be at a time the timetable no longer has (it changed
+        // since): open it anyway — the roster is looked up by date and time.
+        const slot = slots.find(s => s.classId === cls.id && s.day === dowMon(day) && s.startH === h && s.startM === min)
+          ?? {
+            id: `${cls.id}-past-${h}${min}`, classId: cls.id, day: dowMon(day), startH: h, startM: min, durationM: 60,
+            name: cls.name, activity: cls.discipline?.name ?? cls.name, instructor: cls.instructor?.name ?? '—',
+            capacity: cls.capacity ?? 0, enrolled: 0,
+          }
+        setSelectedSlot(slot); setSelectedSlotDate(day)
       })
       .catch(() => setLoadError('Failed to load classes'))
       .finally(() => setLoading(false))
