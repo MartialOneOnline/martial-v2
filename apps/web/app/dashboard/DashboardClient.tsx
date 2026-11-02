@@ -502,7 +502,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
       .then(r => r.ok ? r.json() : null)
       .then(d => d?.chartData && setBookingsChart(d.chartData))
       .catch(() => {})
-    fetch(`/api/dashboard/reports/payments?period=${reportPeriod}&pageSize=1`)
+    fetch(`/api/dashboard/revenue-chart?period=${reportPeriod}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => d?.revenueData && setRevenueChart(d.revenueData))
       .catch(() => {})
