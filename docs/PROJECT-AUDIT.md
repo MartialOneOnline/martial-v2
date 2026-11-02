@@ -246,7 +246,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
   4. P2 — copia ofrecida donde la API la rechaza: el GET devuelve `copyable` con la misma regla que el endpoint (ningún gasto ese mes en ninguna moneda ni fecha + un mes anterior con gastos) y `expensesElsewhere` (faltan en este balance pero hay gastos en otra moneda o más adelante este mes); el botón y "copiar todos" solo usan `copyable`.
 - Tests: +4 en `balanceRoutes` (copia no ofrecida con gasto en otra moneda; gasto añadido a las 12:00 en días de DST; validaciones y permiso) y +1 en `balancePnl` (`schoolNoon`). Suite 1126 / 55 preexistentes; tsc 0; ESLint limpio.
 
-### Lote Q — Reservas: ocupación del horario (rama `claude/bookings-report`)
+### Lote Q — Reservas: ocupación del horario (rama `claude/bookings-report`, PR #53)
 
 - Estado: **pendiente de auditoría**. Sin migración.
 - Pedido del usuario: informes operativos; el de Reservas era un historial con un "% de asistencia" que no medía asistencia. Propuesta aprobada.

@@ -271,7 +271,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-02 (o) (rama `claude/bookings-report` — pendiente de Project Audit; sin migración)
+### Sesión — 2026-11-02 (o) (rama `claude/bookings-report`, PR [#53](https://github.com/MartialOneOnline/martial-v2/pull/53) — pendiente de Project Audit; sin migración)
 
 **Informe de Reservas rehecho: ocupación del horario.** Diagnóstico con datos de RGM (lectura autorizada por el usuario, solo RGM, 90 días): 2.005 asistencias de 147 alumnos, de ~55 a ~200 reservas/semana entre agosto y octubre; 113 canceladas, 59 no presentados, 93 reservas pasadas sin marcar; la mitad de las reservas las añade el staff. Todas las clases tienen 30 plazas y ninguna pasa de ~20 de media. Iniciación del jueves 19:00 tiene 2,8 de media a la misma hora que Jiu Jitsu Todos (19,5). El informe anterior llamaba "asistencia" a confirmadas/total (casi siempre ~100 %), no conocía NO_SHOW ni PENDING y agrupaba en la zona del servidor. Propuesta aprobada ("Sí, así").
 - **Convención de horas:** `Booking.scheduledAt` guarda la hora del horario en campos UTC (una clase de las 10:00 se guarda como 10:00Z; ver `scheduledAtForDate`). El informe trabaja en esa "hora de pared": `wallClock(now, tz)` lleva el ahora del colegio al mismo formato. Una primera consulta que convertía a Europe/Madrid mostraba franjas falsas desplazadas 1–2 h; con la convención correcta solo quedan ~8 sesiones sueltas fuera de horario.
