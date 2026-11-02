@@ -44,6 +44,15 @@ describe('GET /api/dashboard/revenue-chart', () => {
     expect((await (await call('?period=bogus')).json()).revenueData).toHaveLength(12)
   })
 
+  it('30d counts income on days between the old single-day points (Audit PR #52)', async () => {
+    vi.useFakeTimers(); vi.setSystemTime(new Date('2026-11-02T12:00:00'))
+    try {
+      m.txFindMany.mockResolvedValue([{ amount: 100, date: new Date('2026-10-07T18:00:00') }])
+      const { revenueData } = await (await call('?period=30d')).json()
+      expect(revenueData.reduce((s: number, p: { revenue: number }) => s + p.revenue, 0)).toBe(100)
+    } finally { vi.useRealTimers() }
+  })
+
   it('rejects anonymous users and non-staff', async () => {
     m.getAuthUser.mockResolvedValueOnce(null)
     expect((await call()).status).toBe(401)

@@ -271,12 +271,14 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-02 (m) (rama `claude/dashboard-revenue-chart`; sin migración; pendiente: Project Audit y prueba manual del usuario)
+### Sesión — 2026-11-02 (m) (rama `claude/dashboard-revenue-chart`, PR [#52](https://github.com/MartialOneOnline/martial-v2/pull/52) — `APROBADO CON PENDIENTES` en `88c3732` (2 P2 heredados) → P2 corregidos, reauditoría pendiente; sin migración; pendiente: prueba manual del usuario)
 
 **Regresión del PR #49: gráfico "Resumen de Pagos" del panel vacío.** El gráfico de `/dashboard` leía `revenueData` de `/api/dashboard/reports/payments`; el informe de Pagos se rehízo y ese campo (y el parámetro `period`) desapareció, así que el gráfico quedaba en blanco sin error.
 - Nuevo `GET /api/dashboard/revenue-chart?period=7d|30d|12m` → `{ revenueData: [{ date, revenue }] }`: suma INCOME PAID no borrado por punto de `periodBounds()`, mismo acceso (`requireDashboardAccess`) y mismo criterio que la tarjeta "Ingresos" de `/api/dashboard/stats`. Una sola consulta y reparto en memoria. Periodo desconocido → 12m.
 - `DashboardClient.tsx` usa el nuevo endpoint; el informe de Pagos no se toca.
 - Test `__tests__/dashboardRevenueChartRoute.test.ts` (3). Suite completa: 55 fallos ya existentes en `origin/main` (mismo número sin este cambio, p. ej. mock sin `prisma.notification` en `dashboardReportAuthGuards`), ninguno nuevo.
+- Auditoría `88c3732`, 2 P2 previos al #49, corregidos: (1) `periodBounds('30d')` daba 10 días sueltos cada 3 días, sin contar los dos intermedios (afectaba también al gráfico de Reservas y a `reports/bookings`); ahora son 10 tramos contiguos de 3 días que cubren los últimos 30 días (etiqueta = último día, igual que antes). (2) `DashboardClient` cancela con `AbortController` las peticiones de los gráficos al cambiar de periodo o colegio, así que una respuesta tardía ya no pisa la selección actual. Tests: `reportPeriods.test.ts` (30d sin huecos, 7-oct contado una vez) y caso 30d en `dashboardRevenueChartRoute.test.ts`.
+- Limitaciones aceptadas por Audit, no resueltas aquí: suma sin separar monedas, zona horaria del servidor, roles CUSTOM con 403.
 - "Ingresos 0 € / −100 %" el 2 de nov. no es fallo: aún no hay pagos PAID en noviembre (los dos de noviembre son efectivo pendiente).
 
 ### Sesión — 2026-11-02 (l) (rama `claude/payments-report`, PR [#49](https://github.com/MartialOneOnline/martial-v2/pull/49) — `RECHAZADO` en `b7899f8` (1 P1, 3 P2, 1 P3) → `APROBADO CON PENDIENTES` en `b346ca6` (3 P2, 1 P3) → **`APROBADO CON PENDIENTES`** en `10dec27` (queda 1 P2 compartido: el dashboard no admite roles CUSTOM — 0 en producción, tarea aparte); sin migración)
