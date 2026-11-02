@@ -12,6 +12,8 @@ export const OCC_PERIODS: OccPeriod[] = ['30d', '90d', '12m']
 export const isOccPeriod = (p: string | null): p is OccPeriod => p === '30d' || p === '90d' || p === '12m'
 const PERIOD_DAYS: Record<OccPeriod, number> = { '30d': 30, '90d': 90, '12m': 365 }
 
+/** An unbooked occurrence counts only between booked sessions of its slot this close on each side */
+export const EVIDENCE_DAYS = 28 // see slotsFor
 /** Fewer people than this on average, over at least LOW_MIN_SESSIONS sessions */
 export const LOW_AVG = 5
 export const LOW_MIN_SESSIONS = 3
@@ -49,12 +51,23 @@ export interface Cancellation { classId: string; date: string }
 
 export interface Window { from: Date; to: Date }
 
+// Building an Intl formatter is slow; one per timezone is enough
+const formatters = new Map<string, Intl.DateTimeFormat>()
+function formatterFor(timeZone: string): Intl.DateTimeFormat {
+  let f = formatters.get(timeZone)
+  if (!f) {
+    f = new Intl.DateTimeFormat('en-US', {
+      timeZone, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+    })
+    formatters.set(timeZone, f)
+  }
+  return f
+}
+
 /** The school's civil time now, in UTC fields (same convention as scheduledAt) */
 export function wallClock(now: Date, timeZone: string): Date {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', second: '2-digit',
-  }).formatToParts(now)
+  const parts = formatterFor(timeZone).formatToParts(now)
   const get = (type: string) => Number(parts.find(p => p.type === type)?.value ?? 0)
   return new Date(Date.UTC(get('year'), get('month') - 1, get('day'), get('hour'), get('minute'), get('second')))
 }
@@ -67,14 +80,28 @@ const fromMin = (n: number) => `${String(Math.floor(n / 60) % 24).padStart(2, '0
 
 /**
  * The real instant of a wall-clock time in the school's timezone (inverse of
- * wallClock). Two passes of the offset, so DST days resolve correctly; a wall
- * time inside a spring-forward gap lands just after it.
+ * wallClock). Tries the offsets in force a day before and a day after (at most
+ * one DST change sits in between):
+ * - one matches → that instant;
+ * - both match (the repeated hour when clocks go back) → the earlier one;
+ * - neither (a time skipped when clocks go forward, e.g. 00:30 on a day that
+ *   jumps from 00:00 to 01:00) → read with the offset from before the jump,
+ *   which lands just after it (00:30 → 01:30), never before.
  */
 export function wallToInstant(wall: Date, timeZone: string): Date {
+  const w = wall.getTime()
   const offsetAt = (t: number) => wallClock(new Date(t), timeZone).getTime() - Math.floor(t / 1000) * 1000
-  const first = wall.getTime() - offsetAt(wall.getTime())
-  return new Date(wall.getTime() - offsetAt(first))
+  const before = w - offsetAt(w - DAY)
+  const after = w - offsetAt(w + DAY)
+  const fits = (t: number) => wallClock(new Date(t), timeZone).getTime() === Math.floor(w / 1000) * 1000
+  const okBefore = fits(before), okAfter = fits(after)
+  if (okBefore && okAfter) return new Date(Math.min(before, after))
+  if (okAfter) return new Date(after)
+  return new Date(before)
 }
+
+/** First day of bookings buildOccupancy needs: the previous window minus the evidence margin */
+export const evidenceFrom = (previous: Window) => new Date(previous.from.getTime() - EVIDENCE_DAYS * DAY)
 
 /** The last N days up to now (today included), and the same length right before it */
 export function occupancyWindows(period: OccPeriod, nowWall: Date): { current: Window; previous: Window } {
@@ -98,13 +125,25 @@ export function slotMinutes(cls: OccClass, slot: ScheduleSlotIn): number {
   return len > 0 ? len : len + 24 * 60
 }
 
-/** Key of a timetable slot, also used for the first booking ever seen on it */
+/** Key of a timetable slot */
 export const slotKey = (classId: string, dayOfWeek: number, time: string) => `${classId}|${dayOfWeek}|${time}`
 
-interface Clock { now: Date; timeZone: string; nowWall: Date }
-/** Has a session (wall start + minutes) ended, plus a margin, in real elapsed time? */
-const endedBy = (clock: Clock, wallStart: Date, minutes: number, marginMin = 0) =>
-  wallToInstant(new Date(wallStart.getTime() + minutes * 60_000), clock.timeZone).getTime() + marginMin * 60_000 <= clock.now.getTime()
+interface Clock { now: Date; timeZone: string; nowWall: Date; starts: Map<number, number> }
+const makeClock = (now: Date, timeZone: string): Clock => ({ now, timeZone, nowWall: wallClock(now, timeZone), starts: new Map() })
+/**
+ * Has a session ended (plus a margin), in real elapsed time? The real end is
+ * the real start plus its length, so it never falls before the start on a DST
+ * night. Start instants are cached: every student of a session shares one.
+ */
+function endedBy(clock: Clock, wallStart: Date, minutes: number, marginMin = 0): boolean {
+  const key = wallStart.getTime()
+  let start = clock.starts.get(key)
+  if (start === undefined) {
+    start = wallToInstant(wallStart, clock.timeZone).getTime()
+    clock.starts.set(key, start)
+  }
+  return start + (minutes + marginMin) * 60_000 <= clock.now.getTime()
+}
 
 export interface SlotStat {
   key: string
@@ -146,19 +185,59 @@ interface SessionAgg { booked: number; attended: number }
 type InternalSlot = Omit<SlotStat, 'prevAvgAttended' | 'trend' | 'low' | 'full' | 'overlaps'> & { minutes: number }
 
 const round1 = (n: number) => Math.round(n * 10) / 10
+const dayNumber = (d: Date) => Math.floor(d.getTime() / DAY)
+
+/**
+ * Where the evidence is that a slot really ran: the days each timetable slot
+ * had a booked session, and the days a class had a session at a time that is
+ * not in its current timetable (it ran elsewhere that day).
+ */
+interface Evidence { bookedDays: Map<string, number[]>; ranElsewhere: Set<string> }
+function gatherEvidence(classes: OccClass[], bookings: OccBooking[]): Evidence {
+  const scheduled = new Set(classes.flatMap(c => c.schedule.map(s => slotKey(c.id, s.dayOfWeek, s.startTime))))
+  const bookedDays = new Map<string, number[]>()
+  const ranElsewhere = new Set<string>()
+  for (const b of bookings) {
+    if (!isBooked(b)) continue
+    const key = slotKey(b.classId, b.scheduledAt.getUTCDay(), hhmm(b.scheduledAt))
+    if (scheduled.has(key)) {
+      const days = bookedDays.get(key) ?? []
+      days.push(dayNumber(b.scheduledAt))
+      bookedDays.set(key, days)
+    } else {
+      ranElsewhere.add(`${b.classId}|${dateKey(b.scheduledAt)}`)
+    }
+  }
+  for (const days of bookedDays.values()) days.sort((a, b) => a - b)
+  return { bookedDays, ranElsewhere }
+}
+
+/** Is there a value in [from, to] in the sorted list? */
+function hasIn(sorted: number[], from: number, to: number): boolean {
+  let lo = 0, hi = sorted.length
+  while (lo < hi) { const mid = (lo + hi) >> 1; if (sorted[mid]! < from) lo = mid + 1; else hi = mid }
+  return lo < sorted.length && sorted[lo]! <= to
+}
+/** A gap between real sessions of the slot: one booked within `range` days before and one after */
+const betweenBooked = (sorted: number[], day: number, range: number) =>
+  hasIn(sorted, day - range, day) && hasIn(sorted, day, day + range)
 
 /**
  * Per timetable slot: sessions held in the window and how many came.
  * A session is held when it has ended by now (real time). A session nobody
- * booked still counts (as zero), but only from the first booking ever made on
- * that exact slot: the timetable as it is today says nothing about the times
- * a class ran before a schedule change. Cancelled occurrences never count.
+ * booked still counts (as zero) only with evidence the slot was running then:
+ * it sits between booked sessions of the same slot (one within EVIDENCE_DAYS
+ * before, one within EVIDENCE_DAYS after), and the class had no session at a
+ * time outside the timetable that day. Before a slot's first booking, after
+ * its last one, or across a long break, nothing is assumed. The timetable as it is
+ * today says nothing about the times a class ran before a change (or between
+ * two periods at the same time). Cancelled occurrences never count.
  */
 function slotsFor(input: {
   classes: OccClass[]; bookings: OccBooking[]; cancellations: Cancellation[]
-  window: Window; clock: Clock; slotFirstSeen: Record<string, Date>
+  window: Window; clock: Clock; evidence: Evidence
 }): { slots: Map<string, InternalSlot>; off: OffSession[] } {
-  const { classes, bookings, window, clock, slotFirstSeen } = input
+  const { classes, bookings, window, clock, evidence } = input
   const cancelled = new Set(input.cancellations.map(c => `${c.classId}|${c.date}`))
   const byClass = new Map(classes.map(c => [c.id, c]))
   const slots = new Map<string, InternalSlot>()
@@ -177,15 +256,16 @@ function slotsFor(input: {
       })
       const dates = new Map<string, SessionAgg>()
       sessions.set(key, dates)
-      const firstSeen = slotFirstSeen[key]
-      if (!cls.isActive || !firstSeen) continue
-      // Expected occurrences, booked or not, once the slot is known to run
-      const first = new Date(Math.max(window.from.getTime(), startOfDay(cls.createdAt).getTime(), startOfDay(firstSeen).getTime()))
+      const booked = evidence.bookedDays.get(key)
+      if (!cls.isActive || !booked) continue
+      // Expected occurrences, booked or not, while the slot is known to run
+      const first = new Date(Math.max(window.from.getTime(), startOfDay(cls.createdAt).getTime()))
       for (let d = startOfDay(first); d <= window.to; d = new Date(d.getTime() + DAY)) {
         if (d.getUTCDay() !== s.dayOfWeek) continue
         const start = new Date(d.getTime() + toMin(s.startTime) * 60_000)
-        if (start < window.from || start < firstSeen || !endedBy(clock, start, minutes)) continue
+        if (start < window.from || !endedBy(clock, start, minutes)) continue
         if (cancelled.has(`${cls.id}|${dateKey(d)}`)) continue
+        if (!betweenBooked(booked, dayNumber(d), EVIDENCE_DAYS) || evidence.ranElsewhere.has(`${cls.id}|${dateKey(d)}`)) continue
         dates.set(dateKey(d), { booked: 0, attended: 0 })
       }
     }
@@ -257,13 +337,13 @@ export function buildOccupancy(input: {
   /** Real current instant and the school's timezone */
   now: Date
   timeZone: string
-  /** First non-cancelled booking ever seen on each slot (slotKey), any date */
-  slotFirstSeen: Record<string, Date>
 }): Occupancy {
-  const clock: Clock = { now: input.now, timeZone: input.timeZone, nowWall: wallClock(input.now, input.timeZone) }
+  const clock = makeClock(input.now, input.timeZone)
   const { current, previous } = occupancyWindows(input.period, clock.nowWall)
-  const cur = slotsFor({ ...input, clock, window: current })
-  const prev = slotsFor({ ...input, clock, window: previous })
+  // Bookings should reach EVIDENCE_DAYS before the previous window (see evidenceFrom)
+  const evidence = gatherEvidence(input.classes, input.bookings)
+  const cur = slotsFor({ ...input, clock, evidence, window: current })
+  const prev = slotsFor({ ...input, clock, evidence, window: previous })
 
   const all = [...cur.slots.values()].filter(s => s.sessions > 0)
   const slots: SlotStat[] = all.map(s => {
