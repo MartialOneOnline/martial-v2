@@ -47,3 +47,10 @@ describe('sorting and money', () => {
     expect(mainCurrency({}, 'GBP')).toBe('GBP')
   })
 })
+
+describe('P3: rounding once at the end', () => {
+  it('three quarterly €100 plans = €100/month', () => {
+    const rows = [1, 2, 3].map(() => ({ amount: monthlyEquivalent(100, 'SUBSCRIPTION', 'quarterly'), currency: 'EUR' }))
+    expect(sumByCurrency(rows)).toEqual({ EUR: 100 })
+  })
+})

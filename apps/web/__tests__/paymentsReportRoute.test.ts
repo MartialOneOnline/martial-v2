@@ -60,6 +60,7 @@ beforeEach(() => {
   m.txGroupBy.mockResolvedValue([{ userId: 'u1', _max: { date: daysAgo(40) } }])
   m.users.mockResolvedValue([{ id: 'u2', ...u('Rafa') }, { id: 'u3', ...u('Paga') }])
   m.txFindMany
+    .mockResolvedValueOnce([]) // paid around the overdue dates (none: real debt)
     .mockResolvedValueOnce([]) // failed
     .mockResolvedValueOnce([{ id: 't-old', userId: 'u1', amount: 65, currency: 'EUR', description: 'Cuota', date: daysAgo(90), user: u('Ana'), membership: { status: 'ACTIVE' } }]) // old pending
     .mockResolvedValueOnce([{ amount: 65, currency: 'EUR' }, { amount: 40, currency: 'GBP' }]) // paid this month
@@ -87,8 +88,36 @@ describe('GET payments report', () => {
     expect(d.byMethod).toEqual([{ method: 'CASH', amount: 65 }])
   })
 
+  it('P1: an instructor without analytics permission gets 403; SUPERADMIN (no member row) passes', async () => {
+    m.requireDashboardAccess.mockResolvedValueOnce({ member: { role: 'INSTRUCTOR', customRoleId: null } })
+    expect((await call()).status).toBe(403)
+    m.requireDashboardAccess.mockResolvedValueOnce({ member: null })
+    expect((await call()).status).toBe(200)
+  })
+
+  it('P2: staff money is excluded from every transaction query, anonymous payments kept', async () => {
+    await call()
+    // [0] is the overdue reconciliation, already limited to non-staff students by userId
+    expect(m.txFindMany.mock.calls[0]![0].where.userId).toEqual({ in: ['u1'] })
+    for (const [args] of m.txFindMany.mock.calls.slice(1)) {
+      expect(args.where.OR).toEqual([{ userId: null }, { userId: { notIn: ['coach'] } }])
+    }
+  })
+
   it('403 for a student', async () => {
     m.requireDashboardAccess.mockRejectedValueOnce(new Error('Forbidden'))
     expect((await call()).status).toBe(403)
+  })
+})
+
+describe('P2: an overdue plan with a recent payment is "to review", not a debt', () => {
+  it('flags it, keeps it out of the total and lists it after the real debts', async () => {
+    m.txFindMany.mockReset()
+    m.txFindMany
+      .mockResolvedValueOnce([{ userId: 'u1', membershipId: 'ms1', date: daysAgo(8), periodEnd: null }]) // paid 2 days before due (10 days ago)
+      .mockResolvedValueOnce([]).mockResolvedValueOnce([]).mockResolvedValueOnce([]).mockResolvedValueOnce([]).mockResolvedValueOnce([])
+    const d = await (await call()).json()
+    expect(d.toCollect[0]).toMatchObject({ name: 'Ana', toReview: true })
+    expect(d.toCollectTotal).toEqual({})
   })
 })

@@ -7,6 +7,8 @@
 
 /** A pending payment older than this is probably stale (old import, forgotten) */
 export const OLD_PENDING_DAYS = 60
+/** A renewal paid up to this many days before the due date still covers it */
+export const PAID_EARLY_DAYS = 7
 /** "Still training" = came to a class in the last two weeks */
 export const TRAINING_RECENT_DAYS = 14
 /** "Training without paying" looks at the last 30 days */
@@ -70,11 +72,15 @@ export function sortOverdue<T extends OverdueInput & { daysOverdue: number; trai
   return [...rows].sort((a, b) => Number(b.training) - Number(a.training) || b.daysOverdue - a.daysOverdue || b.amount - a.amount)
 }
 
-/** Sum per currency — a school can have a stray GBP payment among EUR ones; never add them together */
+/**
+ * Sum per currency — a school can have a stray GBP payment among EUR ones;
+ * never add them together. Summed first, rounded to cents once at the end
+ * (three quarterly €100 plans are €100/month, not €99.99).
+ */
 export function sumByCurrency(rows: { amount: number; currency: string }[]): Record<string, number> {
-  const out: Record<string, number> = {}
-  for (const r of rows) out[r.currency] = Math.round(((out[r.currency] ?? 0) + r.amount) * 100) / 100
-  return out
+  const raw: Record<string, number> = {}
+  for (const r of rows) raw[r.currency] = (raw[r.currency] ?? 0) + r.amount
+  return Object.fromEntries(Object.entries(raw).map(([c, n]) => [c, Math.round(n * 100) / 100]))
 }
 
 /** The school's main currency: the one most of its money is in */

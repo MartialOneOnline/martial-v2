@@ -16,6 +16,7 @@ interface Contact { memberId: string | null; name: string; email: string | null;
 interface CollectRow extends Contact {
   membershipId: string; endDate: string; amount: number; currency: string; daysOverdue: number; training: boolean
   lastClassAt: string | null; lastPaidAt: string | null; method: string; planName: string; pendingRecorded: boolean
+  toReview: boolean; paidSinceDueAt: string | null
 }
 type UnpaidState = 'NO_PLAN' | 'TRIAL_OVER' | 'FREE_PLAN' | 'TRIAL'
 interface UnpaidRow extends Contact { state: UnpaidState; classes: number; lastClassAt: string | null; planName: string | null; planEndsAt: string | null }
@@ -75,6 +76,12 @@ export default function PaymentsReportClient() {
   const main = (m: Money | undefined) => fmtPrice(m?.[cur] ?? 0, cur)
   /** Other currencies, never added to the main one */
   const extra = (m: Money | undefined) => Object.entries(m ?? {}).filter(([c, n]) => c !== cur && n > 0).map(([c, n]) => fmtPrice(n, c)).join(' · ')
+  /** Every currency, main one first, never added together */
+  const allMoney = (m: Money | undefined) => {
+    const parts = Object.entries(m ?? {}).filter(([, n]) => n > 0).sort(([a], [b]) => Number(b === cur) - Number(a === cur)).map(([c, n]) => fmtPrice(n, c))
+    return parts.length ? parts.join(' + ') : fmtPrice(0, cur)
+  }
+  const debts = data ? data.toCollect.filter(x => !x.toReview).length : 0
   const methodLabel = (k: string | null) => (r.methods as Record<string, string>)[k ?? 'OTHER'] ?? k ?? '—'
   const stateLabel: Record<UnpaidState, string> = { NO_PLAN: r.stateNoPlan, TRIAL_OVER: r.stateTrialOver, FREE_PLAN: r.stateFreePlan, TRIAL: r.stateTrial }
   const stateColor: Record<UnpaidState, [string, string]> = { NO_PLAN: ['#FEF2F2', '#B91C1C'], TRIAL_OVER: ['#FFF7ED', '#C2410C'], FREE_PLAN: ['#F3F4F6', '#374151'], TRIAL: ['#EFF6FF', '#1D4ED8'] }
@@ -89,8 +96,8 @@ export default function PaymentsReportClient() {
   function exportList() {
     if (!data || !canExport) return
     const file = `${r.exportFile}-${tabLabel[tab]}`
-    if (tab === 'COLLECT') downloadCsv(file, [r.colStudent, r.email, r.colPhone, r.colPlan, r.colAmount, r.colDueSince, r.colDaysOverdue, r.colLastClass, r.colLastPaid, r.colMethod],
-      data.toCollect.map(x => [x.name, x.email, x.phone, x.planName, fmtPrice(x.amount, x.currency), fmt(x.endDate), x.daysOverdue, fmt(x.lastClassAt), fmt(x.lastPaidAt), methodLabel(x.method)]), { locale })
+    if (tab === 'COLLECT') downloadCsv(file, [r.colStudent, r.email, r.colPhone, r.colPlan, r.colAmount, r.colDueSince, r.colDaysOverdue, r.colLastClass, r.colLastPaid, r.colMethod, r.colReview],
+      data.toCollect.map(x => [x.name, x.email, x.phone, x.planName, fmtPrice(x.amount, x.currency), fmt(x.endDate), x.daysOverdue, fmt(x.lastClassAt), fmt(x.lastPaidAt), methodLabel(x.method), x.toReview ? r.toReview.replace('{date}', fmt(x.paidSinceDueAt)) : '']), { locale })
     else if (tab === 'UNPAID') downloadCsv(file, [r.colStudent, r.email, r.colPhone, r.colState, r.colClasses30, r.colLastClass, r.colPlan],
       data.unpaidTraining.map(x => [x.name, x.email, x.phone, stateLabel[x.state], x.classes, fmt(x.lastClassAt), x.planName ?? '']), { locale })
     else if (tab === 'FAILED') downloadCsv(file, [r.colStudent, r.email, r.colPhone, r.colWhat, r.colAmount, r.colDate, r.colMethod],
@@ -163,7 +170,7 @@ export default function PaymentsReportClient() {
               {[
                 { label: r.cardExpected.replace('{month}', monthName), value: main(m?.expected), hint: r.cardExpectedHint, extra: extra(m?.expected), color: '#0870E2' },
                 { label: r.cardCollected, value: main(m?.collected), hint: pct === null ? r.cardCollectedNoPlan : r.cardCollectedHint.replace('{pct}', String(pct)), extra: extra(m?.collected), color: '#16A34A' },
-                { label: r.cardToCollect, value: main(data.toCollectTotal), hint: r.cardToCollectHint.replace('{n}', String(data.toCollect.length)), extra: extra(data.toCollectTotal), color: '#DC2626' },
+                { label: r.cardToCollect, value: main(data.toCollectTotal), hint: r.cardToCollectHint.replace('{n}', String(debts)), extra: extra(data.toCollectTotal), color: '#DC2626' },
                 { label: r.cardPending, value: main(m?.pending), hint: r.cardPendingHint, extra: extra(m?.pending), color: '#D97706' },
               ].map(c => (
                 <div key={c.label} style={{ ...CARD, padding: '16px 18px' }}>
@@ -219,9 +226,11 @@ export default function PaymentsReportClient() {
                     <tbody>{data.toCollect.length === 0 ? empty(6) : data.toCollect.slice(0, shown).map(x => (
                       <tr key={x.membershipId}>
                         {nameCell(x, `${x.planName} · ${methodLabel(x.method)}`)}
-                        <td style={{ ...TD, fontWeight: 600, color: '#111827', whiteSpace: 'nowrap' }}>
+                        <td style={{ ...TD, fontWeight: 600, color: x.toReview ? '#6B7280' : '#111827', whiteSpace: 'nowrap' }}>
                           {fmtPrice(x.amount, x.currency)}
-                          {x.pendingRecorded && <span style={{ display: 'block', fontSize: 11, fontWeight: 400, color: '#6B7280' }}>{r.pendingRecorded}</span>}
+                          {x.toReview ? (
+                            <span style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#B45309' }}>{r.toReview.replace('{date}', fmt(x.paidSinceDueAt))}</span>
+                          ) : x.pendingRecorded && <span style={{ display: 'block', fontSize: 11, fontWeight: 400, color: '#6B7280' }}>{r.pendingRecorded}</span>}
                         </td>
                         <td style={{ ...TD, whiteSpace: 'nowrap' }}><span style={{ fontWeight: 600, color: '#DC2626' }}>{days(x.daysOverdue)}</span><span style={{ color: '#6B7280' }}> · {fmt(x.endDate)}</span></td>
                         <td style={{ ...TD, whiteSpace: 'nowrap' }}>
@@ -273,7 +282,7 @@ export default function PaymentsReportClient() {
               </div>
               {tab === 'OLD_PENDING' && data.oldPending.length > 0 && (
                 <p style={{ fontSize: 12, color: '#4B5563', margin: 0, padding: '10px 20px', borderTop: '1px solid #F3F4F6' }}>
-                  {r.oldPendingTotal.replace('{amount}', main(data.oldPendingTotal))}{' '}
+                  {r.oldPendingTotal.replace('{amount}', allMoney(data.oldPendingTotal))}{' '}
                   <Link href="/dashboard/payments/transactions" prefetch={false} style={{ color: '#0870E2', fontWeight: 600 }}>{r.reviewInTransactions}</Link>
                 </p>
               )}

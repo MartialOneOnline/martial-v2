@@ -1,26 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId, requireDashboardAccess } from '@/lib/auth/server'
+import { memberHasPermission } from '@/lib/auth/customRoles'
 import { schoolTimeZone } from '@/lib/memberActivity'
 import { cleanPhone, whatsappNumber } from '@/lib/phone'
 import { isTrialMembership, NON_TRIAL_MEMBERSHIP_WHERE } from '@/lib/services/trial'
 import { absencePeriod, zonedStartOfDay } from '@/lib/absences/periods'
 import { daysBetween, dayKey } from '@/lib/absences/stopped'
 import {
-  mainCurrency, monthlyEquivalent, OLD_PENDING_DAYS, sortOverdue, sumByCurrency, TRAINING_RECENT_DAYS,
+  mainCurrency, monthlyEquivalent, OLD_PENDING_DAYS, PAID_EARLY_DAYS, sortOverdue, sumByCurrency, TRAINING_RECENT_DAYS,
   UNPAID_ORDER, UNPAID_TRAINING_DAYS, unpaidState,
 } from '@/lib/payments/collect'
 
-// requireDashboardAccess() bypasses this for SUPERADMIN and otherwise
-// requires an ACTIVE SchoolMember with a staff-facing role — a STUDENT must
-// not read who owes the school money.
+// Who owes the school money is financial data: dashboard access is not
+// enough, it needs the same permission as the Payments menu entry
+// (school.analytics.view). SUPERADMIN has no member row and passes.
 async function authorise() {
   const user = await getAuthUser()
   if (!user) return { error: 'Unauthorized', status: 401 }
   const schoolId = await getCurrentSchoolId()
   if (!schoolId) return { error: 'No school context', status: 400 }
-  try { await requireDashboardAccess(schoolId) }
-  catch { return { error: 'Forbidden', status: 403 } }
+  try {
+    const { member } = await requireDashboardAccess(schoolId)
+    if (member && !await memberHasPermission(member, 'school.analytics.view')) return { error: 'Forbidden', status: 403 }
+  } catch { return { error: 'Forbidden', status: 403 } }
   return { schoolId }
 }
 
@@ -58,6 +61,8 @@ export async function GET(_req: NextRequest) {
   const staffIds = new Set(staff.map(s => s.userId))
   const students = await prisma.schoolMember.findMany({ where: { schoolId, role: 'STUDENT' }, select: { id: true, userId: true } })
   const memberIdByUser = new Map(students.filter(s => !staffIds.has(s.userId)).map(s => [s.userId, s.id]))
+  // Money of staff never counts; payments without a person (anonymous) do
+  const notStaff = staffIds.size ? { OR: [{ userId: null }, { userId: { notIn: [...staffIds] } }] } : {}
 
   const attended = { class: { schoolId }, attendedAt: { not: null }, status: { not: 'CANCELLED' as const }, scheduledAt: { lte: now } }
 
@@ -75,16 +80,36 @@ export async function GET(_req: NextRequest) {
   })
   const overdueMembers = overdueRaw.filter(m => memberIdByUser.has(m.userId))
   const overdueIds = overdueMembers.map(m => m.userId)
-  const [lastClasses, lastPayments] = await Promise.all([
+  const earliestDue = overdueMembers.reduce<Date | null>((min, m) => (!min || m.endDate! < min ? m.endDate! : min), null)
+  const [lastClasses, lastPayments, paidAround] = await Promise.all([
     prisma.booking.groupBy({ by: ['userId'], where: { ...attended, userId: { in: overdueIds } }, _max: { scheduledAt: true } }),
     prisma.transaction.groupBy({
       by: ['userId'],
       where: { schoolId, userId: { in: overdueIds }, type: 'INCOME', category: 'MEMBERSHIP', status: 'PAID', deletedAt: null },
       _max: { date: true },
     }),
+    // Payments that may already cover the overdue period (dates out of sync)
+    earliestDue ? prisma.transaction.findMany({
+      where: {
+        schoolId, userId: { in: overdueIds }, type: 'INCOME', category: 'MEMBERSHIP', status: 'PAID', deletedAt: null,
+        date: { gte: new Date(earliestDue.getTime() - PAID_EARLY_DAYS * DAY) },
+      },
+      select: { userId: true, membershipId: true, date: true, periodEnd: true },
+    }) : Promise.resolve([]),
   ])
   const lastClassBy = new Map(lastClasses.map(g => [g.userId, g._max?.scheduledAt ?? null]))
   const lastPaidBy = new Map(lastPayments.map(g => [g.userId!, g._max?.date ?? null]))
+  /**
+   * A paid payment for this plan (or this student) dated around or after the
+   * due date, or whose period goes past it: the money may already be in and
+   * only the dates weren't updated — shown "to review", never as a debt.
+   */
+  const paidSinceDue = (m: { id: string; userId: string; endDate: Date | null }): Date | null => {
+    const due = m.endDate!.getTime()
+    const hits = paidAround.filter(t => (t.membershipId === m.id || t.userId === m.userId)
+      && (t.date.getTime() >= due - PAID_EARLY_DAYS * DAY || (t.periodEnd && t.periodEnd.getTime() > due)))
+    return hits.reduce<Date | null>((max, t) => (!max || t.date > max ? t.date : max), null)
+  }
   const toCollect = sortOverdue(overdueMembers.map(m => {
     const lastClassAt = lastClassBy.get(m.userId) ?? null
     return {
@@ -94,12 +119,15 @@ export async function GET(_req: NextRequest) {
       daysOverdue: daysBetween(m.endDate!, now, timeZone),
       training: !!lastClassAt && daysBetween(lastClassAt, now, timeZone) < TRAINING_RECENT_DAYS,
       method: m.paymentMethod, planName: m.planName, pendingRecorded: m.transactions.length > 0, user: m.user,
+      paidSinceDue: paidSinceDue(m),
     }
-  })).map(({ user, userId, ...r }) => ({
+  })).map(({ user, userId, paidSinceDue: paid, ...r }) => ({
     ...r, ...contact(user), memberId: memberIdByUser.get(userId) ?? null,
     endDate: r.endDate.toISOString(), lastClassAt: r.lastClassAt?.toISOString() ?? null,
     lastPaidAt: lastPaidBy.get(userId)?.toISOString() ?? null,
-  }))
+    // Paid but the plan's dates weren't moved: check the dates, don't chase the money
+    toReview: !!paid, paidSinceDueAt: paid?.toISOString() ?? null,
+  })).sort((a, b) => Number(a.toReview) - Number(b.toReview))
 
   // ── Training without a paid plan (last 30 days) ──────────────────────────
   const recent = await prisma.booking.groupBy({
@@ -138,7 +166,7 @@ export async function GET(_req: NextRequest) {
       select: { userId: true, price: true, currency: true, planName: true, paymentStatus: true, paymentStatusAt: true, user: { select: { name: true, email: true, phone: true } } },
     }),
     prisma.transaction.findMany({
-      where: { schoolId, type: 'INCOME', status: 'FAILED', deletedAt: null, date: { gte: new Date(now.getTime() - 90 * DAY) } },
+      where: { schoolId, type: 'INCOME', status: 'FAILED', deletedAt: null, date: { gte: new Date(now.getTime() - 90 * DAY) }, ...notStaff },
       orderBy: { date: 'desc' },
       select: { userId: true, amount: true, currency: true, description: true, date: true, paymentMethod: true, user: { select: { name: true, email: true, phone: true } } },
     }),
@@ -148,7 +176,7 @@ export async function GET(_req: NextRequest) {
       kind: m.paymentStatus as 'PAST_DUE' | 'UNPAID', ...contact(m.user), memberId: memberIdByUser.get(m.userId) ?? null,
       amount: Number(m.price), currency: m.currency, label: m.planName, date: m.paymentStatusAt?.toISOString() ?? null, method: 'STRIPE',
     })),
-    ...failedTx.filter(t => !t.userId || !staffIds.has(t.userId)).map(t => ({
+    ...failedTx.map(t => ({
       kind: 'FAILED' as const, ...contact(t.user), memberId: t.userId ? memberIdByUser.get(t.userId) ?? null : null,
       amount: Number(t.amount), currency: t.currency, label: t.description ?? '', date: t.date.toISOString(), method: t.paymentMethod ?? null,
     })),
@@ -156,7 +184,7 @@ export async function GET(_req: NextRequest) {
 
   // ── Old pending payments (to review — nothing is changed here) ───────────
   const oldPendingRaw = await prisma.transaction.findMany({
-    where: { schoolId, type: 'INCOME', status: 'PENDING', deletedAt: null, date: { lt: new Date(now.getTime() - OLD_PENDING_DAYS * DAY) } },
+    where: { schoolId, type: 'INCOME', status: 'PENDING', deletedAt: null, date: { lt: new Date(now.getTime() - OLD_PENDING_DAYS * DAY) }, ...notStaff },
     orderBy: { date: 'asc' },
     select: { id: true, userId: true, amount: true, currency: true, description: true, date: true, user: { select: { name: true, email: true, phone: true } }, membership: { select: { status: true } } },
   })
@@ -173,11 +201,11 @@ export async function GET(_req: NextRequest) {
       select: { userId: true, price: true, currency: true, plan: { select: { planType: true, billingCycle: true } } },
     }),
     prisma.transaction.findMany({
-      where: { schoolId, type: 'INCOME', status: 'PAID', deletedAt: null, date: { gte: monthStart, lte: now } },
+      where: { schoolId, type: 'INCOME', status: 'PAID', deletedAt: null, date: { gte: monthStart, lte: now }, ...notStaff },
       select: { amount: true, currency: true },
     }),
     prisma.transaction.findMany({
-      where: { schoolId, type: 'INCOME', status: 'PENDING', deletedAt: null, date: { gte: monthStart, lte: now } },
+      where: { schoolId, type: 'INCOME', status: 'PENDING', deletedAt: null, date: { gte: monthStart, lte: now }, ...notStaff },
       select: { amount: true, currency: true },
     }),
   ])
@@ -191,14 +219,14 @@ export async function GET(_req: NextRequest) {
   // ── 12 months collected, per month and per method (main currency) ────────
   const year = absencePeriod('12m', timeZone, now)
   const paidYear = await prisma.transaction.findMany({
-    where: { schoolId, type: 'INCOME', status: 'PAID', deletedAt: null, date: { gte: year.from, lte: now } },
+    where: { schoolId, type: 'INCOME', status: 'PAID', deletedAt: null, date: { gte: year.from, lte: now }, ...notStaff },
     select: { amount: true, currency: true, date: true, paymentMethod: true },
   })
   const currency = mainCurrency(sumByCurrency(paidYear.map(t => ({ amount: Number(t.amount), currency: t.currency }))), Object.keys(expected)[0] ?? 'EUR')
   const inMain = paidYear.filter(t => t.currency === currency)
   const monthly = year.points.map(pt => ({
     key: pt.key,
-    amount: Math.round(inMain.filter(t => t.date >= pt.from && t.date <= pt.to).reduce((s, t) => s + Number(t.amount), 0) * 100) / 100,
+    amount: Math.round(inMain.filter(t => t.date >= pt.from && t.date <= pt.to).reduce((s, t) => s + Number(t.amount), 0) * 100) / 100, // rounded once, after summing
   }))
   const methodTotals = new Map<string, number>()
   for (const t of inMain) methodTotals.set(t.paymentMethod ?? 'OTHER', (methodTotals.get(t.paymentMethod ?? 'OTHER') ?? 0) + Number(t.amount))
@@ -208,7 +236,8 @@ export async function GET(_req: NextRequest) {
     currency,
     month: { key: dayKey(now, timeZone).slice(0, 7), expected, collected, pending },
     toCollect,
-    toCollectTotal: sumByCurrency(toCollect),
+    // Only real debts: rows "to review" may already be paid
+    toCollectTotal: sumByCurrency(toCollect.filter(x => !x.toReview)),
     unpaidTraining,
     failed,
     oldPending,
