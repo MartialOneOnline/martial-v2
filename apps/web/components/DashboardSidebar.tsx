@@ -202,7 +202,7 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen, collapsed, set
     { label: t.sidebar.school,      icon: School,     children: [
       { label: t.sidebar.leads,      href: '/dashboard/school/leads', permission: 'school.leads.view' },
       { label: t.sidebar.store,      href: '/dashboard/school/store', permission: 'school.marketplace.view' },
-      { label: t.sidebar.curriculum, href: '/dashboard/school/curriculum' },
+      { label: t.sidebar.curriculum, href: '/dashboard/school/curriculum', permission: 'school.classes.view' },
       { label: t.sidebar.affiliates, href: '/dashboard/school/affiliates', permission: 'school.affiliates.view' },
       { label: t.sidebar.staff,      href: '/dashboard/school/staff', permission: 'school.staff.view' },
       { label: t.sidebar.waivers,    href: '/dashboard/school/waivers', permission: 'school.waivers.manage' },
@@ -230,11 +230,13 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen, collapsed, set
     .map(item => item.children ? { ...item, children: item.children.filter(c => can(c.permission) && (!c.grading || currentSchool?.gradingEnabled === true)) } : item)
     .filter(item => can(item.permission) && (!item.children || item.children.length > 0))
 
-  const NAV_BOTTOM: NavItem[] = [
-    { label: t.sidebar.subscription,  icon: ShoppingBag, href: '/dashboard/subscription' },
-    { label: t.sidebar.notifications, icon: Bell,        href: '/dashboard/notifications' },
+  // Same rule as the main menu: every entry that shows school data names the
+  // permission its page and API need (Support is plain help, open to all staff).
+  const NAV_BOTTOM: NavItem[] = ([
+    { label: t.sidebar.subscription,  icon: ShoppingBag, href: '/dashboard/subscription', permission: 'school.settings.view' },
+    { label: t.sidebar.notifications, icon: Bell,        href: '/dashboard/notifications', permission: 'school.notifications.view' },
     { label: t.sidebar.support,       icon: HelpCircle,  href: '/dashboard/support' },
-  ]
+  ] as NavItem[]).filter(item => can(item.permission))
 
   return (
     <>

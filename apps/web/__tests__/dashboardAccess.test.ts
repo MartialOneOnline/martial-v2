@@ -32,7 +32,11 @@ describe('hasDashboardAccess()', () => {
       where: {
         userId: 'user-1',
         status: 'ACTIVE',
-        role: { in: ['OWNER', 'ADMIN', 'MANAGER', 'INSTRUCTOR', 'ASSISTANT_INSTRUCTOR', 'RECEPTIONIST'] },
+        // base staff roles, or a school-defined CUSTOM role with a StaffRole
+        OR: [
+          { role: { in: ['OWNER', 'ADMIN', 'MANAGER', 'INSTRUCTOR', 'ASSISTANT_INSTRUCTOR', 'RECEPTIONIST'] } },
+          { role: 'CUSTOM', customRoleId: { not: null } },
+        ],
       },
     })
   })

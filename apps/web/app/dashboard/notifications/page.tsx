@@ -1,5 +1,6 @@
 import NotificationsClient from './NotificationsClient'
+import RequirePermission from '../../../components/RequirePermission'
 
 export default function NotificationsPage() {
-  return <NotificationsClient />
+  return <RequirePermission permission="school.notifications.view"><NotificationsClient /></RequirePermission>
 }

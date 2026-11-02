@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db'
 import { Prisma } from '@/lib/prisma-client/client'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { staffCan } from '@/lib/auth/customRoles'
 
 // POST /api/dashboard/checkin
 // Body: { classId, userId, date }  (date = YYYY-MM-DD local)
@@ -21,7 +22,7 @@ export async function POST(req: NextRequest) {
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!['OWNER', 'ADMIN', 'INSTRUCTOR'].includes(member.role))
+      if (!(await staffCan(member, 'school.bookings.manage', ['OWNER', 'ADMIN', 'INSTRUCTOR'])))
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     } catch {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })

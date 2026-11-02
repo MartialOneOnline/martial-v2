@@ -148,16 +148,19 @@ describe('re-audit fixes', () => {
   })
 
   it('P2: a CUSTOM staff role with analytics permission gets in; without it, 403', async () => {
-    m.requireDashboardAccess.mockRejectedValueOnce(new Error('FORBIDDEN'))
-    m.requireSchoolAccess.mockResolvedValueOnce({ role: 'CUSTOM', customRoleId: 'r1', status: 'ACTIVE' })
+    // requireDashboardAccess now admits CUSTOM itself (judged by the permission the
+    // route names); the route still re-checks analytics for every member it returns
+    m.requireDashboardAccess.mockResolvedValueOnce({ member: { role: 'CUSTOM', customRoleId: 'r1' } })
     m.staffRole.mockResolvedValueOnce({ permissions: ['school.analytics.view'] })
     expect((await call()).status).toBe(200)
-    m.requireDashboardAccess.mockRejectedValueOnce(new Error('FORBIDDEN'))
-    m.requireSchoolAccess.mockResolvedValueOnce({ role: 'CUSTOM', customRoleId: 'r2', status: 'ACTIVE' })
+    expect(m.requireDashboardAccess).toHaveBeenCalledWith('s1', 'school.analytics.view')
+    m.requireDashboardAccess.mockResolvedValueOnce({ member: { role: 'CUSTOM', customRoleId: 'r2' } })
     m.staffRole.mockResolvedValueOnce({ permissions: ['school.classes.view'] })
     expect((await call()).status).toBe(403)
+    // STUDENT (or a CUSTOM role without the toggle) is refused by requireDashboardAccess
     m.requireDashboardAccess.mockRejectedValueOnce(new Error('FORBIDDEN'))
-    m.requireSchoolAccess.mockResolvedValueOnce({ role: 'STUDENT', customRoleId: null, status: 'ACTIVE' })
     expect((await call()).status).toBe(403)
+    // The old fallback through requireSchoolAccess is gone
+    expect(m.requireSchoolAccess).not.toHaveBeenCalled()
   })
 })

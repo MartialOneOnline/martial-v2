@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
-import { requireSchoolAccess, DASHBOARD_ROLES } from '@/lib/auth/contexts'
+import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { BASE_STAFF_ROLES } from '@/lib/auth/permissions'
 import { sniffImage, MAX_IMAGE_BYTES } from '@/lib/validateImageUpload'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -26,14 +27,18 @@ export async function POST(req: NextRequest) {
 
   // Dashboard-only endpoint — only staff of the current school (any role
   // except STUDENT, same set that's allowed into /dashboard at all, see
-  // hasDashboardAccess/DASHBOARD_ROLES in lib/auth/contexts.ts) may upload.
+  // hasDashboardAccess/STAFF_MEMBER_WHERE in lib/auth/contexts.ts) may upload —
+  // a school-defined CUSTOM role counts as staff when it has a StaffRole.
+  // Storing an image grants nothing by itself: putting it on a class, plan or
+  // the school profile goes through that screen's own permission check.
   // A STUDENT SchoolMember or a user with no membership in this school gets
   // a clean 403, instead of the previous getAuthUser()-only check that let
   // any authenticated user through regardless of school membership.
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!DASHBOARD_ROLES.includes(member.role)) {
+      const isStaff = BASE_STAFF_ROLES.includes(member.role) || (member.role === 'CUSTOM' && !!member.customRoleId)
+      if (!isStaff) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
       }
     } catch {

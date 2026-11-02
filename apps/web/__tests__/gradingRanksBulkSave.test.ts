@@ -11,7 +11,7 @@ const m = vi.hoisted(() => ({
 }))
 vi.mock('@/lib/auth/server', () => ({ getAuthUser: m.getAuthUser, getCurrentSchoolId: m.getCurrentSchoolId }))
 vi.mock('@/lib/auth/contexts', () => ({ requireSchoolAccess: m.requireSchoolAccess }))
-vi.mock('@/lib/auth/customRoles', () => ({ memberHasPermission: m.memberHasPermission }))
+vi.mock('@/lib/auth/customRoles', () => ({ memberHasPermission: m.memberHasPermission, staffCan: m.memberHasPermission }))
 vi.mock('@/lib/db', () => ({
   prisma: {
     gradingSystem: { findFirst: m.systemFind },

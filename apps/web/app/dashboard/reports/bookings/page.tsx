@@ -1,5 +1,6 @@
 import BookingsReportClient from './BookingsReportClient'
+import RequirePermission from '../../../../components/RequirePermission'
 
 export default function BookingsReportPage() {
-  return <BookingsReportClient />
+  return <RequirePermission permission="school.analytics.view"><BookingsReportClient /></RequirePermission>
 }

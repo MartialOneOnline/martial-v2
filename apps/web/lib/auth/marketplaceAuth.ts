@@ -1,6 +1,7 @@
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
-import { hasPermission, type Permission } from '@/lib/auth/permissions'
+import { staffCan } from '@/lib/auth/customRoles'
+import type { Permission } from '@/lib/auth/permissions'
 import { MarketplaceSellerType } from '@/lib/prisma-client/enums'
 import type { SellerContext } from '@/lib/services/collectibles/collectionService'
 
@@ -19,7 +20,7 @@ export async function authoriseSchoolMarketplace(
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!hasPermission(member.role, permission)) return { error: 'Forbidden', status: 403 }
+      if (!(await staffCan(member, permission))) return { error: 'Forbidden', status: 403 }
     } catch {
       return { error: 'Forbidden', status: 403 }
     }

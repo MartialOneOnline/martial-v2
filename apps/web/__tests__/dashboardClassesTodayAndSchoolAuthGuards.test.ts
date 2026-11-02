@@ -160,7 +160,7 @@ describe('GET /api/dashboard/classes/today — auth guard', () => {
     asStudent()
     const res = await classesTodayRoute.GET(getRequest('/api/dashboard/classes/today'))
     expect(res.status).toBe(403)
-    expect(mockRequireDashboardAccess).toHaveBeenCalledWith('school-1')
+    expect(mockRequireDashboardAccess).toHaveBeenCalledWith('school-1', 'school.classes.view')
   })
 
   it('200 for a legitimate staff role (OWNER), same data as before', async () => {
@@ -196,7 +196,7 @@ describe('GET /api/dashboard/school — auth guard', () => {
     asStudent()
     const res = await schoolRoute.GET(getRequest('/api/dashboard/school'))
     expect(res.status).toBe(403)
-    expect(mockRequireDashboardAccess).toHaveBeenCalledWith('school-1')
+    expect(mockRequireDashboardAccess).toHaveBeenCalledWith('school-1', 'school.profile.view')
   })
 
   it('200 for a legitimate staff role (OWNER), same data as before, secrets gated as OWNER (unchanged)', async () => {
@@ -245,16 +245,14 @@ describe('GET /api/dashboard/school — auth guard', () => {
   })
 })
 
-describe('regression — routes explicitly out of scope for this PR', () => {
-  it('GET /api/dashboard/classes still returns 200 for a STUDENT (hasPermission(\'school.classes.view\') allows it by design — untouched by this PR)', async () => {
+describe('regression — STUDENT is out of every /api/dashboard route', () => {
+  it('GET /api/dashboard/classes returns 403 for a STUDENT (staffCan never admits STUDENT, even for school.classes.view)', async () => {
     mockGetAuthUser.mockResolvedValue({ id: 'user-2', role: 'STUDENT' })
     mockGetCurrentSchoolId.mockResolvedValue('school-1')
     mockRequireSchoolAccess.mockResolvedValue({ role: 'STUDENT', status: 'ACTIVE' })
 
     const res = await classesRoute.GET()
 
-    expect(res.status).toBe(200)
-    // Confirms this route was NOT migrated to requireDashboardAccess().
-    expect(mockRequireDashboardAccess).not.toHaveBeenCalled()
+    expect(res.status).toBe(403)
   })
 })

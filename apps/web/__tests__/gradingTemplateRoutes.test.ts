@@ -19,7 +19,7 @@ const { guardSuperadmin, guardSuperadminUser, getAuthUser, getCurrentSchoolId, r
 }))
 vi.mock('@/lib/auth/server', () => ({ guardSuperadmin, guardSuperadminUser, getAuthUser, getCurrentSchoolId }))
 vi.mock('@/lib/auth/contexts', () => ({ requireSchoolAccess }))
-vi.mock('@/lib/auth/customRoles', () => ({ memberHasPermission }))
+vi.mock('@/lib/auth/customRoles', () => ({ memberHasPermission, staffCan: memberHasPermission }))
 vi.mock('@/lib/db', () => ({
   prisma: {
     gradingTemplate: tpl,

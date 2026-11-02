@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId, requireDashboardAccess } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { staffCan, type RoleBearer } from '@/lib/auth/customRoles'
 import { getSchoolModules, mergeSchoolModules } from '@/lib/school-modules'
 
 async function getEnabledPaymentMethods() {
@@ -30,16 +31,18 @@ export async function GET(req: NextRequest) {
   // must not read school settings data (even the "public" fields) via this
   // endpoint. This is the entry gate only; it does not decide which fields
   // come back — that is still decided below, unchanged.
-  let member: { role: string } | null
+  let member: RoleBearer | null
   try {
-    ;({ member } = await requireDashboardAccess(schoolId))
+    ;({ member } = await requireDashboardAccess(schoolId, 'school.profile.view'))
   } catch {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  // Only OWNER/ADMIN (or SUPERADMIN) may see the payment provider secret keys —
-  // other staff roles with dashboard access get the public fields only.
-  const canViewPaymentSecrets = user.role === 'SUPERADMIN' || (member != null && ['OWNER', 'ADMIN'].includes(member.role))
+  // Only OWNER/ADMIN (or SUPERADMIN, or a CUSTOM role allowed to manage
+  // settings — the same people PATCH lets change these keys) may see the
+  // payment provider secret keys — other staff get the public fields only.
+  const canViewPaymentSecrets = user.role === 'SUPERADMIN'
+    || (member != null && await staffCan(member, 'school.settings.manage', ['OWNER', 'ADMIN']))
 
   const baseSelect = {
     id: true,
@@ -127,7 +130,7 @@ export async function PATCH(req: NextRequest) {
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!['OWNER', 'ADMIN'].includes(member.role)) {
+      if (!(await staffCan(member, 'school.settings.manage', ['OWNER', 'ADMIN']))) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
       }
     } catch {

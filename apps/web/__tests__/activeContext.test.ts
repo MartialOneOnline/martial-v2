@@ -145,7 +145,13 @@ describe('listAvailableContexts()', () => {
       where: {
         userId: 'user-1',
         OR: [
-          { status: 'ACTIVE', role: { in: ['OWNER', 'ADMIN', 'MANAGER', 'INSTRUCTOR', 'ASSISTANT_INSTRUCTOR', 'RECEPTIONIST'] } },
+          {
+            status: 'ACTIVE',
+            OR: [
+              { role: { in: ['OWNER', 'ADMIN', 'MANAGER', 'INSTRUCTOR', 'ASSISTANT_INSTRUCTOR', 'RECEPTIONIST'] } },
+              { role: 'CUSTOM', customRoleId: { not: null } },
+            ],
+          },
           { status: { in: ['ACTIVE', 'LEAD', 'FROZEN'] }, role: 'STUDENT' },
         ],
       },
@@ -170,7 +176,10 @@ describe('isValidContext()', () => {
         userId: 'user-1',
         schoolId: 'school-1',
         status: 'ACTIVE',
-        role: { in: ['OWNER', 'ADMIN', 'MANAGER', 'INSTRUCTOR', 'ASSISTANT_INSTRUCTOR', 'RECEPTIONIST'] },
+        OR: [
+          { role: { in: ['OWNER', 'ADMIN', 'MANAGER', 'INSTRUCTOR', 'ASSISTANT_INSTRUCTOR', 'RECEPTIONIST'] } },
+          { role: 'CUSTOM', customRoleId: { not: null } },
+        ],
       },
     })
   })

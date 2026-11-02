@@ -14,6 +14,9 @@ import { useDashboard, useGradingEnabled, useSchoolContextFailure } from '../../
 import { GradingOffCard, GradingLoadError, offActionStyle } from '../../../components/grading/GradingModuleGate'
 import GradingSystemSettings, { type SchoolClassOption } from '../../../components/grading/GradingSystemSettings'
 import NotificationBell from '../../../components/NotificationBell'
+import { ForbiddenView } from '../../../components/RequirePermission'
+import { useSchoolContext } from '../../../lib/auth/useSchoolContext'
+import type { Permission } from '../../../lib/auth/permissions'
 import { useT } from '../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../lib/format'
 
@@ -2116,15 +2119,18 @@ function DeleteTab() {
 // ── Tabs config ───────────────────────────────────────────────────────────────
 type TabId = 'profile' | 'school' | 'modules' | 'staff' | 'staffRoles' | 'payments' | 'billing' | 'grading' | 'password' | 'delete'
 
-const TABS: { id: TabId; label: string; danger?: boolean }[] = [
+// Profile, Password and Delete Account are the viewer's own account — open to
+// every staff member. The school tabs need the same permission as the API
+// behind them, so a role (base or school-defined) only sees what it may use.
+const TABS: { id: TabId; label: string; danger?: boolean; permission?: Permission }[] = [
   { id: 'profile',    label: 'Profile'         },
-  { id: 'school',     label: 'School'          },
-  { id: 'modules',    label: 'Modules'         },
-  { id: 'staff',      label: 'Staff'           },
-  { id: 'staffRoles', label: 'Staff Roles'     },
-  { id: 'payments',   label: 'Payments'        },
-  { id: 'billing',    label: 'Billing'         },
-  { id: 'grading',    label: 'Grading'         },
+  { id: 'school',     label: 'School',      permission: 'school.settings.view' },
+  { id: 'modules',    label: 'Modules',     permission: 'school.settings.view' },
+  { id: 'staff',      label: 'Staff',       permission: 'school.staff.view' },
+  { id: 'staffRoles', label: 'Staff Roles', permission: 'school.settings.manage' },
+  { id: 'payments',   label: 'Payments',    permission: 'school.settings.view' },
+  { id: 'billing',    label: 'Billing',     permission: 'school.settings.view' },
+  { id: 'grading',    label: 'Grading',     permission: 'school.gradings.manage' },
   { id: 'password',   label: 'Password'        },
   { id: 'delete',     label: 'Delete Account', danger: true },
 ]
@@ -2137,6 +2143,9 @@ export default function SettingsClient() {
   const t = useT()
   const searchParams = useSearchParams()
   const tabParam = searchParams.get('tab')
+  const { loading: ctxLoading, isAdmin, currentSchool } = useSchoolContext()
+  // Everything stays visible while the context loads (same as the sidebar)
+  const canSee = (p?: Permission) => !p || isAdmin || ctxLoading || !!currentSchool?.permissions.includes(p)
   const [activeTab, setActiveTab] = useState<TabId>(
     TABS.some(tab => tab.id === tabParam) ? (tabParam as TabId) : 'profile'
   )
@@ -2192,7 +2201,7 @@ export default function SettingsClient() {
         {/* Pill tabs */}
         <div className="flex items-center gap-1 overflow-x-auto"
           style={{ background: '#F3F4F6', padding: 4, borderRadius: 12, width: 'fit-content' }}>
-          {TABS.filter(tab => tab.id !== 'grading' || gradingEnabled === true || activeTab === 'grading').map(tab => {
+          {TABS.filter(tab => canSee(tab.permission) && (tab.id !== 'grading' || gradingEnabled === true || activeTab === 'grading')).map(tab => {
             const isActive = activeTab === tab.id
             return (
               <button key={tab.id} onClick={() => switchTab(tab.id)}
@@ -2212,7 +2221,7 @@ export default function SettingsClient() {
 
         {/* Tab content */}
         <div>
-          {content[activeTab]}
+          {canSee(TABS.find(tab => tab.id === activeTab)?.permission) ? content[activeTab] : <ForbiddenView />}
         </div>
       </div>
     </main>

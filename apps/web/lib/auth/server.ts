@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { prisma } from '@/lib/db'
 import { requireSchoolAccess, DASHBOARD_ROLES } from './contexts'
+import { staffCan } from './customRoles'
+import type { Permission } from './permissions'
 
 type SupabaseAuthUser = {
   id: string
@@ -144,11 +146,15 @@ export async function getCurrentSchoolId(): Promise<string | null> {
 
 // Convenience: get auth user + validate school access in one call.
 // Throws 'UNAUTHORIZED' or 'FORBIDDEN' — catch in route handler.
-// Beyond requireSchoolAccess()'s ACTIVE-status check, this also enforces that
-// the member's role is staff-facing (DASHBOARD_ROLES) — a STUDENT with an
-// ACTIVE SchoolMember row must not read /api/dashboard/** report/billing data
-// just because they belong to the school.
-export async function requireDashboardAccess(schoolId?: string) {
+// Beyond requireSchoolAccess()'s ACTIVE-status check, the member must be
+// staff of THIS school:
+//   - a base staff role (DASHBOARD_ROLES) passes as before;
+//   - a school-defined CUSTOM role passes only when the route names the
+//     `permission` it needs and the role's own toggles include it — no
+//     permission named means no CUSTOM access (fail closed);
+//   - a STUDENT never passes, so it can't read /api/dashboard/** report or
+//     billing data just because it belongs to the school.
+export async function requireDashboardAccess(schoolId?: string, permission?: Permission) {
   const user = await getAuthUser()
   if (!user) throw new Error('UNAUTHORIZED')
 
@@ -158,7 +164,11 @@ export async function requireDashboardAccess(schoolId?: string) {
   if (!sid) throw new Error('FORBIDDEN')
 
   const member = await requireSchoolAccess(user.id, sid)
-  if (!DASHBOARD_ROLES.includes(member.role)) throw new Error('FORBIDDEN')
+  if (member.role === 'CUSTOM') {
+    if (!permission || !(await staffCan(member, permission))) throw new Error('FORBIDDEN')
+  } else if (!DASHBOARD_ROLES.includes(member.role)) {
+    throw new Error('FORBIDDEN')
+  }
   return { user, member }
 }
 

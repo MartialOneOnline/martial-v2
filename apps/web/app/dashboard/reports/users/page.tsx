@@ -1,6 +1,7 @@
 import UsersReportClient from './UsersReportClient'
 import { getCurrentSchoolId } from '@/lib/auth/server'
 import { getGradingEnabledForSchool } from '@/lib/grading/moduleServer'
+import RequirePermission from '../../../../components/RequirePermission'
 
 const asList = (v: string | string[] | undefined) => (v === undefined ? [] : Array.isArray(v) ? v : [v])
 
@@ -12,13 +13,15 @@ export default async function UsersReportPage({ searchParams }: { searchParams: 
   const schoolId = await getCurrentSchoolId()
   const gradingEnabled = schoolId ? await getGradingEnabledForSchool(schoolId) : undefined
   return (
-    <UsersReportClient
-      gradingEnabled={gradingEnabled}
-      // A belt link is meaningless with the module off — drop it before the first request
-      initialFilters={gradingEnabled === false ? { belts: [], degrees: [] } : {
-        belts: asList(sp.belt).filter(Boolean),
-        degrees: asList(sp.degree).map(Number).filter(n => Number.isInteger(n) && n >= 0),
-      }}
-    />
+    <RequirePermission permission="school.analytics.view">
+      <UsersReportClient
+        gradingEnabled={gradingEnabled}
+        // A belt link is meaningless with the module off — drop it before the first request
+        initialFilters={gradingEnabled === false ? { belts: [], degrees: [] } : {
+          belts: asList(sp.belt).filter(Boolean),
+          degrees: asList(sp.degree).map(Number).filter(n => Number.isInteger(n) && n >= 0),
+        }}
+      />
+    </RequirePermission>
   )
 }

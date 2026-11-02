@@ -10,7 +10,7 @@ async function authorise() {
   if (!user) return { error: 'Unauthorized', status: 401 }
   const schoolId = await getCurrentSchoolId()
   if (!schoolId) return { error: 'No school context', status: 400 }
-  try { await requireDashboardAccess(schoolId) }
+  try { await requireDashboardAccess(schoolId, 'school.membershipPlans.view') }
   catch { return { error: 'Forbidden', status: 403 } }
   return { schoolId }
 }

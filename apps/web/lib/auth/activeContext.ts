@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db'
-import { DASHBOARD_ROLES } from './contexts'
+import { STAFF_MEMBER_WHERE } from './contexts'
 import type { SchoolMemberRole } from '../prisma-client/enums'
 
 // This lives next to contexts.ts rather than inside it on purpose:
@@ -57,8 +57,9 @@ export type AvailableContext = ActiveContext & {
 // - schema has @@unique([schoolId, userId]) on SchoolMember, so a user has at
 //   most one row per school — there is no second row to source a second
 //   context from.
-// - a row's `role` is a single enum value, either a DASHBOARD_ROLES entry or
-//   STUDENT, never both. A staff row that happens to carry non-null
+// - a row's `role` is a single enum value, either a staff role (a
+//   DASHBOARD_ROLES entry or a school-defined CUSTOM role with a StaffRole)
+//   or STUDENT, never both. A staff row that happens to carry non-null
 //   belt/beltDegree (e.g. an instructor who is also graded) is still one row
 //   with role OWNER/ADMIN/MANAGER/INSTRUCTOR/ASSISTANT_INSTRUCTOR/
 //   RECEPTIONIST — it maps to exactly one 'dashboard' context, never an
@@ -79,7 +80,7 @@ export async function listAvailableContexts(userId: string): Promise<AvailableCo
     where: {
       userId,
       OR: [
-        { status: 'ACTIVE', role: { in: DASHBOARD_ROLES } },
+        { status: 'ACTIVE', ...STAFF_MEMBER_WHERE },
         { status: { in: ['ACTIVE', 'LEAD', 'FROZEN'] }, role: 'STUDENT' },
       ],
     },
@@ -129,7 +130,7 @@ export async function isValidContext(userId: string, context: ActiveContext): Pr
 
   if (mode === 'dashboard') {
     const count = await prisma.schoolMember.count({
-      where: { userId, schoolId, status: 'ACTIVE', role: { in: DASHBOARD_ROLES } },
+      where: { userId, schoolId, status: 'ACTIVE', ...STAFF_MEMBER_WHERE },
     })
     return count > 0
   }

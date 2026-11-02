@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { staffCan } from '@/lib/auth/customRoles'
 
 // GET /api/dashboard/classes/enrollments?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
 // Returns { "classId|YYYY-MM-DD|HH:MM": count } for all non-cancelled bookings in range.
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest) {
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!['OWNER', 'ADMIN', 'INSTRUCTOR'].includes(member.role))
+      if (!(await staffCan(member, 'school.bookings.view', ['OWNER', 'ADMIN', 'INSTRUCTOR'])))
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     } catch {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })

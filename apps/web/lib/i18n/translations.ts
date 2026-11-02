@@ -2,6 +2,7 @@ export type Locale = 'en' | 'es' | 'pt' | 'fr'
 
 export const translations = {
   en: {
+    access: { forbiddenTitle: 'You don’t have access to this page', forbiddenBody: 'Your role doesn’t include this section. If you think this is a mistake, ask an admin or owner at your school.', back: 'Back to Dashboard' },
     leadsReport: {
       detailLoadError: 'Could not open this lead (it may have been deleted, or you don’t have access).',
       title: 'Leads', subtitle: 'Prospects in the period: how far they got, and who needs a nudge to try a class or join',
@@ -1345,6 +1346,7 @@ export const translations = {
 
   // ── ESPAÑOL ────────────────────────────────────────────────────────────────
   es: {
+    access: { forbiddenTitle: 'No tienes acceso a esta página', forbiddenBody: 'Tu rol no incluye esta sección. Si crees que es un error, pídeselo a un administrador o al propietario de tu escuela.', back: 'Volver al panel' },
     leadsReport: {
       detailLoadError: 'No se pudo abrir este lead (puede que se haya borrado o que no tengas acceso).',
       title: 'Leads', subtitle: 'Interesados del periodo: hasta dónde llegaron y a quién darle un empujón para probar o apuntarse',
@@ -2602,6 +2604,7 @@ export const translations = {
 
   // ── PORTUGUÊS ──────────────────────────────────────────────────────────────
   pt: {
+    access: { forbiddenTitle: 'Você não tem acesso a esta página', forbiddenBody: 'O seu cargo não inclui esta seção. Se achar que é um erro, fale com um administrador ou o dono da sua escola.', back: 'Voltar ao painel' },
     leadsReport: {
       detailLoadError: 'Não foi possível abrir este lead (pode ter sido apagado ou não tem acesso).',
       title: 'Leads', subtitle: 'Interessados do período: até onde chegaram e a quem dar um empurrão para experimentar ou inscrever-se',
@@ -3859,6 +3862,7 @@ export const translations = {
 
   // ── FRANÇAIS ───────────────────────────────────────────────────────────────
   fr: {
+    access: { forbiddenTitle: 'Vous n’avez pas accès à cette page', forbiddenBody: 'Votre rôle n’inclut pas cette section. Si vous pensez que c’est une erreur, demandez à un administrateur ou au propriétaire de votre école.', back: 'Retour au tableau de bord' },
     leadsReport: {
       detailLoadError: 'Impossible d’ouvrir ce lead (il a peut-être été supprimé, ou vous n’y avez pas accès).',
       title: 'Leads', subtitle: 'Prospects de la période : jusqu’où ils sont allés et qui relancer pour un cours d’essai ou une inscription',

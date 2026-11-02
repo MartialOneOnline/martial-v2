@@ -1,6 +1,6 @@
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { getSchoolMembership } from '@/lib/auth/contexts'
-import { hasPermission } from '@/lib/auth/permissions'
+import { staffCan } from '@/lib/auth/customRoles'
 import { getStudentsForSchool } from './data'
 import UsersSplitShell from './UsersSplitShell'
 
@@ -22,7 +22,7 @@ export default async function UsersLayout({ children }: { children: React.ReactN
   let canViewList = viewer.role === 'SUPERADMIN'
   if (!canViewList) {
     const membership = await getSchoolMembership(viewer.id, schoolId)
-    canViewList = !!membership && hasPermission(membership.role, 'school.members.view')
+    canViewList = !!membership && membership.status === 'ACTIVE' && await staffCan(membership, 'school.members.view')
   }
 
   const listStudents = canViewList ? await getStudentsForSchool(schoolId) : null
