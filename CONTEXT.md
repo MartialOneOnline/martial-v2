@@ -271,6 +271,15 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
+### Sesión — 2026-11-02 (l) (rama `claude/payments-report` — pendiente de auditoría; sin migración)
+
+**Informe de Pagos rehecho: dinero por cobrar.** Diagnóstico con datos de RGM (lectura): ~88 % del cobro es efectivo; cobrado 4,8–6 k€/mes (oct. 5.045 €) frente a ~6,7 k€/mes previstos por planes activos; 53 cuotas de efectivo vencidas sin pago; 16 alumnos entrenaron en 30 días sin plan de pago (7 sin ningún plan); 199 pagos pendientes (14.085 €), algunos de ago. 2025. El informe anterior listaba movimientos, llamaba "MRR" a lo cobrado este mes, no conocía Revolut, mezclaba monedas y usaba la zona del servidor. Propuesta aprobada ("Sí, así").
+- `lib/payments/collect.ts` (puro): `monthlyEquivalent()` (solo suscripciones: mensual, trimestral/3, anual/12, quincenal·26/12; bonos y "one-off" no), `unpaidState()` (NO_PLAN / TRIAL_OVER / FREE_PLAN / TRIAL), `sortOverdue()` (los que siguen entrenando primero), `sumByCurrency()` / `mainCurrency()` (nunca se suman monedas).
+- `GET /api/dashboard/reports/payments` reescrito: **Por cobrar** (planes de pago ACTIVE no prueba, `endDate` anterior a hoy en la zona del colegio, sin cancelación programada; importe = pago pendiente registrado o precio; días de retraso, última clase, último pago, "sigue entrenando" < 14 días); **Entrenan sin pagar** (asistieron en 30 días sin plan de pago); **Cobros fallidos** (Stripe PAST_DUE/UNPAID + transacciones FAILED 90 días); **Pendientes antiguos** (> 60 días, solo revisión); **mes en curso** (previsto / cobrado / pendiente por moneda, zona del colegio); **12 meses** cobrado por mes y por método (moneda principal). Staff excluido en todo.
+- UI: 4 tarjetas (previsto, cobrado con % y barra, por cobrar, pendiente del mes), pestañas con contacto (llamar/WhatsApp/email), enlace a la ficha y CSV; gráfica mensual y reparto por método (Revolut incluido); enlace "Todos los movimientos" a `/dashboard/payments/transactions` (la tabla de movimientos vive allí). Textos `t.paymentsReport` en EN/ES/PT/FR.
+- Tests: `paymentsCollect` (6), `paymentsReportRoute` (3); `dashboardReportAuthGuards` añade el modelo `user` al mock. Suite 1105 / 55 preexistentes; tsc 0; ESLint limpio.
+- No verificado: navegador y datos reales. La cifra "cobrado este mes" usa la zona del colegio; la tarjeta de ingresos del inicio del dashboard (`/api/dashboard/stats`) sigue en la zona del servidor.
+
 ### Sesión — 2026-11-02 (k) (rama `claude/absences-report`, PR [#48](https://github.com/MartialOneOnline/martial-v2/pull/48) — `APROBADO CON PENDIENTES` en `9b5ee75` (5 P2, 1 P3) → **`APROBADO CON PENDIENTES`** en `0c0c5b6` (P3 de DST corregido); sin migración; pendiente: sesión autenticada con datos reales)
 
 **Informe de Ausencias rehecho: quién ha dejado de venir.** Diagnóstico con datos de RGM (lectura, 90 días): 2.036 asistencias frente a 116 cancelaciones y 59 no presentados; 35 de 129 alumnos activos llevan 14+ días sin venir (25 pagan cuota). El informe antiguo solo contaba cancelaciones y no presentados. Propuesta aprobada por el usuario ("Sí, así").
